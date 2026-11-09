@@ -1,5 +1,5 @@
-import React from 'react';
-import {useAnimatedReaction} from 'react-native-reanimated';
+import React, {useEffect} from 'react';
+import {useAnimatedReaction, useSharedValue} from 'react-native-reanimated';
 
 import type {CollapsibleHeaderOnKeyboardProps} from './types';
 
@@ -16,11 +16,16 @@ import useKeyboardCollapseMetrics from './useKeyboardCollapseMetrics';
  * Intended for landscape mode on phones where the keyboard + header can leave no room for inputs.
  * Uses height animation (not translateY) so the freed space is reclaimed by the layout below.
  */
-function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0, alwaysCollapseHeaderOnKeyboard = false}: CollapsibleHeaderOnKeyboardProps) {
+function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0, alwaysCollapseHeaderOnKeyboard = false, disabled = false}: CollapsibleHeaderOnKeyboardProps) {
     const collapsibleHeader = useCollapsibleHeader();
     const {naturalHeight, animatedHeight, isFocusedSV, isInLandscapeModeSV} = collapsibleHeader;
 
     const {keyboardHeightSV, keyboardProgressSV, availableWindowHeightSV, collapsibleHeaderOffsetSV} = useKeyboardCollapseMetrics(collapsibleHeaderOffset);
+    const disabledSV = useSharedValue(disabled);
+
+    useEffect(() => {
+        disabledSV.set(disabled);
+    }, [disabled, disabledSV]);
 
     // Runs on the UI thread whenever keyboard state changes. `getKeyboardCollapseState` picks the frames worth
     // reacting to, everything below only decides what this single header does with them.
@@ -29,10 +34,14 @@ function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0, alw
             keyboardHeight: keyboardHeightSV.get(),
             keyboardProgress: keyboardProgressSV.get(),
             availableWindowHeightValue: availableWindowHeightSV.get(),
+            disabled: disabledSV.get(),
         }),
-        ({keyboardHeight, keyboardProgress, availableWindowHeightValue}, previous) => {
-            // If the screen is not focused, bail out
-            if (!isFocusedSV.get() || !isInLandscapeModeSV.get()) {
+        ({keyboardHeight, keyboardProgress, availableWindowHeightValue, disabled: isDisabled}, previous) => {
+            // If the header is disabled, or screen is not focused, or not in landscape, restore header if it was collapsed and bail out
+            if (isDisabled || !isFocusedSV.get() || !isInLandscapeModeSV.get()) {
+                if (isDisabled && previous && !previous.disabled && animatedHeight.get() < naturalHeight.get()) {
+                    restoreHeaderTo(animatedHeight, naturalHeight.get());
+                }
                 return;
             }
 

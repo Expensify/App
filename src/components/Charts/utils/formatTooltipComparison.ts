@@ -7,35 +7,40 @@ import type Locale from '@src/types/onyx/Locale';
 
 import type {NonEmptyTuple} from 'type-fest';
 
-/** One compared series' amount at the active point */
+import getTooltipNote from './getTooltipNote';
+
+/** One compared series' value at the active point */
 type TooltipRow = {
     key: string;
 
     /** The series' color, shown as a dot before the row */
     color: string;
 
+    /** Whether the row is an average, shown with a short dash like its line instead of a dot */
+    isAverage?: boolean;
+
     /** Names the series, like "Average", or the dates the point covers in its period */
     label?: string;
 
-    amount: string;
+    value: string;
 
-    /** The amount's share of its own period's total spend */
-    percentage?: string;
+    /** Shown in parentheses after the value */
+    note?: string;
 };
 
 /** How the primary series changed against the one it is compared with */
 type TooltipChange = {
     /** The difference, without its sign */
-    amount: string;
+    value: string;
 
-    /** The difference relative to the compared amount */
+    /** The difference relative to the compared value */
     percentage: string;
 
     isIncrease: boolean;
 };
 
 type TooltipComparison = {
-    /** One row per series that has an amount at the point */
+    /** One row per series that has a value at the point */
     rows: TooltipRow[];
 
     change?: TooltipChange;
@@ -59,13 +64,13 @@ function formatChange(primaryValue: number, comparedValue: number, formatAmount:
 
     const difference = primaryValue - comparedValue;
     return {
-        amount: formatAmount(Math.abs(difference)),
+        value: formatAmount(Math.abs(difference)),
         percentage: formatChangePercentage(primaryValue, comparedValue, locale),
         isIncrease: difference > 0,
     };
 }
 
-/** Formats each series' amount at the point and the primary series' change against the second */
+/** Formats each series' value at the point and the primary series' change against the second */
 function formatTooltipComparison(
     dataPoint: ChartDataPoint,
     series: NonEmptyTuple<ChartSeries>,
@@ -79,18 +84,18 @@ function formatTooltipComparison(
         return undefined;
     }
 
-    const rows = series.flatMap(({key, color = VictoryTheme.colors.default, label}) => {
+    const rows = series.flatMap(({key, color = VictoryTheme.colors.default, label, isAverage}) => {
         const value = dataPoint.values[key];
         if (value === undefined) {
             return [];
         }
-        const percentOfTotal = dataPoint.seriesPercentOfTotal?.[key];
         return {
             key,
             color: dataPoint.seriesColors?.[key] ?? color,
+            isAverage,
             label: dataPoint.seriesLabels?.[key] ?? label,
-            amount: formatAmount(value),
-            percentage: percentOfTotal === undefined ? undefined : formatPercentOfTotal(percentOfTotal, value, locale),
+            value: formatAmount(value),
+            note: getTooltipNote(value, dataPoint.seriesPercentOfTotal?.[key], dataPoint.seriesTotals?.[key], locale),
         };
     });
 

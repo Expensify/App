@@ -1,4 +1,4 @@
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -11,7 +11,6 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import Navigation from '@libs/Navigation/Navigation';
 import {isCanceledTaskReport as isCanceledTaskReportUtil, isCompletedTaskReport, isTaskReport as isTaskReportUtil} from '@libs/ReportUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {canActionTask, reopenTask} from '@userActions/Task';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,14 +46,13 @@ function ReportDetailsMenuMarkAsIncompleteItem({reportID}: ReportDetailsMenuMark
     }
 
     return (
-        <MenuItem
+        <MenuItemAction
             title={translate('task.markAsIncomplete')}
             icon={expensifyIcons.Checkmark}
-            onPress={callFunctionIfActionIsAllowed(() => {
+            onPress={() => {
                 Navigation.goBack(navigateBackFromReportDetailsPath);
                 reopenTask(report, parentReport, currentUserAccountID, delegateEmail);
-            })}
-            isAnonymousAction={false}
+            }}
         />
     );
 }

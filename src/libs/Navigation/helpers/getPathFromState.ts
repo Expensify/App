@@ -162,7 +162,14 @@ function getPathFromStateWithDynamicRoute(state: State): string {
         }
     }
 
-    const reducedState = popFocusedRoute(state);
+    let reducedState = popFocusedRoute(state);
+
+    // `useSubPage` pushes each step of a multi-step flow as another copy of the same screen. The steps share one
+    // base path, so earlier steps under the focused one must not be added to it as layers.
+    const isSubPageFlow = suffixPattern.split('/').includes(':subPage?');
+    while (isSubPageFlow && reducedState && findFocusedRouteWithOnyxTabGuard(reducedState)?.name === screenName) {
+        reducedState = popFocusedRoute(reducedState);
+    }
 
     if (!reducedState) {
         return `/${actualSuffix}`;

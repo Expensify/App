@@ -3,7 +3,6 @@ import Header from '@components/Header';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -43,6 +42,7 @@ import INPUT_IDS from '@src/types/form/FlagForReviewRuleForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useFocusEffect} from '@react-navigation/native';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -74,6 +74,7 @@ function FlagForReviewRulePageBase({
     isCategoryScopedFlow = false,
     testID,
 }: FlagForReviewRulePageBaseProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyData = usePolicyData(policyID);
@@ -264,7 +265,9 @@ function FlagForReviewRulePageBase({
                         <Text style={[styles.textLabel, styles.textStrong, styles.lh16]}>{translate('workspace.rules.merchantRules.ifAnyExpenseMatches')}</Text>
                     </View>
                     <MenuItem.Root
-                        onPress={canEditCategory ? callFunctionIfActionIsAllowed(() => Navigation.navigate(getFlagForReviewRuleCategoryRoute(policyID, categoryName))) : undefined}
+                        onPress={
+                            canEditCategory ? callFunctionIfActionIsAllowed(() => Navigation.navigate(getFlagForReviewRuleCategoryRoute(policyID, categoryName)), false, session) : undefined
+                        }
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_CATEGORY}
                     >
                         <MenuItem.Row>
@@ -290,12 +293,15 @@ function FlagForReviewRulePageBase({
                     <MenuItem.Root
                         onPress={
                             canWriteRules
-                                ? callFunctionIfActionIsAllowed(() =>
-                                      Navigation.navigate(
-                                          isCategoryScopedFlow
-                                              ? createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_AMOUNT.path)
-                                              : getFlagForReviewRuleAmountRoute(policyID, categoryName, isCategoryLocked),
-                                      ),
+                                ? callFunctionIfActionIsAllowed(
+                                      () =>
+                                          Navigation.navigate(
+                                              isCategoryScopedFlow
+                                                  ? createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_AMOUNT.path)
+                                                  : getFlagForReviewRuleAmountRoute(policyID, categoryName, isCategoryLocked),
+                                          ),
+                                      false,
+                                      session,
                                   )
                                 : undefined
                         }
@@ -323,13 +329,14 @@ function FlagForReviewRulePageBase({
                     </MenuItem.Root>
                     <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
                     <Text style={[styles.textLabel, styles.textStrong, styles.lh16, styles.ph5, styles.pv3]}>{translate('workspace.rules.flagForReviewRule.thenDoTheFollowing')}</Text>
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.rules.flagForReviewRule.flagType')}
-                        title={translate('workspace.rules.flagForReviewRule.flagTypeWarning')}
-                        furtherDetails={translate('workspace.rules.flagForReviewRule.flagTypeWarningDescription')}
-                        interactive={false}
-                        shouldShowRightIcon={false}
-                    />
+                    <MenuItem.Root accessibilityLabel={`${translate('workspace.rules.flagForReviewRule.flagType')}, ${translate('workspace.rules.flagForReviewRule.flagTypeWarning')}`}>
+                        <MenuItem.Row>
+                            <MenuItemField.Content name={translate('workspace.rules.flagForReviewRule.flagType')}>
+                                <MenuItem.FieldValue>{translate('workspace.rules.flagForReviewRule.flagTypeWarning')}</MenuItem.FieldValue>
+                                <MenuItem.Description>{translate('workspace.rules.flagForReviewRule.flagTypeWarningDescription')}</MenuItem.Description>
+                            </MenuItemField.Content>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
                 </ScrollView>
                 {footer}
             </ScreenWrapper>

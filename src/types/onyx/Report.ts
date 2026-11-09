@@ -5,7 +5,9 @@ import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {ValueOf} from 'type-fest';
 
 import type * as OnyxCommon from './OnyxCommon';
-import type {PolicyReportField} from './Policy';
+import type {AutoReportingOffset, PolicyReportField} from './Policy';
+import type WiseQuote from './WiseQuote';
+import type {WiseQuoteRequest} from './WiseQuote';
 
 /** Preference that defines how regular the chat notifications are sent to the user */
 type NotificationPreference = ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>;
@@ -65,6 +67,18 @@ type ReportNextStep = {
 
         /** The ETA date time */
         dateTime?: string;
+
+        /** The submission frequency the ETA was calculated from */
+        autoReportingFrequency?: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
+
+        /** The submission day the ETA was calculated from */
+        autoReportingOffset?: AutoReportingOffset;
+
+        /** The second twice a month submission day the ETA was calculated from */
+        autoReportingOffsetSecondSemiMonthly?: AutoReportingOffset;
+
+        /** The workspace timezone the ETA was calculated in */
+        timeZone?: string;
     };
 
     /** The fill color of the icon */
@@ -72,6 +86,12 @@ type ReportNextStep = {
 
     /** Currency the submitter's deposit account must use for direct reimbursement, named in the waitingForSubmitterAccount copy */
     requiredDepositCurrency?: string;
+
+    /** Whether paying from the workspace reimbursement account sends this report through a global provider */
+    requiresGlobalReimbursement?: boolean;
+
+    /** Currency the submitter receives the reimbursement in */
+    depositCurrency?: string;
 };
 
 /** Model of report data */
@@ -88,6 +108,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The date the report was approved */
         approved?: string;
+
+        /** The date the report was paid */
+        paid?: string;
 
         /** Custom field 1 value for the report submitter */
         submitterUserID?: string;
@@ -112,6 +135,12 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Comma separated IDs of the report's settled withdrawals, in ascending order */
         withdrawalIDs?: string;
+
+        /** Wise's latest price for paying this cross-currency report, shown for the admin to confirm before Pay */
+        wiseQuote?: WiseQuote;
+
+        /** The payment `wiseQuote` was asked for */
+        wiseQuoteRequest?: WiseQuoteRequest;
 
         chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 
@@ -195,6 +224,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         lastActionType?: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE>;
         ownerAccountID?: number;
+
+        /** Sender of the invoice linked to the bill. An unlinked bill uses its owner's account. */
+        billSenderAccountID?: number;
 
         /** Collection of report participants, indexed by their accountID */
         participants?: Participants;

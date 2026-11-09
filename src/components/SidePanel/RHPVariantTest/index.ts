@@ -1,4 +1,3 @@
-import SidePanelActions from '@libs/actions/SidePanel';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -32,7 +31,7 @@ Onyx.connectWithoutView({
 });
 
 /**
- * Determines if the user should be navigated to the RHP variant side panel after onboarding.
+ * Determines if the user should get one of the RHP variant landings after onboarding.
  * The existing micro-company RHP variants (rhpConciergeDm, rhpAdminsRoom) are only shown to micro companies.
  * The trackExpensesWithConcierge variant is controlled entirely by the backend and applies regardless of company size.
  *
@@ -60,22 +59,13 @@ const shouldOpenRHPVariant: ShouldOpenRHPVariant = (variantOverride) => {
 };
 
 /**
- * Handles navigation for RHP experiment variants (B/C/D):
- * Variants B and C navigate to the workspace overview, Variant D navigates to home.
- * All variants open the side panel without overlay.
- * The control variant is handled separately in navigateAfterOnboarding.
+ * Handles navigation for the retired RHP experiment variants that some accounts still have assigned.
+ * rhpConciergeDm and rhpAdminsRoom navigate to the workspace overview, and rhpHomePage navigates to Home.
+ * None of them opens the side panel, because onboarding should only happen in one place.
+ * Track users and the control variant are handled separately in navigateAfterOnboarding.
  */
 const handleRHPVariantNavigation: HandleRHPVariantNavigation = (onboardingPolicyID, variantOverride, navigationOptions) => {
     const variant = variantOverride ?? onboardingRHPVariant;
-    if (variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
-        const shouldPreserveRevealedReport = isReportTopmostSplitNavigator();
-        if (!shouldPreserveRevealedReport) {
-            Navigation.navigate(ROUTES.HOME, navigationOptions);
-        }
-        SidePanelActions.openSidePanel(true);
-        return;
-    }
-
     const isRHPHomePage = variant === CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE;
 
     if (isRHPHomePage) {
@@ -86,7 +76,6 @@ const handleRHPVariantNavigation: HandleRHPVariantNavigation = (onboardingPolicy
     } else {
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(onboardingPolicyID), navigationOptions);
     }
-    SidePanelActions.openSidePanel(true);
 };
 
 export {shouldOpenRHPVariant, handleRHPVariantNavigation};

@@ -18,6 +18,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -121,6 +122,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     const accountManagerReportID = account?.accountManagerReportID;
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     const {accountID: currentUserAccountID, email: currentUserEmail = ''} = useCurrentUserPersonalDetails();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     const {
         canWrite: canWriteApprovals,
@@ -139,6 +141,8 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
             transactionViolations,
             isASAPSubmitBetaEnabled: isBetaEnabledOrUnknown(CONST.BETAS.ASAP_SUBMIT),
             personalDetailsList: personalDetails,
+            // Optional approval mode has no approvers, so personalDetailsByLogins isn't needed.
+            personalDetailsByLogins: undefined,
         });
     };
 
@@ -298,6 +302,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
             switchAccessibilityLabel={
                 isApprovalsLockedBySmartLimit ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : translate('workflowsPage.addApprovalsDescription')
             }
+            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.ADD_APPROVALS_SWITCH}
             onToggle={(isEnabled: boolean) => {
                 if (!canWriteApprovals) {
                     showReadOnlyModal();
@@ -337,6 +342,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                         transactionViolations,
                         isASAPSubmitBetaEnabled: isBetaEnabledOrUnknown(CONST.BETAS.ASAP_SUBMIT),
                         personalDetailsList: personalDetails,
+                        personalDetailsByLogins: getPersonalDetailsByLogin(),
                     },
                 );
             }}

@@ -47,13 +47,9 @@ function buildTransaction(overrides: Partial<Transaction> = {}): Transaction {
 }
 
 const BASE_PARAMS = {
+    iouType: CONST.IOU.TYPE.SUBMIT,
     isPolicyExpenseChat: true,
-    isUnreported: false,
-    isTrackExpense: false,
     isSelfDMDestination: false,
-    isDistanceRequest: false,
-    isPerDiemRequest: false,
-    isTimeRequest: false,
 };
 
 describe('getTransactionTaxValues', () => {
@@ -141,25 +137,29 @@ describe('getTransactionTaxValues', () => {
         expect(result).toEqual({transactionTaxCode: '', transactionTaxAmount: 0, transactionTaxValue: ''});
     });
 
-    it.each(['isUnreported', 'isTrackExpense', 'isSelfDMDestination'] as const)('applies tax when %s is the only destination flag set', (flag) => {
+    it.each([
+        {destination: 'an unreported expense', reportID: CONST.REPORT.UNREPORTED_REPORT_ID, iouType: CONST.IOU.TYPE.SUBMIT, isSelfDMDestination: false},
+        {destination: 'a tracked expense', reportID: '1', iouType: CONST.IOU.TYPE.TRACK, isSelfDMDestination: false},
+        {destination: 'the self DM', reportID: '1', iouType: CONST.IOU.TYPE.SUBMIT, isSelfDMDestination: true},
+    ])('applies tax for $destination', ({reportID, iouType, isSelfDMDestination}) => {
         // Given a workspace with tax tracking on
         const policy = buildPolicy();
-        const transaction = buildTransaction();
+        const transaction = buildTransaction({reportID});
 
         // When the tax values are computed for a destination that is not a workspace chat but still tracks tax
-        const result = getTransactionTaxValues({...BASE_PARAMS, transaction, policy, isPolicyExpenseChat: false, [flag]: true});
+        const result = getTransactionTaxValues({transaction, policy, iouType, isPolicyExpenseChat: false, isSelfDMDestination});
 
         // Then the workspace default rate is applied
         expect(result.transactionTaxCode).toBe(STANDARD_TAX_CODE);
     });
 
-    it.each(['isPerDiemRequest', 'isTimeRequest'] as const)('returns no tax code when %s is set', (flag) => {
+    it.each([CONST.IOU.REQUEST_TYPE.PER_DIEM, CONST.IOU.REQUEST_TYPE.TIME])('returns no tax code for a %s request', (iouRequestType) => {
         // Given a workspace with tax tracking on
         const policy = buildPolicy();
-        const transaction = buildTransaction();
+        const transaction = buildTransaction({iouRequestType});
 
         // When the tax values are computed for a request type that never tracks tax
-        const result = getTransactionTaxValues({...BASE_PARAMS, transaction, policy, [flag]: true});
+        const result = getTransactionTaxValues({...BASE_PARAMS, transaction, policy});
 
         // Then no tax is applied
         expect(result.transactionTaxCode).toBe('');
@@ -195,7 +195,7 @@ describe('getTransactionTaxValues', () => {
             const transaction = buildDistanceTransaction();
 
             // When the tax values are computed for a distance expense
-            const result = getTransactionTaxValues({...BASE_PARAMS, transaction, policy, isDistanceRequest: true});
+            const result = getTransactionTaxValues({...BASE_PARAMS, transaction, policy});
 
             // Then the distance rate's tax rate is applied instead of the workspace default
             expect(result).toEqual({transactionTaxCode: REDUCED_TAX_CODE, transactionTaxAmount: 0, transactionTaxValue: '5%'});
@@ -207,7 +207,7 @@ describe('getTransactionTaxValues', () => {
             const transaction = buildDistanceTransaction();
 
             // When the tax values are computed for a distance expense
-            const result = getTransactionTaxValues({...BASE_PARAMS, transaction, policy, isDistanceRequest: true});
+            const result = getTransactionTaxValues({...BASE_PARAMS, transaction, policy});
 
             // Then no tax is applied, because distance tax is controlled separately from workspace tax tracking
             expect(result.transactionTaxCode).toBe('');
