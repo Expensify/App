@@ -368,7 +368,14 @@ function MoneyRequestReportPreview({
                     openReportFromPreview();
                     return;
                 }
-                openReport({reportID: iouReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: !!hasIOUReportActions, fullPolicySnapshot});
+                openReport({
+                    reportID: iouReportID,
+                    introSelected,
+                    conciergeChat,
+                    currentUserAccountID,
+                    hasReportActions: !!hasIOUReportActions,
+                    fullPolicySnapshot,
+                });
             }
             navigateToExpense(childReportID, routeAtPress);
             return;

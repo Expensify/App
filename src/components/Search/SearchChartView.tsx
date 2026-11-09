@@ -67,6 +67,12 @@ type SearchChartViewProps = {
     /** Whether pressing a bar, point or slice opens Search filtered to it */
     shouldDrillDownOnPress?: boolean;
 
+    /** Called with the group whose bar, point, slice or touch-opened tooltip is pressed. Takes precedence over `shouldDrillDownOnPress`. */
+    onGroupPress?: (item: GroupedItem) => void;
+
+    /** Shown at the end of a tooltip opened by a touch tap */
+    tooltipFooter?: React.ReactNode;
+
     /** Whether a line chart with a single point is drawn as a bar */
     shouldShowSinglePointAsBar?: boolean;
 
@@ -97,6 +103,8 @@ function SearchChartView({
     shouldShowGroupLabels = true,
     shouldUseResponsiveLabels = false,
     shouldDrillDownOnPress = true,
+    onGroupPress,
+    tooltipFooter,
     shouldShowSinglePointAsBar = false,
     comparison,
     shouldShowRunningTotal = false,
@@ -156,7 +164,16 @@ function SearchChartView({
 
     const handleItemPress = (dataPoint: ChartDataPoint, index: number) => {
         const item = rows.at(index)?.item;
-        if (!item || !queryJSON) {
+        if (!item) {
+            return;
+        }
+
+        if (onGroupPress) {
+            onGroupPress(item);
+            return;
+        }
+
+        if (!queryJSON) {
             return;
         }
 
@@ -169,6 +186,7 @@ function SearchChartView({
     };
 
     const onItemPress = shouldDrillDownOnPress ? handleItemPress : undefined;
+    const onTooltipPress = onGroupPress ? handleItemPress : undefined;
 
     const firstItem = data.at(0);
     const currency = sanitizeCurrencyCode(firstItem?.currency ?? CONST.CURRENCY.USD);
@@ -186,6 +204,8 @@ function SearchChartView({
                 series={series}
                 isLoading={isLoading}
                 onBarPress={onItemPress}
+                onTooltipPress={onTooltipPress}
+                tooltipFooter={tooltipFooter}
                 yAxisUnit={unit}
                 yAxisUnitPosition={unitPosition}
                 formatValue={formatValue}
@@ -201,6 +221,8 @@ function SearchChartView({
                     series={series}
                     isLoading={isLoading}
                     onBarPress={onItemPress}
+                    onTooltipPress={onTooltipPress}
+                    tooltipFooter={tooltipFooter}
                     yAxisUnit={unit}
                     yAxisUnitPosition={unitPosition}
                     formatValue={formatValue}
@@ -212,6 +234,8 @@ function SearchChartView({
                     series={series}
                     isLoading={isLoading}
                     onPointPress={onItemPress}
+                    onTooltipPress={onTooltipPress}
+                    tooltipFooter={tooltipFooter}
                     labelSteps={labelSteps}
                     shouldShowTooltipChange={!shouldShowRunningTotal || !isChartAverage(comparison)}
                     yAxisUnit={unit}
@@ -226,6 +250,8 @@ function SearchChartView({
                 series={series}
                 isLoading={isLoading}
                 onSlicePress={onItemPress}
+                onTooltipPress={onTooltipPress}
+                tooltipFooter={tooltipFooter}
                 valueUnit={unit?.value}
                 valueUnitPosition={unitPosition}
                 valueDecimals={getCurrencyDecimals(currency)}

@@ -649,7 +649,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                                 return;
                             }
 
-                            removeTransaction(transaction.transactionID);
+                            removeTransaction(transaction.transactionID, {isDeleted: true});
                         };
                     }
                     // Deleting a report's only expense deletes the report too. In the table view that expense opens on top of the

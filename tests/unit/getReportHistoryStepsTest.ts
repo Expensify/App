@@ -43,6 +43,7 @@ const SNAPSHOT: ReportUpcomingStep[] = [
 type ReportState = {
     isOpenReport?: boolean;
     isDEWPolicy?: boolean;
+    shouldDisplayMarkAsDone?: boolean;
     reportMetadata?: ReportMetadata;
 };
 
@@ -50,7 +51,7 @@ function getUpcoming(
     reportActions: ReportAction[],
     upcomingSteps: ReportUpcomingStep[],
     nextStep: ReportNextStep | undefined,
-    {isOpenReport = false, isDEWPolicy = false, reportMetadata}: ReportState = {},
+    {isOpenReport = false, isDEWPolicy = false, shouldDisplayMarkAsDone = false, reportMetadata}: ReportState = {},
 ) {
     return getReportHistorySteps({
         translate: translateLocal,
@@ -64,7 +65,7 @@ function getUpcoming(
         nextStep,
         isOpenReport,
         isDEWPolicy,
-        shouldDisplayMarkAsDone: false,
+        shouldDisplayMarkAsDone,
         reportMetadata,
     })
         .filter((step) => step.isUpcoming)
@@ -268,6 +269,25 @@ describe('getReportHistorySteps', () => {
 
         // Then only the submit step is known until the snapshot is fetched again
         expect(upcoming).toEqual([[translateLocal('reportHistoryPage.toSubmit'), OWNER_ACCOUNT_ID]]);
+    });
+
+    it.each([
+        [true, false, 'reportHistoryPage.toMarkAsDone'],
+        [true, true, 'reportHistoryPage.toSubmit'],
+        [false, false, 'reportHistoryPage.toSubmit'],
+    ] as const)('labels the upcoming submit step with Mark as done %s and DEW %s as %s', (shouldDisplayMarkAsDone, isDEWPolicy, expectedLabel) => {
+        // Given an open report waiting on its owner, in a workflow that may submit to the owner themselves
+        const nextStep = buildNextStep(CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE, OWNER_ACCOUNT_ID);
+
+        // When the steps are built
+        const upcoming = getUpcoming([], [{action: CONST.REPORT.UPCOMING_STEP_ACTION.SUBMIT, actorAccountID: OWNER_ACCOUNT_ID}], nextStep, {
+            isOpenReport: true,
+            isDEWPolicy,
+            shouldDisplayMarkAsDone,
+        });
+
+        // Then the step uses the same wording as the report's Mark as done button
+        expect(upcoming).toEqual([[translateLocal(expectedLabel), OWNER_ACCOUNT_ID]]);
     });
 
     it('treats fixing issues on an open report as the submit step', () => {
