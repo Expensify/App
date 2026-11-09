@@ -210,6 +210,7 @@ import type ReportUserIsTyping from './ReportUserIsTyping';
 import type ReportViolationName from './ReportViolationName';
 import type Request from './Request';
 import type {AnyRequest} from './Request';
+import type RequestsKeptOnSAMLSignOut from './RequestsKeptOnSAMLSignOut';
 import type Response from './Response';
 import type ReusableDistanceRoute from './ReusableDistanceRoute';
 import type ReviewDuplicates from './ReviewDuplicates';
@@ -416,6 +417,7 @@ export type {
     ReportLayoutSelection,
     GroupedTransactions,
     AnyRequest,
+    RequestsKeptOnSAMLSignOut,
     Request,
     Response,
     ScreenShareRequest,

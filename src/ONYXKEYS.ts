@@ -71,6 +71,9 @@ const ONYXKEYS = {
     PERSISTED_REQUESTS: 'networkRequestQueue',
     PERSISTED_ONGOING_REQUESTS: 'networkOngoingRequestQueue',
 
+    /** Unsent requests set aside when SAML signs someone out, sent again if the same account signs back in */
+    REQUESTS_KEPT_ON_SAML_SIGN_OUT: 'requestsKeptOnSAMLSignOut',
+
     /** Comment edits saved while their attachment was still uploading, replayed once it syncs */
     DEFERRED_ATTACHMENT_EDITS: 'deferredAttachmentEdits',
 
@@ -1787,6 +1790,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED]: boolean;
     [ONYXKEYS.PERSISTED_REQUESTS]: OnyxTypes.AnyRequest[];
     [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: OnyxTypes.AnyRequest;
+    [ONYXKEYS.REQUESTS_KEPT_ON_SAML_SIGN_OUT]: OnyxTypes.RequestsKeptOnSAMLSignOut;
     [ONYXKEYS.DEFERRED_ATTACHMENT_EDITS]: OnyxTypes.DeferredAttachmentEdits;
     [ONYXKEYS.CURRENT_DATE]: string;
     [ONYXKEYS.CREDENTIALS]: OnyxTypes.Credentials;
