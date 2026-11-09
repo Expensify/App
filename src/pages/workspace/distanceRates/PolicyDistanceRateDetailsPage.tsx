@@ -106,11 +106,12 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
         (distanceRate: Rate) => distanceRate?.enabled && rateID !== distanceRate?.customUnitRateID && distanceRate?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
     const errorFields = rate?.errorFields;
-    const fuelRateTaxErrors = getUKFuelRateTaxErrors(policy, translate, rateID);
 
     if (!rate) {
         return <NotFoundPage />;
     }
+
+    const fuelRateTaxErrors = getUKFuelRateTaxErrors(policy, translate, rateID);
 
     const editRateName = () => {
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_NAME_EDIT.getRoute(policyID, rateID));

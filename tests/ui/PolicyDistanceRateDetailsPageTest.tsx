@@ -8,6 +8,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+import {getUKFuelRateTaxErrors} from '@libs/PolicyUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -29,6 +30,11 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 TestHelper.setupGlobalFetchMock();
+
+jest.mock('@libs/PolicyUtils', () => {
+    const actual = jest.requireActual<{getUKFuelRateTaxErrors: typeof getUKFuelRateTaxErrors}>('@libs/PolicyUtils');
+    return {...actual, getUKFuelRateTaxErrors: jest.fn(actual.getUKFuelRateTaxErrors)};
+});
 
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
@@ -63,7 +69,7 @@ async function setupPolicy(rate: Rate) {
     });
 }
 
-async function renderPage() {
+async function renderPage(rateID = RATE_ID) {
     const result = render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
@@ -73,7 +79,7 @@ async function renderPage() {
                             <Stack.Screen
                                 name={SCREENS.WORKSPACE.DISTANCE_RATE_DETAILS}
                                 component={PolicyDistanceRateDetailsPage}
-                                initialParams={{policyID: POLICY_ID, rateID: RATE_ID}}
+                                initialParams={{policyID: POLICY_ID, rateID}}
                             />
                         </Stack.Navigator>
                     </NavigationContainer>
@@ -85,6 +91,10 @@ async function renderPage() {
 
     // Waits until the page is past the access wrapper's loading state
     await waitFor(() => {
+        if (rateID !== RATE_ID) {
+            expect(screen.getByTestId('NotFoundPage')).toBeOnTheScreen();
+            return;
+        }
         expect(screen.getByText(TestHelper.translateLocal('workspace.taxes.taxRate'))).toBeOnTheScreen();
     });
     return result;
@@ -108,6 +118,21 @@ afterEach(async () => {
 });
 
 describe('PolicyDistanceRateDetailsPage tax reclaimable on', () => {
+    it('skips fuel-tax error calculation for a missing rate', async () => {
+        // Given a loaded workspace whose requested rate no longer exists
+        await setupPolicy({customUnitRateID: RATE_ID, name: 'Cars', rate: 1000, currency: CONST.CURRENCY.USD, enabled: true});
+
+        // When a stale rate link is opened
+        const {unmount} = await renderPage('missing-rate');
+
+        // Then the not-found page renders without scanning the workspace for fuel-tax errors
+        expect(screen.getByTestId('NotFoundPage')).toBeOnTheScreen();
+        expect(getUKFuelRateTaxErrors).not.toHaveBeenCalled();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('shows the amount for a rate with a percentage but no tax rate', async () => {
         // Given a $10.00 rate where 50% is tax reclaimable, but no tax rate is set on the rate
         await setupPolicy({customUnitRateID: RATE_ID, name: 'Cars', rate: 1000, currency: CONST.CURRENCY.USD, enabled: true, attributes: {taxClaimablePercentage: 0.5}});
@@ -116,6 +141,7 @@ describe('PolicyDistanceRateDetailsPage tax reclaimable on', () => {
         // Then the field and its amount are shown, because expenses still apply the percentage when the rate has no tax rate
         expect(screen.getByText(TestHelper.translateLocal('workspace.taxes.taxReclaimableOn'))).toBeOnTheScreen();
         expect(screen.getByText('$5.00')).toBeOnTheScreen();
+        expect(getUKFuelRateTaxErrors).toHaveBeenCalledWith(expect.objectContaining({id: POLICY_ID}), expect.any(Function), RATE_ID);
 
         unmount();
         await waitForBatchedUpdatesWithAct();

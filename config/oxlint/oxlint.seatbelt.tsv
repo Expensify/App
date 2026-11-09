@@ -2330,7 +2330,7 @@
 "../../src/pages/workspace/distanceRates/PolicyCommuterExclusionsPage.tsx"	"no-restricted-syntax"	2
 "../../src/pages/workspace/distanceRates/PolicyDistanceRateDateEditPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/distanceRates/PolicyDistanceRateDetailsPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/distanceRates/PolicyDistanceRateDetailsPage.tsx"	"no-restricted-syntax"	7
+"../../src/pages/workspace/distanceRates/PolicyDistanceRateDetailsPage.tsx"	"no-restricted-syntax"	6
 "../../src/pages/workspace/distanceRates/PolicyDistanceRateEditPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/distanceRates/PolicyDistanceRateNameEditPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/distanceRates/PolicyDistanceRatesPage.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
