@@ -55,7 +55,7 @@ describe('useNavigateToForcedTransactionReview', () => {
             },
         });
         await Onyx.merge(ONYXKEYS.TRANSACTIONS_PENDING_FRAUD_REVIEW, {
-            [FRAUD_TRANSACTION_ID]: {transactionID: FRAUD_TRANSACTION_ID, created: '2026-11-09 10:00:00', lastFourPAN: '1234', amount: 4000, currency: 'USD', merchant: 'Wawa', cardID: 1},
+            [FRAUD_TRANSACTION_ID]: {transactionID: FRAUD_TRANSACTION_ID, created: '2026-11-09 10:00:00', lastFourPAN: '1234', amount: 4000, currency: 'USD', merchant: 'Amazon', cardID: 1},
         });
 
         // When the forced review handler runs
@@ -72,7 +72,7 @@ describe('useNavigateToForcedTransactionReview', () => {
         // Given a pending fraud review that the server reports as already reviewed
         jest.mocked(isTransactionStillPendingFraudReview).mockResolvedValueOnce(false);
         await Onyx.merge(ONYXKEYS.TRANSACTIONS_PENDING_FRAUD_REVIEW, {
-            [FRAUD_TRANSACTION_ID]: {transactionID: FRAUD_TRANSACTION_ID, created: '2026-11-09 10:00:00', lastFourPAN: '1234', amount: 4000, currency: 'USD', merchant: 'Wawa', cardID: 1},
+            [FRAUD_TRANSACTION_ID]: {transactionID: FRAUD_TRANSACTION_ID, created: '2026-11-09 10:00:00', lastFourPAN: '1234', amount: 4000, currency: 'USD', merchant: 'Amazon', cardID: 1},
         });
 
         // When the forced review handler runs
