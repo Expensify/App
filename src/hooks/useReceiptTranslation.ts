@@ -9,8 +9,6 @@ import type {Transaction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import Onyx from 'react-native-onyx';
-
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -42,19 +40,11 @@ function useReceiptTranslation(transaction: OnyxEntry<Transaction>) {
             showReceiptTranslation(transactionID);
             return;
         }
-        translateReceipt(transactionID).then((isSuccessful) => {
-            if (!isSuccessful) {
-                Growl.error({bodyText: translate('receipt.translationError.generic')});
+        translateReceipt(transactionID, locale).then((state) => {
+            if (state === CONST.RECEIPT.TRANSLATION_STATE.TRANSLATED) {
                 return;
             }
-            Onyx.get(`${ONYXKEYS.COLLECTION.RECEIPT_TRANSLATIONS}${transactionID}`).then((translation) => {
-                const state = translation?.[locale]?.state;
-                if (state !== CONST.RECEIPT.TRANSLATION_STATE.UNREADABLE && state !== CONST.RECEIPT.TRANSLATION_STATE.ALREADY_IN_LANGUAGE) {
-                    return;
-                }
-                showOriginalReceipt(transactionID);
-                Growl.error({bodyText: translate(`receipt.translationError.${state}`)});
-            });
+            Growl.error({bodyText: translate(state ? `receipt.translationError.${state}` : 'receipt.translationError.generic')});
         });
     };
 
