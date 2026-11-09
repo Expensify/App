@@ -141,7 +141,6 @@ const SENTRY_LABEL_PRESS_HANDLER_WRAPPERS = [
     'ConfirmationPageButtonBase',
     'ConfirmationPagePrimaryButton',
     'ContextMenuItem',
-    'DistanceRequestRenderItem',
     'FeatureTraining.HelpButton',
     'FocusableMenuItem',
     'FormAlertWithSubmitButton',

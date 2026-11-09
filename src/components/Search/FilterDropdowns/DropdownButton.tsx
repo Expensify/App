@@ -102,6 +102,7 @@ function DropdownButton({label, value, medium = false, labelStyle, innerStyles, 
                         <>
                             <View style={[styles.buttonDivider]} />
                             <Button
+                                sentryLabel={CONST.SENTRY_LABEL.DROPDOWN_BUTTON.CLOSE_BUTTON}
                                 size={CONST.BUTTON_SIZE.SMALL}
                                 removeBorderRadius={CONST.BUTTON_REMOVE_BORDER_RADIUS.LEFT}
                                 innerStyles={[styles.pl0, styles.pr0half, styles.filterDropDownCloseIcon]}
