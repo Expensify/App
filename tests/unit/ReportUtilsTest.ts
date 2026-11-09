@@ -9826,6 +9826,56 @@ describe('ReportUtils', () => {
             ).toBeTruthy();
         });
 
+        it('should return false for a workspace chat the user is not a participant of', () => {
+            // Given the workspace chat behind a report shared with the user, which they are not a participant of
+            const report: Report = {...LHNTestUtils.getFakeReport([1, 2]), chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID: '1'};
+
+            // When checking if it should show in the inbox or search
+            const shouldShow = shouldReportBeInOptionList({
+                report,
+                chatReport: mockedChatReport,
+                currentReportId: undefined,
+                isInFocusMode: false,
+                isDefaultRoomsBetaEnabled: true,
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                draftComment: '',
+                isReportArchived: undefined,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
+                currentUserAccountID,
+            });
+
+            // Then it is left out, since opening it only returns report not found
+            expect(shouldShow).toBe(false);
+        });
+
+        it('should return true for a workspace chat the user is a participant of', () => {
+            // Given a workspace chat the user is a participant of
+            const report: Report = {...LHNTestUtils.getFakeReport([1, currentUserAccountID]), chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID: '1'};
+
+            // When checking if it should show in the inbox or search
+            const shouldShow = shouldReportBeInOptionList({
+                report,
+                chatReport: mockedChatReport,
+                currentReportId: undefined,
+                isInFocusMode: false,
+                isDefaultRoomsBetaEnabled: true,
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                draftComment: '',
+                isReportArchived: undefined,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
+                currentUserAccountID,
+            });
+
+            // Then it still shows
+            expect(shouldShow).toBe(true);
+        });
+
         it('should return true for empty submitted report if it is the current focused report', async () => {
             const report: Report = {...LHNTestUtils.getFakeReport(), total: 0, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, stateNum: CONST.REPORT.STATE_NUM.SUBMITTED};
             const currentReportId = report.reportID;
