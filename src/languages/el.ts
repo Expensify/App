@@ -10134,7 +10134,7 @@ ${reportName}`,
         scheduleACall: 'Προγραμματίστε κλήση',
         questionMarkButtonTooltip: 'Λάβετε βοήθεια από την ομάδα μας',
         exploreHelpDocs: 'Δείτε τις οδηγίες βοήθειας',
-        registerForWebinar: 'Εγγραφείτε στο διαδικτυακό σεμινάριο',
+        registerForWebinar: 'Διαδικτυακό σεμινάριο',
         onboardingHelp: 'Βοήθεια εκκίνησης',
     },
     emojiPicker: {

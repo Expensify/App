@@ -18,7 +18,12 @@ import type {PropsWithChildren} from 'react';
 import createMock from '../../utils/createMock';
 import {translateLocal} from '../../utils/TestHelper';
 
-jest.mock('@components/Modal', () => ({isVisible, children}: PropsWithChildren<{isVisible: boolean}>) => (isVisible ? children : null));
+jest.mock(
+    '@components/Modal',
+    () =>
+        ({isVisible, children}: PropsWithChildren<{isVisible: boolean}>) =>
+            isVisible ? children : null,
+);
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchQueryContext: jest.fn(),
     useSearchResultsContext: jest.fn(),

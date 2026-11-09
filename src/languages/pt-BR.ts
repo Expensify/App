@@ -9910,7 +9910,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         scheduleACall: 'Agendar ligação',
         questionMarkButtonTooltip: 'Obtenha ajuda da nossa equipe',
         exploreHelpDocs: 'Explorar artigos de ajuda',
-        registerForWebinar: 'Registrar-se no webinar',
+        registerForWebinar: 'Webinar',
         onboardingHelp: 'Ajuda na configuração',
     },
     emojiPicker: {

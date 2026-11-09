@@ -9924,7 +9924,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         scheduleACall: 'Zaplanuj rozmowę',
         questionMarkButtonTooltip: 'Uzyskaj pomoc od naszego zespołu',
         exploreHelpDocs: 'Przeglądaj centrum pomocy',
-        registerForWebinar: 'Zarejestruj się na webinar',
+        registerForWebinar: 'Webinar',
         onboardingHelp: 'Pomoc przy wdrażaniu',
     },
     emojiPicker: {
