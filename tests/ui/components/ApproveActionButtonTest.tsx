@@ -13,6 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
 import type {UseOnyxResult} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
@@ -28,12 +29,12 @@ function createOnyxResult<T>(value: NonNullable<T> | undefined): UseOnyxResult<T
     return [value, {status: 'loaded'}];
 }
 
-const mockApprovalButtonProps: {current?: {onApprove: (full: boolean) => void; isAnyTransactionOnHold: boolean}} = {
+const mockApprovalButtonProps: {current?: {onApprove: (full: boolean) => void; isAnyTransactionOnHold: boolean; isSecondary: boolean}} = {
     current: undefined,
 };
 jest.mock('@components/ExpenseHeaderApprovalButton', () => ({
     __esModule: true,
-    default: (props: {onApprove: (full: boolean) => void; isAnyTransactionOnHold: boolean}) => {
+    default: (props: {onApprove: (full: boolean) => void; isAnyTransactionOnHold: boolean; isSecondary: boolean}) => {
         mockApprovalButtonProps.current = props;
         return null;
     },
@@ -74,10 +75,11 @@ jest.mock('@libs/ReportUtils', () => {
 
 // ApproveActionButton reads from context instead of props; these mock-prefixed objects back the mocked slice hooks.
 const mockStartApprovedAnimation = jest.fn();
+let mockReportPreviewAction: ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> = CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
 jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContext', () => ({
     __esModule: true,
     useReportPreviewData: () => ({iouReportID: TEST_IOU_REPORT_ID}),
-    useReportPreviewActionState: () => ({shouldShowPayButton: true}),
+    useReportPreviewActionState: () => ({shouldShowPayButton: true, reportPreviewAction: mockReportPreviewAction}),
     useReportPreviewActions: () => ({startApprovedAnimation: mockStartApprovedAnimation}),
 }));
 
@@ -115,6 +117,7 @@ describe('ApproveActionButton', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockApprovalButtonProps.current = undefined;
+        mockReportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
         mockIsDelegateAccessRestricted = false;
         mockedHasHeldExpenses.mockReturnValue(false);
         mockedUseOnyx.mockImplementation((key) => {
@@ -139,6 +142,19 @@ describe('ApproveActionButton', () => {
                 onApproved: mockStartApprovedAnimation,
             }),
         );
+    });
+
+    it('keeps the approval handler when violations demote Approve to secondary', () => {
+        // Given a report whose visible violations promote View
+        mockReportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE_WITH_VIOLATIONS;
+
+        // When the secondary approval action is confirmed
+        render(<ApproveActionButton />);
+        act(() => mockApprovalButtonProps.current?.onApprove(true));
+
+        // Then approval still uses the existing report and animation
+        expect(mockApprovalButtonProps.current?.isSecondary).toBe(true);
+        expect(mockedApproveMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({expenseReport: iouReport, full: true, onApproved: mockStartApprovedAnimation}));
     });
 
     it('approves only the non-held amount when a partial approval is confirmed', () => {
