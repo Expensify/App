@@ -361,6 +361,7 @@ describe('actions/IOU/Hold', () => {
                 initialReportID: 'existing-thread',
                 initialReport: undefined,
                 transactionReport: iouReport,
+                transactionReportActions: undefined,
                 isOffline: true,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
@@ -1325,13 +1326,11 @@ describe('actions/IOU/Hold', () => {
             [CONST.REPORT.STATUS_NUM.SUBMITTED, false],
             [CONST.REPORT.STATUS_NUM.APPROVED, false],
             [CONST.REPORT.STATUS_NUM.REIMBURSED, false],
-        ])('should build the optimistic next step only for an open report (statusNum %p, builds next step: %p)', async (statusNum, shouldBuildNextStep) => {
-            // Given a held expense in an expense report with the given status. unholdRequest reads the report from Onyx.
+        ])('should build the optimistic next step only for an open report (statusNum %p, builds next step: %p)', (statusNum, shouldBuildNextStep) => {
+            // Given a held expense in an expense report with the given status
             const policy: Policy = createRandomPolicy(577);
             const iouReport: Report = {...buildOptimisticIOUReport(1, 2, 100, '1', 'USD', getCurrencyDecimalsLocal), policyID: policy.id, statusNum};
             const transaction = buildOptimisticTransaction({transactionParams: {amount: 100, currency: 'USD', reportID: iouReport.reportID}});
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
-            await waitForBatchedUpdates();
             const request = jest.spyOn(jest.requireActual<{write: typeof write}>('@libs/API'), 'write').mockResolvedValue(undefined);
 
             // When the hold is removed
@@ -1339,6 +1338,8 @@ describe('actions/IOU/Hold', () => {
                 transactionID: transaction.transactionID,
                 transaction,
                 reportID: 'existing-thread',
+                transactionReport: iouReport,
+                report: undefined,
                 policy,
                 isOffline: false,
                 currentUserLogin: RORY_EMAIL,

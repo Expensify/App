@@ -826,7 +826,9 @@ const CONST = {
         WEEKDAY_TIME_FORMAT: 'eeee',
         MONTH_DAY_ABBR_FORMAT: 'MMM d',
         SHORT_DATE_FORMAT: 'MM-dd',
-        MONTH_DAY_YEAR_ABBR_FORMAT: 'MMM d, yyyy',
+        // `PP` is date-fns' medium localized date. It matches `MMM d, yyyy` in en-US, so English output is unchanged,
+        // while other languages stop being forced into the US component order.
+        MONTH_DAY_YEAR_ABBR_FORMAT: 'PP',
         MONTH_DAY_YEAR_FORMAT: 'MMMM d, yyyy',
         FNS_TIMEZONE_FORMAT_STRING: "yyyy-MM-dd'T'HH:mm:ssXXX",
         FNS_DB_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss.SSS',
@@ -10297,7 +10299,7 @@ const CONST = {
             WORKSPACE_EXPENSIFY_CARDS: 'workspaceExpensifyCards',
             WORKSPACE_COMPANY_CARDS: 'workspaceCompanyCards',
 
-            /** Prefix of the Search table IDs, one per data type. See `getSearchColumnResizingID`. */
+            /** Prefix of the Search table IDs, one per search. See `getSearchColumnResizingID`. */
             SEARCH_PREFIX: 'search',
         },
 
