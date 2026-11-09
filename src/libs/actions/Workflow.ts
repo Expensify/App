@@ -521,8 +521,7 @@ function buildReturnToDefaultWorkflowDiff({
 /**
  * Delete an approval workflow using the rules-based backend structure.
  *
- * Returns false without calling the API when neither the workflow's members nor the default workflow have rules, so
- * the caller can fall back to the `employeeList` path.
+ * Returns false without calling the API when the policy has no approval rules, so the caller can fall back to the `employeeList` path.
  */
 function removeApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow, policy: OnyxEntry<Policy>, rules: OnyxCollection<Rule>, defaultApprovalWorkflow?: ApprovalWorkflow): boolean {
     if (!policy) {
@@ -533,9 +532,9 @@ function removeApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow, policy:
     const memberEmails = getWorkflowMemberEmails(approvalWorkflow.members);
     const removeDiff = reconcileApprovalWorkflowRulesForRemove(memberEmails, {existingRules});
 
-    // Members no rule covers still join a rule-backed default workflow through its rules, since the backend rejects
+    // Members no rule covers still return to the default workflow through rules, since the backend rejects
     // `employeeList` routing changes once a policy's approvals are rule-based.
-    if (isEmptyObject(removeDiff) && !hasRuleBasedDefaultWorkflow(existingRules)) {
+    if (isEmptyObject(removeDiff) && isEmptyObject(existingRules)) {
         return false;
     }
 
