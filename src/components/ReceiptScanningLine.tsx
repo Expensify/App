@@ -44,7 +44,7 @@ function ReceiptScanningLine({imageUri, isAuthTokenRequired, onLoad}: ReceiptSca
             withRepeat(
                 withTiming(1, {
                     duration: CONST.RECEIPT.TRANSLATION_SCAN_DURATION,
-                    easing: Easing.inOut(Easing.ease),
+                    easing: Easing.bezier(0.76, 0.0, 0.24, 1.0),
                 }),
                 -1,
                 true,

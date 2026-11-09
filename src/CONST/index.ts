@@ -2002,7 +2002,7 @@ const CONST = {
         // Elements with this data attribute pause the hover zoom while the pointer is over them
         HOVER_ZOOM_EXCLUDED_ELEMENT: 'receipt-hover-zoom-excluded',
 
-        TRANSLATION_SCAN_DURATION: 1500,
+        TRANSLATION_SCAN_DURATION: 1000,
         TRANSLATION_SCAN_LINE_HEIGHT: 8,
         TRANSLATION_SCAN_TINT_OPACITY: 0.2,
         TRANSLATION_ROW_TYPE: {
