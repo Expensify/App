@@ -12,7 +12,7 @@ import {getAllTaxRates, getCleanedTagName, getExpensifyTeamExclusions, shouldSho
 import {
     CONTINUATION_DETECTION_SEARCH_FILTER_KEYS,
     getAutocompleteCategories,
-    getAutocompletePolicyFilter,
+    getAutocompletePolicyData,
     getAutocompleteRecentCategories,
     getAutocompleteRecentTags,
     getAutocompleteTags,
@@ -149,7 +149,7 @@ function useAutocompleteSuggestions({
 
     const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
     const {autocomplete, ranges = []} = parsedQuery ?? {};
-    const typedPolicyFilter = getAutocompletePolicyFilter(ranges, policies, autocompleteSubstitutions);
+    const {policyFilter: typedPolicyFilter, selectedPolicyIDs} = getAutocompletePolicyData(autocompleteQueryValue, ranges, policies, autocompleteSubstitutions);
     const {exportedToFilterOptions} = useExportedToFilterOptions(typedPolicyFilter);
 
     let autocompleteKey = autocomplete?.key;
@@ -579,7 +579,7 @@ function useAutocompleteSuggestions({
                 }
                 workspaceList.push({id: singlePolicy.id, name: singlePolicy.name ?? ''});
             }
-            const alreadySelectedPolicyIds = autocompleteSubstitutions && new Set(typedPolicyFilter.value);
+            const alreadySelectedPolicyIds = autocompleteSubstitutions && new Set(selectedPolicyIDs);
 
             const filteredPolicies = workspaceList
                 .filter((workspace) => {

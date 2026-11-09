@@ -95,20 +95,45 @@ function getAutocompleteTags(allPoliciesTagsLists: OnyxCollection<PolicyTagLists
     return Array.from(uniqueTagNames);
 }
 
-/** Resolves typed workspaces consistently for suggestions and highlighting, including duplicate names selected from autocomplete. */
-function getAutocompletePolicyFilter(ranges: AutocompleteParserRange[], policies: OnyxCollection<Policy>, substitutions?: SubstitutionMap): Filter {
+/** Resolves each typed workspace clause while retaining all selected IDs for autocomplete exclusion. */
+function getAutocompletePolicyData(
+    query: string,
+    ranges: AutocompleteParserRange[],
+    policies: OnyxCollection<Policy>,
+    substitutions?: SubstitutionMap,
+): {policyFilter: Filter; selectedPolicyIDs: string[]} {
     const policyIdRanges = ranges.filter((range) => range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
     const keyValueCount = new Map<string, number>();
-    const policyIDs = policyIdRanges.map((range) => {
+    const selectedPolicyIDs: string[] = [];
+    const positiveClauses: string[][] = [];
+    const excludedPolicyIDs = new Set<string>();
+    let previousRange: AutocompleteParserRange | undefined;
+    for (const range of policyIdRanges) {
         const baseKey = getSubstitutionMapKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, range.value);
         const index = keyValueCount.get(baseKey) ?? 0;
         keyValueCount.set(baseKey, index + 1);
         const fullKey = getSubstitutionMapKeyWithIndex(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, range.value, index);
-        return substitutions?.[fullKey] ?? resolvePolicyIDFromName(range.value, policies);
-    });
+        const policyID = substitutions?.[fullKey] ?? resolvePolicyIDFromName(range.value, policies);
+        selectedPolicyIDs.push(policyID);
+
+        if (range.negated) {
+            excludedPolicyIDs.add(policyID);
+        } else if (previousRange && !previousRange.negated && query.slice(previousRange.start + previousRange.length, range.start) === ',') {
+            positiveClauses.at(-1)?.push(policyID);
+        } else {
+            positiveClauses.push([policyID]);
+        }
+        previousRange = range;
+    }
+
+    if (positiveClauses.length > 0) {
+        // Comma-separated values are alternatives; separate workspace clauses must all match.
+        const policyIDs = [...new Set(positiveClauses.at(0))].filter((id) => !excludedPolicyIDs.has(id) && positiveClauses.every((clause) => clause.includes(id)));
+        return {policyFilter: {value: policyIDs, isNegated: false}, selectedPolicyIDs};
+    }
 
     // An explicit unscoped filter prevents falling back to the submitted workspace after it is removed from the input.
-    return {value: policyIDs.length > 0 ? policyIDs : undefined, isNegated: policyIdRanges.at(0)?.negated ?? false};
+    return {policyFilter: {value: excludedPolicyIDs.size > 0 ? [...excludedPolicyIDs] : undefined, isNegated: excludedPolicyIDs.size > 0}, selectedPolicyIDs};
 }
 
 /**
@@ -435,7 +460,7 @@ function getTrimmedUserSearchQueryPreservingComma(textInputValue: string, fieldK
 export {
     CONTINUATION_DETECTION_SEARCH_FILTER_KEYS,
     getAutocompleteCategories,
-    getAutocompletePolicyFilter,
+    getAutocompletePolicyData,
     getAutocompleteQueryWithComma,
     getAutocompleteRecentCategories,
     getAutocompleteRecentTags,

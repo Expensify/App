@@ -105,6 +105,10 @@ describe('SearchAutocompleteInput', () => {
         {scope: '-workspace:"USD WS"', expectedIDs: ['usd'], isNegated: true, shouldHighlight: true},
         {scope: '-workspace:"CAD WS"', expectedIDs: ['cad'], isNegated: true, shouldHighlight: false},
         {scope: 'workspace:cad', expectedIDs: ['cad'], isNegated: false, shouldHighlight: true},
+        {scope: 'workspace:"USD WS" -workspace:"CAD WS"', expectedIDs: ['usd'], isNegated: false, shouldHighlight: false},
+        {scope: '-workspace:"CAD WS" workspace:"USD WS"', expectedIDs: ['usd'], isNegated: false, shouldHighlight: false},
+        {scope: 'workspace:"CAD WS" -workspace:"USD WS"', expectedIDs: ['cad'], isNegated: false, shouldHighlight: true},
+        {scope: '-workspace:"USD WS" workspace:"CAD WS"', expectedIDs: ['cad'], isNegated: false, shouldHighlight: true},
         {scope: 'workspace:"Shared WS","Shared WS"', expectedIDs: ['usd', 'cad'], isNegated: false, shouldHighlight: true},
     ])('scopes exported-to highlighting to the typed $scope instead of submitted USD scope', ({scope, expectedIDs, isNegated, shouldHighlight}) => {
         // Given USD submitted scope and two workspaces, with occurrence-indexed selections for duplicate display names.

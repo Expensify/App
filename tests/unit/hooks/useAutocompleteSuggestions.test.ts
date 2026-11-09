@@ -49,7 +49,7 @@ jest.mock('@hooks/useCurrencyList', () => ({
 
 jest.mock('@libs/SearchAutocompleteUtils', () => ({
     parseForAutocomplete: jest.fn(),
-    getAutocompletePolicyFilter: jest.requireActual<typeof SearchAutocompleteUtils>('@libs/SearchAutocompleteUtils').getAutocompletePolicyFilter,
+    getAutocompletePolicyData: jest.requireActual<typeof SearchAutocompleteUtils>('@libs/SearchAutocompleteUtils').getAutocompletePolicyData,
     getAutocompleteTags: jest.fn(() => ['Engineering', 'Marketing', 'Sales', 'Design']),
     getAutocompleteRecentTags: jest.fn(() => ['Engineering', 'Marketing']),
     getAutocompleteCategories: jest.fn(() => ['Travel', 'Office Supplies', 'Meals', 'Software']),
@@ -169,6 +169,13 @@ describe('useAutocompleteSuggestions', () => {
         ['workspace:"CAD Workspace" exported-to:', undefined, ['cad'], false],
         ['workspace:usd exported-to:', undefined, ['usd'], false],
         ['-workspace:"CAD Workspace" exported-to:', undefined, ['cad'], true],
+        ['workspace:"USD Workspace" -workspace:"CAD Workspace" exported-to:', undefined, ['usd'], false],
+        ['-workspace:"CAD Workspace" workspace:"USD Workspace" exported-to:', undefined, ['usd'], false],
+        ['workspace:"CAD Workspace" -workspace:"USD Workspace" exported-to:', undefined, ['cad'], false],
+        ['-workspace:"USD Workspace" workspace:"CAD Workspace" exported-to:', undefined, ['cad'], false],
+        ['workspace:"CAD Workspace" -workspace:"CAD Workspace" exported-to:', undefined, [], false],
+        ['workspace:usd workspace:cad exported-to:', undefined, [], false],
+        ['-workspace:usd -workspace:cad exported-to:', undefined, ['usd', 'cad'], true],
         ['workspace:"USD Workspace","CAD Workspace" exported-to:', undefined, ['usd', 'cad'], false],
         [
             'workspace:"Same name","Same name" exported-to:',
@@ -667,7 +674,11 @@ describe('useAutocompleteSuggestions', () => {
         expect(parseForAutocomplete).toHaveBeenCalledWith(query);
     });
 
-    it('uses real parser offsets and repeated substitutions for workspaces with the same name', () => {
+    it.each([
+        'workspace:"Test Workspace","Test Workspace",',
+        'workspace:"Test Workspace" -workspace:"Test Workspace" workspace:',
+        'workspace:"Test Workspace" workspace:"Test Workspace" workspace:',
+    ])('excludes every selected duplicate-name workspace in %s', (query) => {
         // Given two selected workspaces whose display names collide but whose IDs differ.
         parseForAutocomplete.mockImplementation(jest.requireActual<typeof SearchAutocompleteUtils>('@libs/SearchAutocompleteUtils').parseForAutocomplete);
         const policies: NonNullable<OnyxCollection<Policy>> = {
@@ -679,7 +690,7 @@ describe('useAutocompleteSuggestions', () => {
         const {result} = renderHook(() =>
             useAutocompleteSuggestions({
                 ...defaultParams,
-                autocompleteQueryValue: 'workspace:"Test Workspace","Test Workspace",',
+                autocompleteQueryValue: query,
                 policies,
                 autocompleteSubstitutions: Object.fromEntries([
                     ['policyID:Test Workspace', 'A'],

@@ -120,6 +120,8 @@ describe('useExportedToFilterOptions', () => {
         [['usd', 'cad'], true, false],
         [undefined, true, false],
         [['cad'], false, true],
+        [[], false, false],
+        [['usd', 'cad'], false, true],
     ])('uses workspace override %s instead of the submitted search', async (value, shouldIncludeMultipleTaxExport, isNegated) => {
         // Given a submitted CAD search, plus separate USD and CAD workspace connections
         mockCurrentSearchQueryJSON = createMock<SearchQueryJSON>({
