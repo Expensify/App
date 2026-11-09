@@ -10,6 +10,7 @@ import CONST from '@src/CONST';
 import type {Report, Transaction} from '@src/types/onyx';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -69,7 +70,7 @@ type ExpenseHeaderApprovalButtonProps = {
     wrapperStyle?: StyleProp<ViewStyle>;
 
     /** Label used to identify this button in Sentry */
-    sentryLabel?: string;
+    sentryLabel?: SentryLabel;
 };
 
 type ApprovalOption = {

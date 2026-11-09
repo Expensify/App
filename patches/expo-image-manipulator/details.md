@@ -26,3 +26,16 @@
 - Upstream PR/issue: https://github.com/expo/expo/pull/50011 (merged in 58.0.9) fixed the 10-bit crash; the PQ/HLG redraw is not upstream.
 - E/App issue: https://github.com/Expensify/App/issues/100133
 - PR introducing patch: https://github.com/Expensify/App/pull/101102
+
+### [expo-image-manipulator+58.0.14+003+web-typings.patch](expo-image-manipulator+58.0.14+003+web-typings.patch)
+
+- Reason:
+
+    ```
+    The web `ImageManipulatorContext.resize()` requires both `width` and `height`, while the native one makes them
+    optional and the web implementation already keeps the aspect ratio when one is missing.
+    ```
+
+- Upstream PR/issue: 🛑, upstream PR to be opened. On 57.x the patch also fixed the web default export type (`typeof ImageManipulator` instead of an instance). 58.0.14 ships that fix (https://github.com/expo/expo/pull/49197), so it is no longer part of the patch.
+- E/App issue: https://github.com/Expensify/App/issues/99287
+- PR introducing patch: https://github.com/Expensify/App/pull/105816

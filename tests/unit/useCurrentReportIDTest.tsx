@@ -1,6 +1,6 @@
-import {act, renderHook} from '@testing-library/react-native';
+import {act, render, renderHook} from '@testing-library/react-native';
 
-import {CurrentReportIDContextProvider, useCurrentReportIDActions, useCurrentReportIDState} from '@hooks/useCurrentReportID';
+import {CurrentReportIDContextProvider, useCurrentReportIDActions, useCurrentReportIDState, useIsCurrentReportID} from '@hooks/useCurrentReportID';
 
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -276,5 +276,47 @@ describe('useCurrentReportID', () => {
         // Then the context value is updated
         expect(result.current.state.currentReportID).toBe('123');
         expect(result.current.state).not.toBe(initialContextValue);
+    });
+
+    it('should only re-render the rows whose current report state changes', async () => {
+        const onRowRender = jest.fn<void, [string, boolean]>();
+        const onActions = jest.fn<void, [(state: NavigationState) => void]>();
+
+        type RowProps = {reportID: string};
+        function Row({reportID}: RowProps) {
+            onRowRender(reportID, useIsCurrentReportID(reportID));
+            return null;
+        }
+        function Actions() {
+            onActions(useCurrentReportIDActions().updateCurrentReportID);
+            return null;
+        }
+
+        // Given three rows under one provider
+        render(
+            <TestWrapper>
+                <Actions />
+                <Row reportID="1" />
+                <Row reportID="2" />
+                <Row reportID="3" />
+            </TestWrapper>,
+        );
+        await waitForBatchedUpdatesWithAct();
+        const updateCurrentReportID = onActions.mock.lastCall?.[0];
+
+        // When report 1 and then report 2 become the current report
+        for (const reportID of ['1', '2']) {
+            mockGetTopmostReportId.mockReturnValue(reportID);
+            await act(async () => {
+                updateCurrentReportID?.(createMock<NavigationState>({index: 0, routes: [{key: reportID, name: 'Report', params: {reportID}}]}));
+                await waitForBatchedUpdatesWithAct();
+            });
+        }
+
+        // Then only report 2 is current, and the row that was never current never re-rendered
+        const renders = (reportID: string) => onRowRender.mock.calls.filter(([id]) => id === reportID);
+        expect(renders('1').map(([, isCurrent]) => isCurrent)).toEqual([false, true, false]);
+        expect(renders('2').map(([, isCurrent]) => isCurrent)).toEqual([false, true]);
+        expect(renders('3').map(([, isCurrent]) => isCurrent)).toEqual([false]);
     });
 });

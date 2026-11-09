@@ -267,7 +267,7 @@ PODS:
     - PromisesObjC (~> 2.4)
   - fmt (12.1.0)
   - ForkInputMask (7.3.3)
-  - FullStory (1.70.1)
+  - FullStory (1.76.0)
   - fullstory_react-native (1.10.2):
     - boost
     - DoubleConversion
@@ -4840,7 +4840,7 @@ DEPENDENCIES:
   - fast_float (from `../node_modules/react-native/third-party-podspecs/fast_float.podspec`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
-  - "FullStory (from `{http: \"https://ios-releases.fullstory.com/fullstory-1.70.1-xcframework.tar.gz\"}`)"
+  - "FullStory (from `{http: \"https://ios-releases.fullstory.com/fullstory-1.76.0-xcframework.tar.gz\"}`)"
   - "fullstory_react-native (from `../node_modules/@fullstory/react-native`)"
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - group-ib-fp (from `../node_modules/group-ib-fp`)
@@ -5079,7 +5079,7 @@ EXTERNAL SOURCES:
   fmt:
     :podspec: "../node_modules/react-native/third-party-podspecs/fmt.podspec"
   FullStory:
-    :http: https://ios-releases.fullstory.com/fullstory-1.70.1-xcframework.tar.gz
+    :http: https://ios-releases.fullstory.com/fullstory-1.76.0-xcframework.tar.gz
   fullstory_react-native:
     :path: "../node_modules/@fullstory/react-native"
   glog:
@@ -5348,7 +5348,7 @@ EXTERNAL SOURCES:
 
 CHECKOUT OPTIONS:
   FullStory:
-    :http: https://ios-releases.fullstory.com/fullstory-1.70.1-xcframework.tar.gz
+    :http: https://ios-releases.fullstory.com/fullstory-1.76.0-xcframework.tar.gz
 
 SPEC CHECKSUMS:
   Airship: 857dad42a6594ed562181b0cb40b2ad187db7aac
@@ -5388,7 +5388,7 @@ SPEC CHECKSUMS:
   FirebaseInstallations: 0ee9074f2c1e86561ace168ee1470dc67aabaf02
   fmt: 530618a01105dae0fa3a2f27c81ae11fa8f67eac
   ForkInputMask: 55e3fbab504b22da98483e9f9a6514b98fdd2f3c
-  FullStory: 8f87790ed749aa66497e739b065932852e57077d
+  FullStory: 19b5e39993793fda1b85a743bb35cadda35b1faa
   fullstory_react-native: b8d1d4df82c9dda4f06c15fd4184a085b25e3f11
   glog: e56ede4028c4b7418e6b1195a36b1656bb35e225
   GoogleAppMeasurement: 0dfca1a4b534d123de3945e28f77869d10d0d600
@@ -5553,6 +5553,6 @@ SPEC CHECKSUMS:
   VisionCamera: bfc51a42f53354ae65c6d9722cdf11568ecb9be6
   Yoga: cc77b509c6e01e07a4ab976e2afd495c01cc2c1d
 
-PODFILE CHECKSUM: cdbd46f6c89c7123ca4821dc03f66599047601f8
+PODFILE CHECKSUM: 22066e0768760f4bad500b497f3d1576110fd025
 
 COCOAPODS: 1.16.2
