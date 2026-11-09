@@ -2612,7 +2612,10 @@ const ROUTES = {
     SETTINGS_LANGUAGE: 'settings/preferences/language',
     SETTINGS_PAYMENT_CURRENCY: 'setting/preferences/payment-currency',
     SETTINGS_THEME: 'settings/preferences/theme',
-    SETTINGS_HOME_ADDRESS: 'settings/preferences/home-address',
+    SETTINGS_HOME_ADDRESS: {
+        route: 'settings/preferences/home-address',
+        getRoute: (fieldToFocus?: string) => `settings/preferences/home-address${fieldToFocus ? `?fieldToFocus=${fieldToFocus}` : ''}` as const,
+    },
     SETTINGS_COPILOT: 'settings/copilot',
     SETTINGS_SECURITY: {
         route: 'settings/security',

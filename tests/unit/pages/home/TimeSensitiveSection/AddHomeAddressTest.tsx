@@ -176,7 +176,7 @@ describe('AddHomeAddress navigation', () => {
 
         // Then the address-only page opens over the preferences page, so the member is not asked for a legal name,
         // date of birth, phone number or magic code just to add an address
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_HOME_ADDRESS);
-        expect(swapBackgroundTabForRHPTarget).toHaveBeenCalledWith(mockRootState, ROUTES.SETTINGS_HOME_ADDRESS);
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_HOME_ADDRESS.getRoute());
+        expect(swapBackgroundTabForRHPTarget).toHaveBeenCalledWith(mockRootState, ROUTES.SETTINGS_HOME_ADDRESS.getRoute());
     });
 });

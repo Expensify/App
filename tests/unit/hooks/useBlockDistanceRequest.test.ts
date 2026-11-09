@@ -347,8 +347,8 @@ describe('useBlockDistanceRequest', () => {
 
         // Then the address-only page opens over the preferences page, because the commute only needs the address and
         // the member should not have to enter a legal name, date of birth, phone number or magic code to add it
-        await waitFor(() => expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_HOME_ADDRESS));
-        expect(swapBackgroundTabForRHPTarget).toHaveBeenCalledWith(mockRootState, ROUTES.SETTINGS_HOME_ADDRESS);
+        await waitFor(() => expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_HOME_ADDRESS.getRoute()));
+        expect(swapBackgroundTabForRHPTarget).toHaveBeenCalledWith(mockRootState, ROUTES.SETTINGS_HOME_ADDRESS.getRoute());
     });
 
     it('allows a distance request when the current home address is present', async () => {

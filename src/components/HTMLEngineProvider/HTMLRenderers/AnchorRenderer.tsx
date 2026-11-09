@@ -24,6 +24,7 @@ import {Str} from 'expensify-common';
 import React, {useContext} from 'react';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 
+import AnchorPressOverrideContext from './AnchorPressOverrideContext';
 import TableLinkColumnContext from './TableLinkColumnContext';
 import {getTextContent, isLinkColumnAnchor} from './TableRowLink';
 
@@ -57,6 +58,8 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     const isDeleted = HTMLEngineUtils.isDeletedNode(tnode);
     const isChildOfTaskTitle = HTMLEngineUtils.isChildOfTaskTitle(tnode);
     const linkColumnIndex = useContext(TableLinkColumnContext);
+    const getAnchorPressOverride = useContext(AnchorPressOverrideContext);
+    const anchorPressOverride = getAnchorPressOverride?.(attrHref);
 
     const textDecorationLineStyle = isDeleted ? styles.lineThrough : {};
 
@@ -64,7 +67,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     // The `styles.link` used by the non-comment link path above already handles this, but AnchorForCommentsOnly does not use it.
     const highContrastUnderlineStyle = theme.isHighContrast ? styles.underline : {};
 
-    const onLinkPress = internalNewExpensifyPath || internalExpensifyPath ? () => openLink(attrHref, environmentURL, isAttachment, session) : undefined;
+    const onLinkPress = anchorPressOverride ?? (internalNewExpensifyPath || internalExpensifyPath ? () => openLink(attrHref, environmentURL, isAttachment, session) : undefined);
 
     // The table row already navigates to this link's destination, so the cell shows the link text as plain content
     // rather than a second target styled as a link.
@@ -123,7 +126,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         return (
             <TextLink
                 style={linkStyle}
-                onPress={() => openLink(attrHref, environmentURL, isAttachment, session)}
+                onPress={anchorPressOverride ?? (() => openLink(attrHref, environmentURL, isAttachment, session))}
                 suppressDefaultStyle
             >
                 <TNodeChildrenRenderer tnode={tnode} />

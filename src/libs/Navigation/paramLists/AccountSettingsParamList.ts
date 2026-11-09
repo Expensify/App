@@ -46,6 +46,7 @@ type AccountSettingsParamList = {
     [SCREENS.SETTINGS.PREFERENCES.THEME]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS]: {
         country?: Country | '';
+        fieldToFocus?: string;
     };
     [SCREENS.SETTINGS.TROUBLESHOOT_SERVER]: undefined;
     [SCREENS.SETTINGS.CLOSE]: undefined;

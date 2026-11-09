@@ -94,6 +94,8 @@ type AddressFormProps<TFormID extends AddressFormID> = ForwardedFSClassProps & {
      * default), otherwise the inset is padded twice, visible as extra bottom padding on iOS.
      */
     addBottomSafeAreaPadding?: boolean;
+    /** Defaults to false so opening an address form does not move focus unless its caller requests it. */
+    shouldAutoFocusAddressLine1?: boolean;
 };
 
 /** The values the address inputs start from and report changes to, shared by AddressForm with its AddressForm.Fields */
@@ -107,6 +109,7 @@ type AddressFieldsSettings = {
     onAddressChanged: (value: unknown, key: unknown) => void;
     shouldSaveDraft: boolean;
     shouldHideCountrySelector: boolean;
+    shouldAutoFocusAddressLine1: boolean;
 };
 
 const AddressFieldsContext = createContext<AddressFieldsSettings>({
@@ -119,13 +122,14 @@ const AddressFieldsContext = createContext<AddressFieldsSettings>({
     onAddressChanged: () => {},
     shouldSaveDraft: false,
     shouldHideCountrySelector: false,
+    shouldAutoFocusAddressLine1: false,
 });
 
 /** The address inputs of an AddressForm */
 function AddressFormFields() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {city, country, state, street1, street2, zip, onAddressChanged, shouldSaveDraft, shouldHideCountrySelector} = useContext(AddressFieldsContext);
+    const {city, country, state, street1, street2, zip, onAddressChanged, shouldSaveDraft, shouldHideCountrySelector, shouldAutoFocusAddressLine1} = useContext(AddressFieldsContext);
 
     const zipSampleFormat = (country && (COMMON_CONST.COUNTRY_ZIP_REGEX_DATA[country] as CountryZipRegex)?.samples) ?? '';
 
@@ -154,6 +158,7 @@ function AddressFormFields() {
                     }}
                     shouldSaveDraft={shouldSaveDraft}
                     autoComplete="address-line1"
+                    autoFocus={shouldAutoFocusAddressLine1}
                 />
             </View>
             <View style={styles.formSpaceVertical} />
@@ -253,6 +258,7 @@ function AddressForm<TFormID extends AddressFormID>({
     shouldRequireZip = false,
     shouldValidatePhysicalAddress = false,
     addBottomSafeAreaPadding = true,
+    shouldAutoFocusAddressLine1 = false,
     forwardedFSClass,
     children,
     validate,
@@ -349,7 +355,7 @@ function AddressForm<TFormID extends AddressFormID>({
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             forwardedFSClass={forwardedFSClass}
         >
-            <AddressFieldsContext.Provider value={{city, country, state, street1, street2, zip, onAddressChanged, shouldSaveDraft, shouldHideCountrySelector}}>
+            <AddressFieldsContext.Provider value={{city, country, state, street1, street2, zip, onAddressChanged, shouldSaveDraft, shouldHideCountrySelector, shouldAutoFocusAddressLine1}}>
                 {children ?? <AddressFormFields />}
             </AddressFieldsContext.Provider>
         </FormProvider>
