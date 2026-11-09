@@ -325,7 +325,7 @@
     "dotenv": "^16.0.3",
     "esbuild": "^0.28.1",
     "eslint": "^9.36.0",
-    "eslint-config-expensify": "4.0.8",
+    "eslint-config-expensify": "4.0.20",
     "eslint-config-prettier": "^9.1.2",
     "eslint-plugin-jsdoc": "^60.7.0",
     "eslint-plugin-lodash": "^7.4.0",
