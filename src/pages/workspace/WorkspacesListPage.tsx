@@ -29,8 +29,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearCopyPolicySettings} from '@libs/actions/Policy/CopyPolicySettings';
-import {queueExportPoliciesMembersToCSV, requestWorkspacesOwnerChange} from '@libs/actions/Policy/Member';
-import {archivePolicies, clearDuplicateWorkspace, dismissWorkspaceError, leaveWorkspaces} from '@libs/actions/Policy/Policy';
+import {queueBulkExportPolicyMembers, queueBulkTransferPolicyBillingOwner} from '@libs/actions/Policy/Member';
+import {queueBulkArchivePolicy, clearDuplicateWorkspace, dismissWorkspaceError, queueBulkLeavePolicy} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -310,7 +310,7 @@ function WorkspacesListPage() {
                     text: translate('workspace.common.exportMembers'),
                     icon: icons.Export,
                     onSelected: () => {
-                        queueExportPoliciesMembersToCSV(policyIDs);
+                        queueBulkExportPolicyMembers(policyIDs);
                         clearSelection();
                     },
                 };
@@ -329,7 +329,7 @@ function WorkspacesListPage() {
                             policyIDs,
                             translate('workspace.common.transferOwnerWorkspacesTitle', {count: policyIDs.length}),
                             translate('workspace.people.transferOwner'),
-                            () => requestWorkspacesOwnerChange(policyIDs),
+                            () => queueBulkTransferPolicyBillingOwner(policyIDs),
                             CONST.BUTTON_VARIANT.SUCCESS,
                         );
                     },
@@ -364,7 +364,7 @@ function WorkspacesListPage() {
                             return;
                         }
                         confirmBulkAction(policyIDs, translate('workspace.common.archiveWorkspacesTitle', {count: policyIDs.length}), translate('common.archive'), () =>
-                            archivePolicies(policyIDs),
+                            queueBulkArchivePolicy(policyIDs),
                         );
                     },
                 };
@@ -405,7 +405,7 @@ function WorkspacesListPage() {
                                 return;
                             }
                             confirmBulkAction(policyIDs, translate('workspace.common.leaveWorkspacesTitle', {count: policyIDs.length}), translate('common.leave'), () =>
-                                leaveWorkspaces(
+                                queueBulkLeavePolicy(
                                     currentUserPersonalDetails.login ?? '',
                                     selectedRows.filter((row) => policyIDs.includes(row.policyID)).map((row) => ({id: row.policyID, pendingAction: row.pendingAction})),
                                 ),

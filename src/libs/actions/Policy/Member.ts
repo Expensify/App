@@ -7,8 +7,8 @@ import type {
     DeleteMembersFromWorkspaceParams,
     OpenPolicyMemberProfilePageParams,
     OpenWorkspaceMembersPageParams,
-    QueueExportPoliciesMembersToCSVParams,
-    RequestPoliciesOwnerChangeParams,
+    QueueBulkExportPolicyMembersParams,
+    QueueBulkTransferPolicyBillingOwnerParams,
     RequestWorkspaceOwnerChangeParams,
     UpdatePolicyMemberDisplayNameParams,
     UpdateWorkspaceMembersRoleParams,
@@ -828,11 +828,11 @@ function requestWorkspaceOwnerChange(policy: OnyxEntry<Policy>, currentUserAccou
     API.write(WRITE_COMMANDS.REQUEST_WORKSPACE_OWNER_CHANGE, params, {optimisticData, successData, failureData});
 }
 
-// TODO: Placeholder until the backend command lands. Update the command parameters and Onyx data to match it.
-function requestWorkspacesOwnerChange(policyIDs: string[]) {
-    const params: RequestPoliciesOwnerChangeParams = {policyIDList: policyIDs.join(',')};
+// TODO: Run CheckBulkTransferPolicyBillingOwner first and show its result in the confirmation, once its response shape is known.
+function queueBulkTransferPolicyBillingOwner(policyIDs: string[]) {
+    const params: QueueBulkTransferPolicyBillingOwnerParams = {policyIDList: policyIDs.join(',')};
 
-    API.write(WRITE_COMMANDS.REQUEST_POLICIES_OWNER_CHANGE, params);
+    API.write(WRITE_COMMANDS.QUEUE_BULK_TRANSFER_POLICY_BILLING_OWNER, params);
 }
 
 function clearWorkspaceOwnerChangeFlow(policyID: string | undefined) {
@@ -1577,8 +1577,7 @@ function downloadMembersCSV(policyID: string, shouldIncludeApprovers: boolean, o
     fileDownload(translate, ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_MEMBERS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
-// TODO: Placeholder until the backend command lands. Update the command parameters to match it.
-function queueExportPoliciesMembersToCSV(policyIDs: string[]): string {
+function queueBulkExportPolicyMembers(policyIDs: string[]): string {
     const exportID = rand64();
     const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
 
@@ -1604,14 +1603,14 @@ function queueExportPoliciesMembersToCSV(policyIDs: string[]): string {
         },
     ];
 
-    const params: QueueExportPoliciesMembersToCSVParams = {
+    const params: QueueBulkExportPolicyMembersParams = {
         policyIDList: policyIDs.join(','),
         exportID,
     };
 
     markExportInitiatedLocally(exportID);
 
-    API.write(WRITE_COMMANDS.QUEUE_EXPORT_POLICIES_MEMBERS_TO_CSV, params, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.QUEUE_BULK_EXPORT_POLICY_MEMBERS, params, {optimisticData, failureData});
 
     return exportID;
 }
@@ -1695,7 +1694,7 @@ export {
     buildUpdateWorkspaceMembersRoleOnyxData,
     updateWorkspaceMembersRole,
     requestWorkspaceOwnerChange,
-    requestWorkspacesOwnerChange,
+    queueBulkTransferPolicyBillingOwner,
     clearWorkspaceOwnerChangeFlow,
     buildAddMembersToWorkspaceOnyxData,
     addMembersToWorkspace,
@@ -1712,7 +1711,7 @@ export {
     declineJoinRequest,
     importPolicyMembers,
     downloadMembersCSV,
-    queueExportPoliciesMembersToCSV,
+    queueBulkExportPolicyMembers,
     clearInviteDraft,
     buildRoomMembersOnyxData,
     openPolicyMemberProfilePage,

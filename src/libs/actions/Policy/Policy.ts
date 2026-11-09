@@ -11,7 +11,7 @@ import type {
     AddPaymentCardParams,
     ChangePolicyUberBillingAccountPageParams,
     CreateWorkspaceFromIOUPaymentParams,
-    ArchivePoliciesParams,
+    QueueBulkArchivePolicyParams,
     ArchivePolicyParams,
     UnarchivePolicyParams,
     CreateWorkspaceParams,
@@ -36,7 +36,7 @@ import type {
     EnablePolicyTaxesParams,
     EnablePolicyWorkflowsParams,
     InviteWorkspaceEmployeesToUberParams,
-    LeavePoliciesParams,
+    QueueBulkLeavePolicyParams,
     LeavePolicyParams,
     OpenDraftWorkspaceRequestParams,
     OpenDuplicatePolicyPageParams,
@@ -802,8 +802,7 @@ function archivePolicy(params: ArchivePolicyActionParams) {
     Log.info(`[ArchivePolicy] Archived policy ${policyName} (${policyID})`);
 }
 
-// TODO: Placeholder until the backend command lands. Update the command parameters and Onyx data to match it.
-function archivePolicies(policyIDs: string[]) {
+function queueBulkArchivePolicy(policyIDs: string[]) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
@@ -837,9 +836,9 @@ function archivePolicies(policyIDs: string[]) {
         });
     }
 
-    const apiParams: ArchivePoliciesParams = {policyIDList: policyIDs.join(',')};
+    const apiParams: QueueBulkArchivePolicyParams = {policyIDList: policyIDs.join(',')};
 
-    API.write(WRITE_COMMANDS.ARCHIVE_POLICIES, apiParams, {optimisticData, failureData, successData});
+    API.write(WRITE_COMMANDS.QUEUE_BULK_ARCHIVE_POLICY, apiParams, {optimisticData, failureData, successData});
 }
 
 type UnarchivePolicyActionParams = {
@@ -1853,8 +1852,7 @@ function leaveWorkspace(currentUserAccountID: number, currentUserEmail: string, 
     API.write(WRITE_COMMANDS.LEAVE_POLICY, params, {optimisticData, successData, failureData});
 }
 
-// TODO: Placeholder until the backend command lands. Update the command parameters and Onyx data to match it.
-function leaveWorkspaces(currentUserEmail: string, policies: Array<Pick<Policy, 'id' | 'pendingAction'>>) {
+function queueBulkLeavePolicy(currentUserEmail: string, policies: Array<Pick<Policy, 'id' | 'pendingAction'>>) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
@@ -1892,11 +1890,8 @@ function leaveWorkspaces(currentUserEmail: string, policies: Array<Pick<Policy, 
         });
     }
 
-    const params: LeavePoliciesParams = {
-        policyIDList: policies.map((policy) => policy.id).join(','),
-        email: currentUserEmail,
-    };
-    API.write(WRITE_COMMANDS.LEAVE_POLICIES, params, {optimisticData, successData, failureData});
+    const params: QueueBulkLeavePolicyParams = {policyIDList: policies.map((policy) => policy.id).join(',')};
+    API.write(WRITE_COMMANDS.QUEUE_BULK_LEAVE_POLICY, params, {optimisticData, successData, failureData});
 }
 
 function addBillingCardAndRequestPolicyOwnerChange(
@@ -8472,11 +8467,11 @@ function setWorkspaceConfirmationCurrency(currency: string) {
 
 export {
     leaveWorkspace,
-    leaveWorkspaces,
+    queueBulkLeavePolicy,
     addBillingCardAndRequestPolicyOwnerChange,
     deleteWorkspace,
     archivePolicy,
-    archivePolicies,
+    queueBulkArchivePolicy,
     unarchivePolicy,
     updateAddress,
     updateLastAccessedWorkspace,
