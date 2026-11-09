@@ -9,8 +9,8 @@ import {isNumeric} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 
-import type {ComponentRef, ForwardedRef, KeyboardEvent} from 'react';
-import type {FocusEvent, TextInput as RNTextInput, TextInputKeyPressEvent} from 'react-native';
+import type {ForwardedRef, KeyboardEvent} from 'react';
+import type {FocusEvent, TextInputKeyPressEvent} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
@@ -21,8 +21,10 @@ import Animated, {useAnimatedStyle, useSharedValue, withDelay, withRepeat, withS
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 
 import FormHelpMessage from './FormHelpMessage';
+import FSClassView from './FSClassView';
 import Text from './Text';
 import TextInput from './TextInput';
+import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 
 const TEXT_INPUT_EMPTY_STATE = '';
 
@@ -40,7 +42,7 @@ const useValidateCodePaste = (inputRef: React.RefObject<BaseTextInputRef | null>
                 return;
             }
 
-            const isFocused = (inputRef.current as ComponentRef<typeof RNTextInput>)?.isFocused?.() ?? false;
+            const isFocused = isTextInputFocused(inputRef);
             if (!isFocused) {
                 return;
             }
@@ -343,7 +345,7 @@ function ValidateCodeInput({
      * NOTE: when using Android Emulator, this can only be tested using
      * hardware keyboard inputs.
      */
-    const onKeyPress = (event: Partial<TextInputKeyPressEvent>) => {
+    const onKeyPress = (event: Partial<TextInputKeyPressEvent> & Partial<Pick<KeyboardEvent, 'shiftKey'>>) => {
         const keyValue = event?.nativeEvent?.key;
         if (keyValue === 'Backspace' || keyValue === '<') {
             let numbers = decomposeString(value, maxLength);
@@ -414,7 +416,7 @@ function ValidateCodeInput({
             setInput(TEXT_INPUT_EMPTY_STATE);
             onFulfill(value);
         } else if (keyValue === 'Tab' && focusedIndex !== undefined) {
-            const newFocusedIndex = (event as unknown as KeyboardEvent).shiftKey ? focusedIndex - 1 : focusedIndex + 1;
+            const newFocusedIndex = event.shiftKey ? focusedIndex - 1 : focusedIndex + 1;
             if (newFocusedIndex >= 0 && newFocusedIndex < maxLength) {
                 setInputAndIndex(newFocusedIndex);
                 inputRef.current?.focus();
@@ -459,9 +461,9 @@ function ValidateCodeInput({
 
     return (
         <>
-            <View
+            <FSClassView
                 style={[styles.validateCodeInputContainer]}
-                fsClass={CONST.FULLSTORY.CLASS.MASK}
+                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             >
                 <GestureDetector gesture={tapGesture}>
                     {/* Android does not handle touch on invisible Views so I created a wrapper around invisible TextInput just to handle taps */}
@@ -546,7 +548,7 @@ function ValidateCodeInput({
                         </View>
                     );
                 })}
-            </View>
+            </FSClassView>
             {!!errorText && (
                 <FormHelpMessage
                     isError

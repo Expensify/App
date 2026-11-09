@@ -62,7 +62,7 @@ Stay informed about your transactions and fraud alerts by enabling **push notifi
 ## Viewing Virtual Card Details
 To see your virtual card number, expiration date, and CVC:
 - Go to **Settings > Account > Wallet > Imported Card Feeds > Show Details**.
-- Note: Your virtual and physical cards share the same **Smart Limit**.
+- Note: Your virtual and physical cards each have their own **Smart Limit**. Spending on one card doesn't reduce the available limit on the other.
 
 ## Making Online and Mobile Payments
 - Use the virtual card for **online, in-app, or in-person** purchases when linked to a mobile wallet.

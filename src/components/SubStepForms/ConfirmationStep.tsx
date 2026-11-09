@@ -1,6 +1,7 @@
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
+import FormAlertWrapper from '@components/FormAlertWrapper';
 import MenuItemAvatarNavigation from '@components/MenuItem/presets/MenuItemAvatarNavigation';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import RenderHTML from '@components/RenderHTML';
@@ -17,6 +18,8 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 
 import CONST from '@src/CONST';
+
+import type {ReactNode} from 'react';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -39,6 +42,9 @@ type SummaryItem = {
 
     /** False for a row that opens nothing, so it is not announced as a button. Defaults to true. */
     interactive?: boolean;
+
+    /** The row shows its answer but cannot be opened for now, such as offline */
+    disabled?: boolean;
 
     /** The brick road indicator shown on the row */
     brickRoadIndicator?: BrickRoad;
@@ -86,8 +92,20 @@ type SummaryLabelRow = {
     title: string;
 };
 
-/** One row of a group: an answer, an entry of a repeated group, or the name of a repeated group */
-type SummaryGroupRow = SummaryItem | SummaryAvatarRow | SummaryLabelRow;
+/** An error about a repeated group as a whole, such as too many entries, shown under its entries since their rows don't carry one */
+type SummaryErrorRow = {
+    /** Tells the row apart from an answer row */
+    kind: 'error';
+
+    /** Unique key of the row */
+    id: string;
+
+    /** The error message */
+    title: string;
+};
+
+/** One row of a group: an answer, an entry of a repeated group, the name of a repeated group, or an error about a repeated group */
+type SummaryGroupRow = SummaryItem | SummaryAvatarRow | SummaryLabelRow | SummaryErrorRow;
 
 /** Answers under one heading. Used instead of `summaryItems` when the confirmation is split by section. */
 type SummaryGroup = {
@@ -124,6 +142,12 @@ type ConfirmationStepProps = SubPageProps &
         /** The error message to display */
         error?: string;
 
+        /** Shows "Please fix the errors in the form before continuing" above Confirm, for rows whose answers need fixing before Confirm can send them */
+        isFixErrorsAlertVisible?: boolean;
+
+        /** Called when the "fix the errors" link in the alert is pressed */
+        onFixTheErrorsLinkPressed?: () => void;
+
         shouldApplySafeAreaPaddingBottom?: boolean;
 
         /** Whether screen readers treat the page title as a heading */
@@ -131,6 +155,9 @@ type ConfirmationStepProps = SubPageProps &
 
         /** Whether screen readers hear that Confirm is in progress, and hear the error after each Confirm press */
         shouldAnnounceSubmitState?: boolean;
+
+        /** Drawn between the rows and Confirm, such as a terms checkbox the user ticks before confirming */
+        children?: ReactNode;
     };
 
 function ConfirmationStep({
@@ -142,11 +169,14 @@ function ConfirmationStep({
     onfidoLinksTitle,
     isLoading,
     error,
+    isFixErrorsAlertVisible = false,
+    onFixTheErrorsLinkPressed,
     onNext,
     shouldApplySafeAreaPaddingBottom = true,
     shouldMarkTitleAsHeading = false,
     shouldAnnounceSubmitState = false,
-    forwardedFSClass,
+    forwardedFSClass = CONST.FULLSTORY.CLASS.MASK,
+    children,
 }: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -181,6 +211,16 @@ function ConfirmationStep({
                 </Text>
             );
         }
+        if ('kind' in row && row.kind === 'error') {
+            return (
+                <DotIndicatorMessage
+                    key={row.id}
+                    style={[styles.ph5, styles.mt2]}
+                    type="error"
+                    messages={{error: row.title}}
+                />
+            );
+        }
         if ('kind' in row) {
             // MenuItemAvatarNavigation takes no FullStory class, so the mask goes on a View around it
             return (
@@ -199,7 +239,7 @@ function ConfirmationStep({
                 </View>
             );
         }
-        const {id, description, title, shouldShowRightIcon, onPress, interactive, brickRoadIndicator, errorText, testID, accessibilityLabel} = row;
+        const {id, description, title, shouldShowRightIcon, onPress, interactive, disabled, brickRoadIndicator, errorText, testID, accessibilityLabel} = row;
         return (
             <MenuItemWithTopDescription
                 key={id}
@@ -209,6 +249,8 @@ function ConfirmationStep({
                 shouldShowRightIcon={shouldShowRightIcon}
                 onPress={onPress}
                 interactive={interactive}
+                disabled={disabled}
+                sentryLabel={CONST.SENTRY_LABEL.CONFIRMATION_STEP.EDIT}
                 brickRoadIndicator={brickRoadIndicator}
                 errorText={errorText}
                 accessibilityLabel={accessibilityLabel}
@@ -254,6 +296,8 @@ function ConfirmationStep({
                 </View>
             )}
 
+            {!!children && <View style={[styles.ph5, styles.mt3]}>{children}</View>}
+
             <View style={[styles.ph5, styles.mt5, styles.flexGrow1, styles.justifyContentEnd]}>
                 {!!error && error.length > 0 && (
                     <DotIndicatorMessage
@@ -262,16 +306,24 @@ function ConfirmationStep({
                         messages={{error}}
                     />
                 )}
-                <ButtonDisabledWhenOffline
-                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    size={CONST.BUTTON_SIZE.LARGE}
-                    isLoading={isLoading}
-                    accessibilityState={shouldAnnounceSubmitState ? {busy: !!isLoading} : undefined}
-                    style={[styles.w100]}
-                    onPress={onNext}
+                <FormAlertWrapper
+                    isAlertVisible={isFixErrorsAlertVisible}
+                    onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}
                 >
-                    <Button.Text>{translate('common.confirm')}</Button.Text>
-                </ButtonDisabledWhenOffline>
+                    {() => (
+                        <ButtonDisabledWhenOffline
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
+                            size={CONST.BUTTON_SIZE.LARGE}
+                            isLoading={isLoading}
+                            accessibilityState={shouldAnnounceSubmitState ? {busy: !!isLoading} : undefined}
+                            style={[styles.w100]}
+                            onPress={onNext}
+                            sentryLabel={CONST.SENTRY_LABEL.CONFIRMATION_STEP.CONFIRM}
+                        >
+                            <Button.Text>{translate('common.confirm')}</Button.Text>
+                        </ButtonDisabledWhenOffline>
+                    )}
+                </FormAlertWrapper>
             </View>
         </ScrollView>
     );

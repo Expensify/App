@@ -4,6 +4,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentProps} from 'react';
 
@@ -22,6 +23,13 @@ type ConnectionStatusMessageProps = {
     statusTone?: 'default' | 'success' | 'danger';
     onLinkPress?: ComponentProps<typeof RenderHTML>['onLinkPress'];
     shouldIncludeHorizontalPadding?: boolean;
+
+    /**
+     * Accessible name for the action button
+     */
+    actionAccessibilityLabel?: string;
+
+    actionSentryLabel?: SentryLabel;
 };
 
 function ConnectionStatusMessage({
@@ -32,6 +40,8 @@ function ConnectionStatusMessage({
     statusTone = 'default',
     onLinkPress,
     shouldIncludeHorizontalPadding = true,
+    actionAccessibilityLabel,
+    actionSentryLabel,
 }: ConnectionStatusMessageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const theme = useTheme();
@@ -48,15 +58,23 @@ function ConnectionStatusMessage({
     }
     const shouldShowActionButton = !!actionText && !!onActionPress;
     const isDangerStatus = statusTone === 'danger';
-    const messageTag = isDangerStatus ? 'rbr' : 'muted-text-label';
+    const isSuccessStatus = statusTone === 'success';
+    let messageTag;
+    if (isDangerStatus) {
+        messageTag = 'rbr';
+    } else if (isSuccessStatus) {
+        messageTag = 'gbr';
+    } else {
+        messageTag = 'muted-text-label';
+    }
     const messageHTML = `<${messageTag}>${message ?? ''}</${messageTag}>`;
     const messageContent = (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
-            {isDangerStatus && (
+            {(isDangerStatus || isSuccessStatus) && (
                 <View style={[styles.offlineFeedbackErrorDot, styles.mr2]}>
                     <Icon
                         src={icons.DotIndicator}
-                        fill={theme.danger}
+                        fill={isDangerStatus ? theme.danger : theme.iconSuccessFill}
                     />
                 </View>
             )}
@@ -71,11 +89,13 @@ function ConnectionStatusMessage({
 
     const actionButton = shouldShowActionButton ? (
         <Button
-            variant={CONST.BUTTON_VARIANT.DANGER}
+            variant={isSuccessStatus ? CONST.BUTTON_VARIANT.SUCCESS : CONST.BUTTON_VARIANT.DANGER}
             size={CONST.BUTTON_SIZE.SMALL}
             style={styles.alignSelfStart}
             onPress={onActionPress}
             isDisabled={isActionDisabled}
+            accessibilityLabel={actionAccessibilityLabel}
+            sentryLabel={actionSentryLabel}
         >
             <Button.Text>{actionText}</Button.Text>
         </Button>

@@ -6,10 +6,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import BillingBanner from '@pages/settings/Subscription/CardSection/BillingBanner/BillingBanner';
 
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import Badge from './Badge';
@@ -27,7 +28,7 @@ type AgentPromotionalBannerProps = {
     onDismiss: () => void;
 
     /** Sentry label for the dismiss button. */
-    dismissSentryLabel: string;
+    dismissSentryLabel: SentryLabel;
 
     /** Optional CTA text. When omitted, the CTA is not rendered. */
     ctaText?: string;
@@ -36,7 +37,7 @@ type AgentPromotionalBannerProps = {
     onCtaPress?: () => void;
 
     /** Sentry label for the CTA. Required when `ctaText` is set. */
-    ctaSentryLabel?: string;
+    ctaSentryLabel?: SentryLabel;
 
     /** Extra styles applied to the outer container. */
     style?: StyleProp<ViewStyle>;
@@ -51,30 +52,27 @@ function AgentPromotionalBanner({title, subtitle, onDismiss, dismissSentryLabel,
 
     const hasCta = !!ctaText && !!onCtaPress;
 
-    const titleNode = useMemo(
-        () => (
-            <View style={[styles.flexRow, styles.flexShrink1]}>
-                <Text style={[styles.textStrong]}>
-                    {title}
-                    <Badge
-                        badgeStyles={styles.agentPromotionalBannerBadge}
-                        success
-                        isStrong
-                        isCondensed
-                        text={translate('common.new')}
-                    />
-                </Text>
-            </View>
-        ),
-        [title, styles, translate],
+    const titleNode = (
+        <View style={[styles.flexRow, styles.flexShrink1]}>
+            <Text style={[styles.textStrong]}>
+                {title}
+                <Badge
+                    badgeStyles={styles.agentPromotionalBannerBadge}
+                    success
+                    isStrong
+                    isCondensed
+                    text={translate('common.new')}
+                />
+            </Text>
+        </View>
     );
 
-    const rightComponent = useMemo(() => {
-        if (!hasCta) {
-            return null;
-        }
-        if (shouldUseNarrowLayout && !isInLandscapeMode) {
-            return (
+    let rightComponent;
+    if (!hasCta) {
+        rightComponent = null;
+    } else {
+        rightComponent =
+            shouldUseNarrowLayout && !isInLandscapeMode ? (
                 <View style={[styles.w100, styles.justifyContentCenter]}>
                     <Button
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -84,18 +82,16 @@ function AgentPromotionalBanner({title, subtitle, onDismiss, dismissSentryLabel,
                         <Button.Text>{ctaText ?? ''}</Button.Text>
                     </Button>
                 </View>
+            ) : (
+                <Button
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    onPress={onCtaPress}
+                    sentryLabel={ctaSentryLabel}
+                >
+                    <Button.Text>{ctaText ?? ''}</Button.Text>
+                </Button>
             );
-        }
-        return (
-            <Button
-                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                onPress={onCtaPress}
-                sentryLabel={ctaSentryLabel}
-            >
-                <Button.Text>{ctaText ?? ''}</Button.Text>
-            </Button>
-        );
-    }, [hasCta, shouldUseNarrowLayout, isInLandscapeMode, ctaText, onCtaPress, ctaSentryLabel, styles]);
+    }
 
     return (
         <View style={style}>

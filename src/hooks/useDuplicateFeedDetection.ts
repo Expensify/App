@@ -3,7 +3,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 
-import {useCallback, useEffect, useRef} from 'react';
+import {useEffect, useRef} from 'react';
 
 import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
@@ -34,31 +34,28 @@ function useDuplicateFeedDetection({policyID, isPlaid}: UseDuplicateFeedDetectio
         translateRef.current = translate;
     }, [translate]);
 
-    const checkForDuplicateFeed = useCallback(
-        (newFeed: CompanyCardFeedWithDomainID | undefined) => {
-            if (newFeed) {
-                hasEverDetectedNewFeed.current = true;
-            }
+    const checkForDuplicateFeed = (newFeed: CompanyCardFeedWithDomainID | undefined) => {
+        if (newFeed) {
+            hasEverDetectedNewFeed.current = true;
+        }
 
-            const isDuplicateFeed = !newFeed && isPlaid && !hasEverDetectedNewFeed.current;
-            if (isDuplicateFeed && !hasShownDuplicateModal.current) {
-                hasShownDuplicateModal.current = true;
-                Navigation.closeRHPFlow();
-                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
-                showConfirmModalRef.current({
-                    title: translateRef.current('workspace.companyCards.addNewCard.duplicateFeedModal.title'),
-                    prompt: translateRef.current('workspace.companyCards.addNewCard.duplicateFeedModal.prompt'),
-                    confirmText: translateRef.current('common.buttonConfirm'),
-                    shouldShowCancelButton: false,
-                    shouldHandleNavigationBack: false,
-                });
-                return true;
-            }
+        const isDuplicateFeed = !newFeed && isPlaid && !hasEverDetectedNewFeed.current;
+        if (isDuplicateFeed && !hasShownDuplicateModal.current) {
+            hasShownDuplicateModal.current = true;
+            Navigation.closeRHPFlow();
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
+            showConfirmModalRef.current({
+                title: translateRef.current('workspace.companyCards.addNewCard.duplicateFeedModal.title'),
+                prompt: translateRef.current('workspace.companyCards.addNewCard.duplicateFeedModal.prompt'),
+                confirmText: translateRef.current('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+                shouldHandleNavigationBack: false,
+            });
+            return true;
+        }
 
-            return false;
-        },
-        [isPlaid, policyID],
-    );
+        return false;
+    };
 
     return {checkForDuplicateFeed};
 }

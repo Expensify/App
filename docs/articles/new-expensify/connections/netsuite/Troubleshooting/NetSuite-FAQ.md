@@ -52,8 +52,8 @@ On web:
 
 1. Go to the **navigation tabs on the left** and select **Workspaces**.
 2. Select your Workspace.
-3. Select **Accounting**.
-4. Click the **three-dot icon** next to the NetSuite connection.
+3. Select **Connections**, then select **Configure** next to NetSuite.
+4. Select **More (⋮)**.
 5. Click **Disconnect**.
 6. Confirm the disconnection.
 
@@ -110,8 +110,10 @@ In NetSuite:
 
 In Expensify:
 
-1. Go to **Workspaces > [Workspace Name] > Accounting > Advanced**.
-2. Confirm:
+1. Select **Workspaces > [workspace name] > Connections**.
+2. Select **Configure** next to NetSuite.
+3. Select **Advanced**.
+4. Confirm:
    - **Sync Reimbursed Reports** is enabled with a payment account selected.
    - **Journal Entry Approval Level** is set to **Approved for Posting**.
    - The **A/P Approval Account** matches the account used for bill payments.
@@ -159,9 +161,9 @@ Option 1:
 
 1. Go to **Workspaces > [Workspace Name] > Members**.
 2. Remove the employee.
-3. Go to **Workspaces > [Workspace Name] > Accounting**.
-4. Click the **three-dot icon**.
-5. Click **Sync now**.
+3. Select **Workspaces > [workspace name] > Connections**, then select **Configure** next to NetSuite.
+4. Select **More (⋮)**.
+5. Select **Sync now**.
 6. Re-import the employee and approver.
 
 Option 2:
@@ -202,9 +204,9 @@ Follow the steps above under the **Accounting Approved vs Paid in Full** section
 
 After resolving errors:
 
-1. Go to **Workspaces > [Workspace Name] > Accounting**.
-2. Click the **three-dot icon** next to the NetSuite connection.
-3. Click **Sync now**.
+1. Select **Workspaces > [workspace name] > Connections**, then select **Configure** next to NetSuite.
+2. Select **More (⋮)**.
+3. Select **Sync now**.
 4. Manually export the corrected report.
 
 Automatic exports resume only after all blocking errors are cleared.

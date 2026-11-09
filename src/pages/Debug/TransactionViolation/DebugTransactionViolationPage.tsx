@@ -23,7 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {TransactionViolation} from '@src/types/onyx';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type DebugTransactionViolationPageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.TRANSACTION_VIOLATION>;
@@ -35,20 +35,17 @@ function DebugTransactionViolationPage({
 }: DebugTransactionViolationPageProps) {
     const {translate} = useLocalize();
     const transactionViolations = useTransactionViolations(transactionID);
-    const transactionViolation = useMemo(() => transactionViolations?.[Number(index)], [index, transactionViolations]);
+    const transactionViolation = transactionViolations?.[Number(index)];
 
     const styles = useThemeStyles();
 
-    const saveChanges = useCallback(
-        (data: Record<string, unknown>) => {
-            const updatedTransactionViolations = [...(transactionViolations ?? [])];
-            updatedTransactionViolations.splice(Number(index), 1, data as TransactionViolation);
-            Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, updatedTransactionViolations);
-        },
-        [index, transactionID, transactionViolations],
-    );
+    const saveChanges = (data: Record<string, unknown>) => {
+        const updatedTransactionViolations = [...(transactionViolations ?? [])];
+        updatedTransactionViolations.splice(Number(index), 1, data as TransactionViolation);
+        Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, updatedTransactionViolations);
+    };
 
-    const deleteTransactionViolation = useCallback(() => {
+    const deleteTransactionViolation = () => {
         const updatedTransactionViolations = [...(transactionViolations ?? [])];
         updatedTransactionViolations.splice(Number(index), 1);
         Navigation.goBack(undefined, {
@@ -58,30 +55,24 @@ function DebugTransactionViolationPage({
                 Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, updatedTransactionViolations);
             },
         });
-    }, [index, transactionID, transactionViolations]);
+    };
 
-    const DebugDetailsTab = useCallback(
-        () => (
-            <DebugDetails
-                formType={CONST.DEBUG.FORMS.TRANSACTION_VIOLATION}
-                data={transactionViolation}
-                onSave={saveChanges}
-                onDelete={deleteTransactionViolation}
-                validate={DebugUtils.validateTransactionViolationDraftProperty}
-            />
-        ),
-        [deleteTransactionViolation, saveChanges, transactionViolation],
+    const detailsTab = (
+        <DebugDetails
+            formType={CONST.DEBUG.FORMS.TRANSACTION_VIOLATION}
+            data={transactionViolation}
+            onSave={saveChanges}
+            onDelete={deleteTransactionViolation}
+            validate={DebugUtils.validateTransactionViolationDraftProperty}
+        />
     );
 
-    const DebugJSONTab = useCallback(() => <DebugJSON data={transactionViolation ?? {}} />, [transactionViolation]);
+    const jsonTab = <DebugJSON data={transactionViolation ?? {}} />;
 
-    const routes = useMemo<DebugTabNavigatorRoutes>(
-        () => [
-            {name: CONST.DEBUG.DETAILS, component: DebugDetailsTab},
-            {name: CONST.DEBUG.JSON, component: DebugJSONTab},
-        ],
-        [DebugDetailsTab, DebugJSONTab],
-    );
+    const routes: DebugTabNavigatorRoutes = [
+        {name: CONST.DEBUG.DETAILS, content: detailsTab},
+        {name: CONST.DEBUG.JSON, content: jsonTab},
+    ];
 
     if (!transactionViolation) {
         return <NotFoundPage />;

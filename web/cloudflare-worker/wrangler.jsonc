@@ -37,7 +37,7 @@
     // Routes are managed in Cloudflare, not here: syncing routes needs zone access, and the CI deploy token can only
     // edit these Workers.
     "env": {
-        // Serves a staging build on test-staging.new.expensify.com, a hostname nobody else uses.
+        // Serves a staging build on test-staging.new.expensify.com, a hostname nobody else uses. Only deployed by hand.
         "test-staging": {
             "name": "test-staging-new-expensify-assets",
             "r2_buckets": [{"binding": "PREVIOUS_BUILDS", "bucket_name": "new-expensify-web-assets-staging"}],

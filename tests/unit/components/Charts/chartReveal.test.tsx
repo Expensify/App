@@ -2,10 +2,12 @@ import {act, render, screen} from '@testing-library/react-native';
 
 import ActivityIndicator from '@components/ActivityIndicator';
 import ChartReveal, {HOLD_FRAMES, useReportChartLoading} from '@components/Charts/components/ChartReveal';
+import {ChartCaptureContext} from '@components/Charts/context/ChartCaptureContext';
 import {getCartesianChartHeight} from '@components/Charts/utils/chartHeights';
 import Text from '@components/Text';
 
 import React from 'react';
+import * as Reanimated from 'react-native-reanimated';
 
 const LOADING_HEIGHT = getCartesianChartHeight();
 
@@ -156,6 +158,30 @@ describe('ChartReveal', () => {
         expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeNull();
     });
 
+    it('should bring the spinner back in the same render when a revealed chart loads again', () => {
+        // Given a chart that has been revealed after loading
+        const {rerender} = render(renderChart(true));
+        rerender(renderChart(false));
+        runFrames(HOLD_FRAMES);
+
+        // When the card starts loading again, before the chart has reported it
+        rerender(
+            <ChartReveal
+                isLoading
+                loadingHeight={LOADING_HEIGHT}
+                isCardMeasured
+            >
+                <ChartBody
+                    isLoading={false}
+                    label="chart"
+                />
+            </ChartReveal>,
+        );
+
+        // Then the spinner is back already, because an empty card for even one commit shrinks the page under the user
+        expect(screen.UNSAFE_queryByType(ActivityIndicator)).not.toBeNull();
+    });
+
     it('should hold when a chart that faded in without a spinner reloads', () => {
         // Given a chart that faded in as soon as its card was measured
         const {rerender} = render(renderChart(false, 'chart', false));
@@ -204,5 +230,38 @@ describe('ChartReveal', () => {
 
         // Then no frame is left waiting to reveal it, since that would update a component that is gone
         expect(pendingFrames.size).toBe(0);
+    });
+
+    it('blocks dashboard capture until Skia has drawn and the chart has finished fading in', () => {
+        // Given a dashboard chart whose reveal animation has not completed
+        const reportLoading = jest.fn<void, [string, boolean]>();
+        const completions: Array<NonNullable<Parameters<typeof Reanimated.withTiming>[2]>> = [];
+        const animate: typeof Reanimated.withTiming = (value, config, callback) => {
+            if (callback) {
+                completions.push(callback);
+            }
+            return value;
+        };
+        jest.spyOn(Reanimated, 'withTiming').mockImplementation(animate);
+        const dashboardChart = (isLoading: boolean) => <ChartCaptureContext.Provider value={{isCapturing: false, reportLoading}}>{renderChart(isLoading)}</ChartCaptureContext.Provider>;
+        const {rerender} = render(dashboardChart(true));
+
+        // When data loads and the held frames have passed, but the fade is still running
+        rerender(dashboardChart(false));
+        runFrames(HOLD_FRAMES);
+
+        // Then export remains disabled instead of capturing a translucent chart
+        expect(reportLoading.mock.calls.at(-1)?.at(1)).toBe(true);
+
+        // When the fade completes
+        act(() => {
+            for (const complete of completions) {
+                complete(true);
+            }
+        });
+        flushWorklets();
+
+        // Then the chart permits capture
+        expect(reportLoading.mock.calls.at(-1)?.at(1)).toBe(false);
     });
 });

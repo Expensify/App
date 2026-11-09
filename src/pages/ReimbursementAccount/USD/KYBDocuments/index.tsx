@@ -25,7 +25,7 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type KYBDocumentsProps = {
@@ -153,7 +153,7 @@ function KYBDocuments({onBackButtonPress, onSubmit}: KYBDocumentsProps) {
 
     const markSubmitting = useReimbursementAccountSubmitCallback(onSubmit);
 
-    const submit = useCallback(() => {
+    const submit = () => {
         const params: Record<string, FileObject> = {};
         for (const [key, files] of Object.entries(uploadedFiles)) {
             const file = files.at(0);
@@ -167,7 +167,7 @@ function KYBDocuments({onBackButtonPress, onSubmit}: KYBDocumentsProps) {
             bankAccountID,
         });
         markSubmitting();
-    }, [uploadedFiles, bankAccountID, markSubmitting]);
+    };
 
     const footer = (
         <Button

@@ -8,7 +8,8 @@ import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {
     BankAccountList,
     Card,
@@ -39,6 +40,7 @@ import type {
     CompanyCardFeedWithNumber,
     CompanyFeeds,
     NonConnectableBankName,
+    SelectableFeedReimbursable,
 } from '@src/types/onyx/CardFeeds';
 import type {CardFeedErrors} from '@src/types/onyx/DerivedValues';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -861,7 +863,7 @@ function filterCardsByPersonalDetails(card: Card, searchQuery: string, personalD
     );
 }
 
-function getCardFeedIcon(cardFeed: CardFeedWithNumber | CardFeedWithDomainID | undefined, illustrations: IllustrationsType, companyCardIllustrations: CompanyCardFeedIcons): IconAsset {
+function getCardFeedIcon(cardFeed: string | undefined, illustrations: IllustrationsType, companyCardIllustrations: CompanyCardFeedIcons): IconAsset {
     if (cardFeed === undefined) {
         return illustrations.GenericCompanyCardLarge;
     }
@@ -890,16 +892,18 @@ function getCardFeedIcon(cardFeed: CardFeedWithNumber | CardFeedWithDomainID | u
         return companyCardIllustrations.ExpensifyCardImage;
     }
 
-    const feedIcon = feedIcons[cardFeed as keyof typeof feedIcons];
+    const feedEntries = Object.entries(feedIcons);
+    // Raw bank text can match inherited property names, so only owned feed entries can supply an icon.
+    const [, feedIcon] = feedEntries.find(([feed]) => feed === cardFeed) ?? [];
     if (feedIcon) {
         return feedIcon;
     }
 
     // In existing OldDot setups other variations of feeds could exist, ex: vcf2, vcf3, cdfbmo
-    const feedKey = (Object.keys(feedIcons) as Array<keyof typeof feedIcons>).find((feed) => cardFeed.startsWith(feed));
+    const feedEntry = feedEntries.find(([feed]) => cardFeed.startsWith(feed));
 
-    if (feedKey) {
-        return feedIcons[feedKey];
+    if (feedEntry) {
+        return feedEntry[1];
     }
 
     if (cardFeed.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)) {
@@ -2333,15 +2337,16 @@ function isCardInactive(card?: OnyxEntry<Card>): boolean {
  *
  * @param cards list of the broken cards
  * @param environmentURL environment url
+ * @param buildDynamicRoute builds the card details route on top of the screen showing the link
  * @returns url
  */
-function getBrokenConnectionUrlToFixPersonalCard(cards: Record<string, Card>, environmentURL: string) {
+function getBrokenConnectionUrlToFixPersonalCard(cards: Record<string, Card>, environmentURL: string, buildDynamicRoute: (dynamicRouteSuffixWithParams: string) => Route) {
     if (!cards) {
         return undefined;
     }
     if (Object.keys(cards).length === 1) {
         const card = Object.values(cards).at(0);
-        return `${environmentURL}/${ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(card?.cardID.toString())}`;
+        return `${environmentURL}/${buildDynamicRoute(DYNAMIC_ROUTES.PERSONAL_CARD_DETAILS.getRoute(card?.cardID.toString()))}`;
     }
 
     return `${environmentURL}/${ROUTES.SETTINGS_WALLET}`;
@@ -2564,7 +2569,27 @@ function resolveTransactionCardFields<T extends Transaction>(transactions: T[], 
     });
 }
 
+function isSelectableFeedReimbursable(value: unknown): value is SelectableFeedReimbursable {
+    return Object.values(CONST.COMPANY_CARDS.FEED_REIMBURSABLE).some((option) => option === value);
+}
+
+/**
+ * Normalizes unset and legacy settings so they match the options available to admins.
+ * Undefined or an empty string means `force_no`, and legacy `none` means `default_no`.
+ * Unknown server values return undefined to avoid displaying an incorrect setting.
+ */
+function getEffectiveFeedReimbursable(value: string | undefined): SelectableFeedReimbursable | undefined {
+    if (!value) {
+        return CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO;
+    }
+    if (value === CONST.COMPANY_CARDS.FEED_REIMBURSABLE_LEGACY_NONE) {
+        return CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO;
+    }
+    return isSelectableFeedReimbursable(value) ? value : undefined;
+}
+
 export {
+    getEffectiveFeedReimbursable,
     canResolveTransactionCard,
     getAssignedCardSortKey,
     getCardFeedBackgroundColor,

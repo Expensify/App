@@ -168,7 +168,7 @@ describe('usePolicyIndicatorChecks', () => {
             expect(result.current.indicatorPolicyID).toBe(WORKSPACE.policyID);
         });
 
-        it('returns HAS_QBO_EXPORT_ERROR when QBO export has errors', async () => {
+        it('returns HAS_REIMBURSEMENT_EXPORT_ERROR when QBO export has errors', async () => {
             await act(async () => {
                 await Onyx.multiSet({
                     [ONYXKEYS.SESSION]: {email: userID},
@@ -196,7 +196,7 @@ describe('usePolicyIndicatorChecks', () => {
             const {result} = renderHook(() => usePolicyIndicatorChecks());
             await waitForBatchedUpdatesWithAct();
 
-            expect(result.current.policyErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_QBO_EXPORT_ERROR);
+            expect(result.current.policyErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_EXPORT_ERROR);
             expect(result.current.indicatorPolicyID).toBe(WORKSPACE.policyID);
         });
 

@@ -75,7 +75,7 @@ function DomainAccessRestrictedPage({route}: DomainAccessRestrictedPageProps) {
                         >
                             <ConfirmationPage.Illustration illustration={icons.EmptyStateSpyPigeon} />
                             <ConfirmationPage.Heading>{translate('domain.accessRestricted.title')}</ConfirmationPage.Heading>
-                            <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
+                            <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter, styles.w100]}>
                                 <RenderHTML html={translate('domain.accessRestricted.description', domainName)} />
                             </View>
                         </ConfirmationPage.Content>

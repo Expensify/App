@@ -6,8 +6,6 @@ import type {Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {useCallback} from 'react';
-
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 
@@ -19,7 +17,7 @@ import usePermissions from './usePermissions';
 function useIsVendorColumnAvailable(): boolean {
     const {isBetaEnabled} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
-    const selector = useCallback((allPolicies: OnyxCollection<Policy>) => hasVendorFeatureOnAnyPolicy(allPolicies, isVendorMatchingBetaEnabled), [isVendorMatchingBetaEnabled]);
+    const selector = (allPolicies: OnyxCollection<Policy>) => hasVendorFeatureOnAnyPolicy(allPolicies, isVendorMatchingBetaEnabled);
     const [isVendorColumnAvailable = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector});
     return isVendorColumnAvailable;
 }

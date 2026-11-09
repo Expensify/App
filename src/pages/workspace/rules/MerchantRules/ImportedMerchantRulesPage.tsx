@@ -40,12 +40,11 @@ import type SCREENS from '@src/SCREENS';
 import type {ImportedSpreadsheet, Policy, PolicyCategories, PolicyVendors, Rule} from '@src/types/onyx';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 
 /** Column roles that update the matched expense; at least one must be mapped alongside a merchant filter */
 const ACTION_COLUMNS: string[] = [
@@ -303,7 +302,7 @@ type ImportedMerchantRulesPageProps = PlatformStackScreenProps<SettingsNavigator
 
 function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
     const {translate} = useLocalize();
-    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [isImportingRules, setIsImportingRules] = useState(false);
     const {containsHeader = true} = spreadsheet ?? {};
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
@@ -319,24 +318,24 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
 
     // Fetch categories if they're not loaded (e.g. after a cache clear) so imported category cells are
     // validated against the policy's real category list instead of an empty one
-    const fetchPolicyCategories = useCallback(() => {
+    const fetchPolicyCategories = () => {
         if (!policy?.areCategoriesEnabled || policyCategories) {
             return;
         }
         openPolicyCategoriesPage(policyID);
-    }, [policyID, policy?.areCategoriesEnabled, policyCategories]);
+    };
 
-    const fetchPolicyVendors = useCallback(() => {
+    const fetchPolicyVendors = () => {
         if (!isVendorFeatureAvailable || policyVendors !== undefined) {
             return;
         }
         openPolicyVendorsPage(policyID);
-    }, [isVendorFeatureAvailable, policyID, policyVendors]);
+    };
 
-    const fetchDependencies = useCallback(() => {
+    const fetchDependencies = () => {
         fetchPolicyCategories();
         fetchPolicyVendors();
-    }, [fetchPolicyCategories, fetchPolicyVendors]);
+    };
 
     const {isOffline} = useNetwork({onReconnect: fetchDependencies});
 
@@ -408,10 +407,7 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
 
     // Parse once and reuse the result for both the offline button-enablement check and the import itself, so the
     // button can never be enabled offline for an import that actually needs the (non-retryable) API call
-    const parsedRules = useMemo(
-        () => parseSpreadsheetRules(spreadsheet, containsHeader, policy, policyCategories, rules, isVendorListReady, policyVendors),
-        [spreadsheet, containsHeader, policy, policyCategories, rules, isVendorListReady, policyVendors],
-    );
+    const parsedRules = parseSpreadsheetRules(spreadsheet, containsHeader, policy, policyCategories, rules, isVendorListReady, policyVendors);
 
     // When categories are enabled but not yet cached (e.g. after a cache clear, before the on-focus fetch), the
     // category lookup is empty so every category is wrongly flagged invalid. Invalid-category counts are only
@@ -456,10 +452,6 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
         }
         closeImportPageAndModal();
     };
-
-    if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
-        return null;
-    }
 
     const spreadsheetColumns = spreadsheet?.data;
 

@@ -25,7 +25,7 @@ import type {AppStateStatus} from 'react-native';
 
 import * as Sentry from '@sentry/react-native';
 import {dismissAuthSession, openAuthSessionAsync} from 'expo-web-browser';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import handleSAMLLoginError from './handleSAMLLoginError';
 
@@ -90,25 +90,22 @@ function SAMLSignInPage() {
         return true;
     };
 
-    const handleExitSAMLFlow = useCallback(
-        (reason: ExitSAMLFlowReason) => {
-            // Closing a stuck in-app browser settles its promise, which lands here a second time.
-            if (hasExitedSAMLFlow.current) {
-                return;
-            }
-            hasExitedSAMLFlow.current = true;
-            dismissOpenAuthSession('exit');
+    const handleExitSAMLFlow = (reason: ExitSAMLFlowReason) => {
+        // Closing a stuck in-app browser settles its promise, which lands here a second time.
+        if (hasExitedSAMLFlow.current) {
+            return;
+        }
+        hasExitedSAMLFlow.current = true;
+        dismissOpenAuthSession('exit');
 
-            // Clear the guard we set before opening the in-app browser so we don't block future reauthentication
-            setIsAuthenticatingWithShortLivedToken(false);
-            Navigation.isNavigationReady().then(() => {
-                addBreadcrumb('goBack', {reason, openForMs: msSince(authSessionOpenedAt.current), lastBackgroundMs: lastBackgroundMs.current});
-                Navigation.goBack();
-                clearSignInData();
-            });
-        },
-        [dismissOpenAuthSession],
-    );
+        // Clear the guard we set before opening the in-app browser so we don't block future reauthentication
+        setIsAuthenticatingWithShortLivedToken(false);
+        Navigation.isNavigationReady().then(() => {
+            addBreadcrumb('goBack', {reason, openForMs: msSince(authSessionOpenedAt.current), lastBackgroundMs: lastBackgroundMs.current});
+            Navigation.goBack();
+            clearSignInData();
+        });
+    };
 
     useEffect(
         () => () => {
@@ -128,53 +125,50 @@ function SAMLSignInPage() {
     /**
      * Handles in-app navigation once we get a response back from Expensify
      */
-    const handleNavigationStateChange = useCallback(
-        (url: string) => {
-            // If we've gotten a callback then remove the option to navigate back to the sign-in page
-            if (url.includes('loginCallback')) {
-                shouldShowNavigation(false);
-            }
+    const handleNavigationStateChange = (url: string) => {
+        // If we've gotten a callback then remove the option to navigate back to the sign-in page
+        if (url.includes('loginCallback')) {
+            shouldShowNavigation(false);
+        }
 
-            const searchParams = new URLSearchParams(new URL(url).search);
-            const jsonParam = searchParams.get('json');
+        const searchParams = new URLSearchParams(new URL(url).search);
+        const jsonParam = searchParams.get('json');
 
-            let shortLivedAuthToken: string | null = null;
-            if (jsonParam) {
-                try {
-                    const decodedData = JSON.parse(jsonParam) as Record<string, string | null>;
-                    shortLivedAuthToken = decodedData.shortLivedAuthToken ?? null;
-                    if (decodedData.error) {
-                        Log.hmmm('SAMLSignInPage - SAML login returned error', {error: decodedData.error});
-                    }
-                } catch (parseError) {
-                    Log.hmmm('SAMLSignInPage - Failed to parse JSON parameter', {error: parseError});
+        let shortLivedAuthToken: string | null = null;
+        if (jsonParam) {
+            try {
+                const decodedData = JSON.parse(jsonParam) as Record<string, string | null>;
+                shortLivedAuthToken = decodedData.shortLivedAuthToken ?? null;
+                if (decodedData.error) {
+                    Log.hmmm('SAMLSignInPage - SAML login returned error', {error: decodedData.error});
                 }
-            } else {
-                Log.hmmm('SAMLSignInPage - No JSON parameter found in callback URL');
+            } catch (parseError) {
+                Log.hmmm('SAMLSignInPage - Failed to parse JSON parameter', {error: parseError});
             }
+        } else {
+            Log.hmmm('SAMLSignInPage - No JSON parameter found in callback URL');
+        }
 
-            // A forced re-auth leaves account.isLoading true until sign-in, so the token alone decides here.
-            if (credentials?.login && shortLivedAuthToken) {
-                Log.info('SAMLSignInPage - Successfully received shortLivedAuthToken. Signing in...');
-                signInWithShortLivedAuthToken(shortLivedAuthToken, true, lastVisitedPath, credentials?.login);
-                return;
-            }
+        // A forced re-auth leaves account.isLoading true until sign-in, so the token alone decides here.
+        if (credentials?.login && shortLivedAuthToken) {
+            Log.info('SAMLSignInPage - Successfully received shortLivedAuthToken. Signing in...');
+            signInWithShortLivedAuthToken(shortLivedAuthToken, true, lastVisitedPath, credentials?.login);
+            return;
+        }
 
-            // The browser returned but we couldn't sign in (no JSON parameter, a parse failure, or no token), so clear
-            // the guard we set before opening it and send the user back to a clean state. Otherwise the guard stays
-            // true, and since loginCallback URLs hide the back button and leave account.isLoading true, the user gets
-            // stuck on the loading screen with future reauthenticate() calls aborting.
-            setIsAuthenticatingWithShortLivedToken(false);
-            clearSignInData();
-            setAccountError(translate('common.error.login'));
-            Navigation.isNavigationReady().then(() => {
-                // We must call goBack() to remove the /transition route from history
-                Navigation.goBack();
-                Navigation.navigate(ROUTES.HOME);
-            });
-        },
-        [credentials?.login, lastVisitedPath, translate],
-    );
+        // The browser returned but we couldn't sign in (no JSON parameter, a parse failure, or no token), so clear
+        // the guard we set before opening it and send the user back to a clean state. Otherwise the guard stays
+        // true, and since loginCallback URLs hide the back button and leave account.isLoading true, the user gets
+        // stuck on the loading screen with future reauthenticate() calls aborting.
+        setIsAuthenticatingWithShortLivedToken(false);
+        clearSignInData();
+        setAccountError(translate('common.error.login'));
+        Navigation.isNavigationReady().then(() => {
+            // We must call goBack() to remove the /transition route from history
+            Navigation.goBack();
+            Navigation.navigate(ROUTES.HOME);
+        });
+    };
 
     useEffect(() => {
         // Don't open auth session more than once. If user cancels it we should navigate back to ROUTES.HOME

@@ -134,10 +134,23 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
 }
 
 /**
- * Search spans every workspace at once, so the vendor column is offered when any workspace has the vendor feature.
+ * Search spans every workspace at once, so the vendor filter and column are offered when any workspace has the vendor feature.
  */
 function hasVendorFeatureOnAnyPolicy(policies: OnyxCollection<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
     return Object.values(policies ?? {}).some((policy) => hasVendorFeature(policy, isVendorMatchingBetaEnabled));
+}
+
+/**
+ * IDs of the workspaces that have the vendor feature, so the Search vendor filter only offers their vendor lists.
+ */
+function getVendorFeaturePolicyIDs(policies: OnyxCollection<Policy>, isVendorMatchingBetaEnabled: boolean): string[] {
+    const policyIDs: string[] = [];
+    for (const policy of Object.values(policies ?? {})) {
+        if (policy?.id && hasVendorFeature(policy, isVendorMatchingBetaEnabled)) {
+            policyIDs.push(policy.id);
+        }
+    }
+    return policyIDs;
 }
 
 /**
@@ -552,6 +565,14 @@ function getCampfireVendors(policy: OnyxEntry<Policy>): Vendor[] {
         .map((vendor) => ({id: vendor.id, name: vendor.name, currency: '', email: vendor.email ?? ''}));
 }
 
+/** Zoho Books export settings use only active vendor-type records, never customers or inactive vendors */
+function getZohoBooksVendors(policy: OnyxEntry<Policy>): Vendor[] {
+    const vendors = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]?.data?.vendors;
+    return (vendors ?? [])
+        .filter((vendor) => !!vendor.id && vendor.isActive === true && vendor.vendorType === CONST.ZOHO_BOOKS_VENDOR_TYPE.VENDOR)
+        .map((vendor) => ({id: vendor.id, name: vendor.name, currency: '', email: vendor.email ?? ''}));
+}
+
 /** DualEntry export settings and expense matching must use vendors available to the selected company */
 function getDualEntryVendors(policy: OnyxEntry<Policy>): Vendor[] {
     const connection = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.DUALENTRY];
@@ -598,6 +619,7 @@ export {
     getXeroSuppliers,
     getDualEntryVendors,
     getCampfireVendors,
+    getZohoBooksVendors,
     getCertiniaVendors,
     isRilletVendorMatchingActive,
     isBusinessCentralVendorMatchingActive,
@@ -607,5 +629,6 @@ export {
     isXeroVendorMatchingActive,
     hasVendorFeature,
     hasVendorFeatureOnAnyPolicy,
+    getVendorFeaturePolicyIDs,
     isMatchingVendorListLoaded,
 };

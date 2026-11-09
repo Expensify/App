@@ -29,7 +29,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type RequireQuickBooksDesktopModalProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL>;
@@ -46,7 +46,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
     const [codatSetupLink, setCodatSetupLink] = useState<string>('');
     const hasResultOfFetchingSetupLink = !!codatSetupLink || hasError;
 
-    const fetchSetupLink = useCallback(() => {
+    const fetchSetupLink = () => {
         setHasError(false);
 
         getQuickbooksDesktopCodatSetupLink(policyID).then((response) => {
@@ -61,7 +61,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                 setHasError(true);
             }
         });
-    }, [policyID, translate]);
+    };
 
     useEffect(() => {
         // Since QBD doesn't support Taxes, we should disable them from the LHN when connecting to QBD

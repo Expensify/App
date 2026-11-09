@@ -6,8 +6,8 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {
@@ -23,7 +23,6 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 
-import {getAccountingSettingsRoute} from '@pages/workspace/connections/utils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -31,17 +30,19 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 
 function BusinessCentralAdvancedPage({policy}: WithPolicyConnectionsProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const businessCentralConfig = policy?.connections?.businessCentral?.config;
     const bankAccounts = policy?.connections?.businessCentral?.data?.bankAccounts;
     const autoSync = businessCentralConfig?.autoSync?.enabled ?? false;
@@ -64,7 +65,7 @@ function BusinessCentralAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
-            onBackButtonPress={() => Navigation.goBack(getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled, policyID))}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))}
             displayName="BusinessCentralAdvancedPage"
             headerTitle="workspace.accounting.advanced"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
@@ -79,6 +80,7 @@ function BusinessCentralAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 title={translate('workspace.accounting.autoSync')}
                 subtitle={translate('workspace.businessCentral.advanced.autoSyncDescription')}
                 switchAccessibilityLabel={translate('workspace.accounting.autoSync')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL.AUTO_SYNC_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive={autoSync}
@@ -93,8 +95,10 @@ function BusinessCentralAdvancedPage({policy}: WithPolicyConnectionsProps) {
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.BUSINESS_CENTRAL_CONFIG.ACCOUNTING_METHOD], businessCentralConfig?.pendingFields)}>
                     <MenuItem.Root
-                        onPress={callFunctionIfActionIsAllowed(() =>
-                            policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_ACCOUNTING_METHOD.getRoute(policyID)) : undefined,
+                        onPress={callFunctionIfActionIsAllowed(
+                            () => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_ACCOUNTING_METHOD.getRoute(policyID)) : undefined),
+                            false,
+                            session,
                         )}
                     >
                         <MenuItemField.Row
@@ -125,6 +129,7 @@ function BusinessCentralAdvancedPage({policy}: WithPolicyConnectionsProps) {
             <ToggleSettingOptionRow
                 title={translate('workspace.businessCentral.advanced.autoCreateEntities')}
                 switchAccessibilityLabel={translate('workspace.businessCentral.advanced.autoCreateEntities')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL.AUTO_CREATE_ENTITIES_SWITCH}
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive={autoCreateEntities}
                 onToggle={() => policyID && updateBusinessCentralAutoCreateEntities(policyID, !autoCreateEntities, autoCreateEntities)}
@@ -136,6 +141,7 @@ function BusinessCentralAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 title={translate('workspace.businessCentral.advanced.exportToNextOpenPeriod')}
                 subtitle={translate('workspace.businessCentral.advanced.exportToNextOpenPeriodDescription')}
                 switchAccessibilityLabel={translate('workspace.businessCentral.advanced.exportToNextOpenPeriod')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL.EXPORT_TO_NEXT_OPEN_PERIOD_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive={exportToNextOpenPeriod}
@@ -149,6 +155,7 @@ function BusinessCentralAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 title={translate('workspace.businessCentral.advanced.syncReimbursedReports')}
                 subtitle={translate('workspace.businessCentral.advanced.syncReimbursedReportsDescription')}
                 switchAccessibilityLabel={translate('workspace.businessCentral.advanced.syncReimbursedReports')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL.SYNC_REIMBURSED_REPORTS_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive={syncReimbursedReports}
@@ -185,6 +192,7 @@ function BusinessCentralAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     <ToggleSettingOptionRow
                         title={translate('workspace.businessCentral.advanced.syncExpensifyCardSettlements')}
                         switchAccessibilityLabel={translate('workspace.businessCentral.advanced.syncExpensifyCardSettlements')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL.SYNC_EXPENSIFY_CARD_SETTLEMENTS_SWITCH}
                         wrapperStyle={[styles.mv3, styles.mh5]}
                         isActive={syncExpensifyCardSettlements}
                         onToggle={() => policyID && updateBusinessCentralSyncExpensifyCardSettlements(policyID, !syncExpensifyCardSettlements, syncExpensifyCardSettlements)}
