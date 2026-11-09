@@ -1,3 +1,4 @@
+import {getAll as getAllPersistedRequests, getOngoingRequest} from '@libs/actions/PersistedRequests';
 import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import {clearSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
@@ -9,6 +10,7 @@ import CONFIG from '@src/CONFIG';
 import type {SignOutReason} from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {RequestsKeptOnSAMLSignOut} from '@src/types/onyx';
 
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
@@ -19,6 +21,7 @@ let currentShouldForceOffline: boolean | undefined;
 let currentIsUsingImportedState: boolean | undefined;
 let currentSessionAuthToken: string | undefined;
 let currentSessionEmail: string | undefined;
+let currentSessionAccountID: number | undefined;
 let currentCredentialsValidateCode: string | undefined;
 let lastAuthTokenWrittenAt = 0;
 let lastAuthTokenWrittenEmail: string | undefined;
@@ -46,6 +49,7 @@ Onyx.connectWithoutView({
         }
         currentSessionAuthToken = session?.authToken;
         currentSessionEmail = session?.email;
+        currentSessionAccountID = session?.accountID;
     },
 });
 
@@ -107,6 +111,8 @@ function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: st
         keysToPreserve.push(ONYXKEYS.ACCOUNT);
     }
 
+    let requestsKeptOnSAMLSignOut: RequestsKeptOnSAMLSignOut | undefined;
+
     // Mark the account as loading and set the login in credentials to trigger the `SAML_SIGN_IN` transition
     if (isSAMLReauthentication) {
         keysToPreserve.push(ONYXKEYS.CREDENTIALS);
@@ -117,11 +123,25 @@ function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: st
         // A forced re-auth is involuntary, so an in-progress trip and the current page survive it.
         keysToPreserve.push(ONYXKEYS.GPS_DRAFT_DETAILS);
         keysToPreserve.push(ONYXKEYS.LAST_VISITED_PATH);
+
+        // Every tab empties the request queue on sign-out, so unsent requests are set aside under the account that owns them.
+        if (currentSessionAccountID) {
+            keysToPreserve.push(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
+            const ongoingRequest = getOngoingRequest();
+            requestsKeptOnSAMLSignOut = {
+                accountID: currentSessionAccountID,
+                requests: ongoingRequest ? [ongoingRequest, ...getAllPersistedRequests()] : getAllPersistedRequests(),
+            };
+        }
     }
 
     const clearStartedAt = Date.now();
     const emailAtClearStart = currentSessionEmail;
     return Onyx.clear(keysToPreserve).then(async () => {
+        if (requestsKeptOnSAMLSignOut) {
+            Onyx.set(ONYXKEYS.REQUESTS_KEPT_ON_SAML_SIGN_OUT, requestsKeptOnSAMLSignOut);
+        }
+
         if (lastAuthTokenWrittenAt > clearStartedAt) {
             Log.hmmm('[SignInRedirect] Sign-out clear finished after a new sign-in started', {
                 signOutReason,
