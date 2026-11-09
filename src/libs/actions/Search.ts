@@ -277,6 +277,7 @@ type HandleActionButtonPressParams = {
     onAllHeldExpensesBlock?: () => void;
     /** Confirms any unacknowledged report violations before proceeding with the SUBMIT action. */
     confirmSubmitReportViolations: (onProceed: ConfirmSubmitReportViolationsOnProceed) => void;
+    /** Confirms report violations before the APPROVE action proceeds; approval is skipped if omitted. */
     confirmApproveReportViolations?: (onProceed: () => void) => void;
     openReportSubmitToPopover?: (options?: ReportSubmitToPopoverOpenOptions) => void;
     currentUserAccountID: number;
