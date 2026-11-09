@@ -1,15 +1,16 @@
 /**
- * oxlint config for `npm run lint` (see contributingGuides/LINTING.md). The rules come from the eslint-config-expensify
- * presets, converted each time oxlint loads this file by `buildOxlintConfig` from eslint-config-expensify/oxlint. This
- * file only adds the App's own ignores, settings, plugins and rules.
+ * oxlint config for `npm run lint` (see contributingGuides/LINTING.md). `buildOxlintConfig` from
+ * eslint-config-expensify/oxlint converts the presets listed below with @oxlint/migrate every time oxlint loads this
+ * file, so a package upgrade needs no edits here for preset rules. Below the presets this file lists the App's env,
+ * globals, settings, plugins, ignores and rule overrides.
  */
 /* eslint-disable @typescript-eslint/naming-convention -- the rule names in this file are quoted object keys */
-/* eslint-disable import/extensions -- Node loads this file as ESM, which needs the extension on relative imports */
+/* eslint-disable import/extensions -- Node loads this file as ESM, which needs the extension on relative imports, while the presets ask for none */
 import {buildOxlintConfig} from 'eslint-config-expensify/oxlint';
 import {reactCompilerRuleNames} from 'eslint-config-expensify/oxlint/utils';
 
-import {RULE_BY_CATEGORY} from './config/oxlint/reactCompilerRust.mjs';
 import {APP_HOSTED_ESLINT_RULE_IDS, APP_LOCAL_HOSTED_RULES} from './config/oxlint/appHostedRules.mjs';
+import {RULE_BY_CATEGORY} from './config/oxlint/reactCompilerRust.mjs';
 
 // React Compiler rules run as `rc/<name>` (config/oxlint/plugins/rc-rules.mjs), the ones the Rust compiler reports. The
 // other compiler rules of eslint-plugin-react-hooks (component-hook-factories, config, gating) are dropped by the package.
@@ -321,6 +322,8 @@ export default await buildOxlintConfig({
                 'hosted/no-extraneous-dependencies': 'off',
                 'es/no-nullish-coalescing-operators': 'off',
                 'es/no-optional-chaining': 'off',
+                // Stands in for `rulesdir/prefer-at`, which needs the type checker. Default options only: `checkAllIndexAccess` makes it unusable.
+                'unicorn/prefer-at': 'error',
                 // eslint-config-prettier turns this off, but the App requires braces on every block.
                 curly: ['error', 'all'],
                 'react/jsx-key': 'error',
@@ -377,7 +380,7 @@ export default await buildOxlintConfig({
             files: ['**/*.{ts,tsx,cts,mts}'],
             rules: {
                 // Narrower than the preset: `ignorePrimitives: true` reports `||` only when the left operand
-                // cannot be `''`, `0` or `false`. See contributingGuides/STYLE.md#accessing-object-properties-and-default-values
+                // cannot be `''`, `0`, `0n` or `false`. See contributingGuides/STYLE.md#accessing-object-properties-and-default-values
                 'typescript/prefer-nullish-coalescing': ['error', {ignoreIfStatements: true, ignorePrimitives: true, ignoreTernaryTests: true}],
             },
         },

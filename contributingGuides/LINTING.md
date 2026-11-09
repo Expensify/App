@@ -34,9 +34,9 @@ By default the wrapper only prints blocking errors — seatbelt-grandfathered vi
 
 ## How the rules run
 
-- **Where the rules come from:** most rules come from the [`eslint-config-expensify`](https://github.com/Expensify/eslint-config-expensify) presets. `buildOxlintConfig` from `eslint-config-expensify/oxlint` converts them to oxlint config with `@oxlint/migrate` each time oxlint loads `oxlint.config.mts`, so upgrading `eslint-config-expensify` needs no config edits. `oxlint.config.mts` lists the presets and adds the App's own ignores, settings, plugins and rules. If an upgrade brings a rule oxlint can't run, loading the config fails with a message saying what to handle (see the package README, "oxlint" section).
+- **Where the rules come from:** most rules come from the [`eslint-config-expensify`](https://github.com/Expensify/eslint-config-expensify) presets. `buildOxlintConfig` from `eslint-config-expensify/oxlint` converts them to oxlint config with `@oxlint/migrate` each time oxlint loads `oxlint.config.mts`, so upgrading `eslint-config-expensify` needs no config edits for preset rules. `oxlint.config.mts` lists the presets and adds the App's own ignores, settings, plugins and rules. If an upgrade brings a rule oxlint can't run, loading the config fails and names the rule. The fix is usually a package change (`oxlint/tables.mjs` in `eslint-config-expensify`), see the package README, "oxlint" section.
 - **Native rules** come from oxlint itself; type-aware ones run through `oxlint-tsgolint`.
-- **JS plugins** in [`config/oxlint/plugins/`](../config/oxlint/plugins/) run the rules oxlint has no native version of, using the ESLint plugins' own rule code (`eslint`, `eslint-config-expensify`, `eslint-plugin-react`, `typescript-eslint`, ...). That is why those packages stay in `devDependencies`. The repo's own rules live in [`eslint-plugin-local-rules/`](../eslint-plugin-local-rules/) and load under the `rulesdir/` prefix.
+- **JS plugins** run the rules oxlint has no native version of, using the ESLint plugins' own rule code. The `core`, `hosted` and `rulesdir` plugins come from `eslint-config-expensify`, which pulls in the ESLint plugins it hosts (`eslint-plugin-react`, `eslint-plugin-import`, `eslint-plugin-react-hooks`, `@typescript-eslint/eslint-plugin`), so those packages are not App `devDependencies`. The App's own plugins are in [`config/oxlint/plugins/`](../config/oxlint/plugins/), and the repo's own rules live in [`eslint-plugin-local-rules/`](../eslint-plugin-local-rules/) and load under the `rulesdir/` prefix.
 - **React Compiler rules** (`react-hooks/refs`, `react-hooks/purity`, ...) come from the Rust React Compiler via [`config/oxlint/reactCompilerRust.mjs`](../config/oxlint/reactCompilerRust.mjs).
 - Findings, the seatbelt baseline and `eslint-disable` comments all use the ESLint rule IDs (`@typescript-eslint/no-deprecated`, `react/jsx-no-bind`, ...); [`config/oxlint/ruleNames.mjs`](../config/oxlint/ruleNames.mjs) maps oxlint's names to them. `eslint-disable-next-line <rule>` is still the way to suppress a finding inline.
 - oxlint runs JS plugins on one thread, so `scripts/lint/` splits the files into shards (`--shards=<n>` or `auto`). CI uses `--shards=4`.
@@ -128,13 +128,15 @@ Commit the updated `config/oxlint/oxlint.seatbelt.tsv` alongside the rename. The
 
 1. Add the rule to an override in `oxlint.config.mts` in `'error'` mode. How you name it depends on where the rule comes from:
 
-    - **oxlint has the rule.** Use its name as is:
+    - **oxlint has the rule and the presets run it natively.** Use its name as is:
 
         ```ts
         {files: ['src/**/*.ts'], rules: {'no-console': 'error'}},
         ```
 
-    - **oxlint doesn't have it, and it comes from react, import, jsdoc, @typescript-eslint, react-hooks or storybook.** oxlint keeps those plugin names for its own rules, so ESLint's version runs inside the App's `hosted` plugin. Add the ESLint ID to `APP_HOSTED_ESLINT_RULE_IDS` in `config/oxlint/appHostedRules.mjs`, then use the `hosted/` name:
+        Some rules oxlint has are replayed from ESLint's own code by the presets, because oxlint's version reports differently (`dot-notation`, `strict`, `lines-between-class-members` run as `core/<name>`, `react/jsx-no-bind` as `hosted/jsx-no-bind`). The native name is refused while the config loads, with `The config sets "dot-notation", but this rule runs as "core/dot-notation". Use that name instead.` Use the name from that message.
+
+    - **oxlint doesn't have it, and it comes from react, import, jsdoc, @typescript-eslint, react-hooks or storybook.** oxlint keeps those plugin names for its own rules, so ESLint's version runs inside the App's `hosted` plugin. Write the `hosted/` name. Rules the package already lists (`oxlint/generated/rules.json` in `eslint-config-expensify`) need nothing else. For a rule it does not list, add the ESLint ID to `APP_HOSTED_ESLINT_RULE_IDS` in `config/oxlint/appHostedRules.mjs`, which adds its `hosted/` name to `extraRunningNames` in `oxlint.config.mts` (without that, the config fails with `hosted rules in generated/rules.json do not include it`). A plugin the package does not load has to be passed to `hostRule` in `config/oxlint/plugins/hosted-rules.mjs`, as the storybook rules are:
 
         ```js
         // config/oxlint/appHostedRules.mjs
