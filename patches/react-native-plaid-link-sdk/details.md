@@ -35,5 +35,5 @@
     ```
 
 - Upstream PR/issue: Fixed upstream from 12.7.0 (12.6.0 is still broken). Drop this patch when bumping to >= 12.7.0.
-- E/App issue: https://github.com/Expensify/App/issues/101427
+- E/App issue: https://github.com/Expensify/App/issues/106110
 - PR introducing patch: https://github.com/Expensify/App/pull/101739
