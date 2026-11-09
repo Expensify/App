@@ -272,7 +272,6 @@ function AttachmentModalBaseContent({
                 title={headerTitle ?? translate('common.attachment')}
                 shouldShowBorderBottom
                 shouldShowDownloadButton={shouldShowDownloadButton}
-                shouldUseShareIconForDownloadButton={getPlatform() === CONST.PLATFORM.IOS}
                 shouldShowRotateButton={shouldShowRotateButton}
                 onRotateButtonPress={onRotateButtonPress}
                 isRotating={isRotating}

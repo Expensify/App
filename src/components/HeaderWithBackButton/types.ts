@@ -66,9 +66,6 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     shouldShowDownloadButton?: boolean;
 
-    /** Whether the download button shows a share icon and label instead (the press still triggers onDownloadButtonPress) */
-    shouldUseShareIconForDownloadButton?: boolean;
-
     /** Whether we should show a loading indicator replacing the download button */
     isDownloading?: boolean;
 
