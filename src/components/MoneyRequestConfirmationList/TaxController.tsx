@@ -67,7 +67,7 @@ function TaxController({
 
     const previousTransactionCurrency = usePrevious(transaction?.currency);
 
-    const {categoryTaxCode, defaultTaxCode, defaultTaxValue, shouldKeepCurrentTaxSelection, taxAmountInSmallestCurrencyUnits, areRulesLoading} = useTaxAmount({
+    const {defaultTaxCode, defaultTaxValue, shouldHoldBackDefault, shouldKeepCurrentTaxSelection, taxAmountInSmallestCurrencyUnits, areRulesLoading} = useTaxAmount({
         transaction,
         policy,
         policyForMovingExpenses,
@@ -78,10 +78,6 @@ function TaxController({
         distanceUnit: distanceState?.unit,
         previousTransactionCurrency,
     });
-
-    // A moved track expense keeps the tax it arrived with rather than taking the destination workspace's default,
-    // which is a rate nobody chose for it. A category rule is a rate the destination's admin chose, so it still applies.
-    const shouldHoldBackDefault = isMovingTransactionFromTrackExpense && !categoryTaxCode;
 
     useEffect(() => {
         // Writing the workspace default before the rules arrive would read as a tax the user picked, and

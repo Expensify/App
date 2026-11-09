@@ -347,6 +347,36 @@ describe('useTaxAmount', () => {
         expect(result.current.taxAmountInSmallestCurrencyUnits).toBe(5500);
     });
 
+    it('holds the workspace default back while a moved track expense still carries the rate it arrived with', () => {
+        // Given a tracked expense being submitted to a workspace where its category carries no tax rule
+        const transaction = {...baseTransaction, category: 'Equipment', taxCode: 'tax_arrived', taxValue: '5%', taxAmount: 55};
+
+        // When the hook resolves the tax
+        const {result} = renderHook(() => useTaxAmount({...baseParams, transaction, isMovingTransactionFromTrackExpense: true}));
+
+        // Then the default is held back, because writing it would replace a rate with one nobody chose for this expense
+        expect(result.current.shouldHoldBackDefault).toBe(true);
+    });
+
+    it('puts the arrived rate back when the category carrying the rule is swapped for one without', () => {
+        // Given a moved track expense that arrived with its own rate, on a category whose rule replaces that rate
+        mockCategoryTaxCodes = {Car: 'tax_category'};
+        const arrived = {...baseTransaction, category: 'Car', taxCode: 'tax_arrived', taxValue: '5%', taxAmount: 55};
+        const {result, rerender} = renderHook((transaction: Params['transaction']) => useTaxAmount({...baseParams, transaction, isMovingTransactionFromTrackExpense: true}), {
+            initialProps: arrived,
+        });
+
+        // When the user picks a category with no rule, by which point the transaction carries the rule's rate
+        rerender({...arrived, category: 'Equipment', taxCode: 'tax_category', taxValue: '10%', taxAmount: 10000});
+
+        // Then the rate the expense arrived with is restored rather than the rule's rate being left behind, so the
+        // default is no longer held back
+        expect(result.current.shouldHoldBackDefault).toBe(false);
+        expect(result.current.defaultTaxCode).toBe('tax_arrived');
+        expect(result.current.defaultTaxValue).toBe('5%');
+        expect(result.current.taxAmountInSmallestCurrencyUnits).toBe(5500);
+    });
+
     it('applies the category rule to the distance rate default category', () => {
         // Given a distance rate whose default category carries a tax rule, on an expense with no category yet
         mockCategoryTaxCodes = {Car: 'tax_category'};

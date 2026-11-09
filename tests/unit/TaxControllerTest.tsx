@@ -13,6 +13,7 @@ jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
 }));
 
 let mockCategoryTaxCode: string | undefined;
+let mockShouldHoldBackDefault = false;
 
 jest.mock('@components/MoneyRequestConfirmationList/hooks/useTaxAmount', () => ({
     __esModule: true,
@@ -20,6 +21,7 @@ jest.mock('@components/MoneyRequestConfirmationList/hooks/useTaxAmount', () => (
         categoryTaxCode: mockCategoryTaxCode,
         defaultTaxCode: mockCategoryTaxCode ?? 'tax_default',
         defaultTaxValue: '10%',
+        shouldHoldBackDefault: mockShouldHoldBackDefault,
         shouldKeepCurrentTaxSelection: false,
         taxAmountInSmallestCurrencyUnits: 10000,
         areRulesLoading: false,
@@ -52,6 +54,7 @@ describe('TaxController', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockCategoryTaxCode = undefined;
+        mockShouldHoldBackDefault = false;
     });
 
     it('writes the category rule rate onto a track expense being moved', () => {
@@ -73,6 +76,7 @@ describe('TaxController', () => {
 
     it('leaves a moved track expense on the tax it arrived with when no category rule applies', () => {
         // Given a tracked expense being submitted to a workspace where its category carries no tax rule
+        mockShouldHoldBackDefault = true;
 
         // When the confirmation page syncs the tax
         render(
@@ -85,6 +89,22 @@ describe('TaxController', () => {
         // Then nothing is written, because the destination's default is a rate nobody chose for this expense
         expect(mockSetMoneyRequestTaxRateValues).not.toHaveBeenCalled();
         expect(mockSetMoneyRequestTaxAmount).not.toHaveBeenCalled();
+    });
+
+    it('writes the rate reported for a moved track expense once a category rule has been dropped', () => {
+        // Given a moved track expense whose rate the hook has resolved back to the one it arrived with
+        mockCategoryTaxCode = undefined;
+
+        // When the confirmation page syncs the tax
+        render(
+            <TaxController
+                {...baseProps}
+                isMovingTransactionFromTrackExpense
+            />,
+        );
+
+        // Then it is written, because leaving it alone would keep the rate the category it just left had put there
+        expect(mockSetMoneyRequestTaxRateValues).toHaveBeenCalledWith('txn1', {taxCode: 'tax_default', taxValue: '10%', taxAmount: null});
     });
 
     it('writes the workspace default for an expense that is not being moved', () => {

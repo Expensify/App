@@ -103,8 +103,33 @@ function useTaxAmount({
     // A category tax rule outranks the workspace default, so resolve it here as well. Otherwise this default overwrites
     // the rule's tax rate on the first render of the confirmation page.
     const categoryTaxCode = isFollowingWorkspaceDefault ? undefined : getCategoryTaxCode(category, transaction, policy, rules);
-    const defaultTaxCode = categoryTaxCode ?? workspaceDefaultTaxCode;
-    const defaultTaxValue = getTaxValue(policy, transaction, defaultTaxCode) ?? null;
+    // A category rule that has applied can be dropped again by picking a category without one, and by then the
+    // transaction is carrying the rule's rate. Only a rate read before the first rule applied is the expense's own.
+    const [arrivedTax, setArrivedTax] = useState<Pick<OnyxTypes.Transaction, 'taxCode' | 'taxValue' | 'taxAmount'>>();
+    const [hasCategoryRuleApplied, setHasCategoryRuleApplied] = useState(false);
+    useEffect(() => {
+        if (!isMovingTransactionFromTrackExpense || !!arrivedTax || !transaction) {
+            return;
+        }
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- the rate has to be read before the render that writes a rule's rate over it, which is not knowable during that render
+        setArrivedTax({taxCode: transaction.taxCode, taxValue: transaction.taxValue, taxAmount: transaction.taxAmount});
+    }, [arrivedTax, isMovingTransactionFromTrackExpense, transaction]);
+    useEffect(() => {
+        if (hasCategoryRuleApplied || !categoryTaxCode) {
+            return;
+        }
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- whether a rule has ever applied is history, so it cannot be derived from the current render
+        setHasCategoryRuleApplied(true);
+    }, [categoryTaxCode, hasCategoryRuleApplied]);
+    // A moved track expense keeps the tax it arrived with rather than taking the destination workspace's default,
+    // which is a rate nobody chose for it. A category rule is a rate the destination's admin chose, so it still
+    // applies. Dropping that category puts the arrived rate back, since the rule's rate belonged to the category
+    // the expense has just left.
+    const isKeepingArrivedTax = isMovingTransactionFromTrackExpense && !categoryTaxCode;
+    const shouldRestoreArrivedTax = isKeepingArrivedTax && hasCategoryRuleApplied;
+    const shouldHoldBackDefault = isKeepingArrivedTax && !hasCategoryRuleApplied;
+    const defaultTaxCode = categoryTaxCode ?? (shouldRestoreArrivedTax ? (arrivedTax?.taxCode ?? '') : workspaceDefaultTaxCode);
+    const defaultTaxValue = (shouldRestoreArrivedTax ? arrivedTax?.taxValue : getTaxValue(policy, transaction, defaultTaxCode)) ?? null;
     const shouldKeepCurrentTaxSelection = hasTaxRateWithMatchingValue(policy, transaction) && transaction?.taxCode !== previousDefaultTaxCode;
 
     const commuterExclusionData = isDistanceRequest
@@ -123,12 +148,13 @@ function useTaxAmount({
     const taxDecimals = getCurrencyDecimals(transaction?.currency ?? CONST.CURRENCY.USD);
     // A moved track expense keeps the tax amount it arrived with, since it keeps the rate that amount was charged at.
     // A category rule on the destination workspace replaces that rate, so the amount has to be charged again.
-    const shouldKeepMovedTaxAmount = isMovingTransactionFromTrackExpense && !!transaction?.taxAmount && !categoryTaxCode;
-    const taxAmount = shouldKeepMovedTaxAmount ? Math.abs(transaction?.taxAmount ?? 0) : calculateTaxAmount(taxPercentage, taxableAmount, taxDecimals);
+    const keptTaxAmount = shouldRestoreArrivedTax ? arrivedTax?.taxAmount : transaction?.taxAmount;
+    const shouldKeepMovedTaxAmount = isKeepingArrivedTax && !!keptTaxAmount;
+    const taxAmount = shouldKeepMovedTaxAmount ? Math.abs(keptTaxAmount ?? 0) : calculateTaxAmount(taxPercentage, taxableAmount, taxDecimals);
 
     const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
 
-    return {categoryTaxCode, defaultTaxCode, defaultTaxValue, shouldKeepCurrentTaxSelection, taxAmountInSmallestCurrencyUnits, areRulesLoading};
+    return {categoryTaxCode, defaultTaxCode, defaultTaxValue, shouldHoldBackDefault, shouldKeepCurrentTaxSelection, taxAmountInSmallestCurrencyUnits, areRulesLoading};
 }
 
 export default useTaxAmount;
