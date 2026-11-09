@@ -69,6 +69,12 @@ describe('FileUtils', () => {
             ['avi', 'video/x-msvideo'],
             ['3gp', 'video/3gpp'],
             ['docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+            ['txt', 'text/plain'],
+            ['csv', 'text/csv'],
+            ['pdf', 'application/pdf'],
+            ['html', 'text/html'],
+            ['xml', 'application/xml'],
+            ['zip', 'application/zip'],
         ])('should resolve the %s extension to %s', (fileExtension, expectedMimeType) => {
             // Given an extension the Android "Open" action hands to the OS to pick a viewer
             // When the MIME type is resolved

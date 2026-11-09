@@ -231,10 +231,11 @@ function appendExtensionFromMimeType(fileName: string, mimeType: string | undefi
 let mimeTypeByExtension: Map<string, string> | undefined;
 
 /**
- * Resolves a file extension to the first MIME type mime-db registers for it, e.g. `mkv` resolves to `video/x-matroska`.
- * The map is built on first use because mime-db holds a few thousand entries.
+ * Returns the first MIME type mime-db registers for a file extension, e.g. `mkv` resolves to `video/x-matroska`.
+ * Falls back to 'application/octet-stream' for unrecognized extensions.
+ * The extension map is built on first use because mime-db holds a few thousand entries.
  */
-function getMimeTypeFromMimeDb(fileExtension: string): string | undefined {
+function getMimeType(fileExtension: string): string {
     if (!mimeTypeByExtension) {
         mimeTypeByExtension = new Map();
         for (const [mimeType, {extensions}] of Object.entries(mimeDb)) {
@@ -245,24 +246,7 @@ function getMimeTypeFromMimeDb(fileExtension: string): string | undefined {
             }
         }
     }
-    return mimeTypeByExtension.get(fileExtension);
-}
-
-/**
- * Returns the MIME type for a given file extension.
- * Falls back to 'application/octet-stream' for unrecognized extensions.
- */
-function getMimeType(fileExtension: string): string {
-    const ext = fileExtension.toLowerCase();
-    const MIME_TYPES: Record<string, string> = {
-        txt: CONST.SHARE_FILE_MIMETYPE.TEXT,
-        csv: CONST.SHARE_FILE_MIMETYPE.CSV,
-        pdf: CONST.SHARE_FILE_MIMETYPE.PDF,
-        html: CONST.SHARE_FILE_MIMETYPE.HTML,
-        xml: CONST.SHARE_FILE_MIMETYPE.XML,
-        zip: CONST.SHARE_FILE_MIMETYPE.ZIP,
-    };
-    return MIME_TYPES[ext] ?? getMimeTypeFromMimeDb(ext) ?? 'application/octet-stream';
+    return mimeTypeByExtension.get(fileExtension.toLowerCase()) ?? 'application/octet-stream';
 }
 
 /**
