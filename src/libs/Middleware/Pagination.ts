@@ -148,11 +148,16 @@ function processResponse<TKey extends OnyxKey>(requestResponse: Promise<Response
             ? mergePagesByIDOverlap(sortedAllItems, [...sanitizedExistingPages, newPage], getItemID)
             : mergeAndSortContinuousPages(sortedAllItems, [...sanitizedExistingPages, newPage], getItemID);
 
-        (response.onyxData as AnyOnyxUpdate[]).push({
-            key: pageKey,
-            onyxMethod: Onyx.METHOD.SET,
-            value: mergedPages,
-        });
+        // Onyx applies the updates of one batch concurrently, so a page sent with its items can be written first. Lists then
+        // read a page whose items have not arrived and show only the cached items inside its range. finallyData runs after
+        // the response's onyxData has been applied, whatever the jsonCode, like the page did before.
+        const paginationUpdates: AnyOnyxUpdate[] = [
+            {
+                key: pageKey,
+                onyxMethod: Onyx.METHOD.SET,
+                value: mergedPages,
+            },
+        ];
 
         // Store cursor IDs scoped to pagination direction so backfill (getOlderActions)
         // doesn't overwrite the forward cursor used by auto-pagination.
@@ -169,13 +174,16 @@ function processResponse<TKey extends OnyxKey>(requestResponse: Promise<Response
                 value.oldestFetchedReportActionID = oldestFetchedID;
             }
             if (Object.keys(value).length > 0) {
-                (response.onyxData as AnyOnyxUpdate[]).push({
+                paginationUpdates.push({
                     key: `${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${resourceID}`,
                     onyxMethod: Onyx.METHOD.MERGE,
                     value,
                 });
             }
         }
+
+        request.finallyData ??= [];
+        (request.finallyData as AnyOnyxUpdate[]).push(...paginationUpdates);
 
         return Promise.resolve(response);
     });

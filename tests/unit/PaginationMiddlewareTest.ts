@@ -95,8 +95,8 @@ function registerReportActionsPagination({registerPaginationConfig}: PaginationM
     });
 }
 
-function expectPageMetadata(response: Response<ReportActionsKey> | void) {
-    expect(response?.onyxData).toEqual(
+function expectPageMetadata(request: PaginatedRequest<ReportActionsKey>) {
+    expect(request.finallyData).toEqual(
         expect.arrayContaining([
             {
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${REPORT_ID}`,
@@ -169,10 +169,11 @@ describe('Pagination middleware registration readiness', () => {
         };
 
         // When the pagination middleware processes the response
-        const result = await Pagination(Promise.resolve(response), {...createRequest(), command}, false);
+        const request = {...createRequest(), command};
+        await Pagination(Promise.resolve(response), request, false);
 
         // Then the page keeps the routed row for display, but only server IDs are saved for the requested direction
-        expect(result?.onyxData).toEqual(
+        expect(request.finallyData).toEqual(
             expect.arrayContaining([
                 {
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${REPORT_ID}`,
@@ -203,9 +204,27 @@ describe('Pagination middleware registration readiness', () => {
         const paginationModule = await loadPaginationModule();
         await registerReportActionsPagination(paginationModule);
 
-        const result = await paginationModule.Pagination(Promise.resolve(createResponse()), createRequest(), false);
+        const request = createRequest();
+        await paginationModule.Pagination(Promise.resolve(createResponse()), request, false);
 
-        expectPageMetadata(result);
+        expectPageMetadata(request);
+    });
+
+    it('writes the page after the items of the response', async () => {
+        // Given a request that already has its own finallyData
+        const paginationModule = await loadPaginationModule();
+        await registerReportActionsPagination(paginationModule);
+        const requestUpdate = {key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, onyxMethod: 'merge', value: {}} as const;
+        const request: PaginatedRequest<ReportActionsKey> = {...createRequest(), finallyData: [requestUpdate]};
+
+        // When the pagination middleware processes the response
+        const result = await paginationModule.Pagination(Promise.resolve(createResponse()), request, false);
+
+        // Then the page is not written together with the items, because Onyx can apply it first and lists would show a partial range.
+        // finallyData is applied after the response's onyxData, and the request's own updates keep their place.
+        expect(result?.onyxData?.map((update) => update.key)).toEqual([`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`]);
+        expect(request.finallyData?.at(0)).toBe(requestUpdate);
+        expectPageMetadata(request);
     });
 
     it('observes a rejected response while the initial snapshots are pending', async () => {
@@ -245,7 +264,8 @@ describe('Pagination middleware registration readiness', () => {
         const paginationModule = await loadPaginationModule();
         const paginationConfigReady = registerReportActionsPagination(paginationModule);
 
-        const resultPromise = paginationModule.Pagination(Promise.resolve(createResponse()), createRequest(), false);
+        const request = createRequest();
+        const resultPromise = paginationModule.Pagination(Promise.resolve(createResponse()), request, false);
         const onSettled = jest.fn();
         const trackedResultPromise = resultPromise.then((result) => {
             onSettled();
@@ -261,8 +281,8 @@ describe('Pagination middleware registration readiness', () => {
         });
         await paginationConfigReady;
 
-        const result = await trackedResultPromise;
-        const pageUpdate = result?.onyxData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${REPORT_ID}`);
+        await trackedResultPromise;
+        const pageUpdate = request.finallyData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${REPORT_ID}`);
         expect(pageUpdate).toEqual(
             expect.objectContaining({
                 value: expect.arrayContaining([expect.arrayContaining([CACHED_REPORT_ACTION.reportActionID])]),
