@@ -10,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
@@ -21,7 +21,7 @@ import type {FilterPopupButtonProps} from './FilterPopupButton';
 
 import FilterPopupButton from './FilterPopupButton';
 
-type DropdownButtonProps = WithSentryLabel &
+type DropdownButtonProps = WithRequiredSentryLabel &
     Omit<FilterPopupButtonProps, 'renderButton' | 'viewportOffsetTop'> & {
         label: string;
         value: string | string[] | null;
