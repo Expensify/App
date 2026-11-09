@@ -3,7 +3,7 @@ import {useSession} from '@components/OnyxListItemProvider';
 import useLocalize from '@hooks/useLocalize';
 
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import fileDownload from '@libs/fileDownload';
+import downloadAttachmentFile from '@libs/fileDownload/downloadAttachmentFile';
 
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -67,7 +67,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         }
         // Without the original file name the download falls back to the last segment of the URL, which is the
         // raw storage key and carries no extension, so the saved file opens as a generic document.
-        fileDownload(translate, addEncryptedAuthTokenToURL(source, encryptedAuthToken), sourceFileName);
+        downloadAttachmentFile(translate, addEncryptedAuthTokenToURL(source, encryptedAuthToken), sourceFileName ?? '');
     };
 
     const stateValue = {currentPlaybackSpeed, isLocalFile};
