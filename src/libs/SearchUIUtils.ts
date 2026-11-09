@@ -6099,6 +6099,9 @@ const FILTER_VIEW_MAP = {
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION]: {
         labelKey: 'search.violation',
         icon: 'Exclamation',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.VIOLATION,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.VIOLATION,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.VIOLATION,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS]: {
         labelKey: 'search.filters.transactionStatus.label',
