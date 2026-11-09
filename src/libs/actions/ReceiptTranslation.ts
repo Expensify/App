@@ -5,6 +5,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReceiptTranslation, ReceiptTranslationState} from '@src/types/onyx';
 import type Locale from '@src/types/onyx/Locale';
+import type {OnyxData} from '@src/types/onyx/Request';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -20,27 +21,35 @@ function setReceiptTranslationState(transactionID: string, state: ReceiptTransla
  * Resolves with the state the server sent for the viewer's locale, or undefined when the request failed, so the caller can tell the viewer why.
  */
 function translateReceipt(transactionID: string, locale: Locale): Promise<ValueOf<typeof CONST.RECEIPT.TRANSLATION_STATE> | undefined> {
-    setReceiptTranslationState(transactionID, {
-        isTranslating: true,
-        isShowingTranslation: true,
-    });
+    const stateKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_RECEIPT_TRANSLATION_STATE}${transactionID}` as const;
+    const translationKey = `${ONYXKEYS.COLLECTION.RECEIPT_TRANSLATIONS}${transactionID}` as const;
+    const optimisticData: Array<OnyxUpdate<typeof stateKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: stateKey,
+            value: {requestState: CONST.RECEIPT.TRANSLATION_REQUEST_STATE.LOADING, isShowingTranslation: true},
+        },
+    ];
+    const finallyData: Array<OnyxUpdate<typeof stateKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: stateKey,
+            value: {requestState: CONST.RECEIPT.TRANSLATION_REQUEST_STATE.LOADED},
+        },
+    ];
 
-    return makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.TRANSLATE_RECEIPT, {transactionID})
+    const onyxData: OnyxData<typeof stateKey | typeof translationKey> = {optimisticData, finallyData};
+
+    return makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.TRANSLATE_RECEIPT, {transactionID}, onyxData)
         .then((response) => {
-            const translationKey = `${ONYXKEYS.COLLECTION.RECEIPT_TRANSLATIONS}${transactionID}` as const;
             const translation = response?.onyxData?.find((update): update is OnyxUpdate<typeof translationKey> & {value: ReceiptTranslation} => update.key === translationKey)?.value;
             const state = response?.jsonCode === CONST.JSON_CODE.SUCCESS ? translation?.[locale]?.state : undefined;
-            setReceiptTranslationState(transactionID, {
-                isTranslating: false,
-                isShowingTranslation: state === CONST.RECEIPT.TRANSLATION_STATE.TRANSLATED,
-            });
+            setReceiptTranslationState(transactionID, {isShowingTranslation: state === CONST.RECEIPT.TRANSLATION_STATE.TRANSLATED});
             return state;
         })
         .catch(() => {
-            setReceiptTranslationState(transactionID, {
-                isTranslating: false,
-                isShowingTranslation: false,
-            });
+            // A rejection with no HTTP response never reaches SaveResponseInOnyx, so finallyData is applied here.
+            Onyx.update([...finallyData, {onyxMethod: Onyx.METHOD.MERGE, key: stateKey, value: {isShowingTranslation: false}}]);
             return undefined;
         });
 }

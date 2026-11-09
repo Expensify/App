@@ -48,8 +48,8 @@ type ReceiptTranslation = Partial<Record<Locale, TranslatedReceipt>>;
 
 /** Session-scoped translate state for a transaction's receipt */
 type ReceiptTranslationState = {
-    /** Whether a translation request is in flight */
-    isTranslating?: boolean;
+    /** Where the latest translation request is in its lifecycle */
+    requestState?: ValueOf<typeof CONST.RECEIPT.TRANSLATION_REQUEST_STATE>;
 
     /** Whether the viewer chose to see the translation instead of the original */
     isShowingTranslation?: boolean;

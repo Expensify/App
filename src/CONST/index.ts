@@ -2027,6 +2027,10 @@ const CONST = {
             UNREADABLE: 'unreadable',
             ALREADY_IN_LANGUAGE: 'alreadyInLanguage',
         },
+        TRANSLATION_REQUEST_STATE: {
+            LOADING: 'loading',
+            LOADED: 'loaded',
+        },
     },
     RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN: 120,
     REPORT: {

@@ -29,7 +29,7 @@ function useReceiptTranslation(transaction: OnyxEntry<Transaction>) {
     // The server sends the transaction's receiptID as a string but the translation's as a number
     const isSameReceipt = !!receiptID && !!savedTranslation && String(savedTranslation.receiptID) === String(receiptID);
     const savedTranslationRows = isSameReceipt && savedTranslation.state === CONST.RECEIPT.TRANSLATION_STATE.TRANSLATED ? savedTranslation.rows : undefined;
-    const isTranslating = !!receiptTranslationState?.isTranslating;
+    const isTranslating = receiptTranslationState?.requestState === CONST.RECEIPT.TRANSLATION_REQUEST_STATE.LOADING;
     const translatedReceiptRows = receiptTranslationState?.isShowingTranslation && !isTranslating ? savedTranslationRows : undefined;
 
     const startTranslation = () => {
@@ -57,7 +57,7 @@ function useReceiptTranslation(transaction: OnyxEntry<Transaction>) {
 
     return {
         canTranslate: isBetaEnabled(CONST.BETAS.RECEIPT_TRANSLATION) && hasReceiptSource(transaction),
-        isTranslateDisabled: isOffline || isTranslating || !receiptID || !!transaction?.pendingFields?.receipt,
+        isTranslateDisabled: (isOffline && !savedTranslationRows) || isTranslating || !receiptID || !!transaction?.pendingFields?.receipt,
         isTranslating,
         translatedReceiptRows,
         startTranslation,
