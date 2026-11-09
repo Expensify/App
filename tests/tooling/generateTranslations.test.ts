@@ -410,6 +410,7 @@ describe('generateTranslations', () => {
         });
 
         it('does not include any comments in generated translation files', async () => {
+            // Given context comments and literal comment markers, only actual comments should be removed.
             fs.writeFileSync(
                 EN_PATH,
                 Str.dedent(`
@@ -424,19 +425,23 @@ describe('generateTranslations', () => {
                     /* @context inline multi-line */ inline: 'Inline',
                     // eslint-disable-next-line max-len
                     longString: 'This is a very long string',
+                    literalMarkers: 'https://example.com/*literal*/',
+                    templateMarkers: (name: string) => \`Hello \${name} // literal /* text */\`,
                 };
                 export default strings;
             `),
                 'utf8',
             );
+            // When the native printer emits translations, parsed trivia distinguishes comments from string content.
             await generateTranslations();
             const itContent = fs.readFileSync(IT_PATH, 'utf8');
 
-            // Verify no comments of any kind appear in the output (except the generated file prefix)
+            // Then comments disappear without removing literal markers from translated strings or templates.
             const contentAfterPrefix = itContent.substring(GENERATED_FILE_PREFIX.length);
-            expect(contentAfterPrefix).not.toContain('//');
-            expect(contentAfterPrefix).not.toContain('/*');
-            expect(contentAfterPrefix).not.toContain('*/');
+            const contentWithoutMarkers = contentAfterPrefix.replaceAll('https://example.com/*literal*/', '').replaceAll('// literal /* text */', '');
+            expect(contentWithoutMarkers).not.toContain('//');
+            expect(contentWithoutMarkers).not.toContain('/*');
+            expect(contentWithoutMarkers).not.toContain('*/');
             expect(contentAfterPrefix).not.toContain('@context');
             expect(contentAfterPrefix).not.toContain('eslint-disable');
 
@@ -444,6 +449,8 @@ describe('generateTranslations', () => {
             expect(itContent).toContain('[it][ctx: As in a financial institution] Bank');
             expect(itContent).toContain('[it] Hello');
             expect(itContent).toContain('[it] Goodbye');
+            expect(itContent).toContain('[it] https://example.com/*literal*/');
+            expect(itContent).toContain(`[it] Hello \${name} // literal /* text */`);
         });
 
         it("doesn't request duplicate translations", async () => {
