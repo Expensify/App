@@ -22,7 +22,8 @@ const OTHER_WORKSPACE_CHAT_ID = 'otherWorkspaceChat';
 jest.mock('@hooks/useDefaultExpensePolicy', () => ({__esModule: true, default: () => ({id: 'defaultPolicy', autoReporting: true})}));
 jest.mock('@hooks/usePersonalPolicy', () => ({__esModule: true, default: () => undefined}));
 jest.mock('@hooks/useSelfDMReport', () => ({__esModule: true, default: () => ({reportID: 'selfDM'})}));
-jest.mock('@hooks/useOnyx', () => ({__esModule: true, default: () => [undefined]}));
+// Run the selector on an empty collection, so the policy expense chat comes from the mocked getPolicyExpenseChat below
+jest.mock('@hooks/useOnyx', () => ({__esModule: true, default: (_key: string, options?: {selector?: (value: unknown) => unknown}) => [options?.selector?.({})]}));
 jest.mock('@libs/shouldUseDefaultExpensePolicy', () => ({__esModule: true, default: () => true}));
 jest.mock('@libs/ReportUtils', () => ({
     getPolicyExpenseChat: () => ({reportID: 'defaultWorkspaceChat', policyID: 'defaultPolicy'}),
