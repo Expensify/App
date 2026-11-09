@@ -98,6 +98,7 @@ function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
                     >
                         <Switch
                             accessibilityLabel={translate('initialSettingsPage.troubleshoot.debugMode')}
+                            sentryLabel={CONST.SENTRY_LABEL.TEST_TOOL_MENU.DEBUG_MODE_SWITCH}
                             isOn={isDebugModeEnabled}
                             onToggle={() => setIsDebugModeEnabled(!isDebugModeEnabled)}
                         />
@@ -108,6 +109,7 @@ function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
                         <TestToolRow title={translate('initialSettingsPage.troubleshoot.showBranchNameInTitle')}>
                             <Switch
                                 accessibilityLabel={translate('initialSettingsPage.troubleshoot.showBranchNameInTitle')}
+                                sentryLabel={CONST.SENTRY_LABEL.TEST_TOOL_MENU.SHOW_BRANCH_NAME_SWITCH}
                                 isOn={shouldShowBranchNameInTitle}
                                 onToggle={() => setShouldShowBranchNameInTitle(!shouldShowBranchNameInTitle)}
                             />
@@ -208,6 +210,7 @@ function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
             >
                 <Switch
                     accessibilityLabel="Force offline"
+                    sentryLabel={CONST.SENTRY_LABEL.TEST_TOOL_MENU.FORCE_OFFLINE_SWITCH}
                     isOn={!!network?.shouldForceOffline}
                     onToggle={() => setShouldForceOffline(!network?.shouldForceOffline)}
                     disabled={!!isUsingImportedState || !!network?.shouldSimulatePoorConnection || network?.shouldFailAllRequests}
@@ -221,6 +224,7 @@ function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
             >
                 <Switch
                     accessibilityLabel="Simulate poor internet connection"
+                    sentryLabel={CONST.SENTRY_LABEL.TEST_TOOL_MENU.SIMULATE_POOR_CONNECTION_SWITCH}
                     isOn={!!network?.shouldSimulatePoorConnection}
                     onToggle={() => setShouldSimulatePoorConnection(!network?.shouldSimulatePoorConnection)}
                     disabled={!!isUsingImportedState || !!network?.shouldFailAllRequests || network?.shouldForceOffline}
@@ -234,6 +238,7 @@ function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
             >
                 <Switch
                     accessibilityLabel="Simulate failing network requests"
+                    sentryLabel={CONST.SENTRY_LABEL.TEST_TOOL_MENU.SIMULATE_FAILING_REQUESTS_SWITCH}
                     isOn={!!network?.shouldFailAllRequests}
                     onToggle={() => setShouldFailAllRequests(!network?.shouldFailAllRequests)}
                     disabled={!!network?.shouldForceOffline || network?.shouldSimulatePoorConnection}

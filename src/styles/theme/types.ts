@@ -136,7 +136,7 @@ type ThemeColors = {
     trialTimer: Color;
 
     reportStatusBadge: Record<
-        'draft' | 'outstanding' | 'paid' | 'approved' | 'closed' | 'deleted' | 'unreported',
+        'draft' | 'outstanding' | 'paid' | 'approved' | 'closed' | 'deleted' | 'unreported' | 'canceled',
         {
             backgroundColor: Color;
             textColor: Color;

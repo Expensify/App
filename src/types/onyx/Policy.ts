@@ -2793,7 +2793,7 @@ type ZohoBooksAccount = {
 };
 
 /**
- * Bank or credit card account retrieved from Zoho Books. The backend syncs only active ones, for the company card account picker.
+ * Bank, cash or credit card account retrieved from Zoho Books, for the company card, bill payment and settlement account pickers.
  */
 type ZohoBooksBankAccount = {
     /** Unique identifier of the account. */
@@ -2802,8 +2802,14 @@ type ZohoBooksBankAccount = {
     /** Name of the account. */
     name: string;
 
+    /** Zoho Books account type. */
+    accountType: ZohoBooksAccountType;
+
     /** Currency associated with the account. */
     currency?: string;
+
+    /** Whether the account is active. */
+    isActive: boolean;
 };
 
 /**
@@ -4506,6 +4512,7 @@ export type {
     ApprovalRule,
     ExpenseRule,
     CodingRule,
+    CodingRuleFilter,
     NetSuiteConnectionConfig,
     MccGroup,
     Subrate,

@@ -8,11 +8,12 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {getParticipantsInvoiceReport} from '@hooks/useParticipantsInvoiceReport';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
+import usePayWithWiseQuote from '@hooks/usePayWithWiseQuote';
 import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
+import {payInvoice} from '@libs/actions/IOU/PayMoneyRequest';
 import {getChatReportWithFallback, getSearchPayOnyxData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
@@ -43,6 +44,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
     const styles = useThemeStyles();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
+    const {payWithWiseQuote} = usePayWithWiseQuote();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [iouReport, transactions] = useReportWithTransactionsAndViolations(reportID);
@@ -192,7 +194,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         }
 
         const {conciergeChat, rules, introSelected, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd, isTrackIntentUser, isSelfTourViewed} = await readPaymentInputs();
-        payMoneyRequest({
+        payWithWiseQuote({
             bankAccountList,
             isASAPSubmitBetaEnabled,
             getCurrencyDecimals,

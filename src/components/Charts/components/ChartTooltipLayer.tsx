@@ -5,6 +5,7 @@ import formatTooltipComparison from '@components/Charts/utils/formatTooltipCompa
 
 import useLocalize from '@hooks/useLocalize';
 
+import type {ReactNode} from 'react';
 import type {DerivedValue, SharedValue} from 'react-native-reanimated';
 import type {NonEmptyTuple} from 'type-fest';
 
@@ -45,6 +46,12 @@ type ChartTooltipLayerProps = {
 
     /** Whether a compared tooltip shows how the primary series changed against the compared one */
     shouldShowTooltipChange?: boolean;
+
+    /** Called with the shown data point when the tooltip is pressed */
+    onPress?: (dataPoint: ChartDataPoint, index: number) => void;
+
+    /** Shown below the tooltip's amounts */
+    footer?: ReactNode;
 };
 
 /**
@@ -62,6 +69,8 @@ function ChartTooltipLayer({
     onChartMoved,
     onDismiss,
     shouldShowTooltipChange = true,
+    onPress,
+    footer,
 }: ChartTooltipLayerProps) {
     const isCapturing = useIsCapturingChart();
     const [activeDataIndex, setActiveDataIndex] = useState(-1);
@@ -98,6 +107,7 @@ function ChartTooltipLayer({
             onDismiss={onDismiss}
             contentKey={activeDataIndex}
             onContentLayout={() => laidOutIndex.set(activeDataIndex)}
+            onPress={onPress ? () => onPress(activeDataPoint, activeDataIndex) : undefined}
         >
             {comparison ? (
                 <ChartTooltipComparison
@@ -107,10 +117,11 @@ function ChartTooltipLayer({
             ) : (
                 <ChartTooltipSummary
                     value={tooltipData.value}
-                    note={tooltipData.note}
-                    expenseCount={tooltipData.expenseCount}
+                    percentage={tooltipData.percentage}
+                    secondaryValue={tooltipData.secondaryValue}
                 />
             )}
+            {footer}
         </ChartTooltip>
     );
 }
