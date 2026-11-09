@@ -1904,5 +1904,77 @@ describe('actions/IOU/Hold', () => {
                     expect(Object.keys(transactionUpdate?.value ?? {})).not.toContain(`${ONYXKEYS.COLLECTION.TRANSACTION}${scanFailedTransaction.transactionID}`);
                 });
         });
+
+        test('builds a held expense report from the expense report when the policy chat is not loaded', async () => {
+            // Given a submitted expense report whose policy chat was never opened, which is what a vacation delegate has locally
+            const chatReportID = '99';
+            const baseIouReport = buildOptimisticIOUReport(1, 2, -300, chatReportID, 'USD', getCurrencyDecimalsLocal);
+            const iouReport: Report = {
+                ...baseIouReport,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: 'policy-1',
+                total: -300,
+                nonReimbursableTotal: 0,
+                unheldTotal: -200,
+                unheldNonReimbursableTotal: 0,
+                reimbursableTotal: -300,
+                unheldReimbursableTotal: -200,
+            };
+            const heldTransaction = buildHeldTransaction(iouReport.reportID, -100);
+            const heldIouAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: heldTransaction.amount,
+                currency: 'USD',
+                comment: '',
+                participants: [],
+                transactionID: heldTransaction.transactionID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${heldTransaction.transactionID}`]: heldTransaction,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: {
+                    [heldIouAction.reportActionID]: heldIouAction,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // When the held expenses are moved onto their own report without a chat report
+            const result = getReportFromHoldRequestsOnyxData({
+                chatReport: undefined,
+                iouReport,
+                recipient: {accountID: 1},
+                policy: undefined,
+                isASAPSubmitBetaEnabled: false,
+                isApprovalFlow: true,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+            });
+
+            // Then the new report is an expense report for only the held amount, still tied to the expense report's chat
+            const newReportUpdate = result.optimisticData.find(
+                (entry) => entry.onyxMethod === Onyx.METHOD.MERGE && entry.key === `${ONYXKEYS.COLLECTION.REPORT}${result.optimisticHoldReportID}`,
+            );
+            expect(newReportUpdate?.value).toEqual(
+                expect.objectContaining({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    chatReportID,
+                    total: -100,
+                }),
+            );
+
+            // And the report being approved keeps only the unheld total, so returning to it does not show the held amount again
+            const totalsUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE && entry.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
+            expect(totalsUpdate?.value).toEqual({total: -200, nonReimbursableTotal: 0, reimbursableTotal: -200});
+
+            // And nothing is written against the missing chat report
+            const chatReportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`;
+            const chatReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`;
+            expect(result.optimisticData.some((entry) => entry.key === chatReportKey || entry.key === chatReportActionsKey)).toBe(false);
+            expect(result.successData.some((entry) => entry.key === chatReportActionsKey)).toBe(false);
+            expect(result.failureData.some((entry) => entry.key === chatReportKey || entry.key === chatReportActionsKey)).toBe(false);
+            expect(result.optimisticHoldActionID).toEqual(expect.any(String));
+        });
     });
 });

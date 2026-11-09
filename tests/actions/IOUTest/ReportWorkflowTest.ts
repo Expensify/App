@@ -5580,6 +5580,80 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(newExpenseReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
             expect(newExpenseReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
         });
+
+        it('keeps only the unheld total on the approved report when the policy chat is not loaded', async () => {
+            // Given a vacation delegate approving a report whose policy expense chat was never opened, with one expense on hold
+            await Onyx.set(ONYXKEYS.SESSION, {
+                email: adminEmail,
+                accountID: adminAccountID,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, null);
+            const expenseReportWithHeldAmount: Report = {
+                ...expenseReport,
+                total: -1000,
+                nonReimbursableTotal: 0,
+                unheldTotal: -600,
+                unheldNonReimbursableTotal: 0,
+                reimbursableTotal: -1000,
+                unheldReimbursableTotal: -600,
+            };
+            const heldTransaction = {
+                ...buildOptimisticTransaction({
+                    transactionParams: {amount: -400, currency: 'USD', reportID: expenseReport.reportID},
+                }),
+            };
+            heldTransaction.comment = {...heldTransaction.comment, hold: 'Waiting on a receipt'};
+            const heldAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: heldTransaction.amount,
+                currency: 'USD',
+                comment: '',
+                participants: [],
+                transactionID: heldTransaction.transactionID,
+                iouReportID: expenseReport.reportID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`]: expenseReportWithHeldAmount,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${heldTransaction.transactionID}`]: heldTransaction,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`]: {
+                    [heldAction.reportActionID]: heldAction,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // When only the unheld expenses are approved
+            const newExpenseReportID = approveMoneyRequest({
+                personalDetailsByLogins: {},
+                rules: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                expenseReport: expenseReportWithHeldAmount,
+                expenseReportPolicy: policy,
+                currentUserAccountIDParam: adminAccountID,
+                currentUserEmailParam: adminEmail,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                full: false,
+                ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                ownerLogin: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the report the approver returns to shows only the unheld total, and the held amount lives on its own expense report
+            const approvedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect(approvedReport?.total).toBe(-600);
+            expect(approvedReport?.reimbursableTotal).toBe(-600);
+
+            const heldReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newExpenseReportID}`);
+            expect(heldReport?.type).toBe(CONST.REPORT.TYPE.EXPENSE);
+            expect(heldReport?.total).toBe(-400);
+            expect(heldReport?.chatReportID).toBe(expenseReport.chatReportID);
+        });
     });
 
     describe('getReportOriginalCreationTimestamp', () => {
