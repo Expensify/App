@@ -22,7 +22,7 @@ import useReportTransactions from '@hooks/useReportTransactions';
 import {fetchOutstandingReports} from '@libs/actions/OutstandingReports';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import Navigation from '@libs/Navigation/Navigation';
-import {canCreateExpensesOnPolicy, canSubmitPerDiemExpenseFromWorkspace, isPerDiemEnabled, isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
+import {canSubmitPerDiemExpenseFromWorkspace, isPerDiemEnabled, isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
@@ -210,9 +210,9 @@ function IOURequestEditReportCommon({
         !isReportIOU &&
         !isCardTransaction;
 
-    const outstandingReports = useOutstandingReports(selectedReportID, selectedPolicyID, resolvedReportOwnerAccountID, isEditing);
-
     const reportOwnerLogin = personalDetails?.[resolvedReportOwnerAccountID]?.login;
+    const outstandingReports = useOutstandingReports(selectedReportID, selectedPolicyID, resolvedReportOwnerAccountID, isEditing, reportOwnerLogin);
+
     // Outstanding reports belong to one owner, so listing them would offer their reports for everyone else's expenses.
     const eligibleReports =
         outstandingReports.length === 0 || hasMultipleSubmitters
@@ -222,9 +222,6 @@ function IOURequestEditReportCommon({
                   .filter((report): report is NonNullable<typeof report> => report !== undefined)
                   .filter((report) => {
                       const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-                      if (!canCreateExpensesOnPolicy(policy, reportOwnerLogin)) {
-                          return false;
-                      }
                       if (isTimeRequest && !isTimeTrackingEnabled(policy)) {
                           return false;
                       }

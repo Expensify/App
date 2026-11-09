@@ -62,6 +62,7 @@ function WorkflowsSubmissionsTab({policyID}: WorkflowsSubmissionsTabProps) {
             title={translate('workflowsPage.submissionFrequency')}
             subtitle={translate('workflowsPage.submissionFrequencyDescription')}
             switchAccessibilityLabel={translate('workflowsPage.submissionFrequencyDescription')}
+            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.SUBMISSION_FREQUENCY_SWITCH}
             onToggle={onToggle}
             subMenuItems={
                 <View style={[styles.mt3, styles.mbn3]}>

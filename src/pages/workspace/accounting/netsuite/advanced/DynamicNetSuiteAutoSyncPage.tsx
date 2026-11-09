@@ -68,6 +68,7 @@ function DynamicNetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps
                     isActive={!!autoSyncConfig?.autoSync?.enabled}
                     wrapperStyle={[styles.pv2, styles.mh5]}
                     switchAccessibilityLabel={translate('workspace.netsuite.advancedConfig.autoSyncDescription')}
+                    switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.AUTO_SYNC_SWITCH}
                     shouldPlaceSubtitleBelowSwitch
                     onCloseError={() => clearNetSuiteAutoSyncErrorField(policyID)}
                     onToggle={(isEnabled) => updateNetSuiteAutoSync(policyID, isEnabled)}

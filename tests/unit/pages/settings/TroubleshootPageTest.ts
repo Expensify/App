@@ -124,6 +124,7 @@ jest.mock('@libs/TryNewDotUtils', () => ({
     shouldHideOldAppRedirect: jest.fn(() => true),
 }));
 jest.mock('@userActions/App', () => ({clearOnyxAndResetApp: jest.fn()}));
+jest.mock('@userActions/Welcome', () => ({resetAllChecks: jest.fn()}));
 jest.mock('@pages/settings/Troubleshoot/useTroubleshootSectionIllustration', () => jest.fn(() => ({})));
 
 const exportButtonName = 'initialSettingsPage.troubleshoot.exportOnyxState';

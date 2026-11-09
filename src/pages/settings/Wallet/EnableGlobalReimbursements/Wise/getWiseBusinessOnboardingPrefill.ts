@@ -1,9 +1,11 @@
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 import getAddressInputKeys from '@components/DynamicForm/utils/getAddressInputKeys';
+import {getHiddenProvidedKeys} from '@components/DynamicForm/utils/hasProvidedAnswer';
 import isCountryCode from '@components/DynamicForm/utils/isCountryCode';
 import {getAllFields, getPages} from '@components/DynamicForm/utils/paginate';
 
 import {getCountryCode, resolveStateCode} from '@libs/CountryUtils';
+import {toSavedFile} from '@libs/getWiseOnboardingPageParams';
 import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
@@ -17,8 +19,8 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 
 import US from './forms/US';
 
-/** The bank account's company details the business page shows, under the same keys */
-const WISE_BUSINESS_ACCOUNT_KEYS = ['bankAccountID', 'companyName', 'incorporationType'] as const satisfies ReadonlyArray<keyof ACHDataReimbursementAccount>;
+/** The bank account's company details the business page shows, under the same keys, and the onboarding pages already saved to Wise */
+const WISE_BUSINESS_ACCOUNT_KEYS = ['bankAccountID', 'companyName', 'incorporationType', 'wise'] as const satisfies ReadonlyArray<keyof ACHDataReimbursementAccount>;
 
 type WiseBusinessAccountData = Pick<ACHDataReimbursementAccount, TupleToUnion<typeof WISE_BUSINESS_ACCOUNT_KEYS>>;
 
@@ -29,11 +31,9 @@ const COMPANY_TYPE_BY_INCORPORATION_TYPE: Partial<Record<string, ValueOf<typeof 
     [CONST.INCORPORATION_TYPES.SOLE_PROPRIETORSHIP]: CONST.WISE.COMPANY_TYPE.SOLE_PROPRIETORSHIP,
 };
 
-const READONLY_KEYS = new Set(
-    getAllFields(getPages(US))
-        .filter((field) => field.readonly)
-        .map((field) => field.key),
-);
+const ALL_FIELDS = getAllFields(getPages(US));
+
+const READONLY_KEYS = new Set(ALL_FIELDS.filter((field) => field.readonly).map((field) => field.key));
 
 /** The state picker lists US states by code, so a US state that is not one is left out */
 function getStateCode(countryCode: string | undefined, state: string | undefined): string | undefined {
@@ -44,8 +44,29 @@ function getStateCode(countryCode: string | undefined, state: string | undefined
     return stateCode in COMMON_CONST.STATES ? stateCode : undefined;
 }
 
+/** The answers of every saved page, with each saved file as a draft entry the next save can tell apart from a new one. A key a later save dropped comes back as null and is left out. */
+function getSavedAnswers(wise: WiseBusinessAccountData['wise']): DynamicFormValues {
+    const answers: DynamicFormValues = {};
+    for (const pageAnswers of Object.values(wise?.pages ?? {})) {
+        for (const [key, answer] of Object.entries(pageAnswers ?? {})) {
+            if (answer !== null && answer !== undefined) {
+                answers[key] = answer;
+            }
+        }
+    }
+    for (const pageDocuments of Object.values(wise?.documents ?? {})) {
+        for (const [fieldKey, fileKeys] of Object.entries(pageDocuments ?? {})) {
+            if (fileKeys?.length) {
+                answers[fieldKey] = fileKeys.map(toSavedFile);
+            }
+        }
+    }
+    return answers;
+}
+
 /**
- * Answers the onboarding form starts with: the representative from the user's private details, and the business from the bank account's details.
+ * Answers the onboarding form starts with: the representative from the user's private details, and the business from the bank account's details,
+ * overridden by the pages the user already saved to Wise.
  * The reimbursement account holds one bank account at a time, so the details of another account are not used.
  */
 function getWiseBusinessOnboardingPrefill(
@@ -64,7 +85,7 @@ function getWiseBusinessOnboardingPrefill(
 
     const business = businessAccountData?.bankAccountID === bankAccountID ? businessAccountData : undefined;
 
-    return {
+    const prefill: DynamicFormValues = {
         firstName: privatePersonalDetails?.legalFirstName,
         lastName: privatePersonalDetails?.legalLastName,
         phoneNumber: privatePersonalDetails?.phoneNumber,
@@ -78,7 +99,12 @@ function getWiseBusinessOnboardingPrefill(
         [addressKeys.country]: countryCode,
         companyName: business?.companyName,
         companyType: COMPANY_TYPE_BY_INCORPORATION_TYPE[business?.incorporationType ?? ''],
+        // What the user already saved to Wise wins over the details above
+        ...getSavedAnswers(business?.wise),
     };
+    // A saved page that hides a sensitive field, such as the SSN after the user says they have none, makes the server's copy of its answer stale
+    const hiddenProvidedKeys = new Set(getHiddenProvidedKeys(ALL_FIELDS, prefill));
+    return Object.fromEntries(Object.entries(prefill).filter(([key]) => !hiddenProvidedKeys.has(key)));
 }
 
 /**

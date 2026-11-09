@@ -1,7 +1,8 @@
 import {fireEvent, render} from '@testing-library/react-native';
 
+import type RHPResizeHandleComponent from '@components/RHPResizeHandle';
+
 import {resetSingleRHPWidth, setSingleRHPWidth} from '@libs/actions/SingleRHPWidth';
-import type RHPResizeHandleComponent from '@libs/Navigation/AppNavigator/Navigators/RHPResizeHandle';
 
 import variables from '@styles/variables';
 
@@ -10,7 +11,7 @@ import CONST from '@src/CONST';
 import React from 'react';
 
 // Jest resolves the native no-op, so the web implementation is loaded by its file name.
-const {default: RHPResizeHandle} = jest.requireActual<{default: typeof RHPResizeHandleComponent}>('@libs/Navigation/AppNavigator/Navigators/RHPResizeHandle/index.tsx');
+const {default: RHPResizeHandle} = jest.requireActual<{default: typeof RHPResizeHandleComponent}>('@components/RHPResizeHandle/index.tsx');
 
 // The native helpers never touch the DOM, so the web ones are loaded by their file name too.
 jest.mock('@libs/Navigation/helpers/singleRHPWidth', () => jest.requireActual<Record<string, unknown>>('@libs/Navigation/helpers/singleRHPWidth/index.ts'));
@@ -32,9 +33,8 @@ type PointerEventName = 'pointerEnter' | 'pointerDown' | 'pointerMove' | 'pointe
 
 const DEFAULT_WIDTH = variables.rhpWidth;
 
-/** Renders the handle with a scope element, the way the RHP navigators mount it. */
+/** Renders the handle the way the RHP navigators mount it. */
 function renderHandle() {
-    const scopeElement = document.createElement('div');
     const handleElement = document.createElement('div');
 
     // jsdom has no pointer capture.
@@ -43,9 +43,8 @@ function renderHandle() {
     // The test renderer leaves refs empty, so the line's ref gets a real element to take the snapped width the handle sets on the DOM.
     const lineElement = document.createElement('div');
 
-    const scopeRef = {current: scopeElement};
     // Only the line holds a ref among the divs, so handing this element to every div reaches just the line.
-    const screen = render(<RHPResizeHandle scopeRef={scopeRef} />, {createNodeMock: (element) => (element.type === 'div' ? lineElement : null)});
+    const screen = render(<RHPResizeHandle />, {createNodeMock: (element) => (element.type === 'div' ? lineElement : null)});
 
     const getHandle = () => {
         // The first div is the handle; the indicator line is a second one, rendered while hovered or dragging.
@@ -62,9 +61,9 @@ function renderHandle() {
     const firePointer = (eventName: PointerEventName, clientX: number) =>
         fireEvent(getHandle(), eventName, {button: 0, clientX, pointerId: 1, currentTarget: handleElement, preventDefault: jest.fn(), stopPropagation: jest.fn()});
 
-    const readLiveWidth = () => scopeElement.style.getPropertyValue(WIDTH_VARIABLE);
+    const readLiveWidth = () => document.documentElement.style.getPropertyValue(WIDTH_VARIABLE);
 
-    const rerenderHandle = () => screen.rerender(<RHPResizeHandle scopeRef={scopeRef} />);
+    const rerenderHandle = () => screen.rerender(<RHPResizeHandle />);
 
     const readLineWidth = () => {
         const lineStyle: unknown = screen.UNSAFE_root.findAll((node) => node.type === 'div').at(1)?.props.style;
@@ -81,6 +80,8 @@ describe('RHPResizeHandle', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockSavedWidth = 400;
+        // The live width lives on the shared document, so a test that leaves it set would leak into the next.
+        document.documentElement.style.removeProperty(WIDTH_VARIABLE);
     });
 
     it('paints the live width mid-drag and saves it once on release', () => {
@@ -161,6 +162,22 @@ describe('RHPResizeHandle', () => {
         expect(readLiveWidth()).toBe('500px');
     });
 
+    it('keeps the live width when the saved width changes while another handle drags', () => {
+        // Given a modal stacked on the RHP, each with its own handle, and a drag at 500px on the modal's
+        const rhpHandle = renderHandle();
+        const modalHandle = renderHandle();
+        modalHandle.firePointer('pointerDown', 1000);
+        modalHandle.firePointer('pointerMove', 900);
+
+        // When the saved width changes underneath both, as a window resize re-clamps it
+        mockSavedWidth = 450;
+        rhpHandle.rerenderHandle();
+        modalHandle.rerenderHandle();
+
+        // Then the idle RHP handle leaves the shared live width alone, so the cards don't jump back mid-drag
+        expect(modalHandle.readLiveWidth()).toBe('500px');
+    });
+
     it('clears the live width when it unmounts mid-drag', () => {
         // Given a drag in progress at 500px
         const {firePointer, readLiveWidth, unmount} = renderHandle();
@@ -170,7 +187,7 @@ describe('RHPResizeHandle', () => {
         // When the handle unmounts, as it does when a wide RHP opens on top
         unmount();
 
-        // Then the live width is cleared, since the scope outlives the handle and would otherwise pin the cards
+        // Then the live width is cleared, since the document outlives the handle and would otherwise pin the cards
         expect(readLiveWidth()).toBe('');
     });
 

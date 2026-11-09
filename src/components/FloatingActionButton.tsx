@@ -7,7 +7,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 
 import variables from '@styles/variables';
 
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, ForwardedRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -26,7 +26,7 @@ const SMALL_FAB_PATH =
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
-type FloatingActionButtonProps = WithSentryLabel & {
+type FloatingActionButtonProps = WithRequiredSentryLabel & {
     /** Callback to fire on request to toggle the FloatingActionButton */
     onPress: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
 

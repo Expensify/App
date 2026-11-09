@@ -33,6 +33,10 @@ function isNavigationIntentOnlyQuery(query: string) {
     return /^go(?:\s+to)?$/i.test(query.trim());
 }
 
+function canQueryMatchNavigationSuggestions(query: string) {
+    return !!query.trim();
+}
+
 function toMatchKey(value: string | undefined) {
     return StringUtils.normalizeForMatch(value ?? '').toLowerCase();
 }
@@ -74,12 +78,13 @@ function getGoToText(translate: LocaleContextProps['translate'], destination: st
 }
 
 function buildNavigationSuggestions(query: string, sources: NavigationSuggestionSourceItem[][], localeCompare: LocaleContextProps['localeCompare']): SearchQueryItem[] {
+    if (!canQueryMatchNavigationSuggestions(query)) {
+        return [];
+    }
+
     const trimmedQuery = query.trim();
     const isNavigationIntentOnly = isNavigationIntentOnlyQuery(trimmedQuery);
     const matchQuery = stripNavigationIntentPrefix(trimmedQuery);
-    if (!matchQuery && !isNavigationIntentOnly) {
-        return [];
-    }
 
     const shouldMatchExactDestination = matchQuery.length < MIN_NAVIGATION_QUERY_LENGTH && !isNavigationIntentOnly;
 
@@ -98,5 +103,14 @@ function buildNavigationSuggestions(query: string, sources: NavigationSuggestion
         .slice(0, MAX_NAVIGATION_SUGGESTIONS);
 }
 
-export {stripNavigationIntentPrefix, isNavigationIntentOnlyQuery, matchesNavigationQuery, sortNavigationSuggestionItems, getGoToText, buildNavigationSuggestions, MAX_NAVIGATION_SUGGESTIONS};
+export {
+    stripNavigationIntentPrefix,
+    isNavigationIntentOnlyQuery,
+    canQueryMatchNavigationSuggestions,
+    matchesNavigationQuery,
+    sortNavigationSuggestionItems,
+    getGoToText,
+    buildNavigationSuggestions,
+    MAX_NAVIGATION_SUGGESTIONS,
+};
 export type {NavigationSuggestionSourceItem};
