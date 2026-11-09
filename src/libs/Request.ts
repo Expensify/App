@@ -13,7 +13,7 @@ import Log from './Log';
 import enhanceParameters from './Network/enhanceParameters';
 import {hasReadRequiredDataFromStorage} from './Network/NetworkStore';
 import {cancelSpan, endSpanWithAttributes} from './telemetry/activeSpans';
-import getRequestPhaseSpanNames, {getNextRequestPhaseAttempt} from './telemetry/measuredRequestPhaseCommands';
+import getRequestPhaseSpanNames, {getNextRequestPhaseAttempt, getRequestPhaseApplyAttributes} from './telemetry/measuredRequestPhaseCommands';
 import startRequestPhaseSpan, {getRequestPhaseSpanId} from './telemetry/startRequestPhaseSpan';
 import trackStartupDataRender from './telemetry/trackStartupDataRender';
 
@@ -63,7 +63,10 @@ function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isF
                 }
 
                 const endApplyPhase = () => {
-                    endSpanWithAttributes(applySpanId, {[CONST.TELEMETRY.ATTRIBUTE_REQUEST_ID]: response?.requestID});
+                    endSpanWithAttributes(applySpanId, {
+                        [CONST.TELEMETRY.ATTRIBUTE_REQUEST_ID]: response?.requestID,
+                        ...getRequestPhaseApplyAttributes(request.command, request.data, response),
+                    });
                     // Startup only: the probe ends on frame health, which attributes the busy window to this response only while nothing else runs on the thread.
                     if (!isStartupNetworkRequest(request.command)) {
                         return;
