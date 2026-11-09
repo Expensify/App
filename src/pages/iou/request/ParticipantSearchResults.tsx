@@ -113,6 +113,9 @@ type ParticipantSearchResultsProps = {
     /** Report ID of a pre-selected participant whose selection state can't be derived from the participants array (e.g. self DM with accountID 0) */
     initiallySelectedReportID?: string;
 
+    /** Account ID used to identify a P2P destination when its optimistic report is not present in the picker data. */
+    initiallySelectedParticipantAccountID?: number;
+
     /** Whether to find the participant matching initiallySelectedReportID and move it to the top of the list */
     shouldMoveSelectedToTop?: boolean;
 
@@ -145,6 +148,7 @@ function ParticipantSearchResults({
     onParticipantsAdded,
     onFinish,
     initiallySelectedReportID,
+    initiallySelectedParticipantAccountID,
     shouldMoveSelectedToTop = false,
     onRestrictedParticipantSelected,
     onCloseParticipantPicker,
@@ -415,11 +419,11 @@ function ParticipantSearchResults({
             });
         }
 
-        if (initiallySelectedReportID !== undefined) {
+        const initiallySelectedKey = initiallySelectedReportID;
+        const isSelectedItem = (item: Partial<Participant>) => String(getParticipantOptionKey(item)) === initiallySelectedKey || item.accountID === initiallySelectedParticipantAccountID;
+        if (initiallySelectedKey !== undefined || initiallySelectedParticipantAccountID !== undefined) {
             if (shouldMoveSelectedToTop && debouncedSearchTerm.trim() === '') {
-                const selectedEntry = sections
-                    .flatMap((section) => section.data.map((item, index) => ({item, section, index})))
-                    .find((entry) => entry.item.reportID === initiallySelectedReportID);
+                const selectedEntry = sections.flatMap((section) => section.data.map((item, index) => ({item, section, index}))).find((entry) => isSelectedItem(entry.item));
                 if (selectedEntry) {
                     selectedEntry.section.data.splice(selectedEntry.index, 1);
                     const firstSection = sections.at(0);
@@ -431,7 +435,7 @@ function ParticipantSearchResults({
                 for (const section of sections) {
                     section.data = section.data.map((item) => ({
                         ...item,
-                        isSelected: item.reportID === initiallySelectedReportID,
+                        isSelected: isSelectedItem(item),
                         canShowSeveralIndicators: true,
                     }));
                 }

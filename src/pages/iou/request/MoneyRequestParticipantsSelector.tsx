@@ -54,6 +54,8 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Report ID of a pre-selected participant whose selection state can't be derived from the participants array (e.g. self DM with accountID 0) */
     initiallySelectedReportID?: string;
 
+    initiallySelectedParticipantAccountID?: number;
+
     /** Whether to find the participant matching initiallySelectedReportID and move it to the top of the list */
     shouldMoveSelectedToTop?: boolean;
 
@@ -89,6 +91,7 @@ function MoneyRequestParticipantsSelector({
     isTransactionFromCreditCardImport = false,
     shouldExcludeP2P = false,
     initiallySelectedReportID,
+    initiallySelectedParticipantAccountID,
     shouldMoveSelectedToTop = false,
     onRestrictedParticipantSelected,
     onCloseParticipantPicker,
@@ -133,6 +136,7 @@ function MoneyRequestParticipantsSelector({
                     onParticipantsAdded={onParticipantsAdded}
                     onFinish={onFinish}
                     initiallySelectedReportID={initiallySelectedReportID}
+                    initiallySelectedParticipantAccountID={initiallySelectedParticipantAccountID}
                     shouldMoveSelectedToTop={shouldMoveSelectedToTop}
                     onRestrictedParticipantSelected={onRestrictedParticipantSelected}
                     onCloseParticipantPicker={onCloseParticipantPicker}

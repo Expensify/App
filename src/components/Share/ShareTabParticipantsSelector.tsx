@@ -38,6 +38,7 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [draftTransactionAmount] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {selector: transactionAmountSelector});
     const [selectedReportID, setSelectedReportID] = useState<string | number | undefined>();
+    const [selectedParticipantAccountID, setSelectedParticipantAccountID] = useState<number | undefined>();
     const [selectedPolicyID, setSelectedPolicyID] = useState<string | undefined>();
 
     const isSubmitFlow = detailsPageRouteObject === ROUTES.SHARE_SUBMIT_DETAILS;
@@ -144,7 +145,8 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
     return (
         <MoneyRequestParticipantsSelector
             iouType={CONST.IOU.TYPE.SUBMIT}
-            initiallySelectedReportID={typeof selectedReportID === 'string' ? selectedReportID : undefined}
+            initiallySelectedReportID={selectedReportID !== undefined ? selectedReportID.toString() : undefined}
+            initiallySelectedParticipantAccountID={selectedParticipantAccountID}
             shouldExcludeP2P={(draftTransactionAmount ?? 0) < 0}
             onParticipantsAdded={(value) => {
                 const participant = value.at(0);
@@ -195,6 +197,7 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
                     }
 
                     setSelectedReportID(optimisticReportID);
+                    setSelectedParticipantAccountID(participant.accountID);
                     setSelectedPolicyID(participant.policyID);
                     saveReportDraft(optimisticReportID, optimisticReport).then(() => {
                         Navigation.navigate(detailsPageRouteObject.getRoute(optimisticReportID));
@@ -202,6 +205,7 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
                 } else {
                     clearUnknownUserDetails();
                     setSelectedReportID(reportID);
+                    setSelectedParticipantAccountID(participant.accountID);
                     setSelectedPolicyID(participant.policyID);
                     Navigation.navigate(detailsPageRouteObject.getRoute(reportID.toString()));
                 }
