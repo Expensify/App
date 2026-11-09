@@ -828,7 +828,9 @@ const CONST = {
         WEEKDAY_TIME_FORMAT: 'eeee',
         MONTH_DAY_ABBR_FORMAT: 'MMM d',
         SHORT_DATE_FORMAT: 'MM-dd',
-        MONTH_DAY_YEAR_ABBR_FORMAT: 'MMM d, yyyy',
+        // `PP` is date-fns' medium localized date. It matches `MMM d, yyyy` in en-US, so English output is unchanged,
+        // while other languages stop being forced into the US component order.
+        MONTH_DAY_YEAR_ABBR_FORMAT: 'PP',
         MONTH_DAY_YEAR_FORMAT: 'MMMM d, yyyy',
         FNS_TIMEZONE_FORMAT_STRING: "yyyy-MM-dd'T'HH:mm:ssXXX",
         FNS_DB_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss.SSS',
@@ -1039,6 +1041,9 @@ const CONST = {
 
         /** Route segment of the confirmation page, which no page may take */
         CONFIRMATION_PAGE_KEY: 'confirm',
+
+        /** Links a schema may show: https only, on expensify.com or one of its subdomains, since a link opens outside the form */
+        ALLOWED_LINK_URL: /^https:\/\/([a-z0-9-]+\.)*expensify\.com(\/|$)/i,
     },
     GLOBAL_REIMBURSEMENT_PROVIDER: {
         WISE: 'WISE',
@@ -2853,6 +2858,7 @@ const CONST = {
         SEARCH_ROUTER_QUERY_MAX_DURATION_MS: 10_000,
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
         SPAN_OPEN_MEMBER_CATEGORY_VISIBILITY: 'ManualOpenMemberCategoryVisibility',
+        SPAN_OPEN_CATEGORY_PICKER: 'ManualOpenCategoryPicker',
         SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW: 'ShareExtensionOpenSubmitFlow',
         SPAN_CAMERA_INIT: 'ManualCameraInit',
         SPAN_ENTRY_TO_SCAN: 'ManualEntryToScan',
@@ -2912,6 +2918,8 @@ const CONST = {
         ATTRIBUTE_REPORT_TYPE: 'report_type',
         ATTRIBUTE_CHAT_TYPE: 'chat_type',
         ATTRIBUTE_IOU_REQUEST_TYPE: 'iou_request_type',
+        /** Whether the category picker only listed the categories the expense's owner can use */
+        ATTRIBUTE_IS_FILTERED: 'is_filtered',
         ATTRIBUTE_REPORT_ID: 'report_id',
         ATTRIBUTE_MESSAGE_LENGTH: 'message_length',
         ATTRIBUTE_SEND_MESSAGE_SOURCE: 'send_message_source',
@@ -6282,6 +6290,11 @@ const CONST = {
             NVP_CAMPFIRE_EXPORT_ACCOUNT: 'campfire_export_account',
 
             /**
+             * Name of Card NVP for Zoho Books custom export accounts
+             */
+            NVP_ZOHO_BOOKS_EXPORT_ACCOUNT: 'zohobooks_export_account',
+
+            /**
              * Name of Card NVP for Business Central custom vendors
              */
             NVP_BUSINESS_CENTRAL_EXPORT_VENDOR: 'business_central_export_vendor',
@@ -6352,6 +6365,11 @@ const CONST = {
              * Name of Card NVP for Campfire custom export accounts
              */
             NVP_CAMPFIRE_EXPORT_ACCOUNT_POLICY_ID: 'campfire_export_account_policy_id',
+
+            /**
+             * Name of Card NVP for Zoho Books custom export accounts
+             */
+            NVP_ZOHO_BOOKS_EXPORT_ACCOUNT_POLICY_ID: 'zohobooks_export_account_policy_id',
 
             /**
              * Name of Card NVP for Business Central custom vendors
@@ -7899,6 +7917,7 @@ const CONST = {
         AUTO_REPORTED_REJECTED_EXPENSE: 'autoReportedRejectedExpense',
         BILLABLE_EXPENSE: 'billableExpense',
         CASH_EXPENSE_WITH_NO_RECEIPT: 'cashExpenseWithNoReceipt',
+        CATEGORY_NOT_ALLOWED: 'categoryNotAllowed',
         CATEGORY_OUT_OF_POLICY: 'categoryOutOfPolicy',
         CONVERSION_SURCHARGE: 'conversionSurcharge',
         CUSTOM_UNIT_OUT_OF_POLICY: 'customUnitOutOfPolicy',
@@ -10282,7 +10301,7 @@ const CONST = {
             WORKSPACE_EXPENSIFY_CARDS: 'workspaceExpensifyCards',
             WORKSPACE_COMPANY_CARDS: 'workspaceCompanyCards',
 
-            /** Prefix of the Search table IDs, one per data type. See `getSearchColumnResizingID`. */
+            /** Prefix of the Search table IDs, one per search. See `getSearchColumnResizingID`. */
             SEARCH_PREFIX: 'search',
         },
 
@@ -10316,6 +10335,19 @@ const CONST = {
         },
         DATE_PICKER: {
             CLEAR_BUTTON: 'DatePicker-ClearButton',
+        },
+        COUNTRY_PICKER: {
+            OPEN: 'CountryPicker-Open',
+        },
+        PUSH_ROW_WITH_MODAL: {
+            OPEN: 'PushRowWithModal-Open',
+        },
+        VALUE_PICKER: {
+            OPEN: 'ValuePicker-Open',
+        },
+        CONFIRMATION_STEP: {
+            EDIT: 'ConfirmationStep-Edit',
+            CONFIRM: 'ConfirmationStep-Confirm',
         },
         NUMBER_WITH_SYMBOL_FORM: {
             INPUT: 'NumberWithSymbolForm-Input',
@@ -10403,6 +10435,13 @@ const CONST = {
         },
         WISE_ONBOARDING_APPROVED: {
             DONE: 'WiseOnboardingApproved-Done',
+        },
+        WISE_QUOTE_CAROUSEL: {
+            PREVIOUS: 'WiseQuoteCarousel-Previous',
+            NEXT: 'WiseQuoteCarousel-Next',
+        },
+        WISE_PAYMENT_DETAILS: {
+            GOT_IT: 'WisePaymentDetails-GotIt',
         },
         PRODUCT_MARKETING_WINDOW: {
             CTA: 'ProductMarketingWindow-CTA',
@@ -10815,6 +10854,7 @@ const CONST = {
             DASHBOARD_TAB: 'Insights-DashboardTab',
             CHART_MENU: 'Insights-ChartMenu',
             TABLE_ROW: 'Insights-TableRow',
+            DETAILS_VIEW_ALL: 'Insights-DetailsViewAll',
             CONTROL_POPUP_APPLY: {
                 DATE: 'Insights-ControlPopupApply-Date',
                 WORKSPACE: 'Insights-ControlPopupApply-Workspace',
@@ -10854,14 +10894,16 @@ const CONST = {
             ATTACHMENT_PICKER_CREATE_BUTTON: 'Report-AttachmentPickerCreateButton',
             ATTACHMENT_PICKER_EXPAND_BUTTON: 'Report-AttachmentPickerExpandButton',
             ATTACHMENT_PICKER_COLLAPSE_BUTTON: 'Report-AttachmentPickerCollapseButton',
-            ATTACHMENT_PICKER_MENU_CREATE_EXPENSE: 'Report-AttachmentPickerMenuCreateExpense',
-            ATTACHMENT_PICKER_MENU_TRACK_DISTANCE: 'Report-AttachmentPickerMenuTrackDistance',
-            ATTACHMENT_PICKER_MENU_SPLIT_EXPENSE: 'Report-AttachmentPickerMenuSplitExpense',
-            ATTACHMENT_PICKER_MENU_PAY_SOMEONE: 'Report-AttachmentPickerMenuPaySomeone',
-            ATTACHMENT_PICKER_MENU_SEND_INVOICE: 'Report-AttachmentPickerMenuSendInvoice',
-            ATTACHMENT_PICKER_MENU_CREATE_REPORT: 'Report-AttachmentPickerMenuCreateReport',
-            ATTACHMENT_PICKER_MENU_ASSIGN_TASK: 'Report-AttachmentPickerMenuAssignTask',
-            ATTACHMENT_PICKER_MENU_ADD_ATTACHMENT: 'Report-AttachmentPickerMenuAddAttachment',
+            ATTACHMENT_PICKER_MENU: {
+                CREATE_EXPENSE: 'Report-AttachmentPickerMenu-CreateExpense',
+                TRACK_DISTANCE: 'Report-AttachmentPickerMenu-TrackDistance',
+                SPLIT_EXPENSE: 'Report-AttachmentPickerMenu-SplitExpense',
+                PAY_SOMEONE: 'Report-AttachmentPickerMenu-PaySomeone',
+                SEND_INVOICE: 'Report-AttachmentPickerMenu-SendInvoice',
+                CREATE_REPORT: 'Report-AttachmentPickerMenu-CreateReport',
+                ASSIGN_TASK: 'Report-AttachmentPickerMenu-AssignTask',
+                ADD_ATTACHMENT: 'Report-AttachmentPickerMenu-AddAttachment',
+            },
             REPORT_ACTION_ITEM_CREATED: 'Report-ReportActionItemCreated',
             REPORT_ACTION_ITEM_MESSAGE_ENTER_SIGNER_INFO: 'Report-ReportActionItemMessageEnterSignerInfo',
             REPORT_ACTION_ITEM_ADD_HOME_ADDRESS: 'Report-ReportActionItemAddHomeAddress',
@@ -10912,7 +10954,7 @@ const CONST = {
         SELECTION_LIST: {
             BASE_LIST_ITEM: 'SelectionList-BaseListItem',
             SPLIT_LIST_ITEM_EDIT_BUTTON: 'SplitListItem-EditButton',
-            LIST_HEADER_SELECT_ALL: 'SelectionList-ListHeader-SelectAll',
+            LIST_HEADER_SELECT_ALL: 'SelectionList-ListHeaderSelectAll',
         },
         CONTEXT_MENU: {
             REPLY_IN_THREAD: 'ContextMenu-ReplyInThread',
@@ -10969,9 +11011,11 @@ const CONST = {
             REOPEN: 'MoreMenu-Reopen',
             REJECT: 'MoreMenu-Reject',
             ADD_EXPENSE: 'MoreMenu-AddExpense',
-            ADD_EXPENSE_CREATE: 'MoreMenu-AddExpenseCreate',
-            ADD_EXPENSE_TRACK_DISTANCE: 'MoreMenu-AddExpenseTrackDistance',
-            ADD_EXPENSE_EXISTING: 'MoreMenu-AddExpenseExisting',
+            ADD_EXPENSE_MENU: {
+                CREATE_EXPENSE: 'MoreMenu-AddExpenseMenu-CreateExpense',
+                TRACK_DISTANCE: 'MoreMenu-AddExpenseMenu-TrackDistance',
+                ADD_EXISTING_EXPENSE: 'MoreMenu-AddExpenseMenu-AddExistingExpense',
+            },
             PAY: 'MoreMenu-Pay',
             DUPLICATE_REPORT: 'MoreMenu-DuplicateReport',
             MOVE_EXPENSE: 'MoreMenu-MoveExpense',
@@ -11530,7 +11574,15 @@ const CONST = {
                     SYNC_REIMBURSED_REPORTS_SWITCH: 'WorkspaceAccountingZohoBooks-SyncReimbursedReportsSwitch',
                     SYNC_EXPENSIFY_CARD_SETTLEMENTS_SWITCH: 'WorkspaceAccountingZohoBooks-SyncExpensifyCardSettlementsSwitch',
                     SYNC_TRAVEL_BILLING_SETTLEMENTS_SWITCH: 'WorkspaceAccountingZohoBooks-SyncTravelBillingSettlementsSwitch',
+                    EXPORT_TO_MULTIPLE_ACCOUNTS_SWITCH: 'WorkspaceAccountingZohoBooks-ExportToMultipleAccountsSwitch',
                 },
+            },
+            ZOHO_BOOKS: {
+                CARD_PROGRAM_ACCOUNT: 'WorkspaceZohoBooks-CardProgramAccount',
+                CARD_ACCOUNT: 'WorkspaceZohoBooks-CardAccount',
+                CARD_PROGRAM_ACCOUNT_FEED: 'WorkspaceZohoBooks-CardProgramAccountFeed',
+                CARD_ACCOUNT_FEED: 'WorkspaceZohoBooks-CardAccountFeed',
+                CARD_ACCOUNT_CARD: 'WorkspaceZohoBooks-CardAccountCard',
             },
             CONNECTIONS: {
                 CARD: 'WorkspaceConnections-Card',
@@ -11690,6 +11742,10 @@ const CONST = {
         REPORT_HEADER_SKELETON: {
             GO_BACK: 'ReportHeaderSkeleton-GoBack',
         },
+        CUSTOM_STATUS: {
+            CLEAR_AFTER_DATE: 'CustomStatus-OpenClearAfter-Date',
+            CLEAR_AFTER_TIME: 'CustomStatus-OpenClearAfter-Time',
+        },
         TWO_FACTOR_AUTH: {
             RESEND_CODE: 'TwoFactorAuth-ResendCode',
             SWITCH_BETWEEN_METHODS: 'TwoFactorAuth-SwitchBetweenMethods',
@@ -11714,6 +11770,7 @@ const CONST = {
         },
         CONFIRM_CONTENT: {
             DISMISS_BUTTON: 'ConfirmContent-DismissButton',
+            CONFIRM_BUTTON: 'ConfirmContent-ConfirmButton',
         },
         COPY_TEXT_TO_CLIPBOARD: {
             COPY_BUTTON: 'CopyTextToClipboard-CopyButton',
@@ -11856,6 +11913,7 @@ const CONST = {
             IMPORT_TRANSACTIONS_FLIP_AMOUNT_SIGN_SWITCH: 'SettingsWallet-ImportTransactionsFlipAmountSignSwitch',
             PERSONAL_CARD_REIMBURSABLE_SWITCH: 'SettingsWallet-PersonalCardReimbursableSwitch',
             WISE_MORE_INFO_NEEDED_REVIEW: 'SettingsWallet-WiseMoreInfoNeededReview',
+            WISE_BANK_ACCOUNT_ADDED_CONTINUE: 'SettingsWallet-WiseBankAccountAddedContinue',
             DIGITAL_WALLET_APPROVAL_REVIEW: 'SettingsWallet-DigitalWalletApprovalReview',
             MISSING_PERSONAL_DETAILS_ADD: 'SettingsWallet-MissingPersonalDetailsAdd',
         },
