@@ -1,7 +1,8 @@
-import {cleanup, fireEvent, render, screen} from '@testing-library/react-native';
+import {cleanup, fireEvent, render, screen, within} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import FlatNavCompactCreateButton from '@components/Navigation/FlatNavigationBar/FlatNavCompactCreateButton';
 import FlatNavCreateButton from '@components/Navigation/FlatNavigationBar/FlatNavCreateButton';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
@@ -13,8 +14,10 @@ import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 
 import type {ComponentType, ReactElement, RefObject} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
+import {StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -55,6 +58,12 @@ jest.mock('@pages/inbox/sidebar/FABPopoverContent/FABButtons', () => {
     return ({onPress}: {onPress: () => void}) => createElement(Pressable, {testID: 'FloatingActionButton', onPress});
 });
 
+jest.mock('@components/Tooltip', () => {
+    const {createElement} = jest.requireActual<ReactActual>('react');
+    const {View} = jest.requireActual<ReactNativeActual>('react-native');
+    return ({text, children}: {text: string; children: React.ReactNode}) => createElement(View, {testID: `Tooltip:${text}`}, children);
+});
+
 jest.mock('@hooks/usePopoverPosition', () => () => ({calculatePopoverPosition: mockCalculatePopoverPosition}));
 
 jest.mock('@react-navigation/native', () => ({
@@ -65,6 +74,25 @@ jest.mock('@react-navigation/native', () => ({
 
 function renderWithProviders(element: ReactElement) {
     return render(<ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>{element}</ComposeProviders>);
+}
+
+type RenderedTree = ReturnType<typeof screen.toJSON> | string;
+
+/** Whether any element in the rendered tree is drawn as a circle of the given diameter. */
+function hasCircleOfSize(node: RenderedTree, size: number): boolean {
+    if (!node || typeof node === 'string') {
+        return false;
+    }
+    if (Array.isArray(node)) {
+        return node.some((child) => hasCircleOfSize(child, size));
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- the test renderer types host props as any
+    const nodeStyle: StyleProp<ViewStyle> = node.props.style;
+    const style = StyleSheet.flatten(nodeStyle);
+    if (style?.width === size && style?.height === size && style?.borderRadius === size / 2) {
+        return true;
+    }
+    return (node.children ?? []).some((child) => hasCircleOfSize(child, size));
 }
 
 function getCreateButton() {
@@ -132,6 +160,61 @@ describe('FlatNavCreateButton', () => {
 
         // Then the label is visible, as in the pre-design's "+ Create"
         expect(screen.getByText('Create')).toBeOnTheScreen();
+    });
+
+    it('draws the labelled button as a pill without a tooltip', async () => {
+        // Given the expanded bar's Create button
+        // When it renders
+        renderWithProviders(<FlatNavCreateButton />);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it is a pill rather than a circle, with no hover tooltip, because the label already says "Create"
+        expect(screen.queryByTestId('Tooltip:Create')).not.toBeOnTheScreen();
+        expect(hasCircleOfSize(screen.toJSON(), 32)).toBe(false);
+    });
+});
+
+describe('FlatNavCompactCreateButton', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        mockMenuProps = undefined;
+        await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
+    });
+
+    afterEach(async () => {
+        cleanup();
+        await Onyx.clear();
+    });
+
+    it('draws a 32px round "+" with a "Create" tooltip', async () => {
+        // Given the round "+" a collapsed bar uses
+        // When it renders
+        renderWithProviders(<FlatNavCompactCreateButton />);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it is a circle like the old floating action button, and hovering it names it, as the FAB's tooltip did
+        expect(within(screen.getByTestId('Tooltip:Create')).getByRole(CONST.ROLE.BUTTON, {name: 'Create'})).toBeOnTheScreen();
+        expect(hasCircleOfSize(screen.toJSON(), 32)).toBe(true);
+    });
+
+    it('has no visible label but keeps the accessible name and opens the same menu below itself', async () => {
+        // Given the round "+" a collapsed bar uses
+        renderWithProviders(<FlatNavCompactCreateButton />);
+        await waitForBatchedUpdatesWithAct();
+
+        // When it is pressed
+        fireEvent.press(getCreateButton());
+        await waitForBatchedUpdatesWithAct();
+
+        // Then only the icon shows, screen readers still hear "Create", and the menu opens at the button's measured position
+        expect(screen.queryByText('Create')).not.toBeOnTheScreen();
+        expect(screen.getByTestId('CreateMenuPopover')).toBeOnTheScreen();
+        expect(mockMenuProps?.anchorPosition).toEqual({horizontal: MEASURED_ANCHOR.horizontal, vertical: MEASURED_ANCHOR.vertical});
+        expect(getCreateButton()).toBeExpanded();
     });
 });
 
