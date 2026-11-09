@@ -8,8 +8,8 @@ import {hostRule, withEslintDirectiveIDs} from 'eslint-config-expensify/oxlint/u
 import {createRequire} from 'node:module';
 
 import {EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN} from '../../reactCompiler/suppressedRules.mjs';
-import {create as noDeprecatedSelfClosingJsxCreate, meta as noDeprecatedSelfClosingJsxMeta} from '../noDeprecatedSelfClosingJsx.mjs';
 import {APP_HOSTED_ESLINT_RULE_IDS, APP_LOCAL_HOSTED_RULES} from '../appHostedRules.mjs';
+import {create as noDeprecatedSelfClosingJsxCreate, meta as noDeprecatedSelfClosingJsxMeta} from '../noDeprecatedSelfClosingJsx.mjs';
 import {withFullGating, withMessageGating} from '../reactCompilerGate.mjs';
 
 const require = createRequire(import.meta.url);
@@ -30,7 +30,10 @@ const plugin = {
         // the useCallback/useMemo reports of exhaustive-deps.
         'jsx-no-constructed-context-values': withFullGating(presetRules['jsx-no-constructed-context-values']),
         'exhaustive-deps': withMessageGating(presetRules['exhaustive-deps'], EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN),
-        'no-deprecated-self-closing-jsx': withEslintDirectiveIDs({create: noDeprecatedSelfClosingJsxCreate, meta: noDeprecatedSelfClosingJsxMeta}, APP_LOCAL_HOSTED_RULES['no-deprecated-self-closing-jsx']),
+        'no-deprecated-self-closing-jsx': withEslintDirectiveIDs(
+            {create: noDeprecatedSelfClosingJsxCreate, meta: noDeprecatedSelfClosingJsxMeta},
+            APP_LOCAL_HOSTED_RULES['no-deprecated-self-closing-jsx'],
+        ),
     },
 };
 
