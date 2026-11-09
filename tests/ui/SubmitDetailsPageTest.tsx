@@ -174,7 +174,7 @@ jest.mock('@components/HeaderWithBackButton', () => {
 let mockConfirmationListProps: Record<string, unknown> = {};
 
 // Mock the confirmation list down to a button that fires onConfirm — isolates the test from the form internals.
-jest.mock('@components/MoneyRequestConfirmationList', () => {
+jest.mock('@components/MoneyRequestConfirmationList/variants/ScanConfirmationList', () => {
     const React2 = require('react');
     const {Pressable, Text} = require('react-native');
     return {
