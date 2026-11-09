@@ -214,6 +214,19 @@ afterEvaluate {
     }
 }
 
+// litert-support is an empty wrapper (no classes or resources) around litert-support-api and litert, and it declares
+// the same org.tensorflow.lite.support namespace as litert-support-api, which AGP 9 rejects. Onfido depends on the wrapper
+// and on litert directly, so resolving the wrapper to litert-support-api keeps the same classes.
+// This can be removed once we migrate to @entrust.corporation/idvsdk-reactnative.
+configurations.configureEach {
+    resolutionStrategy.eachDependency { details ->
+        if (details.requested.group == "com.google.ai.edge.litert" && details.requested.name == "litert-support") {
+            details.useTarget("com.google.ai.edge.litert:litert-support-api:${details.requested.version}")
+            details.because("litert-support duplicates the litert-support-api namespace")
+        }
+    }
+}
+
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
