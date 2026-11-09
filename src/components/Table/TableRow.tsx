@@ -246,6 +246,7 @@ export default function TableRow({
     const renderSelectionCheckbox = () => {
         const checkbox = checkboxReplacementElement ?? (
             <Checkbox
+                sentryLabel={CONST.SENTRY_LABEL.TABLE.ROW_CHECKBOX}
                 // While editing, let mousedown reach the row so it can snapshot the dismiss tap
                 // and skip preventDefault. Spend checkboxes do the same.
                 shouldStopMouseDownPropagation={!isEditingCell}

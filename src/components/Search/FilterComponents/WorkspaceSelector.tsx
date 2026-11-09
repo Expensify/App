@@ -91,6 +91,7 @@ function SectionHeader({
             >
                 <Text style={[styles.textStrong]}>{selectAllLabel}</Text>
                 <Checkbox
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.WORKSPACE_SELECTOR_SELECT_ALL}
                     isChecked={isAllSelected}
                     isIndeterminate={isIndeterminate}
                     onPress={toggleSection}

@@ -140,12 +140,10 @@ const SENTRY_LABEL_PRESS_HANDLER_WRAPPERS = [
     'ConfirmationPageButtonBase',
     'ConfirmationPagePrimaryButton',
     'ContextMenuItem',
-    'DistanceRequestRenderItem',
     'FeatureTraining.HelpButton',
     'FocusableMenuItem',
     'FormAlertWithSubmitButton',
     'HighlightableMenuItem',
-    'HighlightableMenuItemWithTopDescription',
     'LinkButton',
     'MenuItem',
     'MenuItem.Root',
@@ -170,16 +168,7 @@ const SENTRY_LABEL_PRESS_HANDLER_WRAPPERS = [
 ];
 
 /** Wrappers that handle the press themselves (e.g. ThreeDotsMenu opens its menu), so they always need a label. */
-const SENTRY_LABEL_SELF_PRESS_WRAPPERS = [
-    'AvatarWithImagePicker',
-    'BookTravelButton',
-    'DropdownButton',
-    'FeatureTraining.ConfirmButton',
-    'MerchantFilterContent',
-    'PopoverMenu.Sub.Trigger',
-    'TextInputFilterContent',
-    'ThreeDotsMenu',
-];
+const SENTRY_LABEL_SELF_PRESS_WRAPPERS = ['AvatarWithImagePicker', 'BookTravelButton', 'FeatureTraining.ConfirmButton', 'PopoverMenu.Sub.Trigger', 'ThreeDotsMenu'];
 
 /** Builds an esquery selector list matching JSX elements named e.g. `Button` or `MenuItem.Root`. */
 function jsxElementNamesSelector(names: string[]): string {
