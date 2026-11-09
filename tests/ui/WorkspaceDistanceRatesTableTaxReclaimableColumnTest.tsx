@@ -16,12 +16,12 @@ import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigati
 import {buildOnyxDataForPolicyDistanceRateUpdates} from '@libs/PolicyDistanceRatesUtils';
 import showInlineEditError from '@libs/showInlineEditError';
 
-import {updateDistanceTaxClaimableValue} from '@userActions/Policy/DistanceRate';
-import type * as DistanceRateActions from '@userActions/Policy/DistanceRate';
-
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
 import PolicyDistanceRatesPage from '@pages/workspace/distanceRates/PolicyDistanceRatesPage';
+
+import {updateDistanceTaxClaimableValue} from '@userActions/Policy/DistanceRate';
+import type * as DistanceRateActions from '@userActions/Policy/DistanceRate';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -393,7 +393,7 @@ describe('PolicyDistanceRatesPage tax reclaimable column', () => {
         accessSpy.mockRestore();
     });
 
-    it('shows a failed tax save and dismisses its error without deleting the rate', async () => {
+    it('restores the amount after a failed tax save without removing the rate', async () => {
         // Given an existing amount and the canonical action data for a new percentage
         const rate = buildRate('cars', {attributes: {taxClaimablePercentage: 0.5, taxRateExternalID: TAX_RATE_ID}});
         const customUnit = buildPolicy([rate], true, true).customUnits?.[CUSTOM_UNIT_ID];
@@ -415,15 +415,11 @@ describe('PolicyDistanceRatesPage tax reclaimable column', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        // Then the table renders the error rather than silently reverting the amount
-        expect(screen.getByText(TestHelper.translateLocal('common.genericErrorMessage'))).toBeTruthy();
-        expect(screen.getByText('$5.00')).toBeTruthy();
-
-        // When the error is dismissed, only the field error is cleared and the rate remains
-        act(() => capturedData.at(0)?.dismissError());
-        await waitForBatchedUpdatesWithAct();
+        // Then the amount is restored and the rate remains, matching Name and Rate field-error handling
         expect(screen.queryByText(TestHelper.translateLocal('common.genericErrorMessage'))).toBeNull();
         expect(capturedData.at(0)?.rateID).toBe('cars');
         expect(screen.getByText('$5.00')).toBeTruthy();
+        expect(capturedData.at(0)?.errors).toBeUndefined();
+        expect(capturedData.at(0)?.rate.errorFields?.taxClaimablePercentage).toBeDefined();
     });
 });

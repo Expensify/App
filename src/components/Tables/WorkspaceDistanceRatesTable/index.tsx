@@ -100,9 +100,12 @@ function WorkspaceDistanceRatesTable({
                       key: 'taxReclaimableOn',
                       label: translate('workspace.taxes.taxReclaimableOn'),
                       sortable: true,
-                      styling: {containerStyles: [styles.editableCellHeader]},
+                      styling: {
+                          // editableCellHeader aligns the label with the padded tax cell.
+                          containerStyles: styles.editableCellHeader,
+                      },
                   },
-              ] satisfies Array<TableColumn<DistanceRatesTableColumnKey>>)
+              ] as const)
             : []),
         ...(hasAnyDateBound
             ? ([
