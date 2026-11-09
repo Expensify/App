@@ -1241,6 +1241,8 @@ const translations: TranslationDeepObject<typeof en> = {
         explainChartPrompt: (chartTitle: string) => `Explica los datos en ${chartTitle}.`,
         viewDetails: 'Ver detalles',
         viewAll: 'Ver todo',
+        topExpenses: 'Gastos principales',
+        noExpensesInRange: 'No hay gastos en este intervalo',
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
