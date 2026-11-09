@@ -97,7 +97,7 @@ function ValidateLoginPage({
         }
 
         // The user has initiated the sign in process on the same browser, in another tab.
-        signInWithValidateCode(Number(accountID), validateCode, preferredLocale, undefined, undefined, undefined, session);
+        signInWithValidateCode(Number(accountID), validateCode, preferredLocale, session);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
