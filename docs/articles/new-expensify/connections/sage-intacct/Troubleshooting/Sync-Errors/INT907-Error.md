@@ -43,7 +43,7 @@ Follow the steps below to review the connection and restore the integration.
 
 1. Go to **Settings > Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**, then select **Configure** next to Sage Intacct.
 4. Review the Sage Intacct connection status.
 5. Confirm all required fields are completed.
 6. Reenter Sage Intacct admin credentials if prompted.

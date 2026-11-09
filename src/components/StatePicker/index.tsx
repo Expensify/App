@@ -2,15 +2,18 @@ import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 
 import type {Option} from '@libs/searchOptions';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {CONST as COMMON_CONST} from 'expensify-common';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
 
 import StateSelectorModal from './StateSelectorModal';
@@ -28,6 +31,7 @@ type StatePickerProps = {
 };
 
 function StatePicker({value, errorText, onInputChange = () => {}}: StatePickerProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
@@ -42,7 +46,7 @@ function StatePicker({value, errorText, onInputChange = () => {}}: StatePickerPr
 
     return (
         <>
-            <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => setIsPickerVisible(true))}>
+            <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => setIsPickerVisible(true), false, session)}>
                 <MenuItemField.Row
                     name={translate('common.state')}
                     value={value ? translate(`allStates.${value as State}.stateName`) : undefined}

@@ -1,3 +1,4 @@
+import {DialogLabelProvider, useDialogLabelData} from '@components/DialogLabelContext';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 import getDynamicFieldErrors from '@components/DynamicForm/utils/getDynamicFieldErrors';
 import toDynamicFormValues from '@components/DynamicForm/utils/toDynamicFormValues';
@@ -17,9 +18,36 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {DynamicFormField} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import type {ReactNode} from 'react';
+import type {ComponentRef, ReactNode} from 'react';
 
-import React from 'react';
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
+type ListItemDialogFrameProps = {
+    /** The modal's screen */
+    children: ReactNode;
+
+    /** Hands the frame's node to the label provider */
+    onContainerRef: (node: ComponentRef<typeof View> | null) => void;
+};
+
+/** Marks the modal as a dialog named after its header title, as the side panel's frame does */
+function ListItemDialogFrame({children, onContainerRef}: ListItemDialogFrameProps) {
+    const styles = useThemeStyles();
+    const {dialogAriaLabel} = useDialogLabelData();
+    return (
+        <View
+            ref={onContainerRef}
+            role={CONST.ROLE.DIALOG}
+            aria-modal
+            aria-label={dialogAriaLabel}
+            tabIndex={-1}
+            style={styles.flex1}
+        >
+            {children}
+        </View>
+    );
+}
 
 type DynamicFormListItemModalProps = ForwardedFSClassProps & {
     /** Whether the modal is open */
@@ -45,48 +73,61 @@ type DynamicFormListItemModalProps = ForwardedFSClassProps & {
 
     /** Called when the user closes the modal without saving */
     onClose: () => void;
+
+    /** Called once the modal has finished closing */
+    onModalHide?: () => void;
 };
 
 /** The editor of one list entry outside DynamicFormFlow, as a modal over the page holding the list */
-function DynamicFormListItemModal({isVisible, title, itemFields, keptAnswers, isSensitive, renderFields, onSave, onClose, forwardedFSClass}: DynamicFormListItemModalProps) {
+function DynamicFormListItemModal({isVisible, title, itemFields, keptAnswers, isSensitive, renderFields, onSave, onClose, onModalHide, forwardedFSClass}: DynamicFormListItemModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [, itemDraftMetadata] = useOnyx(ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM_DRAFT);
     // Kept answers fill the inputs, so clearing one in the form clears it on save, as on the flow's editor page
     const withInputValues = (inputValues: unknown): DynamicFormValues => ({...keptAnswers, ...toDynamicFormValues(inputValues)});
+    const [dialogNode, setDialogNode] = useState<ComponentRef<typeof View> | null>(null);
 
     return (
         <Modal
             onClose={onClose}
+            onModalHide={onModalHide}
             isVisible={isVisible}
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             shouldUseCustomBackdrop
             shouldHandleNavigationBack
         >
-            <ScreenWrapper
-                includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
-                testID="DynamicFormListItemModal"
-                forwardedFSClass={forwardedFSClass}
+            {/* Its own label provider keeps the header title from renaming the side panel behind the modal */}
+            <DialogLabelProvider
+                containerNode={dialogNode}
+                hasDialogSemantics
             >
-                <HeaderWithBackButtonAndTitle
-                    title={title}
-                    onBackButtonPress={onClose}
-                />
-                {isVisible && !isLoadingOnyxValue(itemDraftMetadata) && (
-                    <FormProvider
-                        formID={ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM}
-                        submitButtonText={translate('common.save')}
-                        validate={(inputValues) => getDynamicFieldErrors(itemFields, withInputValues(inputValues), translate)}
-                        onSubmit={(inputValues) => onSave(withInputValues(inputValues))}
-                        style={[styles.mh5, styles.flexGrow1]}
-                        submitButtonStyles={styles.mb0}
-                        enabledWhenOffline
+                <ListItemDialogFrame onContainerRef={setDialogNode}>
+                    <ScreenWrapper
+                        includePaddingTop={false}
+                        includeSafeAreaPaddingBottom={false}
+                        testID="DynamicFormListItemModal"
+                        forwardedFSClass={forwardedFSClass}
                     >
-                        {({inputValues}) => renderFields(itemFields, withInputValues(inputValues), isSensitive)}
-                    </FormProvider>
-                )}
-            </ScreenWrapper>
+                        <HeaderWithBackButtonAndTitle
+                            title={title}
+                            onBackButtonPress={onClose}
+                        />
+                        {isVisible && !isLoadingOnyxValue(itemDraftMetadata) && (
+                            <FormProvider
+                                formID={ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM}
+                                submitButtonText={translate('common.save')}
+                                validate={(inputValues) => getDynamicFieldErrors(itemFields, withInputValues(inputValues), translate)}
+                                onSubmit={(inputValues) => onSave(withInputValues(inputValues))}
+                                style={[styles.mh5, styles.flexGrow1]}
+                                submitButtonStyles={styles.mb0}
+                                enabledWhenOffline
+                            >
+                                {({inputValues}) => renderFields(itemFields, withInputValues(inputValues), isSensitive)}
+                            </FormProvider>
+                        )}
+                    </ScreenWrapper>
+                </ListItemDialogFrame>
+            </DialogLabelProvider>
         </Modal>
     );
 }

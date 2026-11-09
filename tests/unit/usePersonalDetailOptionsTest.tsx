@@ -25,6 +25,8 @@ const PERSONAL_DETAILS: PersonalDetailsList = Object.fromEntries(
         {accountID: 2, login: 'member@example.com', displayName: 'Member'},
         {accountID: 3, login: 'outsider@example.com', displayName: 'Outsider'},
         {accountID: 4, login: 'other@example.com', displayName: 'Other'},
+        {accountID: 5, login: 'agent_5@expensify.ai', displayName: 'Agent A', isCustomAgent: true},
+        {accountID: 6, login: 'agent_6@expensify.ai', displayName: 'Agent B', isCustomAgent: true},
     ].map((personalDetail) => [personalDetail.accountID, personalDetail]),
 );
 
@@ -38,8 +40,8 @@ function Wrapper({children}: {children: React.ReactNode}) {
     );
 }
 
-const renderOptions = async (includeLoginsOnly?: Set<string>) => {
-    const {result} = renderHook(() => usePersonalDetailOptions({includeLoginsOnly}), {wrapper: Wrapper});
+const renderOptions = async (includeLoginsOnly?: Set<string>, agentsWhitelist?: Set<number>) => {
+    const {result} = renderHook(() => usePersonalDetailOptions({includeLoginsOnly, agentsWhitelist}), {wrapper: Wrapper});
     await waitForBatchedUpdatesWithAct();
     return result;
 };
@@ -73,7 +75,14 @@ describe('usePersonalDetailOptions', () => {
     it('builds an option for every personal detail when no allowlist is given', async () => {
         const result = await renderOptions();
 
-        expect(loginsOf(result.current.options)).toEqual(['me@example.com', 'member@example.com', 'other@example.com', 'outsider@example.com']);
+        expect(loginsOf(result.current.options)).toEqual([
+            'agent_5@expensify.ai',
+            'agent_6@expensify.ai',
+            'me@example.com',
+            'member@example.com',
+            'other@example.com',
+            'outsider@example.com',
+        ]);
         expect(result.current.currentOption?.login).toBe(CURRENT_USER_EMAIL);
         expect(result.current.isLoading).toBe(false);
     });
@@ -102,5 +111,17 @@ describe('usePersonalDetailOptions', () => {
 
         expect(result.current.options).toEqual([]);
         expect(result.current.isLoading).toBe(false);
+    });
+
+    it('excludes agents not in agents allow list', async () => {
+        const result = await renderOptions(undefined, new Set([5]));
+
+        expect(loginsOf(result.current.options)).toEqual(['agent_5@expensify.ai', 'me@example.com', 'member@example.com', 'other@example.com', 'outsider@example.com']);
+    });
+
+    it('excludes all agents if allow list is empty', async () => {
+        const result = await renderOptions(undefined, new Set());
+
+        expect(loginsOf(result.current.options)).toEqual(['me@example.com', 'member@example.com', 'other@example.com', 'outsider@example.com']);
     });
 });

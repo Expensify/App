@@ -18,7 +18,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 import type {WithPolicyProps} from './withPolicy';
 
@@ -32,19 +32,17 @@ type WorkspaceOverviewAddressPageProps = PlatformStackScreenProps<SettingsNaviga
 function WorkspaceOverviewAddressPage({policy}: WorkspaceOverviewAddressPageProps) {
     const {translate} = useLocalize();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_OVERVIEW_ADDRESS.path);
-    const address: Address = useMemo(() => {
-        const tempAddress = policy?.address;
-        const {streetLineOne, streetLineTwo} = getWorkspaceAddressStreetLines(tempAddress?.addressStreet, tempAddress?.addressStreet2);
-        const result = {
-            street: streetLineOne,
-            street2: streetLineTwo,
-            city: tempAddress?.city?.trim() ?? '',
-            state: tempAddress?.state?.trim() ?? '',
-            zip: tempAddress?.zipCode?.trim().toUpperCase() ?? '',
-            country: tempAddress?.country ?? '',
-        };
-        return result;
-    }, [policy?.address]);
+    const tempAddress = policy?.address;
+    const {streetLineOne, streetLineTwo} = getWorkspaceAddressStreetLines(tempAddress?.addressStreet, tempAddress?.addressStreet2);
+    const result = {
+        street: streetLineOne,
+        street2: streetLineTwo,
+        city: tempAddress?.city?.trim() ?? '',
+        state: tempAddress?.state?.trim() ?? '',
+        zip: tempAddress?.zipCode?.trim().toUpperCase() ?? '',
+        country: tempAddress?.country ?? '',
+    };
+    const address: Address = result;
 
     const updatePolicyAddress = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => {
         if (!policy) {

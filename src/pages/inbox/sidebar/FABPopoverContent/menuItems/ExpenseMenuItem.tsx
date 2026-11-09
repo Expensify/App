@@ -22,6 +22,7 @@ type ExpenseMenuItemProps = {
 };
 
 function ExpenseMenuItem({reportID}: ExpenseMenuItemProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Coins', 'Receipt', 'Cash', 'Transfer', 'MoneyCircle']);
@@ -36,7 +37,7 @@ function ExpenseMenuItem({reportID}: ExpenseMenuItemProps) {
             onPress={() =>
                 interceptAnonymousUser(() => {
                     startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, draftTransactionIDs, undefined, undefined, undefined, true);
-                })
+                }, session)
             }
             shouldCallAfterModalHide={shouldUseNarrowLayout}
         />

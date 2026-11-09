@@ -2,6 +2,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 
+import usePressLoading from '@hooks/usePressLoading';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -10,21 +11,22 @@ import HapticFeedback from '@libs/HapticFeedback';
 
 import CONST from '@src/CONST';
 
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import type {ButtonProps} from './types';
 
-import {ButtonContext} from './context';
+import {ButtonActionsContext, ButtonStateContext} from './context';
 
 function Button({
     children,
     contentContainerStyle = [],
     size = CONST.BUTTON_SIZE.MEDIUM,
-    isLoading = false,
+    isLoading: isOnyxLoading,
+    shouldShowLoadingImmediatelyOnPress = false,
     isDisabled = false,
     onLayout = () => {},
     onPress = () => {},
@@ -51,6 +53,7 @@ function Button({
     sentryLabel,
     ref,
     accessibilityState,
+    hitSlop,
     accessibilityHasPopup,
 }: ButtonProps) {
     const theme = useTheme();
@@ -58,73 +61,75 @@ function Button({
     const StyleUtils = useStyleUtils();
     const [isHovered, setIsHovered] = useState(false);
 
-    const contextValue = useMemo(
-        () => ({
-            isHovered,
-            variant,
-            size,
-            onPress,
-            isDisabled,
-            isLoading,
-        }),
-        [isHovered, variant, size, onPress, isDisabled, isLoading],
-    );
+    // Merges the consumer's isLoading with the pressed state into the single flag that drives the spinner.
+    const {isLoading, startWithLoading} = usePressLoading({isLoading: isOnyxLoading});
 
-    const buttonVariantStyles = useMemo(() => {
-        const shouldUseDisabledStyles = isDisabled && !stayNormalOnDisable;
-        if (!variant) {
-            return shouldUseDisabledStyles ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined;
+    const runPress = (event?: GestureResponderEvent | KeyboardEvent) => {
+        if (isDisabled || isLoading) {
+            return;
+        }
+        if (shouldShowLoadingImmediatelyOnPress) {
+            return startWithLoading(() => onPress(event));
+        }
+        return onPress(event, startWithLoading);
+    };
+
+    // Entry point for a pointer press
+    const pressWithFeedback = (event?: GestureResponderEvent | KeyboardEvent) => {
+        if (event?.type === 'click' && event.currentTarget instanceof HTMLElement) {
+            event.currentTarget.blur();
         }
 
+        if (enableHapticFeedback) {
+            HapticFeedback.press();
+        }
+
+        return runPress(event);
+    };
+
+    let buttonVariantStyles;
+    const shouldUseDisabledStyles = isDisabled && !stayNormalOnDisable;
+    if (!variant) {
+        buttonVariantStyles = shouldUseDisabledStyles ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined;
+    } else {
         const {normal: defaultStyles, disabled: disabledStyles} = StyleUtils.getButtonVariantStyles(styles);
-        return [defaultStyles[variant], shouldUseDisabledStyles && disabledStyles[variant]];
-    }, [isDisabled, stayNormalOnDisable, styles, variant, StyleUtils]);
+        buttonVariantStyles = [defaultStyles[variant], shouldUseDisabledStyles && disabledStyles[variant]];
+    }
 
-    const borderRadiusStyles = useMemo<Record<ValueOf<typeof CONST.BUTTON_REMOVE_BORDER_RADIUS>, StyleProp<ViewStyle>>>(
-        () => ({
-            [CONST.BUTTON_REMOVE_BORDER_RADIUS.RIGHT]: styles.noRightBorderRadius,
-            [CONST.BUTTON_REMOVE_BORDER_RADIUS.LEFT]: styles.noLeftBorderRadius,
-            [CONST.BUTTON_REMOVE_BORDER_RADIUS.ALL]: [styles.noRightBorderRadius, styles.noLeftBorderRadius],
-        }),
-        [styles.noRightBorderRadius, styles.noLeftBorderRadius],
-    );
+    const borderRadiusStyles: Record<ValueOf<typeof CONST.BUTTON_REMOVE_BORDER_RADIUS>, StyleProp<ViewStyle>> = {
+        [CONST.BUTTON_REMOVE_BORDER_RADIUS.RIGHT]: styles.noRightBorderRadius,
+        [CONST.BUTTON_REMOVE_BORDER_RADIUS.LEFT]: styles.noLeftBorderRadius,
+        [CONST.BUTTON_REMOVE_BORDER_RADIUS.ALL]: [styles.noRightBorderRadius, styles.noLeftBorderRadius],
+    };
 
-    const horizontalPaddingBySize = useMemo<Record<ValueOf<typeof CONST.BUTTON_SIZE>, ViewStyle>>(
-        () => ({
-            [CONST.BUTTON_SIZE.SMALL]: styles.ph2,
-            [CONST.BUTTON_SIZE.MEDIUM]: styles.ph3,
-            [CONST.BUTTON_SIZE.LARGE]: styles.ph4,
-        }),
-        [styles.ph2, styles.ph3, styles.ph4],
-    );
+    const horizontalPaddingBySize: Record<ValueOf<typeof CONST.BUTTON_SIZE>, ViewStyle> = {
+        [CONST.BUTTON_SIZE.SMALL]: styles.ph2,
+        [CONST.BUTTON_SIZE.MEDIUM]: styles.ph3,
+        [CONST.BUTTON_SIZE.LARGE]: styles.ph4,
+    };
 
-    const buttonStyles = useMemo<StyleProp<ViewStyle>>(
-        () => [
-            styles.button,
-            StyleUtils.getButtonSizeStyle(styles, size),
-            horizontalPaddingBySize[size],
-            buttonVariantStyles,
-            removeBorderRadius ? borderRadiusStyles[removeBorderRadius] : undefined,
-            styles.alignItemsStretch,
-            innerStyles,
-        ],
-        [styles, StyleUtils, size, horizontalPaddingBySize, buttonVariantStyles, removeBorderRadius, borderRadiusStyles, innerStyles],
-    );
+    const buttonStyles: StyleProp<ViewStyle> = [
+        styles.button,
+        StyleUtils.getButtonSizeStyle(styles, size),
+        horizontalPaddingBySize[size],
+        buttonVariantStyles,
+        removeBorderRadius ? borderRadiusStyles[removeBorderRadius] : undefined,
+        styles.alignItemsStretch,
+        innerStyles,
+    ];
 
-    const buttonContainerStyles = useMemo<StyleProp<ViewStyle>>(() => [buttonStyles, blendOpacity && styles.buttonBlendContainer], [buttonStyles, blendOpacity, styles.buttonBlendContainer]);
+    const buttonContainerStyles: StyleProp<ViewStyle> = [buttonStyles, blendOpacity && styles.buttonBlendContainer];
 
-    const buttonBlendForegroundStyle = useMemo<StyleProp<ViewStyle>>(() => {
-        if (!blendOpacity) {
-            return undefined;
-        }
-
+    let buttonBlendForegroundStyle: StyleProp<ViewStyle>;
+    if (!blendOpacity) {
+        buttonBlendForegroundStyle = undefined;
+    } else {
         const {backgroundColor, opacity} = StyleSheet.flatten(buttonStyles);
-
-        return {
+        buttonBlendForegroundStyle = {
             backgroundColor,
             opacity,
         };
-    }, [buttonStyles, blendOpacity]);
+    }
 
     let loadingIndicatorColor = theme.text;
     if (variant === CONST.BUTTON_VARIANT.DANGER) {
@@ -141,6 +146,7 @@ function Button({
             testID={testID}
             accessibilityLabel={accessibilityLabel}
             accessibilityState={accessibilityState}
+            hitSlop={hitSlop}
             accessibilityHasPopup={accessibilityHasPopup}
             sentryLabel={sentryLabel}
             role={CONST.ROLE.BUTTON}
@@ -174,20 +180,7 @@ function Button({
             onBlur={onBlur}
             onHoverIn={!isDisabled || !stayNormalOnDisable ? () => setIsHovered(true) : undefined}
             onHoverOut={!isDisabled || !stayNormalOnDisable ? () => setIsHovered(false) : undefined}
-            onPress={(event) => {
-                if (event?.type === 'click' && event.currentTarget instanceof HTMLElement) {
-                    event.currentTarget.blur();
-                }
-
-                if (enableHapticFeedback) {
-                    HapticFeedback.press();
-                }
-
-                if (isDisabled || isLoading) {
-                    return;
-                }
-                return onPress(event);
-            }}
+            onPress={pressWithFeedback}
             onLongPress={(event) => {
                 if (isLongPressDisabled) {
                     return;
@@ -199,21 +192,23 @@ function Button({
             }}
         >
             {blendOpacity && <View style={[StyleSheet.absoluteFill, buttonBlendForegroundStyle]} />}
-            <ButtonContext.Provider value={contextValue}>
-                <View
-                    style={[
-                        styles.flexRow,
-                        styles.alignItemsCenter,
-                        styles.justifyContentCenter,
-                        contentContainerStyle,
-                        styles.mw100,
-                        size !== CONST.BUTTON_SIZE.SMALL && styles.gap1,
-                        isLoading && styles.opacity0,
-                    ]}
-                >
-                    {children}
-                </View>
-            </ButtonContext.Provider>
+            <ButtonStateContext.Provider value={{isHovered, variant, size, isDisabled, isLoading}}>
+                <ButtonActionsContext.Provider value={{onPress: runPress}}>
+                    <View
+                        style={[
+                            styles.flexRow,
+                            styles.alignItemsCenter,
+                            styles.justifyContentCenter,
+                            contentContainerStyle,
+                            styles.mw100,
+                            size !== CONST.BUTTON_SIZE.SMALL && styles.gap1,
+                            isLoading && styles.opacity0,
+                        ]}
+                    >
+                        {children}
+                    </View>
+                </ButtonActionsContext.Provider>
+            </ButtonStateContext.Provider>
             {isLoading && (
                 <ActivityIndicator
                     color={loadingIndicatorColor}

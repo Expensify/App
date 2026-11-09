@@ -1,4 +1,3 @@
-import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -6,14 +5,9 @@ import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-
 import {openPaymentHistoryPage} from '@userActions/Subscription';
-
-import CONST from '@src/CONST';
 
 import React, {useEffect} from 'react';
 
@@ -23,19 +17,13 @@ function PaymentHistoryPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {isBetaEnabled} = usePermissions();
-    const isBetaOn = isBetaEnabled(CONST.BETAS.PAYMENT_HISTORY);
 
     useEffect(() => {
-        if (!isBetaOn || isOffline) {
+        if (isOffline) {
             return;
         }
         openPaymentHistoryPage();
-    }, [isBetaOn, isOffline]);
-
-    if (!isBetaOn) {
-        return <NotFoundPage />;
-    }
+    }, [isOffline]);
 
     return (
         <ScreenWrapper
@@ -44,13 +32,11 @@ function PaymentHistoryPage() {
             shouldShowOfflineIndicatorInWideScreen
             shouldEnableMaxHeight
         >
-            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                <HeaderWithBackButtonAndTitle title={translate('subscription.paymentHistory.title')} />
-                <ScrollView>
-                    <Text style={[styles.textNormal, styles.textSupporting, styles.mh5, styles.mb5, styles.userSelectText]}>{translate('subscription.paymentHistory.subtitle')}</Text>
-                    <PaymentHistoryTable />
-                </ScrollView>
-            </DelegateNoAccessWrapper>
+            <HeaderWithBackButtonAndTitle title={translate('subscription.paymentHistory.title')} />
+            <ScrollView>
+                <Text style={[styles.textNormal, styles.textSupporting, styles.mh5, styles.mb5, styles.userSelectText]}>{translate('subscription.paymentHistory.subtitle')}</Text>
+                <PaymentHistoryTable />
+            </ScrollView>
         </ScreenWrapper>
     );
 }

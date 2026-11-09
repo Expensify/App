@@ -17,6 +17,7 @@ import {
     canEditWorkspaceSettings,
     canMemberRead,
     canMemberWrite,
+    isConnectionFeature,
     isControlPolicy,
     isGroupPolicy,
     isPolicyAccessible,
@@ -235,9 +236,11 @@ function AccessOrNotFoundWrapper({
             return;
         }
 
-        // When a workspace feature linked to the current page is disabled we will navigate to the More Features page.
+        // When a workspace feature linked to the current page is disabled we will navigate to where it can be turned on.
+        // Connecting an integration turns its feature on, so those features have no toggle on More features.
+        const featureSettingsRoute = featureName && isConnectionFeature(featureName) ? ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID) : ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID);
         Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+            Navigation.goBack(featureSettingsRoute);
         });
         // We don't need to run the effect on policyID change as we only use it to get the route to navigate to.
         // eslint-disable-next-line react-hooks/exhaustive-deps

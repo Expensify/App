@@ -67,6 +67,8 @@ export default function TableFilterPopoverComponent({closeOverlay}: PopoverCompo
                         value: selectedItems.map((item) => item.value),
                     });
                 }}
+                applySentryLabel={CONST.SENTRY_LABEL.TABLE.FILTER_POPUP_APPLY}
+                resetSentryLabel={CONST.SENTRY_LABEL.TABLE.FILTER_POPUP_RESET}
             />
         );
     }
@@ -86,6 +88,8 @@ export default function TableFilterPopoverComponent({closeOverlay}: PopoverCompo
                     value: selectedItem ? [selectedItem.value] : [],
                 });
             }}
+            applySentryLabel={CONST.SENTRY_LABEL.TABLE.FILTER_POPUP_APPLY}
+            resetSentryLabel={CONST.SENTRY_LABEL.TABLE.FILTER_POPUP_RESET}
         />
     );
 }

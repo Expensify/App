@@ -176,7 +176,7 @@ describe('WorkArrangementPage', () => {
         });
 
         // Then the update is requested and the member details page is shown
-        expect(setEmployeeWorkArrangement).toHaveBeenCalledWith(policy, [accountID], true, personalDetails, expect.any(Function));
+        expect(setEmployeeWorkArrangement).toHaveBeenCalledWith(policy, [accountID], true, personalDetails);
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
     });
 
@@ -284,7 +284,7 @@ describe('WorkArrangementPage', () => {
         });
 
         // Then the update uses the synced account ID and the current personal details
-        expect(setEmployeeWorkArrangement).toHaveBeenCalledWith(syncedPolicy, [syncedAccountID], true, syncedPersonalDetails, expect.any(Function));
+        expect(setEmployeeWorkArrangement).toHaveBeenCalledWith(syncedPolicy, [syncedAccountID], true, syncedPersonalDetails);
     });
 
     it('keeps the member profile as the back destination after an offline invite syncs', async () => {

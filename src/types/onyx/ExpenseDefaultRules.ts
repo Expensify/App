@@ -5,9 +5,9 @@ import type {ValueOf} from 'type-fest';
 import type {RuleFilterNode} from './RuleFilters';
 
 /**
- * A transaction lifecycle event that can fire an expense-default rule (currently only `CreateTransaction`).
+ * A transaction lifecycle event that can fire an expense-default rule.
  */
-type ExpenseDefaultTrigger = typeof CONST.RULES.TRIGGERS.CREATE_TRANSACTION;
+type ExpenseDefaultTrigger = typeof CONST.RULES.TRIGGERS.CREATE_TRANSACTION | typeof CONST.RULES.TRIGGERS.UPDATE_TRANSACTION;
 
 /**
  * The triggers of a rule, keyed by a string index starting at 1 (e.g. `{"1": "CreateTransaction"}`). A rule fires when

@@ -127,6 +127,10 @@ type GetIouParamsInput = {
     transactionThreadReport: OnyxEntry<Report>;
     policy: OnyxEntry<Policy>;
     policyForTrackExpense?: OnyxEntry<Policy>;
+
+    /** The lastModified of the full policy snapshot for the parent report's policy */
+    fullPolicySnapshotLastModified?: number;
+
     policyCategories: OnyxEntry<PolicyCategories>;
     policyTags: OnyxEntry<PolicyTagLists>;
     reportPolicyTags: OnyxEntry<PolicyTagLists>;
@@ -184,6 +188,7 @@ function getIouParamsForTransaction({
     transactionThreadReport,
     policy,
     policyForTrackExpense,
+    fullPolicySnapshotLastModified,
     policyCategories,
     policyTags,
     reportPolicyTags,
@@ -225,6 +230,7 @@ function getIouParamsForTransaction({
             personalDetails: personalDetailsList,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
+            fullPolicySnapshotLastModified,
         });
     }
 

@@ -15,7 +15,7 @@ import type {CustomSubPageProps} from '@pages/MissingPersonalDetails/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 /**
@@ -32,19 +32,16 @@ function PIN({onNext}: CustomSubPageProps) {
     const [confirmPIN, setConfirmPIN] = useState(savedPIN);
     const [error, setError] = useState('');
 
-    const handlePINChange = useCallback(
-        (value: string) => {
-            setError('');
-            if (isConfirmStep) {
-                setConfirmPIN(value);
-            } else {
-                setEnteredPIN(value);
-            }
-        },
-        [isConfirmStep],
-    );
+    const handlePINChange = (value: string) => {
+        setError('');
+        if (isConfirmStep) {
+            setConfirmPIN(value);
+        } else {
+            setEnteredPIN(value);
+        }
+    };
 
-    const validatePIN = useCallback((): string => {
+    const validatePIN = (): string => {
         const PINToValidate = isConfirmStep ? confirmPIN : enteredPIN;
 
         if (PINToValidate.length !== CONST.EXPENSIFY_CARD.PIN.LENGTH) {
@@ -59,9 +56,9 @@ function PIN({onNext}: CustomSubPageProps) {
             return translate('cardPage.invalidPin');
         }
         return '';
-    }, [isConfirmStep, confirmPIN, enteredPIN, translate]);
+    };
 
-    const handleSubmit = useCallback(() => {
+    const handleSubmit = () => {
         const validationError = validatePIN();
         if (validationError) {
             setError(validationError);
@@ -78,7 +75,7 @@ function PIN({onNext}: CustomSubPageProps) {
         // PIN verified, save it and proceed
         setPIN(confirmPIN);
         onNext();
-    }, [validatePIN, isConfirmStep, setPIN, confirmPIN, onNext, setIsConfirmStep]);
+    };
 
     const currentPIN = isConfirmStep ? confirmPIN : enteredPIN;
     const title = isConfirmStep ? translate('cardPage.confirmYourPin') : translate('cardPage.setYourPin');

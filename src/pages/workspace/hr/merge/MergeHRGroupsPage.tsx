@@ -28,7 +28,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type MergeHRGroupsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.HR_MERGE_GROUPS>;
@@ -112,18 +112,15 @@ function MergeHRGroupsPage({
         Navigation.goBack();
     };
 
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.hr.mergeHR.groups.noGroupsFound')}
-                subtitle={translate('workspace.hr.mergeHR.groups.noGroupsFoundDescription')}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [illustrations.Telescope, translate, styles.pb10],
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.hr.mergeHR.groups.noGroupsFound')}
+            subtitle={translate('workspace.hr.mergeHR.groups.noGroupsFoundDescription')}
+            containerStyle={styles.pb10}
+        />
     );
 
     return (
