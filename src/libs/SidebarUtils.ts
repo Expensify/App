@@ -265,6 +265,44 @@ function shouldDisplayReportInLHN({
 /** The LHN set produced by the most recent build, read on report open to detect unread chats the LHN did not surface. */
 let lastReportsToDisplayInLHN: ReportsToDisplayInLHN | undefined;
 
+/** The values a flagged LHN entry carries on top of its report */
+type FlaggedLHNEntryFields = {
+    requiresAttention: boolean;
+    hasErrorsOtherThanFailedReceipt: boolean | undefined;
+    isUnreadReport: boolean;
+    lastVisibleActionCreatedForInboxTab: string;
+};
+
+/**
+ * A flagged LHN entry is a spread copy of its report, so it can never be reference-equal to the report it was built
+ * from. Remember the source report of each copy so an unchanged report (with unchanged flags) can reuse the entry
+ * instead of allocating a new one — which is what lets updateReportsToDisplayInLHN hand back the same map.
+ */
+const flaggedLHNEntrySources = new WeakMap<ReportsToDisplayInLHN[string], Report>();
+
+function toFlaggedLHNEntry(report: Report, fields: FlaggedLHNEntryFields): ReportsToDisplayInLHN[string] {
+    const entry = {...report, ...fields};
+    flaggedLHNEntrySources.set(entry, report);
+    return entry;
+}
+
+/**
+ * Whether an existing flagged entry already reflects this report and these values. `lastVisibleActionCreatedForInboxTab`
+ * is compared too: it comes from the hidden one-transaction thread, which can change while the report object itself doesn't.
+ */
+function isFlaggedLHNEntryUpToDate(existingEntry: ReportsToDisplayInLHN[string] | undefined, report: Report, fields: FlaggedLHNEntryFields): boolean {
+    if (!existingEntry) {
+        return false;
+    }
+    return (
+        flaggedLHNEntrySources.get(existingEntry) === report &&
+        existingEntry.requiresAttention === fields.requiresAttention &&
+        existingEntry.hasErrorsOtherThanFailedReceipt === fields.hasErrorsOtherThanFailedReceipt &&
+        existingEntry.isUnreadReport === fields.isUnreadReport &&
+        existingEntry.lastVisibleActionCreatedForInboxTab === fields.lastVisibleActionCreatedForInboxTab
+    );
+}
+
 /** Used to detect when the focused report changes, so its LHN state is captured before the rebuild that opening triggers. */
 let lastBuildCurrentReportId: string | undefined;
 
@@ -375,7 +413,7 @@ function getReportsToDisplayInLHN({
             const lastVisibleActionCreatedForInboxTab = getReportLastVisibleActionCreated(report, oneTransactionThreadReport);
             reportsToDisplay[reportID] =
                 requiresAttention || hasErrorsOtherThanFailedReceipt || isUnreadReport
-                    ? {...report, requiresAttention, hasErrorsOtherThanFailedReceipt, isUnreadReport, lastVisibleActionCreatedForInboxTab}
+                    ? toFlaggedLHNEntry(report, {requiresAttention, hasErrorsOtherThanFailedReceipt, isUnreadReport, lastVisibleActionCreatedForInboxTab})
                     : report;
         }
     }
@@ -484,13 +522,9 @@ function updateReportsToDisplayInLHN({
             const existingEntry = displayedReports[reportID];
 
             if (hasFlags) {
-                if (
-                    existingEntry !== report ||
-                    existingEntry?.requiresAttention !== requiresAttention ||
-                    existingEntry?.hasErrorsOtherThanFailedReceipt !== hasErrorsOtherThanFailedReceipt ||
-                    existingEntry?.isUnreadReport !== isUnreadReport
-                ) {
-                    getMutableCopy()[reportID] = {...report, requiresAttention, hasErrorsOtherThanFailedReceipt, isUnreadReport, lastVisibleActionCreatedForInboxTab};
+                const fields = {requiresAttention, hasErrorsOtherThanFailedReceipt, isUnreadReport, lastVisibleActionCreatedForInboxTab};
+                if (!isFlaggedLHNEntryUpToDate(existingEntry, report, fields)) {
+                    getMutableCopy()[reportID] = toFlaggedLHNEntry(report, fields);
                 }
             } else if (existingEntry !== report) {
                 getMutableCopy()[reportID] = report;

@@ -670,7 +670,6 @@
 "../../src/hooks/useSeedMyExpensesSearch.ts"	"rulesdir/no-onyx-loading-status"	2
 "../../src/hooks/useSelfDMReport.ts"	"rulesdir/no-onyx-loading-status"	1
 "../../src/hooks/useSidebarOrderedReports.tsx"	"react-hooks/refs"	5
-"../../src/hooks/useSidebarOrderedReports.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/hooks/useSingleExecution/index.native.ts"	"react-hooks/refs"	1
 "../../src/hooks/useStableIndexedHandler.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/hooks/useStableIndexedHandler.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1

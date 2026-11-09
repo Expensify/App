@@ -130,6 +130,18 @@ function SidebarOrderedReportsContextProvider({
     const reportAttributes = useReportAttributes();
     const prevReportAttributes = usePrevious(reportAttributes);
     const reportAttributesUpdates = useMemo(() => getReportAttributesUpdates(reportAttributes, prevReportAttributes), [reportAttributes, prevReportAttributes]);
+    // REPORT_ATTRIBUTES is rewritten with a new object on every recompute, even when nothing changed (see
+    // getReportAttributesUpdates). Everything below only needs the attributes' content, so it reads a reference that
+    // advances only when that value diff reports a change — otherwise every no-op rewrite would recompute the LHN set,
+    // re-sort it and republish the context to every consumer. The reference is remembered in state during render (React
+    // re-runs this render with the new state before committing), so no extra update is scheduled for it.
+    const [rememberedReportAttributes, setRememberedReportAttributes] = useState(reportAttributes);
+    const hasReportAttributesContentChanged = reportAttributesUpdates !== undefined || reportAttributes === undefined || rememberedReportAttributes === undefined;
+    const lhnReportAttributes = hasReportAttributesContentChanged ? reportAttributes : rememberedReportAttributes;
+    if (hasReportAttributesContentChanged && rememberedReportAttributes !== reportAttributes) {
+        setRememberedReportAttributes(reportAttributes);
+    }
+    // The incremental cache the memo below starts from: the result of the previous run, see the render-phase update below it.
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
@@ -214,15 +226,25 @@ function SidebarOrderedReportsContextProvider({
 
         // Make sure the previous and current reports are always included in the updates when we switch reports.
         if (prevDerivedCurrentReportID !== derivedCurrentReportID) {
-            reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${prevDerivedCurrentReportID}`);
-            reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${derivedCurrentReportID}`);
+            for (const reportID of [prevDerivedCurrentReportID, derivedCurrentReportID]) {
+                const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+                reportsToUpdate.add(reportKey);
+
+                // The parent of the focused thread stays in the LHN only while the thread is open (see shouldHideReport),
+                // so it must be rechecked both when the thread is opened and when it is left. The cache below never
+                // triggers a render of its own, so nothing else would recheck it.
+                const parentReportID = chatReports?.[reportKey]?.parentReportID;
+                if (parentReportID) {
+                    reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
+                }
+            }
         }
 
         // The LHN hides the transaction thread of a single-expense report and shows the expense report instead, whose
         // unread state also depends on the thread. So when the thread changes (e.g. a new comment), recheck its parent too.
         for (const key of Array.from(reportsToUpdate)) {
             const parentReportID = chatReports?.[key]?.parentReportID;
-            if (!parentReportID || reportAttributes?.[parentReportID]?.oneTransactionThreadReportID !== chatReports?.[key]?.reportID) {
+            if (!parentReportID || lhnReportAttributes?.[parentReportID]?.oneTransactionThreadReportID !== chatReports?.[key]?.reportID) {
                 continue;
             }
             reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
@@ -239,7 +261,7 @@ function SidebarOrderedReportsContextProvider({
         policiesUpdates,
         chatReports,
         transactions,
-        reportAttributes,
+        lhnReportAttributes,
         isDefaultRoomsBetaEnabled,
         isBillPayBetaEnabled,
         priorityMode,
@@ -282,7 +304,7 @@ function SidebarOrderedReportsContextProvider({
                 isBillPayBetaEnabled,
                 transactionViolations,
                 reportNameValuePairs,
-                reportAttributes,
+                reportAttributes: lhnReportAttributes,
                 draftComments: reportsDrafts,
                 transactions,
                 isOffline,
@@ -308,7 +330,7 @@ function SidebarOrderedReportsContextProvider({
                 currentUserLogin: currentUserLogin ?? '',
                 currentUserAccountID: accountID,
                 reportNameValuePairs,
-                reportAttributes,
+                reportAttributes: lhnReportAttributes,
                 conciergeReportID,
                 guideAccountIDs,
                 session,
@@ -316,7 +338,7 @@ function SidebarOrderedReportsContextProvider({
         }
 
         return reportsToDisplay;
-        // Rule disabled intentionally — triggering a re-render on currentReportsToDisplay would cause an infinite loop
+        // Rule disabled intentionally — currentReportsToDisplay is this memo's previous result, not an input
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         getUpdatedReports,
@@ -327,7 +349,7 @@ function SidebarOrderedReportsContextProvider({
         isBillPayBetaEnabled,
         transactionViolations,
         reportNameValuePairs,
-        reportAttributes,
+        lhnReportAttributes,
         reportsDrafts,
         isOffline,
         clearCacheDummyCounter,
@@ -361,15 +383,21 @@ function SidebarOrderedReportsContextProvider({
         return result;
     }, [reportsDrafts]);
 
-    useEffect(() => {
+    // Store the result as the next incremental baseline during render, not in an effect. React re-runs this render
+    // right away with the new state and commits once, so the commit leaves no update pending. A setState in a passive
+    // effect does leave one: every provider commit caused by an Onyx write is a synchronous useOnyx commit whose passive
+    // effects React flushes inside the commit, and a run of such commits is what React's nested-update counter counts
+    // (React #185 after 50 in a row — the crash this replaces).
+    if (currentReportsToDisplay !== reportsToDisplayInLHN) {
         setCurrentReportsToDisplay(reportsToDisplayInLHN);
-    }, [reportsToDisplayInLHN]);
+    }
 
     const getOrderedReportIDs = useCallback(
-        () => SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplayInLHN, priorityMode, localeCompare, hasDraftByReportID, reportNameValuePairs, reportAttributes),
-        // Rule disabled intentionally - reports should be sorted only when the reportsToDisplayInLHN changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [reportsToDisplayInLHN, localeCompare, hasDraftByReportID, reportAttributes],
+        () => SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplayInLHN, priorityMode, localeCompare, hasDraftByReportID, reportNameValuePairs, lhnReportAttributes),
+        // The set keeps its reference when no report changed, so every input that only affects the ORDER (the priority
+        // mode's ordering rule, the archived state from reportNameValuePairs) has to be listed here, otherwise switching
+        // to Focus mode with the same chats eligible would leave them in the previous order.
+        [reportsToDisplayInLHN, priorityMode, localeCompare, hasDraftByReportID, reportNameValuePairs, lhnReportAttributes],
     );
 
     const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);
@@ -466,7 +494,7 @@ function SidebarOrderedReportsContextProvider({
                 filteredReportIDs: arraysEqual(updatedFilteredIDs, filteredReportIDs) ? filteredReportIDs : updatedFilteredIDs,
                 orderedReportIDs: updatedReportIDs,
                 currentReportID: derivedCurrentReportID,
-                chatTabBrickRoad: getChatTabBrickRoad(updatedReportIDs, reportAttributes),
+                chatTabBrickRoad: getChatTabBrickRoad(updatedReportIDs, lhnReportAttributes),
                 activeTab,
                 inboxTabCounts,
                 hasStaleUnreadReport,
@@ -477,7 +505,7 @@ function SidebarOrderedReportsContextProvider({
             filteredReportIDs,
             orderedReportIDs,
             currentReportID: derivedCurrentReportID,
-            chatTabBrickRoad: getChatTabBrickRoad(orderedReportIDs, reportAttributes),
+            chatTabBrickRoad: getChatTabBrickRoad(orderedReportIDs, lhnReportAttributes),
             activeTab,
             inboxTabCounts,
             hasStaleUnreadReport,
@@ -488,7 +516,7 @@ function SidebarOrderedReportsContextProvider({
         filteredReportIDs,
         derivedCurrentReportID,
         shouldUseNarrowLayout,
-        reportAttributes,
+        lhnReportAttributes,
         activeTab,
         inboxTabCounts,
         hasStaleUnreadReport,
