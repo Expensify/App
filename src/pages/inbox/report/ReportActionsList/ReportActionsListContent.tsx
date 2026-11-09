@@ -31,6 +31,7 @@ import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
 import {useReportActionsListState} from '@pages/inbox/report/ReportActionsListContext';
 import ReportActionsListHeader from '@pages/inbox/report/ReportActionsListHeader';
 import ReportActionsListPaddingView from '@pages/inbox/report/ReportActionsListPaddingView';
+import ReportActionsPaginationLoadingIndicator from '@pages/inbox/report/ReportActionsPaginationLoadingIndicator';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -161,6 +162,9 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         isActionBadgeAboveViewport,
         scrollToBottomAndMarkReportAsRead,
         scrollToActionBadgeTarget,
+        shouldShowOlderPaginationLoadingIndicator,
+        shouldShowNewerPaginationLoadingIndicator,
+        onNewerFooterLayout,
     } = useReportActionsListScroll({
         reportID,
         sortedVisibleReportActions,
@@ -194,28 +198,36 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
 
     const latestActionsFooter = (
         <>
-            {isConciergeHistoryExpanded && (
-                <ConciergeChatHistoryToggle
-                    isHistoryShown
-                    onPress={() => {
-                        collapseConciergeHistory();
-                        if (linkedReportActionID) {
-                            Navigation.setParams({reportActionID: ''}, route.key);
-                        }
-                    }}
+            <View onLayout={onNewerFooterLayout}>
+                {isConciergeHistoryExpanded && (
+                    <ConciergeChatHistoryToggle
+                        isHistoryShown
+                        onPress={() => {
+                            collapseConciergeHistory();
+                            if (linkedReportActionID) {
+                                Navigation.setParams({reportActionID: ''}, route.key);
+                            }
+                        }}
+                    />
+                )}
+                <ReportActionsListHeader
+                    reportID={reportID}
+                    isDraftPendingCompletion={isDraftPendingCompletion}
                 />
-            )}
-            <ReportActionsListHeader
-                reportID={reportID}
-                isDraftPendingCompletion={isDraftPendingCompletion}
-            />
-            {shouldShowNewerActionsSkeleton && <ReportActionsSkeletonView shouldAnimate={!isOffline} />}
+                {shouldShowNewerActionsSkeleton && <ReportActionsSkeletonView shouldAnimate={!isOffline} />}
+            </View>
+            {shouldShowNewerPaginationLoadingIndicator && <ReportActionsPaginationLoadingIndicator direction="newer" />}
         </>
     );
 
     const shouldShowOfflineSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
-    const offlineHistoryHeader = shouldShowOfflineSkeleton ? <ReportActionsSkeletonView shouldAnimate={false} /> : undefined;
+    const olderHistoryHeader = (
+        <>
+            {shouldShowOlderPaginationLoadingIndicator && <ReportActionsPaginationLoadingIndicator direction="older" />}
+            {shouldShowOfflineSkeleton && <ReportActionsSkeletonView shouldAnimate={false} />}
+        </>
+    );
 
     const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy,
@@ -279,7 +291,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                     renderScrollComponent={Platform.OS === 'web' ? undefined : renderActionSheetAwareScrollView}
                     scrollEventThrottle={16}
                     contentContainerStyle={[styles.chatContentScrollView, styles.pb0]}
-                    ListHeaderComponent={offlineHistoryHeader}
+                    ListHeaderComponent={olderHistoryHeader}
                     ListFooterComponent={latestActionsFooter}
                     ListFooterComponentStyle={shouldBeAlignedToTop ? styles.flex1 : undefined}
                     keyboardShouldPersistTaps="handled"

@@ -1,0 +1,39 @@
+import ActivityIndicator from '@components/ActivityIndicator';
+
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
+type PaginationDirection = 'older' | 'newer';
+
+type ReportActionsPaginationLoadingIndicatorProps = {
+    direction: PaginationDirection;
+};
+
+function ReportActionsPaginationLoadingIndicator({direction}: ReportActionsPaginationLoadingIndicatorProps) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const testID = `report-actions-pagination-${direction}`;
+
+    return (
+        <View
+            testID={testID}
+            style={[StyleUtils.getHeight(CONST.PAGINATION_LOADING_INDICATOR_HEIGHT), styles.alignItemsCenter, styles.justifyContentCenter, styles.pt18, styles.pb6]}
+            pointerEvents="none"
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+        >
+            <ActivityIndicator
+                testID={`${testID}-spinner`}
+                size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
+            />
+        </View>
+    );
+}
+
+export default ReportActionsPaginationLoadingIndicator;
+export type {PaginationDirection, ReportActionsPaginationLoadingIndicatorProps};

@@ -65,6 +65,8 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
     const isInitialReportLoadPending = !hasOnceLoadedReportActions && (isReportLoadPending || isLoadingInitialReportActions !== false);
     const isLoadingOlderReportActions = reportLoadingState?.isLoadingOlderReportActions;
     const hasLoadingOlderReportActionsError = reportLoadingState?.hasLoadingOlderReportActionsError;
+    const isLoadingNewerReportActions = reportLoadingState?.isLoadingNewerReportActions;
+    const hasLoadingNewerReportActionsError = reportLoadingState?.hasLoadingNewerReportActionsError;
 
     const {setShowFullHistory: setConciergeShowFullHistory} = useConciergeChatHistoryActions();
     const {
@@ -84,7 +86,7 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
     const [reportPaginationState] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportID}`);
     const [hasReportActionPages = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${reportID}`, {selector: (pages) => !!pages?.length});
 
-    const {loadOlderChats, loadNewerChats, currentReportOldestActionID} = useLoadReportActions({
+    const {loadOlderChats, loadNewerChats, currentReportOldestActionID, oldestReportActionsRequestCursor, newestReportActionsRequestCursor, canLoadNewerChats} = useLoadReportActions({
         reportID,
         reportActions,
         allReportActionIDs,
@@ -150,7 +152,12 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         hasLoadingOlderReportActionsError,
         hasOlderActions,
         hasNewerActions,
+        isLoadingNewerReportActions,
+        hasLoadingNewerReportActionsError,
         oldestReportActionID: currentReportOldestActionID,
+        olderReportActionsRequestCursor: oldestReportActionsRequestCursor,
+        newerReportActionsRequestCursor: newestReportActionsRequestCursor,
+        canLoadNewerChats,
         sortedAllReportActions,
         oldestUnreadReportAction,
         transactionThreadReport,

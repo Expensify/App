@@ -28,6 +28,8 @@ import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/Concierg
 import CollapsedSystemMessages from '@pages/inbox/report/CollapsedSystemMessages';
 import ReportActionsList from '@pages/inbox/report/ReportActionsList';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
+import ReportActionsPaginationLoadingIndicator from '@pages/inbox/report/ReportActionsPaginationLoadingIndicator';
+import type {ReportActionsPaginationLoadingIndicatorProps} from '@pages/inbox/report/ReportActionsPaginationLoadingIndicator';
 import useScrollToEditingReportAction from '@pages/inbox/report/useScrollToEditingReportAction';
 
 import CONST from '@src/CONST';
@@ -110,9 +112,20 @@ const mockUseConciergeChatHistoryState = useConciergeChatHistoryState as jest.Mo
 const mockUseConciergeChatHistoryActions = useConciergeChatHistoryActions as jest.MockedFunction<typeof useConciergeChatHistoryActions>;
 const mockAllowLegendListItemOverflow = allowLegendListItemOverflow as jest.MockedFunction<typeof allowLegendListItemOverflow>;
 
+let mockHasLoadingOlderReportActionsError = false;
+let mockIsLoadingNewerReportActions = false;
+let mockHasLoadingNewerReportActionsError = false;
+
 function getMockReportLoadingState(selector: unknown, hasOnceLoadedReportActions = true, isLoadingInitialReportActions = false, isLoadingOlderReportActions = false) {
     return selector === reportActionsListLoadingStateSelector
-        ? {hasOnceLoadedReportActions, isLoadingInitialReportActions, isLoadingOlderReportActions, hasLoadingOlderReportActionsError: false}
+        ? {
+              hasOnceLoadedReportActions,
+              isLoadingInitialReportActions,
+              isLoadingOlderReportActions,
+              hasLoadingOlderReportActionsError: mockHasLoadingOlderReportActionsError,
+              isLoadingNewerReportActions: mockIsLoadingNewerReportActions,
+              hasLoadingNewerReportActionsError: mockHasLoadingNewerReportActionsError,
+          }
         : undefined;
 }
 
@@ -146,6 +159,9 @@ jest.mock('@hooks/useLoadReportActions', () =>
         loadOlderChats: mockLoadOlderChats,
         loadNewerChats: jest.fn(),
         currentReportOldestActionID: reportActions.at(-1)?.reportActionID,
+        oldestReportActionsRequestCursor: reportActions.at(-1)?.reportActionID,
+        newestReportActionsRequestCursor: reportActions.at(0)?.reportActionID,
+        canLoadNewerChats: true,
     })),
 );
 jest.mock('@hooks/usePrevious', () => jest.fn());
@@ -220,6 +236,7 @@ jest.mock('@hooks/useReportActionsScroll', () =>
     })),
 );
 jest.mock('@pages/inbox/report/FloatingMessageCounter', () => jest.fn(() => null));
+jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn(() => false));
 jest.mock('@pages/inbox/report/ReportActionsListPaddingView', () => {
     const reactModule = jest.requireActual<typeof React>('react');
     return jest.fn(({children}: {children: React.ReactNode}) => reactModule.createElement(reactModule.Fragment, null, children));
@@ -247,14 +264,15 @@ type MockLegendListProps = {
     onLoad?: () => void;
     onReady?: () => void;
     onScrollBeginDrag?: () => void;
-    onStartReachedThreshold?: number;
+    estimatedHeaderSize?: number;
+    ListHeaderComponent?: React.ReactNode;
+    ListFooterComponent?: React.ReactNode;
     onContentSizeChange?: (width: number, height: number) => void;
     onViewableItemsChanged?: (info: OnViewableItemsChangedInfo<OnyxTypes.ReportAction>) => void;
     recycleItems?: boolean;
     renderItem?: (info: {item: OnyxTypes.ReportAction; index: number}) => React.ReactElement | null;
     renderScrollComponent?: RenderActionSheetAwareScrollViewComponent;
     scrollEventThrottle?: number;
-    onStartReached?: () => void;
     onScroll?: (event: {
         nativeEvent: {
             contentOffset: {x: number; y: number};
@@ -283,6 +301,23 @@ const findRenderedElement = <Props,>(node: React.ReactNode, type: React.ElementT
     const props = Array.isArray(lastCall) ? (lastCall.at(0) as Props | undefined) : undefined;
     return props ? {props} : undefined;
 };
+
+/** Finds a pagination indicator in a list header or footer element without rendering it, so the mounted list stays intact. */
+function findPaginationLoadingIndicator(node: React.ReactNode): React.ReactElement<ReportActionsPaginationLoadingIndicatorProps> | undefined {
+    if (!React.isValidElement<{children?: React.ReactNode}>(node)) {
+        return undefined;
+    }
+    if (node.type === ReportActionsPaginationLoadingIndicator) {
+        return node as React.ReactElement<ReportActionsPaginationLoadingIndicatorProps>;
+    }
+    for (const child of React.Children.toArray(node.props.children)) {
+        const loadingIndicator = findPaginationLoadingIndicator(child);
+        if (loadingIndicator) {
+            return loadingIndicator;
+        }
+    }
+    return undefined;
+}
 
 const getRenderedReportActionsListItemProps = (
     reportAction: OnyxTypes.ReportAction,
@@ -412,6 +447,9 @@ describe('ReportActionsList (body)', () => {
         mockHasOnceLoadedReportActions = true;
         mockIsLoadingInitialReportActions = false;
         mockIsLoadingOlderReportActions = false;
+        mockHasLoadingOlderReportActionsError = false;
+        mockIsLoadingNewerReportActions = false;
+        mockHasLoadingNewerReportActionsError = false;
         mockShouldCallLegendListOnLoad = true;
         mockUseUnreadMarker.mockReturnValue({unreadMarkerReportActionID: null, unreadMarkerReportActionIndex: -1});
         mockUseIsReportLoadPending.mockReturnValue(false);
@@ -1319,16 +1357,17 @@ describe('ReportActionsList (body)', () => {
         ).toBe(`${CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}-link-preview-short`);
     });
 
-    it('loads older pages when LegendList reaches the start and deduplicates the scroll fallback', () => {
+    it('loads each older page once while the reader stays near the oldest message', async () => {
+        // Given a chat with older history and the reader scrolled to the oldest loaded message
         mockUseNetwork.mockReturnValue({isOffline: false});
         mockUsePaginatedReportActions.mockReturnValue({
             ...defaultPaginatedReportActionsResult,
             reportActions: mockReportActions,
             hasOlderActions: true,
         });
+        const originalState = mockLegendGetState();
+        mockLegendGetState.mockReturnValue({...originalState, scroll: 0});
         const view = renderReportActionsList();
-
-        const listProps = getCapturedListProps();
         const createScrollEvent = (offset: number) => ({
             nativeEvent: {
                 contentOffset: {x: 0, y: offset},
@@ -1337,43 +1376,148 @@ describe('ReportActionsList (body)', () => {
             },
         });
 
-        act(() => {
-            listProps?.onStartReached?.();
-        });
-        expect(mockLoadOlderChats).toHaveBeenCalledTimes(1);
-        expect(listProps?.onStartReachedThreshold).toBe(0.75);
+        try {
+            // When scroll events keep arriving near the start, including after the request finishes without new rows
+            act(() => {
+                getCapturedListProps()?.onScroll?.(createScrollEvent(0));
+                getCapturedListProps()?.onScroll?.(createScrollEvent(0));
+            });
+            mockIsLoadingOlderReportActions = true;
+            view.rerender(
+                <ReportActionsList
+                    reportID={mockReport.reportID}
+                    onLayout={jest.fn()}
+                />,
+            );
+            mockIsLoadingOlderReportActions = false;
+            view.rerender(
+                <ReportActionsList
+                    reportID={mockReport.reportID}
+                    onLayout={jest.fn()}
+                />,
+            );
+            act(() => {
+                getCapturedListProps()?.onScroll?.(createScrollEvent(0));
+            });
 
-        act(() => {
-            listProps?.onScroll?.(createScrollEvent(0));
-        });
-        expect(mockLoadOlderChats).toHaveBeenCalledTimes(1);
+            // Then the same page is requested only once
+            await waitFor(() => expect(mockLoadOlderChats).toHaveBeenCalledTimes(1));
 
-        mockIsLoadingOlderReportActions = true;
-        view.rerender(<ReportActionsList reportID={mockReport.reportID} />);
-        mockIsLoadingOlderReportActions = false;
-        view.rerender(<ReportActionsList reportID={mockReport.reportID} />);
+            // When the older page arrives and the reader is still near the start
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [...mockReportActions, olderMockReportAction],
+                hasOlderActions: true,
+            });
+            view.rerender(
+                <ReportActionsList
+                    reportID={mockReport.reportID}
+                    onLayout={jest.fn()}
+                />,
+            );
+            act(() => {
+                getCapturedListProps()?.onScroll?.(createScrollEvent(0));
+            });
 
-        act(() => {
-            getCapturedListProps()?.onScroll?.(createScrollEvent(0));
-        });
-        expect(mockLoadOlderChats).toHaveBeenCalledTimes(1);
+            // Then the next page is requested from the new oldest message
+            await waitFor(() => expect(mockLoadOlderChats).toHaveBeenCalledTimes(2));
+        } finally {
+            mockLegendGetState.mockReturnValue(originalState);
+        }
+    });
 
-        mockUsePaginatedReportActions.mockReturnValue({
-            ...defaultPaginatedReportActionsResult,
-            reportActions: [...mockReportActions, olderMockReportAction],
-            hasOlderActions: true,
-        });
-        view.rerender(
-            <ReportActionsList
-                reportID={mockReport.reportID}
-                onLayout={jest.fn()}
-            />,
-        );
+    describe('pagination loading indicators', () => {
+        it('shows loading indicators only while page requests are active', () => {
+            // Given a chat with history in both directions and no active requests
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: mockReportActions,
+                hasOlderActions: true,
+                hasNewerActions: true,
+            });
+            const view = renderReportActionsList();
 
-        act(() => {
-            getCapturedListProps()?.onScroll?.(createScrollEvent(0));
+            // Then neither edge shows an indicator or reserves space for one
+            expect(findPaginationLoadingIndicator(getCapturedListProps()?.ListHeaderComponent)).toBeUndefined();
+            expect(findPaginationLoadingIndicator(getCapturedListProps()?.ListFooterComponent)).toBeUndefined();
+            expect(getCapturedListProps()?.estimatedHeaderSize).toBe(0);
+
+            // When older and newer pages start loading
+            mockIsLoadingOlderReportActions = true;
+            mockIsLoadingNewerReportActions = true;
+            view.rerender(
+                <ReportActionsList
+                    reportID={mockReport.reportID}
+                    onLayout={jest.fn()}
+                />,
+            );
+
+            // Then each edge shows its indicator and the older one is part of the header estimate
+            expect(findPaginationLoadingIndicator(getCapturedListProps()?.ListHeaderComponent)?.props.direction).toBe('older');
+            expect(findPaginationLoadingIndicator(getCapturedListProps()?.ListFooterComponent)?.props.direction).toBe('newer');
+            expect(getCapturedListProps()?.estimatedHeaderSize).toBe(CONST.PAGINATION_LOADING_INDICATOR_HEIGHT);
+            expect(getCapturedListProps()?.maintainVisibleContentPosition).toBe(true);
+
+            // When both requests fail
+            mockHasLoadingOlderReportActionsError = true;
+            mockHasLoadingNewerReportActionsError = true;
+            view.rerender(
+                <ReportActionsList
+                    reportID={mockReport.reportID}
+                    onLayout={jest.fn()}
+                />,
+            );
+
+            // Then the indicators disappear instead of spinning forever
+            expect(findPaginationLoadingIndicator(getCapturedListProps()?.ListHeaderComponent)).toBeUndefined();
+            expect(findPaginationLoadingIndicator(getCapturedListProps()?.ListFooterComponent)).toBeUndefined();
         });
-        expect(mockLoadOlderChats).toHaveBeenCalledTimes(2);
+
+        it('removes an exhausted edge indicator and hides loading UI offline', () => {
+            // Given both edges loading
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockIsLoadingOlderReportActions = true;
+            mockIsLoadingNewerReportActions = true;
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: mockReportActions,
+                hasOlderActions: true,
+                hasNewerActions: true,
+            });
+            const view = renderReportActionsList();
+
+            // When the report has no more older history
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: mockReportActions,
+                hasOlderActions: false,
+                hasNewerActions: true,
+            });
+            view.rerender(
+                <ReportActionsList
+                    reportID={mockReport.reportID}
+                    onLayout={jest.fn()}
+                />,
+            );
+
+            // Then only the newer edge keeps its indicator
+            expect(findPaginationLoadingIndicator(getCapturedListProps()?.ListHeaderComponent)).toBeUndefined();
+            expect(findPaginationLoadingIndicator(getCapturedListProps()?.ListFooterComponent)?.props.direction).toBe('newer');
+
+            // When the device goes offline
+            mockUseNetwork.mockReturnValue({isOffline: true});
+            view.rerender(
+                <ReportActionsList
+                    reportID={mockReport.reportID}
+                    onLayout={jest.fn()}
+                />,
+            );
+
+            // Then no loading indicator is shown, because no request can finish
+            expect(findPaginationLoadingIndicator(getCapturedListProps()?.ListHeaderComponent)).toBeUndefined();
+            expect(findPaginationLoadingIndicator(getCapturedListProps()?.ListFooterComponent)).toBeUndefined();
+        });
     });
 
     describe('System message presentation', () => {

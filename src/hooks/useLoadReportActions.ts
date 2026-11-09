@@ -76,6 +76,15 @@ function useLoadReportActions({
         }
     }
 
+    const currentReportNewestActionID = newestFetchedReportActionID ?? currentReportNewestAction?.reportActionID;
+    const newestReportActionsRequestCursor = isTransactionThreadReport
+        ? JSON.stringify([currentReportNewestActionID, transactionThreadNewestAction?.reportActionID])
+        : (currentReportNewestActionID ?? newestReportAction?.reportActionID);
+    const oldestReportActionsRequestCursor = isTransactionThreadReport
+        ? JSON.stringify([currentReportOldestAction?.reportActionID, transactionThreadOldestAction?.reportActionID])
+        : currentReportOldestAction?.reportActionID;
+    const canLoadNewerChats = !!isFocused && !!newestReportAction && newestReportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
     /**
      * Retrieves the next set of reportActions for the chat once we are nearing the end of what we are currently
      * displaying.
@@ -100,16 +109,7 @@ function useLoadReportActions({
     };
 
     const loadNewerChats = (force = false) => {
-        if (
-            !force &&
-            (!isFocused ||
-                !newestReportAction ||
-                !hasNewerActions ||
-                isOffline ||
-                // If there was an error only try again once on initial mount. We should also still load
-                // more in case we have cached messages.
-                newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-        ) {
+        if (!force && (!canLoadNewerChats || !newestReportAction || !hasNewerActions || isOffline)) {
             return;
         }
 
@@ -138,6 +138,9 @@ function useLoadReportActions({
         loadNewerChats,
         // The exact cursor `loadOlderChats` sends, which is not always the end of the rendered chain.
         currentReportOldestActionID: currentReportOldestAction?.reportActionID,
+        oldestReportActionsRequestCursor,
+        newestReportActionsRequestCursor,
+        canLoadNewerChats,
     };
 }
 
