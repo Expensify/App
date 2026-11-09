@@ -66,6 +66,7 @@ function InternationalDepositAccount({route}: InternationalDepositAccountProps) 
             <WiseDepositAccountContent
                 backTo={backTo}
                 subPage={route.params?.subPage}
+                isEditing={route.params?.action === 'edit'}
             />
         );
     }

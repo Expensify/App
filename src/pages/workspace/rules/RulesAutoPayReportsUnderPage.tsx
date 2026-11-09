@@ -9,10 +9,12 @@ import Text from '@components/Text';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {isWiseEnabledOrOnboarding} from '@libs/BankAccountUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -27,6 +29,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/RulesAutoPayReportsUnderModalForm';
+import type {BankAccountList} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -51,6 +56,11 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
         policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_LIMIT_DEFAULT_CENTS,
         getCurrencyDecimals(policy?.outputCurrency),
     );
+
+    // Auto-pay skips the confirmation modal that shows Wise's fees before a payment, so Wise requires them disclosed here
+    const bankAccountID = policy?.achAccount?.bankAccountID;
+    const shouldShowWiseFeesSelector = (bankAccountList: OnyxEntry<BankAccountList>) => !!bankAccountID && isWiseEnabledOrOnboarding(bankAccountList?.[bankAccountID]);
+    const [shouldShowWiseFees = false] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: shouldShowWiseFeesSelector});
 
     const validateLimit = ({maxExpenseAutoPayAmount}: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM> = {};
@@ -92,6 +102,7 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
+                    submitFlexEnabled={false}
                 >
                     <View style={styles.mb4}>
                         <InputWrapper
@@ -105,6 +116,10 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
                             displayAsTextInput
                         />
                         <Text style={[styles.mutedNormalTextLabel, styles.mt2]}>{translate('workspace.rules.expenseReportRules.autoPayReportsUnderDescription')}</Text>
+                    </View>
+                    {/* Takes the free space instead of the submit container, so the disclosure sits right above Save */}
+                    <View style={[styles.flexGrow1, styles.justifyContentEnd]}>
+                        {shouldShowWiseFees && <Text style={styles.mutedNormalTextLabel}>{translate('workspace.rules.expenseReportRules.autoPayCrossBorderFeesDisclosure')}</Text>}
                     </View>
                 </FormProvider>
             </ScreenWrapper>

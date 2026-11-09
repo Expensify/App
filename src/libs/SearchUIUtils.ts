@@ -252,7 +252,6 @@ import {
     hasDisplayableMCC,
     isDeletedTransaction,
     isOnHold,
-    isPending,
     isScanning,
     isViolationDismissed,
     shouldShowAttendees as shouldShowAttendeesUtils,
@@ -2357,13 +2356,11 @@ function getActions(
         return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.DONE];
     }
 
-    const hasOnlyPendingCardOrScanningTransactions = allReportTransactions.length > 0 && allReportTransactions.every((t) => isScanning(t) || isPending(t));
-
     const ownerLogin = getLoginByAccountID(report.ownerAccountID, data.personalDetailsList);
     const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules);
     const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, submitToAccountID, policy);
 
-    if (canApproveIOU(report, policy, reportMetadata, currentUserAccountID, allReportTransactions) && isAllowedToApproveExpenseReport && !hasOnlyPendingCardOrScanningTransactions) {
+    if (canApproveIOU(report, policy, reportMetadata, currentUserAccountID, allReportTransactions) && isAllowedToApproveExpenseReport) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.APPROVE);
     }
 
@@ -5131,6 +5128,7 @@ type TypeMenuSectionsParams = {
     isTrackIntentUser: boolean;
     hasReportAwaitingApproval?: boolean;
     policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>;
+    session: OnyxEntry<OnyxTypes.Session>;
 };
 
 function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuSection[] {
@@ -5148,6 +5146,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         isTrackIntentUser,
         hasReportAwaitingApproval = false,
         policyCategories,
+        session,
     } = params;
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
@@ -5189,7 +5188,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
                                       buttonAction: () => {
                                           interceptAnonymousUser(() => {
                                               startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN);
-                                          });
+                                          }, session);
                                       },
                                   },
                               ]
@@ -7716,14 +7715,6 @@ function getSearchTableRowChromeWidths(columnCount: number): RowChromeWidths {
     };
 }
 
-/**
- * One stored layout per data type, since each shows its own columns. Grouped tables don't resize, so the group-by isn't
- * part of it. Not per query, so a filter change keeps the widths.
- */
-function getSearchColumnResizingID(type: SearchDataTypes): string {
-    return `${CONST.TABLES.COLUMN_RESIZING_IDS.SEARCH_PREFIX}:${type}`;
-}
-
 function getTableMinWidth(
     columns: SearchColumnType[],
     type?: SearchDataTypes,
@@ -7952,6 +7943,29 @@ function getSearchBulkEditPolicyID(
     return activePolicyID;
 }
 
+/**
+ * Whether every selected expense belongs to the given member: it's on a report they submitted, or not on a report yet,
+ * which only its owner can see. Bulk editing limits the category list to their categories only in that case.
+ */
+function isEverySearchBulkEditExpenseOwnedBy(
+    selectedTransactionIDs: string[],
+    accountID: number,
+    allTransactions: OnyxCollection<OnyxTypes.Transaction> | undefined,
+    allReports: OnyxCollection<OnyxTypes.Report> | undefined,
+): boolean {
+    if (selectedTransactionIDs.length === 0) {
+        return false;
+    }
+
+    return selectedTransactionIDs.every((transactionID) => {
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        if (!transaction?.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            return true;
+        }
+        return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`]?.ownerAccountID === accountID;
+    });
+}
+
 function filterValidHasValues(hasValues: HasFilterValues | undefined, type: SearchDataTypes | undefined, translate: LocalizedTranslate): HasFilterValues | undefined {
     if (!hasValues || !type) {
         return undefined;
@@ -8149,6 +8163,7 @@ export {
     doesTransactionMatchFooterTotal,
     getSnapshotFooterTotal,
     getSearchBulkEditPolicyID,
+    isEverySearchBulkEditExpenseOwnedBy,
     getSuggestedSearches,
     getSections,
     getSuggestedSearchesVisibility,
@@ -8230,7 +8245,6 @@ export {
     getSearchColumnTranslationKey,
     getSearchTableRowInsetWidth,
     getSearchTableRowChromeWidths,
-    getSearchColumnResizingID,
     getTableMinWidth,
     getGroupColumnWidthFlags,
     getGroupTableScrollLayout,
