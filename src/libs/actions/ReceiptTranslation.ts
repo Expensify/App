@@ -1,5 +1,6 @@
 import {makeRequestWithSideEffects} from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
+import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,10 +48,10 @@ function translateReceipt(transactionID: string, locale: Locale): Promise<ValueO
             setReceiptTranslationState(transactionID, {isShowingTranslation: state === CONST.RECEIPT.TRANSLATION_STATE.TRANSLATED});
             return state;
         })
-        .catch(() => {
+        .catch((error: unknown) => {
             // A rejection with no HTTP response never reaches SaveResponseInOnyx, so finallyData is applied here.
-            Onyx.update([...finallyData, {onyxMethod: Onyx.METHOD.MERGE, key: stateKey, value: {isShowingTranslation: false}}]);
-            return undefined;
+            Log.hmmm('[ReceiptTranslation] TranslateReceipt request failed', {error: String(error)});
+            return Onyx.update([...finallyData, {onyxMethod: Onyx.METHOD.MERGE, key: stateKey, value: {isShowingTranslation: false}}]).then(() => undefined);
         });
 }
 
