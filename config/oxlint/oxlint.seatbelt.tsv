@@ -2625,17 +2625,10 @@
 "../../src/stories/EReceipt.stories.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/stories/Form.stories.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	10
 "../../src/stories/HeaderWithBackButton.stories.tsx"	"no-restricted-imports"	2
-"../../src/stories/InteractiveStepSubHeader.stories.tsx"	"no-restricted-syntax"	1
 "../../src/stories/MenuItem.stories.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/stories/MenuItemComparison.stories.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	29
 "../../src/stories/MenuItemComparison.stories.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	22
-"../../src/stories/MenuItemComparison.stories.tsx"	"no-restricted-syntax"	103
-"../../src/stories/NumberWithSymbolForm.stories.tsx"	"no-restricted-syntax"	1
 "../../src/stories/PopoverMenu.stories.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
-"../../src/stories/PopoverMenu.stories.tsx"	"no-restricted-syntax"	1
-"../../src/stories/PopoverMenuV2.stories.tsx"	"no-restricted-syntax"	21
-"../../src/stories/ReportActionItemImages.stories.tsx"	"no-restricted-syntax"	1
-"../../src/stories/SelectionListWithSections.stories.tsx"	"no-restricted-syntax"	1
 "../../src/stories/TextInput.stories.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/styles/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/styles/index.ts"	"rulesdir/no-raw-typography"	27
