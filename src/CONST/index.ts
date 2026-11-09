@@ -10866,7 +10866,7 @@ const CONST = {
                 COMPARE: 'Insights-ControlPopupReset-Compare',
             },
             DETAILS_TOP_EXPENSE: 'Insights-DetailsTopExpense',
-            DETAILS_VIEW_ALL_TOP_EXPENSES: 'Insights-DetailsViewAll-TopExpenses',
+            DETAILS_TOP_EXPENSES_VIEW_ALL: 'Insights-DetailsTopExpensesViewAll',
         },
         EXPENSE_RULES: {
             TABLE_ROW: 'ExpenseRules-TableRow',

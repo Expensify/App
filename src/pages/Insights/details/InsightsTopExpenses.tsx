@@ -147,7 +147,7 @@ function InsightsTopExpenses({query}: InsightsTopExpensesProps) {
                         onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildViewOnSpendQuery(queryJSON)}))}
                         accessibilityRole={CONST.ROLE.LINK}
                         accessibilityLabel={translate('insightsPage.viewAll')}
-                        sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.DETAILS_VIEW_ALL_TOP_EXPENSES}
+                        sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.DETAILS_TOP_EXPENSES_VIEW_ALL}
                         style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
                     >
                         <Text
