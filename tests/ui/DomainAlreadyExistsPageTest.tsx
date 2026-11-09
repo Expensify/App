@@ -36,7 +36,9 @@ const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.re
 const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
 const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
 // Runs the follow-up right away so the redirect target can be asserted without a real dismiss transition
-const dismissModalSpy = jest.spyOn(Navigation, 'dismissModal').mockImplementation(({afterTransition} = {}) => afterTransition?.());
+const dismissModalSpy = jest
+    .spyOn(Navigation, 'dismissModal')
+    .mockImplementation(({afterTransition}: NonNullable<Parameters<typeof Navigation.dismissModal>[0]> = {}) => afterTransition?.());
 
 const Stack = createPlatformStackNavigator<WorkspacesDomainModalNavigatorParamList>();
 

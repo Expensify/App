@@ -367,7 +367,7 @@
     "storybook-react-rsbuild": "^3.3.4",
     "svgo": "^4.1.0",
     "type-fest": "4.35.0",
-    "typescript": "^7.0.2",
+    "typescript": "7.1.0-beta",
     "typescript-eslint": "8.58.1",
     "wait-port": "^0.2.9",
     "workbox-core": "7.4.0",

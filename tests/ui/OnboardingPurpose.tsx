@@ -275,7 +275,7 @@ describe('OnboardingPurpose Page', () => {
     });
 
     it('should create a Submit workspace when user selects EMPLOYER and is from private domain with name set', async () => {
-        jest.spyOn(Navigation, 'dismissModal').mockImplementation(({afterTransition} = {}) => afterTransition?.());
+        jest.spyOn(Navigation, 'dismissModal').mockImplementation(({afterTransition}: NonNullable<Parameters<typeof Navigation.dismissModal>[0]> = {}) => afterTransition?.());
         jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
 
         const testEmail = 'test@user.com';
@@ -322,7 +322,7 @@ describe('OnboardingPurpose Page', () => {
     });
 
     it('should create a Submit workspace from Purpose when EMPLOYER is selected and personal details already exist', async () => {
-        jest.spyOn(Navigation, 'dismissModal').mockImplementation(({afterTransition} = {}) => afterTransition?.());
+        jest.spyOn(Navigation, 'dismissModal').mockImplementation(({afterTransition}: NonNullable<Parameters<typeof Navigation.dismissModal>[0]> = {}) => afterTransition?.());
         jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
 
         await TestHelper.signInWithTestUser();
