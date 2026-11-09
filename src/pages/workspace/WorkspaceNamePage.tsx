@@ -37,6 +37,12 @@ function WorkspaceNamePage({policy}: Props) {
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput(true);
 
+    // The workspace name is a single-line value, so validate and save it with any pasted line breaks turned into spaces.
+    const normalizeNameValues = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM>) => ({
+        ...values,
+        [INPUT_IDS.NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.NAME]),
+    });
+
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM>) => {
         if (!policy || policy.isPolicyUpdating) {
             return;
@@ -84,8 +90,8 @@ function WorkspaceNamePage({policy}: Props) {
                     submitButtonText={translate('workspace.editor.save')}
                     style={[styles.flexGrow1, styles.ph5]}
                     scrollContextEnabled
-                    validate={(values) => validate({...values, [INPUT_IDS.NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.NAME])})}
-                    onSubmit={(values) => submit({...values, [INPUT_IDS.NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.NAME])})}
+                    validate={(values) => validate(normalizeNameValues(values))}
+                    onSubmit={(values) => submit(normalizeNameValues(values))}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
