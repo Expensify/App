@@ -60,13 +60,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {NavigationProp} from '@react-navigation/native';
 
 import {useNavigation} from '@react-navigation/native';
 import {cardByIdSelector} from '@selectors/Card';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type DynamicWorkspaceExpensifyCardDetailsPageProps = PlatformStackScreenProps<
@@ -135,7 +134,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
     const [cardFeeds] = useCardFeeds(policyID);
     const expensifyCardSettings = useExpensifyCardFeeds(policyID);
     const [fundCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
-    const [allFeedsCards, allFeedsCardsResult] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const [allFeedsCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const workspaceCards = getAllCardsForWorkspace(defaultFundID, allFeedsCards, cardFeeds, expensifyCardSettings, /* includeDeactivated */ true);
 
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
@@ -166,9 +165,9 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
     const isDeactivated = card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED;
     const isCardOpen = card?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
 
-    const fetchCardDetails = useCallback(() => {
+    const fetchCardDetails = () => {
         openCardDetailsPage(Number(cardID));
-    }, [cardID]);
+    };
 
     const {isOffline} = useNetwork({onReconnect: fetchCardDetails});
     useEffect(() => fetchCardDetails(), [fetchCardDetails]);
@@ -257,33 +256,27 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
 
     const navigateToTransactions = () => navigateToCardTransactions(cardID);
 
-    const spendRulesTitleComponent = useMemo(
-        () => (
-            <View>
-                {spendRulesSummary.map((summary) => (
-                    <Text
-                        key={summary}
-                        numberOfLines={2}
-                    >
-                        {summary}
-                    </Text>
-                ))}
-            </View>
-        ),
-        [spendRulesSummary],
+    const spendRulesTitleComponent = (
+        <View>
+            {spendRulesSummary.map((summary) => (
+                <Text
+                    key={summary}
+                    numberOfLines={2}
+                >
+                    {summary}
+                </Text>
+            ))}
+        </View>
     );
 
     const canManageCardFreeze = canWriteExpensifyCard && !!card;
-    const scarfOverlayStyle = useMemo(
-        () => ({
-            top: 0,
-            left: (variables.cardPreviewWidth - variables.cardScarfOverlayWidth) / 2,
-            zIndex: variables.cardScarfOverlayZIndex,
-            width: variables.cardScarfOverlayWidth,
-            height: variables.cardScarfOverlayHeight,
-        }),
-        [],
-    );
+    const scarfOverlayStyle = {
+        top: 0,
+        left: (variables.cardPreviewWidth - variables.cardScarfOverlayWidth) / 2,
+        zIndex: variables.cardScarfOverlayZIndex,
+        width: variables.cardScarfOverlayWidth,
+        height: variables.cardScarfOverlayHeight,
+    };
     const workspaceCardImage = (
         <>
             <ImageSVG
@@ -307,7 +300,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
             />
         </>
     );
-    if (!card && !isLoadingOnyxValue(allFeedsCardsResult)) {
+    if (!card) {
         return <NotFoundPage />;
     }
 
@@ -421,7 +414,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                         <MenuItem.Root
                             onPress={
                                 canWriteExpensifyCard
-                                    ? callFunctionIfActionIsAllowed(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.path)))
+                                    ? callFunctionIfActionIsAllowed(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.path)), false, session)
                                     : undefined
                             }
                         >
@@ -452,12 +445,13 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                             />
                         )}
                         {canWriteExpensifyCard && !isDeactivated && (
-                            <MenuItem
-                                icon={expensifyIcons.Trashcan}
-                                title={translate('workspace.expensifyCard.deactivate')}
-                                style={styles.mb1}
-                                onPress={() => (isOffline ? showOfflineModal() : deactivateCard())}
-                            />
+                            <View style={styles.mb1}>
+                                <MenuItemAction
+                                    icon={expensifyIcons.Trashcan}
+                                    title={translate('workspace.expensifyCard.deactivate')}
+                                    onPress={() => (isOffline ? showOfflineModal() : deactivateCard())}
+                                />
+                            </View>
                         )}
                     </View>
                     {exportMenuItem?.shouldShowMenuItem ? (

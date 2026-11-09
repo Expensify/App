@@ -45,6 +45,7 @@ type QuickActionMenuItemProps = {
 };
 
 function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -100,36 +101,18 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
 
     let quickActionAvatars: ReturnType<typeof getIcons> = [];
     if (isValidReport) {
-        const avatars = getIcons(
-            quickActionReport,
+        const avatars = getIcons({
+            report: quickActionReport,
             formatPhoneNumber,
             translate,
             personalDetails,
-            null,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
             isReportArchived,
-            quickActionReportPendingDeleteMemberAccountIDs,
+            pendingDeleteMemberAccountIDs: quickActionReportPendingDeleteMemberAccountIDs,
             conciergeReportID,
-        );
+        });
         quickActionAvatars = avatars.length <= 1 || isPolicyExpenseChat(quickActionReport) ? avatars : avatars.filter((avatar) => avatar.id !== currentUserPersonalDetails.accountID);
     } else if (!isEmptyObject(policyChatForActivePolicy)) {
-        quickActionAvatars = getIcons(
-            policyChatForActivePolicy,
-            formatPhoneNumber,
-            translate,
-            personalDetails,
-            null,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            isReportArchived,
-            undefined,
-            conciergeReportID,
-        );
+        quickActionAvatars = getIcons({report: policyChatForActivePolicy, formatPhoneNumber, translate, personalDetails, isReportArchived, conciergeReportID});
     }
 
     let quickActionTitle = '';
@@ -210,7 +193,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
                             draftTransactionIDs,
                             isFromFloatingActionButton: true,
                         });
-                    })
+                    }, session)
                 }
                 shouldCallAfterModalHide={shouldUseNarrowLayout}
             />
@@ -254,7 +237,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
 
                     const quickActionReportID = getNonEmptyStringOnyxID(policyChatForActivePolicy?.reportID) ?? reportID;
                     startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN, true, undefined, true);
-                })
+                }, session)
             }
             shouldCallAfterModalHide={shouldUseNarrowLayout}
         />

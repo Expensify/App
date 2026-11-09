@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/EnterSignerInfoForm';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 function Name({onNext, onMove, isEditing}: SubPageProps) {
     const {translate} = useLocalize();
@@ -21,18 +21,15 @@ function Name({onNext, onMove, isEditing}: SubPageProps) {
     const inputID = INPUT_IDS.SIGNER_FULL_NAME;
     const defaultValue = String(enterSignerInfoFormDraft?.[inputID] ?? '');
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM> => {
-            const errors = getFieldRequiredErrors(values, [inputID], translate);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM> => {
+        const errors = getFieldRequiredErrors(values, [inputID], translate);
 
-            if (values[inputID] && !isValidLegalName(String(values[inputID]))) {
-                errors[inputID] = translate('bankAccount.error.fullName');
-            }
+        if (values[inputID] && !isValidLegalName(String(values[inputID]))) {
+            errors[inputID] = translate('bankAccount.error.fullName');
+        }
 
-            return errors;
-        },
-        [inputID, translate],
-    );
+        return errors;
+    };
 
     const handleSubmit = useEnterSignerInfoStepFormSubmit({
         fieldIds: [inputID],

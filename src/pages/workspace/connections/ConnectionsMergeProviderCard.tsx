@@ -35,8 +35,8 @@ type ConnectionsMergeProviderCardProps = {
     /** Callback invoked when the user taps the "Connect" or "Reconnect" button. */
     handleConnect: () => void;
 
-    /** Called once the user confirms disconnecting, right before the connection is removed */
-    onDisconnect?: () => void;
+    /** Called once the user confirms disconnecting and takes over calling `disconnect` */
+    onDisconnect?: (disconnect: () => void) => void;
 
     /** Called when the header's back button is pressed. */
     onBackButtonPress: () => void;

@@ -10,7 +10,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import ROUTES from '@src/ROUTES';
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 function UpgradeConfirmation({addCompanyCard, addPersonalCard}: {addCompanyCard: () => void; addPersonalCard: () => void}) {
@@ -19,10 +19,10 @@ function UpgradeConfirmation({addCompanyCard, addPersonalCard}: {addCompanyCard:
     const {environmentURL} = useEnvironment();
     const [subscriptionLink, setSubscriptionLink] = useState('');
 
-    const updateSubscriptionLink = useCallback(() => {
+    const updateSubscriptionLink = () => {
         const backTo = Navigation.getActiveRoute();
         setSubscriptionLink(`${environmentURL}/${ROUTES.SETTINGS_SUBSCRIPTION.getRoute(backTo)}`);
-    }, [environmentURL]);
+    };
 
     useEffect(() => {
         Navigation.isNavigationReady().then(() => updateSubscriptionLink());
@@ -33,7 +33,7 @@ function UpgradeConfirmation({addCompanyCard, addPersonalCard}: {addCompanyCard:
             <ConfirmationPage.Content>
                 <ConfirmationPage.Illustration />
                 <ConfirmationPage.Heading>{translate('personalCard.newWorkspace')}</ConfirmationPage.Heading>
-                <View style={[styles.renderHTML, styles.w100]}>
+                <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter, styles.w100]}>
                     <RenderHTML html={translate('personalCard.successMessage', {subscriptionLink})} />
                 </View>
             </ConfirmationPage.Content>

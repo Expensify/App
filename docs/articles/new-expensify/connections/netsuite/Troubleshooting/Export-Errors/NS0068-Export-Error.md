@@ -53,7 +53,7 @@ If you can't find **custbody_createdfrom_expensify**, update or reinstall the Ex
 
 ## How to make the Created From field visible on the export form
 
-Expensify exports with the transaction form marked as **Preferred** in NetSuite. If you set a custom form under **Workspaces > [workspace name] > Accounting > Advanced > Custom form ID**, Expensify uses that form instead.
+Expensify exports with the transaction form marked as **Preferred** in NetSuite. If you set a custom form under **Workspaces > [workspace name] > Connections** (select **Configure** next to NetSuite, then select **Advanced > Custom form ID**), Expensify uses that form instead.
 
 1. Go to **Customization > Forms > Transaction Forms**.
 2. Locate the transaction form Expensify uses for your export type.
@@ -68,8 +68,8 @@ Expensify exports with the transaction form marked as **Preferred** in NetSuite.
 
 After updating NetSuite:
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Accounting**.
-2. Select **More (⋮)** next to the NetSuite connection.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**, then select **Configure** next to NetSuite.
+2. Select **More (⋮)**.
 3. Select **Sync now**.
 
 ---

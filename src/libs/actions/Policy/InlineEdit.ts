@@ -24,8 +24,9 @@ import {getCleanedTagName, getTagList} from '@libs/PolicyUtils';
 import StringUtils from '@libs/StringUtils';
 import {getTagNameError, getTagNameErrorMessage} from '@libs/TagUtils';
 
-import {updateExpensifyCardLimit, updateExpensifyCardLimitType} from '@userActions/Card';
+import {updateExpensifyCardLimit, updateExpensifyCardLimitType, updateExpensifyCardTitle} from '@userActions/Card';
 import {updateCompanyCardName} from '@userActions/CompanyCards';
+import type {OnboardingTaskCompletionOnyxData} from '@userActions/Task';
 
 import CONST from '@src/CONST';
 import type {Card, Policy} from '@src/types/onyx';
@@ -48,6 +49,7 @@ function renameCategoryInline(
     currentName: string,
     newName: string,
     isVendorMatchingBetaEnabled: boolean | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
 ): string | undefined {
     const sanitized = StringUtils.sanitizeName(newName);
     const currentDisplayName = getDecodedCategoryName(currentName);
@@ -61,7 +63,7 @@ function renameCategoryInline(
         return getCategoryNameErrorMessage(translate, categoryError, newName);
     }
 
-    renamePolicyCategory(policyData, {oldName: currentName, newName: sanitized}, isVendorMatchingBetaEnabled);
+    renamePolicyCategory(policyData, {oldName: currentName, newName: sanitized}, isVendorMatchingBetaEnabled, reviewWorkspaceSettingsTaskData);
 }
 
 function renameTagInline(translate: LocalizedTranslate, policyData: PolicyData, oldName: string, newName: string, isVendorMatchingBetaEnabled: boolean | undefined): string | undefined {
@@ -102,6 +104,21 @@ function renameCompanyCardInline(
     }
 
     updateCompanyCardName(domainOrWorkspaceAccountID, cardID, sanitized, bankName, storedName);
+}
+
+function renameExpensifyCardInline(translate: LocalizedTranslate, workspaceAccountID: number, cardID: number, newName: string, currentName: string): string | undefined {
+    const sanitized = StringUtils.sanitizeName(newName);
+
+    if (sanitized === currentName) {
+        return;
+    }
+
+    const cardNameError = getCardNameError(newName);
+    if (cardNameError) {
+        return getCardNameErrorMessage(translate, cardNameError, newName);
+    }
+
+    updateExpensifyCardTitle(workspaceAccountID, cardID, sanitized, currentName);
 }
 
 function renameDistanceRateInline(translate: LocalizedTranslate, policyID: string, customUnit: CustomUnit, rate: Rate, newName: string): string | undefined {
@@ -302,6 +319,7 @@ export {
     renameCategoryInline,
     renameTagInline,
     renameCompanyCardInline,
+    renameExpensifyCardInline,
     renameDistanceRateInline,
     updateDistanceRateValueInline,
     updateMemberRoleInline,

@@ -133,7 +133,7 @@ function isValidPastDate(date: string | Date): boolean {
  * Used to validate a value that is "required".
  * @param value - field value
  */
-function isRequiredFulfilled(value?: FormValue | number[] | string[] | Record<string, string>): boolean {
+function isRequiredFulfilled(value?: unknown): boolean {
     if (!value) {
         return false;
     }
@@ -163,7 +163,7 @@ function getFieldRequiredErrors<TFormID extends OnyxFormKey>(
     const errors: FormInputErrors<TFormID> = {};
 
     for (const fieldKey of requiredFields) {
-        if (isRequiredFulfilled(values[fieldKey] as FormValue)) {
+        if (isRequiredFulfilled(values[fieldKey])) {
             continue;
         }
 
@@ -251,7 +251,7 @@ function getCountryZipRegexDetails(country?: Country | ''): CountryZipRegex | un
         return undefined;
     }
 
-    return COMMON_CONST.COUNTRY_ZIP_REGEX_DATA[country] as CountryZipRegex | undefined;
+    return COMMON_CONST.COUNTRY_ZIP_REGEX_DATA[country];
 }
 
 function isValidZipCodeForCountry(zipCode: string, country?: Country | ''): boolean {
@@ -734,7 +734,7 @@ type EUCountry = keyof typeof CONST.ALL_EUROPEAN_UNION_COUNTRIES;
  * Validates the given value if it is EU member country
  * @param country
  */
-function isEUMember(country: Country | ''): boolean {
+function isEUMember(country: Country | ''): country is EUCountry {
     return country in CONST.ALL_EUROPEAN_UNION_COUNTRIES;
 }
 
@@ -755,7 +755,7 @@ function isValidEURegistrationNumber(registrationNumber: string, country: EUCoun
  */
 function isValidRegistrationNumber(registrationNumber: string, country: Country | '') {
     if (isEUMember(country)) {
-        return isValidEURegistrationNumber(registrationNumber, country as EUCountry);
+        return isValidEURegistrationNumber(registrationNumber, country);
     }
 
     switch (country) {

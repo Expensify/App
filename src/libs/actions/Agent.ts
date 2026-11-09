@@ -384,6 +384,9 @@ function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxC
             key: `${ONYXKEYS.COLLECTION.AGENT}${agentAccountID}`,
             value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
         },
+
+        // Set accountID to 0 so the agent is not included in personal details list (e.g. so you can't invite an agent that you are deleting)
+        buildPersonalDetailsUpdate({[agentAccountID]: {accountID: CONST.DEFAULT_NUMBER_ID}}),
     ];
 
     const successData: AnyOnyxUpdate[] = [
@@ -404,6 +407,7 @@ function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxC
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
         },
+        buildPersonalDetailsUpdate({[agentAccountID]: {accountID: agentAccountID}}),
     ];
 
     // Mark the agent's row pending-delete on every policy it belongs to so workflow cards render

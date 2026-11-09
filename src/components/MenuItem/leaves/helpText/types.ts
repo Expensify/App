@@ -11,6 +11,9 @@ type MenuItemHelpTextSharedProps = {
 type MenuItemHelpTextProps = MenuItemHelpTextSharedProps & {
     /** Error or hint text to render under the row. Nothing renders when it is empty */
     message?: string | ReactNode;
+
+    /** Whether screen readers hear the error with the row's name, since the row hides the error line from them on native */
+    shouldReadErrorWithLabel?: boolean;
 };
 
 /** Props of the HTML help line */

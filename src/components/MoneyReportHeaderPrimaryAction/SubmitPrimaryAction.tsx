@@ -1,6 +1,7 @@
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsContext';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import {ReportSubmitToPopoverAnchor, useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
@@ -18,7 +19,9 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
@@ -26,7 +29,13 @@ import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {hasDynamicExternalWorkflow, isSubmitPolicy} from '@libs/PolicyUtils';
 import {isSubmitViaPDFAction} from '@libs/ReportPrimaryActionUtils';
-import {hasViolations as hasViolationsReportUtils, shouldBlockSubmitDueToPreventSelfApproval, shouldBlockSubmitDueToStrictPolicyRules, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {
+    hasViolations as hasViolationsReportUtils,
+    shouldBlockSubmitDueToDeletedWorkspace,
+    shouldBlockSubmitDueToPreventSelfApproval,
+    shouldBlockSubmitDueToStrictPolicyRules,
+    shouldShowMarkAsDone,
+} from '@libs/ReportUtils';
 import {hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import {retractReport, setPreferredReportSubmissionMethod, submitReport} from '@userActions/IOU/ReportWorkflow';
@@ -39,6 +48,7 @@ import type {ValueOf} from 'type-fest';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {getArchiveReason} from '@selectors/Report';
 import React from 'react';
 
 const ANCHOR_ALIGNMENT = {
@@ -84,6 +94,8 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
+    const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
+    const [chatArchiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`, {selector: getArchiveReason});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [submitterLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -127,13 +139,15 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
         email ?? '',
         transactions,
     );
-    const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval;
+    const isBlockSubmitDueToDeletedWorkspace = shouldBlockSubmitDueToDeletedWorkspace(isChatReportArchived, chatArchiveReason);
+    const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval || isBlockSubmitDueToDeletedWorkspace;
 
     // Submit via PDF is offered for any draft report the current user submits on a Submit workspace. The PDF flow
     // submits the report to the submitter, which is what makes the backend generate it.
     const canSubmitViaPDF = !!moneyRequestReport && isSubmitViaPDFAction(moneyRequestReport, accountID, policy);
 
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
+    const shouldReturnTripRooms = useShouldReturnTripRooms(currentSearchQueryJSON?.type);
     const {currentSearchResults} = useSearchResultsContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true);
 
@@ -184,24 +198,15 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
                     if (shouldExportToPDF) {
                         // If the user cancels while the PDF is still generating, discard the submission (retract it back
                         // to draft) so they can resubmit — matching the pre-submit-via-PDF behavior.
-                        openPDFDownload({
-                            onCancel: () => {
-                                // Stop the "Submitted" animation in lockstep with the retract so the header goes straight
-                                // back to the Submit button instead of finishing the animation on a report that is open again.
-                                stopAnimation();
-                                retractReport(
-                                    moneyRequestReport,
-                                    chatReport,
-                                    policy,
-                                    accountID,
-                                    email ?? '',
-                                    hasViolations,
-                                    isASAPSubmitBetaEnabled,
-                                    delegateEmail,
-                                    isTrackIntentUser,
-                                    rules,
-                                );
-                            },
+                        openPDFDownload().then((result) => {
+                            if (result?.action !== ModalActions.CLOSE) {
+                                return;
+                            }
+
+                            // Stop the "Submitted" animation in lockstep with the retract so the header goes straight
+                            // back to the Submit button instead of finishing the animation on a report that is open again.
+                            stopAnimation();
+                            retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, delegateEmail, isTrackIntentUser, rules);
                         });
                     }
                 },
@@ -222,6 +227,7 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
                     offset: 0,
                     queryJSON: currentSearchQueryJSON,
                     isLoading: !!currentSearchResults?.search?.isLoading,
+                    shouldReturnTripRooms,
                 });
             }
         });

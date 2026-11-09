@@ -1,10 +1,11 @@
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {FullPolicySnapshot, Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {
+    createPolicyViolationVisibilitySelector,
     isCollectingDepositAccountsSelector,
     createIsInternationalCountrySelector,
     activeAdminPoliciesSelector,
@@ -13,6 +14,7 @@ import {
     createHasWorkspaceToSubmitToSelector,
     createOwnedPaidPoliciesCountsSelector,
     createTimeSensitiveAdminPoliciesSelector,
+    fullPolicySnapshotLastModifiedByPolicyIDSelector,
     hasOnlyPersonalPoliciesSelector,
     hasReusablePoliciesConnectedToSelector,
     reusablePoliciesConnectedToSelector,
@@ -730,5 +732,77 @@ describe('createIsInternationalCountrySelector', () => {
         // When the employee adds a GB account
         // Then wire details are collected, because that workspace cannot pay anyone domestically
         expect(createIsInternationalCountrySelector('GB')(policies)).toBe(true);
+    });
+});
+
+describe('fullPolicySnapshotLastModifiedByPolicyIDSelector', () => {
+    it('maps each policyID to the lastModified of its full policy snapshot', () => {
+        // Given full policy snapshots for two policies and a snapshot without a lastModified
+        const snapshots: OnyxCollection<FullPolicySnapshot> = {
+            [`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}policy1`]: {lastModified: 123},
+            [`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}policy2`]: {lastModified: 456},
+            [`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}policy3`]: {},
+        };
+
+        // When the snapshots are mapped by policy
+        // Then each policyID comes from its key, and the snapshot without a lastModified is left out so it is never sent to OpenReport
+        expect(fullPolicySnapshotLastModifiedByPolicyIDSelector(snapshots)).toEqual({policy1: 123, policy2: 456});
+    });
+});
+
+describe('createPolicyViolationVisibilitySelector', () => {
+    const currentUserEmail = 'me@test.com';
+    const otherEmail = 'other@test.com';
+
+    it('should keep only the fields violation visibility reads and the current user membership', () => {
+        // Given a policy with several members and fields violation visibility doesn't read
+        const policy = createMock<Policy>({
+            id: 'P1',
+            name: 'Workspace',
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            owner: otherEmail,
+            outputCurrency: CONST.CURRENCY.USD,
+            autoReporting: true,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            isAttendeeTrackingEnabled: true,
+            autoCategorizeNewExpenses: false,
+            employeeList: {[currentUserEmail]: {email: currentUserEmail}, [otherEmail]: {email: otherEmail}},
+            lastModified: '2026-01-01',
+        });
+
+        // When the row builds the policy for violation visibility
+        const violationPolicy = createPolicyViolationVisibilitySelector(currentUserEmail)(policy);
+
+        // Then adding or editing another member can't re-render the row, while the role, workflow and membership the violation check reads stay
+        expect(violationPolicy).toEqual({
+            id: 'P1',
+            name: 'Workspace',
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            owner: otherEmail,
+            outputCurrency: CONST.CURRENCY.USD,
+            autoReporting: true,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            isAttendeeTrackingEnabled: true,
+            autoCategorizeNewExpenses: false,
+            employeeList: {[currentUserEmail]: {email: currentUserEmail}},
+        });
+    });
+
+    it('should drop the employee list when the current user is not a member', () => {
+        // Given a policy whose employee list doesn't include the current user
+        const policy = createMock<Policy>({id: 'P1', employeeList: {[otherEmail]: {email: otherEmail}}});
+
+        // When the row builds the policy for violation visibility
+        // Then the row sees no membership, matching the full policy's answer for the current user
+        expect(createPolicyViolationVisibilitySelector(currentUserEmail)(policy)?.employeeList).toBeUndefined();
+    });
+
+    it('should return undefined when the policy is not loaded', () => {
+        // Given a report whose policy is not in Onyx
+        // When the row builds the policy for violation visibility
+        // Then it gets undefined, like the full policy read would
+        expect(createPolicyViolationVisibilitySelector(currentUserEmail)(undefined)).toBeUndefined();
     });
 });

@@ -11,7 +11,7 @@ import type {Unit} from '@src/types/onyx/Policy';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import Text from './Text';
@@ -50,48 +50,30 @@ export default function ViolationMessages({
     const {convertToDisplayString} = useCurrencyListActions();
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
-    const filteredViolations = useMemo(() => filterReceiptViolations(violations), [violations]);
+    const filteredViolations = filterReceiptViolations(violations);
 
-    const violationMessages = useMemo(
-        () =>
-            filteredViolations.map((violation) => {
-                const cardID = violation.data?.cardID;
-                const card = cardID ? cardList?.[cardID] : undefined;
-                return [
-                    violation.name,
-                    ViolationsUtils.getViolationTranslation({
-                        dateFnsLocale,
-                        violation,
-                        translate,
-                        convertToDisplayString,
-                        canEdit,
-                        companyCardPageURL,
-                        connectionLink,
-                        card,
-                        isMarkAsCash,
-                        routeDistanceMeters,
-                        distanceUnit,
-                        policyVendors,
-                        transactionCurrency,
-                    }),
-                ];
+    const violationMessages = filteredViolations.map((violation) => {
+        const cardID = violation.data?.cardID;
+        const card = cardID ? cardList?.[cardID] : undefined;
+        return [
+            violation.name,
+            ViolationsUtils.getViolationTranslation({
+                dateFnsLocale,
+                violation,
+                translate,
+                convertToDisplayString,
+                canEdit,
+                companyCardPageURL,
+                connectionLink,
+                card,
+                isMarkAsCash,
+                routeDistanceMeters,
+                distanceUnit,
+                policyVendors,
+                transactionCurrency,
             }),
-        [
-            canEdit,
-            translate,
-            convertToDisplayString,
-            filteredViolations,
-            companyCardPageURL,
-            connectionLink,
-            cardList,
-            isMarkAsCash,
-            routeDistanceMeters,
-            distanceUnit,
-            policyVendors,
-            transactionCurrency,
-            dateFnsLocale,
-        ],
-    );
+        ];
+    });
 
     return (
         <View style={[styles.mtn1, isLast ? styles.mb2 : styles.mb1, containerStyle, styles.gap1]}>

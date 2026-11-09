@@ -47,6 +47,7 @@ on:
       - .github/workflows/publishReactNativeAndroidArtifacts.yml
       - .github/actions/composite/fetchReactNativePrebuild/action.yml
       - scripts/artifacts-utils/ios/publish/**
+      - scripts/artifacts-utils/get-hermes-version.sh
 
 jobs:
   verifyPatches:
@@ -134,7 +135,8 @@ jobs:
             .github/workflows/publishReactNativeiOSArtifacts.yml \
             .github/workflows/publishReactNativeAndroidArtifacts.yml \
             .github/actions/composite/fetchReactNativePrebuild/action.yml \
-            scripts/artifacts-utils/ios/publish; then
+            scripts/artifacts-utils/ios/publish \
+            scripts/artifacts-utils/get-hermes-version.sh; then
             echo "DID_WORKFLOWS_CHANGE=false" >> "$GITHUB_OUTPUT"
           else
             echo "DID_WORKFLOWS_CHANGE=true" >> "$GITHUB_OUTPUT"

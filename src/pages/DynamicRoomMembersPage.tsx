@@ -62,7 +62,7 @@ import type {PersonalDetails} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
@@ -84,53 +84,44 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
     const personalDetails = usePersonalDetails();
-    const isPolicyExpenseChat = useMemo(() => isPolicyExpenseChatUtils(report), [report]);
+    const isPolicyExpenseChat = isPolicyExpenseChatUtils(report);
     const tableRef = useRef<TableHandle<RoomMemberRowData, RoomMembersTableColumnKey, string>>(null);
-    const navigateBackToReportDetails = useCallback(() => {
+    const navigateBackToReportDetails = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
     const isReportArchived = useReportIsArchived(report.reportID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
-    const reportForSubtitle = useMemo(() => getReportForHeader(report, parentReport), [report, parentReport]);
+    const reportForSubtitle = getReportForHeader(report, parentReport);
     const derivedSubtitleReportName = useDerivedReportNameByReportID(reportForSubtitle?.reportID);
     const subtitleReportName = getReportName(reportForSubtitle, derivedSubtitleReportName);
     const accountIDToName = useMentionedAccountIDToNameMap(subtitleReportName);
 
-    const {chatParticipants: participants, personalDetailsParticipants} = useMemo(
-        () => getReportPersonalDetailsParticipants(report, personalDetails, reportMetadata, true),
-        [report, personalDetails, reportMetadata],
-    );
+    const {chatParticipants: participants, personalDetailsParticipants} = getReportPersonalDetailsParticipants(report, personalDetails, reportMetadata, true);
 
-    const shouldIncludeMember = useCallback(
-        (participant?: PersonalDetails) => {
-            if (!participant) {
-                return false;
-            }
-            const isInParticipants = participants.includes(participant.accountID);
-            const pendingChatMember = reportMetadata?.pendingChatMembers?.find((member) => member.accountID === participant.accountID.toString());
+    const shouldIncludeMember = (participant?: PersonalDetails) => {
+        if (!participant) {
+            return false;
+        }
+        const isInParticipants = participants.includes(participant.accountID);
+        const pendingChatMember = reportMetadata?.pendingChatMembers?.find((member) => member.accountID === participant.accountID.toString());
 
-            const isPendingDelete = pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        const isPendingDelete = pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-            return isInParticipants && !isPendingDelete;
-        },
-        [participants, reportMetadata?.pendingChatMembers],
-    );
+        return isInParticipants && !isPendingDelete;
+    };
 
     const [selectedMembers, setSelectedMembers] = useFilteredSelection(personalDetailsParticipants, shouldIncludeMember);
     const firstSelectedMember = selectedMembers?.at(0);
     const [firstSelectedMemberDetails] = usePersonalDetail(firstSelectedMember);
 
-    const clearTableSelection = useCallback(() => {
+    const clearTableSelection = () => {
         setSelectedMembers((prevSelectedMembers) => (prevSelectedMembers.length > 0 ? [] : prevSelectedMembers));
-    }, [setSelectedMembers]);
+    };
 
     // The Table stores selection as string keys, while this page tracks accountIDs as numbers.
-    const onRowSelectionChange = useCallback(
-        (keys: string[]) => {
-            setSelectedMembers(keys.map(Number));
-        },
-        [setSelectedMembers],
-    );
+    const onRowSelectionChange = (keys: string[]) => {
+        setSelectedMembers(keys.map(Number));
+    };
 
     useCleanupSelectedOptions(clearTableSelection);
 
@@ -144,13 +135,13 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
     const isLoading = !isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers;
 
-    const getRoomMembers = useCallback(() => {
+    const getRoomMembers = () => {
         if (!report) {
             return;
         }
         openRoomMembersPage(report.reportID);
         setDidLoadRoomMembers(true);
-    }, [report]);
+    };
 
     useEffect(() => {
         clearUserSearchPhrase();
@@ -158,27 +149,27 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const clearTableSearch = useCallback(() => {
+    const clearTableSearch = () => {
         tableRef.current?.updateSearchString('');
-    }, []);
+    };
 
-    const inviteUser = useCallback(() => {
+    const inviteUser = () => {
         if (!report) {
             return;
         }
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_INVITE.path));
-    }, [report]);
+    };
 
-    const removeUsers = useCallback(() => {
+    const removeUsers = () => {
         if (report) {
             removeFromRoom(report, selectedMembers);
         }
         clearTableSearch();
         clearTableSelection();
         clearUserSearchPhrase();
-    }, [clearTableSearch, clearTableSelection, report, selectedMembers]);
+    };
 
-    const showRemoveMembersModal = useCallback(async () => {
+    const showRemoveMembersModal = async () => {
         const {action} = await showConfirmModal({
             title: translate('workspace.people.removeMembersTitle', {
                 count: selectedMembers.length,
@@ -195,7 +186,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
             return;
         }
         removeUsers();
-    }, [showConfirmModal, translate, selectedMembers.length, formatPhoneNumber, firstSelectedMemberDetails?.displayName, removeUsers]);
+    };
 
     useSearchBackPress({
         onClearSelection: clearTableSelection,
@@ -205,65 +196,46 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
         },
     });
 
-    const openRoomMemberDetails = useCallback((accountID: number) => {
+    const openRoomMemberDetails = (accountID: number) => {
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_MEMBER_DETAILS.getRoute(accountID)));
-    }, []);
+    };
 
-    const members = useMemo<RoomMemberRowData[]>(() => {
-        const result: RoomMemberRowData[] = [];
-
-        for (const accountID of participants) {
-            const details = personalDetails?.[accountID];
-            if (!details) {
-                continue;
-            }
-            const pendingChatMember = reportMetadata?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
-            // Check the listed member's own role on the policy, not the viewer's, and fail closed when their login is
-            // missing. Kept in sync with the member details page through the shared helper.
-            const isProtectedByPolicyRole = isRoomMemberProtectedByPolicyRole(policy, details.login, accountID);
-            const isDisabled = pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || details.isOptimisticPersonalDetail;
-            const isSelectionDisabled =
-                (isPolicyExpenseChat && isProtectedByPolicyRole) ||
-                accountID === session?.accountID ||
-                pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-                details.accountID === report.ownerAccountID ||
-                isThreadMemberProtectedByParentReport(parentReport, accountID);
-
-            result.push({
-                keyForList: String(accountID),
-                accountID,
-                login: details.login ?? '',
-                name: temporaryGetDisplayNameOrDefault({
-                    passedPersonalDetails: details,
-                    translate,
-                    formatPhoneNumber,
-                }),
-                email: formatPhoneNumber(details.login ?? ''),
-                disabled: isDisabled,
-                isSelectionDisabled,
-                pendingAction: pendingChatMember?.pendingAction,
-                errors: pendingChatMember?.errors,
-                action: () => openRoomMemberDetails(accountID),
-                dismissError: () => clearAddRoomMemberError(report.reportID, String(accountID)),
-            });
+    const result: RoomMemberRowData[] = [];
+    for (const accountID of participants) {
+        const details = personalDetails?.[accountID];
+        if (!details) {
+            continue;
         }
-
-        return result.sort((value1, value2) => localeCompare(value1.name.toLowerCase(), value2.name.toLowerCase()));
-    }, [
-        formatPhoneNumber,
-        isPolicyExpenseChat,
-        localeCompare,
-        openRoomMemberDetails,
-        parentReport,
-        participants,
-        personalDetails,
-        policy,
-        report.ownerAccountID,
-        report.reportID,
-        reportMetadata?.pendingChatMembers,
-        session?.accountID,
-        translate,
-    ]);
+        const pendingChatMember = reportMetadata?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+        // Check the listed member's own role on the policy, not the viewer's, and fail closed when their login is
+        // missing. Kept in sync with the member details page through the shared helper.
+        const isProtectedByPolicyRole = isRoomMemberProtectedByPolicyRole(policy, details.login, accountID);
+        const isDisabled = pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || details.isOptimisticPersonalDetail;
+        const isSelectionDisabled =
+            (isPolicyExpenseChat && isProtectedByPolicyRole) ||
+            accountID === session?.accountID ||
+            pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+            details.accountID === report.ownerAccountID ||
+            isThreadMemberProtectedByParentReport(parentReport, accountID);
+        result.push({
+            keyForList: String(accountID),
+            accountID,
+            login: details.login ?? '',
+            name: temporaryGetDisplayNameOrDefault({
+                passedPersonalDetails: details,
+                translate,
+                formatPhoneNumber,
+            }),
+            email: formatPhoneNumber(details.login ?? ''),
+            disabled: isDisabled,
+            isSelectionDisabled,
+            pendingAction: pendingChatMember?.pendingAction,
+            errors: pendingChatMember?.errors,
+            action: () => openRoomMemberDetails(accountID),
+            dismissError: () => clearAddRoomMemberError(report.reportID, String(accountID)),
+        });
+    }
+    const members: RoomMemberRowData[] = result.sort((value1, value2) => localeCompare(value1.name.toLowerCase(), value2.name.toLowerCase()));
 
     // Restore the persisted Onyx search phrase into the table's internal search state when returning to this screen.
     useEffect(() => {
@@ -293,53 +265,49 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
 
     const selectedKeys = selectedMembers.map(String);
 
-    const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtils(report.policyID, policy), [report.policyID, policy]);
+    const isPolicyEmployee = isPolicyEmployeeUtils(report.policyID, policy);
 
-    const bulkActionsButtonOptions = useMemo(() => {
-        const options: Array<DropdownOption<RoomMemberBulkActionType>> = [
-            {
-                text: translate('workspace.people.removeMembersTitle', {
-                    count: selectedMembers.length,
-                }),
-                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
-                icon: icons.RemoveMembers,
-                shouldSkipFocusRestore: true,
-                onSelected: showRemoveMembersModal,
-            },
-        ];
-        return options;
-    }, [icons.RemoveMembers, translate, selectedMembers.length, showRemoveMembersModal]);
+    const options: Array<DropdownOption<RoomMemberBulkActionType>> = [
+        {
+            text: translate('workspace.people.removeMembersTitle', {
+                count: selectedMembers.length,
+            }),
+            value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
+            icon: icons.RemoveMembers,
+            shouldSkipFocusRestore: true,
+            onSelected: showRemoveMembersModal,
+        },
+    ];
+    const bulkActionsButtonOptions = options;
 
-    const headerButtons = useMemo(() => {
-        return (
-            <View style={styles.w100}>
-                {(isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0) ? (
-                    <ButtonWithDropdownMenu<RoomMemberBulkActionType>
-                        variant={CONST.BUTTON_VARIANT.SUCCESS}
-                        shouldAlwaysShowDropdownMenu
-                        pressOnEnter
-                        customText={translate('workspace.common.selected', {count: selectedMembers.length})}
-                        size={CONST.BUTTON_SIZE.MEDIUM}
-                        onPress={() => null}
-                        options={bulkActionsButtonOptions}
-                        isSplitButton={false}
-                        style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
-                        isDisabled={!selectedMembers.length}
-                    />
-                ) : (
-                    <Button
-                        variant={CONST.BUTTON_VARIANT.SUCCESS}
-                        onPress={inviteUser}
-                        innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                        style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
-                    >
-                        <Button.Icon src={icons.Plus} />
-                        <Button.Text>{translate('workspace.invite.member')}</Button.Text>
-                    </Button>
-                )}
-            </View>
-        );
-    }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers.length, styles, translate, canSelectMultiple, shouldUseNarrowLayout, icons.Plus]);
+    const headerButtons = (
+        <View style={styles.w100}>
+            {(isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0) ? (
+                <ButtonWithDropdownMenu<RoomMemberBulkActionType>
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    shouldAlwaysShowDropdownMenu
+                    pressOnEnter
+                    customText={translate('workspace.common.selected', {count: selectedMembers.length})}
+                    size={CONST.BUTTON_SIZE.MEDIUM}
+                    onPress={() => null}
+                    options={bulkActionsButtonOptions}
+                    isSplitButton={false}
+                    style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
+                    isDisabled={!selectedMembers.length}
+                />
+            ) : (
+                <Button
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    onPress={inviteUser}
+                    innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
+                    style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
+                >
+                    <Button.Icon src={icons.Plus} />
+                    <Button.Text>{translate('workspace.invite.member')}</Button.Text>
+                </Button>
+            )}
+        </View>
+    );
 
     const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
     const tableHeaderComponent = <View style={pageGutter}>{headerButtons}</View>;

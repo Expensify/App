@@ -6,6 +6,7 @@ import useFilterPendingDeleteReports from '@hooks/useFilterPendingDeleteReports'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSections from '@hooks/useSearchSections';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {startSpan} from '@libs/telemetry/activeSpans';
@@ -129,6 +130,7 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
     // Lightweight subscriptions only: the current search query and its loading flag. These never mount
     // the heavy useSearchSections subscription set, so the fast context path stays cheap.
     const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
+    const shouldReturnTripRooms = useShouldReturnTripRooms(lastSearchQuery?.queryJSON?.type);
     const [isSearchLoading = false] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {selector: searchLoadingSelector});
 
     // Fast path: use the pre-computed IDs from the search context when they are usable and no page is in
@@ -230,6 +232,7 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
                     searchKey: lastSearchQuery.searchKey,
                     isLoading: isSearchLoading,
                     shouldUpdateLastSearchParams: true,
+                    shouldReturnTripRooms,
                 });
             });
         }

@@ -15,7 +15,7 @@ import StringUtils from '@libs/StringUtils';
 
 import CONST from '@src/CONST';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 type PushRowModalProps = {
     isVisible: boolean;
@@ -52,17 +52,13 @@ function PushRowModal({isVisible, selectedOptions, canSelectMultiple = false, on
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const initialSelectedValues = useInitialSelection(selectedOptions, {isVisible});
 
-    const options = useMemo(
-        () =>
-            Object.entries(optionsList).map(([key, value]) => ({
-                value: key,
-                text: value,
-                keyForList: key,
-                isSelected: selectedOptions.includes(key),
-                searchValue: StringUtils.sanitizeString(value),
-            })),
-        [optionsList, selectedOptions],
-    );
+    const options = Object.entries(optionsList).map(([key, value]) => ({
+        value: key,
+        text: value,
+        keyForList: key,
+        isSelected: selectedOptions.includes(key),
+        searchValue: StringUtils.sanitizeString(value),
+    }));
 
     const orderedOptions = moveInitialSelectionToTop(options, initialSelectedValues);
 
@@ -80,15 +76,12 @@ function PushRowModal({isVisible, selectedOptions, canSelectMultiple = false, on
 
     const searchResults = searchOptions(debouncedSearchValue, debouncedSearchValue ? options : orderedOptions);
 
-    const textInputOptions = useMemo(
-        () => ({
-            headerMessage: debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '',
-            label: searchInputTitle,
-            value: searchValue,
-            onChangeText: setSearchValue,
-        }),
-        [debouncedSearchValue, searchInputTitle, searchResults.length, searchValue, setSearchValue, translate],
-    );
+    const textInputOptions = {
+        headerMessage: debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '',
+        label: searchInputTitle,
+        value: searchValue,
+        onChangeText: setSearchValue,
+    };
 
     return (
         <Modal

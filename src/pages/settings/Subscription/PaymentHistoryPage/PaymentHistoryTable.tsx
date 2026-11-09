@@ -79,7 +79,9 @@ function PaymentHistoryTableRow({row, dateLabel, shouldShowDivider}: PaymentHist
     const styles = useThemeStyles();
     const stateLabel = translate(getStateTranslationKey(row.state));
     const amountLabel = convertAmountToDisplayString(row.amount, row.currency);
-    const activeUserLabel = row.activeUserCount ? translate('subscription.paymentHistory.activeUsers', {count: row.activeUserCount}) : undefined;
+    const activeUserLabel = row.activeUserCount
+        ? translate(row.countsMembers ? 'subscription.paymentHistory.members' : 'subscription.paymentHistory.activeUsers', {count: row.activeUserCount})
+        : undefined;
     const taxLabel = row.showsTax ? translate('subscription.paymentHistory.inclTax') : undefined;
     const {success, error} = getBadgeAppearance(row.state);
 
