@@ -2308,24 +2308,60 @@ describe('WorkflowUtils', () => {
             };
 
             it('Should pick the default workflow that starts at the default approver', () => {
-                expect(Object.keys(getDefaultWorkflowRules(existingRules, '1@example.com'))).toEqual(['rule0', 'rule1']);
+                // Given the two default-marked workflows above, with approver 1 as the default approver
+                // When the default workflow's rules are read
+                const defaultWorkflowRules = getDefaultWorkflowRules(existingRules, '1@example.com');
+
+                // Then only approver 1's workflow comes back, the one the Workflows page shows as the default
+                expect(Object.keys(defaultWorkflowRules)).toEqual(['rule0', 'rule1']);
             });
 
             it('Should pick the first default workflow when none starts at the default approver', () => {
-                expect(Object.keys(getDefaultWorkflowRules(existingRules, '3@example.com'))).toEqual(['rule0', 'rule1']);
+                // Given the two default-marked workflows above, and a default approver neither starts at
+                // When the default workflow's rules are read
+                const defaultWorkflowRules = getDefaultWorkflowRules(existingRules, '3@example.com');
+
+                // Then the first one comes back, so there is still a single default workflow
+                expect(Object.keys(defaultWorkflowRules)).toEqual(['rule0', 'rule1']);
+            });
+
+            it('Should pick only one default workflow when two start at the default approver', () => {
+                // Given two default-marked workflows that both start at the default approver but end with different
+                // approvers, the way rules saved before the backend refused a second default can
+                const firstWorkflowRules = buildApprovalWorkflowRules(buildWorkflow([10], [1, 3], {isDefault: true}));
+                const secondWorkflowRules = buildApprovalWorkflowRules(buildWorkflow([20], [1, 4], {isDefault: true}));
+                const rules = {
+                    ...Object.fromEntries(firstWorkflowRules.map((rule, index) => [`first${index}`, rule])),
+                    ...Object.fromEntries(secondWorkflowRules.map((rule, index) => [`second${index}`, rule])),
+                };
+
+                // When the default workflow's rules are read
+                const defaultWorkflowRules = getDefaultWorkflowRules(rules, '1@example.com');
+
+                // Then only the first workflow's rules come back, so members join a single chain
+                expect(Object.keys(defaultWorkflowRules).sort()).toEqual(
+                    Object.keys(rules)
+                        .filter((ruleID) => ruleID.startsWith('first'))
+                        .sort(),
+                );
             });
 
             it('Should not treat a workflow routed like the other default-marked workflow as the default one', () => {
-                // Editing approver 2's ordinary workflow must not fold it into their default-marked rules
+                // Given the two default-marked workflows above, with approver 1 as the default approver
+                // When an ordinary workflow approved by approver 2 is saved
                 const rules = buildApprovalWorkflowRulesForSave(buildWorkflow([30], [2]), {existingRules, employees: {}, defaultApprover: '1@example.com'});
 
+                // Then it is saved as its own workflow rather than folded into approver 2's default-marked rules
                 expect(rules).toEqual(buildApprovalWorkflowRules(buildWorkflow([30], [2])));
                 expect(rules.some((rule) => !!rule.isDefaultApprovalWorkflow)).toBe(false);
             });
 
             it('Should still treat a workflow routed like the default approver workflow as the default one', () => {
+                // Given the two default-marked workflows above, with approver 1 as the default approver
+                // When a workflow approved by approver 1 is saved
                 const rules = buildApprovalWorkflowRulesForSave(buildWorkflow([30], [1]), {existingRules, employees: {}, defaultApprover: '1@example.com'});
 
+                // Then it is the default workflow, so its members fold into the default rules
                 expect(rules).toEqual(buildApprovalWorkflowRules(buildWorkflow([30], [1], {isDefault: true})));
             });
         });

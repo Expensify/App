@@ -1568,19 +1568,41 @@ function hasRuleBasedDefaultWorkflow(rules: Record<string, ApprovalWorkflowRule>
  * The rules of the policy's default workflow.
  *
  * A policy has a single default workflow, but rules saved before the backend refused a second one can declare several.
- * The one starting at the default approver wins, as on the Workflows page, or else the first one. Every rule of a
- * workflow lists the same submitters, which is how the rest of the chosen workflow's rules are found.
+ * The first one starting at the default approver wins, as on the Workflows page, or else the first one. That workflow is
+ * its submit rule plus the approve rules its chain reaches: they list the same submitters, but so can another default
+ * workflow, so the approve rules are found by walking from the first approver.
  */
 function getDefaultWorkflowRules(rules: Record<string, ApprovalWorkflowRule>, defaultApprover: string): Record<string, ApprovalWorkflowRule> {
-    const defaultSubmitRules = Object.values(rules).filter((rule) => !!rule.isDefaultApprovalWorkflow && isSubmitRule(rule));
-    const firstDefaultSubmitRule = defaultSubmitRules.at(0);
-    const firstApprover = defaultSubmitRules.some((rule) => getForwardApprover(rule) === defaultApprover)
-        ? defaultApprover
-        : firstDefaultSubmitRule && getForwardApprover(firstDefaultSubmitRule);
-    const getSubmittersKey = (rule: ApprovalWorkflowRule) => [...extractSubmitterEmails(rule)].sort().join(',');
-    const defaultWorkflowSubmitters = new Set(defaultSubmitRules.filter((rule) => getForwardApprover(rule) === firstApprover).map(getSubmittersKey));
+    const defaultRuleEntries = Object.entries(rules).filter(([, rule]) => !!rule.isDefaultApprovalWorkflow);
+    const defaultSubmitEntries = defaultRuleEntries.filter(([, rule]) => isSubmitRule(rule));
+    const chosenSubmitEntry = defaultSubmitEntries.find(([, rule]) => getForwardApprover(rule) === defaultApprover) ?? defaultSubmitEntries.at(0);
+    if (!chosenSubmitEntry) {
+        return {};
+    }
 
-    return Object.fromEntries(Object.entries(rules).filter(([, rule]) => !!rule.isDefaultApprovalWorkflow && defaultWorkflowSubmitters.has(getSubmittersKey(rule))));
+    const [chosenSubmitRuleID, chosenSubmitRule] = chosenSubmitEntry;
+    const getSubmittersKey = (rule: ApprovalWorkflowRule) => [...extractSubmitterEmails(rule)].sort().join(',');
+    const submittersKey = getSubmittersKey(chosenSubmitRule);
+    const workflowRules: Record<string, ApprovalWorkflowRule> = {[chosenSubmitRuleID]: chosenSubmitRule};
+    const reachedApprovers = new Set<string>();
+    const approversToVisit = [getForwardApprover(chosenSubmitRule)];
+    while (approversToVisit.length > 0) {
+        const approver = approversToVisit.shift();
+        if (!approver || reachedApprovers.has(approver)) {
+            continue;
+        }
+        reachedApprovers.add(approver);
+
+        for (const [ruleID, rule] of defaultRuleEntries) {
+            if (isSubmitRule(rule) || getFilter(rule.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO)?.right !== approver || getSubmittersKey(rule) !== submittersKey) {
+                continue;
+            }
+            workflowRules[ruleID] = rule;
+            approversToVisit.push(getForwardApprover(rule));
+        }
+    }
+
+    return workflowRules;
 }
 
 /**
