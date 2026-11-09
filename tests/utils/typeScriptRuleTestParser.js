@@ -49,7 +49,12 @@ module.exports = {
             babelOptions: {
                 babelrc: false,
                 configFile: false,
-                parserOpts: {plugins: ['typescript', 'jsx']},
+                parserOpts: {
+                    plugins: ['typescript', 'jsx', 'decorators', 'decoratorAutoAccessors'],
+                    // Oxc validates syntax. Babel only supplies tokens, so allow its recoverable error
+                    // for TypeScript parameter decorators, which standard JavaScript decorators forbid.
+                    errorRecovery: true,
+                },
             },
         });
 

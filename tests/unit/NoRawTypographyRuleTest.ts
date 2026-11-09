@@ -189,6 +189,13 @@ describe('no-raw-typography', () => {
     tsRuleTester.run(`${ruleModule.name} (TS assertions)`, ruleModule, {
         valid: ['const style = {fontSize: fontScale.text as number};'],
         invalid: [
+            // Given valid TypeScript combining both decorator forms and a decorated auto-accessor,
+            // When the rule reads the raw font size after an astral character,
+            // Then tokenization must succeed and the diagnostic must retain its UTF-16 columns.
+            {
+                code: "export @decorate class Model { constructor(@inject value: string) {} @decorate accessor label = '🚀'; @decorate accessor style = {fontSize: 17}; }",
+                errors: [{messageId: 'rawTypography', line: 1, column: 141, endLine: 1, endColumn: 143}],
+            },
             {
                 code: 'const style = {fontSize: variables.fontSizeNormal as number};',
                 errors: [{messageId: 'rawTypographyVariable'}],
