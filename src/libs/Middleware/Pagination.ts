@@ -148,9 +148,6 @@ function processResponse<TKey extends OnyxKey>(requestResponse: Promise<Response
             ? mergePagesByIDOverlap(sortedAllItems, [...sanitizedExistingPages, newPage], getItemID)
             : mergeAndSortContinuousPages(sortedAllItems, [...sanitizedExistingPages, newPage], getItemID);
 
-        // Onyx applies the updates of one batch concurrently, so a page sent with its items can be written first. Lists then
-        // read a page whose items have not arrived and show only the cached items inside its range. finallyData runs after
-        // the response's onyxData has been applied, whatever the jsonCode, like the page did before.
         const paginationUpdates: AnyOnyxUpdate[] = [
             {
                 key: pageKey,
@@ -182,6 +179,15 @@ function processResponse<TKey extends OnyxKey>(requestResponse: Promise<Response
             }
         }
 
+        // Write responses queue their onyxData and finallyData into one flush, where finallyData can land long before the items.
+        // OpenReport's linked-message check would then see a finished load without the linked action, so writes keep the page in onyxData.
+        if (request.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE) {
+            (response.onyxData as AnyOnyxUpdate[]).push(...paginationUpdates);
+            return Promise.resolve(response);
+        }
+
+        // Onyx applies the updates of one batch concurrently, so a page sent with its items can be written first and lists show
+        // only the cached items inside its range. Other requests apply finallyData after the response's onyxData, whatever the jsonCode.
         request.finallyData ??= [];
         (request.finallyData as AnyOnyxUpdate[]).push(...paginationUpdates);
 
