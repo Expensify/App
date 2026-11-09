@@ -213,7 +213,23 @@ function isNetSuiteCustomFieldPropertyEditable(customField: NetSuiteCustomList |
     return fieldsAllowedToEdit.includes(fieldKey);
 }
 
+/**
+ * Returns whether NetSuite syncs set the workspace's approvers once they import employees, which they do in every
+ * approval mode but Configure manually.
+ */
+function doesNetSuiteApprovalModeSetApprovers(policy: Policy | undefined): boolean {
+    const syncOptions = policy?.connections?.netsuite?.options?.config?.syncOptions;
+    return !!syncOptions?.syncApprovalWorkflow || !!syncOptions?.setFinalApprover;
+}
+
+/** Returns whether NetSuite syncs set the workspace's approvers, so they own its approval workflow. */
+function doesNetSuiteSetApprovers(policy: Policy | undefined): boolean {
+    return !!policy?.connections?.netsuite?.options?.config?.syncOptions?.syncPeople && doesNetSuiteApprovalModeSetApprovers(policy);
+}
+
 export {
+    doesNetSuiteApprovalModeSetApprovers,
+    doesNetSuiteSetApprovers,
     getNetSuiteVendorOptions,
     getNetSuitePayableAccountOptions,
     getNetSuiteCreditCardAccountOptions,

@@ -2,9 +2,12 @@ import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 
 import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,8 +23,10 @@ import {clearNetSuiteErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getFilteredApprovalAccountOptions, getFilteredCollectionAccountOptions, getFilteredReimbursableAccountOptions} from '@libs/NetSuiteUtils';
+import {doesNetSuiteApprovalModeSetApprovers, getFilteredApprovalAccountOptions, getFilteredCollectionAccountOptions, getFilteredReimbursableAccountOptions} from '@libs/NetSuiteUtils';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
+import {filterRulesForPolicy} from '@libs/RuleUtils';
+import {hasApprovalWorkflowRules} from '@libs/WorkflowUtils';
 
 import type {ExtendedMenuItemWithSubscribedSettings, MenuItemToRender} from '@pages/workspace/accounting/netsuite/types';
 import {
@@ -41,6 +46,9 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type Rule from '@src/types/onyx/Rule';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {authTokenTypeSelector} from '@selectors/Session';
 import {CONST as COMMON_CONST} from 'expensify-common';
@@ -52,8 +60,42 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {showConfirmModal} = useConfirmModal();
     const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: (rulesCollection: OnyxCollection<Rule>) => filterRulesForPolicy(rulesCollection, policyID)});
+
+    const toggleSyncPeople = (isEnabled: boolean) => {
+        // Importing employees in every approval mode but Configure manually has NetSuite set the approvers, so the
+        // backend deletes the workspace's approval workflow rules
+        const shouldDeleteApprovalWorkflowRules = isEnabled && doesNetSuiteApprovalModeSetApprovers(policy) && hasApprovalWorkflowRules(rules, policyID);
+        if (!shouldDeleteApprovalWorkflowRules) {
+            updateNetSuiteSyncPeople(policyID, isEnabled);
+            return;
+        }
+        showConfirmModal({
+            title: translate('workspace.merge.approvalModeWarningTitle'),
+            prompt: (
+                <View style={[styles.renderHTML, styles.flexRow]}>
+                    <RenderHTML
+                        html={translate(
+                            'workspace.merge.approvalModeDeleteWorkflowsWarningPrompt',
+                            CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.netsuite,
+                            CONST.CONFIGURE_APPROVAL_WORKFLOWS_HELP_URL,
+                        )}
+                    />
+                </View>
+            ),
+            confirmText: translate('workspace.merge.approvalModeWarningConfirm'),
+            cancelText: translate('common.cancel'),
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+        }).then((result) => {
+            if (result?.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            updateNetSuiteSyncPeople(policyID, true, rules);
+        });
+    };
 
     const config = policy?.connections?.netsuite?.options?.config;
     const autoSyncConfig = policy?.connections?.netsuite?.config;
@@ -171,7 +213,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             shouldPlaceSubtitleBelowSwitch: true,
             shouldParseSubtitle: true,
             onCloseError: () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_PEOPLE),
-            onToggle: (isEnabled) => updateNetSuiteSyncPeople(policyID, isEnabled),
+            onToggle: toggleSyncPeople,
             pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_PEOPLE], config?.pendingFields),
             errors: getLatestErrorField(config, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_PEOPLE),
         },
