@@ -8,6 +8,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import type Navigation from '@libs/Navigation/Navigation';
+import NavigationActions from '@libs/Navigation/Navigation';
 import {buildOptimisticCreatedReportForUnapprovedAction} from '@libs/ReportUtils';
 
 import HeaderView from '@pages/inbox/HeaderView';
@@ -48,6 +49,8 @@ const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDeta
 const currentUserAccountID = 1;
 
 describe('HeaderView', () => {
+    let navigateSpy: jest.SpyInstance | undefined;
+
     beforeEach(() => {
         // Set up default mock return value
         mockUseCurrentUserPersonalDetails.mockReturnValue({
@@ -56,6 +59,7 @@ describe('HeaderView', () => {
     });
 
     afterEach(async () => {
+        navigateSpy?.mockRestore();
         jest.clearAllMocks();
         await Onyx.clear();
     });
@@ -122,6 +126,46 @@ describe('HeaderView', () => {
 
         // Then the header title should be updated using the new display name
         await waitFor(() => expect(screen.getByTestId('DisplayNames')).toHaveTextContent(displayName));
+    });
+
+    it('should go back to the Concierge chat when New chat is pressed in a Concierge thread', async () => {
+        // Given the header of a thread that Concierge opened for a question
+        const conciergeReportID = '10';
+        const questionAction: ReportAction = {
+            reportActionID: '100',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            created: '2024-06-01 10:00:00.000',
+            actorAccountID: currentUserAccountID,
+            childReportID: '11',
+            message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: 'How do I submit an expense?', text: 'How do I submit an expense?'}],
+        };
+        const threadReport: Report = {
+            ...createRandomReport(11, undefined),
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID: conciergeReportID,
+            parentReportActionID: questionAction.reportActionID,
+        };
+        await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeReportID);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}`, {[questionAction.reportActionID]: questionAction});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${threadReport.reportID}`, threadReport);
+        await waitForBatchedUpdates();
+        navigateSpy = jest.spyOn(NavigationActions, 'navigate').mockImplementation(() => {});
+
+        render(
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <HeaderView
+                    onNavigationMenuButtonClicked={() => {}}
+                    reportID={threadReport.reportID}
+                />
+            </ComposeProviders>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user presses New chat
+        fireEvent.press(screen.getByText(translateLocal('common.concierge.newChat')));
+
+        // Then the user is taken back to the Concierge chat to ask another question
+        expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining(`r/${conciergeReportID}`));
     });
 
     it('should display join button', async () => {

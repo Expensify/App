@@ -19,7 +19,7 @@ import useTransactionThreadData from './useTransactionThreadData';
 
 function MarkAsResolvedPrimaryAction({reportID, chatReportID, isDisabled}: SimpleActionProps) {
     const {translate} = useLocalize();
-    const {transaction, transactionThreadReport} = useTransactionThreadData(reportID, chatReportID);
+    const {transaction, transactionThreadReport, reportActions} = useTransactionThreadData(reportID, chatReportID);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transaction?.transactionID)}`);
 
     const {isOffline} = useNetwork();
@@ -32,7 +32,7 @@ function MarkAsResolvedPrimaryAction({reportID, chatReportID, isDisabled}: Simpl
                 if (!transaction?.transactionID) {
                     return;
                 }
-                markRejectViolationAsResolved(transaction.transactionID, isOffline, transactionViolations, transactionThreadReport?.reportID);
+                markRejectViolationAsResolved(transaction.transactionID, isOffline, transactionViolations, transactionThreadReport?.reportID, reportActions);
             }}
         >
             <Button.Text>{translate('iou.reject.markAsResolved')}</Button.Text>

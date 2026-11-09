@@ -175,14 +175,12 @@ describe('useReportPDFDownloadModal', () => {
         expect(onResolve).toHaveBeenCalledWith({action: ModalActions.CONFIRM});
     });
 
-    it('resolves the show promise only after the modal has finished hiding', async () => {
-        // Given an open modal
+    it('resolves the show promise as soon as the modal is dismissed, while it stays on the stack until hidden', async () => {
+        // Given an open modal, whose caller (Submit via PDF) retracts the submit when the promise resolves
+        const onResolve = jest.fn();
         const {result} = renderReportPDFDownloadModal();
-        let hasResolved = false;
         await act(async () => {
-            result.current.showReportPDFDownloadModal({reportID: REPORT_ID}).then(() => {
-                hasResolved = true;
-            });
+            result.current.showReportPDFDownloadModal({reportID: REPORT_ID}).then(onResolve);
             await waitForBatchedUpdates();
         });
 
@@ -192,9 +190,12 @@ describe('useReportPDFDownloadModal', () => {
             await waitForBatchedUpdates();
         });
 
-        // Then it starts hiding but the caller is not told it is gone yet
+        // Then the caller is told right away, so its header changes happen behind the fading modal, and the modal is
+        // still rendered while it hides
+        expect(onResolve).toHaveBeenCalledWith({action: ModalActions.CLOSE});
+        await setOnyxValue(PDF_FILENAME_KEY, 'report.pdf');
         expect(getLatestModalProps()?.isVisible).toBe(false);
-        expect(hasResolved).toBe(false);
+        const renderCountWhileHiding = mockedFileDownloadModal.mock.calls.length;
 
         // When the hide animation ends
         await act(async () => {
@@ -202,8 +203,10 @@ describe('useReportPDFDownloadModal', () => {
             await waitForBatchedUpdates();
         });
 
-        // Then the show promise resolves
-        expect(hasResolved).toBe(true);
+        // Then the modal leaves the stack and the caller is not told again
+        await setOnyxValue(PDF_FILENAME_KEY, 'report-2.pdf');
+        expect(mockedFileDownloadModal.mock.calls.length).toBe(renderCountWhileHiding);
+        expect(onResolve).toHaveBeenCalledTimes(1);
     });
 
     it('does not reopen a dismissed modal when the filename arrives late', async () => {

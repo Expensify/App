@@ -124,7 +124,7 @@ function getOnyxData<TKey extends OnyxKey>(options: ConnectOptions<TKey>) {
         const connectionID = Onyx.connect({
             ...options,
             callback: (...params: ConnectionCallbackParams<TKey>) => {
-                Onyx.disconnect(connectionID);
+                connectionID.unsubscribe();
                 options.callback?.(...params);
                 resolve();
             },
@@ -288,7 +288,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
                 // Return a Promise that resolves with the mocked response
                 return Promise.resolve(mockedResponse);
             });
-            Session.signIn(password, undefined, undefined, login, undefined);
+            Session.signIn(password, undefined, undefined, login, undefined, undefined, undefined);
             return waitForBatchedUpdates();
         })
         .then(() => {

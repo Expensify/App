@@ -32,7 +32,7 @@ function SelectedDateModifierHeader({isCompact, title, onBackPress}: SelectedDat
                     onPress={onBackPress}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.back')}
-                    sentryLabel="DateSelectPopup-Back"
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.DATE_SELECT_POPUP_BACK}
                 >
                     <Icon
                         src={backArrowIcon.BackArrow}

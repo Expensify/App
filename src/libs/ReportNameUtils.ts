@@ -49,6 +49,7 @@ import {
     getAssignedCompanyCardMessage,
     getAutoCategorizeNewExpensesMessage,
     getAutoPayApprovedReportsEnabledMessage,
+    getAutoPayFeeDisclosureMessage,
     getAutoReimbursementMessage,
     getCardConnectionBrokenMessage,
     getCardIssuedMessage,
@@ -112,6 +113,7 @@ import {
     getUpdatedAutoHarvestingMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
+    getUpdatedCardFeedReimbursableMessage,
     getUpdatedEmployeeOfficeLocationMessage,
     getUpdatedMemberWorkArrangementMessage,
     getUpdatedOfficeLocationMessage,
@@ -528,7 +530,7 @@ function getMoneyRequestReportName({
         const parentReport = getParentReport(report);
         payerOrApproverName = getPolicyName({report: parentReport ?? report, policy, unavailableTranslation: translate('workspace.common.unavailable')});
     } else if (isInvoiceReport(report)) {
-        const chatReport = getReportOrDraftReport(report?.chatReportID);
+        const chatReport = getReportOrDraftReport({reportID: report?.chatReportID});
         const invoiceReceiverPersonalDetail = getInvoiceReceiverPersonalDetail(chatReport, personalDetailsList);
         payerOrApproverName = getInvoicePayerName(chatReport, translate, formatPhoneNumber, invoiceReceiverPersonalDetail, invoiceReceiverPolicy);
     } else {
@@ -1016,6 +1018,12 @@ function computeReportNameBasedOnReportAction({
         return Parser.htmlToText(getSettlementAccountLockedMessage(translate, parentReportAction));
     }
 
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.AUTO_PAY_FEE_DISCLOSURE)) {
+        return Parser.htmlToText(
+            getAutoPayFeeDisclosureMessage(translate, parentReportAction, getPersonalDetailsByID(getOriginalMessage(parentReportAction)?.accountID, personalDetailsList)),
+        );
+    }
+
     if (isOldDotReportAction(parentReportAction)) {
         return getMessageOfOldDotReportAction(translate, parentReportAction);
     }
@@ -1051,6 +1059,9 @@ function computeReportNameBasedOnReportAction({
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD)) {
         return getUpdatedCardFeedStatementPeriodMessage(translate, parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_REIMBURSABLE)) {
+        return getUpdatedCardFeedReimbursableMessage(translate, parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED)) {
         return getRequireCompanyCardsEnabledMessage(translate, parentReportAction);

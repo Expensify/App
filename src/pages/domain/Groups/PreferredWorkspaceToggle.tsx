@@ -12,6 +12,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 
 import {clearDomainSecurityGroupSettingError, updateDomainSecurityGroup} from '@userActions/Domain';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -70,6 +71,7 @@ function PreferredWorkspaceToggle({domainAccountID, groupID}: PreferredWorkspace
                     title={translate('domain.groups.preferredWorkspace')}
                     subtitle={translate('domain.groups.preferredWorkspaceDescription', isEnabled)}
                     switchAccessibilityLabel={translate('domain.groups.preferredWorkspace')}
+                    switchSentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.PREFERRED_WORKSPACE_SWITCH}
                     shouldPlaceSubtitleBelowSwitch
                     isActive={isEnabled}
                     disabled={!hasAdminPolicies && !isEnabled}

@@ -11,7 +11,7 @@ import {
     isCreatedMissing,
     isFailedScanAmountPlaceholder,
     isMerchantMissing,
-    isScanRequest,
+    isScanning,
     willFieldBeAutomaticallyFilled,
 } from '@libs/TransactionUtils';
 
@@ -113,7 +113,7 @@ const transactionTagSelector = (t: OnyxEntry<Transaction>) => (t ? getTag(t) : u
 
 // --- CategoryField ---
 
-type CategoryState = {category: string; willAutoFill: boolean; isAutoFillFromReceipt: boolean};
+type CategoryState = {category: string; willAutoFill: boolean};
 
 const categoryStateSelector = (t: OnyxEntry<Transaction>): CategoryState | undefined => {
     if (!t) {
@@ -122,10 +122,6 @@ const categoryStateSelector = (t: OnyxEntry<Transaction>): CategoryState | undef
     return {
         category: getCategory(t),
         willAutoFill: willFieldBeAutomaticallyFilled(t, 'category'),
-        // On a scan the category is read off the receipt, so `Automatic` describes the value the row ends up
-        // holding. On a manual expense it is a promise about a field that is still empty, since categorization
-        // only runs once the expense is created.
-        isAutoFillFromReceipt: isScanRequest(t),
     };
 };
 
@@ -184,6 +180,7 @@ type AmountSlice = {
     isAmountMissing: boolean;
     isAmountSet: Transaction['isAmountSet'];
     isFailedScanAmountPlaceholder: boolean;
+    isScanning: boolean;
     taxCode: Transaction['taxCode'];
     // The Scan confirmation's amount / merchant / date are all-or-nothing, so the amount field reads the other two.
     isMerchantSet: boolean;
@@ -205,6 +202,7 @@ const amountSliceSelector = (t: OnyxEntry<Transaction>): AmountSlice | undefined
         isAmountMissing: isAmountMissing(t),
         isAmountSet: t.isAmountSet,
         isFailedScanAmountPlaceholder: isFailedScanAmountPlaceholder(t),
+        isScanning: isScanning(t),
         taxCode: t.taxCode,
         isMerchantSet: t.isMerchantSet ?? false,
         isCreatedSet: t.isCreatedSet ?? false,
@@ -240,7 +238,7 @@ const taxSliceSelector = (t: OnyxEntry<Transaction>): TaxSlice | undefined => {
 
 // --- ConfirmationFieldList: useFooterDerivedFlags ---
 
-type DerivedFlagsSlice = Pick<Transaction, 'modifiedCurrency' | 'currency' | 'iouRequestType' | 'reportID' | 'managedCard' | 'reimbursable'>;
+type DerivedFlagsSlice = Pick<Transaction, 'modifiedCurrency' | 'currency' | 'reportID' | 'managedCard' | 'reimbursable'>;
 
 const derivedFlagsSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<DerivedFlagsSlice> => {
     if (!t) {
@@ -249,7 +247,6 @@ const derivedFlagsSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Derived
     const slice: DerivedFlagsSlice = {
         modifiedCurrency: t.modifiedCurrency,
         currency: t.currency,
-        iouRequestType: t.iouRequestType,
         reportID: t.reportID,
         managedCard: t.managedCard,
         reimbursable: t.reimbursable,
@@ -370,6 +367,10 @@ const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportF
     };
 };
 
+function shouldReportFieldBeEditable(outstandingReports: Array<OnyxEntry<OnyxTypes.Report>>, currentReportID: string | undefined, isUnreportedOrNew: boolean): boolean {
+    return isUnreportedOrNew ? outstandingReports.length >= 1 : outstandingReports.some((report) => report?.reportID !== currentReportID);
+}
+
 // --- InvoiceSenderField ---
 
 type InvoiceSenderWorkspace = {id: string | undefined; name: string | undefined; avatarURL: string | undefined} | undefined;
@@ -405,6 +406,7 @@ export {
     perDiemSliceSelector,
     receiptSliceSelector,
     reportFieldTransactionStateSelector,
+    shouldReportFieldBeEditable,
     tagSliceSelector,
     taxSliceSelector,
     timeStateSelector,

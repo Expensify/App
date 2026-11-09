@@ -1,5 +1,6 @@
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -9,10 +10,12 @@ import {getLetterAvatarURLForName} from '@libs/UserAvatarUtils';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import variables from '@src/styles/variables';
 
 import type {ComponentRef, Ref} from 'react';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useImperativeHandle, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -95,6 +98,7 @@ function AddRowErrorAnnouncement({errorText}: {errorText: string}) {
 
 /** A list of named items on a page, each with an avatar, an Edit button and a remove button, followed by an add row */
 function ListField({rows, addTitle, addDescription, canAddMore = true, errorText = '', onAdd, onEdit, onRemove, ref}: ListFieldProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -178,7 +182,7 @@ function ListField({rows, addTitle, addDescription, canAddMore = true, errorText
             {canAddMore && (
                 <MenuItem.Root
                     ref={addRowRef}
-                    onPress={callFunctionIfActionIsAllowed(onAdd)}
+                    onPress={callFunctionIfActionIsAllowed(onAdd, false, session)}
                 >
                     <AddRowErrorAnnouncement errorText={errorText} />
                     <MenuItem.Row>

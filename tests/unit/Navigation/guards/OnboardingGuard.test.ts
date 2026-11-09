@@ -559,6 +559,55 @@ describe('OnboardingGuard', () => {
         });
     });
 
+    describe('copilot and supportal sessions', () => {
+        const navigateToOnboardingAction: NavigationAction = {
+            type: CONST.NAVIGATION.ACTION_TYPE.NAVIGATE,
+            payload: {name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR},
+        };
+
+        const replaceToOnboardingAction: NavigationAction = {
+            type: CONST.NAVIGATION.ACTION_TYPE.REPLACE,
+            payload: {name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR},
+        };
+
+        it('should redirect a copilot who has not completed onboarding away from onboarding routes', async () => {
+            // Given a copilot accessing an account that has not completed onboarding
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: 'copilot@example.com'}});
+            await waitForBatchedUpdates();
+
+            // When a NAVIGATE or REPLACE action targets the OnboardingModalNavigator
+            const navigateResult = OnboardingGuard.evaluate(mockState, navigateToOnboardingAction, authenticatedContext);
+            const replaceResult = OnboardingGuard.evaluate(mockState, replaceToOnboardingAction, authenticatedContext);
+
+            // Then both are redirected to home, because the navigator is registered for copilots only to keep the root screens stable
+            expect(navigateResult).toEqual({type: 'REDIRECT', route: ROUTES.HOME});
+            expect(replaceResult).toEqual({type: 'REDIRECT', route: ROUTES.HOME});
+        });
+
+        it('should redirect a supportal session away from onboarding routes', () => {
+            // Given a supportal session on an account that has not completed onboarding
+            const supportalContext: GuardContext = {...authenticatedContext, isSupportalSession: true};
+
+            // When a NAVIGATE action targets the OnboardingModalNavigator
+            const result = OnboardingGuard.evaluate(mockState, navigateToOnboardingAction, supportalContext);
+
+            // Then it is redirected to home
+            expect(result).toEqual({type: 'REDIRECT', route: ROUTES.HOME});
+        });
+
+        it('should allow a copilot to navigate to non-onboarding routes', async () => {
+            // Given a copilot accessing an account that has not completed onboarding
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: 'copilot@example.com'}});
+            await waitForBatchedUpdates();
+
+            // When the guard evaluates a regular navigation action
+            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext);
+
+            // Then navigation is allowed, since copilots are never pushed through onboarding
+            expect(result.type).toBe('ALLOW');
+        });
+    });
+
     describe('redirect to onboarding', () => {
         it('should redirect when authenticated user needs onboarding and is not on onboarding', async () => {
             // Given a new user from a public email domain who has not completed the guided setup flow

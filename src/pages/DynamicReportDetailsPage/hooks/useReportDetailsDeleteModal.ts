@@ -3,6 +3,7 @@ import {SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_R
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -33,6 +34,7 @@ function useReportDetailsDeleteModal(reportID: string, caseID: CaseID, parentRep
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {showConfirmModal} = useConfirmModal();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const taskDeleteBackTo = Navigation.getTopmostSearchReportRouteParams()?.backTo;
 
     // Where to navigate back to after deleting the transaction and its report.
@@ -51,6 +53,7 @@ function useReportDetailsDeleteModal(reportID: string, caseID: CaseID, parentRep
             isChatIOUReportArchived,
             isSingleTransactionView,
             requestParentReportActionChildReport,
+            chatIOUReportActions,
         }: Partial<ReportDetailsRequestData> = requestData ?? {};
 
         let urlToNavigateBack: Route | undefined;
@@ -94,6 +97,7 @@ function useReportDetailsDeleteModal(reportID: string, caseID: CaseID, parentRep
                     isChatIOUReportArchived,
                     getCurrencyDecimals,
                     isSingleTransactionView,
+                    currentUserAccountID,
                 );
             } else {
                 urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(
@@ -104,7 +108,9 @@ function useReportDetailsDeleteModal(reportID: string, caseID: CaseID, parentRep
                     chatIOUReport,
                     isChatIOUReportArchived,
                     getCurrencyDecimals,
+                    currentUserAccountID,
                     isSingleTransactionView,
+                    chatIOUReportActions,
                 );
             }
         }
