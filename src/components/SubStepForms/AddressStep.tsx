@@ -15,6 +15,7 @@ import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/He
 
 import {setDraftValues} from '@userActions/FormActions';
 
+import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
@@ -112,7 +113,7 @@ function AddressStepImpl({
     shouldShowPatriotActLink = false,
     isLoading = false,
     additionalServerErrorMessage,
-    forwardedFSClass,
+    forwardedFSClass = CONST.FULLSTORY.CLASS.MASK,
 }: AddressStepPropsWidened) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();

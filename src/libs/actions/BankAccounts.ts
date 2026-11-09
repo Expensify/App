@@ -1398,6 +1398,16 @@ function clearWiseBankAccountFields() {
     Onyx.set(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS, null);
 }
 
+/** Drops the form but keeps the picked country, since the country list opens as a new screen that starts on the stored country */
+function clearWiseBankAccountFieldsKeepingCountry(country: string) {
+    Onyx.set(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS, {country});
+}
+
+/** Drops the result of the last submit, so the next visit opens on the form instead of the success screen */
+function clearWiseBankAccountForm() {
+    Onyx.merge(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, {isSuccess: null, errors: null, errorFields: null});
+}
+
 function clearReimbursementAccountBankCreation() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isCreateCorpayBankAccount: null, isSuccess: null, isLoading: null});
 }
@@ -2174,6 +2184,8 @@ export {
     clearReimbursementAccountSaveCorpayOnboardingDirectorInformation,
     clearCorpayBankAccountFields,
     clearWiseBankAccountFields,
+    clearWiseBankAccountFieldsKeepingCountry,
+    clearWiseBankAccountForm,
     createWiseBankAccount,
     finishCorpayBankAccountOnboarding,
     shareBankAccountAndSetPayer,
