@@ -1,4 +1,4 @@
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -8,10 +8,16 @@ import type {ActiveSorting, CompareItemsCallback, TableColumn} from '@components
 import type {DistanceRateTableItemData} from '@components/Tables/WorkspaceDistanceRatesTable/WorkspaceDistanceRatesTableRow';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
+import * as usePolicyFeatureWriteAccessModule from '@hooks/usePolicyFeatureWriteAccess';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+import {buildOnyxDataForPolicyDistanceRateUpdates} from '@libs/PolicyDistanceRatesUtils';
+import showInlineEditError from '@libs/showInlineEditError';
+
+import {updateDistanceTaxClaimableValue} from '@userActions/Policy/DistanceRate';
+import type * as DistanceRateActions from '@userActions/Policy/DistanceRate';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
@@ -33,6 +39,18 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 TestHelper.setupGlobalFetchMock();
+
+jest.mock('@userActions/Policy/DistanceRate', () => ({
+    ...jest.requireActual<typeof DistanceRateActions>('@userActions/Policy/DistanceRate'),
+    updateDistanceTaxClaimableValue: jest.fn(),
+}));
+jest.mock('@libs/showInlineEditError', () => ({__esModule: true, default: jest.fn()}));
+
+// The pencil is enabled only on hover, which jsdom cannot simulate reliably.
+jest.mock('@components/Hoverable', () => ({
+    __esModule: true,
+    default: ({children}: {children: ((isHovered: boolean) => React.ReactNode) | React.ReactNode}) => (typeof children === 'function' ? children(true) : children),
+}));
 
 let capturedColumns: Array<TableColumn<string>> = [];
 let capturedData: DistanceRateTableItemData[] = [];
@@ -160,6 +178,21 @@ function getRenderedAmounts() {
     return screen.queryAllByText(AMOUNT_TEXT).map((element) => String(element.props.children));
 }
 
+async function startEditingTax() {
+    const editButton = screen.getAllByLabelText(TestHelper.translateLocal('common.edit')).at(-1);
+    if (!editButton) {
+        throw new Error('Expected the tax edit button');
+    }
+    fireEvent.press(editButton);
+    await waitForBatchedUpdatesWithAct();
+
+    const input = screen.getAllByLabelText(getColumnHeaderLabel()).find((element) => typeof element.props.value === 'string');
+    if (!input) {
+        throw new Error('Expected the tax amount input');
+    }
+    return input;
+}
+
 describe('PolicyDistanceRatesPage tax reclaimable column', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -266,5 +299,131 @@ describe('PolicyDistanceRatesPage tax reclaimable column', () => {
         // Then ascending order puts the lowest amount first, and descending order puts the highest first
         expect(sortRates(CONST.SEARCH.SORT_ORDER.ASC)).toEqual(['$2.00', '$5.00', '$8.00']);
         expect(sortRates(CONST.SEARCH.SORT_ORDER.DESC)).toEqual(['$8.00', '$5.00', '$2.00']);
+    });
+
+    it('prefills a raw amount and saves the converted percentage on blur', async () => {
+        // Given a rate with a reclaimable amount that needs all four decimal places
+        const rate = buildRate('cars', {attributes: {taxClaimablePercentage: 0.12345, taxRateExternalID: TAX_RATE_ID}});
+        await renderPage([rate]);
+
+        // When the tax cell is opened, it must not use the formatted currency string as its edit buffer
+        const input = await startEditingTax();
+        expect(input.props.value).toBe('1.2345');
+        fireEvent.changeText(input, '2.3456');
+        fireEvent(input, 'blur');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the page delegates to the canonical action with the converted fraction and existing attributes
+        expect(updateDistanceTaxClaimableValue).toHaveBeenCalledWith(POLICY_ID, expect.objectContaining({customUnitID: CUSTOM_UNIT_ID}), [
+            {...rate, attributes: {...rate.attributes, taxClaimablePercentage: (2.3456 * 100) / 1000}},
+        ]);
+    });
+
+    it.each(['10', '11'])('shows the inline error and rejects an invalid amount of %s', async (newAmount) => {
+        // Given a ten-dollar rate with an editable reclaimable amount
+        await renderPage([buildRate('cars', {attributes: {taxClaimablePercentage: 0.5, taxRateExternalID: TAX_RATE_ID}})]);
+
+        // When the amount is not strictly below the rate
+        const input = await startEditingTax();
+        fireEvent.changeText(input, newAmount);
+        fireEvent(input, 'blur');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the page shows the shared validation error without writing the change
+        expect(showInlineEditError).toHaveBeenCalledWith(TestHelper.translateLocal('workspace.taxes.error.updateTaxClaimableFailureMessage'));
+        expect(updateDistanceTaxClaimableValue).not.toHaveBeenCalled();
+    });
+
+    it('does not save when the tax editor blurs unchanged', async () => {
+        // Given an editable tax amount
+        await renderPage([buildRate('cars', {attributes: {taxClaimablePercentage: 0.5}})]);
+
+        // When the editor is opened and closed without typing
+        const input = await startEditingTax();
+        fireEvent(input, 'blur');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then no action is called for the unchanged amount
+        expect(updateDistanceTaxClaimableValue).not.toHaveBeenCalled();
+    });
+
+    it('only permits tax editing for a valid tax rate or an existing percentage', async () => {
+        // Given blank cells with no tax, a removed tax, a valid tax, and a percentage without a tax
+        await renderPage([
+            buildRate('none'),
+            buildRate('removed', {attributes: {taxRateExternalID: 'id_REMOVED'}}),
+            buildRate('valid', {attributes: {taxRateExternalID: TAX_RATE_ID}}),
+            buildRate('percentage', {attributes: {taxClaimablePercentage: 0.2}}),
+            buildRate('deleting', {attributes: {taxClaimablePercentage: 0.2}, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+        ]);
+
+        // When the page builds the inline edit permissions
+        const permissions = Object.fromEntries(capturedData.map((row) => [row.rateID, row.canEditTaxReclaimable]));
+
+        // Then the details page tax eligibility is enforced in addition to the existing deletion restriction
+        expect(permissions).toEqual({none: false, removed: false, valid: true, percentage: true, deleting: false});
+    });
+
+    it('disables tax editing while rows are selected', async () => {
+        // Given an eligible tax amount in a table that allows row selection
+        await renderPage([buildRate('cars', {attributes: {taxClaimablePercentage: 0.5}})]);
+        expect(capturedData.at(0)?.canEditTaxReclaimable).toBe(true);
+
+        // When the user enters selection mode
+        fireEvent.press(screen.getAllByLabelText(TestHelper.translateLocal('common.select'))[0]);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then editing is unavailable so selecting a row cannot also change its tax amount
+        expect(capturedData.at(0)?.canEditTaxReclaimable).toBe(false);
+    });
+
+    it('disables tax editing when distance rates are read-only', async () => {
+        // Given an eligible amount but no write access to distance rates
+        const accessSpy = jest.spyOn(usePolicyFeatureWriteAccessModule, 'default').mockReturnValue({
+            canWrite: false,
+            showReadOnlyModal: jest.fn(),
+            withReadOnlyFallback: jest.fn(),
+        });
+
+        // When the page builds the tax cell permissions
+        await renderPage([buildRate('cars', {attributes: {taxClaimablePercentage: 0.5}})]);
+
+        // Then tax eligibility cannot bypass the workspace write restriction
+        expect(capturedData.at(0)?.canEditTaxReclaimable).toBe(false);
+        accessSpy.mockRestore();
+    });
+
+    it('shows a failed tax save and dismisses its error without deleting the rate', async () => {
+        // Given an existing amount and the canonical action data for a new percentage
+        const rate = buildRate('cars', {attributes: {taxClaimablePercentage: 0.5, taxRateExternalID: TAX_RATE_ID}});
+        const customUnit = buildPolicy([rate], true, true).customUnits?.[CUSTOM_UNIT_ID];
+        if (!customUnit) {
+            throw new Error('Expected the distance custom unit');
+        }
+        await renderPage([rate]);
+        const {optimisticData, failureData} = buildOnyxDataForPolicyDistanceRateUpdates(
+            POLICY_ID,
+            customUnit,
+            [{...rate, attributes: {...rate.attributes, taxClaimablePercentage: 0.2}}],
+            'taxClaimablePercentage',
+        );
+
+        // When the backend rejects the update, the canonical failure data restores the amount and attaches a field error
+        await act(async () => {
+            await Onyx.update(optimisticData ?? []);
+            await Onyx.update(failureData ?? []);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the table renders the error rather than silently reverting the amount
+        expect(screen.getByText(TestHelper.translateLocal('common.genericErrorMessage'))).toBeTruthy();
+        expect(screen.getByText('$5.00')).toBeTruthy();
+
+        // When the error is dismissed, only the field error is cleared and the rate remains
+        act(() => capturedData.at(0)?.dismissError());
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryByText(TestHelper.translateLocal('common.genericErrorMessage'))).toBeNull();
+        expect(capturedData.at(0)?.rateID).toBe('cars');
+        expect(screen.getByText('$5.00')).toBeTruthy();
     });
 });
