@@ -111,11 +111,6 @@ type ProfileNavigatorParamList = {
         accountID: string;
         reportID: string;
         login?: string;
-        policyID?: string;
-    };
-    [SCREENS.DYNAMIC_PROFILE_DISPLAY_NAME]: {
-        memberAccountID: string;
-        policyID: string;
     };
 };
 
@@ -180,6 +175,12 @@ type ReportSettingsNavigatorParamList = {
 
 type ReportDescriptionNavigatorParamList = {
     [SCREENS.DYNAMIC_REPORT_DESCRIPTION]: {
+        reportID: string;
+    };
+};
+
+type ReportHistoryNavigatorParamList = {
+    [SCREENS.DYNAMIC_REPORT_HISTORY]: {
         reportID: string;
     };
 };
@@ -259,6 +260,9 @@ type MoneyRequestNavigatorParamList = {
 
         /** Whether owned workspace chats should be left out of the picker (sent as the string 'true' when on) */
         shouldExcludeWorkspaces?: string;
+
+        /** Whether the page was opened from the confirmation's "To" row, so a selection returns to it (sent as the string 'true' when on) */
+        isFromConfirmation?: string;
     };
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DATE]: {
         action: IOUAction;
@@ -777,6 +781,9 @@ type FeatureTrainingNavigatorParamList = {
     [SCREENS.FEATURE_TRAINING_ROOT]: undefined;
     [SCREENS.AUTO_SUBMIT_ROOT]: undefined;
     [SCREENS.DYNAMIC_CHANGE_POLICY_EDUCATIONAL_ROOT]: undefined;
+    [SCREENS.DYNAMIC_PAYMENT_DETAILS_ROOT]: {
+        reportID: string;
+    };
 };
 
 type ReferralDetailsNavigatorParamList = {
@@ -898,6 +905,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.EXPENSIFY_CARD]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.DOMAIN_CARD]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION]: NavigatorScreenParams<ReportDescriptionNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.REPORT_HISTORY]: NavigatorScreenParams<ReportHistoryNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.CHRONOS_SCHEDULE_OOO]: NavigatorScreenParams<ChronosScheduleOOONavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PARTICIPANTS]: NavigatorScreenParams<ParticipantsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.ROOM_MEMBERS]: NavigatorScreenParams<RoomMembersNavigatorParamList>;
@@ -966,6 +974,7 @@ type RightModalNavigatorParamList = {
     };
     [SCREENS.RIGHT_MODAL.DOMAIN]: NavigatorScreenParams<WorkspacesDomainModalNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_COLUMNS]: NavigatorScreenParams<SearchColumnsParamList>;
+    [SCREENS.RIGHT_MODAL.INSIGHTS_DETAILS]: NavigatorScreenParams<InsightsDetailsParamList>;
     [SCREENS.RIGHT_MODAL.MULTIFACTOR_AUTHENTICATION]: NavigatorScreenParams<MultifactorAuthenticationParamList>;
 };
 
@@ -1019,6 +1028,8 @@ type ReportsSplitNavigatorParamList = {
         isPendingCreation?: string;
         /** The report the user was viewing when they opened Concierge from the side-pane button (native), so Concierge can act on it. */
         sourceReportID?: string;
+        /** The workspace whose page the user was viewing when they opened Concierge from the side-pane button (native), so Concierge can act on it. */
+        sourcePolicyID?: string;
         /** When 'true', a money-request report opens scrolled to its latest message instead of the top (used by the "X Replies" link). */
         shouldScrollToLatest?: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
@@ -1592,6 +1603,21 @@ type SearchColumnsParamList = {
     [SCREENS.SEARCH.COLUMNS_RHP]: Record<string, never>;
 };
 
+type InsightsDetailsParamList = {
+    [SCREENS.INSIGHTS_DETAILS]: {
+        dashboardID: string;
+
+        /** Chart the clicked point was plotted on */
+        graphKey: string;
+
+        /** The clicked member's account ID, merchant, category, or the first day of the clicked period */
+        item: string;
+
+        /** Last day of the clicked period, trimmed to the date range like the chart's label */
+        end?: string;
+    };
+};
+
 type RestrictedActionParamList = {
     [SCREENS.RESTRICTED_ACTION_ROOT]: {
         policyID: string;
@@ -1757,6 +1783,7 @@ export type {
     ConnectExistingBankAccountNavigatorParamList,
     NewReportWorkspaceSelectionNavigatorParamList,
     ReportDescriptionNavigatorParamList,
+    ReportHistoryNavigatorParamList,
     ChronosScheduleOOONavigatorParamList,
     ReportDetailsNavigatorParamList,
     ReportChangeWorkspaceNavigatorParamList,
@@ -1809,6 +1836,7 @@ export type {
     WorkspacesDomainModalNavigatorParamList,
     DomainSplitNavigatorParamList,
     SearchColumnsParamList,
+    InsightsDetailsParamList,
     MultifactorAuthenticationParamList,
     MultifactorAuthenticationModalNavigatorParamList,
 };

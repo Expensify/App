@@ -111,8 +111,7 @@ Workspace admins can set a display name for a member who hasn’t added a name o
 
 1. Go to **Workspaces > [Workspace Name] > Members**.
 2. Click the member’s name.
-3. In the right-hand panel, click **Profile**.
-4. Click **Display name**, enter a first and last name, and click **Save**.
+3. Select **Display name**, enter a first and last name, and select **Save**.
 
 The name applies in every workspace the member belongs to. After it’s saved, only the member can change it.
 

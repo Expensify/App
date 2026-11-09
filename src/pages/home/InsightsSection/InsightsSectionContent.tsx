@@ -68,7 +68,7 @@ function InsightsSectionContent() {
                 state === INSIGHTS_CHART_STATE.READY || state === INSIGHTS_CHART_STATE.EMPTY || state === INSIGHTS_CHART_STATE.ERROR ? (
                     <WidgetHeaderMenu
                         testID="insightsOverflowMenu"
-                        sentryLabel="InsightsOverflowMenu"
+                        sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.INSIGHTS_OVERFLOW_MENU}
                         menuItems={[
                             {
                                 text: translate('common.view'),

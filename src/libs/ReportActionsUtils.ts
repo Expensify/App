@@ -56,6 +56,7 @@ import Onyx from 'react-native-onyx';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 
+import {isBillPayHistoryAction} from './BillPayReportActionUtils';
 import {getBankName, getEffectiveFeedReimbursable, isCardPendingActivate} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertAmountToDisplayString, convertToBackendAmount, convertToShortDisplayString} from './CurrencyUtils';
@@ -1460,7 +1461,16 @@ function getReportActionActorAccountID(
     // When true (e.g. in search results) the actual author is returned instead of the Concierge
     // display override used in inbox timelines for automated actions.
     shouldUseRealActor = false,
+
+    // Bill intake saves a bill's creation and submission actions under the receiver's account,
+    // and its invoice's actions under the vendor's account. The history should show the person
+    // who entered the bill instead, or Concierge if the bill came from an email.
+    billPayHistory?: {isInvoiceLinkedToBill: boolean; processorAccountID: number | undefined},
 ): number | undefined {
+    if (billPayHistory && isBillPayHistoryAction(reportAction, iouReport, billPayHistory.isInvoiceLinkedToBill)) {
+        return billPayHistory.processorAccountID || CONST.ACCOUNT_ID.CONCIERGE;
+    }
+
     switch (reportAction?.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW: {
             const ownerAccountID = iouReport?.ownerAccountID ?? reportAction?.childOwnerAccountID;
@@ -2584,14 +2594,24 @@ const isIOUActionMatchingTransactionList = (
  * Returns a report action if there is exactly one transaction thread for the report, and undefined otherwise.
  */
 function getOneTransactionThreadReportAction(
-    report: OnyxEntry<Pick<Report, 'type'>>,
+    report: OnyxEntry<Pick<Report, 'type' | 'transactionCount'>>,
     chatReport: OnyxEntry<Report>,
     reportActions: OnyxEntry<ReportActions> | ReportAction[],
     isOffline: boolean | undefined = undefined,
     reportTransactionIDs?: string[],
 ): ReportAction<'IOU'> | undefined {
-    // If the report is not an IOU, Expense report, or Invoice, it shouldn't be treated as one-transaction report.
-    if (report?.type !== CONST.REPORT.TYPE.IOU && report?.type !== CONST.REPORT.TYPE.EXPENSE && report?.type !== CONST.REPORT.TYPE.INVOICE) {
+    // Only reports that hold expenses have expense threads, so other report types never show the one-expense view.
+    if (
+        report?.type !== CONST.REPORT.TYPE.IOU &&
+        report?.type !== CONST.REPORT.TYPE.EXPENSE &&
+        report?.type !== CONST.REPORT.UNSUPPORTED_TYPE.BILL &&
+        report?.type !== CONST.REPORT.TYPE.INVOICE
+    ) {
+        return;
+    }
+
+    // Loaded actions can miss some expenses of a bill, so only the count from the server shows that a bill has one expense.
+    if (report?.type === CONST.REPORT.UNSUPPORTED_TYPE.BILL && report.transactionCount !== 1) {
         return;
     }
 
@@ -6430,4 +6450,4 @@ export {
     isPolicyCopyReportAction,
 };
 
-export type {CompanyAddressOriginalMessage, LastVisibleMessage, UpdateACHAccountOriginalMessage};
+export type {CompanyAddressOriginalMessage, LastVisibleMessage, SystemMessageRun, UpdateACHAccountOriginalMessage};
