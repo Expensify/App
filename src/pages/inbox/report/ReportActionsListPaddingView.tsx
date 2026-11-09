@@ -1,3 +1,5 @@
+import FSClassView from '@components/FSClassView';
+
 import useConciergeAskState from '@hooks/useConciergeAskState';
 import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useReportRecipientLocalTime from '@hooks/useReportRecipientLocalTime';
@@ -10,7 +12,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 import React from 'react';
-import {View} from 'react-native';
 
 import useShouldShowComposerForActiveEditDraft from './useShouldShowComposerForActiveEditDraft';
 
@@ -31,12 +32,12 @@ function ReportActionsListPaddingView({report, isReportArchived, children}: Repo
     const applyPaddingBetweenListAndComposer = !canShowRecipientLocalTime && !hideComposer && !isConciergeHistoryExpanded && !shouldUseCompactChrome;
 
     return (
-        <View
+        <FSClassView
             style={[styles.flex1, applyPaddingBetweenListAndComposer ? styles.pb4 : {}]}
-            fsClass={reportActionsListFSClass}
+            forwardedFSClass={reportActionsListFSClass}
         >
             {children}
-        </View>
+        </FSClassView>
     );
 }
 

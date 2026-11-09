@@ -10,10 +10,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PersonalDetailsList, ReportAction} from '@src/types/onyx';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import getOnyxValue from '../../utils/getOnyxValue';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@components/ActionSheetAwareScrollView', () => ({
@@ -23,7 +25,7 @@ jest.mock('@components/ActionSheetAwareScrollView', () => ({
 }));
 
 type MockContextMenuItemProps = {
-    sentryLabel?: string;
+    sentryLabel?: SentryLabel;
     onPress?: (event: unknown) => void;
     [key: string]: unknown;
 };
@@ -278,7 +280,7 @@ async function seedOnyxData({isOnHold}: {isOnHold: boolean}) {
     await waitForBatchedUpdates();
 }
 
-async function getContextMenuItemOnPress(sentryLabel: string): Promise<(event: unknown) => void> {
+async function getContextMenuItemOnPress(sentryLabel: SentryLabel): Promise<(event: unknown) => void> {
     let contextMenuItem = mockContextMenuItemProps.find((item) => item.sentryLabel === sentryLabel);
 
     await waitFor(() => {
@@ -425,20 +427,25 @@ describe('BaseReportActionContextMenu hold/unhold action', () => {
             onPress({});
         });
 
+        const transactionReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
+        const reportActionChildReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`);
+
         // Then changeMoneyRequestHoldStatus receives the money request report's policy
         expect(mockChangeMoneyRequestHoldStatus).toHaveBeenCalledTimes(1);
-        expect(mockChangeMoneyRequestHoldStatus).toHaveBeenCalledWith(
-            expect.objectContaining({actionName: CONST.REPORT.ACTIONS.TYPE.IOU, childReportID}),
-            expect.objectContaining({transactionID}),
-            expect.objectContaining({id: policyID}),
-            false,
+        expect(mockChangeMoneyRequestHoldStatus).toHaveBeenCalledWith({
+            reportAction: expect.objectContaining({actionName: CONST.REPORT.ACTIONS.TYPE.IOU, childReportID}),
+            iouTransaction: expect.objectContaining({transactionID}),
+            iouTransactionReport: transactionReport,
+            reportActionChildReport,
+            policy: expect.objectContaining({id: policyID}),
+            isOffline: false,
             currentUserLogin,
             currentUserAccountID,
-            undefined,
-            false,
-            undefined,
-            {},
-        );
+            transactionViolations: undefined,
+            isTrackIntentUser: false,
+            delegateAccountID: undefined,
+            rules: {},
+        });
     });
 });
 

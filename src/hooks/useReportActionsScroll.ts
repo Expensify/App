@@ -437,6 +437,10 @@ function useReportActionsScroll({
             return;
         }
         reportScrollManager.scrollToBottom();
+        // A list remounted for the live tail already sits at the bottom, so no scroll event corrects the offset left
+        // by the linked message. Sync it here, or the next content size change shows the Latest messages pill again.
+        scrollOffsetRef.current = 0;
+        setIsFloatingMessageCounterVisible(false);
         setIsScrollToBottomEnabled(false);
         completeLiveTailPruneAfterScrollToBottom();
     };

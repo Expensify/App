@@ -56,7 +56,8 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(iouTransactionID)}`);
-
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
+    const [requestParentReportActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(requestParentReportAction?.childReportID)}`);
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
@@ -86,18 +87,20 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
                 const isDismissed = shouldShowHoldEducationalModal ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
 
                 if (isDismissed || shouldSuppressPromotionalUI) {
-                    changeMoneyRequestHoldStatus(
-                        requestParentReportAction,
-                        transaction,
+                    changeMoneyRequestHoldStatus({
+                        reportAction: requestParentReportAction,
+                        iouTransaction: transaction,
+                        iouTransactionReport: transactionReport,
+                        reportActionChildReport: requestParentReportActionChildReport,
                         policy,
                         isOffline,
-                        currentUserLogin ?? '',
+                        currentUserLogin: currentUserLogin ?? '',
                         currentUserAccountID,
                         transactionViolations,
                         isTrackIntentUser,
                         delegateAccountID,
                         rules,
-                    );
+                    });
                 } else if (shouldShowHoldEducationalModal) {
                     onHoldEducationalOpen();
                 } else {
@@ -120,18 +123,20 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
                     return;
                 }
 
-                changeMoneyRequestHoldStatus(
-                    requestParentReportAction,
-                    transaction,
+                changeMoneyRequestHoldStatus({
+                    reportAction: requestParentReportAction,
+                    iouTransaction: transaction,
+                    iouTransactionReport: transactionReport,
+                    reportActionChildReport: requestParentReportActionChildReport,
                     policy,
                     isOffline,
-                    currentUserLogin ?? '',
+                    currentUserLogin: currentUserLogin ?? '',
                     currentUserAccountID,
                     transactionViolations,
                     isTrackIntentUser,
                     delegateAccountID,
                     rules,
-                );
+                });
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REJECT]: {
