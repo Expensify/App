@@ -48,7 +48,8 @@ describe('SearchAutocompleteUtils', () => {
             // When one occurrence is negated and the other is positive.
             const result = getAutocompletePolicyData(query, ranges, undefined, substitutions);
 
-            // Then the effective scope excludes correctly while autocomplete still knows both IDs were selected.
+            // Then policyFilter.value contains only the ID from the positive clause,
+            // and selectedPolicyIDs contains both IDs so both workspaces can be excluded from suggestions.
             expect(result).toEqual({policyFilter: {value: expected, isNegated: false}, selectedPolicyIDs: ['A', 'B']});
         });
     });

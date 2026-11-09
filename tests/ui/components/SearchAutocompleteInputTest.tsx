@@ -111,7 +111,8 @@ describe('SearchAutocompleteInput', () => {
         {scope: '-workspace:"USD WS" workspace:"CAD WS"', expectedIDs: ['cad'], isNegated: false, shouldHighlight: true},
         {scope: 'workspace:"Shared WS","Shared WS"', expectedIDs: ['usd', 'cad'], isNegated: false, shouldHighlight: true},
     ])('scopes exported-to highlighting to the typed $scope instead of submitted USD scope', ({scope, expectedIDs, isNegated, shouldHighlight}) => {
-        // Given USD submitted scope and two workspaces, with occurrence-indexed selections for duplicate display names.
+        // Given USD and CAD workspaces, an export options mock that defaults to USD,
+        // and substitutions that map repeated workspace names to different IDs.
         const policies = {
             [`${ONYXKEYS.COLLECTION.POLICY}usd`]: createMock<Policy>({id: 'usd', name: 'USD WS', outputCurrency: CONST.CURRENCY.USD}),
             [`${ONYXKEYS.COLLECTION.POLICY}cad`]: createMock<Policy>({id: 'cad', name: 'CAD WS', outputCurrency: CONST.CURRENCY.CAD}),
