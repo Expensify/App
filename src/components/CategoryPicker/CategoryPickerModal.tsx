@@ -18,6 +18,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import policyCategoriesVisibilitySelector from '@selectors/PolicyCategories';
 import React, {useLayoutEffect, useState} from 'react';
@@ -43,7 +44,7 @@ type CategoryPickerModalProps = {
     onAddCategory?: () => void;
 
     /** Sentry label for the add button, so each caller's presses are attributed to it */
-    addCategorySentryLabel?: string;
+    addCategorySentryLabel?: SentryLabel;
 
     /** Receives the searched-for name when the user taps the create row. The row is offered only when this is passed. */
     onCreateCategory?: (categoryName: string) => void;

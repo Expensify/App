@@ -1821,6 +1821,23 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmApprovalWithHeldAmount: 'Der Bericht enthält zurückgestellte Ausgaben. Nur konforme Ausgaben genehmigen oder den gesamten Bericht genehmigen?',
         confirmApprovalAllHoldAmount: 'Alle Ausgaben sind zurückgestellt. Trotzdem genehmigen?',
         confirmPay: 'Zahlungsbetrag bestätigen',
+        wisePaymentSummary: {
+            confirmPayment: 'Zahlung bestätigen',
+            reportTotal: 'Berichtssumme',
+            unheldAmountBeingPaid: 'Zu zahlender nicht zurückgestellter Betrag',
+            debitAmount: 'Abbuchungsbetrag',
+            employeeWillReceive: 'Mitarbeiter erhält',
+            totalFees: 'Gesamtgebühren',
+            fxRate: 'Wechselkurs',
+            paymentDetails: 'Zahlungsdetails',
+            debitedAmount: 'Abgebuchter Betrag',
+            employeeReceived: 'Mitarbeiter erhielt',
+            payAll: 'Alle bezahlen',
+            reportCount: ({count}: {count: number}) => ({
+                one: '1 Bericht',
+                other: `${count} Berichte`,
+            }),
+        },
         confirmPayAmount: 'Bezahle, was nicht zurückgestellt ist, oder bezahle den gesamten Bericht.',
         confirmPayAllHoldAmount: () => ({
             one: 'Diese Ausgabe ist angehalten. Möchtest du trotzdem bezahlen?',
@@ -7247,11 +7264,14 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 unassignCard: 'Karte zuweisen aufheben',
                 unassignCards: 'Kartenzuweisung aufheben',
                 unassign: 'Zuweisung aufheben',
-                unassignCardDescription: 'Das Entfernen der Zuweisung dieser Karte wird alle nicht eingereichten Transaktionen löschen.',
-                unassignCardsDescription: 'Das Aufheben der Zuweisung löscht alle nicht eingereichten Transaktionen der ausgewählten Karten.',
+                unassignCardDescription: (transactionsUrl: string) =>
+                    `Das Entfernen der Zuweisung dieser Karte löscht dauerhaft alle <a href="${transactionsUrl}">nicht eingereichten Transaktionen</a> dieser Karte, einschließlich nicht gemeldeter Transaktionen und Transaktionen in Berichtsentwürfen. Dies kann nicht rückgängig gemacht werden.`,
+                unassignCardsDescription: (transactionsUrl: string) =>
+                    `Das Aufheben der Zuweisung löscht dauerhaft alle <a href="${transactionsUrl}">nicht eingereichten Transaktionen</a> der ausgewählten Karten, einschließlich nicht gemeldeter Transaktionen und Transaktionen in Berichtsentwürfen. Dies kann nicht rückgängig gemacht werden.`,
                 removeCard: 'Karte entfernen',
                 remove: 'Entfernen',
-                removeCardDescription: 'Wenn Sie diese Karte entfernen, werden alle nicht eingereichten Transaktionen gelöscht.',
+                removeCardDescription: (transactionsUrl: string) =>
+                    `Wenn Sie diese Karte entfernen, werden alle <a href="${transactionsUrl}">nicht eingereichten Transaktionen</a> dieser Karte dauerhaft gelöscht, einschließlich nicht gemeldeter Transaktionen und Transaktionen in Berichtsentwürfen. Dies kann nicht rückgängig gemacht werden.`,
                 assignCard: 'Karte zuweisen',
                 cardFeedName: 'Name des Kartenfeeds',
                 cardFeedNameDescription: 'Gib dem Kartenfeed einen eindeutigen Namen, damit du ihn von den anderen unterscheiden kannst.',

@@ -1752,6 +1752,23 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmApprovalWithHeldAmount: '报告包含暂停的费用。仅批准合规的费用，还是批准整个报告？',
         confirmApprovalAllHoldAmount: '所有费用都已被暂停。仍要批准吗？',
         confirmPay: '确认付款金额',
+        wisePaymentSummary: {
+            confirmPayment: '确认付款',
+            reportTotal: '报告总额',
+            unheldAmountBeingPaid: '支付的未冻结金额',
+            debitAmount: '扣款金额',
+            employeeWillReceive: '员工将收到',
+            totalFees: '总费用',
+            fxRate: '汇率',
+            paymentDetails: '付款详情',
+            debitedAmount: '扣款金额',
+            employeeReceived: '员工已收到',
+            payAll: '全部支付',
+            reportCount: ({count}: {count: number}) => ({
+                one: '1 份报告',
+                other: `${count} 份报告`,
+            }),
+        },
         confirmPayAmount: '支付未冻结的部分，或支付整份报告。',
         confirmPayAllHoldAmount: () => ({
             one: '此报销已被搁置。你仍然要付款吗？',
@@ -6918,11 +6935,14 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 unassignCard: '取消分配卡片',
                 unassignCards: '取消分配卡片',
                 unassign: '取消分配',
-                unassignCardDescription: '取消分配此卡将删除所有未提交的交易。',
-                unassignCardsDescription: '取消分配将删除所选卡片中的所有未提交交易。',
+                unassignCardDescription: (transactionsUrl: string) =>
+                    `取消分配此卡将永久删除该卡所有<a href="${transactionsUrl}">未提交的交易</a>，包括未报告的交易和草稿报告中的交易。此操作无法撤销。`,
+                unassignCardsDescription: (transactionsUrl: string) =>
+                    `取消分配将永久删除所选卡片中所有<a href="${transactionsUrl}">未提交的交易</a>，包括未报告的交易和草稿报告中的交易。此操作无法撤销。`,
                 removeCard: '移除卡片',
                 remove: '移除',
-                removeCardDescription: '移除此卡片将删除所有未提交的交易。',
+                removeCardDescription: (transactionsUrl: string) =>
+                    `移除此卡片将永久删除该卡所有<a href="${transactionsUrl}">未提交的交易</a>，包括未报告的交易和草稿报告中的交易。此操作无法撤销。`,
                 assignCard: '分配卡片',
                 cardFeedName: '卡片交易源名称',
                 cardFeedNameDescription: '为该卡片流水命名一个唯一名称，以便与其他区分。',

@@ -189,7 +189,7 @@ let mockSelectedTransactions: SelectedTransactions = {};
 let mockExcludedTransactions: SelectedTransactions = {};
 let mockSelectedReports: SelectedReports[] = [];
 let mockAreAllMatchingItemsSelected = false;
-let mockCurrentSearchResults: {search: {type: string}; data?: Record<string, unknown>} | undefined;
+let mockCurrentSearchResults: {search?: {type: string}; data?: Record<string, unknown>} | undefined;
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionContext: () => ({
@@ -633,6 +633,74 @@ describe('useSearchBulkActions - CSV export flow', () => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
         });
         expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.MERGE_REPORTS)).toBe(false);
+    });
+
+    it.each([
+        {queryJSON: baseQueryJSON, selectionCount: 1},
+        {queryJSON: baseQueryJSON, selectionCount: 2},
+        {queryJSON: expenseReportQueryJSON, selectionCount: 1},
+        {queryJSON: expenseReportQueryJSON, selectionCount: 2},
+    ])('renders $queryJSON.type bulk actions for $selectionCount selections without search metadata', async ({queryJSON, selectionCount}) => {
+        // Given expense edits can create snapshot data before search metadata exists
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        if (selectionCount === 2) {
+            mockSelectedTransactions.tx2 = makeSelectedTransaction();
+        }
+        if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+            mockSelectedReports = [makeSelectedReport()];
+        }
+        mockCurrentSearchResults = {data: {}};
+
+        // When selection renders bulk actions before a complete snapshot has loaded
+        const {result, rerender} = renderHook(() => useSearchBulkActions({queryJSON}), {wrapper: OnyxListItemProvider});
+
+        // Then query-based actions remain available instead of crashing on missing metadata
+        await waitFor(() => {
+            expect(getExportMenuItems(result.current.headerButtonsOptions).some((option) => option.text === 'export.currentView')).toBe(true);
+        });
+        expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_PDF)).toBe(
+            queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+        );
+
+        // When current results disappear, the hook can reuse the previously cached partial snapshot
+        mockCurrentSearchResults = undefined;
+        rerender({});
+
+        // Then the cached snapshot is also safe to use while results are unavailable
+        expect(getExportMenuItems(result.current.headerButtonsOptions).some((option) => option.text === 'export.currentView')).toBe(true);
+
+        // When complete metadata arrives, normal action rendering resumes
+        mockCurrentSearchResults = {search: {type: queryJSON.type}, data: {}};
+        rerender({});
+
+        // Then complete snapshots retain the same query-based actions
+        expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_PDF)).toBe(
+            queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+        );
+    });
+
+    it.each([
+        {description: 'falls back to the query when metadata is missing', search: undefined, queryJSON: expenseReportQueryJSON},
+        {description: 'prefers snapshot metadata over the query', search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}, queryJSON: baseQueryJSON},
+    ])('current-view export $description', async ({search, queryJSON}) => {
+        // Given export needs the report column definitions from either the snapshot or its query fallback
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockCurrentSearchResults = {search, data: {}};
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportMenuItems(result.current.headerButtonsOptions).some((option) => option.text === 'export.currentView')).toBe(true);
+        });
+
+        // When the current-view export builds its column labels
+        await act(async () => {
+            getExportMenuItems(result.current.headerButtonsOptions)
+                .find((option) => option.text === 'export.currentView')
+                ?.onSelected?.();
+        });
+
+        // Then report columns prove the resolved search type was used, not the default expense type
+        expect(mockExportSearchItemsToCSV.mock.calls.at(-1)?.[0]?.exportColumnLabels).toContain(`"${CONST.SEARCH.TABLE_COLUMNS.TITLE}":`);
     });
 
     it('handleBasicExport with manual selection does not track any export', async () => {

@@ -826,7 +826,9 @@ const CONST = {
         WEEKDAY_TIME_FORMAT: 'eeee',
         MONTH_DAY_ABBR_FORMAT: 'MMM d',
         SHORT_DATE_FORMAT: 'MM-dd',
-        MONTH_DAY_YEAR_ABBR_FORMAT: 'MMM d, yyyy',
+        // `PP` is date-fns' medium localized date. It matches `MMM d, yyyy` in en-US, so English output is unchanged,
+        // while other languages stop being forced into the US component order.
+        MONTH_DAY_YEAR_ABBR_FORMAT: 'PP',
         MONTH_DAY_YEAR_FORMAT: 'MMMM d, yyyy',
         FNS_TIMEZONE_FORMAT_STRING: "yyyy-MM-dd'T'HH:mm:ssXXX",
         FNS_DB_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss.SSS',
@@ -10303,7 +10305,7 @@ const CONST = {
             WORKSPACE_EXPENSIFY_CARDS: 'workspaceExpensifyCards',
             WORKSPACE_COMPANY_CARDS: 'workspaceCompanyCards',
 
-            /** Prefix of the Search table IDs, one per data type. See `getSearchColumnResizingID`. */
+            /** Prefix of the Search table IDs, one per search. See `getSearchColumnResizingID`. */
             SEARCH_PREFIX: 'search',
         },
 
@@ -10437,6 +10439,13 @@ const CONST = {
         },
         WISE_ONBOARDING_APPROVED: {
             DONE: 'WiseOnboardingApproved-Done',
+        },
+        WISE_QUOTE_CAROUSEL: {
+            PREVIOUS: 'WiseQuoteCarousel-Previous',
+            NEXT: 'WiseQuoteCarousel-Next',
+        },
+        WISE_PAYMENT_DETAILS: {
+            GOT_IT: 'WisePaymentDetails-GotIt',
         },
         PRODUCT_MARKETING_WINDOW: {
             CTA: 'ProductMarketingWindow-CTA',
@@ -10849,6 +10858,7 @@ const CONST = {
             DASHBOARD_TAB: 'Insights-DashboardTab',
             CHART_MENU: 'Insights-ChartMenu',
             TABLE_ROW: 'Insights-TableRow',
+            DETAILS_VIEW_ALL: 'Insights-DetailsViewAll',
             CONTROL_POPUP_APPLY: {
                 DATE: 'Insights-ControlPopupApply-Date',
                 WORKSPACE: 'Insights-ControlPopupApply-Workspace',
@@ -11764,6 +11774,7 @@ const CONST = {
         },
         CONFIRM_CONTENT: {
             DISMISS_BUTTON: 'ConfirmContent-DismissButton',
+            CONFIRM_BUTTON: 'ConfirmContent-ConfirmButton',
         },
         COPY_TEXT_TO_CLIPBOARD: {
             COPY_BUTTON: 'CopyTextToClipboard-CopyButton',

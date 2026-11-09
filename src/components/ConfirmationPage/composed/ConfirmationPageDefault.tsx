@@ -10,6 +10,7 @@ import type DotLottieAnimation from '@components/LottieAnimations/types';
 
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
@@ -29,7 +30,7 @@ type ConfirmationPageProps = {
     /** A function that is called when the button is clicked on */
     onButtonPress?: () => void;
 
-    buttonSentryLabel?: string;
+    buttonSentryLabel?: SentryLabel;
 
     /** Whether the button should be disabled */
     isButtonDisabled?: boolean;

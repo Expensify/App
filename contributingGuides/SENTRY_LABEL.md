@@ -1,6 +1,8 @@
 # The `data-sentry-label` schema
 
-Every pressable component takes a `sentryLabel` prop. On web it is rendered as the `data-sentry-label` attribute. Label values live in `CONST.SENTRY_LABEL`.
+Every pressable component takes a `sentryLabel` prop. On web it is rendered as the `data-sentry-label` attribute. Label values live in `CONST.SENTRY_LABEL`, and the prop's `SentryLabel` type accepts nothing else, so type any prop or map that passes a label along as `SentryLabel` too, not `string`. Don't cast a string to it.
+
+Lint (`no-restricted-syntax`) requires the label on every pressable. It also requires it on `Button`, `MenuItem` and the other wrappers that forward it to a pressable whenever they get a press handler, and always on wrappers that handle their own press, like `ThreeDotsMenu`. The lists of wrappers are in `oxlint.config.mts`. When you write a component that forwards `sentryLabel` to a pressable, add it there. Inputs and wrappers that fall back to a default label aren't checked yet. Usages that had no label when the rule was added are grandfathered in the [seatbelt baseline](LINTING.md#seatbelt). Add a label when you touch one.
 
 The attribute is used by:
 

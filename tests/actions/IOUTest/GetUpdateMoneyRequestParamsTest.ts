@@ -543,3 +543,99 @@ describe('getUpdateMoneyRequestParams — receipt page count', () => {
         expect(getOptimisticPageCountForDistanceChange()).toBe(3);
     });
 });
+
+describe('getUpdateMoneyRequestParams — next step of a submitted report', () => {
+    const expenseReport: Report = {
+        reportID: IOU_REPORT_ID,
+        type: CONST.REPORT.TYPE.EXPENSE,
+        policyID: POLICY_ID,
+        total: -1000,
+        currency: CONST.CURRENCY.USD,
+        ownerAccountID: RORY_ACCOUNT_ID,
+        stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+        statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+    };
+
+    function buildPolicy(approvalMode: Policy['approvalMode']): Policy {
+        return {
+            ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+            id: POLICY_ID,
+            approvalMode,
+        };
+    }
+
+    function hasOptimisticNextStep(report: Report, policy: Policy, transactionChanges: Parameters<typeof getUpdateMoneyRequestParams>[0]['transactionChanges']): boolean {
+        const {onyxData} = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
+            iouReportOwnerLogin: undefined,
+            transactionID: TRANSACTION_ID,
+            transactionThreadReport,
+            iouReport: report,
+            delegateAccountID: undefined,
+            transactionChanges,
+            policy,
+            policyTagList: undefined,
+            reportPolicyTags: undefined,
+            policyCategories: undefined,
+            currentUserAccountIDParam: RORY_ACCOUNT_ID,
+            currentUserEmailParam: RORY_EMAIL,
+            isASAPSubmitBetaEnabled: false,
+            isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
+        });
+
+        return !!onyxData.optimisticData?.some((entry) => entry.key === `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}` && isRecord(entry.value) && 'nextStep' in entry.value);
+    }
+
+    beforeEach(async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, {
+            transactionID: TRANSACTION_ID,
+            reportID: IOU_REPORT_ID,
+            amount: -1000,
+            currency: CONST.CURRENCY.USD,
+            created: '2024-01-01',
+            merchant: 'Merchant',
+            reimbursable: true,
+        });
+        await waitForBatchedUpdates();
+    });
+
+    it('should rebuild the next step when reimbursable changes on a submitted report of an Optional approval policy', () => {
+        // Given a submitted expense report on a policy with Optional approvals, whose next step depends on its reimbursable spend
+        const policy = buildPolicy(CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+
+        // When the expense is made non-reimbursable
+        // Then the next step is rebuilt, since the report may now need no further action
+        expect(hasOptimisticNextStep(expenseReport, policy, {reimbursable: false})).toBe(true);
+    });
+
+    it('should NOT rebuild the next step when reimbursable changes on a submitted report of a Basic approval policy', () => {
+        // Given a submitted expense report on a policy with Basic approvals, which keeps waiting on the same approver
+        const policy = buildPolicy(CONST.POLICY.APPROVAL_MODE.BASIC);
+
+        // When the expense is made non-reimbursable
+        // Then the next step isn't rebuilt, so the approver isn't looked up again
+        expect(hasOptimisticNextStep(expenseReport, policy, {reimbursable: false})).toBe(false);
+    });
+
+    it('should NOT rebuild the next step when something other than reimbursable changes on a submitted report of an Optional approval policy', () => {
+        // Given a submitted expense report on a policy with Optional approvals
+        const policy = buildPolicy(CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+
+        // When a field that doesn't affect the reimbursable spend changes
+        // Then the next step isn't rebuilt, since it stays the same
+        expect(hasOptimisticNextStep(expenseReport, policy, {merchant: 'New Merchant'})).toBe(false);
+    });
+
+    it('should NOT rebuild the next step when reimbursable changes on an approved report of an Optional approval policy', () => {
+        // Given an approved expense report on a policy with Optional approvals
+        const policy = buildPolicy(CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+        const approvedReport: Report = {...expenseReport, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED};
+
+        // When the expense is made non-reimbursable
+        // Then the next step isn't rebuilt, since only open and submitted reports get an optimistic next step here
+        expect(hasOptimisticNextStep(approvedReport, policy, {reimbursable: false})).toBe(false);
+    });
+});

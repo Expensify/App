@@ -7,6 +7,7 @@ import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useDocumentTitle from '@hooks/useDocumentTitle';
+import useIsSupportalSession from '@hooks/useIsSupportalSession';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -19,7 +20,7 @@ import Log from '@libs/Log';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import Visibility from '@libs/Visibility';
 
-import {clearSignInData, isSupportalSession as isSupportalSessionUtils} from '@userActions/Session';
+import {clearSignInData} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -188,6 +189,7 @@ function SignInPage({ref, shouldResetTabTitle = true}: SignInPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const isAccountValidated = account?.validated;
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const isSupportalSession = useIsSupportalSession();
     const [isAuthenticatingWithShortLivedToken] = useOnyx(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN);
     /**
       This variable is only added to make sure the component is re-rendered
@@ -250,7 +252,7 @@ function SignInPage({ref, shouldResetTabTitle = true}: SignInPageProps) {
         shouldShowAnotherLoginPageOpenedMessage,
         credentials,
         isAccountValidated,
-        isSupportalSession: isSupportalSessionUtils(),
+        isSupportalSession,
         isAuthenticatingWithShortLivedToken: !!isAuthenticatingWithShortLivedToken,
     });
 
