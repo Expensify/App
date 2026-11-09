@@ -11,6 +11,7 @@ import {clearNewRulePrompt} from '@userActions/Policy/Rules';
 import CONST from '@src/CONST';
 import type {PolicyCategory} from '@src/types/onyx';
 import type {GeneratedRuleType, GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React, {useState} from 'react';
 
@@ -18,7 +19,7 @@ import DescribeRuleModal from './DescribeRuleModal';
 
 type DescribeRuleButtonProps = {
     /** Sentry label for the button */
-    sentryLabel: string;
+    sentryLabel: SentryLabel;
 } & (
     | {
           policyID: string;
