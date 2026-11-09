@@ -4,6 +4,7 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {MarkdownRange, MarkdownStyle} from '@expensify/react-native-live-markdown';
 import type {NavigationProp, NavigationState} from '@react-navigation/native';
@@ -176,7 +177,7 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
         onClearInput?: () => void;
 
         /** Sentry label of the clear button. Defaults to `CONST.SENTRY_LABEL.TEXT_INPUT.CLEAR_BUTTON` */
-        clearButtonSentryLabel?: string;
+        clearButtonSentryLabel?: SentryLabel;
 
         /** Whether the input should be enforced to take full height of container. Default is `false` */
         shouldUseFullInputHeight?: boolean;
