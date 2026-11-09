@@ -117,6 +117,7 @@ function ConnectionsReceiptPartnersPage({route}: ConnectionsReceiptPartnersPageP
                                         titleStyle={styles.pr3}
                                         title={translate('workspace.receiptPartners.uber.autoInvite')}
                                         switchAccessibilityLabel={translate('workspace.receiptPartners.uber.autoInvite')}
+                                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.UBER_AUTO_INVITE_SWITCH}
                                         onToggle={toggleUberAutoInvite}
                                         isActive={isAutoInvite}
                                         disabled={!canWriteMoreFeatures}
@@ -130,6 +131,7 @@ function ConnectionsReceiptPartnersPage({route}: ConnectionsReceiptPartnersPageP
                                         titleStyle={styles.pr3}
                                         title={translate('workspace.receiptPartners.uber.autoRemove')}
                                         switchAccessibilityLabel={translate('workspace.receiptPartners.uber.autoRemove')}
+                                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.UBER_AUTO_REMOVE_SWITCH}
                                         onToggle={toggleUberAutoRemove}
                                         isActive={isAutoRemove}
                                         disabled={!canWriteMoreFeatures}

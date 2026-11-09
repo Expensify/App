@@ -1,7 +1,6 @@
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DomainMemberBulkActionType, DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -85,21 +84,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     });
 
     const {filterConfig, isItemInFilter, shouldShowGroupFilter, shouldShowGroupColumn, groups} = useDomainGroupFilter(domainAccountID);
-
-    const membersFeatureListItems: FeatureListItem[] = [
-        {
-            icon: illustrations.BuildingCross,
-            translationKey: 'domain.members.membersFeatureList.controlPolicyCreation',
-        },
-        {
-            icon: illustrations.LockClosed,
-            translationKey: 'domain.members.membersFeatureList.enableSamlSso',
-        },
-        {
-            icon: illustrations.Encryption,
-            translationKey: 'domain.members.membersFeatureList.enforce2FA',
-        },
-    ];
 
     const members: DomainMemberRowData[] = (memberIDs ?? [])
         .filter((accountID) => {
@@ -303,7 +287,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                     >
                         <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
                             <FeatureList
-                                menuItems={membersFeatureListItems}
                                 title={translate('domain.domainMembers')}
                                 renderSubtitle={() => (
                                     <SectionSubtitleHTML
@@ -321,7 +304,11 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                                 illustrationStyle={styles.emptyStateSamlIllustration}
                                 illustrationContainerStyle={[styles.cardSectionIllustrationContainer, styles.justifyContentCenter, styles.pv5]}
                                 titleStyles={styles.textHeadlineH1}
-                            />
+                            >
+                                <FeatureList.Item icon={illustrations.BuildingCross}>{translate('domain.members.membersFeatureList.controlPolicyCreation')}</FeatureList.Item>
+                                <FeatureList.Item icon={illustrations.LockClosed}>{translate('domain.members.membersFeatureList.enableSamlSso')}</FeatureList.Item>
+                                <FeatureList.Item icon={illustrations.Encryption}>{translate('domain.members.membersFeatureList.enforce2FA')}</FeatureList.Item>
+                            </FeatureList>
                         </View>
                     </ScrollView>
                 </ScreenWrapper>

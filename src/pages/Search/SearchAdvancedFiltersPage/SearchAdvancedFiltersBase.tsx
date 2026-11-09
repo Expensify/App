@@ -94,7 +94,7 @@ function SearchAdvancedFiltersBase() {
                                 style={({pressed}) => [styles.typeFilterMenu, pressed && styles.buttonHoveredBG]}
                                 accessible
                                 accessibilityLabel={translate('search.filters.describeSearch.title')}
-                                sentryLabel="SearchAdvancedFiltersBase-DescribeSearch"
+                                sentryLabel={CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTERS_BASE_DESCRIBE_SEARCH}
                                 onPress={() => Navigation.navigate(ROUTES.SEARCH_NL_FILTER)}
                             >
                                 {({pressed}) => (

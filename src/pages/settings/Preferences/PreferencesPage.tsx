@@ -12,6 +12,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,6 +21,7 @@ import {togglePlatformMute, updateNewsletterSubscription} from '@libs/actions/Us
 import getPlatform from '@libs/getPlatform';
 import type Platform from '@libs/getPlatform/types';
 import Navigation from '@libs/Navigation/Navigation';
+import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
 
 import colors from '@styles/theme/colors';
 import {getBaseTheme} from '@styles/theme/utils';
@@ -47,6 +49,8 @@ function PreferencesPage() {
     const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+    const [formattedHomeAddress] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {selector: getFormattedAddress});
+    const {isBetaEnabled} = usePermissions();
 
     const personalPolicy = usePolicy(personalPolicyID);
 
@@ -72,7 +76,10 @@ function PreferencesPage() {
                 shouldDisplayHelpButton
                 onBackButtonPress={Navigation.goBack}
             />
-            <ScrollView contentContainerStyle={styles.pt3}>
+            <ScrollView
+                contentContainerStyle={styles.pt3}
+                addBottomSafeAreaPadding
+            >
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section
                         title={translate('preferencesPage.appSection.title')}
@@ -95,6 +102,7 @@ function PreferencesPage() {
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
                                         accessibilityLabel={translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
+                                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.FEATURE_UPDATES_SWITCH}
                                         isOn={account?.isSubscribedToNewsletter ?? true}
                                         onToggle={updateNewsletterSubscription}
                                     />
@@ -112,6 +120,7 @@ function PreferencesPage() {
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
                                         accessibilityLabel={translate('preferencesPage.muteAllSounds')}
+                                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.MUTE_ALL_SOUNDS_SWITCH}
                                         isOn={isPlatformMuted ?? false}
                                         onToggle={() => togglePlatformMute(platform, mutedPlatforms)}
                                     />
@@ -164,6 +173,26 @@ function PreferencesPage() {
                             </MenuItemSectionRoot>
                         </View>
                     </Section>
+                    {isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS) && (
+                        <Section
+                            title={translate('preferencesPage.distanceSection.title')}
+                            titleStyles={styles.accountSettingsSectionTitle}
+                            childrenStyles={styles.pt3}
+                            isCentralPane
+                        >
+                            <MenuItemSectionRoot
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_HOME_ADDRESS)}
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.HOME_ADDRESS}
+                            >
+                                <MenuItemField.Row
+                                    name={translate('privatePersonalDetails.address')}
+                                    value={formattedHomeAddress}
+                                >
+                                    <MenuItem.Chevron />
+                                </MenuItemField.Row>
+                            </MenuItemSectionRoot>
+                        </Section>
+                    )}
                 </View>
             </ScrollView>
         </ScreenWrapper>

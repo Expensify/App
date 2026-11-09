@@ -51,6 +51,7 @@ function QuickbooksDesktopClassesPage({policy}: WithPolicyProps) {
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}
                 switchAccessibilityLabel={translate('workspace.qbd.classes')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.IMPORT_CLASSES_SWITCH}
                 isActive={isSwitchOn}
                 onToggle={() =>
                     QuickbooksDesktop.updateQuickbooksDesktopSyncClasses(
