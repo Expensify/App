@@ -1,4 +1,5 @@
 import FormHelpMessage from '@components/FormHelpMessage';
+import FSClassView from '@components/FSClassView';
 import type {Choice} from '@components/RadioButtons';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
@@ -95,9 +96,9 @@ function InlineSelectionListAdapter(props: InlineSelectionListAdapterProps) {
     };
 
     return (
-        <View
+        <FSClassView
             ref={ref}
-            fsClass={forwardedFSClass}
+            forwardedFSClass={forwardedFSClass}
         >
             <SelectionList
                 data={data}
@@ -114,7 +115,7 @@ function InlineSelectionListAdapter(props: InlineSelectionListAdapterProps) {
                     <FormHelpMessage message={errorText} />
                 </View>
             )}
-        </View>
+        </FSClassView>
     );
 }
 
