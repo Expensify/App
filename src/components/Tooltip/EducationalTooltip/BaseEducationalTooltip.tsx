@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import type {HostInstance, LayoutRectangle, NativeSyntheticEvent} from 'react-native';
 
 import {NavigationContext, useIsFocused} from '@react-navigation/native';
-import React, {memo, useCallback, useContext, useEffect, useEffectEvent, useLayoutEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useEffectEvent, useLayoutEffect, useRef, useState} from 'react';
 import {DeviceEventEmitter, Dimensions} from 'react-native';
 
 import measureTooltipCoordinate, {getTooltipCoordinates} from './measureTooltipCoordinate';
@@ -50,7 +50,7 @@ function BaseEducationalTooltip({
 
     const shouldSuppressTooltip = !isFocused && shouldHideOnNavigate;
 
-    const renderTooltip = useCallback(() => {
+    const renderTooltip = () => {
         if (!tooltipElementRef.current || !genericTooltipStateRef.current || shouldSuppressTooltip) {
             return;
         }
@@ -98,7 +98,7 @@ function BaseEducationalTooltip({
                 showTooltip();
             }
         });
-    }, [contentHeaderHeight, insets.top, insets.bottom, insets.left, shouldHideOnScroll, shouldShowTooltip, shouldSuppressTooltip]);
+    };
 
     useEffect(() => {
         if (!genericTooltipStateRef.current || !shouldRender) {
@@ -117,21 +117,18 @@ function BaseEducationalTooltip({
         }
     }, [isResizing, renderTooltip, shouldRender, uniqueID]);
 
-    const setTooltipPosition = useCallback(
-        (isScrolling: boolean) => {
-            if (!shouldHideOnScroll || !genericTooltipStateRef.current) {
-                return;
-            }
+    const setTooltipPosition = (isScrolling: boolean) => {
+        if (!shouldHideOnScroll || !genericTooltipStateRef.current) {
+            return;
+        }
 
-            const {hideTooltip} = genericTooltipStateRef.current;
-            if (isScrolling) {
-                hideTooltip();
-            } else {
-                renderTooltip();
-            }
-        },
-        [renderTooltip, shouldHideOnScroll],
-    );
+        const {hideTooltip} = genericTooltipStateRef.current;
+        if (isScrolling) {
+            hideTooltip();
+        } else {
+            renderTooltip();
+        }
+    };
 
     useLayoutEffect(() => {
         if (!shouldRender || !shouldHideOnScroll) {
@@ -237,4 +234,4 @@ function BaseEducationalTooltip({
     );
 }
 
-export default memo(BaseEducationalTooltip);
+export default BaseEducationalTooltip;

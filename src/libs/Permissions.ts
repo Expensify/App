@@ -8,8 +8,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import type Environment from './Environment/getEnvironment/types';
 
-import getPlatform from './getPlatform';
-
 /**
  * Overrides are a test tool, so they never apply in production.
  * Android staging and TestFlight are compiled as production, so only the resolved environment tells a real production
@@ -38,11 +36,6 @@ function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration: 
         if (override !== undefined) {
             return override;
         }
-    }
-
-    // Release desktop web independently while the native navigation fixes roll out.
-    if ((beta === CONST.BETAS.INSIGHTS_PAGE || beta === CONST.BETAS.INSIGHTS_COMPARE) && getPlatform(true) === CONST.PLATFORM.WEB) {
-        return true;
     }
 
     const hasAllBetasEnabled = canUseAllBetas(betas);

@@ -5,13 +5,10 @@ import DropZoneUI from '@components/DropZone/DropZoneUI';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LoadingIndicator from '@components/LoadingIndicator';
-import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import ParticipantPicker from '@components/ParticipantPicker';
 import PrevNextButtons from '@components/PrevNextButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 
-import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFetchRoute from '@hooks/useFetchRoute';
@@ -26,6 +23,7 @@ import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
+import useStableArrayReference from '@hooks/useStableArrayReference';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -34,19 +32,16 @@ import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
-    getIsWorkspacesOnlyForTransaction,
     getSelectedWorkspacePolicyID,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     isSelfDMSoleDestination,
     navigateToStartMoneyRequestStep,
     pickReportForPolicy,
-    resolveOptimisticChatReportID,
     resolveReportForMoneyRequest,
     shouldShowReceiptEmptyState,
     shouldUseTransactionDraft,
 } from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
@@ -58,6 +53,7 @@ import {
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
     isPartiallyEnteredScanExpense,
+    isScanning,
     isScanRequest,
 } from '@libs/TransactionUtils';
 
@@ -68,13 +64,18 @@ import MoneyRequestInitializer from '@pages/iou/request/step/confirmation/MoneyR
 import ReceiptFileValidator from '@pages/iou/request/step/confirmation/ReceiptFileValidator';
 import useSubmissionOnboardingIntent from '@pages/iou/request/step/confirmation/submission/useSubmissionOnboardingIntent';
 import useSubmitLock from '@pages/iou/request/step/confirmation/submission/useSubmitLock';
-import SubmitExpenseOrchestrator from '@pages/iou/request/step/confirmation/SubmitExpenseOrchestrator';
+import {resolveSubmissionPath, SUBMISSION_PATH} from '@pages/iou/request/step/confirmation/submission/utils/resolveSubmissionPath';
 import TelemetrySpanManager from '@pages/iou/request/step/confirmation/TelemetrySpanManager';
-import useExpenseSubmission from '@pages/iou/request/step/confirmation/useExpenseSubmission';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 
-import {getIOURequestPolicyID, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
+import {
+    copyScanResultsToMovedExpenseDraft,
+    getIOURequestPolicyID,
+    getSyncedParticipantAccountIDs,
+    setMoneyRequestParticipantsFromReport,
+    setMoneyRequestParticipantsSyncedAccountIDs,
+} from '@userActions/IOU/MoneyRequest';
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 
 import CONST from '@src/CONST';
@@ -82,19 +83,70 @@ import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {Report} from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 
+import type {OnyxCollection} from 'react-native-onyx';
+
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React, {startTransition, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {startTransition, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import type {IOURequestStepConfirmationProps, StepConfirmationParams} from './types';
+import type {ConfirmationSubmissionParams, ConfirmationVariantProps} from './variants/types';
 
 import useConfirmationTransactionPager from './useConfirmationTransactionPager';
 import useParticipantPickerState from './useParticipantPickerState';
 import useSubmitDestinationPreMount from './useSubmitDestinationPreMount';
+import DistanceConfirmation from './variants/DistanceConfirmation';
+import InvoiceConfirmation from './variants/InvoiceConfirmation';
+import PayConfirmation from './variants/PayConfirmation';
+import PerDiemConfirmation from './variants/PerDiemConfirmation';
+import RequestMoneyConfirmation from './variants/RequestMoneyConfirmation';
+import SplitConfirmation from './variants/SplitConfirmation';
+
+type ConfirmationParticipantsParams = Pick<
+    Parameters<typeof getReportOption>[0],
+    'policy' | 'personalDetails' | 'conciergeReportID' | 'reportAttributesDerived' | 'currentUserAccountID' | 'localize' | 'rules'
+> & {
+    participants: Participant[] | undefined;
+    iouType: IOUType;
+    privateIsArchivedMap: ReturnType<typeof usePrivateIsArchivedMap>;
+    participantsPolicies: ReturnType<typeof useParticipantsPolicies>;
+    reportDrafts: OnyxCollection<Report>;
+};
+
+function useConfirmationParticipants({participants, iouType, privateIsArchivedMap, participantsPolicies, reportDrafts, ...reportOptions}: ConfirmationParticipantsParams) {
+    // Keep the projected rows immutable across the receipt-validation and list hooks.
+    'use memo';
+
+    return (
+        participants?.map((participant) => {
+            if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
+                return participant;
+            }
+            const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
+            const participantReportDraft = reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`];
+            // Newly created draft workspaces are not in participantsPolicies yet.
+            const participantPolicy =
+                (participant.policyID ? participantsPolicies[participant.policyID] : reportOptions.policy) ??
+                (participant.policyID === reportOptions.policy?.id ? reportOptions.policy : undefined);
+            // Phone contacts have an optimistic accountID but no reportID, so keep their participant text.
+            return participant.accountID || !participant.reportID
+                ? getParticipantsOption(participant, reportOptions.personalDetails, reportOptions.localize.translate)
+                : getReportOption({
+                      ...reportOptions,
+                      participant,
+                      privateIsArchived,
+                      policy: participantPolicy,
+                      reportDraft: participantReportDraft,
+                      pendingDeleteMemberAccountIDs: undefined,
+                  });
+        }) ?? []
+    );
+}
 
 function IOURequestStepConfirmationContent({
     report: reportReal,
@@ -117,6 +169,7 @@ function IOURequestStepConfirmationContent({
         transactions,
         transaction,
         existingTransaction,
+        optimisticTransaction,
         currentTransactionID,
         currentTransactionIndex,
         setCurrentTransactionID,
@@ -127,9 +180,8 @@ function IOURequestStepConfirmationContent({
     const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${initialTransaction?.participants?.at(0)?.reportID}`);
     const hasMultipleTransactions = transactions.length > 1;
 
-    // Depend on transactions.length to avoid updating transactionIDs when only the transaction details change
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const transactionIDs = useMemo(() => transactions?.map((item) => item.transactionID), [transactions.length]);
+    // Draft edits must not reapply policy defaults when the transaction IDs have not changed.
+    const transactionIDs = useStableArrayReference(transactions.map((item) => item.transactionID));
     const requestType = getRequestType(transaction);
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -156,19 +208,15 @@ function IOURequestStepConfirmationContent({
      * to ensure proper navigation after expense creation.
      */
     const transactionReport = useReportOrReportDraft(transaction?.reportID);
-    const reportWithDraftFallback = useMemo(() => reportReal ?? reportDraft, [reportDraft, reportReal]);
-    const shouldHideToSection = useMemo(() => isMoneyRequestReport(reportWithDraftFallback), [reportWithDraftFallback]);
-    const report = useMemo(
-        () =>
-            resolveReportForMoneyRequest({
-                transaction,
-                transactionReport,
-                routeReport: reportWithDraftFallback,
-                reportNameValuePair,
-                rules,
-            }),
-        [transaction, transactionReport, reportWithDraftFallback, reportNameValuePair, rules],
-    );
+    const reportWithDraftFallback = reportReal ?? reportDraft;
+    const shouldHideToSection = isMoneyRequestReport(reportWithDraftFallback);
+    const report = resolveReportForMoneyRequest({
+        transaction,
+        transactionReport,
+        routeReport: reportWithDraftFallback,
+        reportNameValuePair,
+        rules,
+    });
     const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
 
     const {policy} = usePolicyForTransaction({
@@ -208,12 +256,6 @@ function IOURequestStepConfirmationContent({
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
     const isManualRequest = transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
-    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
-        policyID: policy?.id,
-        isDistanceRequest,
-        isManualDistanceRequest,
-        isOdometerDistanceRequest,
-    });
     const isTimeRequest = requestType === CONST.IOU.REQUEST_TYPE.TIME;
     const {isLookingAroundUser} = useSubmissionOnboardingIntent();
     const privateIsArchivedMap = usePrivateIsArchivedMap();
@@ -227,29 +269,33 @@ function IOURequestStepConfirmationContent({
     // The user can fill in the amount, merchant and date on the Scan tab instead of waiting for SmartScan, so the Scan
     // confirmation reveals those fields behind "Show more" as well. This only applies to a scan being created: a
     // tracked expense being moved already carries real values, and its emptiness
-    // can't be told from the `isAmountSet` / `isMerchantSet` / `isCreatedSet` flags a fresh draft uses. Splits are
-    // excluded too because StartSplitBill takes no amount/merchant/date (the details are filled in once the receipt
-    // has been scanned), and so are test receipts, whose values are fixed.
+    // can't be told from the `isAmountSet` / `isMerchantSet` / `isCreatedSet` flags a fresh draft uses. Test receipts
+    // are excluded too, since their values are fixed. A split scan sends the entered values with StartSplitBill.
     const canEnterScanFieldsManually =
-        requestType === CONST.IOU.REQUEST_TYPE.SCAN &&
-        !isMovingTransactionFromTrackExpense &&
-        iouType !== CONST.IOU.TYPE.SPLIT &&
-        !transaction?.receipt?.isTestReceipt &&
-        !transaction?.receipt?.isTestDriveReceipt;
+        requestType === CONST.IOU.REQUEST_TYPE.SCAN && !isMovingTransactionFromTrackExpense && !transaction?.receipt?.isTestReceipt && !transaction?.receipt?.isTestDriveReceipt;
 
     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).length && isScanRequest(transaction);
-    const headerTitle = useMemo(() => {
-        if (isCategorizingTrackExpense) {
-            return translate('iou.categorize');
+    let headerTitle;
+    if (isCategorizingTrackExpense) {
+        headerTitle = translate('iou.categorize');
+    } else if (isSharingTrackExpense) {
+        headerTitle = translate('iou.share');
+    } else if (iouType === CONST.IOU.TYPE.INVOICE) {
+        headerTitle = translate('workspace.invoices.sendInvoice');
+    } else {
+        headerTitle = translate('iou.confirmDetails');
+    }
+
+    // A moved tracked expense is shown from a draft copied when the move started, so a scan that completes while this
+    // page is open only reaches the real transaction. Copy the results over so the fields stop showing "Scanning…".
+    const isDraftScanning = isScanning(transaction);
+    const isExistingTransactionScanning = isScanning(existingTransaction);
+    useEffect(() => {
+        if (!isMovingTransactionFromTrackExpense || !isDraftScanning || !existingTransaction || isExistingTransactionScanning) {
+            return;
         }
-        if (isSharingTrackExpense) {
-            return translate('iou.share');
-        }
-        if (iouType === CONST.IOU.TYPE.INVOICE) {
-            return translate('workspace.invoices.sendInvoice');
-        }
-        return translate('iou.confirmDetails');
-    }, [iouType, translate, isSharingTrackExpense, isCategorizingTrackExpense]);
+        copyScanResultsToMovedExpenseDraft(transaction, existingTransaction);
+    }, [isMovingTransactionFromTrackExpense, isDraftScanning, isExistingTransactionScanning, transaction, existingTransaction]);
 
     useEffect(() => {
         if (!transaction?.transactionID || !transactionReport || iouType !== CONST.IOU.TYPE.PAY) {
@@ -258,104 +304,70 @@ function IOURequestStepConfirmationContent({
         setMoneyRequestParticipantsFromReport(transaction.transactionID, transactionReport, currentUserPersonalDetails.accountID);
     }, [transactionReport, currentUserPersonalDetails.accountID, transaction?.transactionID, iouType]);
 
+    // A recipient created offline keeps an optimistic accountID in the draft until the request that created them syncs.
+    // Move the draft to the real accountID then, so the existing chat is found and split shares stay on the shown row.
+    // This only reads the draft and Onyx, so it also works when the sync happened before this page opened. Until a
+    // participant's accountID drops out of personal details, getSyncedParticipantAccountIDs returns early and nothing is merged.
+    useEffect(() => {
+        const syncedParticipantAccountIDs = getSyncedParticipantAccountIDs(
+            optimisticTransaction?.participants,
+            personalDetails,
+            participantReport ?? transactionReport,
+            currentUserPersonalDetails.accountID,
+        );
+        setMoneyRequestParticipantsSyncedAccountIDs(optimisticTransaction, syncedParticipantAccountIDs);
+    }, [optimisticTransaction, personalDetails, participantReport, transactionReport, currentUserPersonalDetails.accountID]);
+
     const participantsPolicies = useParticipantsPolicies(transaction?.participants ?? []);
 
-    const participants = useMemo(
-        () =>
-            transaction?.participants?.map((participant) => {
-                if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
-                    return participant;
-                }
-                const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
-                const participantReportDraft = reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`];
-                // participantsPolicies only holds persisted policies, so fall back to the transaction policy when it's this
-                // participant's workspace — e.g. a freshly created draft workspace ("Submit to my employer" with no existing one).
-                const participantPolicy = (participant.policyID ? participantsPolicies[participant.policyID] : policy) ?? (participant.policyID === policy?.id ? policy : undefined);
-                // Phone contacts always have an optimistic accountID but no reportID; getReportOption
-                // is designed for report-backed participants and discards participant.text, so route
-                // any participant without a reportID to getParticipantsOption instead.
-                return participant.accountID || !participant.reportID
-                    ? getParticipantsOption(participant, personalDetails, translate)
-                    : getReportOption({
-                          participant,
-                          privateIsArchived,
-                          policy: participantPolicy,
-                          personalDetails,
-                          conciergeReportID,
-                          reportAttributesDerived,
-                          reportDraft: participantReportDraft,
-                          currentUserAccountID: currentUserPersonalDetails.accountID,
-                          localize: {translate, dateFnsLocale, convertToDisplayString, formatPhoneNumber},
-                          rules,
-                          // Passing pendingDeleteMemberAccountIDs as undefined is intentional, isValidReport keeps group chats out of this list because the config here leaves includeMultipleParticipantReports false.
-                          pendingDeleteMemberAccountIDs: undefined,
-                      });
-            }) ?? [],
-        [
-            dateFnsLocale,
-            transaction?.participants,
-            iouType,
-            personalDetails,
-            reportAttributesDerived,
-            privateIsArchivedMap,
-            participantsPolicies,
-            policy,
-            conciergeReportID,
-            reportDrafts,
-            translate,
-            convertToDisplayString,
-            currentUserPersonalDetails.accountID,
-            formatPhoneNumber,
-            rules,
-        ],
-    );
+    const participants = useConfirmationParticipants({
+        participants: transaction?.participants,
+        iouType,
+        privateIsArchivedMap,
+        participantsPolicies,
+        reportDrafts,
+        policy,
+        personalDetails,
+        conciergeReportID,
+        reportAttributesDerived,
+        currentUserAccountID: currentUserPersonalDetails.accountID,
+        localize: {translate, dateFnsLocale, convertToDisplayString, formatPhoneNumber},
+        rules,
+    });
 
-    const {
-        defaultParticipants,
-        isParticipantPickerVisible,
-        participantPickerIOUType,
-        openParticipantPicker,
-        closeParticipantPicker,
-        closeParticipantPickerForReferralNavigation,
-        handleParticipantsAdded,
-    } = useParticipantPickerState({
+    const {defaultParticipants, openParticipantPicker} = useParticipantPickerState({
         transaction,
         iouType,
+        action,
         reportID,
         reportDrafts,
         navigation,
-        policyID,
-        isDistanceRequest,
         isManualRequest,
-        blockDistanceRequestIfNeeded,
     });
 
-    const isPolicyExpenseChat = useMemo(() => {
-        const hasPolicyExpenseChat = (participantList: typeof defaultParticipants) =>
-            participantList.some((participant) => {
-                if (isPolicyExpenseChatUtils(participant)) {
-                    return true;
-                }
-
-                return (
-                    !!participant?.reportID &&
-                    isPolicyExpenseChatUtils(
-                        getReportOrDraftReport(participant.reportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`] ?? {}),
-                    )
-                );
-            });
-
-        if (isPolicyExpenseChatUtils(report)) {
-            return true;
-        }
-
+    let isPolicyExpenseChat;
+    const hasPolicyExpenseChat = (participantList: typeof defaultParticipants) =>
+        participantList.some((participant) => {
+            if (isPolicyExpenseChatUtils(participant)) {
+                return true;
+            }
+            return (
+                !!participant?.reportID &&
+                isPolicyExpenseChatUtils(
+                    getReportOrDraftReport({reportID: participant.reportID, reportDraft: reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`] ?? {}}),
+                )
+            );
+        });
+    if (isPolicyExpenseChatUtils(report)) {
+        isPolicyExpenseChat = true;
+    } else {
         const transactionParticipants = transaction?.participants ?? [];
         if (hasPolicyExpenseChat(transactionParticipants)) {
-            return true;
+            isPolicyExpenseChat = true;
+        } else {
+            isPolicyExpenseChat = hasPolicyExpenseChat(defaultParticipants);
         }
-
-        return hasPolicyExpenseChat(defaultParticipants);
-    }, [report, transaction?.participants, defaultParticipants, reportDrafts]);
+    }
 
     // The confirmation only validates the transaction it shows, so find the partially filled one across all receipts.
     const partiallyManuallyFilledScanID = transactions.find((item) => isPartiallyEnteredScanExpense(item, canEnterScanFieldsManually, isPolicyExpenseChat))?.transactionID;
@@ -387,7 +399,7 @@ function IOURequestStepConfirmationContent({
     const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserPersonalDetails.accountID);
 
     const submitLock = useSubmitLock();
-    const {isConfirmed, setIsConfirmed, formHasBeenSubmitted} = submitLock;
+    const {isConfirmed, formHasBeenSubmitted} = submitLock;
 
     const {destinationReportID, optimisticP2PDestinationReportID, preMountDestinationReportID, revealPreMountDestination, cleanupPreMount, onExpenseWriteWillStart} =
         useSubmitDestinationPreMount({
@@ -407,7 +419,13 @@ function IOURequestStepConfirmationContent({
             formHasBeenSubmitted,
         });
 
-    const {createTransaction, sendMoney} = useExpenseSubmission({
+    // "Submit to my employer" with no existing workspace creates a draft Submit (submit2026) workspace. Route it
+    // through trackExpense (AddTrackedExpenseToPolicy) so the workspace is created and the expense submitted
+    // atomically, instead of requestMoney/ConvertTrackedExpenseToRequest which can't create a workspace.
+    // Scoped to submit2026 drafts only so other (team/corporate) draft flows keep their existing behavior.
+    const isSubmittingExpenseToDraftWorkspace = action === CONST.IOU.ACTION.SUBMIT && isDraftPolicy && policy?.type === CONST.POLICY.TYPE.SUBMIT;
+
+    const submissionParams: ConfirmationSubmissionParams = {
         reportDrafts,
         transaction,
         transactions,
@@ -421,23 +439,36 @@ function IOURequestStepConfirmationContent({
         currentUserPersonalDetails,
         personalDetails,
         participants,
+        selectedParticipants: participants.filter((participant) => participant.selected),
         iouType,
         action,
-        isDistanceRequest,
         isManualDistanceRequest,
         isOdometerDistanceRequest,
-        isPerDiemRequest,
         isTimeRequest,
         isMovingTransactionFromTrackExpense,
         isCategorizingTrackExpense,
         isSharingTrackExpense,
-        isUnreported,
         isPolicyExpenseChat,
+        isSelfDMDestination,
+        isSubmittingExpenseToDraftWorkspace,
         draftTransactionIDs,
         privateIsArchivedMap,
         backToReport,
         onExpenseWriteWillStart,
         submitLock,
+    };
+
+    const submissionPath = resolveSubmissionPath({
+        iouType,
+        action,
+        isDistanceRequest,
+        isPerDiemRequest,
+        isCategorizingTrackExpense,
+        isSharingTrackExpense,
+        isSelfDMDestination,
+        isMovingTransactionFromTrackExpense,
+        isUnreported,
+        isSubmittingExpenseToDraftWorkspace,
     });
 
     // handleSearchDismiss doesn't pre-insert - it just dismisses the modal when search is
@@ -459,54 +490,7 @@ function IOURequestStepConfirmationContent({
         };
     }, []);
 
-    const handleSendMoney = useCallback(
-        (paymentMethod: PaymentMethodType | undefined) => {
-            if (isConfirmed) {
-                return;
-            }
-
-            if (paymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && paymentMethod !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                sendMoney(paymentMethod);
-                return;
-            }
-
-            const participant = participants.at(0);
-            if (!participant) {
-                sendMoney(paymentMethod);
-                return;
-            }
-
-            const resolvedReportIDs = optimisticP2PDestinationReportID
-                ? {optimisticChatReportID: optimisticP2PDestinationReportID, chatReportID: optimisticP2PDestinationReportID}
-                : resolveOptimisticChatReportID([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID], report);
-            const payDestinationReportID = optimisticP2PDestinationReportID ?? destinationReportID ?? resolvedReportIDs.chatReportID;
-            if (!payDestinationReportID || Navigation.getTopmostReportId() === payDestinationReportID) {
-                sendMoney(paymentMethod, {resolvedReportIDs});
-                return;
-            }
-
-            setIsConfirmed(true);
-            submitWithDismissFirst({
-                executeWrite: (overrides) =>
-                    sendMoney(paymentMethod, {
-                        shouldHandleNavigation: overrides.shouldHandleNavigation,
-                        resolvedReportIDs,
-                        shouldStartTracking: false,
-                    }),
-                destinationReportID: payDestinationReportID,
-                telemetryContext: {
-                    scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SEND_MONEY,
-                    iouType: CONST.IOU.TYPE.PAY,
-                    requestType: CONST.IOU.TYPE.PAY,
-                    isFromGlobalCreate: !report?.reportID,
-                    hasReceipt: !!transaction?.receipt,
-                },
-            });
-        },
-        [currentUserPersonalDetails.accountID, destinationReportID, isConfirmed, optimisticP2PDestinationReportID, setIsConfirmed, participants, report, sendMoney, transaction?.receipt],
-    );
-
-    const navigateBack = useCallback(() => {
+    const navigateBack = () => {
         // User is explicitly abandoning the flow - cancel any active telemetry span.
         // The orchestrator never calls navigateBack (it uses dismissModal), so this
         // reliably distinguishes user-initiated back from programmatic dismiss.
@@ -570,48 +554,19 @@ function IOURequestStepConfirmationContent({
 
         // This has selected the participants from the beginning and the participant field shouldn't be editable.
         navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID, action, backToReport);
-    }, [
-        action,
-        isPerDiemRequest,
-        isCreatingTrackExpense,
-        transaction?.isFromGlobalCreate,
-        transaction?.isReusedRoute,
-        transaction?.receipt?.isTestReceipt,
-        transaction?.participantsAutoAssigned,
-        transaction?.reportID,
-        requestType,
-        iouType,
-        initialTransactionID,
-        reportID,
-        isMovingTransactionFromTrackExpense,
-        participantsAutoAssignedFromRoute,
-        backTo,
-        backToReport,
-        // usePreMountDestination compiles under React Compiler, so cleanupPreMount has a stable identity (it closes over refs
-        // only) - this dep does not churn navigateBack per render.
-        cleanupPreMount,
-    ]);
+    };
 
-    const setBillable = useCallback(
-        (billable: boolean) => {
-            setMoneyRequestBillable(currentTransactionID, billable);
-        },
-        [currentTransactionID],
-    );
+    const setBillable = (billable: boolean) => {
+        setMoneyRequestBillable(currentTransactionID, billable);
+    };
 
-    const setReimbursable = useCallback(
-        (reimbursable: boolean) => {
-            setMoneyRequestReimbursable(currentTransactionID, reimbursable);
-        },
-        [currentTransactionID],
-    );
+    const setReimbursable = (reimbursable: boolean) => {
+        setMoneyRequestReimbursable(currentTransactionID, reimbursable);
+    };
 
     // This loading indicator is shown because the transaction originalCurrency is being updated later than the component mounts.
     // To prevent the component from rendering with the wrong currency, we show a loading indicator until the correct currency is set.
     const isLoading = !!transaction?.originalCurrency;
-
-    // Submit orchestration (fast-path selection, telemetry, navigation) is handled
-    // by SubmitExpenseOrchestrator which wraps MoneyRequestConfirmationList below.
 
     /**
      * Sets the Receipt object when dragging and dropping a file
@@ -652,6 +607,92 @@ function IOURequestStepConfirmationContent({
 
     const shouldShowSmartScanFields =
         !!transaction?.receipt?.isTestDriveReceipt || isMovingTransactionFromTrackExpense || requestType !== CONST.IOU.REQUEST_TYPE.SCAN || canEnterScanFieldsManually;
+
+    const orchestratorProps: ConfirmationVariantProps['orchestratorProps'] = {
+        destinationReportID: preMountDestinationReportID,
+        isFromGlobalCreate,
+        iouType,
+        isSelfDMDestination,
+        isLookingAroundUser,
+        requestType,
+        canDismissFromSearch,
+        gpsRequired: !!gpsRequired,
+        isDistanceRequest,
+        isMovingTransactionFromTrackExpense,
+        isUnreported,
+        isCategorizingTrackExpense,
+        isSharingTrackExpense,
+        isPerDiemRequest,
+        receiptFiles,
+        isFromGlobalCreateOnTransaction: !!transaction?.isFromGlobalCreate,
+        isFromFloatingActionButtonOnTransaction: !!transaction?.isFromFloatingActionButton,
+        revealPreMountDestination,
+    };
+
+    const listProps: ConfirmationVariantProps['listProps'] = {
+        transaction,
+        selectedParticipants: participants,
+        onOpenParticipantPicker: openParticipantPicker,
+        onToggleBillable: setBillable,
+        showRemoveExpenseConfirmModal: () => {
+            confirmRemoveCurrentTransaction();
+        },
+        receiptOptions: {
+            receiptPath,
+            receiptFilename,
+            shouldDisplayReceipt: !isMovingTransactionFromTrackExpense && (!isDistanceRequest || isManualDistanceRequest || isOdometerDistanceRequest) && !isPerDiemRequest,
+            isLoadingReceipt: isStitchingReceipt || (isOdometerDistanceRequest && !hasVerifiedBlobs),
+            isReceiptEditable: true,
+        },
+        iouType,
+        reportID,
+        isPolicyExpenseChat,
+        policyID,
+        isOdometerDistanceRequest,
+        receiptStitchError: stitchError,
+        isPerDiemRequest,
+        shouldShowSmartScanFields,
+        canEnterScanFieldsManually,
+        partiallyManuallyFilledScanID,
+        onSwitchToTransaction: setCurrentTransactionID,
+        action,
+        isConfirmed,
+        onToggleReimbursable: setReimbursable,
+        expensesNumber: transactions.length,
+        isTimeRequest,
+        shouldHideToSection,
+    };
+
+    const renderSubmissionVariant = () => {
+        const variantProps = {submissionParams, orchestratorProps, listProps};
+
+        switch (submissionPath) {
+            case SUBMISSION_PATH.PAY:
+                return (
+                    <PayConfirmation
+                        submissionParams={submissionParams}
+                        listProps={listProps}
+                        destinationReportID={destinationReportID}
+                        optimisticP2PDestinationReportID={optimisticP2PDestinationReportID}
+                    />
+                );
+            case SUBMISSION_PATH.SPLIT:
+                return <SplitConfirmation {...variantProps} />;
+            case SUBMISSION_PATH.INVOICE:
+                return <InvoiceConfirmation {...variantProps} />;
+            case SUBMISSION_PATH.PER_DIEM:
+                return <PerDiemConfirmation {...variantProps} />;
+            case SUBMISSION_PATH.DISTANCE:
+                return <DistanceConfirmation {...variantProps} />;
+            default:
+                return (
+                    <RequestMoneyConfirmation
+                        {...variantProps}
+                        submissionPath={submissionPath}
+                    />
+                );
+        }
+    };
     return (
         <>
             <TelemetrySpanManager
@@ -749,86 +790,8 @@ function IOURequestStepConfirmationContent({
                                 dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
                             />
                         </DragAndDropConsumer>
-                        <SubmitExpenseOrchestrator
-                            createTransaction={createTransaction}
-                            destinationReportID={preMountDestinationReportID}
-                            isFromGlobalCreate={isFromGlobalCreate}
-                            iouType={iouType}
-                            isSelfDMDestination={isSelfDMDestination}
-                            isLookingAroundUser={isLookingAroundUser}
-                            requestType={requestType}
-                            canDismissFromSearch={canDismissFromSearch}
-                            gpsRequired={!!gpsRequired}
-                            isDistanceRequest={isDistanceRequest}
-                            isMovingTransactionFromTrackExpense={isMovingTransactionFromTrackExpense}
-                            isUnreported={isUnreported}
-                            isCategorizingTrackExpense={isCategorizingTrackExpense}
-                            isSharingTrackExpense={isSharingTrackExpense}
-                            isPerDiemRequest={isPerDiemRequest}
-                            receiptFiles={receiptFiles}
-                            isFromGlobalCreateOnTransaction={!!transaction?.isFromGlobalCreate}
-                            isFromFloatingActionButtonOnTransaction={!!transaction?.isFromFloatingActionButton}
-                            revealPreMountDestination={revealPreMountDestination}
-                        >
-                            {({onConfirm, isConfirming}) => (
-                                <MoneyRequestConfirmationList
-                                    transaction={transaction}
-                                    selectedParticipants={participants}
-                                    isParticipantPickerVisible={isParticipantPickerVisible}
-                                    onOpenParticipantPicker={openParticipantPicker}
-                                    onToggleBillable={setBillable}
-                                    onConfirm={onConfirm}
-                                    onSendMoney={handleSendMoney}
-                                    showRemoveExpenseConfirmModal={() => {
-                                        confirmRemoveCurrentTransaction();
-                                    }}
-                                    receiptOptions={{
-                                        receiptPath,
-                                        receiptFilename,
-                                        shouldDisplayReceipt:
-                                            !isMovingTransactionFromTrackExpense && (!isDistanceRequest || isManualDistanceRequest || isOdometerDistanceRequest) && !isPerDiemRequest,
-                                        isLoadingReceipt: isStitchingReceipt || (isOdometerDistanceRequest && !hasVerifiedBlobs),
-                                        isReceiptEditable: true,
-                                    }}
-                                    iouType={iouType as Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>}
-                                    reportID={reportID}
-                                    isPolicyExpenseChat={isPolicyExpenseChat}
-                                    policyID={policyID}
-                                    isOdometerDistanceRequest={isOdometerDistanceRequest}
-                                    receiptStitchError={stitchError}
-                                    isPerDiemRequest={isPerDiemRequest}
-                                    shouldShowSmartScanFields={shouldShowSmartScanFields}
-                                    canEnterScanFieldsManually={canEnterScanFieldsManually}
-                                    partiallyManuallyFilledScanID={partiallyManuallyFilledScanID}
-                                    onSwitchToTransaction={setCurrentTransactionID}
-                                    action={action}
-                                    isConfirmed={isConfirmed}
-                                    isConfirming={isConfirming}
-                                    onToggleReimbursable={setReimbursable}
-                                    expensesNumber={transactions.length}
-                                    isTimeRequest={isTimeRequest}
-                                    shouldHideToSection={shouldHideToSection}
-                                />
-                            )}
-                        </SubmitExpenseOrchestrator>
-                        <ParticipantPicker
-                            participants={participants}
-                            iouType={participantPickerIOUType}
-                            action={action}
-                            isPerDiemRequest={isPerDiemRequest}
-                            isTimeRequest={isTimeRequest}
-                            isWorkspacesOnly={getIsWorkspacesOnlyForTransaction(transaction, requestType)}
-                            shouldExcludeP2P={(transaction?.amount ?? 0) < 0}
-                            onParticipantsAdded={handleParticipantsAdded}
-                            onFinish={closeParticipantPicker}
-                            isVisible={isParticipantPickerVisible}
-                            onClose={closeParticipantPicker}
-                            onCloseForReferralNavigation={closeParticipantPickerForReferralNavigation}
-                            // Clicking the backdrop (outside the panel) should dismiss the whole expense creation RHP,
-                            // matching standard RHP behavior, not just close the stacked participant picker.
-                            onBackdropPress={() => Navigation.dismissModal()}
-                            shouldBlockParticipantSelection={blockDistanceRequestIfNeeded}
-                        />
+
+                        {renderSubmissionVariant()}
                     </View>
                 </View>
             </DragAndDropProvider>

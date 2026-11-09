@@ -358,7 +358,7 @@ describe('ExpenseReportListItemAvatar', () => {
         });
 
         it('returns nothing when primaryAvatar is undefined but secondaryAvatar is provided', async () => {
-            const avatarIcons = getIcons(expenseReport, formatPhoneNumber, translateLocal, personalDetails, null, '', -1, policy);
+            const avatarIcons = getIcons({report: expenseReport, formatPhoneNumber, translate: translateLocal, personalDetails, policy});
             const {images} = await retrieveAvatarData(
                 createMock<ExpenseReportListItemType>({
                     keyForList: expenseReport.reportID,
@@ -373,7 +373,7 @@ describe('ExpenseReportListItemAvatar', () => {
         });
 
         it('renders single avatar when avatarType is SINGLE even if secondaryAvatar is provided', async () => {
-            const avatarIcons = getIcons(expenseReport, formatPhoneNumber, translateLocal, personalDetails, null, '', -1, policy);
+            const avatarIcons = getIcons({report: expenseReport, formatPhoneNumber, translate: translateLocal, personalDetails, policy});
             const {images, fragments} = await retrieveAvatarData(
                 createMock<ExpenseReportListItemType>({
                     keyForList: expenseReport.reportID,

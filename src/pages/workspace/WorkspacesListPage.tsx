@@ -389,7 +389,7 @@ function WorkspacesListPage() {
                     text: translate('workspace.common.unarchive'),
                     icon: icons.ArrowCircleClockwise,
                     shouldSkipFocusRestore: true,
-                    onSelected: callFunctionIfActionIsAllowed(() => setActiveFlow({type, policyID: firstPolicyID})),
+                    onSelected: callFunctionIfActionIsAllowed(() => setActiveFlow({type, policyID: firstPolicyID}), false, session),
                 };
             case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.LEAVE:
             default:
@@ -398,18 +398,22 @@ function WorkspacesListPage() {
                     text: translate('common.leave'),
                     icon: icons.Exit,
                     shouldSkipFocusRestore: true,
-                    onSelected: callFunctionIfActionIsAllowed(() => {
-                        if (isSingleSelection) {
-                            setActiveFlow({type, policyID: firstPolicyID});
-                            return;
-                        }
-                        confirmBulkAction(policyIDs, translate('workspace.common.leaveWorkspacesTitle', {count: policyIDs.length}), translate('common.leave'), () =>
-                            leaveWorkspaces(
-                                currentUserPersonalDetails.login ?? '',
-                                selectedRows.filter((row) => policyIDs.includes(row.policyID)).map((row) => ({id: row.policyID, pendingAction: row.pendingAction})),
-                            ),
-                        );
-                    }),
+                    onSelected: callFunctionIfActionIsAllowed(
+                        () => {
+                            if (isSingleSelection) {
+                                setActiveFlow({type, policyID: firstPolicyID});
+                                return;
+                            }
+                            confirmBulkAction(policyIDs, translate('workspace.common.leaveWorkspacesTitle', {count: policyIDs.length}), translate('common.leave'), () =>
+                                leaveWorkspaces(
+                                    currentUserPersonalDetails.login ?? '',
+                                    selectedRows.filter((row) => policyIDs.includes(row.policyID)).map((row) => ({id: row.policyID, pendingAction: row.pendingAction})),
+                                ),
+                            );
+                        },
+                        false,
+                        session,
+                    ),
                 };
         }
     };
@@ -432,7 +436,7 @@ function WorkspacesListPage() {
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             accessibilityLabel={translate('common.new')}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.NEW_WORKSPACE_BUTTON}
-            onPress={() => interceptAnonymousUser(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path, ROUTES.WORKSPACES_LIST.route)))}
+            onPress={() => interceptAnonymousUser(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path, ROUTES.WORKSPACES_LIST.route)), session)}
         >
             <Button.Icon src={icons.Plus} />
             <Button.Text>{translate('common.new')}</Button.Text>

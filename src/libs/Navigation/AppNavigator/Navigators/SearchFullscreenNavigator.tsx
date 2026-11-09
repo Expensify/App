@@ -1,17 +1,32 @@
+import {IsInPreloadedTabContext} from '@hooks/useIsInPreloadedTab';
+import {PreloadedTabContentReadyContext} from '@hooks/useMarkPreloadedTabContentReady';
+import useShouldMountPreloadedTabContent from '@hooks/useShouldMountPreloadedTabContent';
+
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
+import {
+    clearIdlePreloadedSearchTabRouteKey,
+    clearSearchTabContentReady,
+    getIsSearchTabHovered,
+    isIdlePreloadedSearchTabRoute,
+    markSearchTabContentReady,
+    subscribeToSearchTabHover,
+} from '@libs/Navigation/helpers/searchTabPreloadStore';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList, TabNavigatorParamList} from '@libs/Navigation/types';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
+import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
 
 import createSearchFullscreenNavigator from '@navigation/AppNavigator/createSearchFullscreenNavigator';
 import FreezeWrapper from '@navigation/AppNavigator/FreezeWrapper';
 
+import CONST from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
-import React from 'react';
+import {useNavigationState} from '@react-navigation/native';
+import React, {useEffect, useState, useSyncExternalStore} from 'react';
 
 const loadSearchPage = () => require<ReactComponentModule>('@pages/Search/SearchPage').default;
 
@@ -21,20 +36,74 @@ function SearchFullscreenNavigator({route}: PlatformStackScreenProps<TabNavigato
     // These options can be used here because the full screen navigator has the same structure as the split navigator in terms of the central screens, but it does not have a sidebar.
     const {centralScreen: centralScreenOptions} = useSplitNavigatorScreenOptions();
 
+    // True from the idle preload until the tab is first opened. Ignores marks from a submit pre-mount or a history restore.
+    const isInPreloadedTab = useNavigationState((tabState) => isIdlePreloadedSearchTabRoute(tabState, route.key));
+
+    const shouldRenderContent = useShouldMountPreloadedTabContent(isInPreloadedTab);
+
+    // A preloaded tab stays unfrozen only until its first content is on screen. Frozen after that, it stops re-rendering on
+    // every data change while hidden, and catches up once when the user opens it.
+    const [isPreloadedContentReady, setIsPreloadedContentReady] = useState(false);
+    const markPreloadedContentReady = () => {
+        if (!isInPreloadedTab || isPreloadedContentReady) {
+            return;
+        }
+        setIsPreloadedContentReady(true);
+        markSearchTabContentReady();
+        endSpan(CONST.TELEMETRY.SPAN_PRELOAD_SEARCH_TAB);
+    };
+
+    // Opened before its first content was on screen, so the preload span has no background build to report.
+    useEffect(() => {
+        if (isInPreloadedTab || isPreloadedContentReady) {
+            return;
+        }
+        cancelSpan(CONST.TELEMETRY.SPAN_PRELOAD_SEARCH_TAB);
+    }, [isInPreloadedTab, isPreloadedContentReady]);
+
+    // Clears the idle preload state once the tab is opened.
+    useEffect(() => {
+        if (isInPreloadedTab) {
+            return;
+        }
+        clearSearchTabContentReady();
+        clearIdlePreloadedSearchTabRouteKey();
+    }, [isInPreloadedTab]);
+
+    // Unmounted before its first content was on screen, e.g. on sign out, nothing else would end the preload span.
+    useEffect(
+        () => () => {
+            clearSearchTabContentReady();
+            clearIdlePreloadedSearchTabRouteKey();
+            cancelSpan(CONST.TELEMETRY.SPAN_PRELOAD_SEARCH_TAB);
+        },
+        [route.key],
+    );
+
+    // Hovering the tab button unfreezes it ahead of the click, so the catch-up render runs before the user opens it.
+    // Once opened the snapshot stays false, so later hovers no longer re-render the navigator.
+    const isPreloadedTabHovered = useSyncExternalStore(subscribeToSearchTabHover, () => isInPreloadedTab && getIsSearchTabHovered());
+
     return (
-        <FreezeWrapper>
-            <Stack.Navigator
-                screenOptions={centralScreenOptions}
-                defaultCentralScreen={SCREENS.SEARCH.ROOT}
-                parentRoute={route}
-            >
-                <Stack.Screen
-                    name={SCREENS.SEARCH.ROOT}
-                    getComponent={loadSearchPage}
-                    initialParams={{q: SearchQueryUtils.buildSearchQueryString()}}
-                    options={{animation: Animations.NONE}}
-                />
-            </Stack.Navigator>
+        <FreezeWrapper shouldStayUnfrozen={isInPreloadedTab && (!isPreloadedContentReady || isPreloadedTabHovered)}>
+            <IsInPreloadedTabContext.Provider value={isInPreloadedTab}>
+                <PreloadedTabContentReadyContext.Provider value={markPreloadedContentReady}>
+                    {shouldRenderContent && (
+                        <Stack.Navigator
+                            screenOptions={centralScreenOptions}
+                            defaultCentralScreen={SCREENS.SEARCH.ROOT}
+                            parentRoute={route}
+                        >
+                            <Stack.Screen
+                                name={SCREENS.SEARCH.ROOT}
+                                getComponent={loadSearchPage}
+                                initialParams={{q: SearchQueryUtils.buildSearchQueryString()}}
+                                options={{animation: Animations.NONE}}
+                            />
+                        </Stack.Navigator>
+                    )}
+                </PreloadedTabContentReadyContext.Provider>
+            </IsInPreloadedTabContext.Provider>
         </FreezeWrapper>
     );
 }

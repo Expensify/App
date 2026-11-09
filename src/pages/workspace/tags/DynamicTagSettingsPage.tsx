@@ -192,6 +192,7 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
                                     <Switch
                                         isOn={currentPolicyTag.enabled}
                                         accessibilityLabel={translate('workspace.tags.enableTag')}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.SETTINGS_ENABLE_SWITCH}
                                         onToggle={updateWorkspaceTagEnabled}
                                         disabled={!canWriteTags}
                                         disabledAction={withReadOnlyFallback()}

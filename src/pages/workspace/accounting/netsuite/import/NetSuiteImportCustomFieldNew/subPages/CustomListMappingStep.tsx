@@ -17,7 +17,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 const STEP_FIELDS = [INPUT_IDS.MAPPING];
 
@@ -25,18 +25,15 @@ function CustomListMappingStep({importCustomField, customSegmentType, onNext, is
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM> => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM> = {};
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM> => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM> = {};
 
-            if (!isRequiredFulfilled(values[INPUT_IDS.MAPPING])) {
-                errors[INPUT_IDS.MAPPING] = translate('common.error.pleaseSelectOne');
-            }
+        if (!isRequiredFulfilled(values[INPUT_IDS.MAPPING])) {
+            errors[INPUT_IDS.MAPPING] = translate('common.error.pleaseSelectOne');
+        }
 
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    };
 
     const handleSubmit = useNetSuiteImportAddCustomListFormSubmit({
         fieldIds: STEP_FIELDS,

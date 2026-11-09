@@ -9,6 +9,7 @@ import Text from '@components/Text';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,7 +21,7 @@ import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/Cur
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getTravelBillingCardSettingsKey} from '@libs/TravelBillingUtils';
+import {getTravelBillingCardSettingsKey, getTravelLimit} from '@libs/TravelBillingUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,11 +36,14 @@ type WorkspaceTravelBillingMonthlyLimitPageProps = PlatformStackScreenProps<Sett
 function WorkspaceTravelBillingMonthlyLimitPage({route}: WorkspaceTravelBillingMonthlyLimitPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const policyID = route.params?.policyID;
     const travelBillingFundID = useTravelBillingFundID(policyID);
     const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(travelBillingFundID));
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
     const currentLimit = travelSettings?.monthlySpendLimitPerUser ?? 0;
+    const travelLimit = getTravelLimit(travelSettings);
+    const isTravelLimitAvailable = travelSettings?.limit !== undefined || travelSettings?.remainingLimit !== undefined;
     const defaultValue = convertToFrontendAmountAsString(currentLimit, CONST.DEFAULT_CURRENCY_DECIMALS);
     const {inputCallbackRef} = useAutoFocusInput();
     const {showConfirmModal} = useConfirmModal();
@@ -56,6 +60,10 @@ function WorkspaceTravelBillingMonthlyLimitPage({route}: WorkspaceTravelBillingM
         const parsed = parseFloat(limit);
         if (Number.isNaN(parsed) || parsed < 0) {
             errors[INPUT_IDS.LIMIT] = translate('iou.error.invalidAmount');
+        } else if (isTravelLimitAvailable && convertToBackendAmount(parsed) > travelLimit) {
+            errors[INPUT_IDS.LIMIT] = translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.limitExceedsTravelLimit', {
+                travelLimit: convertToDisplayString(travelLimit, CONST.CURRENCY.USD),
+            });
         }
         return errors;
     };

@@ -5,6 +5,7 @@ import Table, {composeTableListHeader} from '@components/Table';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -20,6 +21,7 @@ import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
@@ -71,6 +73,7 @@ type WorkspaceListTableProps = {
 };
 
 export default function WorkspaceListTable({ref, workspaces, headerComponent, selectedKeys, onRowSelectionChange, bulkActionOptions}: WorkspaceListTableProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {contentInsetAdjustmentBehavior} = useTabRootScrollProps();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -128,7 +131,7 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, se
         return item.title.toLowerCase().includes(searchValue.toLowerCase());
     };
 
-    const canAccessArchived = (role: ValueOf<typeof CONST.POLICY.ROLE>) => role === CONST.POLICY.ROLE.ADMIN || role === CONST.POLICY.ROLE.OWNER || role === CONST.POLICY.ROLE.AUDITOR;
+    const canAccessArchived = (role: ValueOf<typeof CONST.POLICY.ROLE>) => role === CONST.POLICY.ROLE.ADMIN || role === CONST.POLICY.ROLE.AUDITOR;
     const canSeeFilter = canUseArchivePolicies && workspaces.some((w) => canAccessArchived(w.role));
     const searchBarComponent = (
         <Table.FilterBar
@@ -192,7 +195,8 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, se
         ? [
               {
                   buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
-                  buttonAction: () => interceptAnonymousUser(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path, ROUTES.WORKSPACES_LIST.route))),
+                  buttonAction: () =>
+                      interceptAnonymousUser(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path, ROUTES.WORKSPACES_LIST.route)), session),
                   buttonText: translate('workspace.new.newWorkspace'),
               },
           ]
