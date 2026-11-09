@@ -365,6 +365,72 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
     });
 });
 
+describe('SearchSelectionProvider removeTransaction', () => {
+    beforeEach(() => {
+        mockCurrentSearchQueryJSON = expenseQueryJSON;
+    });
+
+    it('drops a deleted expense from the selection and from the ID list, keeping everything else', () => {
+        // Given two expenses selected in the search, and the second of them plus another one selected by ID
+        const {result} = renderSelection();
+        act(() => {
+            result.current.actions.setSelectedTransactions(buildSelected('tx_1', 'tx_2'));
+            result.current.actions.setSelectedTransactions(['tx_2', 'tx_3']);
+        });
+
+        // When the second expense is deleted, which is what calls this
+        act(() => result.current.actions.removeTransaction('tx_2'));
+
+        // Then it is gone from both, so no bulk action can still act on an expense that no longer exists
+        expect(Object.keys(result.current.state.selectedTransactions)).toEqual(['tx_1']);
+        expect(result.current.state.selectedTransactionIDs).toEqual(['tx_3']);
+    });
+
+    it('drops a deleted expense from the exclusions of a select-all-matching selection, keeping that selection on', () => {
+        // Given every matching expense selected with the first one excluded
+        const {result} = renderSelection();
+        seedAllMatchingSelection(result);
+        act(() => {
+            result.current.actions.applySelection((selectedTransactions) => removeTransaction(selectedTransactions, 'tx_1'), {
+                totalSelectableItemsCount: 2,
+                shouldPreserveAllMatchingSelection: true,
+            });
+        });
+        expect(Object.keys(result.current.state.excludedTransactions)).toEqual(['tx_1']);
+
+        // When that excluded expense is deleted
+        act(() => result.current.actions.removeTransaction('tx_1'));
+
+        // Then its exclusion goes too, since it no longer matches the search, and the rest stays selected
+        expect(result.current.state.excludedTransactions).toEqual({});
+        expect(result.current.state.areAllMatchingItemsSelected).toBe(true);
+        expect(Object.keys(result.current.state.selectedTransactions)).toEqual(['tx_2']);
+    });
+
+    it('leaves the selection as it is when nothing is selected, or when no expense is named', () => {
+        // Given one expense selected
+        const {result} = renderSelection();
+        act(() => result.current.actions.setSelectedTransactions(buildSelected('tx_1')));
+        const selectionBefore = result.current.state.selectedTransactions;
+
+        // When it is asked to remove an expense without an ID
+        act(() => result.current.actions.removeTransaction(''));
+
+        // Then the selection is the same object, so nothing re-renders for a call that has nothing to remove
+        expect(result.current.state.selectedTransactions).toBe(selectionBefore);
+
+        // And given nothing selected at all
+        act(() => result.current.actions.clearSelectedTransactions());
+        const clearedSelection = result.current.state.selectedTransactions;
+
+        // When an expense is removed
+        act(() => result.current.actions.removeTransaction('tx_1'));
+
+        // Then the empty selection is left as it was
+        expect(result.current.state.selectedTransactions).toBe(clearedSelection);
+    });
+});
+
 describe('SearchSelectionProvider clear generation', () => {
     function renderClearGeneration() {
         return renderHook(() => ({state: useSearchSelectionContext(), actions: useSearchSelectionActions(), clearGeneration: useSelectionClearGeneration()}), {wrapper});
