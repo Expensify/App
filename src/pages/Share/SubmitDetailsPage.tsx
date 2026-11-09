@@ -35,13 +35,13 @@ import {setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
 import signalExpenseAddedGrowl from '@libs/actions/IOU/signalExpenseAddedGrowl';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import type {GPSPoint as GpsPoint} from '@libs/actions/IOU/types/TrackExpenseTransactionParams';
+import {snapshotUserLocation} from '@libs/actions/UserLocation';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import getCurrentPositionWithinCap from '@libs/getCurrentPosition/getCurrentPositionWithinCap';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getDefaultReimbursableForPolicy, getExistingTransactionID, isLookingAroundSearchRoutingActive, resolveReportForMoneyRequest} from '@libs/IOUUtils';
-import Log from '@libs/Log';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
@@ -74,7 +74,6 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import Onyx from 'react-native-onyx';
 
 import {showErrorAlert} from './ShareRootPage';
 import useShareFileSizeValidation from './useShareFileSizeValidation';
@@ -144,6 +143,7 @@ function SubmitDetailsPage({
     const hasStartedPendingNavigation = useRef(false);
     const formHasBeenSubmitted = useRef(false);
     const hasCalledReveal = useRef(false);
+    const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
 
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
@@ -174,6 +174,10 @@ function SubmitDetailsPage({
         },
         [],
     );
+
+    useEffect(() => {
+        snapshotUserLocation();
+    }, []);
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
@@ -583,32 +587,14 @@ function SubmitDetailsPage({
             return;
         }
         // Use cached userLocation when available — avoids an extra getCurrentPosition round-trip.
-        Onyx.get(ONYXKEYS.USER_LOCATION)
-            .catch((error: unknown) => {
-                // Location is optional. If the cache read fails, use the capped device read so submission can continue.
-                Log.warn('[SubmitDetailsPage] Failed to read the cached user location', {error});
-                return null;
-            })
-            .then((userLocation): GpsPoint | Promise<GpsPoint | undefined> => {
-                if (userLocation) {
-                    return {
-                        lat: userLocation.latitude,
-                        long: userLocation.longitude,
-                    };
-                }
-                // Resolve the position first, then submit in the promise chain so the catch below handles submission errors.
-                return new Promise((resolve) => {
-                    getCurrentPositionWithinCap((gpsCoords) => resolve(gpsCoords));
-                });
-            })
-            .then((gpsPoint) => finishRequestAndNavigate(receipt, gpsPoint))
-            .catch((error: unknown) => {
-                // This chain runs after readFileAsync has already resolved, so its onFailure reset no longer covers a throw here.
-                // Reset the same way so the confirm button does not stay loading and the user can retry.
-                Log.warn('[SubmitDetailsPage] Failed to submit the shared expense', {error});
-                formHasBeenSubmitted.current = false;
-                setIsConfirming(false);
+        if (userLocation) {
+            finishRequestAndNavigate(receipt, {
+                lat: userLocation.latitude,
+                long: userLocation.longitude,
             });
+            return;
+        }
+        getCurrentPositionWithinCap((gpsCoords) => finishRequestAndNavigate(receipt, gpsCoords));
     };
 
     // Separate helper so the permission-modal callbacks don't re-enter onConfirm (deadlocked when OS permission was pre-granted).
