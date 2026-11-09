@@ -300,6 +300,27 @@ describe('MoneyRequestView edit fields', () => {
         expect(screen.getByLabelText(fieldLabel('Location')).props.accessibilityState).toMatchObject({expanded: false});
     });
 
+    it('shows the attendees and report of an editable expense as dropdown fields', async () => {
+        // Given an open expense on a Control workspace that tracks attendees
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+        await setupTestData();
+
+        // When the expense view renders
+        renderMoneyRequestView(threadReport, {type: CONST.POLICY.TYPE.CORPORATE, isAttendeeTrackingEnabled: true});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then both are fields that report a closed list, which is how a field that opens its list in place reads,
+        // instead of rows that open a page of their own
+        await waitFor(() => {
+            expect(screen.getByLabelText(fieldLabel('iou.attendees')).props.accessibilityState).toMatchObject({expanded: false});
+        });
+        expect(screen.getByLabelText(fieldLabel('common.report')).props.accessibilityState).toMatchObject({expanded: false});
+    });
+
     it('shows the Category and Tag rows from the report policy when nothing is selected yet', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
@@ -763,6 +784,29 @@ describe('MoneyRequestView edit fields', () => {
 
         await waitFor(() => {
             expect(screen.getByLabelText(/^iou\.amount.*iou\.nonReimbursable/i)).toBeOnTheScreen();
+        });
+    });
+
+    it('shows the tax amount of an editable expense as an input edited in place', async () => {
+        // Given an open expense with tax on a workspace that tracks tax
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {taxCode: 'TAX_10', taxAmount: 1110});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the expense view renders
+        renderMoneyRequestView(threadReport, {tax: {trackingEnabled: true}});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the tax amount is an input holding the saved amount, instead of a row that opens its page
+        await waitFor(() => {
+            expect(screen.getByLabelText(/^iou\.taxAmount/).props.value).toBe('11.10');
         });
     });
 

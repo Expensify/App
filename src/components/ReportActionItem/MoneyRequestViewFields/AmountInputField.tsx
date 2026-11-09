@@ -8,11 +8,10 @@ import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
-import useMirroredInputValue from '@hooks/useMirroredInputValue';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUpdateTransactionAmount from '@hooks/useUpdateTransactionAmount';
 
-import {convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+import {getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import {getBackendAmountFromInput, isValidMoneyRequestAmount, stripDecimalsFromAmount, validateAmount} from '@libs/MoneyRequestUtils';
 
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
@@ -25,6 +24,8 @@ import type {ValueOf} from 'type-fest';
 
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
+
+import useSavedAmountInput from './useSavedAmountInput';
 
 type AmountInputFieldProps = {
     /** Expense whose amount is edited */
@@ -87,67 +88,15 @@ function AmountInputField({
     const currencyButtonRef = useRef<View>(null);
 
     const decimals = getCurrencyDecimals(currency);
-    const savedValue = `${amount < 0 ? '-' : ''}${convertToFrontendAmountAsString(Math.abs(amount), decimals)}`;
-    const {inputValue, setInputValue, isFocused, startEditing, finishEditing} = useMirroredInputValue(savedValue);
-    const [inputError, setInputError] = useState('');
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
 
-    // The input keeps what is typed in its own state, so it is remounted to show an amount the user didn't type.
-    const [shownSavedValue, setShownSavedValue] = useState(savedValue);
-    const [resetCount, setResetCount] = useState(0);
-    if (!isFocused && shownSavedValue !== savedValue) {
-        setShownSavedValue(savedValue);
-        setInputError('');
-    }
-
-    const isValidAmount = (newAmount: number) => isValidMoneyRequestAmount(newAmount, iouType, allowNegative, isP2P);
-
-    const showSavedAmount = () => {
-        setInputValue(savedValue);
-        setResetCount((count) => count + 1);
-    };
-
-    const saveAmount = (typedAmount: string) => {
-        const newAmount = getBackendAmountFromInput(typedAmount);
-        // An expense always has an amount, so a cleared input goes back to the saved one.
-        if (newAmount === null) {
-            setInputError('');
-            showSavedAmount();
-            return;
-        }
-        if (!isValidAmount(newAmount)) {
-            setInputError(translate('iou.error.invalidAmount'));
-            return;
-        }
-        setInputError('');
-        if (newAmount === amount) {
-            showSavedAmount();
-            return;
-        }
-        updateAmount(newAmount, currency);
-    };
-
-    const saveTypedAmount = () => {
-        const typedAmount = finishEditing();
-        // Leaving the input untouched is not an edit, so it neither validates nor saves.
-        if (typedAmount === undefined) {
-            if (inputError) {
-                setInputError('');
-                showSavedAmount();
-            }
-            return;
-        }
-        saveAmount(typedAmount);
-    };
-
-    const applyTypedAmount = (typedAmount: string) => {
-        setInputValue(typedAmount);
-        setInputError('');
-        // The flip button changes the sign without focusing the input, so that change has no blur to save it.
-        if (!isFocused) {
-            saveAmount(typedAmount);
-        }
-    };
+    const getAmountError = (newAmount: number) => (isValidMoneyRequestAmount(newAmount, iouType, allowNegative, isP2P) ? '' : translate('iou.error.invalidAmount'));
+    const {inputValue, inputError, inputKey, startEditing, applyTypedAmount, saveTypedAmount} = useSavedAmountInput({
+        amount,
+        decimals,
+        getAmountError,
+        onSave: (newAmount) => updateAmount(newAmount, currency),
+    });
 
     const updateCurrency = (newCurrency: string) => {
         setIsCurrencyPickerVisible(false);
@@ -159,7 +108,7 @@ function AmountInputField({
         const newDecimals = getCurrencyDecimals(newCurrency);
         const typedAmountForCurrency = validateAmount(inputValue, newDecimals, undefined, allowNegative) ? inputValue : stripDecimalsFromAmount(inputValue);
         const typedAmount = inputError ? null : getBackendAmountFromInput(typedAmountForCurrency);
-        updateAmount(typedAmount !== null && isValidAmount(typedAmount) ? typedAmount : amount, newCurrency);
+        updateAmount(typedAmount !== null && !getAmountError(typedAmount) ? typedAmount : amount, newCurrency);
     };
 
     return (
@@ -174,7 +123,7 @@ function AmountInputField({
             />
             <View style={[styles.mh4, styles.mv2]}>
                 <NumberWithSymbolForm
-                    key={`${shownSavedValue}-${resetCount}`}
+                    key={inputKey}
                     displayAsTextInput
                     autoFocus={false}
                     value={inputValue}

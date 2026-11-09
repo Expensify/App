@@ -1,12 +1,15 @@
 import {act, render} from '@testing-library/react-native';
 
 import type {AttendeePickerModalProps} from '@components/AttendeePicker/AttendeePickerModal';
+import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import AttendeeFieldDropdown from '@components/MoneyRequestConfirmationList/sections/AttendeeFieldDropdown';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {setMoneyRequestAttendees} from '@libs/actions/IOU/MoneyRequest';
+import {updateMoneyRequestAttendees} from '@libs/actions/IOU/UpdateMoneyRequest';
 
 import CONST from '@src/CONST';
+import type {IOUAction} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
 
@@ -19,6 +22,10 @@ import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/actions/IOU/MoneyRequest'),
     setMoneyRequestAttendees: jest.fn(),
+}));
+jest.mock('@libs/actions/IOU/UpdateMoneyRequest', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/actions/IOU/UpdateMoneyRequest'),
+    updateMoneyRequestAttendees: jest.fn(),
 }));
 
 // The list is covered by the AttendeePickerModal tests; here only what the dropdown hands it, and what it does when the selection is applied, matter.
@@ -36,20 +43,27 @@ const CURRENT_USER_LOGIN = 'creator@example.com';
 const creator: Attendee = {email: CURRENT_USER_LOGIN, displayName: 'Creator', avatarUrl: ''};
 const guest: Attendee = {email: 'guest@example.com', displayName: 'Guest', avatarUrl: ''};
 
-const buildDropdown = (onClose = jest.fn(), isVisible = true) => (
+const buildDropdown = (onClose = jest.fn(), isVisible = true, action: IOUAction = CONST.IOU.ACTION.CREATE) => (
     <OnyxListItemProvider>
-        <AttendeeFieldDropdown
-            isVisible={isVisible}
-            onClose={onClose}
-            anchorPosition={{horizontal: 0, vertical: 0}}
-            anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-            shouldMeasureAnchorPositionFromTop
-            shouldSwitchPositionIfOverflow={false}
-            popoverWidth={CONST.POPOVER_DROPDOWN_WIDTH}
-            popoverHeight={CONST.POPOVER_DROPDOWN_MAX_HEIGHT}
+        <ConfirmationFieldsProvider
             transactionID={TRANSACTION_ID}
+            reportID={REPORT_ID}
+            action={action}
             iouType={CONST.IOU.TYPE.SUBMIT}
-        />
+        >
+            <AttendeeFieldDropdown
+                isVisible={isVisible}
+                onClose={onClose}
+                anchorPosition={{horizontal: 0, vertical: 0}}
+                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                shouldMeasureAnchorPositionFromTop
+                shouldSwitchPositionIfOverflow={false}
+                popoverWidth={CONST.POPOVER_DROPDOWN_WIDTH}
+                popoverHeight={CONST.POPOVER_DROPDOWN_MAX_HEIGHT}
+                transactionID={TRANSACTION_ID}
+                iouType={CONST.IOU.TYPE.SUBMIT}
+            />
+        </ConfirmationFieldsProvider>
     </OnyxListItemProvider>
 );
 
@@ -63,6 +77,7 @@ describe('AttendeeFieldDropdown', () => {
     beforeEach(async () => {
         mockModalProps = undefined;
         jest.mocked(setMoneyRequestAttendees).mockClear();
+        jest.mocked(updateMoneyRequestAttendees).mockClear();
         await Onyx.clear();
         // The expense sits on a report the creator owns, which is where the list finds the creator to start from.
         await Onyx.multiSet({
@@ -182,5 +197,31 @@ describe('AttendeeFieldDropdown', () => {
         expect(setMoneyRequestAttendees).not.toHaveBeenCalled();
         expect(onClose).not.toHaveBeenCalled();
         expect(mockModalProps?.attendees).toEqual([]);
+    });
+
+    it('saves the selection to a saved expense through the API when the expense is edited', async () => {
+        // Given a saved expense with the creator as its only attendee, opened from its expense view
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, {
+            transactionID: TRANSACTION_ID,
+            reportID: REPORT_ID,
+            comment: {attendees: [creator]},
+        });
+        await waitForBatchedUpdates();
+        const onClose = jest.fn();
+
+        // When the dropdown opens for the saved expense, the user adds a guest and applies it
+        render(buildDropdown(onClose, true, CONST.IOU.ACTION.EDIT));
+        await waitForBatchedUpdates();
+        expect(mockModalProps?.attendees).toEqual([creator]);
+        act(() => mockModalProps?.onAttendeesChanged([creator, guest]));
+        act(() => mockModalProps?.onApply());
+
+        // Then both are saved to the expense the way the attendees page saves them, no draft is written, and the list closes
+        expect(updateMoneyRequestAttendees).toHaveBeenCalledTimes(1);
+        expect(updateMoneyRequestAttendees).toHaveBeenCalledWith(
+            expect.objectContaining({transactionID: TRANSACTION_ID, attendees: [creator, guest], transactionThreadReport: expect.objectContaining({reportID: REPORT_ID})}),
+        );
+        expect(setMoneyRequestAttendees).not.toHaveBeenCalled();
+        expect(onClose).toHaveBeenCalledTimes(1);
     });
 });

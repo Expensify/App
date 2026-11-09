@@ -7,10 +7,17 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import AmountInputField from '@components/ReportActionItem/MoneyRequestViewFields/AmountInputField';
 import DescriptionInputField from '@components/ReportActionItem/MoneyRequestViewFields/DescriptionInputField';
 import MerchantInputField from '@components/ReportActionItem/MoneyRequestViewFields/MerchantInputField';
+import TaxAmountInputField from '@components/ReportActionItem/MoneyRequestViewFields/TaxAmountInputField';
 
 import useUpdateTransactionDate from '@hooks/useUpdateTransactionDate';
 
-import {updateMoneyRequestAmountAndCurrency, updateMoneyRequestDate, updateMoneyRequestDescription, updateMoneyRequestMerchant} from '@userActions/IOU/UpdateMoneyRequest';
+import {
+    updateMoneyRequestAmountAndCurrency,
+    updateMoneyRequestDate,
+    updateMoneyRequestDescription,
+    updateMoneyRequestMerchant,
+    updateMoneyRequestTaxAmount,
+} from '@userActions/IOU/UpdateMoneyRequest';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,18 +35,26 @@ jest.mock('@userActions/IOU/UpdateMoneyRequest', () => ({
     updateMoneyRequestDescription: jest.fn(),
     updateMoneyRequestAmountAndCurrency: jest.fn(),
     updateMoneyRequestDate: jest.fn(),
+    updateMoneyRequestTaxAmount: jest.fn(),
 }));
 // The amount input asks the navigator whether its screen is focused, and these fields render outside one.
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
     useIsFocused: jest.fn(() => true),
 }));
-jest.mock('@hooks/useCurrencyList', () => ({useCurrencyListActions: jest.fn(() => ({getCurrencyDecimals: jest.fn(() => 2), getCurrencySymbol: jest.fn(() => '$')}))}));
+jest.mock('@hooks/useCurrencyList', () => ({
+    useCurrencyListActions: jest.fn(() => ({
+        getCurrencyDecimals: jest.fn(() => 2),
+        getCurrencySymbol: jest.fn(() => '$'),
+        convertToDisplayString: jest.fn((amountInCents = 0) => `USD ${(amountInCents / 100).toFixed(2)}`),
+    })),
+}));
 
 const TRANSACTION_ID = 'transaction1';
 const EXPENSE_REPORT_ID = 'expenseReport1';
 const THREAD_REPORT_ID = 'thread1';
 const POLICY_ID = 'policy1';
+const TAX_CODE = 'id_TAX_10';
 
 const transaction: Transaction = {
     transactionID: TRANSACTION_ID,
@@ -359,6 +374,81 @@ describe('saved expense inline fields', () => {
             // Then the field reports it under the input and the expense keeps its amount
             expect(screen.getByText('Please enter a valid amount before continuing')).toBeOnTheScreen();
             expect(updateMoneyRequestAmountAndCurrency).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('TaxAmountInputField', () => {
+        // A 10% tax included in a 55.00 expense works out to 5.00, which is the most the tax amount can be
+        const taxPolicy: Policy = {
+            id: POLICY_ID,
+            name: 'Workspace',
+            type: CONST.POLICY.TYPE.CORPORATE,
+            role: CONST.POLICY.ROLE.ADMIN,
+            owner: 'owner@test.com',
+            outputCurrency: CONST.CURRENCY.USD,
+            taxRates: {name: 'Tax', defaultExternalID: TAX_CODE, defaultValue: '10%', foreignTaxDefault: TAX_CODE, taxes: {[TAX_CODE]: {name: 'VAT', value: '10%'}}},
+        };
+        const taxedTransaction: Transaction = {...transaction, amount: 5500, taxCode: TAX_CODE, taxAmount: 300};
+        const renderTaxAmount = () =>
+            renderField(
+                <TaxAmountInputField
+                    transaction={taxedTransaction}
+                    transactionThreadReport={threadReport}
+                    policy={taxPolicy}
+                    taxAmount={300}
+                    currency={CONST.CURRENCY.USD}
+                    label="Tax amount"
+                />,
+            );
+
+        it('saves the typed tax amount when the input loses focus', async () => {
+            // Given a saved expense whose tax amount is shown in the input
+            renderTaxAmount();
+            await waitForBatchedUpdatesWithAct();
+            const input = screen.getByLabelText('Tax amount');
+            expect(input.props.value).toBe('3.00');
+
+            // When a new tax amount within what the tax rate allows is typed and the input is left
+            fireEvent(input, 'focus');
+            fireEvent.changeText(input, '4.5');
+            fireEvent(input, 'blur');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it is saved to that expense in the smallest currency unit, as the tax amount page would save it
+            expect(updateMoneyRequestTaxAmount).toHaveBeenCalledTimes(1);
+            expect(updateMoneyRequestTaxAmount).toHaveBeenCalledWith(expect.objectContaining({transactionID: TRANSACTION_ID, taxAmount: 450, transactionThreadReport: threadReport}));
+        });
+
+        it('shows an error instead of saving a tax amount above what the tax rate works out to', async () => {
+            // Given a saved expense whose tax rate allows at most 5.00 of tax
+            renderTaxAmount();
+            await waitForBatchedUpdatesWithAct();
+            const input = screen.getByLabelText('Tax amount');
+
+            // When a larger tax amount is typed and the input is left
+            fireEvent(input, 'focus');
+            fireEvent.changeText(input, '9');
+            fireEvent(input, 'blur');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the field reports the limit under the input, as the tax amount page does, and nothing is saved
+            expect(screen.getByText(/maximum tax amount/i)).toBeOnTheScreen();
+            expect(updateMoneyRequestTaxAmount).not.toHaveBeenCalled();
+        });
+
+        it('does not save when the input is left without a change', async () => {
+            // Given a saved expense whose tax amount is shown in the input
+            renderTaxAmount();
+            await waitForBatchedUpdatesWithAct();
+            const input = screen.getByLabelText('Tax amount');
+
+            // When the input is focused and left without typing
+            fireEvent(input, 'focus');
+            fireEvent(input, 'blur');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then nothing is sent, so no pointless edit shows up on the expense
+            expect(updateMoneyRequestTaxAmount).not.toHaveBeenCalled();
         });
     });
 

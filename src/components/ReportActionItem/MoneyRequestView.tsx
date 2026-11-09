@@ -5,9 +5,11 @@ import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
+import AttendeeFieldDropdown from '@components/MoneyRequestConfirmationList/sections/AttendeeFieldDropdown';
 import CategoryFieldDropdown from '@components/MoneyRequestConfirmationList/sections/CategoryFieldDropdown';
 import ExpenseFieldDropdown from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
 import ExpenseFieldRow from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldRow';
+import ReportFieldDropdown from '@components/MoneyRequestConfirmationList/sections/ReportFieldDropdown';
 import TaxFieldDropdown from '@components/MoneyRequestConfirmationList/sections/TaxFieldDropdown';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -182,6 +184,7 @@ import DateInputField from './MoneyRequestViewFields/DateInputField';
 import DescriptionInputField from './MoneyRequestViewFields/DescriptionInputField';
 import MerchantInputField from './MoneyRequestViewFields/MerchantInputField';
 import TagFieldRow from './MoneyRequestViewFields/TagFieldRow';
+import TaxAmountInputField from './MoneyRequestViewFields/TaxAmountInputField';
 
 type MoneyRequestViewProps = {
     transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
@@ -1379,6 +1382,8 @@ function MoneyRequestView({
         !hasFailedScanAmountPlaceholder &&
         !(shouldShowSplitIndicator && isSplitAvailable);
     const canAddCategory = canCreateCategoryInSitu(policy, currentUserEmailParam);
+    // A tax rate that can no longer be picked asks to be cleared first, which the tax amount's page flow handles.
+    const canEditTaxAmountInline = canEditTaxFields && !isReviewingUnsavedValues && !shouldShowTaxDisabledAlert;
 
     const hasAttendees = Array.isArray(actualAttendees) && actualAttendees.length > 0;
     const attendeesPerPersonText =
@@ -1656,20 +1661,31 @@ function MoneyRequestView({
             )}
             {shouldShowTax && (
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('taxAmount')}>
-                    <ExpenseFieldRow
-                        name={taxAmountDescription}
-                        value={taxAmountTitle}
-                        numberOfLinesValue={2}
-                        onPress={openTaxAmountPage}
-                        copyValue={taxAmountCopyValue}
-                        isInteractive={canEditTaxFields}
-                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.TAX_AMOUNT_FIELD}
-                    />
+                    {canEditTaxAmountInline ? (
+                        <TaxAmountInputField
+                            transaction={transaction}
+                            transactionThreadReport={transactionThreadReport}
+                            policy={policy}
+                            taxAmount={Math.abs(transactionTaxAmount ?? 0)}
+                            currency={currency}
+                            label={taxAmountDescription}
+                        />
+                    ) : (
+                        <ExpenseFieldRow
+                            name={taxAmountDescription}
+                            value={taxAmountTitle}
+                            numberOfLinesValue={2}
+                            onPress={openTaxAmountPage}
+                            copyValue={taxAmountCopyValue}
+                            isInteractive={canEditTaxFields}
+                            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.TAX_AMOUNT_FIELD}
+                        />
+                    )}
                 </OfflineWithFeedback>
             )}
             {shouldShowAttendees && (
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('attendees')}>
-                    <ExpenseFieldRow
+                    <ExpenseFieldDropdown
                         name={[translate('iou.attendees'), attendeesPerPersonText].filter(Boolean).join(' ')}
                         valueComponent={hasAttendees ? attendeePills : undefined}
                         hasValueComponent={hasAttendees}
@@ -1678,6 +1694,15 @@ function MoneyRequestView({
                         onPress={openAttendeesPage}
                         copyValue={attendeesCopyValue}
                         isInteractive={canEdit}
+                        shouldOpenInDropdown
+                        listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
+                        renderDropdown={(dropdownProps) => (
+                            <AttendeeFieldDropdown
+                                {...dropdownProps}
+                                transactionID={transaction.transactionID}
+                                iouType={iouType}
+                            />
+                        )}
                         sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.ATTENDEES_FIELD}
                     />
                 </OfflineWithFeedback>
@@ -1685,13 +1710,22 @@ function MoneyRequestView({
             {toggleFields}
             {shouldShowReport && (
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('reportID')}>
-                    <ExpenseFieldRow
+                    <ExpenseFieldDropdown
                         name={translate('common.report')}
                         // The field renders plain text, so a report name with markup is flattened first.
                         value={Parser.htmlToText(reportNameToDisplay)}
                         onPress={openReportPage}
                         copyValue={reportCopyValue ? Parser.htmlToText(reportCopyValue) : undefined}
                         isInteractive={canEditReport}
+                        // An upgrade, and a per diem expense moving to a workspace with other rates, each go on to a page of their own.
+                        shouldOpenInDropdown={!shouldNavigateToUpgradePath && !isPerDiemRequest}
+                        listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
+                        renderDropdown={(dropdownProps) => (
+                            <ReportFieldDropdown
+                                {...dropdownProps}
+                                transactionID={transaction.transactionID}
+                            />
+                        )}
                         sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.REPORT_FIELD}
                     />
                 </OfflineWithFeedback>
