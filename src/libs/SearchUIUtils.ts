@@ -87,14 +87,11 @@ import type {
     SearchDataTypes,
     SearchMemberGroup,
     SearchMerchantGroup,
-    SearchMonthGroup,
-    SearchQuarterGroup,
     SearchTagGroup,
     SearchTask,
     SearchTransactionAction,
     SearchWeekGroup,
     SearchWithdrawalIDGroup,
-    SearchYearGroup,
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -3225,26 +3222,32 @@ function getReportSections({
 
 /** The inclusive yyyy-MM-dd range a time-based group covers, or undefined for any other grouping or a group missing its date fields. */
 function getGroupDateRange(groupBy: string, groupData: unknown): SearchDateRange | undefined {
+    if (typeof groupData !== 'object' || !groupData) {
+        return undefined;
+    }
+
     switch (groupBy) {
         case CONST.SEARCH.GROUP_BY.DAY: {
-            const day = typeof groupData === 'object' && groupData && 'day' in groupData ? groupData.day : undefined;
+            const day = 'day' in groupData ? groupData.day : undefined;
             return typeof day === 'string' && day ? {start: day, end: day} : undefined;
         }
         case CONST.SEARCH.GROUP_BY.MONTH: {
-            const monthGroup = groupData as SearchMonthGroup;
-            return monthGroup.year && monthGroup.month ? DateUtils.getMonthDateRange(monthGroup.year, monthGroup.month) : undefined;
+            const year = 'year' in groupData ? groupData.year : undefined;
+            const month = 'month' in groupData ? groupData.month : undefined;
+            return typeof year === 'number' && typeof month === 'number' && month ? DateUtils.getMonthDateRange(year, month) : undefined;
         }
         case CONST.SEARCH.GROUP_BY.WEEK: {
-            const weekGroup = groupData as SearchWeekGroup;
-            return weekGroup.week ? DateUtils.getWeekDateRange(weekGroup.week) : undefined;
+            const week = 'week' in groupData ? groupData.week : undefined;
+            return typeof week === 'string' && week ? DateUtils.getWeekDateRange(week) : undefined;
         }
         case CONST.SEARCH.GROUP_BY.YEAR: {
-            const yearGroup = groupData as SearchYearGroup;
-            return typeof yearGroup.year === 'number' ? DateUtils.getYearDateRange(yearGroup.year) : undefined;
+            const year = 'year' in groupData ? groupData.year : undefined;
+            return typeof year === 'number' ? DateUtils.getYearDateRange(year) : undefined;
         }
         case CONST.SEARCH.GROUP_BY.QUARTER: {
-            const quarterGroup = groupData as SearchQuarterGroup;
-            return typeof quarterGroup.year === 'number' && typeof quarterGroup.quarter === 'number' ? DateUtils.getQuarterDateRange(quarterGroup.year, quarterGroup.quarter) : undefined;
+            const year = 'year' in groupData ? groupData.year : undefined;
+            const quarter = 'quarter' in groupData ? groupData.quarter : undefined;
+            return typeof year === 'number' && typeof quarter === 'number' ? DateUtils.getQuarterDateRange(year, quarter) : undefined;
         }
         default:
             return undefined;

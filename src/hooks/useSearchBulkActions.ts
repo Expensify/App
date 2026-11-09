@@ -429,11 +429,29 @@ function getUngroupedTemplateExportQuery(queryJSON: SearchQueryJSON): SearchQuer
 }
 
 /**
+ * The groupings a template export can scope to the selected groups. Keep this in sync with `getSelectedGroupFilterEntry`.
+ * Time-based groupings are left out because the template export would drop their date scope.
+ */
+const TEMPLATE_EXPORTABLE_GROUP_BYS = new Set<SearchGroupBy>([
+    CONST.SEARCH.GROUP_BY.FROM,
+    CONST.SEARCH.GROUP_BY.APPROVER,
+    CONST.SEARCH.GROUP_BY.CARD,
+    CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+    CONST.SEARCH.GROUP_BY.CATEGORY,
+    CONST.SEARCH.GROUP_BY.MERCHANT,
+    CONST.SEARCH.GROUP_BY.TAG,
+]);
+
+/**
  * The query a template export sends for a group selection.
  *
  * Returns undefined when the selected groups can't be turned into a filter, so the export never widens to the whole search.
  */
 function getTemplateGroupExportQuery(queryJSON: SearchQueryJSON, selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined): SearchQueryJSON | undefined {
+    // A date scope lives only in the `filters` AST, and the ungrouped query is rebuilt from text, which would drop it
+    if (!queryJSON.groupBy || !TEMPLATE_EXPORTABLE_GROUP_BYS.has(queryJSON.groupBy)) {
+        return undefined;
+    }
     const groupFilteredQueryJSON = addSelectedGroupsFilter(queryJSON, selectedTransactions, searchData);
     return groupFilteredQueryJSON ? getUngroupedTemplateExportQuery(groupFilteredQueryJSON) : undefined;
 }
@@ -521,20 +539,6 @@ function getAllMatchingReportActionQuery(queryJSON: SearchQueryJSON, excludedTra
     }
     return isEmptyObject(excludedTransactions) ? queryJSON : undefined;
 }
-
-/**
- * The groupings a template export can scope to the selected groups. Keep this in sync with `getSelectedGroupFilterEntry`.
- * Time-based groupings are left out because the template export would drop their date scope.
- */
-const TEMPLATE_EXPORTABLE_GROUP_BYS = new Set<SearchGroupBy>([
-    CONST.SEARCH.GROUP_BY.FROM,
-    CONST.SEARCH.GROUP_BY.APPROVER,
-    CONST.SEARCH.GROUP_BY.CARD,
-    CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
-    CONST.SEARCH.GROUP_BY.CATEGORY,
-    CONST.SEARCH.GROUP_BY.MERCHANT,
-    CONST.SEARCH.GROUP_BY.TAG,
-]);
 
 type ShouldShowBulkDuplicateParams = {
     selectedTransactionsKeys: string[];
@@ -3721,5 +3725,5 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 }
 
 export default useSearchBulkActions;
-export {getFullyDeletedGroupKeysByTransactionID, getGroupKeysSelectedViaGroup, getSelectedGroupKeys, shouldShowBulkDuplicateOption};
+export {getFullyDeletedGroupKeysByTransactionID, getGroupKeysSelectedViaGroup, getSelectedGroupKeys, getTemplateGroupExportQuery, shouldShowBulkDuplicateOption};
 export type {SearchHeaderOptionValue};

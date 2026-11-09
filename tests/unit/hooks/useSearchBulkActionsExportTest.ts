@@ -3,7 +3,7 @@ import {renderHook, waitFor} from '@testing-library/react-native';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
-import useSearchBulkActions from '@hooks/useSearchBulkActions';
+import useSearchBulkActions, {getTemplateGroupExportQuery} from '@hooks/useSearchBulkActions';
 
 import {markAsManuallyExported} from '@libs/actions/Report';
 import {
@@ -1838,6 +1838,19 @@ describe('useSearchBulkActions - export options', () => {
                 },
                 right: getOutsideDateRangeNode('2026-10-01', '2026-10-31'),
             });
+        });
+
+        it('builds no template export query for a selected month, so the template export cannot widen to every month', () => {
+            // Given September ticked on a search grouped by month, with its row in the snapshot so a date range can be built for it
+            mockMonthGroupsInSnapshot();
+            const selectedTransactions = {[SEPTEMBER_GROUP_KEY]: makeSelectedTransaction()};
+
+            // When the template export query is built, bypassing the menu check that hides templates for time-based groupings
+            const templateQuery = getTemplateGroupExportQuery(monthGroupedExpenseQueryJSON, selectedTransactions, mockCurrentSearchResults?.data);
+
+            // Then there is no query, so the export shows the download error, because the template export rebuilds the query
+            // from its text and would drop September's date scope
+            expect(templateQuery).toBeUndefined();
         });
     });
 
