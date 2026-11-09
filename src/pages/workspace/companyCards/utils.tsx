@@ -92,6 +92,7 @@ type ProgramAccountExport = {
         | typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT
         | typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_DUALENTRY_EXPORT_ACCOUNT
         | typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_CAMPFIRE_EXPORT_ACCOUNT
+        | typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_ZOHO_BOOKS_EXPORT_ACCOUNT
         | typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_ACCOUNT;
 
     /** Every account, in connection order, because an account that is no longer offered can still be the resolved one */
@@ -550,6 +551,41 @@ function getPolicyCardExportSettings(
                     })),
                     workspaceProgramAccountKey: campfireConfig?.export?.creditCardAccountID,
                     programAccountKeysByFeed: campfireConfig?.export?.cardProgramAccounts,
+                    exportsToLabel: translate('common.exportsTo'),
+                    defaultTitleSuffix: translate('common.default').toLocaleLowerCase(),
+                    defaultOptionPrefix: translate('common.default'),
+                },
+            };
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS: {
+            const zohoBooksConfig = policy?.connections?.zohoBooks?.config;
+            const zohoBooksData = policy?.connections?.zohoBooks?.data;
+            const exportReimbursable = zohoBooksConfig?.export?.reimbursable ?? CONST.ZOHO_BOOKS_EXPORT_REIMBURSABLE.VENDOR_BILL;
+            const exportNonReimbursable = zohoBooksConfig?.export?.nonReimbursable ?? CONST.ZOHO_BOOKS_EXPORT_NON_REIMBURSABLE.EXPENSE;
+
+            return {
+                description: currentConnectionName
+                    ? translate('workspace.moreFeatures.companyCards.integrationExport', currentConnectionName, translate('workspace.zohoBooks.cardAccount.label'))
+                    : undefined,
+                exportType: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_ZOHO_BOOKS_EXPORT_ACCOUNT,
+                shouldHideMenuItemDescription: true,
+                shouldShowMenuItemIcon: true,
+                shouldShowMenuItem:
+                    zohoBooksConfig?.export?.exportToMultipleAccounts &&
+                    exportReimbursable === CONST.ZOHO_BOOKS_EXPORT_REIMBURSABLE.VENDOR_BILL &&
+                    exportNonReimbursable === CONST.ZOHO_BOOKS_EXPORT_NON_REIMBURSABLE.EXPENSE,
+                accountSelection: {
+                    type: CONST.COMPANY_CARDS.EXPORT_RESOLVER.PROGRAM_ACCOUNT,
+                    nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_ZOHO_BOOKS_EXPORT_ACCOUNT,
+                    accounts: (zohoBooksData?.bankAccounts ?? []).map((account) => ({
+                        id: account.id,
+                        label: account.name,
+                        keyForList: account.id,
+                        configKey: account.id,
+                        isSelectable: account.isActive && (account.accountType === CONST.ZOHO_BOOKS_ACCOUNT_TYPE.BANK || account.accountType === CONST.ZOHO_BOOKS_ACCOUNT_TYPE.CREDIT_CARD),
+                    })),
+                    workspaceProgramAccountKey: zohoBooksConfig?.export?.creditCardAccountID,
+                    programAccountKeysByFeed: zohoBooksConfig?.export?.cardProgramAccounts,
                     exportsToLabel: translate('common.exportsTo'),
                     defaultTitleSuffix: translate('common.default').toLocaleLowerCase(),
                     defaultOptionPrefix: translate('common.default'),

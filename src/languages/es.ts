@@ -1814,6 +1814,23 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmApprovalWithHeldAmount: 'El informe contiene gastos retenidos. ¿Quieres aprobar sólo los gastos que cumplen con los requisitos o aprobar todo el informe?',
         confirmApprovalAllHoldAmount: 'Todos los gastos están retenidos. ¿Aprobar de todos modos?',
         confirmPay: 'Confirmar importe de pago',
+        wisePaymentSummary: {
+            confirmPayment: 'Confirmar pago',
+            reportTotal: 'Total del informe',
+            unheldAmountBeingPaid: 'Importe no retenido a pagar',
+            debitAmount: 'Importe a debitar',
+            employeeWillReceive: 'El empleado recibirá',
+            totalFees: 'Comisiones totales',
+            fxRate: 'Tipo de cambio',
+            paymentDetails: 'Detalles del pago',
+            debitedAmount: 'Importe cargado',
+            employeeReceived: 'El empleado recibió',
+            payAll: 'Pagar todo',
+            reportCount: ({count}: {count: number}) => ({
+                one: '1 informe',
+                other: `${count} informes`,
+            }),
+        },
         confirmPayAmount: 'Paga lo que no está retenido, o paga el informe completo.',
         confirmPayAllHoldAmount: () => ({
             one: 'Este gasto está retenido. ¿Quieres pagarlo de todos modos?',
@@ -4321,7 +4338,7 @@ ${amount} para ${merchant} - ${date}`,
         bankAccountPurposeTitle: '¿Qué quieres hacer con tu cuenta bancaria?',
         getReimbursed: 'Recibir un reembolso',
         getReimbursedDescription: 'Por tu empleador u otras personas',
-        makePayments: 'Hacer pagos',
+        makePayments: 'Realiza pagos empresariales',
         makePaymentsDescription: 'Pagar gastos o emitir Tarjetas Expensify',
         hasPhoneLoginError: (contactMethodRoute) =>
             `Para añadir una cuenta bancaria verificada, <a href="${contactMethodRoute}">asegúrate de que tu nombre de usuario principal sea un correo electrónico válido</a> y vuelve a intentarlo. Puedes añadir tu número de teléfono como nombre de usuario secundario.`,
@@ -4422,6 +4439,8 @@ ${amount} para ${merchant} - ${date}`,
         updateSuccessTitle: '¡Cuenta bancaria actualizada!',
         updateSuccessHeader: 'Cuenta bancaria actualizada',
         updateSuccessMessage: 'Enhorabuena, tu cuenta bancaria está configurada y lista para recibir reembolsos.',
+        bankDetails: 'Datos bancarios',
+        accountHolderDetails: 'Detalles del titular de la cuenta',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Escribe tu contraseña de Expensify',
@@ -4429,6 +4448,8 @@ ${amount} para ${merchant} - ${date}`,
         chooseAccountLabel: 'Cuenta',
         successTitle: '¡Cuenta bancaria personal añadida!',
         successMessage: 'Enhorabuena, tu cuenta bancaria está lista para recibir reembolsos.',
+        bankAccountAddedTitle: '¡Cuenta bancaria añadida!',
+        bankAccountAddedMessage: 'Enhorabuena, tu cuenta bancaria personal está configurada y lista para recibir reembolsos.',
     },
     attachmentView: {
         unknownFilename: 'Archivo desconocido',
@@ -6182,7 +6203,11 @@ ${amount} para ${merchant} - ${date}`,
             noSubsidiariesFoundDescription: 'Añade la subsidiaria en NetSuite y sincroniza de nuevo la conexión',
             tokenInput: {
                 title: 'Netsuite configuración',
-                connectWithTokenAuthentication: 'Conéctate con autenticación basada en tokens (SOAP) en su lugar',
+                tokenAuthenticationPrompt: {
+                    beforeLink: 'O conéctate con',
+                    link: 'autenticación basada en tokens',
+                    afterLink: '(SOAP) en su lugar.',
+                },
                 formSteps: {
                     installBundle: {
                         title: 'Instala el paquete de Expensify',
@@ -7159,11 +7184,14 @@ ${amount} para ${merchant} - ${date}`,
                 unassignCard: 'Desasignar tarjeta',
                 unassignCards: 'Desasignar tarjetas',
                 unassign: 'Desasignar',
-                unassignCardDescription: 'Desasignar esta tarjeta eliminará todas las transacciones no enviadas.',
-                unassignCardsDescription: 'Desasignar eliminará todas las transacciones no enviadas de las tarjetas seleccionadas.',
+                unassignCardDescription: (transactionsUrl: string) =>
+                    `Desasignar esta tarjeta eliminará permanentemente todas sus <a href="${transactionsUrl}">transacciones no enviadas</a>, incluidas las transacciones no reportadas y las que están en informes en borrador. Esta acción no se puede deshacer.`,
+                unassignCardsDescription: (transactionsUrl: string) =>
+                    `Desasignar eliminará permanentemente todas las <a href="${transactionsUrl}">transacciones no enviadas</a> de las tarjetas seleccionadas, incluidas las transacciones no reportadas y las que están en informes en borrador. Esta acción no se puede deshacer.`,
                 removeCard: 'Eliminar tarjeta',
                 remove: 'Eliminar',
-                removeCardDescription: 'Eliminar esta tarjeta eliminará todas las transacciones no enviadas.',
+                removeCardDescription: (transactionsUrl: string) =>
+                    `Eliminar esta tarjeta eliminará permanentemente todas sus <a href="${transactionsUrl}">transacciones no enviadas</a>, incluidas las transacciones no reportadas y las que están en informes en borrador. Esta acción no se puede deshacer.`,
                 assignCard: 'Asignar tarjeta',
                 cardFeedName: 'Nombre del feed de tarjeta',
                 cardFeedNameDescription: 'Dale al feed de tarjeta un nombre único para que puedas distinguirlo de los demás.',
@@ -9022,6 +9050,8 @@ ${reportName}`,
                     `El pago automático solo está disponible en el plan Controlar. [Mejora el plan](${upgradeLink}) para desbloquear esta función.`,
                 autoPayReportsUnderTitle: 'Pagar automáticamente informes por debajo de',
                 autoPayReportsUnderDescription: 'Los informes de gastos totalmente conformes por debajo de este importe se pagarán automáticamente.',
+                autoPayCrossBorderFeesDisclosure:
+                    'Los pagos internacionales usan el tipo de cambio medio del mercado en el momento del pago. Se aplica una comisión variable del 1% a todos los pagos internacionales, excepto en las siguientes monedas: CRC (1,32%), KES (1,01%), MAD (1,60%), NPR (1,05%), UGX (1,47%), UYU (1,12%).\n\nLos tipos de cambio y las comisiones exactos no se pueden consultar antes del pago cuando un informe se paga automáticamente. Un desglose detallado completo (incluidos el tipo de cambio exacto, las comisiones y el importe final) está disponible en el informe inmediatamente después del pago.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName) => `Añade ${featureName} para desbloquear esta función.`,
                 enableFeatureSubtitle: (featureName, moreFeaturesLink) => `Ir a [más características](${moreFeaturesLink}) y habilita ${featureName} para desbloquear esta función.`,
                 preventPayoutNonReimbursableReportsTitle: 'Evitar marcar como pagados los informes no reembolsables',
@@ -9604,6 +9634,35 @@ ${reportName}`,
                 description: 'Elige un proveedor de Zoho Books predeterminado para los gastos que no se asignen automáticamente.',
             },
             companyCardAccount: {label: 'Cuenta de tarjeta de empresa', description: 'Elige dónde exportar las transacciones de tarjetas de empresa.'},
+            exportToMultipleAccounts: 'Configura la exportación a varias cuentas',
+            cardProgramAccount: {
+                label: 'Cuenta del programa de tarjetas',
+                description: 'Sobrescribe la cuenta del espacio de trabajo para estos programas de tarjetas.',
+                descriptionLevel2: 'Anular la cuenta del espacio de trabajo para este programa de tarjetas.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Todos los programas usan la cuenta predeterminada';
+                    }
+                    return {
+                        one: `${count} programa con cuenta personalizada`,
+                        other: `${count} programas con cuentas personalizadas`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'Cuenta por tarjeta',
+                description: 'Anula la cuenta del programa para tarjetas individuales.',
+                descriptionLevel2: 'Sobrescribe la cuenta del programa para estas tarjetas.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Todas las tarjetas usan cuentas del programa';
+                    }
+                    return {
+                        one: `${count} tarjeta con cuenta personalizada`,
+                        other: `${count} tarjetas con cuentas personalizadas`,
+                    };
+                },
+            },
             noVendorsFound: 'No se encontraron proveedores',
             noVendorsFoundDescription: 'Por favor, añade proveedores en Zoho Books y sincroniza la conexión de nuevo',
             noAccountsFound: 'No se encontraron cuentas',
@@ -11870,6 +11929,7 @@ ${reportName}`,
         autoReportedRejectedExpense: 'Este gasto fue rechazado.',
         billableExpense: 'La opción facturable ya no es válida',
         cashExpenseWithNoReceipt: (formattedLimit) => `Recibo obligatorio para importes mayores de ${formattedLimit}`,
+        categoryNotAllowed: 'Categoría no permitida',
         categoryOutOfPolicy: 'La categoría ya no es válida',
         conversionSurcharge: (surcharge) => `${surcharge}% de recargo aplicado`,
         customUnitOutOfPolicy: 'Tasa inválida para este espacio de trabajo',
@@ -12056,6 +12116,7 @@ ${reportName}`,
             autoReportedRejectedExpense: 'Gasto rechazado',
             billableExpense: 'Refacturable ya no válido',
             cashExpenseWithNoReceipt: 'Recibo obligatorio',
+            categoryNotAllowed: 'Categoría no permitida',
             categoryOutOfPolicy: 'La categoría ya no es válida',
             companyCardRequired: 'Tarjeta de empresa obligatoria',
             conversionSurcharge: 'Suplemento por conversión aplicado',

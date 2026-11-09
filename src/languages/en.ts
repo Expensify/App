@@ -1969,6 +1969,23 @@ const translations = {
         confirmApprovalWithHeldAmount: 'Report contains held expenses. Approve only compliant expenses, or approve the entire report?',
         confirmApprovalAllHoldAmount: 'All expenses are on hold. Approve anyway?',
         confirmPay: 'Confirm payment amount',
+        wisePaymentSummary: {
+            confirmPayment: 'Confirm payment',
+            reportTotal: 'Report total',
+            unheldAmountBeingPaid: 'Unheld amount being paid',
+            debitAmount: 'Debit amount',
+            employeeWillReceive: 'Employee will receive',
+            totalFees: 'Total fees',
+            fxRate: 'FX rate',
+            paymentDetails: 'Payment details',
+            debitedAmount: 'Debited amount',
+            employeeReceived: 'Employee received',
+            payAll: 'Pay all',
+            reportCount: ({count}: {count: number}) => ({
+                one: '1 report',
+                other: `${count} reports`,
+            }),
+        },
         confirmPayAmount: "Pay what's not on hold, or pay the entire report.",
         confirmPayAllHoldAmount: () => ({
             one: 'This expense is on hold. Do you want to pay anyway?',
@@ -4644,7 +4661,7 @@ const translations = {
         bankAccountPurposeTitle: 'What do you want to do with your bank account?',
         getReimbursed: 'Get reimbursed',
         getReimbursedDescription: 'By employer or others',
-        makePayments: 'Make payments',
+        makePayments: 'Make business payments',
         makePaymentsDescription: 'Pay expenses or issue Expensify Cards',
         hasPhoneLoginError: (contactMethodRoute: string) =>
             `To connect a bank account, please <a href="${contactMethodRoute}">add an email as your primary login</a> and try again. You can add your phone number as a secondary login.`,
@@ -4734,6 +4751,8 @@ const translations = {
         accountTypeStepHeader: 'What type of account is this?',
         bankInformationStepHeader: 'What are your bank details?',
         accountHolderInformationStepHeader: 'What are the account holder details?',
+        bankDetails: 'Bank details',
+        accountHolderDetails: 'Account holder details',
         howDoWeProtectYourData: 'How do we protect your data?',
         currencyHeader: "What's your bank account's currency?",
         confirmationStepHeader: 'Check your info.',
@@ -4751,6 +4770,8 @@ const translations = {
         chooseAccountLabel: 'Account',
         successTitle: 'Personal bank account added!',
         successMessage: 'Congrats, your bank account is set up and ready to receive reimbursements.',
+        bankAccountAddedTitle: 'Bank account added!',
+        bankAccountAddedMessage: 'Congrats, your personal bank account is set up and ready to receive reimbursements.',
     },
     attachmentView: {
         unknownFilename: 'Unknown filename',
@@ -6515,7 +6536,11 @@ const translations = {
             noSubsidiariesFoundDescription: 'Please add a subsidiary in NetSuite and sync the connection again',
             tokenInput: {
                 title: 'NetSuite setup',
-                connectWithTokenAuthentication: 'Connect with token-based authentication (SOAP) instead',
+                tokenAuthenticationPrompt: {
+                    beforeLink: 'Or connect with',
+                    link: 'token-based authentication',
+                    afterLink: '(SOAP) instead.',
+                },
                 formSteps: {
                     installBundle: {
                         title: 'Install the Expensify bundle',
@@ -7160,6 +7185,35 @@ const translations = {
             companyCardAccount: {
                 label: 'Company card account',
                 description: 'Choose where to export company card transactions.',
+            },
+            exportToMultipleAccounts: 'Configure exporting to multiple accounts',
+            cardProgramAccount: {
+                label: 'Card program account',
+                description: 'Override the workspace account for these card programs.',
+                descriptionLevel2: 'Override the workspace account for this card program.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'All programs use default account';
+                    }
+                    return {
+                        one: `${count} program with custom account`,
+                        other: `${count} programs with custom accounts`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'Per-card account',
+                description: 'Override the program account for individual cards.',
+                descriptionLevel2: 'Override the program account for these cards.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'All cards use program accounts';
+                    }
+                    return {
+                        one: `${count} card with custom account`,
+                        other: `${count} cards with custom accounts`,
+                    };
+                },
             },
             noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Please add vendors in Zoho Books and sync the connection again',
@@ -7861,12 +7915,15 @@ const translations = {
                 unassignCard: 'Unassign card',
                 unassignCards: 'Unassign cards',
                 unassign: 'Unassign',
-                unassignCardDescription: 'Unassigning this card will delete all unsubmitted transactions.',
-                unassignCardsDescription: 'Unassigning will delete all unsubmitted transactions from the selected cards.',
+                unassignCardDescription: (transactionsUrl: string) =>
+                    `Unassigning this card will permanently delete all its <a href="${transactionsUrl}">unsubmitted transactions</a>, including unreported transactions and those on draft reports. This can’t be undone.`,
+                unassignCardsDescription: (transactionsUrl: string) =>
+                    `Unassigning will permanently delete all <a href="${transactionsUrl}">unsubmitted transactions</a> from the selected cards, including unreported transactions and those on draft reports. This can’t be undone.`,
                 assignCard: 'Assign card',
                 removeCard: 'Remove card',
                 remove: 'Remove',
-                removeCardDescription: 'Removing this card will delete all unsubmitted transactions.',
+                removeCardDescription: (transactionsUrl: string) =>
+                    `Removing this card will permanently delete all its <a href="${transactionsUrl}">unsubmitted transactions</a>, including unreported transactions and those on draft reports. This can’t be undone.`,
                 cardFeedName: 'Card feed name',
                 cardFeedNameDescription: 'Give the card feed a unique name so you can tell it apart from the others.',
                 cardFeedTransaction: 'Delete transactions',
@@ -9770,8 +9827,10 @@ const translations = {
                 autoPayApprovedReportsLimitError: (currency?: string) => `Please enter an amount less than ${currency ?? ''}20,000`,
                 autoPayApprovedReportsLockedSubtitle: 'Go to more features and enable workflows, then add payments to unlock this feature.',
                 autoPayApprovedReportsControlPlanSubtitle: (upgradeLink: string) => `Auto-pay is only available on the Control plan. [Upgrade](${upgradeLink}) to unlock this feature.`,
-                autoPayReportsUnderTitle: 'Auto-pay reports under',
+                autoPayReportsUnderTitle: 'Auto-pay reports less than',
                 autoPayReportsUnderDescription: 'Fully compliant expense reports under this amount will be automatically paid.',
+                autoPayCrossBorderFeesDisclosure:
+                    'Cross-border payments use the mid-market exchange rate at the time of payment. A 1% variable fee applies to all cross-border payments, except the following currencies: CRC (1.32%), KES (1.01%), MAD (1.60%), NPR (1.05%), UGX (1.47%), UYU (1.12%).\n\nExact rates and fees cannot be previewed prior to payment when a report is auto-paid. A complete itemized breakdown (including the exact exchange rate, fees, and final amount) is available on the report immediately after payment.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Add ${featureName} to unlock this feature.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) => `Go to [more features](${moreFeaturesLink}) and enable ${featureName} to unlock this feature.`,
             },
@@ -12003,6 +12062,7 @@ const translations = {
         autoReportedRejectedExpense: 'This expense was rejected.',
         billableExpense: 'Billable no longer valid',
         cashExpenseWithNoReceipt: (formattedLimit?: string) => `Receipt required${formattedLimit ? ` over ${formattedLimit}` : ''}`,
+        categoryNotAllowed: 'Category not allowed',
         categoryOutOfPolicy: 'Category no longer valid',
         conversionSurcharge: (surcharge: number) => `Applied ${surcharge}% conversion surcharge`,
         customUnitOutOfPolicy: 'Rate not valid for this workspace',
@@ -12242,6 +12302,7 @@ const translations = {
             autoReportedRejectedExpense: 'Expense rejected',
             billableExpense: 'Billable no longer valid',
             cashExpenseWithNoReceipt: 'Receipt required',
+            categoryNotAllowed: 'Category not allowed',
             categoryOutOfPolicy: 'Category no longer valid',
             companyCardRequired: 'Company card required',
             conversionSurcharge: 'Conversion surcharge applied',
