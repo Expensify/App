@@ -16,8 +16,7 @@ import type {AvatarSizeName} from '@styles/utils/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import type {StyleProp} from 'react-native';
-import type {ViewStyle} from 'react-native/Libraries/StyleSheet/StyleSheetTypes';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
