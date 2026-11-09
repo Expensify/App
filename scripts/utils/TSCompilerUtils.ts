@@ -1,4 +1,8 @@
-import ts from '@typescript/typescript6';
+import type {API} from 'typescript/async';
+
+import * as ts from 'typescript/ast';
+import * as factory from 'typescript/ast/factory';
+import * as is from 'typescript/ast/is';
 
 /**
  * Actions that can be taken when visiting a node in a transformer.
@@ -15,6 +19,14 @@ enum TransformerAction {
 }
 
 type TransformerResult = {action: TransformerAction.Continue} | {action: TransformerAction.Replace; newNode: (transformedChildNode: ts.Node) => ts.Node} | {action: TransformerAction.Remove};
+
+type SourceFileTransformer = (sourceFile: ts.SourceFile) => ts.SourceFile;
+
+function createPropertyAssignment(name: string | ts.PropertyName, initializer: ts.Expression): ts.PropertyAssignment {
+    // The beta declaration requires a type even for object properties without a type annotation.
+    // @ts-expect-error -- An absent property type is valid in the native factory and printer.
+    return factory.createPropertyAssignment(undefined, typeof name === 'string' ? factory.createIdentifier(name) : name, undefined, undefined, initializer);
+}
 
 /**
  * Walk up the AST from a given node and return the nearest ancestor that matches a predicate.
@@ -94,10 +106,10 @@ function addImport(sourceFile: ts.SourceFile, identifierName: string, modulePath
     }
 
     const phaseModifier = isTypeOnly ? ts.SyntaxKind.TypeKeyword : undefined;
-    const newImport = ts.factory.createImportDeclaration(
+    const newImport = factory.createImportDeclaration(
         undefined,
-        ts.factory.createImportClause(phaseModifier, ts.factory.createIdentifier(identifierName), undefined),
-        ts.factory.createStringLiteral(modulePath),
+        factory.createImportClause(phaseModifier, factory.createIdentifier(identifierName), undefined),
+        factory.createStringLiteral(modulePath, ts.TokenFlags.None),
     );
 
     // Find the index of the last import declaration
@@ -109,9 +121,9 @@ function addImport(sourceFile: ts.SourceFile, identifierName: string, modulePath
         }
     }
 
-    const updatedStatements = ts.factory.createNodeArray([...sourceFile.statements.slice(0, lastImportIndex + 1), newImport, ...sourceFile.statements.slice(lastImportIndex + 1)]);
+    const updatedStatements = factory.createNodeArray([...sourceFile.statements.slice(0, lastImportIndex + 1), newImport, ...sourceFile.statements.slice(lastImportIndex + 1)]);
 
-    return ts.factory.updateSourceFile(sourceFile, updatedStatements);
+    return factory.updateSourceFile(sourceFile, updatedStatements, sourceFile.endOfFileToken);
 }
 
 /**
@@ -171,28 +183,6 @@ function resolveDeclaration(name: string, sourceFile: ts.SourceFile): ts.Node | 
 }
 
 /**
- * Check if a node is an expression that has both 'expression' and 'type' properties.
- * This is useful for satisfies expressions and type assertions.
- */
-function isExpressionWithType(node: ts.Node): node is ExpressionWithType {
-    return 'expression' in node && 'type' in node && node.expression !== undefined && node.type !== undefined;
-}
-
-/**
- * Check if a node is a satisfies expression by examining its structure.
- * This is more robust than checking SyntaxKind numbers which might vary between TS versions.
- */
-function isSatisfiesExpression(node: ts.Node): node is ExpressionWithType {
-    // Check if the node text contains 'satisfies' and has the expected structure
-    const nodeText = node.getText();
-    if (!nodeText.includes(' satisfies ')) {
-        return false;
-    }
-
-    return isExpressionWithType(node);
-}
-
-/**
  * Extracts the identifier name from various expression types.
  * Handles cases like:
  * - Simple identifier: `translations`
@@ -207,9 +197,7 @@ function extractIdentifierFromExpression(node: ts.Node): string | null {
         return node.text;
     }
 
-    // Check for satisfies expression by looking at the node structure
-    // A satisfies expression has the form: expression satisfies type
-    if (isSatisfiesExpression(node)) {
+    if (is.isSatisfiesExpression(node)) {
         return extractIdentifierFromExpression(node.expression);
     }
 
@@ -223,11 +211,8 @@ function extractIdentifierFromExpression(node: ts.Node): string | null {
         return extractIdentifierFromExpression(node.expression);
     }
 
-    // Type assertion: `<SomeType>translations`
-    // Check for type assertion by looking for angle bracket syntax and structure
-    const nodeText = node.getText();
-    if (nodeText.includes('<') && nodeText.includes('>') && 'expression' in node && 'type' in node && node.expression !== undefined && node.type !== undefined) {
-        return extractIdentifierFromExpression(node.expression as ts.Node);
+    if (is.isTypeAssertion(node)) {
+        return extractIdentifierFromExpression(node.expression);
     }
 
     return null;
@@ -288,28 +273,28 @@ function buildDotNotationPath(node: ts.Node, rootNode?: ts.Node): string | null 
  * Useful for converting serialized expressions back to AST nodes.
  * @disclaimer This is intended to work only for single expressions of code, not entire files or multiple statements.
  */
-function parseCodeStringToAST(codeString: string): ts.Expression {
+async function parseCodeStringToAST(codeString: string, api: API): Promise<ts.Expression> {
     try {
-        const tempSourceFile = ts.createSourceFile('temp.ts', `const temp = ${codeString};`, ts.ScriptTarget.Latest);
-
-        // Check for parsing errors
-        // @ts-expect-error parseDiagnostics is not a public property of the SourceFile type, but this works.
-        // The "correct" way to do this is with `ts.createProgram`, but it's more complicated and it makes the translation script at least ~4x slower.
-        if (tempSourceFile.parseDiagnostics && (tempSourceFile.parseDiagnostics as unknown as ts.Diagnostic[]).length > 0) {
+        const sourceText = `const temp = ${codeString};`;
+        const {diagnostics} = await api.transpileModule(sourceText, {fileName: 'temp.ts', reportDiagnostics: true});
+        if (diagnostics?.length) {
             throw new Error(`Malformed code string: ${codeString}`);
         }
-
-        const tempStatement = tempSourceFile.statements.at(0);
-        if (!tempStatement || !ts.isVariableStatement(tempStatement)) {
-            throw new Error(`Malformed code string: ${codeString}`);
+        const lease = await api.createSourceFile('temp.ts', sourceText);
+        try {
+            const tempStatement = lease.sourceFile.statements.at(0);
+            if (!tempStatement || !ts.isVariableStatement(tempStatement)) {
+                throw new Error(`Malformed code string: ${codeString}`);
+            }
+            const declaration = tempStatement.declarationList.declarations.at(0);
+            if (!declaration?.initializer) {
+                throw new Error(`No initializer found in code string: ${codeString}`);
+            }
+            // A synthesized clone remains printable after the remote source file lease is released.
+            return ts.getSynthesizedDeepClone(declaration.initializer);
+        } finally {
+            await lease.dispose();
         }
-
-        const declaration = tempStatement.declarationList.declarations.at(0);
-        if (!declaration?.initializer) {
-            throw new Error(`No initializer found in code string: ${codeString}`);
-        }
-
-        return declaration.initializer;
     } catch (error) {
         if (error instanceof Error && error.message.includes('code string')) {
             throw error; // Re-throw our custom errors
@@ -341,26 +326,24 @@ function createPathAwareVisitor<T>(visitWithPath: (node: ts.Node, path: string) 
  * Create a path-aware transformer that provides clear action-based control over node transformation.
  * Makes transformer logic more explicit and easier to understand.
  */
-function createPathAwareTransformer(visitor: (node: ts.Node, path: string) => TransformerResult): ts.TransformerFactory<ts.SourceFile> {
-    return (context: ts.TransformationContext) => {
-        const visitWithPath = (node: ts.Node, currentPath = ''): ts.Node | undefined => {
-            const result = visitor(node, currentPath);
-            if (result.action === TransformerAction.Remove) {
-                return undefined;
-            }
+function createPathAwareTransformer(visitor: (node: ts.Node, path: string) => TransformerResult): SourceFileTransformer {
+    const visitWithPath = (node: ts.Node, currentPath = ''): ts.Node | undefined => {
+        const result = visitor(node, currentPath);
+        if (result.action === TransformerAction.Remove) {
+            return undefined;
+        }
 
-            const transformedNode = ts.visitEachChild(node, createPathAwareVisitor(visitWithPath, currentPath), context);
-            if (result.action === TransformerAction.Replace) {
-                return result.newNode(transformedNode);
-            }
+        const transformedNode = ts.visitEachChild(node, createPathAwareVisitor(visitWithPath, currentPath));
+        if (result.action === TransformerAction.Replace) {
+            return result.newNode(transformedNode);
+        }
 
-            // Continue, leaving the existing node unchanged
-            return transformedNode;
-        };
+        // Continue, leaving the existing node unchanged
+        return transformedNode;
+    };
 
-        return (sourceFile: ts.SourceFile) => {
-            return (ts.visitNode(sourceFile, visitWithPath) as ts.SourceFile) ?? sourceFile;
-        };
+    return (sourceFile: ts.SourceFile) => {
+        return (ts.visitNode(sourceFile, visitWithPath) as ts.SourceFile) ?? sourceFile;
     };
 }
 
@@ -449,9 +432,9 @@ function injectDeepObjectValue(objectLiteral: ts.ObjectLiteralExpression, dotPat
         // Key exists - we need to recursively inject into the existing structure
         if (!remainingPath) {
             // This is the final key, replace the existing value
-            const updatedProperty = ts.factory.createPropertyAssignment(topLevelKey, value);
+            const updatedProperty = createPropertyAssignment(topLevelKey, value);
             const updatedProperties = objectLiteral.properties.map((prop) => (prop === existingProperty ? updatedProperty : prop));
-            return ts.factory.createObjectLiteralExpression(updatedProperties);
+            return factory.createObjectLiteralExpression(updatedProperties);
         }
 
         // Recursively inject into the existing nested structure
@@ -473,27 +456,27 @@ function injectDeepObjectValue(objectLiteral: ts.ObjectLiteralExpression, dotPat
         const updatedNestedObject = injectDeepObjectValue(nestedObject, remainingPath, value);
 
         // Re-wrap with satisfies if it was originally wrapped
-        const finalValue = satisfiesType ? ts.factory.createSatisfiesExpression(updatedNestedObject, satisfiesType) : updatedNestedObject;
+        const finalValue = satisfiesType ? factory.createSatisfiesExpression(updatedNestedObject, satisfiesType) : updatedNestedObject;
 
-        const updatedProperty = ts.factory.createPropertyAssignment(topLevelKey, finalValue);
+        const updatedProperty = createPropertyAssignment(topLevelKey, finalValue);
         const updatedProperties = objectLiteral.properties.map((prop) => (prop === existingProperty ? updatedProperty : prop));
-        return ts.factory.createObjectLiteralExpression(updatedProperties);
+        return factory.createObjectLiteralExpression(updatedProperties);
     }
 
     // Key doesn't exist - create new nested structure
     if (!remainingPath) {
         // This is a direct property, just add it
-        const newProperty = ts.factory.createPropertyAssignment(topLevelKey, value);
-        return ts.factory.createObjectLiteralExpression([...objectLiteral.properties, newProperty]);
+        const newProperty = createPropertyAssignment(topLevelKey, value);
+        return factory.createObjectLiteralExpression([...objectLiteral.properties, newProperty]);
     }
 
     // Create nested structure recursively by creating an empty object and injecting into it
-    const emptyNestedObject = ts.factory.createObjectLiteralExpression([]);
+    const emptyNestedObject = factory.createObjectLiteralExpression([]);
     const nestedObjectWithValue = injectDeepObjectValue(emptyNestedObject, remainingPath, value);
-    const newProperty = ts.factory.createPropertyAssignment(topLevelKey, nestedObjectWithValue);
+    const newProperty = createPropertyAssignment(topLevelKey, nestedObjectWithValue);
 
     // Return new ObjectLiteralExpression with the added property
-    return ts.factory.createObjectLiteralExpression([...objectLiteral.properties, newProperty]);
+    return factory.createObjectLiteralExpression([...objectLiteral.properties, newProperty]);
 }
 
 /**
@@ -528,7 +511,39 @@ function isStringConcatenationChain(node: ts.BinaryExpression): boolean {
     return false;
 }
 
+/**
+ * The native printer preserves comments, but translation targets must not carry English context annotations.
+ * Inspect parsed token trivia so comment markers inside strings, templates and regular expressions remain intact.
+ */
+async function printWithoutComments(api: API, node: ts.Node): Promise<string> {
+    const code = await api.printer.printNode(node, {preserveSourceNewlines: false});
+    const lease = await api.createSourceFile('printed.ts', code);
+    try {
+        const ranges = new Map<number, number>();
+        const collectComments = (child: ts.Node): void => {
+            for (const position of [child.pos, child.end]) {
+                const comments = [...(ts.getLeadingCommentRanges(code, position) ?? []), ...(ts.getTrailingCommentRanges(code, position) ?? [])];
+                for (const comment of comments) {
+                    ranges.set(comment.pos, comment.end);
+                }
+            }
+            for (const token of child.getChildren(lease.sourceFile)) {
+                collectComments(token);
+            }
+        };
+        collectComments(lease.sourceFile);
+        let result = code;
+        for (const [start, end] of [...ranges].sort(([left], [right]) => right - left)) {
+            result = result.slice(0, start) + result.slice(start, end).replaceAll(/[^\r\n]/g, ' ') + result.slice(end);
+        }
+        return result;
+    } finally {
+        await lease.dispose();
+    }
+}
+
 export default {
+    createPropertyAssignment,
     findAncestor,
     getIndentationOfNode,
     addImport,
@@ -543,6 +558,7 @@ export default {
     objectHas,
     injectDeepObjectValue,
     isStringConcatenationChain,
+    printWithoutComments,
 };
 export {TransformerAction};
-export type {ExpressionWithType, TransformerResult};
+export type {ExpressionWithType, SourceFileTransformer, TransformerResult};
