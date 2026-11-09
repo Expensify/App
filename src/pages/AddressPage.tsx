@@ -4,6 +4,7 @@ import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useGeographicalStateAndCountryFromRoute from '@hooks/useGeographicalStateAndCountryFromRoute';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -19,7 +20,7 @@ import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type AddressPageProps = {
@@ -42,6 +43,10 @@ type AddressPageProps = {
 function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo, defaultCountry, shouldRequireZip}: AddressPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {state: stateFromUrl} = useGeographicalStateAndCountryFromRoute();
+    // Once a state was applied from the URL param, the form owns the state/city/zip values,
+    // so the sync effect below must not overwrite them with the saved address.
+    const hasAppliedUrlState = useRef(false);
 
     // Check if country is valid
     const {street} = address ?? {};
@@ -57,12 +62,21 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
         if (!address) {
             return;
         }
+        if (stateFromUrl && !hasAppliedUrlState.current) {
+            // The state param from the URL takes precedence over the saved address; the
+            // StateSelector applies it to the form and then clears the param from the URL.
+            hasAppliedUrlState.current = true;
+            return;
+        }
+        if (hasAppliedUrlState.current) {
+            return;
+        }
         setState(address.state);
         setCurrentCountry(address.country);
         setCity(address.city);
         setZipcode(address.zip);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [address?.state, address?.country, address?.city, address?.zip]);
+    }, [address?.state, address?.country, address?.city, address?.zip, stateFromUrl]);
 
     const handleAddressChange = (value: unknown, key: unknown) => {
         const addressPart = value as string;
