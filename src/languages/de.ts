@@ -1243,6 +1243,11 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Compliance',
         runningTotal: 'Laufende Summe',
+        upsellState: {
+            title: 'Upgrade auf Control für mehr Einblicke',
+            subtitle: 'Verfolgen Sie Trends bei der Einhaltung der Spesenrichtlinie und markieren Sie Wiederholungstäter.',
+            button: 'Upgrade auf Control',
+        },
         explain: 'Erklären',
         explainChartPrompt: (chartTitle: string) => `Erklären Sie die Daten in ${chartTitle}.`,
         viewDetails: 'Details anzeigen',
