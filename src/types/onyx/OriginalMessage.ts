@@ -1919,7 +1919,6 @@ export type {
     OriginalMessageMovedTransaction,
     PolicyBudgetFrequency,
     OriginalMessageMarkedReimbursed,
-    OriginalMessageBase,
     OriginalMessageReimbursed,
     OriginalMessageSettlementAccountLocked,
     ViolationsSnapshot,
