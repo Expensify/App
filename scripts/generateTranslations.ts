@@ -26,7 +26,8 @@ import get from 'lodash/get';
 import path from 'path';
 import * as ts from 'typescript/ast';
 import * as factory from 'typescript/ast/factory';
-import {API} from 'typescript/async';
+// eslint-disable-next-line rulesdir/no-api-in-views -- This is TypeScript's compiler client, not Expensify's HTTP API.
+import {API as CompilerAPI} from 'typescript/async';
 
 import type {DiffResult} from './utils/Git';
 import type Translator from './utils/Translator/Translator';
@@ -109,7 +110,7 @@ class TranslationGenerator {
      */
     private sourceFile!: ts.SourceFile;
 
-    private readonly api: API;
+    private readonly api: CompilerAPI;
 
     private readonly sourceFileLeases: RetainedSourceFile[] = [];
 
@@ -216,7 +217,7 @@ class TranslationGenerator {
      */
     private readonly dedentStringKeys = new Set<number>();
 
-    constructor(api: API) {
+    constructor(api: CompilerAPI) {
         this.api = api;
         this.languagesDir = process.env.LANGUAGES_DIR ?? path.join(__dirname, '../src/languages');
 
@@ -1505,7 +1506,7 @@ class TranslationGenerator {
 }
 
 async function main(): Promise<void> {
-    const api = new API();
+    const api = new CompilerAPI();
     try {
         const generator = new TranslationGenerator(api);
         await generator.generateTranslations();

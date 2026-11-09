@@ -20,9 +20,6 @@ import path from 'path';
 
 const projectRoot = `${import.meta.dir}/..`;
 
-// typescript-eslint still needs the TypeScript 6 compiler API, so it requires `@typescript/typescript6`
-// (see the patches under patches/@typescript-eslint/). The root `typescript` package is TypeScript 7.
-// Invoke that bin by path so a leftover `.bin/tsc` from `@typescript/old` cannot win.
 const tsc = `${projectRoot}/node_modules/typescript/bin/tsc`;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
