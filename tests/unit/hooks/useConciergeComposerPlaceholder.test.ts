@@ -16,6 +16,7 @@ const PDF_PLACEHOLDER = 'common.concierge.composerPlaceholders.exportPdf';
 const HELP_PLACEHOLDER = 'reportActionCompose.askConciergeForHelp';
 const BASE_PLACEHOLDERS = ['common.concierge.composerPlaceholders.createExpense', HELP_PLACEHOLDER];
 const expenseReport: Report = {reportID: REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID: ACCOUNT_ID, transactionCount: 1};
+const invoiceReport: Report = {...expenseReport, type: CONST.REPORT.TYPE.INVOICE, ownerAccountID: 2, managerID: ACCOUNT_ID};
 const transaction: Transaction = {transactionID: '1', reportID: REPORT_ID, amount: 3000, currency: 'USD', merchant: 'Lunch', created: '2026-11-08'};
 
 describe('useConciergeComposerPlaceholder', () => {
@@ -154,6 +155,76 @@ describe('useConciergeComposerPlaceholder', () => {
 
         // Then team and approval prompts are available without enabling personal report prompts
         expect(result.current).toBe(expectedPlaceholder);
+    });
+
+    it.each([
+        [0 / 6, 'common.concierge.composerPlaceholders.createExpense'],
+        [1 / 6, HELP_PLACEHOLDER],
+        [2 / 6, 'common.concierge.composerPlaceholders.missingCategory'],
+        [3 / 6, 'common.concierge.composerPlaceholders.awaitingApproval'],
+        [4 / 6, 'common.concierge.composerPlaceholders.leftToPay'],
+        [5 / 6, 'common.concierge.composerPlaceholders.topSpender'],
+    ])('offers accessible invoice prompts without personal prompts for seed %s', async (seed, expectedPlaceholder) => {
+        // Given only a received invoice and its reported transaction, with no own expenses
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, invoiceReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, transaction);
+        jest.mocked(Math.random).mockReturnValue(seed);
+        const {result} = renderHook(() => useConciergeComposerPlaceholder(true));
+        await waitForBatchedUpdates();
+
+        // When Concierge samples any of the recipient's six eligible slots
+        // Then payment and other accessible-report prompts are available, never personal expense or PDF prompts
+        expect(result.current).toBe(expectedPlaceholder);
+
+        // When the same invoice belongs to the current user instead
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {ownerAccountID: ACCOUNT_ID, managerID: 2});
+        });
+
+        // Then a sent invoice does not count as an owned expense report or personal expense
+        expect(result.current).toBe(expectedPlaceholder);
+    });
+
+    it('offers payment help as an invoice loads and removes it when the invoice is deleted', async () => {
+        // Given a mounted empty-account composer before its received invoice arrives
+        jest.mocked(Math.random).mockReturnValue(4 / 6);
+        const {result} = renderHook(() => useConciergeComposerPlaceholder(true));
+        await waitForBatchedUpdates();
+        expect(BASE_PLACEHOLDERS).toContain(result.current);
+
+        // When the invoice summary arrives without loading its transaction
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, invoiceReport);
+        });
+
+        // Then the recipient can see payment help without creating their own expenses
+        expect(result.current).toBe('common.concierge.composerPlaceholders.leftToPay');
+
+        // When the only invoice is pending deletion
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+        });
+
+        // Then the composer returns to safe defaults
+        expect(BASE_PLACEHOLDERS).toContain(result.current);
+    });
+
+    it.each([
+        ['empty', {...invoiceReport, transactionCount: 0}],
+        ['not loaded', {...invoiceReport, transactionCount: undefined}],
+        ['pending deletion', {...invoiceReport, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
+        ['inaccessible', {...invoiceReport, errorFields: {notFound: {[ACCOUNT_ID]: 'Report not found'}}}],
+    ])('does not enable invoice prompts for an %s invoice', async (_description, report) => {
+        // Given an invoice that cannot establish an accessible payable report
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, transaction);
+
+        // When Concierge selects a placeholder with no other expenses or reports
+        const {result} = renderHook(() => useConciergeComposerPlaceholder(true));
+        await waitForBatchedUpdates();
+
+        // Then an invalid invoice and its loaded transaction do not enable history-dependent prompts
+        expect(BASE_PLACEHOLDERS).toContain(result.current);
     });
 
     it.each(Array.from({length: 15}, (_, index) => index / 15))("never offers personal prompts for others' expenses with seed %s", async (seed) => {

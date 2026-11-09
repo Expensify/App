@@ -3,7 +3,7 @@
  */
 import useOnyx from '@hooks/useOnyx';
 
-import {isCurrentUserSubmitter, isMoneyRequestReport} from '@libs/ReportUtils';
+import {isCurrentUserSubmitter, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import {isExpenseUnreported} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -46,11 +46,11 @@ function getReportEligibility(reports: OnyxCollection<Report>, isConciergeInboxD
         if (!report || report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report.errorFields?.notFound) {
             continue;
         }
-        if (!isMoneyRequestReport(report) || (report.transactionCount ?? 0) <= 0) {
+        if (!(isMoneyRequestReport(report) || isInvoiceReport(report)) || (report.transactionCount ?? 0) <= 0) {
             continue;
         }
         hasAccessibleExpenseReports = true;
-        if (!isCurrentUserSubmitter(report, accountID)) {
+        if (!isMoneyRequestReport(report) || !isCurrentUserSubmitter(report, accountID)) {
             continue;
         }
         hasOwnExpenseReports = true;
