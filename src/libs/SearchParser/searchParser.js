@@ -5700,7 +5700,6 @@ function peg$parse(input, options) {
     year: "groupyear",
     quarter: "groupquarter",
     approver: "groupApprover",
-    // Paid-by groups have no column of their own, so they keep the current sort
     "paid-by": null,
   };
 
