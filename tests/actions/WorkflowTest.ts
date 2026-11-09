@@ -2372,6 +2372,59 @@ describe('actions/Workflow', () => {
             await waitForBatchedUpdates();
         });
 
+        it('returns the removed members to only one default workflow when the rules declare two', async () => {
+            mockFetch.pause();
+
+            // Given rules declaring two default workflows, one approved by the default approver (owner) and one by
+            // employee1, as rules saved before the backend refused a second default can
+            const policyID = '123456789';
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                owner: ownerEmail,
+                approver: ownerEmail,
+                employeeList: {
+                    [employee2Email]: {email: employee2Email, forwardsTo: '', role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                    [employee3Email]: {email: employee3Email, forwardsTo: '', role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                    [employee4Email]: {email: employee4Email, forwardsTo: '', role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                },
+                rules: {},
+            };
+            await createForwardApproveRules(policyID, [employee3Email], ownerEmail, 'ownerDefault', true);
+            await createForwardApproveRules(policyID, [employee4Email], employee1Email, 'otherDefault', true);
+            await createForwardApproveRules(policyID, [employee2Email], employee3Email, 'custom');
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            // When the custom workflow is deleted, handing over a default workflow resolved from stale data that matches
+            // neither of them
+            const approvalWorkflow = {
+                members: [{email: employee2Email, displayName: employee2Email}],
+                approvers: [{email: employee3Email, displayName: employee3Email, isCircularReference: false}],
+                isDefault: false,
+            };
+            const staleApproverEmail = 'stale-approver@gmail.com';
+            const defaultApprovalWorkflow = {members: [], approvers: [{email: staleApproverEmail, displayName: staleApproverEmail, isCircularReference: false}], isDefault: true};
+            removeApprovalWorkflowRules(approvalWorkflow, policy, await getRulesCollection(), defaultApprovalWorkflow);
+            await waitForBatchedUpdates();
+
+            // Then employee2 joins the default workflow approved by the default approver, and the other one keeps its members
+            const rules = await getRulesCollection();
+            for (const key of ['ownerDefault1', 'ownerDefault2']) {
+                const rule = rules?.[`${ONYXKEYS.COLLECTION.RULE}${key}`] as ApprovalWorkflowRule;
+                expect(extractSubmitterEmails(rule)).toEqual([employee3Email, employee2Email]);
+            }
+            for (const key of ['otherDefault1', 'otherDefault2']) {
+                const rule = rules?.[`${ONYXKEYS.COLLECTION.RULE}${key}`] as ApprovalWorkflowRule;
+                expect(extractSubmitterEmails(rule)).toEqual([employee4Email]);
+            }
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
         it('removes the rules that belong only to the workflow members', async () => {
             mockFetch.pause();
 

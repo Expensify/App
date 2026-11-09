@@ -1202,7 +1202,7 @@ function buildApprovalWorkflowRulesForSave(
     // `employeeList` chain would produce. A rule's shape ignores its `from` list, so the members these are built
     // against don't affect the comparison.
     const defaultWorkflowRules = hasRuleBasedDefault
-        ? Object.values(existingRules).filter((rule) => !!rule.isDefaultApprovalWorkflow)
+        ? Object.values(getDefaultWorkflowRules(existingRules, defaultApprover))
         : buildApprovalWorkflowRules({
               members: approvalWorkflow.members,
               approvers: calculateApprovers({employees, firstEmail: defaultApprover, personalDetailsByEmail: {}}),
@@ -1562,6 +1562,25 @@ function getApproverChainKey(chain: Approver[]): string {
  */
 function hasRuleBasedDefaultWorkflow(rules: Record<string, ApprovalWorkflowRule>): boolean {
     return Object.values(rules).some((rule) => !!rule.isDefaultApprovalWorkflow);
+}
+
+/**
+ * The rules of the policy's default workflow.
+ *
+ * A policy has a single default workflow, but rules saved before the backend refused a second one can declare several.
+ * The one starting at the default approver wins, as on the Workflows page, or else the first one. Every rule of a
+ * workflow lists the same submitters, which is how the rest of the chosen workflow's rules are found.
+ */
+function getDefaultWorkflowRules(rules: Record<string, ApprovalWorkflowRule>, defaultApprover: string): Record<string, ApprovalWorkflowRule> {
+    const defaultSubmitRules = Object.values(rules).filter((rule) => !!rule.isDefaultApprovalWorkflow && isSubmitRule(rule));
+    const firstDefaultSubmitRule = defaultSubmitRules.at(0);
+    const firstApprover = defaultSubmitRules.some((rule) => getForwardApprover(rule) === defaultApprover)
+        ? defaultApprover
+        : firstDefaultSubmitRule && getForwardApprover(firstDefaultSubmitRule);
+    const getSubmittersKey = (rule: ApprovalWorkflowRule) => [...extractSubmitterEmails(rule)].sort().join(',');
+    const defaultWorkflowSubmitters = new Set(defaultSubmitRules.filter((rule) => getForwardApprover(rule) === firstApprover).map(getSubmittersKey));
+
+    return Object.fromEntries(Object.entries(rules).filter(([, rule]) => !!rule.isDefaultApprovalWorkflow && defaultWorkflowSubmitters.has(getSubmittersKey(rule))));
 }
 
 /**
@@ -2037,6 +2056,7 @@ export {
     convertApprovalWorkflowToPolicyEmployees,
     extractSubmitterEmails,
     getApprovalLimitDescription,
+    getDefaultWorkflowRules,
     getFirstApproverByMemberEmail,
     getEnforcedApprovalWorkflows,
     getEnforcedApprovalWorkflowsForMembers,

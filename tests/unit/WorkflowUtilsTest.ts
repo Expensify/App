@@ -8,6 +8,7 @@ import {isApprovalWorkflowRule} from '@src/libs/RuleUtils';
 import {
     applyApprovalWorkflowRulesDiff,
     buildApprovalWorkflowRules,
+    buildApprovalWorkflowRulesForSave,
     calculateApprovers,
     convertApprovalWorkflowRulesToWorkflows,
     convertApprovalWorkflowToPolicyEmployees,
@@ -15,6 +16,7 @@ import {
     extractSubmitterEmails,
     getApprovalLimitDescription,
     getApproverPendingActionByMemberEmail,
+    getDefaultWorkflowRules,
     getOpenConnectedToPolicyBusinessBankAccounts,
     getApprovalWorkflowSource,
     getNonMemberApproverError,
@@ -2292,6 +2294,36 @@ describe('WorkflowUtils', () => {
                     {triggers: submitTriggers, filters: buildFromFilter(['2@example.com']), actions: forwardActions('1@example.com')},
                     {triggers: approveTriggers, filters: and(buildFromFilter(['2@example.com']), buildToFilter('1@example.com')), actions: approveActions},
                 ]);
+            });
+        });
+
+        describe('when the rules declare more than one default workflow', () => {
+            // Peter (1) is the default approver. Rebecca's (2) workflow also carries the default marker, as rules saved
+            // before the backend refused a second default can.
+            const peterRules = buildApprovalWorkflowRules(buildWorkflow([10, 11], [1], {isDefault: true}));
+            const rebeccaRules = buildApprovalWorkflowRules(buildWorkflow([20, 21], [2], {isDefault: true}));
+            const existingRules = {...keyRules(peterRules), rebeccaSubmit: rebeccaRules.at(0) as ApprovalWorkflowRule, rebeccaApprove: rebeccaRules.at(1) as ApprovalWorkflowRule};
+
+            it('Should pick the default workflow that starts at the default approver', () => {
+                expect(Object.keys(getDefaultWorkflowRules(existingRules, '1@example.com'))).toEqual(['rule0', 'rule1']);
+            });
+
+            it('Should pick the first default workflow when none starts at the default approver', () => {
+                expect(Object.keys(getDefaultWorkflowRules(existingRules, '3@example.com'))).toEqual(['rule0', 'rule1']);
+            });
+
+            it('Should not treat a workflow routed like the other default-marked workflow as the default one', () => {
+                // Editing Rebecca's ordinary workflow must not fold it into her default-marked rules
+                const rules = buildApprovalWorkflowRulesForSave(buildWorkflow([30], [2]), {existingRules, employees: {}, defaultApprover: '1@example.com'});
+
+                expect(rules).toEqual(buildApprovalWorkflowRules(buildWorkflow([30], [2])));
+                expect(rules.some((rule) => !!rule.isDefaultApprovalWorkflow)).toBe(false);
+            });
+
+            it('Should still treat a workflow routed like the default approver workflow as the default one', () => {
+                const rules = buildApprovalWorkflowRulesForSave(buildWorkflow([30], [1]), {existingRules, employees: {}, defaultApprover: '1@example.com'});
+
+                expect(rules).toEqual(buildApprovalWorkflowRules(buildWorkflow([30], [1], {isDefault: true})));
             });
         });
 
