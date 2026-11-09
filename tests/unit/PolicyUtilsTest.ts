@@ -1563,12 +1563,13 @@ describe('PolicyUtils', () => {
                 expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.PAYMENTS_ADMIN)).toBe(false);
             });
 
-            it('blocks assigning the approve-only role', () => {
-                const peopleAdminPolicy = buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN);
-                const adminPolicy = buildPolicy(CONST.POLICY.ROLE.ADMIN);
+            it('allows People Admins to assign the approve-only role', () => {
+                // Given a People Admin on a Control workspace
+                const policy = buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN);
 
-                expect(canMemberAssignRole(peopleAdminPolicy, memberLogin, CONST.POLICY.ROLE.APPROVE_ONLY)).toBe(false);
-                expect(canMemberAssignRole(adminPolicy, memberLogin, CONST.POLICY.ROLE.APPROVE_ONLY)).toBe(false);
+                // When they assign the approve-only role
+                // Then assignment is allowed because it stays within a People Admin's authority
+                expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.APPROVE_ONLY)).toBe(true);
             });
 
             it('gives approve-only members read-only access like members', () => {
