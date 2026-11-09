@@ -1,20 +1,27 @@
 /** Declares the charts each Insights dashboard renders and how they map to backend graph slots and search views. */
 
-import type {ChartView, SearchGroupBy} from '@components/Search/types';
+import type {ChartView, SearchChartMetric, SearchGroupBy} from '@components/Search/types';
 
+import {canEditWorkspaceSettings} from '@libs/PolicyUtils/permissions';
+import {isArchivedOrPendingDeletePolicy, isControlPolicy, isGroupPolicy} from '@libs/PolicyUtils/policyType';
 import {isPolicyEligibleForTopCategories, isPolicyEligibleForTopSpenders} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {InsightsDashboardID, InsightsGraphKey, InsightsSearchKey, Policy} from '@src/types/onyx';
+import type {Beta, InsightsDashboardID, InsightsGraphKey, InsightsSearchKey, Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
+
+import {canViewAllPolicyData} from './insightsAccess';
 
 type InsightsChartSpec = {
     /** Slot the request names the chart's snapshot under, and the response's `graphs` confirms it in */
     graphKey: InsightsGraphKey;
     titleKey: TranslationPaths;
     view: ChartView;
+
+    /** What the chart plots for each group, left out by charts plotting the money each group totals */
+    metric?: SearchChartMetric;
 
     /** What the chart aggregates by, left out by charts that follow the page's group-by filter */
     groupBy?: SearchGroupBy;
@@ -30,6 +37,18 @@ type InsightsDashboardSpec = {
     /** Identifies the dashboard to the backend. */
     searchKey: InsightsSearchKey;
 
+    /** Label of the dashboard's tab in the segmented control */
+    labelKey: TranslationPaths;
+
+    /** The dashboard is hidden unless this beta is enabled */
+    beta?: Beta;
+
+    /** The dashboard is shown when any workspace in scope passes this. A dashboard that declares none is always shown. */
+    isPolicyEligible?: (policy: Policy, login: string | undefined) => boolean;
+
+    /** The dashboard's charts are replaced by the Control upsell when no workspace in scope is on Control */
+    requiresControlPlan?: boolean;
+
     /** Chart across the top of the page, the only one the group-by filter applies to */
     headlineChart: InsightsChartSpec;
 
@@ -40,6 +59,7 @@ type InsightsDashboardSpec = {
 const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpec> = {
     [CONST.INSIGHTS.DASHBOARD.SPEND]: {
         searchKey: CONST.INSIGHTS.SEARCH_KEY.SPEND,
+        labelKey: 'common.spend',
         headlineChart: {
             graphKey: CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME,
             titleKey: 'search.spendOverTime',
@@ -77,14 +97,64 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             },
         ],
     },
+    [CONST.INSIGHTS.DASHBOARD.COMPLIANCE]: {
+        searchKey: CONST.INSIGHTS.SEARCH_KEY.COMPLIANCE,
+        labelKey: 'insightsPage.compliance',
+        beta: CONST.BETAS.INSIGHTS_COMPLIANCE,
+        isPolicyEligible: canViewAllPolicyData,
+        requiresControlPlan: true,
+        headlineChart: {
+            graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_OVER_TIME,
+            titleKey: 'insightsPage.compliance',
+            view: CONST.SEARCH.VIEW.LINE,
+            metric: CONST.SEARCH.CHART_METRIC.COUNT,
+        },
+        supportingCharts: [],
+    },
 };
 
-/** Returns the charts that at least one workspace in scope is eligible for. No selected workspaces means every workspace is in scope. */
-function getVisibleCharts(charts: InsightsChartSpec[], policies: OnyxCollection<Policy>, policyIDs: string[], login: string | undefined): InsightsChartSpec[] {
-    const policiesInScope = Object.values(policies ?? {}).filter((policy): policy is Policy => !!policy && (policyIDs.length === 0 || policyIDs.includes(policy.id)));
+/** Returns the workspaces the filter leaves in scope. No selected workspaces means every workspace is in scope. */
+function getPoliciesInScope(policies: OnyxCollection<Policy>, policyIDs: string[]): Policy[] {
+    return Object.values(policies ?? {}).filter((policy): policy is Policy => !!policy && (policyIDs.length === 0 || policyIDs.includes(policy.id)));
+}
+
+/** Returns the charts that at least one workspace in scope is eligible for. */
+function getVisibleCharts(charts: InsightsChartSpec[], policiesInScope: Policy[], login: string | undefined): InsightsChartSpec[] {
     return charts.filter(({isPolicyEligible}) => !isPolicyEligible || policiesInScope.some((policy) => isPolicyEligible(policy, login)));
 }
 
-export {getVisibleCharts};
+/**
+ * Whether the dashboard needs Control but no workspace in scope can feed it, so the upsell stands in for the charts.
+ * A Control workspace only counts when it would produce charts, so archived ones and ones the user can see no data for are ignored.
+ * A stored filter can still hold workspaces that left Onyx. When none of its workspaces are left, it says nothing about the user's plans, so the dashboard keeps its usual states.
+ */
+function shouldUpsellControlPlan(dashboardID: InsightsDashboardID, policiesInScope: Policy[], policyIDs: string[], login: string | undefined): boolean {
+    const {requiresControlPlan, isPolicyEligible} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
+    if (!requiresControlPlan || (policyIDs.length > 0 && policiesInScope.length === 0)) {
+        return false;
+    }
+    return !policiesInScope.some((policy) => isControlPolicy(policy) && !isArchivedOrPendingDeletePolicy(policy) && (!isPolicyEligible || isPolicyEligible(policy, login)));
+}
+
+/**
+ * Returns the workspaces in scope the user could upgrade to Control.
+ * Eligibility mirrors the upgrade page's own gate so the CTA never lands on a not-found page.
+ */
+function getUpgradeablePolicyIDsInScope(policiesInScope: Policy[], login: string | undefined): string[] {
+    return policiesInScope
+        .filter((policy) => isGroupPolicy(policy) && !isControlPolicy(policy) && !isArchivedOrPendingDeletePolicy(policy) && canEditWorkspaceSettings(policy, login))
+        .map((policy) => policy.id);
+}
+
+/** Returns the dashboards the user can open, ignoring the workspace filter. */
+function getAccessibleDashboards(policies: OnyxCollection<Policy>, login: string | undefined, isBetaEnabled: (beta: Beta) => boolean): InsightsDashboardID[] {
+    const allPolicies = Object.values(policies ?? {});
+    return Object.values(CONST.INSIGHTS.DASHBOARD).filter((dashboardID) => {
+        const {beta, isPolicyEligible} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
+        return (!beta || isBetaEnabled(beta)) && (!isPolicyEligible || allPolicies.some((policy) => !!policy && isPolicyEligible(policy, login)));
+    });
+}
+
+export {getAccessibleDashboards, getPoliciesInScope, getUpgradeablePolicyIDsInScope, getVisibleCharts, shouldUpsellControlPlan};
 export type {InsightsChartSpec};
 export default INSIGHTS_DASHBOARD_SPECS;

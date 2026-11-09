@@ -3,7 +3,6 @@ import type {ContinueActionParams, PaymentMethod, PaymentMethodType} from '@comp
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import type {HoldMenuCallback} from '@components/Search';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {BankAccountMenuItem, BulkPaySelectionData, PaymentData, SearchFooterTotal, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
@@ -30,6 +29,7 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
+import {shouldConfirmWiseQuoteBeforePaying} from '@libs/BankAccountUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
@@ -72,9 +72,8 @@ import {
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
-import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
-import {buildSearchQueryJSON, buildSearchQueryString, getFooterSelectionFromQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
-import {getExpenseReportIDs, TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
+import {getSearchColumnResizingID, isReportEntry, savedSearchIDToSearchKey, TODO_SEARCH_KEYS} from '@libs/SearchKeyUtils';
+import {buildSearchQueryJSON, buildSearchQueryString, getFooterSelectionFromQuery, normalizeDatePresetsInQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {hasOnlyPendingCardTransactions} from '@libs/TransactionUtils';
@@ -108,7 +107,7 @@ import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {AnyOnyxUpdate, OnyxData} from '@src/types/onyx/Request';
 import type SearchFooterConversion from '@src/types/onyx/SearchFooterConversion';
-import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
+import type {SearchResultDataType, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -153,7 +152,7 @@ function getChatReportForSearchPay(chatReport: OnyxEntry<Report>, snapshotReport
     const chatReportID = snapshotReport.chatReportID ?? snapshotReport.parentReportID;
     const snapshotChatReport = chatReportID ? searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
 
-    return chatReport ?? snapshotChatReport ?? (chatReportID ? getReportOrDraftReport(chatReportID) : undefined);
+    return chatReport ?? snapshotChatReport ?? (chatReportID ? getReportOrDraftReport({reportID: chatReportID}) : undefined);
 }
 
 /**
@@ -188,12 +187,19 @@ function getReportActionsFromSearchSnapshot(
     reportID: string | undefined,
     searchData: SearchResultDataType | undefined,
     allReportActions: OnyxCollection<ReportActions>,
+    shouldFillFromLiveCollection = false,
 ): OnyxEntry<ReportActions> {
     if (!reportID) {
         return undefined;
     }
 
     const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
+
+    if (shouldFillFromLiveCollection) {
+        // The snapshot can hold only part of a report's actions, and none at all on grouped searches, so the live collection fills the gaps
+        // for checks that need the whole history, while the snapshot still wins for the actions it has.
+        return {...allReportActions?.[key], ...searchData?.[key]};
+    }
 
     // Prefer the search snapshot so the actions match what the user selected on the search page, fall back to live report actions.
     return searchData?.[key] ?? allReportActions?.[key];
@@ -264,7 +270,6 @@ type HandleActionButtonPressParams = {
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     currentSearchKey?: SearchKey;
-    onHoldMenuOpen?: HoldMenuCallback;
     isDelegateAccessRestricted?: boolean;
     onDelegateAccessRestricted?: () => void;
     personalPolicyID: string | undefined;
@@ -276,13 +281,11 @@ type HandleActionButtonPressParams = {
     /** Confirms any unacknowledged report violations before proceeding with the SUBMIT action. */
     confirmSubmitReportViolations: (onProceed: ConfirmSubmitReportViolationsOnProceed) => void;
     openReportSubmitToPopover?: (options?: ReportSubmitToPopoverOpenOptions) => void;
-    shouldDisableSearchSubmitPress?: boolean;
-    /** Consumes a one-shot flag set when the submit-to popover dismisses (prevents click-through on the row Submit button). */
-    consumeIgnoreNextSearchSubmitPress?: () => boolean;
     currentUserAccountID: number;
     currentUserLogin?: string;
     introSelected?: OnyxEntry<IntroSelected>;
     isASAPSubmitBetaEnabled: boolean;
+    isWiseReimbursementsBetaEnabled: boolean;
     isSelfTourViewed?: boolean;
     activePolicy?: OnyxEntry<Policy>;
     chatReport?: OnyxEntry<Report>;
@@ -300,6 +303,10 @@ type HandleActionButtonPressParams = {
     bankAccountList: OnyxEntry<BankAccountList>;
 };
 
+function doesSearchActionUsePressTimeInputs(action: SearchTransactionAction | undefined) {
+    return action === CONST.SEARCH.ACTION_TYPES.PAY || action === CONST.SEARCH.ACTION_TYPES.APPROVE || action === CONST.SEARCH.ACTION_TYPES.SUBMIT;
+}
+
 function handleActionButtonPress({
     hash,
     item,
@@ -311,7 +318,6 @@ function handleActionButtonPress({
     lastPaymentMethod,
     userBillingGracePeriodEnds,
     currentSearchKey,
-    onHoldMenuOpen,
     isDelegateAccessRestricted,
     onDelegateAccessRestricted,
     personalPolicyID,
@@ -323,11 +329,10 @@ function handleActionButtonPress({
     confirmSubmitReportViolations,
     currentUserAccountID,
     openReportSubmitToPopover,
-    shouldDisableSearchSubmitPress,
-    consumeIgnoreNextSearchSubmitPress,
     currentUserLogin,
     introSelected,
     isASAPSubmitBetaEnabled,
+    isWiseReimbursementsBetaEnabled,
     isSelfTourViewed,
     activePolicy,
     chatReport,
@@ -349,12 +354,7 @@ function handleActionButtonPress({
     const allReportTransactions = (isTransactionGroupListItemType(item) ? item.transactions : [item]) as Transaction[];
     const hasHeldExpense = hasHeldExpenses(allReportTransactions);
 
-    if (
-        hasHeldExpense &&
-        item.action !== CONST.SEARCH.ACTION_TYPES.SUBMIT &&
-        item.action !== CONST.SEARCH.ACTION_TYPES.UNDELETE &&
-        (item.action !== CONST.SEARCH.ACTION_TYPES.APPROVE || !onHoldMenuOpen)
-    ) {
+    if (hasHeldExpense && item.action !== CONST.SEARCH.ACTION_TYPES.SUBMIT && item.action !== CONST.SEARCH.ACTION_TYPES.UNDELETE) {
         goToItem();
         return;
     }
@@ -382,6 +382,7 @@ function handleActionButtonPress({
                 currentUserLogin,
                 introSelected,
                 isASAPSubmitBetaEnabled,
+                isWiseReimbursementsBetaEnabled,
                 isSelfTourViewed,
                 activePolicy,
                 chatReport,
@@ -410,10 +411,6 @@ function handleActionButtonPress({
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
                 return;
             }
-            if (hasHeldExpense) {
-                onHoldMenuOpen?.(item as TransactionReportGroupListItemType, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
-                return;
-            }
             getApproveActionCallback({
                 hash,
                 item,
@@ -434,12 +431,10 @@ function handleActionButtonPress({
                 allViolations,
                 rules,
                 getCurrencyDecimals,
+                personalDetailsByLogins,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
-            if (shouldDisableSearchSubmitPress || consumeIgnoreNextSearchSubmitPress?.()) {
-                return;
-            }
             if (snapshotReport.policyID && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
                 return;
@@ -633,6 +628,7 @@ type GetPayActionCallbackParams = {
     currentUserLogin?: string;
     introSelected?: OnyxEntry<IntroSelected>;
     isASAPSubmitBetaEnabled: boolean;
+    isWiseReimbursementsBetaEnabled: boolean;
     isSelfTourViewed?: boolean;
     activePolicy?: OnyxEntry<Policy>;
     chatReport?: OnyxEntry<Report>;
@@ -665,6 +661,7 @@ function getPayActionCallback({
     currentUserLogin,
     introSelected,
     isASAPSubmitBetaEnabled,
+    isWiseReimbursementsBetaEnabled,
     isSelfTourViewed,
     activePolicy,
     chatReport,
@@ -713,6 +710,22 @@ function getPayActionCallback({
     }
 
     const chatReportPolicyForPayment = chatReportPolicy ?? getPolicyFromSearchSnapshot(chatReportForPayment.policyID, searchData, undefined);
+    const methodID = lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? paymentPolicy?.achAccount?.bankAccountID : undefined;
+
+    // One-tap pay can't show the Wise quote, so the report opens and the admin pays from there
+    if (
+        shouldConfirmWiseQuoteBeforePaying({
+            paymentType: lastPolicyPaymentMethod,
+            methodID,
+            bankAccountList,
+            isWiseReimbursementsBetaEnabled,
+            iouReport: snapshotReport,
+            policy: paymentPolicy,
+        })
+    ) {
+        goToItem();
+        return;
+    }
 
     payMoneyRequest({
         bankAccountList,
@@ -731,7 +744,8 @@ function getPayActionCallback({
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
-        methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? paymentPolicy?.achAccount?.bankAccountID : undefined,
+        methodID,
+        isWiseReimbursementsBetaEnabled,
         additionalOnyxData: getSearchPayOnyxData(hash, item.reportID, currentSearchKey),
         chatReportActions,
         delegateAccountID,
@@ -762,6 +776,7 @@ type GetApproveActionCallbackParams = {
     allViolations: OnyxCollection<TransactionViolations>;
     rules: OnyxCollection<Rule>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 function getApproveActionCallback({
@@ -784,6 +799,7 @@ function getApproveActionCallback({
     allViolations,
     rules,
     getCurrencyDecimals,
+    personalDetailsByLogins,
 }: GetApproveActionCallbackParams) {
     if (!item.reportID) {
         return;
@@ -810,6 +826,7 @@ function getApproveActionCallback({
         additionalOnyxData: getSearchApproveOnyxData(hash, item.reportID, currentSearchKey),
         isTrackIntentUser,
         getCurrencyDecimals,
+        personalDetailsByLogins,
     });
 }
 
@@ -898,8 +915,10 @@ function getOnyxLoadingData(
 }
 
 function saveSearch({id, queryJSON, newName}: {id: string; queryJSON: Readonly<SearchQueryJSON>; newName?: string}) {
-    const saveSearchName = newName ?? queryJSON?.inputQuery ?? '';
-    const jsonQuery = JSON.stringify(queryJSON);
+    const normalizedQuery = normalizeDatePresetsInQuery(queryJSON.inputQuery);
+    const savedQueryJSON = normalizedQuery === queryJSON.inputQuery ? queryJSON : (buildSearchQueryJSON(normalizedQuery) ?? queryJSON);
+    const saveSearchName = newName ?? savedQueryJSON?.inputQuery ?? '';
+    const jsonQuery = JSON.stringify(savedQueryJSON);
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES>> = [
         {
@@ -909,7 +928,7 @@ function saveSearch({id, queryJSON, newName}: {id: string; queryJSON: Readonly<S
                 [id]: {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     name: saveSearchName,
-                    query: queryJSON.inputQuery,
+                    query: savedQueryJSON.inputQuery,
                 },
             },
         },
@@ -1013,7 +1032,10 @@ function deleteSavedSearch(savedSearchID: string) {
             },
         },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES | typeof ONYXKEYS.SEARCH_FILTERS>> = [
+    const searchKey = savedSearchIDToSearchKey(savedSearchID);
+    // The saved query may have been edited across data types, and each type keeps its own widths.
+    const tableColumnWidths = Object.fromEntries(Object.values(CONST.SEARCH.DATA_TYPES).map((type) => [getSearchColumnResizingID(type, searchKey), null]));
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES | typeof ONYXKEYS.SEARCH_FILTERS | typeof ONYXKEYS.TABLE_COLUMN_WIDTHS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SAVED_SEARCHES,
@@ -1025,8 +1047,13 @@ function deleteSavedSearch(savedSearchID: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SEARCH_FILTERS,
             value: {
-                [savedSearchIDToSearchKey(savedSearchID)]: null,
+                [searchKey]: null,
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.TABLE_COLUMN_WIDTHS,
+            value: tableColumnWidths,
         },
     ];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES>> = [
@@ -1254,6 +1281,8 @@ type InFlightSearchRequest = {
     shouldSaveRecentSearch: boolean;
     /** The footer breakdown it asks the total for. Not part of the hash, so it is told apart here. */
     footerTotal?: SearchFooterTotal;
+    /** Whether it asks for trip rooms. Not part of the hash either, and it changes the shape of the results. */
+    shouldReturnTripRooms: boolean;
     /** The request, including any re-fire chained onto it. */
     promise?: Promise<string | number | undefined>;
     pendingShouldCalculateTotals?: boolean;
@@ -1333,6 +1362,17 @@ function getBackendQueryJSON(queryJSON: Readonly<SearchQueryJSON>) {
     return {backendQueryJSON, limit};
 }
 
+/** The IDs of the expense reports in search data */
+function getExpenseReportIDs(data: SearchResults['data']): Record<string, boolean> {
+    const reportIDs: Record<string, boolean> = {};
+    for (const key of Object.keys(data)) {
+        if (isReportEntry(key) && isExpenseReport(data[key])) {
+            reportIDs[key.replace(ONYXKEYS.COLLECTION.REPORT, '')] = true;
+        }
+    }
+    return reportIDs;
+}
+
 function search({
     queryJSON,
     searchKey,
@@ -1344,6 +1384,7 @@ function search({
     skipWaitForWrites = false,
     shouldSaveRecentSearch = false,
     shouldShowLoading = true,
+    shouldReturnTripRooms = false,
 }: {
     queryJSON: Readonly<SearchQueryJSON>;
     searchKey: SearchKey | undefined;
@@ -1369,12 +1410,15 @@ function search({
     skipWaitForWrites?: boolean;
     /** When false, the request leaves `search.isLoading` unset, so the current results stay on screen without a loading state. */
     shouldShowLoading?: boolean;
+    /** Makes a trip search return one row per trip room instead of travel expenses. Only sent with the TravelApproval beta. */
+    shouldReturnTripRooms?: boolean;
 }): Promise<string | number | undefined> | undefined {
     if (isLoading || shouldPreventSearchAPI) {
         return;
     }
 
     const dedupeKey = `${queryJSON.hash}_${offset ?? 0}`;
+    const isTripRoomsSearch = shouldReturnTripRooms && queryJSON.type === CONST.SEARCH.DATA_TYPES.TRIP;
     const {footerTotal} = getFooterSelectionFromQuery(queryJSON);
     const inFlightRequest = inFlightSearchRequests.get(dedupeKey);
     if (inFlightRequest) {
@@ -1388,7 +1432,9 @@ function search({
         // Another footer breakdown shares the hash but not the total, so it re-fires after the in-flight one, and the
         // latest breakdown wins without racing it. Its caller gets the chain, so it waits until that total lands.
         const needsBreakdownRefire = footerTotal !== inFlightRequest.footerTotal;
-        if (needsTotalsUpgrade || needsSaveRecentSearchUpgrade || needsBreakdownRefire) {
+        // Trip rooms and travel expenses share the hash, so a request for the other one re-fires after the in-flight one
+        const needsTripRoomsRefire = isTripRoomsSearch !== inFlightRequest.shouldReturnTripRooms;
+        if (needsTotalsUpgrade || needsSaveRecentSearchUpgrade || needsBreakdownRefire || needsTripRoomsRefire) {
             // Accumulate desired flags so a later upgrade for one dimension can't drop an earlier
             // upgrade for the other. Only a single pending re-fire is kept.
             inFlightRequest.pendingShouldCalculateTotals = (inFlightRequest.pendingShouldCalculateTotals ?? inFlightRequest.shouldCalculateTotals) || shouldCalculateTotals;
@@ -1407,11 +1453,12 @@ function search({
                     // A re-fire that only adds the save flag returns the same results the finished request just showed,
                     // so it must not show loading again (the footer would flash its skeleton over the totals).
                     shouldShowLoading: !inFlightRequest.didSucceed || inFlightRequest.pendingShouldCalculateTotals !== inFlightRequest.shouldCalculateTotals,
+                    shouldReturnTripRooms,
                 });
         }
         return needsBreakdownRefire ? inFlightRequest.promise : undefined;
     }
-    const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals, shouldSaveRecentSearch, footerTotal};
+    const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals, shouldSaveRecentSearch, footerTotal, shouldReturnTripRooms: isTripRoomsSearch};
     inFlightSearchRequests.set(dedupeKey, inFlightRequestState);
 
     const onyxLoadingData = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, true, shouldCalculateTotals, shouldShowLoading);
@@ -1425,6 +1472,7 @@ function search({
         shouldSaveRecentSearch,
         // Backend expects 'maximumResults' instead of 'limit'
         ...(limit !== undefined && {maximumResults: limit}),
+        ...(isTripRoomsSearch && {shouldReturnTripRooms: true}),
     };
     const jsonQuery = serializeQueryJSONForBackend(query);
 
@@ -1722,6 +1770,12 @@ function submitMoneyRequestOnSearch({
                 : {stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED},
         });
     }
+    // Clear errors from a previous failed submit
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+        key: ONYXKEYS.COLLECTION.REPORT,
+        value: Object.fromEntries(reportList.map((report) => [`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`, {errors: null}])),
+    });
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
@@ -2127,7 +2181,7 @@ function rejectMoneyRequestsOnSearch({
 type Params = Record<string, ExportSearchItemsToCSVParams>;
 
 function exportSearchItemsToCSV(
-    {jsonQuery, reportIDList, transactionIDList, excludedTransactionIDList, isBasicExport, exportColumnLabels, exportName, isGroupExport}: ExportSearchItemsToCSVParams,
+    {jsonQuery, reportIDList, transactionIDList, excludedTransactionIDList, isBasicExport, exportColumnLabels, exportName, isGroupExport, isGroupsOnly}: ExportSearchItemsToCSVParams,
     onDownloadFailed: () => void,
     translate: LocalizedTranslate,
     allReportsTransactionsAndViolations: ReportTransactionsAndViolationsDerivedValue | undefined,
@@ -2165,6 +2219,7 @@ function exportSearchItemsToCSV(
         isBasicExport,
         exportColumnLabels,
         isGroupExport,
+        isGroupsOnly,
     }) as Params;
 
     const formData = new FormData();
@@ -2198,6 +2253,7 @@ function queueExportSearchItemsToCSV({
     isBasicExport,
     exportColumnLabels,
     exportName,
+    isGroupsOnly,
 }: ExportSearchItemsToCSVParams): string {
     const exportID = rand64();
     const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
@@ -2232,6 +2288,7 @@ function queueExportSearchItemsToCSV({
         exportColumnLabels,
         exportName,
         exportID,
+        isGroupsOnly,
     }) as QueueExportSearchItemsToCSVParams;
 
     markExportInitiatedLocally(exportID);
@@ -2303,6 +2360,24 @@ function queueExportSearchWithTemplate(
 function queueBulkPayReports(jsonQuery: string) {
     const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.PAY);
     write(WRITE_COMMANDS.QUEUE_BULK_PAY_REPORTS, {jsonQuery, bulkActionID}, onyxData);
+}
+
+/**
+ * Queues a bulk approval for every report matching the given search query. The backend pages through all matches itself,
+ * so this covers reports beyond the currently loaded page(s) when "Select all" is checked in Search.
+ */
+function queueBulkApproveReports(jsonQuery: string) {
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.APPROVE);
+    write(WRITE_COMMANDS.QUEUE_BULK_APPROVE_REPORTS, {jsonQuery, bulkActionID}, onyxData);
+}
+
+/**
+ * Queues a bulk submit for every report matching the given search query. The backend pages through all matches itself,
+ * so this covers reports beyond the currently loaded page(s) when "Select all" is checked in Search.
+ */
+function queueBulkSubmitReports(jsonQuery: string) {
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT);
+    write(WRITE_COMMANDS.QUEUE_BULK_SUBMIT_REPORTS, {jsonQuery, bulkActionID}, onyxData);
 }
 
 /**
@@ -2756,6 +2831,8 @@ export {
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
     queueBulkPayReports,
+    queueBulkApproveReports,
+    queueBulkSubmitReports,
     queueBulkMarkAsExported,
     updateAdvancedFilters,
     setSearchContext,
@@ -2765,6 +2842,7 @@ export {
     getChatReportWithFallback,
     getSearchApproveOnyxData,
     handleActionButtonPress,
+    doesSearchActionUsePressTimeInputs,
     submitMoneyRequestOnSearch,
     openSearchPage as openSearch,
     openBulkChangeApproverPage,
@@ -2777,6 +2855,7 @@ export {
     getExportTemplates,
     getReportType,
     getTotalFormattedAmount,
+    getExpenseReportIDs,
     setOptimisticDataForTransactionThreadPreview,
     getPayMoneyOnSearchInvoiceParams,
     handlePreventSearchAPI,

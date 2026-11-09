@@ -20,7 +20,7 @@ import type SCREENS from '@src/SCREENS';
 import type {StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/CardFeeds';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 import WorkspaceCompanyCardStatementCloseDateSelectionList from './WorkspaceCompanyCardStatementCloseDateSelectionList';
 
@@ -42,41 +42,29 @@ function WorkspaceCompanyCardStatementCloseDatePage({
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
     const statementPeriodEndDay = selectedFeedData?.statementPeriodEndDay;
 
-    const [defaultStatementPeriodEnd, defaultStatementPeriodEndDay] = useMemo(() => {
-        if (!statementPeriodEndDay) {
-            return [undefined, undefined];
+    const defaultStatementPeriodEnd = statementPeriodEndDay && typeof statementPeriodEndDay !== 'number' ? statementPeriodEndDay : undefined;
+    const defaultStatementPeriodEndDay = statementPeriodEndDay && typeof statementPeriodEndDay === 'number' ? statementPeriodEndDay : undefined;
+
+    const submit = (newStatementPeriodEnd: StatementPeriodEnd | undefined, newStatementPeriodEndDay: StatementPeriodEndDay | undefined) => {
+        const isChangedValue = (newStatementPeriodEndDay ?? newStatementPeriodEnd) !== statementPeriodEndDay;
+        if (feed && isChangedValue) {
+            setFeedStatementPeriodEndDay(policyID, feed, domainOrWorkspaceAccountID, newStatementPeriodEnd, newStatementPeriodEndDay, statementPeriodEndDay);
         }
 
-        if (typeof statementPeriodEndDay === 'number') {
-            return [undefined, statementPeriodEndDay];
-        }
-
-        return [statementPeriodEndDay, undefined];
-    }, [statementPeriodEndDay]);
-
-    const submit = useCallback(
-        (newStatementPeriodEnd: StatementPeriodEnd | undefined, newStatementPeriodEndDay: StatementPeriodEndDay | undefined) => {
-            const isChangedValue = (newStatementPeriodEndDay ?? newStatementPeriodEnd) !== statementPeriodEndDay;
-            if (feed && isChangedValue) {
-                setFeedStatementPeriodEndDay(policyID, feed, domainOrWorkspaceAccountID, newStatementPeriodEnd, newStatementPeriodEndDay, statementPeriodEndDay);
-            }
-
-            Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID));
-        },
-        [policyID, feed, statementPeriodEndDay, domainOrWorkspaceAccountID],
-    );
-
-    const goBack = useCallback(() => {
         Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID));
-    }, [policyID]);
+    };
 
-    const clearError = useCallback(() => {
+    const goBack = () => {
+        Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID));
+    };
+
+    const clearError = () => {
         if (!feed) {
             return;
         }
 
         clearErrorField(feed, domainOrWorkspaceAccountID, 'statementPeriodEndDay');
-    }, [feed, domainOrWorkspaceAccountID]);
+    };
 
     if (isLoadingOnyxValue(cardFeedsResult) || isLoadingOnyxValue(lastSelectedFeedResult)) {
         return <FullScreenLoadingIndicator />;

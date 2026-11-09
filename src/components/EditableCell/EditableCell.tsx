@@ -5,7 +5,8 @@ import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {useIsDisplayedInWideRHP} from '@hooks/useResponsiveLayoutOnWideRHP';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -82,9 +83,11 @@ function EditableCell({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
+    const responsiveLayout = useResponsiveLayout();
+    const {isLargeScreenWidth, shouldUseNarrowLayout} = responsiveLayout;
+    const isDisplayedInWideRHP = useIsDisplayedInWideRHP(responsiveLayout);
     const [isEditIconFocused, setIsEditIconFocused] = useState(false);
-    const isEditable = isLargeScreenWidth && !shouldUseNarrowLayout;
+    const isEditable = isLargeScreenWidth && (!shouldUseNarrowLayout || isDisplayedInWideRHP);
     const cellId = useId();
     const {setIsEditingCell, setFocusedCellId} = useEditingCellActions();
     const isInteractive = useDeferredValue(true, false);

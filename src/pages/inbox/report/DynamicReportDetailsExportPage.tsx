@@ -27,7 +27,7 @@ import type SCREENS from '@src/SCREENS';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 type DynamicReportDetailsExportPageProps = PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_EXPORT>;
 
@@ -69,32 +69,26 @@ function DynamicReportDetailsExportPage({route}: DynamicReportDetailsExportPageP
     const isExported = isExportedUtil(reportActions, report);
     const connectionNameFriendly = getAccountingIntegrationDisplayName(policy, connectionName, translate);
 
-    const confirmExport = useCallback(
-        (type: ExportType) => {
-            if (type === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
-                exportToIntegration(reportID, connectionName, policy);
-            } else if (type === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-                markAsManuallyExported([reportID], connectionName, policy);
-            }
-            Navigation.dismissModal();
-        },
-        [connectionName, policy, reportID],
-    );
+    const confirmExport = (type: ExportType) => {
+        if (type === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
+            exportToIntegration(reportID, connectionName, policy);
+        } else if (type === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
+            markAsManuallyExported([reportID], connectionName, policy);
+        }
+        Navigation.dismissModal();
+    };
 
-    const showExportAgainModal = useCallback(
-        async (type: ExportType) => {
-            const result = await showConfirmModal({
-                title: translate('workspace.exportAgainModal.title'),
-                prompt: translate('workspace.exportAgainModal.description', {reportName: report?.reportName ?? '', connectionName, connectionNameFriendly}),
-                confirmText: translate('workspace.exportAgainModal.confirmText'),
-                cancelText: translate('workspace.exportAgainModal.cancelText'),
-            });
-            if (result.action === ModalActions.CONFIRM) {
-                confirmExport(type);
-            }
-        },
-        [showConfirmModal, translate, report?.reportName, connectionName, connectionNameFriendly, confirmExport],
-    );
+    const showExportAgainModal = async (type: ExportType) => {
+        const result = await showConfirmModal({
+            title: translate('workspace.exportAgainModal.title'),
+            prompt: translate('workspace.exportAgainModal.description', {reportName: report?.reportName ?? '', connectionName, connectionNameFriendly}),
+            confirmText: translate('workspace.exportAgainModal.confirmText'),
+            cancelText: translate('workspace.exportAgainModal.cancelText'),
+        });
+        if (result.action === ModalActions.CONFIRM) {
+            confirmExport(type);
+        }
+    };
 
     const exportSelectorOptions: ExportSelectorType[] = [
         {

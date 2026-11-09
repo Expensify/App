@@ -7,7 +7,6 @@ import type {ReportActionWithoutThreadReplyCounters} from '@selectors/ReportActi
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {getParentReportActionSelector, getParentReportActionWithoutThreadRepliesSelector} from '@selectors/ReportAction';
-import {useCallback} from 'react';
 
 import useOnyx from './useOnyx';
 
@@ -21,13 +20,10 @@ type ParentReportFields = Pick<Report, 'parentReportID' | 'parentReportActionID'
 function useParentReportAction(report: OnyxEntry<ParentReportFields>): OnyxEntry<ReportAction>;
 function useParentReportAction(report: OnyxEntry<ParentReportFields>, options: UseParentReportActionOptions): ReportActionWithoutThreadReplyCounters | undefined;
 function useParentReportAction(report: OnyxEntry<ParentReportFields>, {shouldIgnoreThreadReplies = false}: UseParentReportActionOptions = {}) {
-    const getParentReportAction = useCallback(
-        (parentReportActions: OnyxEntry<ReportActions>) =>
-            shouldIgnoreThreadReplies
-                ? getParentReportActionWithoutThreadRepliesSelector(parentReportActions, report?.parentReportActionID)
-                : getParentReportActionSelector(parentReportActions, report?.parentReportActionID),
-        [report?.parentReportActionID, shouldIgnoreThreadReplies],
-    );
+    const getParentReportAction = (parentReportActions: OnyxEntry<ReportActions>) =>
+        shouldIgnoreThreadReplies
+            ? getParentReportActionWithoutThreadRepliesSelector(parentReportActions, report?.parentReportActionID)
+            : getParentReportActionSelector(parentReportActions, report?.parentReportActionID);
 
     const parentReportID = getNonEmptyStringOnyxID(report?.parentReportID);
 

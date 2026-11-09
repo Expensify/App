@@ -21,7 +21,7 @@ import ROUTES from '@src/ROUTES';
 import type {SageIntacctConnectionsConfig, SageIntacctMappingValue} from '@src/types/onyx/Policy';
 
 import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React from 'react';
 
 function getDisplayTypeTranslationKey(displayType?: SageIntacctMappingValue): TranslationPaths | undefined {
     switch (displayType) {
@@ -54,24 +54,21 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
     const sageIntacctConfig = policy?.connections?.intacct?.config;
     const sageIntacctData = policy?.connections?.intacct?.data;
 
-    const mappingItems = useMemo(
-        () =>
-            Object.values(CONST.SAGE_INTACCT_CONFIG.MAPPINGS).map((mapping) => {
-                const menuItemTitleKey = getDisplayTypeTranslationKey(sageIntacctConfig?.mappings?.[mapping]);
-                return {
-                    description: Str.recapitalize(translate('workspace.intacct.mappingTitle', mapping)),
-                    action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS.getRoute(policyID, mapping)),
-                    title: menuItemTitleKey ? translate(menuItemTitleKey) : undefined,
-                    subscribedSettings: [mapping],
-                };
-            }),
-        [policyID, sageIntacctConfig?.mappings, translate],
-    );
+    const mappingItems = Object.values(CONST.SAGE_INTACCT_CONFIG.MAPPINGS).map((mapping) => {
+        const menuItemTitleKey = getDisplayTypeTranslationKey(sageIntacctConfig?.mappings?.[mapping]);
+        return {
+            description: Str.recapitalize(translate('workspace.intacct.mappingTitle', mapping)),
+            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS.getRoute(policyID, mapping)),
+            title: menuItemTitleKey ? translate(menuItemTitleKey) : undefined,
+            subscribedSettings: [mapping],
+        };
+    });
 
     const isExpenseType = sageIntacctConfig?.export.reimbursable === CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT;
 
     return (
         <ConnectionLayout
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))}
             displayName="SageIntacctImportPage"
             headerTitle="workspace.accounting.import"
             headerSubtitle={getCurrentSageIntacctEntityName(policy, translate('workspace.common.topLevel'))}
@@ -86,6 +83,9 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                 title={translate(isExpenseType ? 'workspace.intacct.expenseTypes' : 'workspace.accounting.accounts')}
                 subtitle={translate(isExpenseType ? 'workspace.intacct.expenseTypesDescription' : 'workspace.intacct.accountTypesDescription')}
                 switchAccessibilityLabel={translate(isExpenseType ? 'workspace.intacct.expenseTypesDescription' : 'workspace.intacct.accountTypesDescription')}
+                switchSentryLabel={
+                    isExpenseType ? CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.EXPENSE_TYPES_SWITCH : CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.ACCOUNTS_SWITCH
+                }
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive
@@ -95,6 +95,7 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
             <ToggleSettingOptionRow
                 title={translate('common.billable')}
                 switchAccessibilityLabel={translate('common.billable')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.BILLABLE_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive={sageIntacctConfig?.mappings?.syncItems ?? false}

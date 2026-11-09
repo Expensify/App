@@ -75,8 +75,8 @@ it.each([[['12']], [['12', '23']], [['123']]])('renders canonical card selection
 });
 it('renders scalar feed and tax values without calling array display hooks', () => {
     jest.spyOn(SearchUIUtils, 'mapFiltersFormToLabelValueList').mockReturnValueOnce([
-        {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED, label: 'Feed', value: 'feed-scalar'},
-        {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE, label: 'Tax', value: 'tax-scalar'},
+        {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED, id: CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED, label: 'Feed', value: 'feed-scalar'},
+        {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE, id: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE, label: 'Tax', value: 'tax-scalar'},
     ]);
     const output = JSON.stringify(render(<SearchSavePage />).toJSON());
     expect(['feed-scalar', 'tax-scalar'].every((text) => output.includes(text))).toBe(true);

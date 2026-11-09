@@ -4,6 +4,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import ReportNotFoundGuard from '@pages/inbox/ReportNotFoundGuard';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type * as ReactNavigationNative from '@react-navigation/native';
@@ -103,6 +104,42 @@ describe('ReportNotFoundGuard', () => {
         expect(isContentVisible()).toBe(false);
     });
 
+    it('shows the not-found page when opening a report in Onyx fails with report not found', async () => {
+        // Given a report the user has locally but cannot open, like the workspace chat behind a report shared with them
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, reportName: 'Chat Report'});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {isLoadingInitialReportActions: true});
+        await waitForBatchedUpdates();
+        renderGuard();
+        await waitForBatchedUpdates();
+
+        // When opening it comes back with report not found
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {errorFields: {notFound: {[Date.now()]: 'Report not found'}}});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {isLoadingInitialReportActions: false});
+        await waitForBatchedUpdates();
+
+        // Then the not-found page shows instead of loading forever
+        expect(isNotFoundVisible()).toBe(true);
+        expect(isContentVisible()).toBe(false);
+    });
+
+    it('shows the not-found page when opening a closed report in Onyx fails with report not found', async () => {
+        // Given a closed report the user has locally but can no longer open
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, statusNum: CONST.REPORT.STATUS_NUM.CLOSED});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {isLoadingInitialReportActions: true});
+        await waitForBatchedUpdates();
+        renderGuard();
+        await waitForBatchedUpdates();
+
+        // When opening it comes back with report not found
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {errorFields: {notFound: {[Date.now()]: 'Report not found'}}});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {isLoadingInitialReportActions: false});
+        await waitForBatchedUpdates();
+
+        // Then the not-found page shows, since a closed status alone does not mean the report is being deleted
+        expect(isNotFoundVisible()).toBe(true);
+        expect(isContentVisible()).toBe(false);
+    });
+
     it('does NOT show the not-found page offline for a pre-mounted report that is still pending creation (#100785)', async () => {
         // Given the route carries isPendingCreation and the device is offline, so the actions-loading term is ignored
         mockRouteParams = {reportID: REPORT_ID, isPendingCreation: 'true'};
@@ -149,6 +186,37 @@ describe('ReportNotFoundGuard', () => {
         renderGuard();
         await waitForBatchedUpdates();
 
+        expect(isContentVisible()).toBe(true);
+        expect(isNotFoundVisible()).toBe(false);
+    });
+
+    it('shows the not-found page for a bill when the user does not have the newDotBillPay beta', async () => {
+        // Given a loaded bill and a user without the newDotBillPay beta
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.UNSUPPORTED_TYPE.BILL});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {isLoadingInitialReportActions: false});
+        await waitForBatchedUpdates();
+
+        // When the guard renders
+        renderGuard();
+        await waitForBatchedUpdates();
+
+        // Then the user sees the not-found page, because NewDot only shows bills behind the beta
+        expect(isNotFoundVisible()).toBe(true);
+        expect(isContentVisible()).toBe(false);
+    });
+
+    it('renders a bill when the user has the newDotBillPay beta', async () => {
+        // Given a loaded bill and a user with the newDotBillPay beta
+        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.NEW_DOT_BILL_PAY]);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.UNSUPPORTED_TYPE.BILL});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {isLoadingInitialReportActions: false});
+        await waitForBatchedUpdates();
+
+        // When the guard renders
+        renderGuard();
+        await waitForBatchedUpdates();
+
+        // Then the bill content renders
         expect(isContentVisible()).toBe(true);
         expect(isNotFoundVisible()).toBe(false);
     });

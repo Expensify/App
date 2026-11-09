@@ -96,7 +96,7 @@ function computeAvatarResult({report, policy = TEST_POLICY, isReportArchived = f
     const shouldShowSubscript = rawShouldShowSubscript && !threadSuppression;
 
     const formatPhoneNumber = (s: string) => s;
-    let icons: AvatarIcon[] = getIcons(report, formatPhoneNumber, translateLocal, PERSONAL_DETAILS, null, '', -1, policy, undefined, isReportArchived, undefined, conciergeReportID);
+    let icons: AvatarIcon[] = getIcons({report, formatPhoneNumber, translate: translateLocal, personalDetails: PERSONAL_DETAILS, policy, isReportArchived, conciergeReportID});
 
     if (!shouldShowSubscript && report.type !== CONST.REPORT.TYPE.IOU && report.type !== CONST.REPORT.TYPE.INVOICE && icons.length > 1) {
         const firstIcon = icons.at(0);

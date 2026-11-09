@@ -26,13 +26,22 @@ function ReportDetailsMenuDebugItem({reportID}: ReportDetailsMenuDebugItemProps)
     }
 
     return (
-        <MenuItem
-            title={translate('debug.debug')}
-            icon={expensifyIcons.Bug}
+        <MenuItem.Root
             onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID))}
-            isAnonymousAction
-            shouldShowRightIcon
-        />
+            accessibilityLabel={translate('debug.debug')}
+        >
+            <MenuItem.Row>
+                <MenuItem.Leading>
+                    <MenuItem.Icon src={expensifyIcons.Bug} />
+                </MenuItem.Leading>
+                <MenuItem.Content>
+                    <MenuItem.Title>{translate('debug.debug')}</MenuItem.Title>
+                </MenuItem.Content>
+                <MenuItem.Trailing>
+                    <MenuItem.Chevron />
+                </MenuItem.Trailing>
+            </MenuItem.Row>
+        </MenuItem.Root>
     );
 }
 

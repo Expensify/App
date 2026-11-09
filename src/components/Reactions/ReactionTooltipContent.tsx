@@ -70,4 +70,4 @@ function ReactionTooltipContent({accountIDs, emojiCodes, emojiName, currentUserA
 
 ReactionTooltipContent.displayName = 'ReactionTooltipContent';
 
-export default React.memo(ReactionTooltipContent);
+export default ReactionTooltipContent;
