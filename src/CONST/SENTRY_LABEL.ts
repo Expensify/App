@@ -1694,6 +1694,10 @@ const SENTRY_LABEL = {
         CLOSE_BUTTON: 'FeatureTraining-CloseButton',
         BACK_BUTTON: 'FeatureTraining-BackButton',
     },
+    // Components that require a label get this one when rendered in tests. Tests send nothing to Sentry, so one shared label is enough.
+    TEST: {
+        LABEL: 'Test-Label',
+    },
 } as const;
 
 export default SENTRY_LABEL;
