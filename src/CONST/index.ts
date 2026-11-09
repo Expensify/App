@@ -10299,7 +10299,7 @@ const CONST = {
             WORKSPACE_EXPENSIFY_CARDS: 'workspaceExpensifyCards',
             WORKSPACE_COMPANY_CARDS: 'workspaceCompanyCards',
 
-            /** Prefix of the Search table IDs, one per data type. See `getSearchColumnResizingID`. */
+            /** Prefix of the Search table IDs, one per search. See `getSearchColumnResizingID`. */
             SEARCH_PREFIX: 'search',
         },
 
