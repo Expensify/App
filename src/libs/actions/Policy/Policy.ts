@@ -5582,7 +5582,8 @@ function enablePolicyTaxes(policyID: string, enabled: boolean, isVendorMatchingB
     if (shouldAddDefaultTaxRatesData) {
         parameters.taxFields = JSON.stringify(defaultTaxRates);
     }
-    API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_TAXES, parameters, onyxData);
+    // Opposite toggles must keep their completion data because enabling taxes can also add tax and distance rates.
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_TAXES, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
         goBackWhenEnableFeature();

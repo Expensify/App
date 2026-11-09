@@ -2,6 +2,8 @@ import type {GuidedSetupTask} from '@libs/actions/Report';
 import * as APIModule from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import GoogleTagManager from '@libs/GoogleTagManager';
+import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import * as NetworkState from '@libs/NetworkState';
 import {isPolicyPayer} from '@libs/PolicyUtils';
 // eslint-disable-next-line no-restricted-imports -- Namespace import is required to spy on ReportUtils without replacing the production module.
 import * as ReportUtils from '@libs/ReportUtils';
@@ -6194,6 +6196,44 @@ describe('actions/Policy', () => {
     });
 
     describe('enablePolicyTaxes', () => {
+        it('should retain opposite offline toggles and their completion data', async () => {
+            // Given a workspace with taxes disabled and requests queued offline
+            const policyID = '1';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {id: policyID, tax: {trackingEnabled: false}});
+            const offlineSpy = jest.spyOn(NetworkState, 'getIsOffline').mockReturnValue(true);
+            await waitForBatchedUpdates();
+
+            try {
+                // When taxes are enabled and disabled before reconnecting
+                Policy.enablePolicyTaxes(policyID, true, false, undefined);
+                await waitForBatchedUpdates();
+                Policy.enablePolicyTaxes(policyID, false, false);
+                await waitForBatchedUpdates();
+
+                // Then both requests retain their success and failure data instead of cancelling each other
+                const requests = (await getOnyxValue(ONYXKEYS.PERSISTED_REQUESTS))?.filter((request) => request.command === WRITE_COMMANDS.ENABLE_POLICY_TAXES);
+                expect(requests).toHaveLength(2);
+                for (const request of requests ?? []) {
+                    expect(request.successData?.length).toBeGreaterThan(0);
+                    expect(request.failureData?.length).toBeGreaterThan(0);
+                }
+            } finally {
+                offlineSpy.mockRestore();
+            }
+
+            // When the connection returns, completion clears the optimistic default tax rates' pending state
+            SequentialQueue.flush();
+            await waitForBatchedUpdates();
+
+            // Then the final disabled state is preserved with no stranded pending fields
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.tax?.trackingEnabled).toBe(false);
+            expect(updatedPolicy?.pendingFields?.tax).toBeUndefined();
+            for (const tax of Object.values(updatedPolicy?.taxRates?.taxes ?? {})) {
+                expect(tax.pendingAction).toBeUndefined();
+            }
+        });
+
         it('should enable policy taxes optimistically and succeed', async () => {
             // Given a policy with taxes disabled
             const policyID = '1';
