@@ -726,7 +726,7 @@ describe('useSidebarOrderedReports', () => {
     it('should commit the LHN cache without scheduling a second render', async () => {
         // Given a settled LHN with one displayed report, and a consumer that counts how many times the provider renders it
         const displayedReports = createMockReports({report1: {reportName: 'Chat A'}});
-        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}1`;
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}1` as const;
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue({[reportKey]: displayedReports['1']});
         // Every recheck returns a new map, as it does for an unread, GBR or RBR chat whose report changed
         mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports: reports}) => ({...reports}));
@@ -794,8 +794,8 @@ describe('useSidebarOrderedReports', () => {
             report1: {reportName: 'Parent chat'},
             report2: {reportName: 'Thread', parentReportID, parentReportActionID: '100'},
         });
-        const parentKey = `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`;
-        const threadKey = `${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`;
+        const parentKey = `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}` as const;
+        const threadKey = `${ONYXKEYS.COLLECTION.REPORT}${threadReportID}` as const;
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue({[parentKey]: reports[parentReportID]});
         mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports}) => displayedReports);
         await act(async () => {
