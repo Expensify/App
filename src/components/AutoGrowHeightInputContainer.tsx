@@ -7,6 +7,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import getKeyboardHeight from '@libs/getKeyboardHeight';
+import measureAutoGrowContent from '@libs/measureAutoGrowContent';
 
 import variables from '@styles/variables';
 
@@ -21,9 +22,6 @@ import ScrollView from './ScrollView';
 type AutoGrowHeightInputContainerProps = {
     /** Render prop that receives the measured maximum height available to the auto-growing input. */
     children: (maxAutoGrowHeight: number) => ReactNode;
-
-    /** Overrides how the inner content height is measured. */
-    measureContent?: (content: View | null, callback: (contentHeight: number) => void) => void;
 
     /** Style applied to the outer scroll container. */
     style?: StyleProp<ViewStyle>;
@@ -45,17 +43,7 @@ function areHeightsEqual(firstHeight: number, secondHeight: number) {
     return Math.abs(firstHeight - secondHeight) < 1;
 }
 
-function defaultMeasureContent(content: View | null, callback: (contentHeight: number) => void) {
-    content?.measure((_x, _y, _width, contentHeight) => callback(contentHeight));
-}
-
-function AutoGrowHeightInputContainer({
-    children,
-    measureContent = defaultMeasureContent,
-    style,
-    shouldKeepMinimumHeight = false,
-    shouldUseWebViewportHeightFallback = true,
-}: AutoGrowHeightInputContainerProps) {
+function AutoGrowHeightInputContainer({children, style, shouldKeepMinimumHeight = false, shouldUseWebViewportHeightFallback = true}: AutoGrowHeightInputContainerProps) {
     const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
     const {isKeyboardActive, isKeyboardShown, isKeyboardAnimatingRef, keyboardActiveHeight, keyboardHeight} = useKeyboardState();
@@ -132,7 +120,7 @@ function AutoGrowHeightInputContainer({
 
         const measurementGeneration = measurementGenerationRef.current;
         let isCancelled = false;
-        measureContent(contentRef.current, (contentHeight) => {
+        measureAutoGrowContent(contentRef.current, (contentHeight) => {
             if (isCancelled || measurementGeneration !== measurementGenerationRef.current) {
                 return;
             }
@@ -158,7 +146,7 @@ function AutoGrowHeightInputContainer({
         return () => {
             isCancelled = true;
         };
-    }, [maxAutoGrowHeight, measureContent, measurementPhase, measurementRequestVersion, startMeasurement]);
+    }, [maxAutoGrowHeight, measurementPhase, measurementRequestVersion, startMeasurement]);
 
     return (
         <ScrollView

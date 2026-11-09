@@ -7,6 +7,8 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import measureAutoGrowContent from '@libs/measureAutoGrowContent';
+
 import variables from '@styles/variables';
 
 import type ReactNative from 'react-native';
@@ -14,9 +16,7 @@ import type ReactNative from 'react-native';
 import React from 'react';
 import {Platform, View} from 'react-native';
 
-type MeasureContent = NonNullable<React.ComponentProps<typeof AutoGrowHeightInputContainer>['measureContent']>;
-
-const mockMeasureContent = jest.fn<void, Parameters<MeasureContent>>();
+const mockMeasureContent = jest.mocked(measureAutoGrowContent);
 const mockUseKeyboardState = jest.mocked(useKeyboardState);
 const mockUseSafeAreaInsets = jest.mocked(useSafeAreaInsets);
 const mockUseWindowDimensions = jest.mocked(useWindowDimensions);
@@ -32,6 +32,7 @@ jest.mock('@hooks/useKeyboardState', () =>
         isKeyboardAnimatingRef: {current: false},
     })),
 );
+jest.mock('@libs/measureAutoGrowContent', () => jest.fn());
 jest.mock('@hooks/useSafeAreaInsets', () => jest.fn(() => ({top: 0, right: 0, bottom: 0, left: 0})));
 jest.mock('@hooks/useThemeStyles', () => () => ({flex1: {flex: 1}}));
 jest.mock('@hooks/useWindowDimensions', () => jest.fn(() => ({windowWidth: 300, windowHeight: 800})));
@@ -72,10 +73,7 @@ describe('AutoGrowHeightInputContainer', () => {
         // Given a fixed-height popover that measures a 300px editor allocation.
         mockMeasureContent.mockImplementation((_content, callback) => callback(0));
         const input = () => (
-            <AutoGrowHeightInputContainer
-                measureContent={mockMeasureContent}
-                shouldUseWebViewportHeightFallback={false}
-            >
+            <AutoGrowHeightInputContainer shouldUseWebViewportHeightFallback={false}>
                 {(height) => (
                     <View
                         testID="popup-height"
@@ -104,7 +102,7 @@ describe('AutoGrowHeightInputContainer', () => {
         });
 
         render(
-            <AutoGrowHeightInputContainer measureContent={mockMeasureContent}>
+            <AutoGrowHeightInputContainer>
                 {(maxAutoGrowHeight) => (
                     <View
                         testID="measured-height"
@@ -167,7 +165,7 @@ describe('AutoGrowHeightInputContainer', () => {
         });
 
         const renderInput = () => (
-            <AutoGrowHeightInputContainer measureContent={mockMeasureContent}>
+            <AutoGrowHeightInputContainer>
                 {(maxAutoGrowHeight) => {
                     renderedMaxAutoGrowHeight = maxAutoGrowHeight;
                     return (
@@ -215,7 +213,7 @@ describe('AutoGrowHeightInputContainer', () => {
         });
 
         const renderInput = () => (
-            <AutoGrowHeightInputContainer measureContent={mockMeasureContent}>
+            <AutoGrowHeightInputContainer>
                 {(maxAutoGrowHeight) => {
                     renderedMaxAutoGrowHeight = maxAutoGrowHeight;
                     return (
@@ -271,7 +269,7 @@ describe('AutoGrowHeightInputContainer', () => {
         });
 
         const renderInput = () => (
-            <AutoGrowHeightInputContainer measureContent={mockMeasureContent}>
+            <AutoGrowHeightInputContainer>
                 {(maxAutoGrowHeight) => {
                     renderedMaxAutoGrowHeight = maxAutoGrowHeight;
                     return (
@@ -346,7 +344,7 @@ describe('AutoGrowHeightInputContainer', () => {
         });
 
         const renderInput = () => (
-            <AutoGrowHeightInputContainer measureContent={mockMeasureContent}>
+            <AutoGrowHeightInputContainer>
                 {(maxAutoGrowHeight) => {
                     renderedMaxAutoGrowHeight = maxAutoGrowHeight;
                     return (
@@ -434,7 +432,7 @@ describe('AutoGrowHeightInputContainer', () => {
         });
 
         const renderInput = () => (
-            <AutoGrowHeightInputContainer measureContent={mockMeasureContent}>
+            <AutoGrowHeightInputContainer>
                 {(maxAutoGrowHeight) => {
                     renderedMaxAutoGrowHeight = maxAutoGrowHeight;
                     return (
@@ -487,7 +485,7 @@ describe('AutoGrowHeightInputContainer', () => {
         });
 
         const renderInput = () => (
-            <AutoGrowHeightInputContainer measureContent={mockMeasureContent}>
+            <AutoGrowHeightInputContainer>
                 {(maxAutoGrowHeight) => {
                     renderedMaxAutoGrowHeight = maxAutoGrowHeight;
                     return (
@@ -548,7 +546,7 @@ describe('AutoGrowHeightInputContainer', () => {
         });
 
         const renderInput = () => (
-            <AutoGrowHeightInputContainer measureContent={mockMeasureContent}>
+            <AutoGrowHeightInputContainer>
                 {(maxAutoGrowHeight) => {
                     renderedMaxAutoGrowHeight = maxAutoGrowHeight;
                     return (
@@ -606,7 +604,7 @@ describe('AutoGrowHeightInputContainer', () => {
         });
 
         const renderInput = () => (
-            <AutoGrowHeightInputContainer measureContent={mockMeasureContent}>
+            <AutoGrowHeightInputContainer>
                 {(maxAutoGrowHeight) => {
                     renderedMaxAutoGrowHeight = maxAutoGrowHeight;
                     return (
@@ -650,7 +648,7 @@ describe('AutoGrowHeightInputContainer', () => {
         });
 
         render(
-            <AutoGrowHeightInputContainer measureContent={mockMeasureContent}>
+            <AutoGrowHeightInputContainer>
                 {(maxAutoGrowHeight) => (
                     <View
                         testID="deferred-height"
@@ -736,7 +734,7 @@ describe('AutoGrowHeightInputContainer', () => {
             callback(renderedMaxAutoGrowHeight === variables.componentSizeLarge ? 76 : renderedMaxAutoGrowHeight + 24);
         });
         render(
-            <AutoGrowHeightInputContainer measureContent={mockMeasureContent}>
+            <AutoGrowHeightInputContainer>
                 {(maxAutoGrowHeight) => {
                     renderedMaxAutoGrowHeight = maxAutoGrowHeight;
                     return (
@@ -778,7 +776,7 @@ describe('AutoGrowHeightInputContainer', () => {
             callback(renderedMaxAutoGrowHeight === variables.componentSizeLarge ? 76 : renderedMaxAutoGrowHeight + 24);
         });
         const renderInput = () => (
-            <AutoGrowHeightInputContainer measureContent={mockMeasureContent}>
+            <AutoGrowHeightInputContainer>
                 {(maxAutoGrowHeight) => {
                     renderedMaxAutoGrowHeight = maxAutoGrowHeight;
                     return (
@@ -822,7 +820,7 @@ describe('AutoGrowHeightInputContainer', () => {
             callback(renderedMaxAutoGrowHeight === variables.componentSizeLarge ? 76 : renderedMaxAutoGrowHeight + 24);
         });
         render(
-            <AutoGrowHeightInputContainer measureContent={mockMeasureContent}>
+            <AutoGrowHeightInputContainer>
                 {(maxAutoGrowHeight) => {
                     renderedMaxAutoGrowHeight = maxAutoGrowHeight;
                     return (
@@ -850,36 +848,36 @@ describe('AutoGrowHeightInputContainer', () => {
         expect(mockMeasureContent).toHaveBeenCalledTimes(measurementCount);
     });
 
-    it('ignores a pending callback when the measurement dependency changes', async () => {
-        const firstMeasurementCallbacks: Array<(contentHeight: number) => void> = [];
-        const secondMeasurementCallbacks: Array<(contentHeight: number) => void> = [];
-        const firstMeasureContent = jest.fn<void, Parameters<MeasureContent>>((_content, callback) => firstMeasurementCallbacks.push(callback));
-        const secondMeasureContent = jest.fn<void, Parameters<MeasureContent>>((_content, callback) => secondMeasurementCallbacks.push(callback));
-        const renderContainer = (measureContent: MeasureContent) => (
-            <AutoGrowHeightInputContainer measureContent={measureContent}>
+    it('ignores a pending callback after a newer measurement starts', async () => {
+        // Given a measurement whose callback has not arrived yet
+        const measurementCallbacks: Array<(contentHeight: number) => void> = [];
+        mockMeasureContent.mockImplementation((_content, callback) => {
+            measurementCallbacks.push(callback);
+        });
+        render(
+            <AutoGrowHeightInputContainer>
                 {(maxAutoGrowHeight) => (
                     <View
                         testID="dependency-height"
                         accessibilityLabel={String(maxAutoGrowHeight)}
                     />
                 )}
-            </AutoGrowHeightInputContainer>
+            </AutoGrowHeightInputContainer>,
         );
-
-        const {rerender} = render(renderContainer(firstMeasureContent));
         const container = screen.UNSAFE_getByType(ScrollView);
-        fireEvent(container, 'layout', {
-            nativeEvent: {layout: {height: 420, width: 300}},
-        });
-        await waitFor(() => expect(firstMeasurementCallbacks).toHaveLength(1));
+        fireEvent(container, 'layout', {nativeEvent: {layout: {height: 420, width: 300}}});
+        await waitFor(() => expect(measurementCallbacks).toHaveLength(1));
 
-        rerender(renderContainer(secondMeasureContent));
-        await waitFor(() => expect(secondMeasurementCallbacks).toHaveLength(1));
+        // When a width change starts a newer measurement before the first callback arrives
+        fireEvent(container, 'layout', {nativeEvent: {layout: {height: 420, width: 320}}});
+        await waitFor(() => expect(measurementCallbacks).toHaveLength(2));
 
-        act(() => firstMeasurementCallbacks[0](444));
+        // Then the stale callback cannot shrink the cap, because it measured a layout that no longer exists. Acting on it would start a probe and drop the cap to one row.
+        act(() => measurementCallbacks[0](444));
         expect(screen.getByTestId('dependency-height').props.accessibilityLabel).toBe('420');
 
-        act(() => secondMeasurementCallbacks[0](420));
+        // And the current callback still settles the measurement
+        act(() => measurementCallbacks[1](420));
         expect(screen.getByTestId('dependency-height').props.accessibilityLabel).toBe('420');
     });
 });
