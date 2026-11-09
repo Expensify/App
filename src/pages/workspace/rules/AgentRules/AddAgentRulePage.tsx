@@ -75,14 +75,16 @@ function AddAgentRulePage({
     const [activeTabPolicyID, setActiveTabPolicyID] = useState(policyID);
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM_DRAFT);
     const [generatedRule] = useOnyx(ONYXKEYS.GENERATED_RULE);
+    const [isCheckingRule = false] = useOnyx(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM, {selector: (form) => !!form?.isLoading});
     const icons = useMemoizedLazyExpensifyIcons(['Feed', 'Pencil', 'Info']);
 
     const hasDraftPrompt = !!draftValues?.[INPUT_IDS.PROMPT]?.trim();
     const [selectedSuggestion, setSelectedSuggestion] = useState<SuggestedAgentRule>();
 
-    // A new suggestion replaces the text of the Write tab. Mount a new Write tab, so that a check of the old text stops
-    // and cannot save it.
-    const [suggestionPickCount, setSuggestionPickCount] = useState(0);
+    // A new Write tab stops the check of the previous tab. That check then cannot save its text. The page mounts a new
+    // Write tab when the admin picks a suggestion, because the suggestion replaces the text. It also mounts one when the
+    // discard prompt opens during a check, because an answer while the prompt is open must not save the rule.
+    const [writeTabKey, setWriteTabKey] = useState(0);
     const isDraftFromFallback = !!generationID && !selectedSuggestion;
     const fallbackAnswer = generatedRule?.generationID === generationID ? generatedRule : undefined;
     const fallbackExplanation = fallbackAnswer?.explanation;
@@ -121,6 +123,12 @@ function AddAgentRulePage({
 
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () => hasDraftPrompt,
+        onVisibilityChange: (isVisible) => {
+            if (!isVisible || !isCheckingRule) {
+                return;
+            }
+            setWriteTabKey((key) => key + 1);
+        },
         onConfirm: () => clearDraftValues(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM),
     });
 
@@ -143,7 +151,7 @@ function AddAgentRulePage({
         }
         setDraftValues(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM, {[INPUT_IDS.PROMPT]: suggestion.prompt});
         setSelectedSuggestion(suggestion);
-        setSuggestionPickCount((count) => count + 1);
+        setWriteTabKey((key) => key + 1);
         setActiveTab(CONST.TAB.AGENT_RULE.WRITE);
     };
 
@@ -283,7 +291,7 @@ function AddAgentRulePage({
                             />
                         )}
                         <AddAgentRuleWriteTab
-                            key={suggestionPickCount}
+                            key={writeTabKey}
                             policyID={policyID}
                             checkedPrompt={checkedPrompt}
                             isTabActive={activeTab === CONST.TAB.AGENT_RULE.WRITE}

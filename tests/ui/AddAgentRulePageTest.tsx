@@ -1,5 +1,6 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import usePolicy from '@hooks/usePolicy';
 
 import Log from '@libs/Log';
@@ -411,6 +412,41 @@ describe('AddAgentRulePage', () => {
 
         // Then a new Write tab shows the suggestion, because a check of the typed text must not save it in place of the suggestion
         expect(mockWriteTabMountCount).toBe(2);
+    });
+
+    it('mounts a new Write tab when the discard prompt opens during a check', async () => {
+        // Given the Write tab is open for a typed draft, and Concierge checks it
+        await setAgentRuleDraft(PROMPT);
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM, {isLoading: true});
+        });
+        renderAddAgentRulePage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the admin tries to leave and the discard prompt opens
+        act(() => {
+            jest.mocked(useDiscardChangesConfirmation).mock.lastCall?.[0].onVisibilityChange?.(true);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then a new Write tab stops the check. An answer while the prompt is open must not save a rule that the admin can discard.
+        expect(mockWriteTabMountCount).toBe(2);
+    });
+
+    it('keeps the Write tab mounted when the discard prompt opens without a check', async () => {
+        // Given the Write tab is open for a typed draft, and no check runs
+        await setAgentRuleDraft(PROMPT);
+        renderAddAgentRulePage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the admin tries to leave and the discard prompt opens
+        act(() => {
+            jest.mocked(useDiscardChangesConfirmation).mock.lastCall?.[0].onVisibilityChange?.(true);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the same Write tab stays, because a new one drops the warning of the last check when the admin cancels the prompt
+        expect(mockWriteTabMountCount).toBe(1);
     });
 
     it('drops the fallback banner and log after the admin picks a suggestion', async () => {
