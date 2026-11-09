@@ -3,6 +3,7 @@ import {
     connectPolicyToNetSuite,
     getNetSuiteSetupLink,
     updateNetSuiteFxExpenseAccount,
+    updateNetSuiteSyncPeople,
     updateNetSuiteTokens,
     updateNetSuiteTravelBillingJournalPostingPreference,
     updateNetSuiteTravelBillingPayableAccount,
@@ -10,6 +11,7 @@ import {
 import * as API from '@libs/API';
 import type {WriteCommand} from '@libs/API/types';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {toIndexMap} from '@libs/RuleUtils';
 
 import {getInitialSubPageForNetsuiteTokenInput} from '@pages/workspace/accounting/netsuite/utils';
 
@@ -17,6 +19,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {AnyOnyxData} from '@src/types/onyx/Request';
+import type Rule from '@src/types/onyx/Rule';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -417,6 +420,54 @@ describe('actions/connections/NetSuite', () => {
             // When determining the initial sub-page
             // Then the wizard starts from the beginning
             expect(getInitialSubPageForNetsuiteTokenInput(policy)).toBe(PAGE_NAME.INSTALL);
+        });
+    });
+
+    describe('updateNetSuiteSyncPeople', () => {
+        const approvalWorkflowRuleKey = `${ONYXKEYS.COLLECTION.RULE}1`;
+        const approvalWorkflowRule: Rule = {
+            scope: CONST.RULES.SCOPE.POLICY,
+            scopeID: MOCK_POLICY_ID,
+            triggers: toIndexMap([CONST.RULES.TRIGGERS.REPORT_SUBMIT]),
+            filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: 'submitter@example.com'},
+            actions: toIndexMap([{name: CONST.RULES.ACTIONS.FORWARD_TO, approver: 'approver@example.com'}]),
+        };
+
+        function isRuleUpdate(update: {key: string}) {
+            return update.key.startsWith(ONYXKEYS.COLLECTION.RULE);
+        }
+
+        it("deletes the workspace's approval workflow rules when employee import takes over the approvers", () => {
+            // Given a workspace whose reports an approval workflow rule routes
+            // When employee import is turned on in an approval mode where NetSuite sets the approvers, so the backend deletes the rules
+            updateNetSuiteSyncPeople(MOCK_POLICY_ID, true, {[approvalWorkflowRuleKey]: approvalWorkflowRule});
+
+            // Then the rule stops routing while the request is pending, and it is gone once the request succeeds or back if it fails
+            const {command, onyxData} = getFirstWriteCall();
+            expect(command).toBe(WRITE_COMMANDS.UPDATE_NETSUITE_SYNC_PEOPLE);
+            expect(onyxData?.optimisticData).toContainEqual({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: approvalWorkflowRuleKey,
+                value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, errors: null},
+            });
+            expect(onyxData?.successData).toContainEqual({onyxMethod: Onyx.METHOD.SET, key: approvalWorkflowRuleKey, value: null});
+            expect(onyxData?.failureData).toContainEqual({
+                onyxMethod: Onyx.METHOD.SET,
+                key: approvalWorkflowRuleKey,
+                value: expect.objectContaining({...approvalWorkflowRule, pendingAction: null}),
+            });
+        });
+
+        it("leaves the workspace's approval workflow rules alone when the change doesn't take over the approvers", () => {
+            // Given a change that leaves the approvers to the workspace, like turning employee import off or importing in Configure manually
+            // When it is saved without rules to delete
+            updateNetSuiteSyncPeople(MOCK_POLICY_ID, false);
+
+            // Then the request only updates the setting, since the backend keeps the rules too
+            const {onyxData} = getFirstWriteCall();
+            expect(onyxData?.optimisticData?.some(isRuleUpdate)).toBe(false);
+            expect(onyxData?.successData?.some(isRuleUpdate)).toBe(false);
+            expect(onyxData?.failureData?.some(isRuleUpdate)).toBe(false);
         });
     });
 });
