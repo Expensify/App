@@ -2,7 +2,7 @@
  * For native devices, there will never be more than one
  * client running at a time, so this lib is a big no-op
  */
-import type {Init, IsClientTheLeader, IsReady, OnBecomeLeader} from './types';
+import type {GetLogTab, Init, IsClientTheLeader, IsReady, OnBecomeLeader} from './types';
 
 const init: Init = () => {};
 
@@ -12,4 +12,6 @@ const isReady: IsReady = () => Promise.resolve();
 
 const onBecomeLeader: OnBecomeLeader = () => () => {};
 
-export {init, isClientTheLeader, isReady, onBecomeLeader};
+const getLogTab: GetLogTab = () => undefined;
+
+export {getLogTab, init, isClientTheLeader, isReady, onBecomeLeader};

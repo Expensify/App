@@ -32,7 +32,7 @@ jest.mock('@libs/pendingSearchWrite', () => ({
     markPendingSearchWrite: (...args: unknown[]) => mockMarkPendingSearchWrite(...args) as unknown,
 }));
 jest.mock('@libs/ReportUtils', () => ({
-    getReportOrDraftReport: (id: string) => mockGetReportOrDraftReport(id) as unknown,
+    getReportOrDraftReport: ({reportID}: {reportID: string}) => mockGetReportOrDraftReport(reportID) as unknown,
 }));
 jest.mock('@libs/telemetry/submitFollowUpAction', () => ({
     startTracking: (...args: unknown[]) => mockStartTracking(...args) as unknown,

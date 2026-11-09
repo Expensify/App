@@ -257,10 +257,10 @@ jest.mock('@hooks/useDuplicateTransactionsAndViolations', () => ({
 const mockClearSelectedTransactions = jest.fn();
 const mockSelectAllMatchingItems = jest.fn();
 let mockSelectedTransactions: SelectedTransactions = {};
-let mockExcludedTransactions: SelectedTransactions = {};
 let mockSelectedReports: SelectedReports[] = [];
 let mockCurrentSearchResults: SearchResults | undefined;
 let mockAreAllMatchingItemsSelected = false;
+let mockExcludedTransactions: SelectedTransactions = {};
 let mockCurrentSearchKey: string | undefined;
 
 jest.mock('@components/Search/SearchContext', () => ({
@@ -550,13 +550,13 @@ describe('useSearchBulkActions - export options', () => {
         jest.clearAllMocks();
         await Onyx.clear();
         mockSelectedTransactions = {};
-        mockExcludedTransactions = {};
         mockSelectedReports = [];
         mockCurrentSearchResults = undefined;
         // Both confirmation modals (partial-export and export-again) resolve to CONFIRM by default; individual
         // tests override with mockResolvedValueOnce to exercise the cancel path.
         mockShowConfirmModal.mockResolvedValue({action: 'CONFIRM'});
         mockAreAllMatchingItemsSelected = false;
+        mockExcludedTransactions = {};
         mockCurrentSearchKey = undefined;
         mockIsOffline = false;
 
@@ -1312,6 +1312,29 @@ describe('useSearchBulkActions - export options', () => {
         });
         expect(markAsManuallyExported).not.toHaveBeenCalled();
         expect(mockClearSelectedTransactions).toHaveBeenCalled();
+    });
+
+    it('leaves the reports of unchecked expenses out of an all-matching mark-as-exported in the Reports view', async () => {
+        // Given every matching report selected in the Reports view, then one expense unchecked
+        mockAreAllMatchingItemsSelected = true;
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+        mockSelectedReports = [makeSelectedReport()];
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockExcludedTransactions = {tx2: makeSelectedTransaction({reportID: 'report-with-unchecked-expense'})};
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+        await waitFor(() => {
+            expect(getExportSubMenuItems(result.current.headerButtonsOptions)?.some((item) => item.text === 'workspace.common.markAsExported')).toBe(true);
+        });
+
+        // When "Mark as exported" is selected
+        getExportSubMenuItems(result.current.headerButtonsOptions)
+            ?.find((item) => item.text === 'workspace.common.markAsExported')
+            ?.onSelected?.();
+
+        // Then the query sent leaves that report out, rather than marking it with the rest
+        await waitFor(() => {
+            expect(queueBulkMarkAsExported).toHaveBeenCalledWith(expect.stringContaining('-reportID:report-with-unchecked-expense'), CONST.POLICY.CONNECTIONS.NAME.NETSUITE, undefined);
+        });
     });
 
     it('passes qboIntegrationAlias so the backend can tell an IES connection apart from a regular QBO connection sharing the same connectionName', async () => {

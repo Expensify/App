@@ -8,15 +8,10 @@ import TSVUtils from '../../utils/TSVUtils';
 import Processor from '../Processor';
 import {LINT_SEVERITY} from '../types';
 
-const SEATBELT_NAME = 'eslint-seatbelt';
-const SEATBELT_TSV_BY_LINTER = {
-    eslint: 'config/eslint/eslint.seatbelt.tsv',
-    oxlint: 'config/oxlint/oxlint.seatbelt.tsv',
-} as const;
-
-const SEATBELT_TSV_RELATIVE = SEATBELT_TSV_BY_LINTER.eslint;
+const SEATBELT_NAME = 'seatbelt';
+const SEATBELT_TSV_RELATIVE = 'config/oxlint/oxlint.seatbelt.tsv';
 const DEFAULT_FILE_HEADER = `# ${SEATBELT_NAME} temporarily allowed errors
-# docs: https://github.com/justjake/${SEATBELT_NAME}#readme`;
+# docs: contributingGuides/LINTING.md#seatbelt`;
 
 type SeatbeltFileLine = {
     filename: string;
@@ -199,7 +194,7 @@ function messageFrozenUnderMaxErrorCountText(seatbeltFilename: string, errorCoun
     const fixedMessage = fixed === 1 ? 'error' : 'errors';
     return `[${SEATBELT_NAME}]: SEATBELT_FROZEN: Expected ${maxErrorCount} ${pluralErrors(maxErrorCount)}, found ${errorCount}.
 If you fixed ${fixed} ${fixedMessage}, thank you, but you'll need to update the seatbelt file to match.
-Try running eslint, then committing ${seatbeltFilename}.`.trim();
+Try running npm run lint, then committing ${seatbeltFilename}.`.trim();
 }
 
 function messageFrozenUnderMaxErrorCount(message: LintMessage, seatbeltFilename: string, errorCount: number, maxErrorCount: number): LintMessage {
@@ -482,7 +477,7 @@ async function applySeatbelt(messages: LintMessage[], options: SeatbeltOptions, 
     if (pruned > 0) {
         const verb = shouldWrite ? 'removed' : 'would remove';
         // stdout carries the --format=json report.
-        console.error(`eslint-seatbelt: ${verb} ${pruned} baseline row(s) for deleted files`);
+        console.error(`${SEATBELT_NAME}: ${verb} ${pruned} baseline row(s) for deleted files`);
     }
     if (shouldWrite) {
         await writeTSVAtomically(options.seatbeltFile, tsv);
@@ -525,11 +520,11 @@ function parseRuleSetEnvVar(value: string | undefined): SeatbeltRuleSet | undefi
  * - `SEATBELT_FROZEN` defaults to false (the wrapper forces `0` so `CI=true` does not freeze).
  * - `readOnly` defaults to `!CI`; `SEATBELT_INCREASE` forces writes.
  */
-function resolveSeatbeltOptions(projectRoot: string, env: NodeJS.ProcessEnv = process.env, seatbeltRelativePath: string = SEATBELT_TSV_RELATIVE): SeatbeltOptions {
+function resolveSeatbeltOptions(projectRoot: string, env: NodeJS.ProcessEnv = process.env): SeatbeltOptions {
     const allowIncreaseRules = parseRuleSetEnvVar(env.SEATBELT_INCREASE) ?? new Set();
     const isIncreaseSet = allowIncreaseRules === 'all' || allowIncreaseRules.size > 0;
     return {
-        seatbeltFile: `${projectRoot}/${seatbeltRelativePath}`,
+        seatbeltFile: `${projectRoot}/${SEATBELT_TSV_RELATIVE}`,
         projectRoot,
         disable: readBooleanEnvVar(env.SEATBELT_DISABLE) ?? false,
         frozen: readBooleanEnvVar(env.SEATBELT_FROZEN) ?? false,
@@ -543,7 +538,7 @@ function resolveSeatbeltOptions(projectRoot: string, env: NodeJS.ProcessEnv = pr
 
 export default Seatbelt;
 export {
-    SEATBELT_TSV_BY_LINTER,
+    SEATBELT_TSV_RELATIVE,
     applySeatbelt,
     canonicalizeMessages,
     compareMessages,

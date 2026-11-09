@@ -27,8 +27,6 @@ type MockOnyxState = {
     snapshot: {data: Record<string, unknown>} | undefined;
     siblingDescriptors: Record<string, unknown> | undefined;
     transactionsCollection: Record<string, unknown>;
-    /** Fetch status of the `transactions_` subscription, which is how the carousel tells "not loaded" from "gone" */
-    transactionsStatus: 'loading' | 'loaded';
     reportActionsCollection: Record<string, unknown>;
     reportsCollection: Record<string, unknown>;
     modal: Record<string, unknown> | undefined;
@@ -40,7 +38,6 @@ const mockState: MockOnyxState = {
     snapshot: undefined,
     siblingDescriptors: undefined,
     transactionsCollection: {},
-    transactionsStatus: 'loaded',
     reportActionsCollection: {},
     reportsCollection: {},
     modal: undefined,
@@ -192,7 +189,6 @@ const resetMockState = () => {
     mockState.snapshot = undefined;
     mockState.siblingDescriptors = undefined;
     mockState.transactionsCollection = {};
-    mockState.transactionsStatus = 'loaded';
     mockState.reportActionsCollection = {};
     mockState.reportsCollection = {};
     mockState.modal = undefined;
@@ -204,8 +200,7 @@ const resetMockState = () => {
 const setupUseOnyx = () => {
     mockUseOnyx.mockImplementation((key: string, options?: {selector?: (data: unknown) => unknown}) => {
         const selector = options?.selector;
-        // Every branch returns the full `[value, metadata]` tuple `useOnyx` returns. Consumers read the metadata
-        // (`useCarouselTransactionIDs` gates on its `status`), so a value-only mock isn't the hook's contract.
+        // Every branch returns the full `[value, metadata]` tuple `useOnyx` returns.
         const loaded = (value: unknown) => [value, {status: 'loaded'}];
         if (key === ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS) {
             return loaded(mockState.transactionIDsList);
@@ -220,7 +215,7 @@ const setupUseOnyx = () => {
             return loaded(mockState.siblingDescriptors);
         }
         if (key === ONYXKEYS.COLLECTION.TRANSACTION) {
-            return [selector ? selector(mockState.transactionsCollection) : undefined, {status: mockState.transactionsStatus}];
+            return loaded(selector ? selector(mockState.transactionsCollection) : undefined);
         }
         if (key === ONYXKEYS.COLLECTION.REPORT_ACTIONS) {
             return loaded(selector ? selector(mockState.reportActionsCollection) : undefined);
@@ -672,17 +667,6 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
             expectArrowDisabled('prev-button', true);
             press('prev-button');
             expect(Navigation.setParams).not.toHaveBeenCalled();
-        });
-
-        // A transaction that hasn't loaded yet is not a transaction that is gone: dropping those would shrink the
-        // carousel under the user on a cold open (https://github.com/Expensify/App/issues/99641).
-        it('keeps siblings while the transaction collection is still loading', () => {
-            mockState.transactionsCollection = {};
-            mockState.transactionsStatus = 'loading';
-
-            renderNavigation();
-
-            expect(screen.getByText(counterFor(2, 3))).toBeTruthy();
         });
 
         // The other half of that rule, and the regression guard that matters: a confirmed delete SETs

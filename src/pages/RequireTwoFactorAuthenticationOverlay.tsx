@@ -115,7 +115,7 @@ function RequireTwoFactorAuthenticationOverlay() {
 
     const enableTwoFactorAuth = () => {
         snapshotOnboardingResumePathIfNeeded();
-        Navigation.navigate(getTwoFactorAuthRoute(ROUTES.SETTINGS_SECURITY, {forceSetup: true}));
+        Navigation.navigate(getTwoFactorAuthRoute(ROUTES.SETTINGS_SECURITY.getRoute(true), {forceSetup: true}));
     };
 
     if (!isRequire2FAOverlayVisible) {

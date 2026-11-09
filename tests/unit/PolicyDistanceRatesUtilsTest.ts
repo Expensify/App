@@ -6,6 +6,7 @@ import {
     getExpectedUnitForCurrency,
     getGovernmentRateCountryForCurrency,
     getGovernmentRateCountryPhraseTranslationKey,
+    getGovernmentRateSeries,
     isCurrencySupportedForAutoUpdate,
     isGovernmentRateUnmodified,
     isMapOrGPSRequired,
@@ -133,6 +134,87 @@ describe('PolicyDistanceRatesUtils', () => {
         it('should return false when the snapshot is malformed and has no rate amount', () => {
             // A snapshot missing its rate amount alongside an unset rate must not be reported as unmodified.
             expect(isGovernmentRateUnmodified(buildRate({rate: undefined}, {sourceRateID: 'US_2026-01-01', startDate: '2026-01-01', endDate: '2026-12-31'}))).toBe(false);
+        });
+
+        describe('tax reclaimable amount', () => {
+            // A 14p fuel band where a sixth of the rate is reclaimable, which the edit page shows as 0.0233
+            const fuelBandGovernmentRate = {sourceRateID: 'GB_PETROL_UP_TO_1400_2026-06-01', rate: 14, startDate: '2026-06-01', taxClaimablePercentage: 1 / 6};
+            const buildFuelBandRate = (taxClaimablePercentage?: number) =>
+                buildRate({rate: 14, startDate: '2026-06-01', endDate: undefined, attributes: {taxClaimablePercentage, governmentRate: fuelBandGovernmentRate}}, fuelBandGovernmentRate);
+
+            // The edit page saves the entered amount as a fraction of the rate
+            const getSavedTaxClaimablePercentage = (enteredAmount: string, rate: number) => (Number(enteredAmount) * 100) / rate;
+
+            it('should return true when the reclaimable amount matches the snapshot', () => {
+                // Given a fuel band copied with the government reclaimable fraction
+                const rate = buildFuelBandRate(1 / 6);
+
+                // When checking whether it is unmodified
+                const isUnmodified = isGovernmentRateUnmodified(rate);
+
+                // Then it is, so the lightning bolt shows
+                expect(isUnmodified).toBe(true);
+            });
+
+            it('should return false when the reclaimable amount was edited', () => {
+                // Given a fuel band whose reclaimable amount an admin changed to 0.03
+                const rate = buildFuelBandRate(getSavedTaxClaimablePercentage('0.03', 14));
+
+                // When checking whether it is unmodified
+                const isUnmodified = isGovernmentRateUnmodified(rate);
+
+                // Then it is not, because the edit page would show a different amount than the government value
+                expect(isUnmodified).toBe(false);
+            });
+
+            it('should return false when the reclaimable amount was cleared', () => {
+                // Given a fuel band whose snapshot has a reclaimable fraction but the rate has none
+                const rate = buildFuelBandRate(undefined);
+
+                // When checking whether it is unmodified
+                const isUnmodified = isGovernmentRateUnmodified(rate);
+
+                // Then it is not, because a missing reclaimable amount counts as zero
+                expect(isUnmodified).toBe(false);
+            });
+
+            it('should return true when the admin restores the reclaimable amount the edit page showed', () => {
+                // Given a fuel band edited away from its government value
+                const editedRate = buildFuelBandRate(getSavedTaxClaimablePercentage('0.03', 14));
+                expect(isGovernmentRateUnmodified(editedRate)).toBe(false);
+
+                // When the admin re-enters the shown 0.0233, which saves 2.33p rather than the government's 2.3333p
+                const restoredRate = buildFuelBandRate(getSavedTaxClaimablePercentage('0.0233', 14));
+
+                // Then the rate is unmodified again, since amounts are compared at the precision the edit page shows
+                expect(isGovernmentRateUnmodified(restoredRate)).toBe(true);
+            });
+
+            it('should ignore the reclaimable amount when the snapshot has none', () => {
+                // Given a US rate and a fuel band whose snapshots have no reclaimable fraction, where an admin set one on the rate
+                const usRate = buildRate({attributes: {taxClaimablePercentage: 0.1, governmentRate: baseGovernmentRate}});
+                const fuelBandGovernmentRateWithoutPercentage = {sourceRateID: 'GB_PETROL_UP_TO_1400_2026-06-01', rate: 14, startDate: '2026-06-01'};
+                const fuelBandRate = buildRate(
+                    {rate: 14, startDate: '2026-06-01', endDate: undefined, attributes: {taxClaimablePercentage: 0.1, governmentRate: fuelBandGovernmentRateWithoutPercentage}},
+                    fuelBandGovernmentRateWithoutPercentage,
+                );
+
+                // When checking whether they are unmodified
+                // Then both are, because there is no government reclaimable amount to compare against
+                expect(isGovernmentRateUnmodified(usRate)).toBe(true);
+                expect(isGovernmentRateUnmodified(fuelBandRate)).toBe(true);
+            });
+        });
+    });
+
+    describe('getGovernmentRateSeries', () => {
+        it('should strip only the trailing start date from the sourceRateID', () => {
+            // Given a standard rate, a fuel band whose name contains underscores, and an ID without a date
+            // When getting their series
+            // Then only the part after the last underscore is removed
+            expect(getGovernmentRateSeries('GB_2026-04-06')).toBe('GB');
+            expect(getGovernmentRateSeries('GB_PETROL_UP_TO_1400_2026-06-01')).toBe('GB_PETROL_UP_TO_1400');
+            expect(getGovernmentRateSeries('GB')).toBe('GB');
         });
     });
 
