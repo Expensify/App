@@ -91,8 +91,10 @@ function ActivatePhysicalCardPersonalDetails({card, lastFourDigits, onBackButton
     const country = hasHomeAddress ? personalDetailsValues[INPUT_IDS.COUNTRY] : shippingAddress?.addressCountry;
 
     const cardError = getLatestErrorMessage(card);
-    const minDate = subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE);
-    const maxDate = subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
+    const [{minDate, maxDate}] = useState(() => ({
+        minDate: subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE),
+        maxDate: subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT),
+    }));
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
         const errors = getFieldRequiredErrors(values, REQUIRED_FIELDS, translate);
