@@ -762,7 +762,8 @@ function SubmitDetailsPage({
                     <MoneyRequestConfirmationList
                         transaction={transaction}
                         selectedParticipants={participants}
-                        shouldAllowParticipantEdit={iouType === CONST.IOU.TYPE.SUBMIT}
+                        // Keep the destination editable after selecting Self DM; policy restrictions are enforced by useParticipantSection.
+                        shouldAllowParticipantEdit
                         onOpenParticipantPicker={() => {
                             cleanupPreMount();
                             Navigation.goBack();
