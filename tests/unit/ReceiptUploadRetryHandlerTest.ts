@@ -235,6 +235,36 @@ describe('buildRetryPayload', () => {
         expect(canRetry).toBe(false);
     });
 
+    it('offers no retry for an expense whose report is the self-DM, because a retry would replace the self-DM with an expense report', () => {
+        // Given a failed expense whose parent report is the self-DM, as left by a track whose move to a workspace failed
+        const context = {
+            ...buildContext(buildFailedTransaction()),
+            iouReport: createMock<Report>({reportID: SELF_DM_REPORT_ID, type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM}),
+        };
+
+        // When the view asks whether Try again can be shown
+        const canRetry = canBuildRetryPayload(context);
+
+        // Then it is hidden, because a retry would replace the self-DM with an expense report, and only Save keeps the receipt
+        expect(canRetry).toBe(false);
+    });
+
+    it('offers no retry for an expense whose report lost its type, because a retry would overwrite the wrong report', async () => {
+        // Given a failed expense on a report that lost its type, where everything else about the retry is fine
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[OTHER_ACCOUNT_ID]: {accountID: OTHER_ACCOUNT_ID, login: 'other@example.com'}});
+        await waitForBatchedUpdates();
+        const context = {
+            ...buildContext(buildFailedTransaction()),
+            iouReport: createMock<Report>({reportID: IOU_REPORT_ID, participants: {[CURRENT_USER_ACCOUNT_ID]: {}, [OTHER_ACCOUNT_ID]: {}}}),
+        };
+
+        // When the view asks whether Try again can be shown
+        const canRetry = canBuildRetryPayload(context);
+
+        // Then it is hidden, because a retry would replace that report with an expense report, and only Save keeps the receipt
+        expect(canRetry).toBe(false);
+    });
+
     it('resolves the DM counterpart and payee from the context user, not the Onyx session', async () => {
         // Given a 1:1 DM, and an Onyx session that disagrees with the context user
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[OTHER_ACCOUNT_ID]: {accountID: OTHER_ACCOUNT_ID, login: 'other@example.com'}});

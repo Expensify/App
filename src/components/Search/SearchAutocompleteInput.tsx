@@ -219,6 +219,7 @@ function SearchAutocompleteInput({
                     shouldShowClearButton={!!value && !isSearchingForReports}
                     shouldHideClearButton={false}
                     onClearInput={clearInput}
+                    clearButtonSentryLabel={CONST.SENTRY_LABEL.SEARCH.AUTOCOMPLETE_INPUT_CLEAR_BUTTON}
                 />
             </Animated.View>
             <FormHelpMessage
