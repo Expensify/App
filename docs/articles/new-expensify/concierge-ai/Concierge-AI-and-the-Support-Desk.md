@@ -1,7 +1,7 @@
 ---
 title: Concierge AI and the Support Desk
 description: Learn how support works in Expensify — Concierge is AI, and the Support Desk is staffed by real people you can reach any time.
-keywords: [Concierge AI, Support Desk, talk to a human, human support, support ticket, contact support, account manager, onboarding specialist, book a call, is Concierge a real person]
+keywords: [Concierge AI, Support Desk, Talk to a human, human support, support ticket, contact support, account manager, onboarding specialist, book a call, is Concierge a real person]
 internalScope: Audience is all Expensify members. Covers how Concierge AI and the human Support Desk work, how to get support from Account > Help, and what happens when a support ticket is resolved. Does not cover what Concierge can do in detail or how to set up business bank accounts or complete identity verification.
 ---
 
@@ -21,31 +21,31 @@ From your account:
 1. Go to **Account > Help**.
 2. Select one of the following options:
    - **Talk to Concierge:** Connect with AI for lightning-fast support.
-   - **Talk to a Human:** Our human-managed Support Desk for more complex issues.
-   - **Expensify HelpSite:** Navigate to our extensive self-help resources.
+   - **Talk to a human:** Our human-managed Support Desk for more complex issues.
+   - **Expensify HelpSite:** Navigate to our extensive [self-help resources](https://help.expensify.com/).
 
 Depending on your account, you may also see the following:
 
-- **Your account manager:** Opens a DM with your dedicated Account Manager. Not everyone has an Account Manager — if you don’t see this option, you can use **Talk to a Human** for world-class one-to-one support.
+- **Your account manager:** Opens a DM with your dedicated Account Manager. Not everyone has an Account Manager — if you don’t see this option, you can use **Talk to a human** for world-class one-to-one support.
 - **Your onboarding specialist:** Opens a DM with your onboarding specialist if you are a new client still in the setup stage.
 - **Talk to [name] again:** *Coming soon.* Reopens with the support rep you worked with last time.
 - **Talk to someone new:** *Coming soon.* Matches you with the next available rep.
 
 From Expensify Classic, when you select **Support**, you will see the same options appear.
 
-## What Talk to Concierge does and when to use it
+## What Concierge does and when to use it
 
 Concierge is an AI agent that answers questions, troubleshoots problems, and takes actions in your account, at your request, such as creating expenses, submitting reports, updating Workspace settings, and more. It's available 24/7 and replies in seconds.
 
 It is the fastest way to get support, so this is a great tool to start with.
 
-When Concierge isn't confident it can solve your problem, it says so and offers you a link to talk to a human instead of guessing.
+When Concierge isn't confident it can solve your problem, it says so and offers you a link to Talk to a human instead of guessing.
 
-## What Talk to a Human (Support Desk) does and when to use it
+## What Talk to a human (Support Desk) does and when to use it
 
 The Support Desk is our team of human support representatives. You reach them by selecting **Talk to a human** from the Help menu, or by selecting this option from within your Concierge chat. You never have to convince Concierge to hand you over.
 
-When you talk to a human, we open a **support ticket** — a conversation in your Concierge chat that belongs to you and a dedicated support rep.
+When you Talk to a human, we open a **support ticket** — a conversation in your Concierge chat that belongs to you and a dedicated support rep.
 
 Here's what that means for you:
 
@@ -74,7 +74,7 @@ Concierge can't help with business bank account setup or identity verification (
 
 No. Concierge is entirely AI. To reach a person, select **Talk to a human**.
 
-## Do I have to ask Concierge before I can talk to a human?
+## Do I have to ask Concierge before I can Talk to a human?
 
 No. **Talk to a human** is always available from **Account > Help**, whether or not you've chatted with Concierge first.
 
