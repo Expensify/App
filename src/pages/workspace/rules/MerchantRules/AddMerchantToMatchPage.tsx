@@ -121,6 +121,7 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
                     />
                 </View>
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_MATCH_TYPE}
                     name={translate('workspace.rules.merchantRules.matchType')}
                     onPress={() =>
                         Navigation.navigate(

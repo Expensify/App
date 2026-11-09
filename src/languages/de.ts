@@ -7678,9 +7678,9 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             reimbursementAccount: 'Erstattungskonto',
             welcomeNote: 'Bitte verwende meinen neuen Arbeitsbereich',
             delayedSubmission: 'verspätete Einreichung',
-            merchantRules: 'Standardaufgaben',
+            merchantRules: 'Standardwerte für Ausgaben',
             merchantRulesCount: () => ({
-                one: '1 Standardausgabe',
+                one: '1 Standardwert für Ausgaben',
                 other: (count: number) => `${count} Standardwerte für Ausgaben`,
             }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
