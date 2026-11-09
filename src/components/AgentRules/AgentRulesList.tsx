@@ -6,11 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getAgentRuleDisplayTitle} from '@libs/AgentRulesUtils';
 import type {AgentRuleWithID} from '@libs/AgentRulesUtils';
-import convertToLTR from '@libs/convertToLTR';
-import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/CustomEmojiUtils';
 import Navigation from '@libs/Navigation/Navigation';
-
-import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 
 import {clearPolicyAgentRuleErrors} from '@userActions/Policy/Rules';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
@@ -55,44 +51,31 @@ function AgentRulesList({policyID, rules, canWriteRules, showReadOnlyModal, list
 
     return (
         <View style={listContainerStyle}>
-            {rules.map((rule) => {
-                const title = getAgentRuleDisplayTitle(rule);
-                return (
-                    <OfflineWithFeedback
-                        key={rule.ruleID}
-                        pendingAction={rule.pendingAction}
-                        errors={rule.errors}
-                        errorRowStyles={styles.agentRulesErrorRow}
-                        onClose={() => clearPolicyAgentRuleErrors(policyID, rule.ruleID, rule)}
+            {rules.map((rule) => (
+                <OfflineWithFeedback
+                    key={rule.ruleID}
+                    pendingAction={rule.pendingAction}
+                    errors={rule.errors}
+                    errorRowStyles={styles.agentRulesErrorRow}
+                    onClose={() => clearPolicyAgentRuleErrors(policyID, rule.ruleID, rule)}
+                >
+                    <MenuItem.Root
+                        style={[styles.borderedContentCard, styles.ph4, menuItemWrapperStyle]}
+                        onPress={() => editAgentRule(rule.ruleID, rule.pendingAction)}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.AGENT_RULE_ITEM}
+                        isDisabled={rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                     >
-                        <MenuItem.Root
-                            style={[styles.borderedContentCard, styles.ph4, menuItemWrapperStyle]}
-                            onPress={() => editAgentRule(rule.ruleID, rule.pendingAction)}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.AGENT_RULE_ITEM}
-                            isDisabled={rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                        >
-                            <MenuItem.Row>
-                                <MenuItem.Content>
-                                    {containsCustomEmoji(title) && !containsOnlyCustomEmoji(title) ? (
-                                        <MenuItem.FieldValue accessibilityLabel={title}>
-                                            <TextWithEmojiFragment
-                                                message={convertToLTR(title)}
-                                                style={[styles.popoverMenuText, styles.pre, styles.ltr]}
-                                                alignCustomEmoji
-                                            />
-                                        </MenuItem.FieldValue>
-                                    ) : (
-                                        <MenuItem.FieldValue>{title}</MenuItem.FieldValue>
-                                    )}
-                                </MenuItem.Content>
-                                <MenuItem.Trailing>
-                                    <MenuItem.Chevron />
-                                </MenuItem.Trailing>
-                            </MenuItem.Row>
-                        </MenuItem.Root>
-                    </OfflineWithFeedback>
-                );
-            })}
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.Title style={styles.fontWeightNormal}>{getAgentRuleDisplayTitle(rule)}</MenuItem.Title>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                </OfflineWithFeedback>
+            ))}
         </View>
     );
 }

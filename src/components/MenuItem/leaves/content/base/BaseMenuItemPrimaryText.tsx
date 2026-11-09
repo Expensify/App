@@ -5,8 +5,11 @@ import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import convertToLTR from '@libs/convertToLTR';
+import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/CustomEmojiUtils';
 import getPlatform from '@libs/getPlatform';
 import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
+
+import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 
 import CONST from '@src/CONST';
 
@@ -29,22 +32,34 @@ function BaseMenuItemPrimaryText({children, accessibilityLabel, numberOfLines = 
 
     useMenuItemAccessibilityLabel(slot, accessibilityLabel ?? String(children));
 
+    const textStyle = [
+        styles.flexShrink1,
+        styles.popoverMenuText,
+        numberOfLines === 1 ? styles.pre : styles.preWrap,
+        shouldHideTextFromSelection && styles.userSelectNone,
+        shouldAllowTextSelection && styles.userSelectText,
+        styles.ltr,
+        styles.mw100,
+        style,
+    ];
+    const containsTextAndCustomEmoji = typeof children === 'string' && containsCustomEmoji(children) && !containsOnlyCustomEmoji(children);
+    const textContent = typeof children === 'string' ? convertToLTR(children) : children;
+
     return (
         <Text
-            style={[
-                styles.flexShrink1,
-                styles.popoverMenuText,
-                numberOfLines === 1 ? styles.pre : styles.preWrap,
-                shouldHideTextFromSelection && styles.userSelectNone,
-                shouldAllowTextSelection && styles.userSelectText,
-                styles.ltr,
-                styles.mw100,
-                style,
-            ]}
+            style={textStyle}
             numberOfLines={numberOfLines}
             dataSet={selectionDataSet}
         >
-            {typeof children === 'string' ? convertToLTR(children) : children}
+            {containsTextAndCustomEmoji ? (
+                <TextWithEmojiFragment
+                    message={convertToLTR(children)}
+                    style={textStyle}
+                    alignCustomEmoji
+                />
+            ) : (
+                textContent
+            )}
         </Text>
     );
 }
