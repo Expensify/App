@@ -8,6 +8,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorPosition} from '@src/styles';
+import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 
 import type {ComponentType, RefObject} from 'react';
 
@@ -33,7 +34,7 @@ type MenuProps = {
 const MEASURED_ANCHOR = {horizontal: 14, vertical: 128, width: 204, height: 32};
 
 let mockMenuProps: MenuProps | undefined;
-const mockCalculatePopoverPosition = jest.fn<Promise<typeof MEASURED_ANCHOR>, [RefObject<unknown>]>(() => Promise.resolve(MEASURED_ANCHOR));
+const mockCalculatePopoverPosition = jest.fn<Promise<typeof MEASURED_ANCHOR>, [RefObject<unknown>, AnchorAlignment]>(() => Promise.resolve(MEASURED_ANCHOR));
 
 jest.mock('@pages/inbox/sidebar/FABPopoverContent/CreateMenuPopover', () => {
     const {createElement} = jest.requireActual<ReactActual>('react');
@@ -90,10 +91,14 @@ describe('FlatNavCreateButton', () => {
         pressCreate();
         await waitForBatchedUpdatesWithAct();
 
-        // Then the menu opens anchored to the button itself, at the position measured from it
+        // Then the menu opens anchored to the button itself, down from its left edge, at the position measured from it
         expect(screen.getByTestId('CreateMenuPopover')).toBeOnTheScreen();
         const measuredRef = mockCalculatePopoverPosition.mock.calls.at(0)?.[0];
         expect(measuredRef?.current).toBeTruthy();
+        expect(mockCalculatePopoverPosition).toHaveBeenCalledWith(measuredRef, {
+            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+        });
         expect(mockMenuProps?.anchorRef).toBe(measuredRef);
         expect(mockMenuProps?.anchorPosition).toEqual({horizontal: MEASURED_ANCHOR.horizontal, vertical: MEASURED_ANCHOR.vertical});
     });
@@ -129,10 +134,13 @@ describe('FlatNavCreateButton', () => {
         // When the button is pressed twice and only then measured
         pressCreate();
         pressCreate();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryByTestId('CreateMenuPopover')).not.toBeOnTheScreen();
         resolveMeasurement(MEASURED_ANCHOR);
         await waitForBatchedUpdatesWithAct();
 
-        // Then the second press is ignored instead of starting another measurement, and the menu is open
+        // Then the menu stays closed until the measurement resolves, the second press is ignored instead of starting
+        // another measurement, and the menu opens once
         expect(mockCalculatePopoverPosition).toHaveBeenCalledTimes(1);
         expect(screen.getByTestId('CreateMenuPopover')).toBeOnTheScreen();
     });

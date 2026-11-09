@@ -13,6 +13,7 @@ import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import React, {useRef, useState} from 'react';
@@ -22,18 +23,18 @@ const CREATE_MENU_ANCHOR_ALIGNMENT: AnchorAlignment = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-/** The flat navigation bar's "+ Create" button, which opens the same create menu as the floating action button, right below itself. */
+/** Opens the same create menu as the floating action button. */
 function FlatNavCreateButton() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const {calculatePopoverPosition} = usePopoverPosition();
     const {isCreateMenuActive, isCreateMenuVisible, showCreateMenu, hideCreateMenu} = useCreateMenuVisibility();
-    const buttonRef = useRef<View>(null);
+    const buttonRef = useRef<ComponentRef<typeof View>>(null);
     const isOpeningRef = useRef(false);
     const [anchorPosition, setAnchorPosition] = useState<AnchorPosition>();
 
-    // The hook's toggle would show the menu before the button is measured, at a stale position.
+    // Shows the menu only once the button is measured, so it opens at the button's current position.
     const toggleCreateMenu = () => {
         if (isCreateMenuActive) {
             hideCreateMenu();
