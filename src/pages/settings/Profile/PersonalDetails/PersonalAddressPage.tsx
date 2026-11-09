@@ -3,7 +3,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
-import {normalizeCountryCode} from '@libs/CountryUtils';
+import {getCountryCode, normalizeCountryCode} from '@libs/CountryUtils';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 
 import AddressPage from '@pages/AddressPage';
@@ -45,7 +45,7 @@ function PersonalAddressPage() {
     }
     return (
         <AddressPage
-            defaultCountry={defaultCountry}
+            defaultCountry={getCountryCode(defaultCountry)}
             address={address}
             isLoadingApp={isLoadingApp}
             updateAddress={(values) => updateAddress(values, privatePersonalDetails?.addresses ?? [])}

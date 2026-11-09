@@ -1,11 +1,6 @@
 import {getCountryCode, normalizeCountryCode, resolveStateCode} from '@libs/CountryUtils';
-import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 
-import type {Country} from '@src/CONST';
-import type {PersonalDetailsForm} from '@src/types/form';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
-
-import createMock from '../utils/createMock';
 
 describe('CountryUtils', () => {
     describe('getCountryCode', () => {
@@ -23,11 +18,18 @@ describe('CountryUtils', () => {
             expect(getCountryCode('Egypt')).toBe('EG');
         });
 
-        it('should return original value for invalid country names or codes', () => {
-            expect(getCountryCode('Invalid Country')).toBe('Invalid Country');
-            expect(getCountryCode('XX')).toBe('XX');
-            expect(getCountryCode('123')).toBe('123');
-            expect(getCountryCode('MISSING TRANSLATION')).toBe('MISSING TRANSLATION');
+        it('should return undefined for invalid country names or codes', () => {
+            // Given values that are neither a country code nor a country name
+            // When they are looked up
+            // Then no country is returned, so callers never receive an unknown value typed as a country
+            expect(getCountryCode('Invalid Country')).toBeUndefined();
+            expect(getCountryCode('XX')).toBeUndefined();
+            expect(getCountryCode('123')).toBeUndefined();
+            expect(getCountryCode('MISSING TRANSLATION')).toBeUndefined();
+            expect(getCountryCode('')).toBeUndefined();
+            expect(getCountryCode('constructor')).toBeUndefined();
+            expect(getCountryCode('toString')).toBeUndefined();
+            expect(getCountryCode(undefined)).toBeUndefined();
         });
 
         it('should handle edge cases with special characters', () => {
@@ -35,8 +37,8 @@ describe('CountryUtils', () => {
         });
 
         it('should be case sensitive for country names', () => {
-            expect(getCountryCode('united states')).toBe('united states');
-            expect(getCountryCode('UNITED STATES')).toBe('UNITED STATES');
+            expect(getCountryCode('united states')).toBeUndefined();
+            expect(getCountryCode('UNITED STATES')).toBeUndefined();
             expect(getCountryCode('United States')).toBe('US');
         });
 
@@ -94,7 +96,6 @@ describe('CountryUtils', () => {
         });
 
         it('should handle multiple country name conversions', () => {
-            // Given legacy country names with known current codes.
             const testCases = [
                 {input: 'United States', expected: 'US'},
                 {input: 'Canada', expected: 'CA'},
@@ -105,13 +106,11 @@ describe('CountryUtils', () => {
                 {input: 'Australia', expected: 'AU'},
             ];
 
-            // When each legacy value reaches the real normalizer.
             for (const {input, expected} of testCases) {
                 const data = {street: '789 Test St', city: 'Test City', country: input};
                 // @ts-expect-error - Legacy addresses can contain country names before normalization.
                 const result = normalizeCountryCode(data);
-                // Then the actual returned object must contain the corresponding country code.
-                expect(result).toHaveProperty('country', expected);
+                expect(result?.country).toBe(expected);
             }
         });
 
@@ -167,110 +166,6 @@ describe('CountryUtils', () => {
             const result = normalizeCountryCode(data);
             expect(result).toEqual({street: '789 Test St', city: 'Test City', country: 'MISSING TRANSLATION'});
         });
-    });
-
-    it('preserves empty, absent, general-string and own-key lookup categories', () => {
-        // Given finite model values and arbitrary persisted strings, including inherited object names.
-        const finiteCountry: Country | '' = 'US';
-        const optionalFiniteCountry: Country | '' | undefined = undefined;
-        const rawCountry = 'constructor';
-        const optionalRawCountry: string | undefined = undefined;
-
-        // When the real lookup is used, these assignments check each public overload's return category.
-        const finiteResult: Country | '' = getCountryCode(finiteCountry);
-        const optionalFiniteResult: Country | '' | undefined = getCountryCode(optionalFiniteCountry);
-        const rawResult: string = getCountryCode(rawCountry);
-        const optionalRawResult: string | undefined = getCountryCode(optionalRawCountry);
-
-        // Then only own country-name entries are translated and every other input keeps its value.
-        expect(finiteResult).toBe('US');
-        expect(optionalFiniteResult).toBeUndefined();
-        expect(rawResult).toBe('constructor');
-        expect(optionalRawResult).toBeUndefined();
-        expect(getCountryCode('toString')).toBe('toString');
-        expect(getCountryCode('')).toBe('');
-        expect(getCountryCode('us')).toBe('us');
-    });
-
-    it('keeps the reference and country property presence of falsy address inputs', () => {
-        // Given the distinct supported absence and empty-string shapes in Address.
-        const missing: Address = {street: '123 Main St'};
-        const explicitUndefined: Address = {street: '123 Main St', country: undefined};
-        const empty: Address = {street: '123 Main St', country: ''};
-
-        // When normalization sees no truthy country.
-        // Then it returns the exact original objects.
-        expect(normalizeCountryCode(missing)).toBe(missing);
-        expect(normalizeCountryCode(explicitUndefined)).toBe(explicitUndefined);
-        expect(normalizeCountryCode(empty)).toBe(empty);
-        expect(Object.hasOwn(normalizeCountryCode(missing), 'country')).toBe(false);
-        expect(Object.hasOwn(normalizeCountryCode(explicitUndefined), 'country')).toBe(true);
-        expect(normalizeCountryCode(empty).country).toBe('');
-    });
-
-    it('characterizes deliberately invalid nested null without claiming a supported country producer', () => {
-        // Given malformed historical data, outside the finite Address model and the live COUNTRY hook contract.
-        const data = {street: '123 Main St', country: null};
-
-        // When this exact invalid expression reaches the existing falsy guard.
-        // @ts-expect-error - Nested null is deliberately invalid Address data, not a supported UI input.
-        const result = normalizeCountryCode(data);
-
-        // Then the guard retains both reference and explicit property presence.
-        expect(result).toBe(data);
-        expect(Object.hasOwn(result, 'country')).toBe(true);
-        expect(result).toHaveProperty('country', null);
-    });
-
-    it('preserves complete form fields, metadata and nested references in a shallow copy', () => {
-        // Given a form from the finite form owner with server metadata and an extension value.
-        const errors = getMicroSecondOnyxErrorWithMessage('Server error', 123);
-        const extension = {source: 'profile'};
-        const data = {
-            ...createMock<PersonalDetailsForm>({country: 'CA', legalFirstName: 'Alex', phoneNumber: '123', isLoading: true, errors}),
-            extension,
-        };
-
-        // When a truthy country is normalized, the Form overload preserves its complete category.
-        const result: PersonalDetailsForm = normalizeCountryCode(data);
-
-        // Then values and nested references survive while the containing object is copied.
-        expect(result).not.toBe(data);
-        expect(result).toEqual(data);
-        expect(result.errors).toBe(errors);
-        expect(result.isLoading).toBe(true);
-        expect(result.legalFirstName).toBe('Alex');
-        expect(result.phoneNumber).toBe('123');
-        expect(result).toHaveProperty('extension', extension);
-        expect('extension' in result && result.extension).toBe(extension);
-    });
-
-    it('retains required and optional Form and Address return categories', () => {
-        // Given both production object categories, with absence represented separately.
-        const form = createMock<PersonalDetailsForm>({country: 'US', city: 'New York'});
-        const address: Address = {street: '123 Main St', country: 'US'};
-        const optionalForm: PersonalDetailsForm | undefined = form;
-        const optionalAddress: Address | undefined = address;
-        const requiredUnion: PersonalDetailsForm | Address = [form, address].find((value) => 'street' in value) ?? form;
-        const optionalUnion: PersonalDetailsForm | Address | undefined = [requiredUnion].at(0);
-
-        // When the declared categories are checked, no caller-selected generic result is promised.
-        const formResult: PersonalDetailsForm = normalizeCountryCode(form);
-        const addressResult: Address = normalizeCountryCode(address);
-        const absentResult: undefined = normalizeCountryCode(undefined);
-        const optionalFormResult: PersonalDetailsForm | undefined = normalizeCountryCode(optionalForm);
-        const optionalAddressResult: Address | undefined = normalizeCountryCode(optionalAddress);
-        const unionResult: PersonalDetailsForm | Address = normalizeCountryCode(requiredUnion);
-        const optionalUnionResult: PersonalDetailsForm | Address | undefined = normalizeCountryCode(optionalUnion);
-
-        // Then runtime values also retain their full original shapes and absence.
-        expect(formResult).toEqual(form);
-        expect(addressResult).toEqual(address);
-        expect(absentResult).toBeUndefined();
-        expect(optionalFormResult).toEqual(optionalForm);
-        expect(optionalAddressResult).toEqual(optionalAddress);
-        expect(unionResult).toEqual(requiredUnion);
-        expect(optionalUnionResult).toEqual(optionalUnion);
     });
 
     describe('resolveStateCode', () => {

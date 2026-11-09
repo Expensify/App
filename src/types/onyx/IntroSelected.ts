@@ -1,7 +1,4 @@
-import type CONST from '@src/CONST';
 import type {OnboardingInvite} from '@src/CONST';
-
-import type {ValueOf} from 'type-fest';
 
 import type {OnboardingPurpose} from './index';
 
@@ -31,8 +28,8 @@ type IntroSelected = {
     /** Task reportID for 'createWorkspace' type */
     createWorkspace?: string;
 
-    /** Includes retained legacy ranges that are no longer offered by the onboarding UI. */
-    companySize?: ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
+    /** Company size selected during onboarding */
+    companySize?: string;
 
     /** Task reportID for 'setupCategories' type */
     setupCategories?: string;

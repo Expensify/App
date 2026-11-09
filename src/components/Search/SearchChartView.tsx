@@ -26,7 +26,7 @@ import type {ChartView, GroupedItem, SearchChartMetric, SearchGroupBy, SearchQue
 
 import {buildChartSeries, isChartAverage} from './buildChartSeries';
 import {buildChartDrillDownQuery} from './chartDrillDown';
-import CHART_GROUP_BY_CONFIG, {getChartFilterQuery} from './chartGroupByConfig';
+import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 import getInProgressBucketLabel from './getInProgressBucketLabel';
 import isPeriodAfterToday, {isEmptyPeriodAfterToday} from './isPeriodAfterToday';
 import applyRunningTotal from './runningTotal';
@@ -117,7 +117,7 @@ function SearchChartView({
     const {getCurrencySymbol, getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
 
-    const {getLabel, getShortLabel, getLineChartLabel, getDateRange, axisLabelSteps} = CHART_GROUP_BY_CONFIG[groupBy];
+    const {getLabel, getShortLabel, getLineChartLabel, getFilterQuery, getDateRange, axisLabelSteps} = CHART_GROUP_BY_CONFIG[groupBy];
 
     const today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
     const dateFilterRange = queryJSON ? getDateFilterRange(queryJSON) : {};
@@ -177,7 +177,7 @@ function SearchChartView({
             return;
         }
 
-        const query = buildChartDrillDownQuery(queryJSON, getChartFilterQuery(item, groupBy));
+        const query = buildChartDrillDownQuery(queryJSON, getFilterQuery(item));
 
         if (!query) {
             return;

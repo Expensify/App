@@ -7,10 +7,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getCountryCode} from '@libs/CountryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {BackToParams} from '@libs/Navigation/types';
 
 import type {FormOnyxValues} from '@src/components/Form/types';
+import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/HomeAddressForm';
@@ -35,8 +37,7 @@ type AddressPageProps = {
      */
     shouldRequireZip?: boolean;
 
-    /** Raw IP-derived default used only when the saved country is nullish at mount. */
-    defaultCountry?: string;
+    defaultCountry?: Country;
 } & BackToParams;
 
 function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo, defaultCountry, shouldRequireZip}: AddressPageProps) {
@@ -72,7 +73,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
             return;
         }
         if (addressPartKey === INPUT_IDS.COUNTRY && addressPart !== currentCountry) {
-            setCurrentCountry(addressPart);
+            setCurrentCountry(getCountryCode(addressPart) ?? '');
             setState('');
             setCity('');
             setZipcode('');

@@ -37,8 +37,8 @@ type AddressFormProps<TFormID extends AddressFormID> = {
     /** Address city field */
     city?: string;
 
-    /** Raw default or saved country. User selections and submitted values retain the finite form model. */
-    country?: string;
+    /** Address country field */
+    country?: Country | '';
 
     /** Address state field */
     state?: string;
@@ -100,7 +100,7 @@ type AddressFormProps<TFormID extends AddressFormID> = {
 /** The values the address inputs start from and report changes to, shared by AddressForm with its AddressForm.Fields */
 type AddressFieldsSettings = {
     city: string;
-    country: string;
+    country: Country | '';
     state: string;
     street1: string;
     street2: string;
