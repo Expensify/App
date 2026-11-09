@@ -154,6 +154,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         legendListProps,
         loadedInitialViewportListID,
         shouldShowInitialViewportSkeleton,
+        shouldShowNewerActionsSkeleton,
         shouldBeAlignedToTop,
         onShowPreviousMessages,
         isFloatingMessageCounterVisible,
@@ -208,6 +209,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                 reportID={reportID}
                 isDraftPendingCompletion={isDraftPendingCompletion}
             />
+            {shouldShowNewerActionsSkeleton && <ReportActionsSkeletonView shouldAnimate={!isOffline} />}
         </>
     );
 

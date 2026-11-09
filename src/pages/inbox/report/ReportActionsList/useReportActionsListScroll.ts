@@ -20,7 +20,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {LegendListRef, OnViewableItemsChangedInfo} from '@legendapp/list/react-native';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
-import {useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {useEffect, useEffectEvent, useImperativeHandle, useRef, useState} from 'react';
 
 import type {ReportActionsListScrollMetrics, UseReportActionsListScrollParams} from './types';
 
@@ -194,6 +194,7 @@ function useReportActionsListScroll({
         shouldBeAlignedToTop,
         initialScrollIndex,
         initialScrollIndexParams,
+        shouldShowNewerActionsSkeleton,
         onLoad,
         onItemSizeChanged,
         trackLinkedMessageScroll,
@@ -364,6 +365,23 @@ function useReportActionsListScroll({
         });
     };
 
+    // The skeleton below a linked final action can keep the list end outside onEndReachedThreshold once the link sits at
+    // the top, so request the newer page directly unless LegendList already did.
+    const loadNewerChatsBelowLinkedAction = useEffectEvent(() => {
+        if (legendListRef.current?.getState()?.isEndReached) {
+            return;
+        }
+        loadNewerChatsAfterTransitions();
+    });
+    const isInitialViewportLoaded = loadedInitialViewportListID === listID;
+    useEffect(() => {
+        if (!isInitialViewportLoaded || !shouldShowNewerActionsSkeleton) {
+            return;
+        }
+        const frame = requestAnimationFrame(loadNewerChatsBelowLinkedAction);
+        return () => cancelAnimationFrame(frame);
+    }, [isInitialViewportLoaded, shouldShowNewerActionsSkeleton]);
+
     useFollowActionBadgeTarget({
         reportID,
         actionTargetReportActionID: actionBadgeTargetID,
@@ -394,6 +412,7 @@ function useReportActionsListScroll({
         listID,
         loadedInitialViewportListID,
         shouldShowInitialViewportSkeleton,
+        shouldShowNewerActionsSkeleton,
         shouldBeAlignedToTop,
         onShowPreviousMessages,
         isFloatingMessageCounterVisible,

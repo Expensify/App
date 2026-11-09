@@ -116,6 +116,9 @@ type UseReportActionsScrollResult = {
     /** Positioning params (viewPosition/viewOffset) paired with initialScrollIndex */
     initialScrollIndexParams: {viewPosition?: number; viewOffset?: number} | undefined;
 
+    /** Whether to show a skeleton below a linked final action while newer actions are still to load */
+    shouldShowNewerActionsSkeleton: boolean;
+
     /** onLoad handler that enables pill tracking after initial positioning settles */
     onLoad: () => void;
 
@@ -334,6 +337,16 @@ function useReportActionsScroll({
     const targetIndex = initialScrollKey
         ? (reportActionIDToDisplayIndex?.get(initialScrollKey) ?? renderedVisibleReportActions.findIndex((item) => keyExtractor(item) === initialScrollKey))
         : -1;
+    const isLinkedTargetLastRow = !!linkedReportActionID && initialScrollKey === linkedReportActionID && targetIndex >= 0 && targetIndex === renderedVisibleReportActions.length - 1;
+    // OpenReport returns a linked action with older actions only. The list shows a skeleton below it until the newest
+    // page loads, so the link can open near the top like any other instead of at the end of a historical page. Removing
+    // the skeleton with an intermediate page would shrink the content before LegendList sizes the new rows.
+    const [newerActionsSkeletonListID, setNewerActionsSkeletonListID] = useState<string>();
+    if (isLinkedTargetLastRow && hasNewerActions && newerActionsSkeletonListID !== listID) {
+        setNewerActionsSkeletonListID(listID);
+    }
+    const shouldShowNewerActionsSkeleton = hasNewerActions && (isLinkedTargetLastRow || newerActionsSkeletonListID === listID);
+    const isLinkedLastAction = isLinkedTargetLastRow && !hasNewerActions;
     let initialScrollIndex: number | undefined;
     let initialScrollIndexParams: {viewPosition?: number; viewOffset?: number} | undefined;
     if (targetIndex >= 0) {
@@ -341,10 +354,7 @@ function useReportActionsScroll({
         // A linked final action can be taller than the viewport, so show its highlighted end.
         // Unread actions still start at the New marker. Omit viewOffset for bottom alignment so
         // LegendList includes the footer (for example, Concierge's thinking indicator).
-        initialScrollIndexParams =
-            initialScrollKey === linkedReportActionID && targetIndex === renderedVisibleReportActions.length - 1
-                ? {viewPosition: 1}
-                : {viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET};
+        initialScrollIndexParams = isLinkedLastAction ? {viewPosition: 1} : {viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET};
     } else if (shouldFocusToTopOnMount) {
         initialScrollIndex = 0;
     }
@@ -358,7 +368,7 @@ function useReportActionsScroll({
         listID,
         linkedReportActionID: initialScrollKey === linkedReportActionID ? linkedReportActionID : undefined,
         targetIndex,
-        isLastAction: targetIndex === renderedVisibleReportActions.length - 1,
+        isLastAction: isLinkedLastAction,
     });
 
     useScrollToEndOnNewMessageReceived({
@@ -430,6 +440,7 @@ function useReportActionsScroll({
         shouldBeAlignedToTop,
         initialScrollIndex,
         initialScrollIndexParams,
+        shouldShowNewerActionsSkeleton,
         onLoad,
         onItemSizeChanged,
         trackLinkedMessageScroll,

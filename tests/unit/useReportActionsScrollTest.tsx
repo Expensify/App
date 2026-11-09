@@ -317,6 +317,31 @@ describe('useReportActionsScroll', () => {
 
             expect(result.current.initialScrollIndex).toBe(0);
             expect(result.current.initialScrollIndexParams).toEqual({viewPosition: 1});
+            expect(result.current.shouldShowNewerActionsSkeleton).toBe(false);
+        });
+
+        it('top-aligns a final linked report action above a skeleton until the newest page loads', async () => {
+            // Given OpenReport returned the linked action as the newest action of a historical page.
+            mockRouteParams = {reportActionID: LINKED_ACTION_ID};
+            const linkedAction = makeAction(LINKED_ACTION_ID);
+            const {result, rerender} = await renderScroll({hasNewerActions: true, sortedVisibleReportActions: [linkedAction], renderedVisibleReportActions: [linkedAction]});
+
+            // Then it opens at the usual linked offset, with a skeleton holding the space for the newer page.
+            expect(result.current.initialScrollIndexParams).toEqual({viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
+            expect(result.current.shouldShowNewerActionsSkeleton).toBe(true);
+
+            // When an intermediate newer page loads below it.
+            const newerAction = makeAction('2');
+            rerender(buildParams({hasNewerActions: true, sortedVisibleReportActions: [newerAction, linkedAction], renderedVisibleReportActions: [linkedAction, newerAction]}));
+
+            // Then the skeleton stays, so the content below the link does not shrink while the new rows are sized.
+            expect(result.current.shouldShowNewerActionsSkeleton).toBe(true);
+
+            // When the newest page loads.
+            rerender(buildParams({sortedVisibleReportActions: [newerAction, linkedAction], renderedVisibleReportActions: [linkedAction, newerAction]}));
+
+            // Then the skeleton is removed.
+            expect(result.current.shouldShowNewerActionsSkeleton).toBe(false);
         });
 
         it('prefers a linked action over a later unread marker', async () => {
