@@ -31,7 +31,7 @@ let mockSharedFiles: SharedFile[] = [];
 jest.mock('@libs/ShareActionHandlerModule', () => ({
     __esModule: true,
     default: {
-        processFiles: jest.fn((callback: (files: SharedFile[]) => void) => callback(mockSharedFiles)),
+        processFiles: jest.fn(() => Promise.resolve(mockSharedFiles)),
     },
 }));
 
