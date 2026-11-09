@@ -4,7 +4,12 @@ import AuthorizeTransaction from '@components/MultifactorAuthentication/config/s
 import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 
-import {isTransactionStillPending3DSReview, isTransactionStillPendingFraudReview} from '@libs/actions/MultifactorAuthentication';
+import {
+    cleanUpLocallyProcessedFraudTransactionReviews,
+    getLocallyProcessedFraudReviewIDsToCleanUp,
+    isTransactionStillPending3DSReview,
+    isTransactionStillPendingFraudReview,
+} from '@libs/actions/MultifactorAuthentication';
 import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
@@ -162,6 +167,15 @@ function useNavigateToForcedTransactionReview() {
     const [transactionsPending3DSReview] = useOnyx(ONYXKEYS.TRANSACTIONS_PENDING_3DS_REVIEW);
     const [locallyProcessedFraudTransactionReviews] = useOnyx(ONYXKEYS.LOCALLY_PROCESSED_FRAUD_TRANSACTION_REVIEWS);
     const [transactionsPendingFraudReview] = useOnyx(ONYXKEYS.TRANSACTIONS_PENDING_FRAUD_REVIEW);
+
+    // Drop local answers once the server stops listing their review. The server sends null for an empty queue
+    useEffect(() => {
+        const transactionIDsToCleanUp = getLocallyProcessedFraudReviewIDsToCleanUp(transactionsPendingFraudReview, locallyProcessedFraudTransactionReviews);
+        if (transactionIDsToCleanUp.length === 0) {
+            return;
+        }
+        cleanUpLocallyProcessedFraudTransactionReviews(transactionIDsToCleanUp);
+    }, [transactionsPendingFraudReview, locallyProcessedFraudTransactionReviews]);
 
     // Fixed at mount so the selection below stays stable between renders
     const [mountedAt] = useState(() => Date.now());
