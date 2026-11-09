@@ -25,11 +25,15 @@ function useSelectionListSearch<T extends ListItem & {value: string}>(data: T[],
     // The values actually pinned to the top, so callers share one source of truth instead of re-deriving the pin.
     const pinnedValues = shouldMoveInitialSelectionToTop(data.length) ? (initialSelectedValues ?? []) : [];
     const orderedData = moveInitialSelectionToTop(data, pinnedValues);
+    const minLengthToShowSearch = shouldAlwaysShowSearch ? 1 : CONST.STANDARD_LIST_ITEM_LIMIT;
     const [searchValue, setSearchValue, filteredData] = useSearchResults(
         orderedData,
-        (item, searchInput) => tokenizedSearch([item], searchInput, () => [item.text ?? '', item.value]).length > 0,
+        (item, searchInput) => tokenizedSearch([item], searchInput, () => (shouldAlwaysShowSearch ? [item.text ?? ''] : [item.text ?? '', item.value])).length > 0,
+        undefined,
+        undefined,
+        minLengthToShowSearch,
     );
-    const shouldShowSearchInput = shouldAlwaysShowSearch ? data.length > 0 : data.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const shouldShowSearchInput = data.length >= minLengthToShowSearch;
     const textInputOptions = {
         label: shouldShowSearchInput ? translate('common.search') : undefined,
         value: searchValue,

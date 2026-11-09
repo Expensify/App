@@ -221,4 +221,38 @@ describe('useSelectionListSearch', () => {
         // Then the search label stays undefined so the empty-state view renders without a search input above it
         expect(result.current.textInputOptions.label).toBeUndefined();
     });
+
+    it('matches only the displayed text and ignores internal item values when shouldAlwaysShowSearch is true', () => {
+        // Given a vendor row whose value is an internal ID that does not appear in its displayed text
+        const data: Item[] = [{value: 'vendor-uuid-9876', text: 'Acme Supplies', keyForList: 'vendor-uuid-9876'}];
+        const {result} = renderHook(() => useSelectionListSearch(data, 'common.noResultsFound', true));
+
+        // When the user searches for a substring of the internal ID
+        searchAndSettle(result.current.textInputOptions.onChangeText, '9876');
+
+        // Then the row does not match and the no-results message is shown
+        expect(result.current.filteredData).toEqual([]);
+        expect(result.current.textInputOptions.headerMessage).toBe('common.noResultsFound');
+    });
+
+    it('keeps the search query when a list with shouldAlwaysShowSearch shrinks below the item-limit threshold, and clears it only when emptied', () => {
+        // Given a list with shouldAlwaysShowSearch enabled and an active search query
+        const {result, rerender} = renderHook((data: Item[]) => useSelectionListSearch(data, 'common.noResultsFound', true), {
+            initialProps: buildItems(13, 0),
+        });
+        searchAndSettle(result.current.textInputOptions.onChangeText, 'Item');
+        expect(result.current.textInputOptions.value).toBe('Item');
+
+        // When the list shrinks below the 12-item threshold but still has rows
+        rerender(buildItems(5, 0));
+
+        // Then the query stays intact because the search input is still visible
+        expect(result.current.textInputOptions.value).toBe('Item');
+
+        // When the list becomes completely empty
+        rerender([]);
+
+        // Then the query is cleared so the empty-state view is not suppressed by a hidden query
+        expect(result.current.textInputOptions.value).toBe('');
+    });
 });
