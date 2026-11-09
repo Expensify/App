@@ -193,6 +193,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         report: moneyRequestReport,
         policy,
         shouldShowMarkAsDoneCopy,
+        shouldDeferForPopoverDismiss: true,
     });
 
     const onApprove = (isFullApproval: boolean, skipAnimation = false) => {

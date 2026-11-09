@@ -3,6 +3,7 @@ import {renderHook, waitFor} from '@testing-library/react-native';
 import SubmitViolationsList from '@components/SubmitViolationsList';
 
 import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
+import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,6 +35,8 @@ jest.mock('@hooks/useLocalize', () => () => ({
 jest.mock('@hooks/useCurrencyList', () => ({
     useCurrencyListActions: () => ({convertToDisplayString: (amount: number, currency: string) => `${amount} ${currency}`}),
 }));
+
+jest.mock('@libs/showConfirmModalAfterMoreMenuDismiss');
 
 // Run TransitionTracker callbacks immediately, there is no real modal transition to wait for in a unit test.
 jest.mock('@libs/Navigation/TransitionTracker', () => ({
@@ -77,6 +80,102 @@ function getPromptViolations(): string[] {
 describe('useConfirmSubmitReportViolations', () => {
     beforeEach(() => {
         resetMockConfirmModal();
+        jest.mocked(showConfirmModalAfterMoreMenuDismiss).mockClear();
+        jest.mocked(showConfirmModalAfterMoreMenuDismiss).mockImplementation((showConfirmModal, options) => showConfirmModal(options));
+    });
+
+    it.each([false, true])('ignores repeated presses while confirmation is pending (popover: %s)', async (shouldDeferForPopoverDismiss) => {
+        // Given a violation that requires confirmation before submitting
+        const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)]};
+        const {result, rerender} = renderHook(() =>
+            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection}),
+        );
+        const onProceed = jest.fn();
+        const onDuplicateProceed = jest.fn();
+
+        // When two presses occur before the modal settles, even across a render
+        const confirmation = result.current(onProceed, {shouldDeferForPopoverDismiss});
+        rerender({});
+        await result.current(onDuplicateProceed, {shouldDeferForPopoverDismiss});
+
+        // Then only one modal opens and only the first submission proceeds after confirmation
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        expect(showConfirmModalAfterMoreMenuDismiss).toHaveBeenCalledTimes(shouldDeferForPopoverDismiss ? 1 : 0);
+        expect(onProceed).not.toHaveBeenCalled();
+        resolveShowConfirmModal({action: MockModalActions.CONFIRM});
+        await confirmation;
+        expect(onProceed).toHaveBeenCalledTimes(1);
+        expect(onDuplicateProceed).not.toHaveBeenCalled();
+    });
+
+    it.each([MockModalActions.CLOSE, MockModalActions.CONFIRM])('allows another confirmation after the modal settles with %s', async (action) => {
+        // Given a report whose violations require a confirmation modal
+        const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)]};
+        const {result} = renderHook(() =>
+            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection}),
+        );
+        const onProceed = jest.fn();
+
+        // When the user closes or confirms the first modal and later submits again
+        const confirmation = result.current(onProceed);
+        resolveShowConfirmModal({action});
+        await confirmation;
+        const nextConfirmation = result.current(onProceed);
+
+        // Then the guard is released and a fresh modal can open
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(2);
+        expect(showConfirmModalAfterMoreMenuDismiss).not.toHaveBeenCalled();
+        expect(onProceed).toHaveBeenCalledTimes(action === MockModalActions.CONFIRM ? 1 : 0);
+        resolveShowConfirmModal({action: MockModalActions.CLOSE});
+        await nextConfirmation;
+    });
+
+    it('preserves menu dismissal deferral unless a direct button overrides it', async () => {
+        // Given a menu caller that opts into deferral by default
+        const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)]};
+        const {result} = renderHook(() =>
+            useConfirmSubmitReportViolations({
+                reportID: NO_REPORT_ID,
+                report: undefined,
+                policy: undefined,
+                transactions: [transaction1],
+                violationsCollection,
+                shouldDeferForPopoverDismiss: true,
+            }),
+        );
+
+        // When the menu action submits, then a direct button submits after cancellation
+        const confirmation = result.current(jest.fn());
+        expect(showConfirmModalAfterMoreMenuDismiss).toHaveBeenCalledTimes(1);
+        resolveShowConfirmModal({action: MockModalActions.CLOSE});
+        await confirmation;
+        const directConfirmation = result.current(jest.fn(), {shouldDeferForPopoverDismiss: false});
+
+        // Then the second modal opens immediately without scheduling another menu wait
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(2);
+        expect(showConfirmModalAfterMoreMenuDismiss).toHaveBeenCalledTimes(1);
+        resolveShowConfirmModal({action: MockModalActions.CLOSE});
+        await directConfirmation;
+    });
+
+    it('releases the guard when opening the modal fails', async () => {
+        // Given a modal presenter that fails on its first invocation
+        const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)]};
+        const {result} = renderHook(() =>
+            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection}),
+        );
+        mockShowConfirmModal.mockRejectedValueOnce(new Error('Modal presentation failed'));
+        const onProceed = jest.fn();
+
+        // When presentation fails and the user retries
+        await expect(result.current(onProceed)).rejects.toThrow('Modal presentation failed');
+        const confirmation = result.current(onProceed);
+
+        // Then retrying opens a new modal instead of leaving submission permanently blocked
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(2);
+        expect(onProceed).not.toHaveBeenCalled();
+        resolveShowConfirmModal({action: MockModalActions.CLOSE});
+        await confirmation;
     });
 
     it('calls onProceed immediately with no flag when there are no violations', () => {
