@@ -15,6 +15,7 @@ import React, {useContext} from 'react';
 import {View} from 'react-native';
 
 import FormContext from './Form/FormContext';
+import FSClassView from './FSClassView';
 import Icon from './Icon';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
@@ -128,9 +129,11 @@ function FormHelpMessage({
     }
 
     return (
-        <View
+        // Help and error messages are text we write, not user data, so they stay readable in session recordings even under a masked field
+        <FSClassView
             style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, style]}
             dataSet={dataSet}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
         >
             {isError && shouldShowRedDotIndicator && (
                 <View
@@ -187,7 +190,7 @@ function FormHelpMessage({
                     </Text>
                 )}
             </View>
-        </View>
+        </FSClassView>
     );
 }
 
