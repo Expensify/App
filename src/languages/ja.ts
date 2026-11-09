@@ -1234,6 +1234,8 @@ const translations: TranslationDeepObject<typeof en> = {
         explainChartPrompt: (chartTitle: string) => `${chartTitle} のデータを説明します。`,
         viewDetails: '詳細を表示',
         viewAll: 'すべて表示',
+        topExpenses: '上位の経費',
+        noExpensesInRange: 'この範囲内に経費はありません',
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',

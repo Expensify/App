@@ -1,7 +1,7 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
 import type {ChartDataPoint, ChartValueFormatter} from '@components/Charts/types';
 import {formatChangePercentage} from '@components/Charts/utils/formatTooltipComparison';
-import formatValueWithNote from '@components/Charts/utils/formatValueWithNote';
+import formatTooltipValue from '@components/Charts/utils/formatTooltipValue';
 import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {CHART_SERIES_KEY} from '@components/Search/buildChartSeries';
@@ -58,7 +58,9 @@ function InsightsDataTable({rows, formatValue, isLoading, onRowPress}: InsightsD
 
     /** Writes a group's value the way the chart labelled it, followed by the money behind it when the value isn't money */
     const formatGroupValue = (point: ChartDataPoint, item: GroupedItem, value: number) =>
-        formatValue ? formatValueWithNote(formatValue(value), point.seriesTotals?.[CHART_SERIES_KEY.PRIMARY]) : convertToDisplayString(item.total ?? 0, item.currency);
+        formatValue
+            ? formatTooltipValue({value: formatValue(value), secondaryValue: point.seriesTotals?.[CHART_SERIES_KEY.PRIMARY]})
+            : convertToDisplayString(item.total ?? 0, item.currency);
 
     if (isLoading) {
         return <InsightsDataTableSkeleton fixedNumItems={SKELETON_ROW_COUNT} />;
