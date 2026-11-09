@@ -190,11 +190,11 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     };
 
     const onToggleTrackTax = (isOn: boolean) => {
-        if (!customUnit?.attributes) {
+        if (!policy || !customUnit?.attributes) {
             return;
         }
         const attributes = {...customUnit?.attributes, taxEnabled: isOn};
-        enableDistanceRequestTax(policyID, customUnit.name, customUnit.customUnitID, attributes, customUnit.attributes);
+        enableDistanceRequestTax(policy, customUnit.name, customUnit.customUnitID, attributes, customUnit.attributes, governmentMileageRates);
     };
 
     return (

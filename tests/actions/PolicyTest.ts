@@ -27,6 +27,7 @@ import type {
     TransactionViolations,
 } from '@src/types/onyx';
 import type {Participant, ReportNextStep} from '@src/types/onyx/Report';
+import type {Rate} from '@src/types/onyx/Policy';
 import type Rule from '@src/types/onyx/Rule';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -6195,7 +6196,225 @@ describe('actions/Policy', () => {
         });
     });
 
+    function testGovernmentRatesOnTaxEnable(toggle: 'workspace' | 'distance') {
+        describe('government fuel bands', () => {
+            const customUnitID = 'distance';
+            const standardRate: GovernmentMileageRate = {sourceRateID: 'GB_2011-04-06', currency: 'GBP', name: 'Standard', rate: 45, startDate: '2011-04-06'};
+            const petrolRate: GovernmentMileageRate = {
+                sourceRateID: 'GB_PETROL_UP_TO_1400_2026-09-01',
+                currency: 'GBP',
+                name: 'Petrol',
+                rate: 45,
+                startDate: '2026-09-01',
+                taxClaimablePercentage: 13 / 45,
+            };
+            const dieselRate: GovernmentMileageRate = {...petrolRate, sourceRateID: 'GB_DIESEL_UP_TO_1600_2026-09-01', name: 'Diesel', taxClaimablePercentage: 11 / 45};
+            const referenceRates = [standardRate, petrolRate, dieselRate];
+            const existingRate: Rate = {customUnitRateID: 'existing', name: 'Custom rate', currency: 'GBP', rate: 50, enabled: true};
+
+            const buildPolicy = (): PolicyType => ({
+                ...createRandomPolicy(1),
+                outputCurrency: CONST.CURRENCY.GBP,
+                shouldAutoUpdateGovernmentDistanceRates: true,
+                autoUpdateGovernmentRateCountry: 'DE',
+                tax: {trackingEnabled: toggle === 'distance'},
+                customUnits: {
+                    [customUnitID]: {
+                        customUnitID,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, taxEnabled: toggle === 'workspace'},
+                        rates: {existing: existingRate},
+                    },
+                },
+            });
+            const toggleTax = (policy: PolicyType, rates: GovernmentMileageRate[] | undefined = referenceRates, enabled = true) => {
+                if (toggle === 'workspace') {
+                    Policy.enablePolicyTaxes(policy.id, enabled, false, {policy, governmentMileageRates: rates});
+                    return;
+                }
+                const attributes = policy.customUnits?.[customUnitID]?.attributes;
+                Policy.enableDistanceRequestTax(
+                    policy,
+                    CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    customUnitID,
+                    {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, ...attributes, taxEnabled: enabled},
+                    attributes,
+                    rates,
+                );
+            };
+            const getRates = (policy: OnyxEntry<PolicyType>) => Object.values(policy?.customUnits?.[customUnitID]?.rates ?? {});
+            const expectSettingsUnchanged = (policy: OnyxEntry<PolicyType>, initialPolicy: PolicyType) => {
+                expect(policy?.shouldAutoUpdateGovernmentDistanceRates).toBe(initialPolicy.shouldAutoUpdateGovernmentDistanceRates);
+                expect(policy?.autoUpdateGovernmentRateCountry).toBe(initialPolicy.autoUpdateGovernmentRateCountry);
+                expect(policy?.pendingFields?.autoUpdateGovernmentRateCountry).toEqual(initialPolicy.pendingFields?.autoUpdateGovernmentRateCountry);
+                expect(policy?.pendingFields?.shouldAutoUpdateGovernmentDistanceRates).toEqual(initialPolicy.pendingFields?.shouldAutoUpdateGovernmentDistanceRates);
+                expect(policy?.errorFields?.shouldAutoUpdateGovernmentDistanceRates).toEqual(initialPolicy.errorFields?.shouldAutoUpdateGovernmentDistanceRates);
+                if (initialPolicy.customUnits?.[customUnitID]) {
+                    expect(policy?.customUnits?.[customUnitID]?.attributes?.unit).toBe(initialPolicy.customUnits[customUnitID]?.attributes?.unit);
+                }
+                expect(policy?.customUnits?.[customUnitID]?.pendingFields?.attributes).toBe(initialPolicy.customUnits?.[customUnitID]?.pendingFields?.attributes);
+            };
+
+            afterEach(async () => {
+                jest.restoreAllMocks();
+                await mockFetch.resume();
+            });
+
+            it('copies missing bands immediately with matching request IDs and clears pending actions on success', async () => {
+                // Given a GBP workspace about to become eligible, using kilometers and holding unrelated auto-update feedback
+                const policy = buildPolicy();
+                policy.pendingFields = {shouldAutoUpdateGovernmentDistanceRates: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
+                policy.errorFields = {shouldAutoUpdateGovernmentDistanceRates: {previous: 'Previous auto-update error'}};
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                const apiWriteSpy = jest.spyOn(APIModule, 'write');
+                mockFetch.pause();
+
+                // When enabling the missing tax setting
+                toggleTax(policy);
+                await waitForBatchedUpdates();
+
+                // Then only bands are added, existing rates and settings are preserved, and the request uses their IDs
+                let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+                const newRates = getRates(updatedPolicy).filter((rate) => rate.customUnitRateID !== existingRate.customUnitRateID);
+                expect(newRates).toHaveLength(2);
+                const params = requireRecord(requireCallArgument(apiWriteSpy.mock.calls.at(0), 1));
+                const ids = parseJSONRecord(params.optimisticRateIDs);
+                expect(Object.keys(ids).sort()).toEqual([petrolRate.sourceRateID, dieselRate.sourceRateID].sort());
+                for (const rate of newRates) {
+                    const snapshot = rate.attributes?.governmentRate;
+                    const sourceRateID = snapshot?.sourceRateID;
+                    expect(snapshot).toBeDefined();
+                    expect(rate.customUnitRateID).toBe(sourceRateID ? ids[sourceRateID] : undefined);
+                    expect(rate.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                    expect(rate.attributes?.taxClaimablePercentage).toBe(snapshot?.taxClaimablePercentage);
+                    expect(rate.rate).toBe(Math.round((45 / CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS) * 100) / 100);
+                    expect(snapshot?.rate).toBe(45);
+                    expect(rate.attributes?.taxRateExternalID).toBeUndefined();
+                }
+                expect(updatedPolicy?.customUnits?.[customUnitID]?.rates?.existing).toEqual(existingRate);
+                expectSettingsUnchanged(updatedPolicy, policy);
+
+                // When the request succeeds
+                await mockFetch.resume();
+                await waitForBatchedUpdates();
+
+                // Then all copied rates remain without pending actions or duplicate IDs
+                updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+                expect(getRates(updatedPolicy)).toHaveLength(3);
+                expect(getRates(updatedPolicy).every((rate) => !rate.pendingAction)).toBe(true);
+                expectSettingsUnchanged(updatedPolicy, policy);
+            });
+
+            it('deletes new bands on failure without touching auto-update feedback or the distance unit', async () => {
+                // Given a workspace about to become eligible with no auto-update error
+                const policy = buildPolicy();
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                mockFetch.pause();
+                mockFetch.fail();
+
+                // When the tax toggle adds bands optimistically and then fails
+                toggleTax(policy);
+                await waitForBatchedUpdates();
+                expect(getRates(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`))).toHaveLength(3);
+                await mockFetch.resume();
+                await waitForBatchedUpdates();
+
+                // Then no empty rate objects or errors on the auto-update toggle remain
+                const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+                expect(getRates(updatedPolicy)).toEqual([existingRate]);
+                expect(updatedPolicy?.tax?.trackingEnabled).toBe(policy.tax?.trackingEnabled);
+                expect(updatedPolicy?.customUnits?.[customUnitID]?.attributes).toEqual(policy.customUnits?.[customUnitID]?.attributes);
+                expectSettingsUnchanged(updatedPolicy, policy);
+            });
+
+            it.each(['auto-update off', 'non-GBP', 'other tax off', 'already eligible', 'disabling', 'no references', 'empty references', 'wrong currency', 'wrong country', 'missing custom unit'])(
+                'does not copy rates for %s',
+                async (scenario) => {
+                    // Given a toggle that cannot make the workspace newly eligible with matching cached GB references
+                    const policy = buildPolicy();
+                    let rates: GovernmentMileageRate[] | undefined = referenceRates;
+                    if (scenario === 'auto-update off') {
+                        policy.shouldAutoUpdateGovernmentDistanceRates = false;
+                    } else if (scenario === 'non-GBP') {
+                        policy.outputCurrency = CONST.CURRENCY.USD;
+                    } else if (scenario === 'other tax off') {
+                        if (toggle === 'workspace') {
+                            delete policy.customUnits?.[customUnitID]?.attributes?.taxEnabled;
+                        } else {
+                            policy.tax = {trackingEnabled: false};
+                        }
+                    } else if (scenario === 'already eligible' || scenario === 'disabling') {
+                        policy.tax = {trackingEnabled: true};
+                        const customUnit = policy.customUnits?.[customUnitID];
+                        if (customUnit) {
+                            customUnit.attributes = {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, taxEnabled: true};
+                        }
+                    } else if (scenario === 'no references') {
+                        rates = undefined;
+                    } else if (scenario === 'empty references') {
+                        rates = [];
+                    } else if (scenario === 'wrong currency') {
+                        rates = [{...petrolRate, currency: CONST.CURRENCY.USD}];
+                    } else if (scenario === 'wrong country') {
+                        rates = [{...petrolRate, sourceRateID: 'US_2026-01-01'}];
+                    } else if (scenario === 'missing custom unit') {
+                        policy.customUnits = {};
+                    }
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                    const apiWriteSpy = jest.spyOn(APIModule, 'write');
+                    mockFetch.pause();
+
+                    // When the tax setting is toggled
+                    if (toggle === 'workspace') {
+                        Policy.enablePolicyTaxes(policy.id, scenario !== 'disabling', false, {policy, governmentMileageRates: rates});
+                    } else {
+                        const attributes = policy.customUnits?.[customUnitID]?.attributes;
+                        Policy.enableDistanceRequestTax(
+                            policy,
+                            CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                            customUnitID,
+                            {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, ...attributes, taxEnabled: scenario !== 'disabling'},
+                            attributes,
+                            rates,
+                        );
+                    }
+                    await waitForBatchedUpdates();
+
+                    // Then the request omits optimistic IDs and does not add government rates
+                    const params = requireRecord(requireCallArgument(apiWriteSpy.mock.calls.at(0), 1));
+                    expect(params.optimisticRateIDs).toBeUndefined();
+                    const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+                    expect(getRates(updatedPolicy)).toEqual(scenario === 'missing custom unit' ? [] : [existingRate]);
+                    expectSettingsUnchanged(updatedPolicy, policy);
+                },
+            );
+
+            it('preserves existing source IDs and omits the map when all bands are already copied', async () => {
+                // Given a policy already holding one fuel band
+                const policy = buildPolicy();
+                const copiedRate: Rate = {...existingRate, attributes: {governmentRate: {...petrolRate}}};
+                const customUnit = policy.customUnits?.[customUnitID];
+                if (customUnit) {
+                    customUnit.rates = {existing: copiedRate};
+                }
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                const apiWriteSpy = jest.spyOn(APIModule, 'write');
+                mockFetch.pause();
+
+                // When enabling tax with only the existing band in the reference list
+                toggleTax(policy, [standardRate, petrolRate]);
+                await waitForBatchedUpdates();
+
+                // Then the existing rate is untouched and no replacement ID is sent
+                const params = requireRecord(requireCallArgument(apiWriteSpy.mock.calls.at(0), 1));
+                expect(params.optimisticRateIDs).toBeUndefined();
+                expect(getRates(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`))).toEqual([copiedRate]);
+            });
+        });
+    }
+
     describe('enablePolicyTaxes', () => {
+        testGovernmentRatesOnTaxEnable('workspace');
         it('should retain opposite offline toggles and their completion data', async () => {
             // Given a workspace with taxes disabled and requests queued offline
             const policyID = '1';
@@ -6205,9 +6424,9 @@ describe('actions/Policy', () => {
 
             try {
                 // When taxes are enabled and disabled before reconnecting
-                Policy.enablePolicyTaxes(policyID, true, false, undefined);
+                Policy.enablePolicyTaxes(policyID, true, false, {});
                 await waitForBatchedUpdates();
-                Policy.enablePolicyTaxes(policyID, false, false);
+                Policy.enablePolicyTaxes(policyID, false, false, {});
                 await waitForBatchedUpdates();
 
                 // Then both requests retain their success and failure data instead of cancelling each other
@@ -6248,7 +6467,7 @@ describe('actions/Policy', () => {
 
             // When enablePolicyTaxes is called to enable taxes
             mockFetch.pause();
-            Policy.enablePolicyTaxes(policyID, true, false, undefined);
+            Policy.enablePolicyTaxes(policyID, true, false, {});
             await waitForBatchedUpdates();
 
             // Then the policy tax tracking should be updated optimistically
@@ -6284,7 +6503,7 @@ describe('actions/Policy', () => {
 
             // When enablePolicyTaxes is called and fails
             mockFetch.fail();
-            Policy.enablePolicyTaxes(policyID, true, false, undefined);
+            Policy.enablePolicyTaxes(policyID, true, false, {});
             await waitForBatchedUpdates();
 
             // Then the policy tax tracking should be reverted
@@ -6353,6 +6572,7 @@ describe('actions/Policy', () => {
         });
     });
     describe('enableDistanceRequestTax', () => {
+        testGovernmentRatesOnTaxEnable('distance');
         it('should enable distance request tax optimistically and succeed', async () => {
             // Given a policy with a custom unit and tax disabled
             const policyID = '1';
@@ -6366,6 +6586,7 @@ describe('actions/Policy', () => {
                         customUnitID,
                         name: customUnitName,
                         attributes: initialAttributes,
+                        rates: {},
                     },
                 },
             };
@@ -6375,7 +6596,7 @@ describe('actions/Policy', () => {
             // When enableDistanceRequestTax is called to enable tax
             mockFetch.pause();
             const newAttributes = {...initialAttributes, taxEnabled: true};
-            Policy.enableDistanceRequestTax(policyID, customUnitName, customUnitID, newAttributes, initialAttributes);
+            Policy.enableDistanceRequestTax({...createRandomPolicy(1), ...fakePolicy}, customUnitName, customUnitID, newAttributes, initialAttributes, undefined);
             await waitForBatchedUpdates();
 
             // Then taxEnabled should be true optimistically
@@ -6404,6 +6625,7 @@ describe('actions/Policy', () => {
                         customUnitID,
                         name: customUnitName,
                         attributes: initialAttributes,
+                        rates: {},
                     },
                 },
             };
@@ -6413,7 +6635,7 @@ describe('actions/Policy', () => {
             // When enableDistanceRequestTax is called to disable tax and fails
             mockFetch.fail();
             const newAttributes = {...initialAttributes, taxEnabled: false};
-            Policy.enableDistanceRequestTax(policyID, customUnitName, customUnitID, newAttributes, initialAttributes);
+            Policy.enableDistanceRequestTax({...createRandomPolicy(1), ...fakePolicy}, customUnitName, customUnitID, newAttributes, initialAttributes, undefined);
             await waitForBatchedUpdates();
 
             // Then taxEnabled should be reverted to true

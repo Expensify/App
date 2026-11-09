@@ -65,7 +65,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
 
     useEffect(() => {
         // Since QBD doesn't support Taxes, we should disable them from the LHN when connecting to QBD
-        enablePolicyTaxes(policyID, false, isVendorMatchingBetaEnabled);
+        enablePolicyTaxes(policyID, false, isVendorMatchingBetaEnabled, {});
 
         fetchSetupLink();
         // disabling this rule, as we want this to run only on the first render

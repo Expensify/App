@@ -435,6 +435,7 @@ function getGovernmentRateCountryOptions(translate: LocalizedTranslate, localeCo
  * (ordered by the snapshot's start date) when that rate is an unmodified government rate, and is enabled otherwise.
  *
  * A failed request restores the policy's current auto-update flag and country, which is what the server still has.
+ * Tax toggles pass shouldUpdateSettings: false to copy rates without changing auto-update settings or the distance unit.
  */
 function buildOnyxDataForGovernmentRateAutoUpdate(
     policy: Policy,
@@ -442,6 +443,7 @@ function buildOnyxDataForGovernmentRateAutoUpdate(
     governmentMileageRates: GovernmentMileageRate[],
     outputCurrency: string | undefined,
     countryCode?: string,
+    {shouldUpdateSettings = true}: {shouldUpdateSettings?: boolean} = {},
 ): {optimisticRateIDs: Record<string, string>; onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY>} {
     const policyID = policy.id;
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
@@ -535,7 +537,7 @@ function buildOnyxDataForGovernmentRateAutoUpdate(
             optimisticRates[customUnitRateID] = {
                 customUnitRateID,
                 name: governmentMileageRate.name,
-                rate: governmentMileageRate.rate,
+                rate: shouldUpdateSettings ? governmentMileageRate.rate : getGovernmentRateAmountForUnit(governmentMileageRate.rate, governmentMileageRate.sourceRateID, currentUnit),
                 currency: governmentMileageRate.currency,
                 enabled,
                 startDate: governmentMileageRate.startDate,
@@ -558,7 +560,7 @@ function buildOnyxDataForGovernmentRateAutoUpdate(
     }
 
     const expectedUnit = countryCode ? getExpectedUnitForCountry(countryCode) : getExpectedUnitForCurrency(outputCurrency);
-    const shouldCorrectUnit = shouldAutoUpdateGovernmentDistanceRates && !!expectedUnit && !!currentUnit && currentUnit !== expectedUnit;
+    const shouldCorrectUnit = shouldUpdateSettings && shouldAutoUpdateGovernmentDistanceRates && !!expectedUnit && !!currentUnit && currentUnit !== expectedUnit;
 
     // The failure data restores the state the server still has, so the previous values decide what to write back
     const failureAutoUpdateValue = policy.shouldAutoUpdateGovernmentDistanceRates ? true : null;
@@ -574,13 +576,17 @@ function buildOnyxDataForGovernmentRateAutoUpdate(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: policyKey,
                 value: {
-                    shouldAutoUpdateGovernmentDistanceRates: shouldAutoUpdateGovernmentDistanceRates ? true : null,
-                    ...(countryCode ? {autoUpdateGovernmentRateCountry: countryCode} : {}),
-                    pendingFields: {
-                        shouldAutoUpdateGovernmentDistanceRates: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        ...(countryCode ? {autoUpdateGovernmentRateCountry: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {}),
-                    },
-                    errorFields: {shouldAutoUpdateGovernmentDistanceRates: null},
+                    ...(shouldUpdateSettings
+                        ? {
+                              shouldAutoUpdateGovernmentDistanceRates: shouldAutoUpdateGovernmentDistanceRates ? true : null,
+                              ...(countryCode ? {autoUpdateGovernmentRateCountry: countryCode} : {}),
+                              pendingFields: {
+                                  shouldAutoUpdateGovernmentDistanceRates: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                  ...(countryCode ? {autoUpdateGovernmentRateCountry: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {}),
+                              },
+                              errorFields: {shouldAutoUpdateGovernmentDistanceRates: null},
+                          }
+                        : {}),
                     ...(customUnitID && Object.keys(optimisticCustomUnit).length > 0 ? {customUnits: {[customUnitID]: optimisticCustomUnit}} : {}),
                 },
             },
@@ -590,10 +596,14 @@ function buildOnyxDataForGovernmentRateAutoUpdate(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: policyKey,
                 value: {
-                    pendingFields: {
-                        shouldAutoUpdateGovernmentDistanceRates: null,
-                        ...(countryCode ? {autoUpdateGovernmentRateCountry: null} : {}),
-                    },
+                    ...(shouldUpdateSettings
+                        ? {
+                              pendingFields: {
+                                  shouldAutoUpdateGovernmentDistanceRates: null,
+                                  ...(countryCode ? {autoUpdateGovernmentRateCountry: null} : {}),
+                              },
+                          }
+                        : {}),
                     ...(customUnitID && (Object.keys(clearedRatePendingActions).length > 0 || shouldCorrectUnit)
                         ? {
                               customUnits: {
@@ -612,13 +622,17 @@ function buildOnyxDataForGovernmentRateAutoUpdate(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: policyKey,
                 value: {
-                    shouldAutoUpdateGovernmentDistanceRates: failureAutoUpdateValue,
-                    ...(countryCode ? {autoUpdateGovernmentRateCountry: policy.autoUpdateGovernmentRateCountry ?? null} : {}),
-                    pendingFields: {
-                        shouldAutoUpdateGovernmentDistanceRates: null,
-                        ...(countryCode ? {autoUpdateGovernmentRateCountry: null} : {}),
-                    },
-                    errorFields: {shouldAutoUpdateGovernmentDistanceRates: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                    ...(shouldUpdateSettings
+                        ? {
+                              shouldAutoUpdateGovernmentDistanceRates: failureAutoUpdateValue,
+                              ...(countryCode ? {autoUpdateGovernmentRateCountry: policy.autoUpdateGovernmentRateCountry ?? null} : {}),
+                              pendingFields: {
+                                  shouldAutoUpdateGovernmentDistanceRates: null,
+                                  ...(countryCode ? {autoUpdateGovernmentRateCountry: null} : {}),
+                              },
+                              errorFields: {shouldAutoUpdateGovernmentDistanceRates: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                          }
+                        : {}),
                     ...(customUnitID && (Object.keys(failureRates).length > 0 || shouldCorrectUnit)
                         ? {
                               customUnits: {

@@ -24,7 +24,7 @@ function QuickbooksOnlineSetupPage({route}: QuickbooksOnlineSetupPageProps) {
 
     useEffect(() => {
         // Since QBO doesn't support Taxes, we should disable them from the LHN when connecting to QBO
-        enablePolicyTaxes(policyID, false, isVendorMatchingBetaEnabled);
+        enablePolicyTaxes(policyID, false, isVendorMatchingBetaEnabled, {});
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
