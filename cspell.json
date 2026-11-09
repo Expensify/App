@@ -1246,6 +1246,8 @@
         "JFIF"
     ],
     "ignorePaths": [
+        "config/oxlint/vendor/{expensify-rules,naming-convention,storybook,syntax-rule-utilities,testing-library}.mjs",
+        "config/oxlint/vendor/*-LICENSE",
         ".github/actions/javascript/**/index.js",
         ".gitignore",
         "tests/unit/__snapshots__/OptionsListUtilsSearchParityTest.ts.snap",
