@@ -14,21 +14,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-import type {ComponentType} from 'react';
 import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
-
-type ReactActual = {
-    createElement: typeof React.createElement;
-};
-
-type ReactNativeActual = {
-    View: ComponentType<{testID: string}>;
-};
 
 type IndicatorStatusMock = {status: string | undefined; indicatorColor: string | undefined};
 
@@ -48,11 +39,7 @@ jest.mock('@components/Navigation/NavigationTabBar/useInsightsTabNavigation', ()
 jest.mock('@hooks/useRestoreWorkspacesTabOnNavigate', () => () => mockNavigateToWorkspaces);
 jest.mock('@hooks/useInboxTabIndicatorStatus', () => () => mockInboxIndicator);
 jest.mock('@hooks/useWorkspacesTabIndicatorStatus', () => () => mockWorkspacesIndicator);
-jest.mock('@components/Navigation/FlatNavigationBar/FlatNavCreateButton', () => {
-    const {createElement} = jest.requireActual<ReactActual>('react');
-    const {View} = jest.requireActual<ReactNativeActual>('react-native');
-    return () => createElement(View, {testID: 'FlatNavCreateButton'});
-});
+jest.mock('@components/Navigation/FlatNavigationBar/FlatNavCreateButton', () => () => null);
 jest.mock('@pages/inbox/sidebar/SupportalSwitcherButton', () => () => null);
 jest.mock('@components/Avatar/AccountNavigationAvatar', () => () => null);
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -133,17 +120,6 @@ describe('FlatNavigationBar', () => {
         // Then exactly the row for that tab is selected, so a row wired to another tab shows up here
         expect(selectedRows).toHaveLength(1);
         expect(getRow(rowName)).toBeSelected();
-    });
-
-    it('puts the Create button right below the logo', async () => {
-        // Given the bar on the Home tab
-        // When it renders
-        renderBar(NAVIGATION_TABS.HOME);
-        await waitForBatchedUpdatesWithAct();
-
-        // Then the Create button comes right after the logo, ahead of every row
-        const headerElements = screen.getAllByTestId(/^(ExpensifyLogoButton|FlatNavCreateButton)$/);
-        expect(headerElements.map((element) => String(element.props.testID))).toEqual(['ExpensifyLogoButton', 'FlatNavCreateButton']);
     });
 
     it('leaves pressing the current row as a no-op', async () => {

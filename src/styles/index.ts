@@ -906,14 +906,6 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.flatNavigationBarCreateButtonHeight,
         },
 
-        flatNavigationBarCompactCreateButton: {
-            width: variables.flatNavigationBarCreateButtonHeight,
-            height: variables.flatNavigationBarCreateButtonHeight,
-            minHeight: variables.flatNavigationBarCreateButtonHeight,
-            paddingHorizontal: 0,
-            borderRadius: variables.flatNavigationBarCreateButtonHeight / 2,
-        },
-
         flatNavigationBarItem: {
             flexDirection: 'row',
             alignItems: 'center',
