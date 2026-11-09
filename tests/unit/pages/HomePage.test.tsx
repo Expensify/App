@@ -296,8 +296,6 @@ describe('HomePage', () => {
         });
     });
 
-    // Offline, OpenApp/OpenReport never send, so IS_LOADING_APP / IS_LOADING_REPORT_DATA can stay true forever and the
-    // top loading bar used to hang on Home. The bar must stay hidden while offline no matter what the flags say.
     describe('create row', () => {
         it('shows the create row on wide without the flatNav beta', async () => {
             // Given a wide layout and a user outside the flatNav beta
@@ -352,6 +350,8 @@ describe('HomePage', () => {
         });
     });
 
+    // Offline, OpenApp/OpenReport never send, so IS_LOADING_APP / IS_LOADING_REPORT_DATA can stay true forever and the
+    // top loading bar used to hang on Home. The bar must stay hidden while offline no matter what the flags say.
     describe('loading bar visibility', () => {
         function renderedShouldShowLoadingBar() {
             return screen.getByTestId('topBar').props.shouldShowLoadingBar;

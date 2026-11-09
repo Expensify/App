@@ -141,7 +141,7 @@ describe('FlatNavigationBar', () => {
         renderBar(NAVIGATION_TABS.HOME);
         await waitForBatchedUpdatesWithAct();
 
-        // Then the Create button comes right after the logo, as in the pre-design
+        // Then the Create button comes right after the logo, ahead of every row
         const headerElements = screen.getAllByTestId(/^(ExpensifyLogoButton|FlatNavCreateButton)$/);
         expect(headerElements.map((element) => String(element.props.testID))).toEqual(['ExpensifyLogoButton', 'FlatNavCreateButton']);
     });

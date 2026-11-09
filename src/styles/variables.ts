@@ -199,8 +199,10 @@ export default {
     flatNavigationBarRowPadding: 12,
     flatNavigationBarHeaderHeight: 72,
     flatNavigationBarCreateButtonHeight: 32,
-    flatNavigationBarCreateRowInset: 14,
-    flatNavigationBarCreateRowGap: 16,
+    // Centers the design's 204px wide Create button in the bar.
+    flatNavigationBarCreateButtonInset: 14,
+    // Space between the Create button and the first row below it.
+    flatNavigationBarCreateButtonGap: 16,
     flatNavigationBarLogoWidth,
     flatNavigationBarLogoHeight,
     popoverMargin: 18,

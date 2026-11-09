@@ -20,6 +20,7 @@ function useFlatNavCreateMenu() {
     const {calculatePopoverPosition} = usePopoverPosition();
     const {isCreateMenuActive, isCreateMenuVisible, showCreateMenu, hideCreateMenu} = useCreateMenuVisibility();
     const buttonRef = useRef<View>(null);
+    const isOpeningRef = useRef(false);
     const [anchorPosition, setAnchorPosition] = useState<AnchorPosition>();
 
     // The hook's toggle would show the menu before the button is measured, at a stale position.
@@ -28,7 +29,13 @@ function useFlatNavCreateMenu() {
             hideCreateMenu();
             return;
         }
+        // The menu only counts as open once the measurement resolves, so a second press before then must not start another one.
+        if (isOpeningRef.current) {
+            return;
+        }
+        isOpeningRef.current = true;
         calculatePopoverPosition(buttonRef, CREATE_MENU_ANCHOR_ALIGNMENT).then(({horizontal, vertical}) => {
+            isOpeningRef.current = false;
             setAnchorPosition({horizontal, vertical});
             showCreateMenu();
         });

@@ -81,7 +81,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                         <View style={styles.flatNavigationBarHeader}>
                             <FlatNavLogo onPress={navigateToHome} />
                         </View>
-                        <View style={styles.flatNavigationBarCreateRow}>
+                        <View style={styles.flatNavigationBarCreateButtonContainer}>
                             <FlatNavCreateButton />
                         </View>
                         <ScrollView

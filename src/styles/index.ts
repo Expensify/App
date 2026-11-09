@@ -892,15 +892,13 @@ const staticStyles = (theme: ThemeColors) =>
         flatNavigationBarHeader: {
             flexDirection: 'row',
             alignItems: 'center',
-            justifyContent: 'space-between',
             height: variables.flatNavigationBarHeaderHeight,
             paddingLeft: variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding,
-            paddingRight: 12,
         },
 
-        flatNavigationBarCreateRow: {
-            marginHorizontal: variables.flatNavigationBarCreateRowInset,
-            marginBottom: variables.flatNavigationBarCreateRowGap,
+        flatNavigationBarCreateButtonContainer: {
+            marginHorizontal: variables.flatNavigationBarCreateButtonInset,
+            marginBottom: variables.flatNavigationBarCreateButtonGap,
         },
 
         flatNavigationBarCreateButton: {

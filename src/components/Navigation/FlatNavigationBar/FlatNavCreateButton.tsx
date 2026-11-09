@@ -1,4 +1,3 @@
-/** The flat navigation bar's "+ Create" button, which opens the same create menu as the floating action button, right below itself. */
 import Button from '@components/Button';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -7,12 +6,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CreateMenuPopover from '@pages/inbox/sidebar/FABPopoverContent/CreateMenuPopover';
 
-import CONST from '@src/CONST';
-
 import React from 'react';
 
+import FlatNavCreateMenuButton from './FlatNavCreateMenuButton';
 import useFlatNavCreateMenu from './useFlatNavCreateMenu';
 
+/** The flat navigation bar's "+ Create" button, which opens the same create menu as the floating action button, right below itself. */
 function FlatNavCreateButton() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -21,29 +20,18 @@ function FlatNavCreateButton() {
 
     return (
         <>
-            <CreateMenuPopover
-                isVisible={menuProps.isVisible}
-                onClose={menuProps.onClose}
-                anchorRef={menuProps.anchorRef}
-                anchorPosition={menuProps.anchorPosition}
-                anchorAlignment={menuProps.anchorAlignment}
-            />
-            <Button
+            <CreateMenuPopover {...menuProps} />
+            <FlatNavCreateMenuButton
                 ref={buttonRef}
+                isExpanded={isCreateMenuActive}
+                onPress={toggleCreateMenu}
                 testID="FlatNavCreateButton"
-                accessibilityLabel={translate('common.create')}
-                accessibilityHasPopup="menu"
-                accessibilityState={{expanded: isCreateMenuActive}}
-                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                size={CONST.BUTTON_SIZE.SMALL}
                 style={styles.w100}
                 innerStyles={styles.flatNavigationBarCreateButton}
-                onPress={toggleCreateMenu}
-                sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.FLOATING_ACTION_BUTTON}
             >
                 <Button.Icon src={icons.Plus} />
                 <Button.Text>{translate('common.create')}</Button.Text>
-            </Button>
+            </FlatNavCreateMenuButton>
         </>
     );
 }
