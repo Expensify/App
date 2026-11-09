@@ -138,6 +138,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 campfire: hasReusablePoliciesConnectedToCampfire,
             },
             {
+                policy,
                 integrationToDisconnect: newActiveIntegration.integrationToDisconnect,
                 shouldDisconnectIntegrationBeforeConnecting: newActiveIntegration.shouldDisconnectIntegrationBeforeConnecting,
                 expensifyIcons: accountingIcons,
@@ -160,8 +161,11 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             );
             return;
         }
+        // When the workspace can't connect to the new integration yet, its flow starts without the replace prompt so it can
+        // ask the admin to fix that first. Replacing first would leave the workspace with no integration if they back out.
         const activeIntegrationToStart = {
             ...newActiveIntegration,
+            ...(accountingIntegrationData?.hasUnmetConnectPrerequisite ? {integrationToDisconnect: undefined, shouldDisconnectIntegrationBeforeConnecting: false} : {}),
             key: Math.random(),
         };
         // The setup pages redirect to More features while Connections is off, so they open a frame later, once the policy shows it on
@@ -171,8 +175,8 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             setActiveIntegration(activeIntegrationToStart);
         }
 
-        const integrationToDisconnect = newActiveIntegration.integrationToDisconnect;
-        if (!newActiveIntegration.shouldDisconnectIntegrationBeforeConnecting || !integrationToDisconnect) {
+        const integrationToDisconnect = activeIntegrationToStart.integrationToDisconnect;
+        if (!activeIntegrationToStart.shouldDisconnectIntegrationBeforeConnecting || !integrationToDisconnect) {
             return;
         }
 

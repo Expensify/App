@@ -711,6 +711,8 @@ function getAccountingIntegrationData(
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.digits.alias,
                     backToAfterWorkspaceUpgradeRoute: getBackToAfterWorkspaceUpgradeRouteForDigits(),
                 },
+                // Digits only connects to USD workspaces, and ConnectToDigitsFlow asks for the currency change before anything else
+                hasUnmetConnectPrerequisite: !!policy && policy.outputCurrency !== CONST.CURRENCY.USD,
                 pendingFields: policy?.connections?.digits?.config?.pendingFields,
                 errorFields: policy?.connections?.digits?.config?.errorFields,
             };

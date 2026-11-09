@@ -68,7 +68,7 @@ function DigitsExistingConnectionsPage({route}: DigitsExistingConnectionsPagePro
                 <MenuItemNavigation
                     title={translate('workspace.common.createNewConnection')}
                     icon={icons.LinkCopy}
-                    onPress={() => startDigitsOAuth(policyID)}
+                    onPress={() => startDigitsOAuth(policyID, {shouldDismissModal: true})}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CREATE_NEW_CONNECTION}
                 />
                 <Text style={[styles.sectionTitle, styles.pl5, styles.pr5, styles.pb2, styles.mt3]}>{translate('workspace.common.existingConnections')}</Text>
