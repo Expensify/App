@@ -174,7 +174,7 @@ jest.mock('@components/HeaderWithBackButton', () => {
 let mockConfirmationListProps: Record<string, unknown> = {};
 
 // Mock both confirmation-list variants down to buttons that fire the page callbacks, isolating these tests from form internals.
-const mockConfirmationListFactory = () => {
+jest.mock('@components/MoneyRequestConfirmationList/variants/ScanConfirmationList', () => {
     const React2 = require('react');
     const {Pressable, Text} = require('react-native');
     return {
@@ -193,10 +193,7 @@ const mockConfirmationListFactory = () => {
             );
         },
     };
-};
-
-jest.mock('@components/MoneyRequestConfirmationList', () => mockConfirmationListFactory());
-jest.mock('@components/MoneyRequestConfirmationList/variants/ScanConfirmationList', () => mockConfirmationListFactory());
+});
 
 const SHARED_REPORT_ID = 'report-share-1';
 const ACCOUNT_ID = 1;
