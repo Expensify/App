@@ -7,6 +7,9 @@
  */
 const BROWSER_EXTENSION_URL_PATTERNS = [/^chrome-extension:\/\//i, /^moz-extension:\/\//i, /^safari-extension:\/\//i, /^safari-web-extension:\/\//i, /^webkit-masked-url:\/\/hidden\//i];
 
+/**
+ * Matches every `scheme://...` URL in an error stack. It stops at whitespace or a closing paren, so for a frame like `at Y (chrome-extension://.../200.js:1:761)` it doesn't include the paren.
+ */
 const URL_PATTERN = /[a-z][a-z0-9+.-]*:\/\/[^\s)]+/gi;
 
 /**

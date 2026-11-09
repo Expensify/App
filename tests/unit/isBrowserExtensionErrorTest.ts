@@ -1,7 +1,8 @@
 import isBrowserExtensionError from '@libs/isBrowserExtensionError';
 
 // Urban VPN Proxy, whose rejections flooded the Log API in production
-const EXTENSION_SCRIPT_URL = 'chrome-extension://eppiocemhmnlbhjplcgkofciiegomcon/executors/200.js'; // cspell:disable-line
+// cspell:disable-next-line
+const EXTENSION_SCRIPT_URL = 'chrome-extension://eppiocemhmnlbhjplcgkofciiegomcon/executors/200.js';
 
 function createError(stack: string | undefined): Error {
     const error = new TypeError("Cannot read properties of undefined (reading 'M_ID')");
