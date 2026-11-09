@@ -25,7 +25,7 @@ const TOP_SPENDER = 'common.concierge.composerPlaceholders.topSpender';
 const MISSING_CATEGORY = 'common.concierge.composerPlaceholders.missingCategory';
 const AWAITING_APPROVAL = 'common.concierge.composerPlaceholders.awaitingApproval';
 const LEFT_TO_PAY = 'common.concierge.composerPlaceholders.leftToPay';
-const NOT_REIMBURSED = 'common.concierge.composerPlaceholders.notReimbursed';
+const UNREIMBURSED = 'common.concierge.composerPlaceholders.notReimbursed';
 const EXPORT_PDF = 'common.concierge.composerPlaceholders.exportPdf';
 
 const BASE = [CREATE_EXPENSE, HELP];
@@ -137,7 +137,7 @@ describe('useConciergeComposerPlaceholder', () => {
             const placeholders = await getPossiblePlaceholders();
 
             // Then all report and expense prompts are offered, but one expense cannot be combined
-            expect(placeholders).toEqual(sorted([...BASE, ...PERSONAL, ...SPEND_INSIGHT, ...PAYABLE, NOT_REIMBURSED, EXPORT_PDF]));
+            expect(placeholders).toEqual(sorted([...BASE, ...PERSONAL, ...SPEND_INSIGHT, ...PAYABLE, UNREIMBURSED, EXPORT_PDF]));
         });
 
         it('offers all prompts for an owned report with two expenses', async () => {
@@ -148,7 +148,7 @@ describe('useConciergeComposerPlaceholder', () => {
             const placeholders = await getPossiblePlaceholders();
 
             // Then the list matches the full set that main always offered
-            expect(placeholders).toEqual(sorted([...BASE, ...PERSONAL, COMBINE, ...SPEND_INSIGHT, ...PAYABLE, NOT_REIMBURSED, EXPORT_PDF]));
+            expect(placeholders).toEqual(sorted([...BASE, ...PERSONAL, COMBINE, ...SPEND_INSIGHT, ...PAYABLE, UNREIMBURSED, EXPORT_PDF]));
         });
 
         it("offers team and payment prompts but no personal ones to an approver of another user's report", async () => {
