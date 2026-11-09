@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {formatAmountFilterValue, getAmountFilterDisplayValue, getAmountFilterInputValue} from '@libs/SearchAmountFilterUtils';
+import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
@@ -45,7 +46,7 @@ function AmountInput({title, value, name, baseFilterKey, onSave, onBackButtonPre
         <BasePopup
             label={title}
             onApply={() => onSave(formatAmountFilterValue(amount, currency))}
-            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_AMOUNT}
+            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_VALUE.AMOUNT}
             onBackButtonPress={onBackButtonPress}
             shouldSubmitOnEnter
         >
@@ -133,7 +134,7 @@ function AmountPopup({baseFilterKey, label, value, closeOverlay, updateFilterFor
         <BasePopup
             label={label}
             onApply={applyChanges}
-            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_AMOUNT}
+            applySentryLabel={FILTER_VIEW_MAP[baseFilterKey].applySentryLabel}
         >
             {modifierConfig.map((modifier) => (
                 <MenuItem

@@ -85,7 +85,6 @@ import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import HybridAppModule from '@expensify/react-native-hybrid-app';
-import {isSupportalSessionSelector} from '@selectors/Session';
 import {openAuthSessionAsync} from 'expo-web-browser';
 import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
@@ -148,10 +147,6 @@ Onyx.connectWithoutView({
 
 function isSupportAuthToken(session: OnyxEntry<Session> = deprecatedSession): boolean {
     return session?.authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
-}
-
-function isSupportalSession(): boolean {
-    return isSupportalSessionSelector(deprecatedSession);
 }
 
 /**
@@ -942,7 +937,7 @@ function signInWithShortLivedAuthToken(authToken: string, isSAML: boolean, exitT
     // waitForUserSignIn keeps a single resolver that openReportFromDeepLink may already hold, so wait on the routes instead.
     Navigation.waitForProtectedRoutes().then(() => {
         // A failed sign-in leaves this waiting, so a later sign-in by another account must not land on this page.
-        if (!login || deprecatedSession.email?.toLowerCase() !== login.toLowerCase()) {
+        if (!login || getCurrentUserEmail()?.toLowerCase() !== login.toLowerCase()) {
             return;
         }
         try {
@@ -1054,20 +1049,19 @@ function signIn(
     });
 }
 
-// `session` is optional while signInWithValidateCodeAndNavigate still omits it. Refactor issue: https://github.com/Expensify/App/issues/67782
 function signInWithValidateCode(
     accountID: number,
     code: string,
     preferredLocale: Locale | undefined,
+    session: OnyxEntry<Session>,
     twoFactorAuthCode = '',
     storedValidateCode?: string,
     storedAuthToken?: string,
-    session?: OnyxEntry<Session>,
 ) {
     // If this is called from the 2fa step, use the validateCode stored in Onyx (passed in as `storedValidateCode`)
     // instead of the one passed from the component state because the state is changing when this method is called.
     const validateCode = twoFactorAuthCode ? storedValidateCode : code;
-    const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser(session === undefined ? deprecatedSession : session);
+    const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser(session);
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION>> = [
         {
@@ -1677,8 +1671,8 @@ function handleExitToNavigation(exitTo: Route) {
     });
 }
 
-function signInWithValidateCodeAndNavigate(accountID: number, validateCode: string, preferredLocale: Locale | undefined, exitTo?: Route) {
-    signInWithValidateCode(accountID, validateCode, preferredLocale);
+function signInWithValidateCodeAndNavigate(accountID: number, validateCode: string, preferredLocale: Locale | undefined, session: OnyxEntry<Session>, exitTo?: Route) {
+    signInWithValidateCode(accountID, validateCode, preferredLocale, session);
     if (exitTo) {
         handleExitToNavigation(exitTo);
     } else {
@@ -1981,5 +1975,4 @@ export {
     MergeIntoAccountAndLogin,
     resetSMSDeliveryFailureStatus,
     clearDisableTwoFactorAuthErrors,
-    isSupportalSession,
 };

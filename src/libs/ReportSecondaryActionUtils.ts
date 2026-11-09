@@ -24,6 +24,7 @@ import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     canAdminPayReport,
+    canSubmitOwnReportOnPolicy,
     canMemberWrite,
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
@@ -97,6 +98,7 @@ import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
     hasOnlyPendingCardTransactions,
+    hasOnlyUnsettledExpenses,
     hasReceipt as hasReceiptTransactionUtils,
     hasSmartScanFailedWithMissingFields,
     hasSubmissionBlockingViolations,
@@ -280,6 +282,11 @@ function isSubmitAction({
         return false;
     }
 
+    // A role that cannot create expenses cannot submit its own report.
+    if (isReportSubmitter && !canSubmitOwnReportOnPolicy(policy, currentUserLogin)) {
+        return false;
+    }
+
     const isOpenReport = isOpenReportUtils(report);
     if (!isOpenReport) {
         return false;
@@ -356,6 +363,11 @@ function isApproveAction(
     if (isPreventSelfApprovalEnabled && isReportSubmitter) {
         return false;
     }
+
+    if (hasOnlyUnsettledExpenses(reportTransactions, report)) {
+        return false;
+    }
+
     const isExpenseReport = isExpenseReportUtils(report);
     const reportHasDuplicatedTransactions = reportTransactions.some((transaction) =>
         isDuplicate(transaction, currentUserLogin, currentUserAccountID, report, ownerLogin, policy, violations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID]),
@@ -363,10 +375,6 @@ function isApproveAction(
 
     if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
-    }
-
-    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
-        return false;
     }
 
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations, currentUserLogin, currentUserAccountID, report, ownerLogin, policy);

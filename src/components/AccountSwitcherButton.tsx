@@ -38,6 +38,7 @@ import type {PopoverMenuItem} from './PopoverMenu';
 
 import Button from './Button';
 import {ModalActions} from './Modal/Global/ModalContext';
+import useNavigationBarWidth from './Navigation/FlatNavigationBar/useNavigationBarWidth';
 import PopoverMenu from './PopoverMenu';
 import {useProductTrainingContext} from './ProductTrainingContext';
 import Tooltip from './Tooltip';
@@ -80,6 +81,7 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
     const [shouldShowDelegatorMenu, setShouldShowDelegatorMenu] = useState(false);
     // Measured from the Switch button so the menu opens directly below it, rather than a fixed position.
     const [popoverPosition, setPopoverPosition] = useState<AnchorPosition>();
+    const navigationBarWidth = useNavigationBarWidth();
 
     const isActingAsDelegate = !!delegate;
     const canSwitchAccounts = canSwitchAccountsSelector(account);
@@ -313,7 +315,7 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
                 onClose={hideDelegatorMenu}
                 onItemSelected={hideDelegatorMenu}
                 anchorRef={buttonRef}
-                anchorPosition={popoverPosition ?? CONST.POPOVER_ACCOUNT_SWITCHER_POSITION}
+                anchorPosition={popoverPosition ?? {...CONST.POPOVER_ACCOUNT_SWITCHER_POSITION, horizontal: CONST.POPOVER_ACCOUNT_SWITCHER_POSITION.horizontal + navigationBarWidth}}
                 anchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
