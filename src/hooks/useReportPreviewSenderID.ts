@@ -1,9 +1,8 @@
+/**
+ * Finds the single account a report preview can be attributed to, so its avatar shows one person instead of both
+ * participants. Returns undefined when the expenses on the report could have come from more than one account.
+ */
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
-
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useOnyx from '@hooks/useOnyx';
-import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
-import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import {convertAttendeesToArray} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -18,6 +17,11 @@ import {hasOnceLoadedReportActionsSelector, isLoadingInitialReportActionsSelecto
 import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
+
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useOnyx from './useOnyx';
+import {usePersonalDetailsByLogins} from './usePersonalDetailByLogin';
+import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
 
 function getSplitAuthor(transaction: Transaction, splits?: Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>) {
     const {originalTransactionID, source} = transaction.comment ?? {};

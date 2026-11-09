@@ -364,8 +364,6 @@
 "../../src/components/ReceiptHoverZoom/useReceiptHoverZoom.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ReceiptImage/index.tsx"	"react-hooks/purity"	1
 "../../src/components/ReimbursementAccountLoadingIndicator.tsx"	"no-restricted-imports"	1
-"../../src/components/ReportActionAvatars/index.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
-"../../src/components/ReportActionAvatars/useReportPreviewSenderID.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/ReportActionItem/ChronosOOOListActions.tsx"	"no-restricted-syntax"	1
 "../../src/components/ReportActionItem/IssueCardMessage.tsx"	"no-restricted-syntax"	2
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -707,6 +705,7 @@
 "../../src/hooks/usePreferredCurrency.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/usePrevious.ts"	"react-hooks/refs"	1
 "../../src/hooks/usePrivateSubscription.ts"	"rulesdir/no-onyx-loading-status"	1
+"../../src/hooks/useReportPreviewSenderID.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/hooks/useResetBankAccountModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useResponsiveLayout/index.native.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/hooks/useResponsiveLayout/index.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
