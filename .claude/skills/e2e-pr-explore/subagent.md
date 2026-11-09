@@ -6,7 +6,7 @@ You write test paths for an Expensify/App PR from its code only. The main agent 
 
 - `<DIR>/diff` and any file under `<DIR>/code`. That folder has no git history.
 - `git -C <repo> log <base commit> -- <paths>`, and `git -C <repo> show` on the commits it lists.
-- Issues filed against **other** PRs (step 2d): the search results, and `gh issue view <number> -R Expensify/App` without `--comments`. If one mentions PR `<PR>`, stop reading it and say so in the run notes.
+- Issues filed against **other** PRs (step 2c): the search results, and `gh issue view <number> -R Expensify/App` without `--comments`. If one mentions PR `<PR>`, stop reading it and say so in the run notes.
 - This file.
 
 ## Not allowed
@@ -15,7 +15,7 @@ Anything that shows this PR's text: its title, description, QA steps, comments, 
 
 ## Output
 
-Write the paths to `<DIR>/paths.md` in the format from 2f. At the end, add a "Run notes" section with anything the main agent should know (for example "no past issues found in 2d", or a step you skipped and why). Then list every command you ran and every file you read, with full arguments, one per line. The main agent checks the list against this file.
+Write the paths to `<DIR>/paths.md` in the format from 2e. At the end, add a "Run notes" section with anything the main agent should know (for example "no past issues found in 2c", or a step you skipped and why). Then list every command you ran and every file you read, with full arguments, one per line. The main agent checks the list against this file.
 
 ## 2a. Map where the changed code shows up
 
@@ -25,55 +25,37 @@ Also follow the data: when the diff changes an Onyx key, a `*Utils` function or 
 
 When the diff changes a role, permission or membership rule, grep for the role's consumers (for example `isPolicyAdmin`, `isPolicyGuest`, `CONST.POLICY.ROLE`) and treat each one as an entry point.
 
-## 2b. Turn each new condition into a data variant
+## 2b. Turn each change into variants and checks
 
-Every new or changed `if`, ternary, early return, selector or feature flag is a variant to check with data that takes each branch, for example:
+Every new or changed `if`, ternary, early return, selector or feature flag is a variant to check with data that takes each branch: one item or many, report type (expense, IOU, invoice, chat, self DM, task, workspace room), state (draft, submitted, approved, paid, archived, deleted), amount (positive, negative, zero, foreign currency), role (admin, auditor, approver, member, guest, copilot, delegate), and workspace type and features (Collect vs Control, taxes, categories, tags, report fields, accounting integration).
 
-- One item or many (single-expense report vs several expenses, one workspace vs several).
-- Report type: expense, IOU, invoice, chat, self DM, task, workspace room.
-- State: draft, submitted, approved, paid, archived, deleted.
-- Amount: positive, negative, zero, foreign currency.
-- Role: admin, auditor, approver, member, guest, copilot, delegate.
-- Workspace type and features: Collect vs Control, taxes, categories, tags, report fields, accounting integration.
-
-Two variants apply everywhere they make sense:
-
-- **Offline:** every write or optimistic update. Go offline, do the action, come back online, and check the result and any error.
-- **Narrow layout:** any code that branches on `shouldUseNarrowLayout`, `isSmallScreenWidth` or `useResponsiveLayout`, or that touches RHP, the bottom tab bar or modals.
-
-## 2c. Add checks from past deploy blockers
+Add **narrow layout** wherever the code branches on `shouldUseNarrowLayout`, `isSmallScreenWidth` or `useResponsiveLayout`, or touches RHP, the bottom tab bar or modals. Then add the checks past deploy blockers taught us:
 
 | The diff changes | Add checks for |
 | --- | --- |
 | A computed or displayed value | Every other place it shows: system messages in the thread, report and chat previews, LHN, Search columns, report totals, after editing it, after reload |
 | Navigation, lists or position ("x of y", arrows, Back) | Round trips (open, link, Back, Back), opening by direct URL, every entry point, state after removing or moving an item. Every link in a changed header is its own entry point |
-| Actions or buttons | Each status (draft, submitted, approved, paid), bulk selection, the same action from the More menu, the header and Search |
-| Writes or optimistic updates | The same action from a second entry point, undo, offline, reopening the item afterwards |
+| Actions or buttons | Each status (draft, submitted, approved, paid, archived, deleted), bulk selection, the same action from the More menu, the header and Search |
+| Writes or optimistic updates | Offline (go offline, do the action, come back online, check the result and any error), the same action from a second entry point, undo, reopening the item afterwards |
 | Deleting, moving or merging | Where the item ends up (self DM, another report), totals on both sides, the thread and LHN afterwards |
 | A role, permission or membership rule | Set the relationship up first, then change the role, then check everything the role controls from the admin side and from the member's side, including rooms other than #admins and #announce |
 | Shared UI (`src/components/**`, styles, hooks) | The two or three busiest other screens that render it |
 
-## 2d. Look at history
+## 2c. Look at history
 
 ```sh
-git -C <repo> log --no-merges --format='%H' -n 30 <base commit> -- <changed files>
+git -C <repo> log --first-parent --format=%s -n 15 <base commit> -- <changed files>
 ```
 
-You may leave out files that change in almost every PR (`src/languages/*`, `src/CONST/*`, `src/ONYXKEYS.ts`) so they don't fill the log; say so in the run notes. For each commit, find its PR. Check at most the 15 most recent distinct PRs:
-
-```sh
-gh api "repos/Expensify/App/commits/<sha>/pulls" --jq '.[].number'
-```
-
-Then list the issues QA filed against each of those PRs. Deploy blockers lose their `DeployBlockerCash` label once fixed, so search by the PR's URL instead of the label:
+Each `Merge pull request #<number>` line is an earlier PR that touched these files; skip lines without a PR number. You may leave out files that change in almost every PR (`src/languages/*`, `src/CONST/*`, `src/ONYXKEYS.ts`) so they don't fill the log; say so in the run notes. Then list the issues QA filed against each of those PRs. Deploy blockers lose their `DeployBlockerCash` label once fixed, so search by the PR's URL instead of the label:
 
 ```sh
 gh issue list -R Expensify/App --state all --search '"https://github.com/Expensify/App/pull/<number>" in:body -label:StagingDeployCash'
 ```
 
-If `mergedAt` is set, add `created:<YYYY-MM-DD` with its date to the search, so you only count issues that existed before this PR merged. Turn each issue into a general flow ("remove an expense from a report, then use the arrows") and keep the ones this diff can affect. If you found none, say so in the run notes. Skip this step only when no path can come from the diff (the cases in 2e where you stop); say so in the run notes too.
+If `mergedAt` is set, add `created:<YYYY-MM-DD` with its date to the search, so you only count issues that existed before this PR merged. Turn each issue into a general flow ("remove an expense from a report, then use the arrows") and keep the ones this diff can affect. If you found none, say so in the run notes. Skip this step only when no path can come from the diff (the cases in 2d where you stop); say so in the run notes too.
 
-## 2e. Pick the paths
+## 2d. Pick the paths
 
 Rank paths by how likely they are to break and how much it would hurt, for example submitting, approving or paying a report, sending a message, or changing a member's role and then using the workspace. Base the number on what the change puts at risk, not on the diff's size: a one-line change to a shared helper can need many paths, a large change to one screen can need few.
 
@@ -85,7 +67,7 @@ Rank paths by how likely they are to break and how much it would hurt, for examp
 
 The "Not covered" list holds only entry points and variants from 2a and 2b that no path covers. Everything else goes in the run notes.
 
-## 2f. Write each path in this format
+## 2e. Write each path in this format
 
 If several paths share the same setup, write it once as a "Common setup" paragraph above path 1 and refer to it.
 

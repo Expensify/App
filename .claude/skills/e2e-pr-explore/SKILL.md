@@ -12,33 +12,25 @@ Give it a PR number in `Expensify/App`, for example `/e2e-pr-explore 103121`. It
 
 ## 1. Fetch the code at the PR's head
 
-Run this as written, from the root of any checkout of App (the **repo**). It copies the PR's code into `$DIR/code` without its git history, so nothing there can show the PR's commit messages. The fetched branches are deleted as soon as they're used, for the same reason. If this step fails, stop and say why. If a later command fails, go on without it and add it to the footer's run notes.
+Run this as written, from the root of any checkout of App (the **repo**). It copies the PR's code into `$DIR/code` without its git history, so nothing there can show the PR's commit messages. If this step fails, stop and say why. If a later command fails, go on without it and add it to the footer's run notes.
 
 ```sh
 PR=<number>
 DIR="/tmp/e2e-pr-explore-$PR"
 rm -rf "$DIR"; mkdir -p "$DIR/code"
-eval "$(gh pr view "$PR" -R Expensify/App --json state,mergedAt,headRefOid,baseRefName,mergeCommit \
-  --jq '@sh "STATE=\(.state) MERGED_AT=\(.mergedAt // "") HEAD_SHA=\(.headRefOid) BASE=\(.baseRefName) MERGE=\(.mergeCommit.oid // "")"')"
-echo "STATE=$STATE MERGED_AT=$MERGED_AT HEAD_SHA=$HEAD_SHA"
-git fetch -q --no-recurse-submodules https://github.com/Expensify/App.git "+pull/${PR}/head:e2e-pr-explore-${PR}" "+${BASE}:e2e-pr-explore-${PR}-base"
-git archive "e2e-pr-explore-$PR" | tar -x -C "$DIR/code"
-if [ -n "$MERGE" ]; then UPSTREAM="$MERGE^1"; else UPSTREAM="e2e-pr-explore-$PR-base"; fi
-git merge-base "e2e-pr-explore-$PR" "$UPSTREAM" | tee "$DIR/base"
-git branch -D -q "e2e-pr-explore-$PR" "e2e-pr-explore-$PR-base"
+eval "$(gh pr view "$PR" -R Expensify/App --json mergedAt,headRefOid,baseRefOid \
+  --jq '@sh "MERGED_AT=\(.mergedAt // "") HEAD_SHA=\(.headRefOid) BASE_SHA=\(.baseRefOid)"')"
+echo "MERGED_AT=$MERGED_AT HEAD_SHA=$HEAD_SHA BASE_SHA=$BASE_SHA"
+git fetch -q --no-recurse-submodules https://github.com/Expensify/App.git "$BASE_SHA" "pull/${PR}/head"
+git archive "$HEAD_SHA" | tar -x -C "$DIR/code"
 gh pr diff "$PR" -R Expensify/App > "$DIR/diff"
 ```
 
 - `$DIR/code` is the PR's code at its head. Read source there, not from your checkout, so the paths match the code under review.
-- `$DIR/base` holds the **base commit**: the last commit on the base branch before this PR's own commits. For a merged PR it comes from the merge commit's first parent, because the PR is already part of the base branch.
-- `STATE` decides how step 4 delivers the comment, `MERGED_AT` is the merge date (empty if not merged), and `HEAD_SHA` goes in the comment's footer.
+- `BASE_SHA` is the **base commit**: a commit on the base branch from before this PR merged, so its history has none of the PR's own commits.
+- `MERGED_AT` is the merge date (empty if not merged), and `HEAD_SHA` goes in the comment's footer.
 
-Cleanup, always the last thing you run, however the run ends:
-
-```sh
-git branch -D -q "e2e-pr-explore-$PR" "e2e-pr-explore-$PR-base" 2>/dev/null
-rm -rf "$DIR"
-```
+Cleanup, always the last thing you run, however the run ends: `rm -rf "$DIR"`.
 
 ## 2. Write paths blind
 
@@ -55,8 +47,8 @@ Back in the main agent, read `$DIR/paths.md` and check it in this order.
 
 First, without reading the PR description:
 
-- If the subagent's command list shows it read this PR's text (title, description, comments or commit messages), or it skipped a step or wrote no paths for a reason the diff doesn't support, run step 2 again once and add that to the run notes. If it happens again, stop and tell the user why.
-- If it wrote no paths for a reason that holds, skip the rest of this step, including the description.
+- If the subagent's command list shows it read this PR's text (title, description, comments or commit messages), run step 2 again once and add that to the run notes. If it happens again, stop and tell the user why.
+- If it wrote no paths, skip the rest of this step, including the description.
 - The `file:line` exists at the PR's head and the code there does what the path claims. Fix a wrong claim, or drop the path if its steps no longer make sense.
 - The expected result is what the code intends. If the code, its tests or its UI text say the behavior is deliberate, fix the path or drop it.
 - No two paths test the same flow.
@@ -69,9 +61,8 @@ If no path is left at any point in this step, tell the user in one or two senten
 
 Decide how to deliver it:
 
-- **The PR is merged or closed** (`STATE` isn't `OPEN`): show the full comment to the user. Skip the rest of this step.
 - **Someone asked for this run in a comment on the PR** (for example through Melvin): post it.
-- **Anyone else** (for example the author running it in a terminal): show the comment and post it only after they confirm.
+- **Anyone else** (for example the author running it in a terminal): show the full comment and post it only after they confirm.
 
 Use one comment per PR and update it when the skill runs again. Start it with the marker `<!-- e2e-pr-explore -->` so you can find it:
 
@@ -89,7 +80,7 @@ Comment template:
 
 Written from the code only, without the PR description or QA steps. Run them along with the QA steps, by hand or by asking Melvin. This isn't a required check: if a path is wrong or out of scope, say so and move on.
 
-<common setup, if any, and the paths in the format from subagent.md, step 2f>
+<common setup, if any, and the paths in the format from subagent.md, step 2e>
 
 <details><summary>Not covered</summary>
 
