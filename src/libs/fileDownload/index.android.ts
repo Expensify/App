@@ -155,7 +155,7 @@ const fileDownload: FileDownload = (translate, url, fileName, successMessage, _,
     });
 
 /**
- * Downloads an attachment and offers to open the saved file, since the user has no other way to find where on the device it went
+ * Downloads an attachment and offers to open the saved file
  */
 const downloadAndOfferToOpen = (translate: LocalizedTranslate, url: string, fileName: string, shouldUnlink?: boolean): Promise<void> =>
     downloadWithGalleryWritePermission(translate, () => handleDownload(translate, url, fileName, undefined, shouldUnlink, true, true));
