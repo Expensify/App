@@ -197,7 +197,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const activePolicy = useActivePolicy();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
-    const showRestrictedPolicyCreationModal = useRestrictedPolicyCreationModal();
+    const {isRestrictedPolicyCreation, showRestrictedPolicyCreationModal} = useRestrictedPolicyCreationModal();
     const filteredPoliciesInfoSelector = createFilteredPoliciesInfoSelector(currentUserEmail);
     const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: filteredPoliciesInfoSelector});
     const [preferredPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(preferredPolicyID)}`, {selector: billingRestrictionPolicySelector});
@@ -420,6 +420,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         amountOwed,
         ownerBillingGracePeriodEnd,
         restrictedPreferredPolicy: isRestrictedToPreferredPolicy ? preferredPolicy : undefined,
+        isRestrictedPolicyCreation,
         showRestrictedPolicyCreationModal,
         transaction,
         currentUserAccountID: accountID,

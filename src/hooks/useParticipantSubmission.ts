@@ -101,7 +101,7 @@ function useParticipantSubmission({
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
-    const showRestrictedPolicyCreationModal = useRestrictedPolicyCreationModal();
+    const {isRestrictedPolicyCreation, showRestrictedPolicyCreationModal} = useRestrictedPolicyCreationModal();
     const [draftTransactions] = useOptimisticDraftTransactions(initialTransaction);
     // React Compiler memoizes `transactionIDs` — it only gets a new reference when `draftTransactions`
     // changes (i.e. on actual Onyx writes to COLLECTION.TRANSACTION_DRAFT). The search hot-path updates
@@ -408,7 +408,7 @@ function useParticipantSubmission({
         }
 
         if ((isCategorizing || isShareAction) && numberOfParticipants.current === 0) {
-            if (showRestrictedPolicyCreationModal) {
+            if (isRestrictedPolicyCreation) {
                 showRestrictedPolicyCreationModal();
                 return;
             }

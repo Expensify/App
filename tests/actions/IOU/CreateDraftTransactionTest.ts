@@ -772,6 +772,7 @@ describe('actions/IOU', () => {
                     activePolicy: undefined,
                     userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
+                    isRestrictedPolicyCreation: true,
                     showRestrictedPolicyCreationModal,
                     transaction: trackedExpense,
                     currentUserAccountID: RORY_ACCOUNT_ID,

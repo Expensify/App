@@ -46,7 +46,8 @@ jest.mock('@src/utils/keyboard', () => ({
 // `mock`-prefixed so the jest.mock factories below may close over them.
 let mockPolicies: OnyxCollection<Policy> = {};
 let mockDraftTransactions: Transaction[] = [];
-let mockShowRestrictedPolicyCreationModal: (() => void) | undefined;
+let mockIsRestrictedPolicyCreation = false;
+const mockShowRestrictedPolicyCreationModal = jest.fn();
 
 // Stub out the hook's data dependencies so the test can render it in isolation and focus purely on the backTo logic.
 // Every Onyx read is stubbed to undefined here; goToNextStep's backTo path does not depend on Onyx data, but a future
@@ -60,7 +61,10 @@ jest.mock('@hooks/useOnyx', () => ({__esModule: true, default: () => [undefined]
 jest.mock('@hooks/useOptimisticDraftTransactions', () => ({__esModule: true, default: () => [mockDraftTransactions]}));
 jest.mock('@hooks/usePersonalPolicy', () => ({__esModule: true, default: () => undefined}));
 jest.mock('@hooks/usePolicyForMovingExpenses', () => ({__esModule: true, default: () => ({policyForMovingExpenses: undefined})}));
-jest.mock('@hooks/useRestrictedPolicyCreationModal', () => ({__esModule: true, default: () => mockShowRestrictedPolicyCreationModal}));
+jest.mock('@hooks/useRestrictedPolicyCreationModal', () => ({
+    __esModule: true,
+    default: () => ({isRestrictedPolicyCreation: mockIsRestrictedPolicyCreation, showRestrictedPolicyCreationModal: mockShowRestrictedPolicyCreationModal}),
+}));
 jest.mock('@hooks/useTransactionsByID', () => ({__esModule: true, default: () => [[]]}));
 jest.mock('@userActions/IOU/MoneyRequest', () => ({
     ...jest.requireActual<Record<string, unknown>>('@userActions/IOU/MoneyRequest'),
@@ -353,16 +357,17 @@ describe('useParticipantSubmission addParticipant distance rate', () => {
 describe('useParticipantSubmission restricted workspace creation', () => {
     beforeEach(() => {
         jest.mocked(createDraftWorkspace).mockClear();
+        mockShowRestrictedPolicyCreationModal.mockClear();
         jest.mocked(Navigation.navigate).mockClear();
     });
 
     afterEach(() => {
-        mockShowRestrictedPolicyCreationModal = undefined;
+        mockIsRestrictedPolicyCreation = false;
     });
 
     it.each([CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE])('shows the restricted modal instead of creating a workspace for %s with no workspace picked', (action) => {
         // Given a member of a domain group that restricts workspace creation
-        mockShowRestrictedPolicyCreationModal = jest.fn();
+        mockIsRestrictedPolicyCreation = true;
         const {result} = renderSubmission({action});
 
         // When they continue from the picker without picking a workspace, which would otherwise create one for them

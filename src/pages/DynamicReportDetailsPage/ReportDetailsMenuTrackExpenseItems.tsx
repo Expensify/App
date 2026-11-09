@@ -38,7 +38,7 @@ function ReportDetailsMenuTrackExpenseItems({reportID, requestData}: ReportDetai
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
-    const showRestrictedPolicyCreationModal = useRestrictedPolicyCreationModal();
+    const {isRestrictedPolicyCreation, showRestrictedPolicyCreationModal} = useRestrictedPolicyCreationModal();
     const activePolicy = useActivePolicy();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'Folder', 'UserPlus']);
@@ -90,6 +90,7 @@ function ReportDetailsMenuTrackExpenseItems({reportID, requestData}: ReportDetai
             amountOwed,
             ownerBillingGracePeriodEnd,
             restrictedPreferredPolicy: isRestrictedToPreferredPolicy ? preferredPolicy : undefined,
+            isRestrictedPolicyCreation,
             showRestrictedPolicyCreationModal,
             transaction: iouTransaction,
             currentUserAccountID,

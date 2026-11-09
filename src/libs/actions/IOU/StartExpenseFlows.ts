@@ -228,7 +228,8 @@ type CreateDraftTransactionParams = {
      * normally runs — can't be taken with the gate accidentally left off.
      */
     restrictedPreferredPolicy?: BillingRestrictionPolicy;
-    /** Set only when the user's domain group restricts workspace creation. Shown instead of creating a workspace on the fly. */
+    /** True when the user's domain group restricts workspace creation, so the flow shows `showRestrictedPolicyCreationModal` instead of creating a workspace on the fly */
+    isRestrictedPolicyCreation?: boolean;
     showRestrictedPolicyCreationModal?: () => void;
     transaction: OnyxEntry<Transaction>;
     currentUserAccountID: number;
@@ -263,6 +264,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     amountOwed,
     ownerBillingGracePeriodEnd,
     restrictedPreferredPolicy,
+    isRestrictedPolicyCreation,
     showRestrictedPolicyCreationModal,
     transaction,
     currentUserAccountID,
@@ -399,8 +401,8 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     if (actionName === CONST.IOU.ACTION.SUBMIT && submitDestination === CONST.IOU.SUBMIT_DESTINATION.EMPLOYER) {
         // No accessible workspace: spin up a new Submit (submit2026) workspace and drop the expense into its draft report.
         if (filteredPoliciesCount === 0) {
-            if (showRestrictedPolicyCreationModal) {
-                showRestrictedPolicyCreationModal();
+            if (isRestrictedPolicyCreation) {
+                showRestrictedPolicyCreationModal?.();
                 return;
             }
 
@@ -496,8 +498,8 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         return;
     }
 
-    if (showRestrictedPolicyCreationModal) {
-        showRestrictedPolicyCreationModal();
+    if (isRestrictedPolicyCreation) {
+        showRestrictedPolicyCreationModal?.();
         return;
     }
 
