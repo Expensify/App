@@ -494,37 +494,37 @@ function getVendorEmptyState(policy: OnyxEntry<Policy>, translate: LocaleContext
             };
         case CONST.POLICY.CONNECTIONS.NAME.XERO:
             return {
-                title: translate('workspace.xero.noVendorsFound'),
+                title: translate('workspace.common.noVendorsFound'),
                 subtitle: translate('workspace.xero.noVendorsFoundDescription'),
             };
         case CONST.POLICY.CONNECTIONS.NAME.RILLET:
             return {
-                title: translate('workspace.rillet.noVendorsFound'),
+                title: translate('workspace.common.noVendorsFound'),
                 subtitle: translate('workspace.rillet.noVendorsFoundDescription'),
             };
         case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
             return {
-                title: translate('workspace.dualEntry.noVendorsFound'),
+                title: translate('workspace.common.noVendorsFound'),
                 subtitle: translate('workspace.dualEntry.noVendorsFoundDescription'),
             };
         case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
             return {
-                title: translate('workspace.businessCentral.noVendorsFound'),
+                title: translate('workspace.common.noVendorsFound'),
                 subtitle: translate('workspace.businessCentral.noVendorsFoundDescription'),
             };
         case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
             return {
-                title: translate('workspace.campfire.noVendorsFound'),
+                title: translate('workspace.common.noVendorsFound'),
                 subtitle: translate('workspace.campfire.noVendorsFoundDescription'),
             };
         case CONST.POLICY.CONNECTIONS.NAME.CERTINIA:
             return {
-                title: translate('workspace.certinia.noVendorsFound'),
+                title: translate('workspace.common.noVendorsFound'),
                 subtitle: translate('workspace.certinia.noVendorsFoundDescription'),
             };
         case CONST.POLICY.CONNECTIONS.NAME.QBD:
             return {
-                title: translate('workspace.qbd.noVendorsFound'),
+                title: translate('workspace.common.noVendorsFound'),
                 subtitle: translate('workspace.qbd.noVendorsFoundDescription'),
             };
         case CONST.POLICY.CONNECTIONS.NAME.QBO:

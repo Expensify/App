@@ -134,7 +134,7 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
             icon={illustrations.Telescope}
             iconWidth={variables.emptyListIconWidth}
             iconHeight={variables.emptyListIconHeight}
-            title={translate('workspace.xero.noVendorsFound')}
+            title={translate('workspace.common.noVendorsFound')}
             subtitle={translate('workspace.xero.noVendorsFoundDescription')}
             containerStyle={styles.pb10}
         />

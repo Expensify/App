@@ -75,7 +75,7 @@ function DynamicNetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConne
             icon={illustrations.Telescope}
             iconWidth={variables.emptyListIconWidth}
             iconHeight={variables.emptyListIconHeight}
-            title={translate('workspace.netsuite.noVendorsFound')}
+            title={translate('workspace.common.noVendorsFound')}
             subtitle={translate('workspace.netsuite.noVendorsFoundDescription')}
             containerStyle={styles.pb10}
         />
