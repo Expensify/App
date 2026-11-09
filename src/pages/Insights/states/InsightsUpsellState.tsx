@@ -25,7 +25,9 @@ function InsightsUpsellState({upgradeablePolicyIDs}: InsightsUpsellStateProps) {
     const policyID = upgradeablePolicyIDs.length === 1 ? upgradeablePolicyIDs.at(0) : undefined;
 
     // The route keeps the feature only alongside a workspace, so without one this lands on the generic Control pitch.
-    const navigateToUpgrade = () => Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias));
+    // The upgrade page sends Rules upgrades to More features unless told where to return, so pass the current
+    // dashboard and its filters to bring the user back here.
+    const navigateToUpgrade = () => Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, Navigation.getActiveRoute()));
 
     return (
         <GenericEmptyStateComponent

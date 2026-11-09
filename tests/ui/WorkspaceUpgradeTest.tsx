@@ -488,6 +488,37 @@ describe('WorkspaceUpgrade', () => {
         },
     );
 
+    it('should return to the page in backTo after acknowledging a Rules upgrade', async () => {
+        // Given an already-upgraded (Corporate) policy so the confirmation screen is shown
+        const policy: Policy = {...LHNTestUtils.getFakePolicy('1'), type: CONST.POLICY.TYPE.CORPORATE};
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        });
+
+        const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
+        const backTo = ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.COMPLIANCE);
+
+        // And the Rules upgrade page is opened from the Insights upsell, which passes its dashboard as backTo
+        const {unmount} = renderPage(SCREENS.WORKSPACE.UPGRADE, {
+            policyID: policy.id,
+            featureName: CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias,
+            backTo,
+        });
+        await waitForBatchedUpdatesWithAct();
+        const gotItButton = await screen.findByText(TestHelper.translateLocal('workspace.upgrade.completed.gotIt'));
+        goBackSpy.mockClear();
+
+        // When the user acknowledges the upgrade
+        fireEvent.press(gotItButton);
+
+        // Then they return to the dashboard rather than the More features default
+        expect(goBackSpy).toHaveBeenCalledWith(backTo, {compareParams: false});
+
+        goBackSpy.mockRestore();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it("should show the upgrade corporate plan price is in the user's local currency", async () => {
         // Team policy which the user can upgrade to corporate
         const policy = LHNTestUtils.getFakePolicy();
