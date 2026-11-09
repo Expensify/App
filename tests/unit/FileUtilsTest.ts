@@ -14,6 +14,7 @@ import {
     getFileNameWithFallback,
     getFileValidationErrorText,
     getImageDimensionsAfterResize,
+    getMimeType,
     isHighResolutionImage,
     isLabelledDng,
     isLabelledTiff,
@@ -55,6 +56,31 @@ describe('FileUtils', () => {
             const file = splitExtensionFromFileName('image');
             expect(file.fileName).toEqual('image');
             expect(file.fileExtension).toEqual('');
+        });
+    });
+
+    describe('getMimeType', () => {
+        it.each([
+            ['mp4', 'video/mp4'],
+            ['MP4', 'video/mp4'],
+            ['mov', 'video/quicktime'],
+            ['webm', 'video/webm'],
+            ['mkv', 'video/x-matroska'],
+            ['avi', 'video/x-msvideo'],
+            ['3gp', 'video/3gpp'],
+            ['docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+        ])('should resolve the %s extension to %s', (fileExtension, expectedMimeType) => {
+            // Given an extension the Android "Open" action hands to the OS to pick a viewer
+            // When the MIME type is resolved
+            // Then it is a specific type, because application/octet-stream leaves the OS with no app that can open the file
+            expect(getMimeType(fileExtension)).toBe(expectedMimeType);
+        });
+
+        it('should fall back to application/octet-stream for an unrecognized extension', () => {
+            // Given an extension the helper does not know
+            // When the MIME type is resolved
+            // Then the generic binary type is returned
+            expect(getMimeType('notarealextension')).toBe('application/octet-stream');
         });
     });
 
