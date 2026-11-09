@@ -1876,6 +1876,23 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmApprovalWithHeldAmount: 'Η αναφορά περιέχει δαπάνες σε αναμονή. Θέλετε να εγκρίνετε μόνο τις σύμφωνες δαπάνες ή ολόκληρη την αναφορά;',
         confirmApprovalAllHoldAmount: 'Όλες οι δαπάνες είναι σε αναμονή. Θέλετε να εγκρίνετε ούτως ή άλλως;',
         confirmPay: 'Επιβεβαιώστε το ποσό πληρωμής',
+        wisePaymentSummary: {
+            confirmPayment: 'Επιβεβαίωση πληρωμής',
+            reportTotal: 'Σύνολο αναφοράς',
+            unheldAmountBeingPaid: 'Ποσό εκτός αναμονής προς πληρωμή',
+            debitAmount: 'Ποσό χρέωσης',
+            employeeWillReceive: 'Ο υπάλληλος θα λάβει',
+            totalFees: 'Συνολικές χρεώσεις',
+            fxRate: 'Συναλλαγματική ισοτιμία',
+            paymentDetails: 'Στοιχεία πληρωμής',
+            debitedAmount: 'Χρεωμένο ποσό',
+            employeeReceived: 'Ο υπάλληλος έλαβε',
+            payAll: 'Πληρωμή όλων',
+            reportCount: ({count}: {count: number}) => ({
+                one: '1 αναφορά',
+                other: `${count} αναφορές`,
+            }),
+        },
         confirmPayAmount: 'Πληρώστε ό,τι δεν είναι σε αναμονή ή πληρώστε ολόκληρη την αναφορά.',
         confirmPayAllHoldAmount: () => ({
             one: 'Αυτή η δαπάνη έχει τεθεί σε αναμονή. Θέλετε να την πληρώσετε παρ’ όλα αυτά;',
@@ -4466,7 +4483,7 @@ ${amount} για ${merchant} - ${date}`,
         bankAccountPurposeTitle: 'Τι θέλετε να κάνετε με τον τραπεζικό σας λογαριασμό;',
         getReimbursed: 'Λάβετε αποζημίωση',
         getReimbursedDescription: 'Από τον εργοδότη ή άλλους',
-        makePayments: 'Πραγματοποιήστε πληρωμές',
+        makePayments: 'Κάντε επιχειρηματικές πληρωμές',
         makePaymentsDescription: 'Πληρώστε έξοδα ή εκδώστε Κάρτες Expensify',
         hasPhoneLoginError: (contactMethodRoute: string) =>
             `Για να συνδέσετε έναν τραπεζικό λογαριασμό, παρακαλούμε <a href="${contactMethodRoute}">προσθέστε ένα email ως κύρια είσοδό σας</a> και δοκιμάστε ξανά. Μπορείτε να προσθέσετε τον αριθμό τηλεφώνου σας ως δευτερεύουσα είσοδο.`,
@@ -4567,6 +4584,8 @@ ${amount} για ${merchant} - ${date}`,
         updateSuccessTitle: 'Ο τραπεζικός λογαριασμός ενημερώθηκε!',
         updateSuccessHeader: 'Ο τραπεζικός λογαριασμός ενημερώθηκε',
         updateSuccessMessage: 'Συγχαρητήρια, ο τραπεζικός σας λογαριασμός έχει ρυθμιστεί και είναι έτοιμος να λαμβάνει αποζημιώσεις.',
+        bankDetails: 'Τραπεζικά στοιχεία',
+        accountHolderDetails: 'Στοιχεία κατόχου λογαριασμού',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Εισαγάγετε τον κωδικό Expensify',
@@ -4574,6 +4593,8 @@ ${amount} για ${merchant} - ${date}`,
         chooseAccountLabel: 'Λογαριασμός',
         successTitle: 'Προσωπικός τραπεζικός λογαριασμός προστέθηκε!',
         successMessage: 'Συγχαρητήρια, ο τραπεζικός σας λογαριασμός έχει ρυθμιστεί και είναι έτοιμος να λαμβάνει αποζημιώσεις.',
+        bankAccountAddedTitle: 'Ο τραπεζικός λογαριασμός προστέθηκε!',
+        bankAccountAddedMessage: 'Συγχαρητήρια, ο προσωπικός σας τραπεζικός λογαριασμός έχει ρυθμιστεί και είναι έτοιμος να λαμβάνει αποζημιώσεις.',
     },
     attachmentView: {
         unknownFilename: 'Άγνωστο όνομα αρχείου',
@@ -6354,7 +6375,11 @@ ${amount} για ${merchant} - ${date}`,
             noSubsidiariesFoundDescription: 'Παρακαλούμε προσθέστε μια θυγατρική στο NetSuite και συγχρονίστε ξανά τη σύνδεση',
             tokenInput: {
                 title: 'Ρύθμιση NetSuite',
-                connectWithTokenAuthentication: 'Συνδεθείτε με έλεγχο ταυτότητας βάσει διακριτικού (SOAP) αντ’ αυτού',
+                tokenAuthenticationPrompt: {
+                    beforeLink: 'Ή συνδεθείτε με',
+                    link: 'έλεγχο ταυτότητας βάσει διακριτικού',
+                    afterLink: '(SOAP) αντ’ αυτού.',
+                },
                 formSteps: {
                     installBundle: {
                         title: 'Εγκαταστήστε το πακέτο Expensify',
@@ -7218,6 +7243,15 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 title: 'Δεν μπορείτε να διαγράψετε ή να απενεργοποιήσετε όλες τις κατηγορίες',
                 description: `Πρέπει να παραμείνει ενεργοποιημένη τουλάχιστον μία κατηγορία, επειδή ο χώρος εργασίας σας απαιτεί κατηγορίες.`,
             },
+            cannotDisableCategoryForMembers: {
+                title: ({categoryName}: {categoryName: string}) => `Δεν είναι δυνατή η απενεργοποίηση της κατηγορίας ${categoryName}`,
+                bulkTitle: 'Δεν μπορείτε να απενεργοποιήσετε αυτές τις κατηγορίες',
+                description: ({count}: {count: number}) => ({
+                    one: '1 μέλος θα μείνει χωρίς κατηγορίες για να διαλέξει. Ενημερώστε την ορατότητα των κατηγοριών του και δοκιμάστε ξανά:',
+                    other: `${count} μέλη θα μείνουν χωρίς κατηγορίες για να επιλέξουν. Ενημερώστε την ορατότητα των κατηγοριών τους και δοκιμάστε ξανά:`,
+                }),
+                andMore: ({count}: {count: number}) => `και ${count} ακόμη`,
+            },
         },
         moreFeatures: {
             subtitle:
@@ -7401,12 +7435,15 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 unassignCard: 'Αποδέσμευση κάρτας',
                 unassignCards: 'Αποδέσμευση καρτών',
                 unassign: 'Κατάργηση ανάθεσης',
-                unassignCardDescription: 'Η αποδέσμευση αυτής της κάρτας θα διαγράψει όλες τις μη υποβληθείσες συναλλαγές.',
-                unassignCardsDescription: 'Η αποδέσμευση θα διαγράψει όλες τις μη υποβληθείσες συναλλαγές από τις επιλεγμένες κάρτες.',
+                unassignCardDescription: (transactionsUrl: string) =>
+                    `Η αποδέσμευση αυτής της κάρτας θα διαγράψει οριστικά όλες τις <a href="${transactionsUrl}">μη υποβληθείσες συναλλαγές</a> της, συμπεριλαμβανομένων των μη αναφερθεισών συναλλαγών και όσων βρίσκονται σε προσχέδια αναφορών. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.`,
+                unassignCardsDescription: (transactionsUrl: string) =>
+                    `Η αποδέσμευση θα διαγράψει οριστικά όλες τις <a href="${transactionsUrl}">μη υποβληθείσες συναλλαγές</a> από τις επιλεγμένες κάρτες, συμπεριλαμβανομένων των μη αναφερθεισών συναλλαγών και όσων βρίσκονται σε προσχέδια αναφορών. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.`,
                 assignCard: 'Ανάθεση κάρτας',
                 removeCard: 'Αφαίρεση κάρτας',
                 remove: 'Κατάργηση',
-                removeCardDescription: 'Η κατάργηση αυτής της κάρτας θα διαγράψει όλες τις μη υποβληθείσες συναλλαγές.',
+                removeCardDescription: (transactionsUrl: string) =>
+                    `Η κατάργηση αυτής της κάρτας θα διαγράψει οριστικά όλες τις <a href="${transactionsUrl}">μη υποβληθείσες συναλλαγές</a> της, συμπεριλαμβανομένων των μη αναφερθεισών συναλλαγών και όσων βρίσκονται σε προσχέδια αναφορών. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.`,
                 cardFeedName: 'Όνομα ροής κάρτας',
                 cardFeedNameDescription: 'Δώστε στη ροή κάρτας ένα μοναδικό όνομα ώστε να μπορείτε να τη ξεχωρίζετε από τις άλλες.',
                 cardFeedTransaction: 'Διαγράψτε συναλλαγές',
@@ -7947,6 +7984,16 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             },
             officeLocation: 'Τοποθεσία γραφείου',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            categoryVisibility: 'Ορατότητα κατηγορίας',
+            allCategories: 'Όλες οι κατηγορίες',
+            categoriesCount: ({count}: {count: number}) => ({
+                one: '1 κατηγορία',
+                other: `${count} κατηγορίες`,
+            }),
+            categoryVisibilityRequiredModal: {
+                title: 'Τα μέλη πρέπει να έχουν τουλάχιστον μία κατηγορία',
+                description: 'Επιλέξτε τουλάχιστον μία κατηγορία που μπορεί να χρησιμοποιεί αυτό το μέλος.',
+            },
             changeOfficeLocation: 'Αλλαγή τοποθεσίας γραφείου',
             changeWorkArrangement: 'Αλλαγή ρύθμισης εργασίας',
             changeRole: 'Αλλαγή ρόλου',
@@ -9329,6 +9376,8 @@ ${reportName}`,
                     `Η αυτόματη πληρωμή είναι διαθέσιμη μόνο στο πλάνο Control. [Κάντε αναβάθμιση](${upgradeLink}) για να ξεκλειδώσετε αυτή τη λειτουργία.`,
                 autoPayReportsUnderTitle: 'Αυτόματη πληρωμή αναφορών κάτω από',
                 autoPayReportsUnderDescription: 'Πλήρως συμβατικές αναφορές εξόδων κάτω από αυτό το ποσό θα εξοφλούνται αυτόματα.',
+                autoPayCrossBorderFeesDisclosure:
+                    'Οι διασυνοριακές πληρωμές χρησιμοποιούν τη μέση ισοτιμία της αγοράς τη στιγμή της πληρωμής. Μεταβλητή χρέωση 1% ισχύει για όλες τις διασυνοριακές πληρωμές, εκτός από τα ακόλουθα νομίσματα: CRC (1,32%), KES (1,01%), MAD (1,60%), NPR (1,05%), UGX (1,47%), UYU (1,12%).\n\nΟι ακριβείς ισοτιμίες και χρεώσεις δεν μπορούν να προβληθούν πριν από την πληρωμή όταν μια αναφορά πληρώνεται αυτόματα. Πλήρης αναλυτική κατάσταση (συμπεριλαμβανομένων της ακριβούς ισοτιμίας, των χρεώσεων και του τελικού ποσού) είναι διαθέσιμη στην αναφορά αμέσως μετά την πληρωμή.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Προσθέστε ${featureName} για να ξεκλειδώσετε αυτήν τη δυνατότητα.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Μεταβείτε στις [περισσότερες δυνατότητες](${moreFeaturesLink}) και ενεργοποιήστε το ${featureName} για να ξεκλειδώσετε αυτήν τη λειτουργία.`,
@@ -9919,6 +9968,35 @@ ${reportName}`,
                 description: 'Επιλέξτε έναν προεπιλεγμένο προμηθευτή Zoho Books για δαπάνες που δεν αντιστοιχίζονται αυτόματα.',
             },
             companyCardAccount: {label: 'Λογαριασμός εταιρικής κάρτας', description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές εταιρικής κάρτας.'},
+            exportToMultipleAccounts: 'Ρύθμιση εξαγωγής σε πολλούς λογαριασμούς',
+            cardProgramAccount: {
+                label: 'Λογαριασμός προγράμματος κάρτας',
+                description: 'Παρακάμψτε τον λογαριασμό χώρου εργασίας για αυτά τα προγράμματα καρτών.',
+                descriptionLevel2: 'Παράκαμψη του λογαριασμού χώρου εργασίας για αυτό το πρόγραμμα κάρτας.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Όλα τα προγράμματα χρησιμοποιούν τον προεπιλεγμένο λογαριασμό';
+                    }
+                    return {
+                        one: `${count} πρόγραμμα με προσαρμοσμένο λογαριασμό`,
+                        other: `${count} προγράμματα με προσαρμοσμένους λογαριασμούς`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'Λογαριασμός ανά κάρτα',
+                description: 'Παρακάμψτε τον λογαριασμό προγράμματος για μεμονωμένες κάρτες.',
+                descriptionLevel2: 'Παράκαμψη του λογαριασμού προγράμματος για αυτές τις κάρτες.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Όλες οι κάρτες χρησιμοποιούν λογαριασμούς προγράμματος';
+                    }
+                    return {
+                        one: `${count} κάρτα με προσαρμοσμένο λογαριασμό`,
+                        other: `${count} κάρτες με προσαρμοσμένους λογαριασμούς`,
+                    };
+                },
+            },
             noVendorsFound: 'Δεν βρέθηκαν προμηθευτές',
             noVendorsFoundDescription: 'Παρακαλούμε προσθέστε προμηθευτές στο Zoho Books και συγχρονίστε ξανά τη σύνδεση',
             noAccountsFound: 'Δεν βρέθηκαν λογαριασμοί',
@@ -11854,6 +11932,7 @@ ${reportName}`,
         autoReportedRejectedExpense: 'Αυτή η δαπάνη απορρίφθηκε.',
         billableExpense: 'Χρεώσιμο, δεν ισχύει πλέον',
         cashExpenseWithNoReceipt: (formattedLimit?: string) => `Απαιτείται απόδειξη${formattedLimit ? `πάνω από ${formattedLimit}` : ''}`,
+        categoryNotAllowed: 'Η κατηγορία δεν επιτρέπεται',
         categoryOutOfPolicy: 'Η κατηγορία δεν είναι πλέον έγκυρη',
         conversionSurcharge: (surcharge: number) => `Εφαρμόστηκε προσαύξηση μετατροπής ${surcharge}%`,
         customUnitOutOfPolicy: 'Η τιμή δεν είναι έγκυρη για αυτόν τον χώρο εργασίας',
@@ -12050,6 +12129,7 @@ ${reportName}`,
             autoReportedRejectedExpense: 'Η δαπάνη απορρίφθηκε',
             billableExpense: 'Η χρέωση δεν ισχύει πλέον',
             cashExpenseWithNoReceipt: 'Απαιτείται απόδειξη',
+            categoryNotAllowed: 'Η κατηγορία δεν επιτρέπεται',
             categoryOutOfPolicy: 'Η κατηγορία δεν είναι πλέον έγκυρη',
             companyCardRequired: 'Απαιτείται εταιρική κάρτα',
             conversionSurcharge: 'Εφαρμόστηκε προσαύξηση μετατροπής',
