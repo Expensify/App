@@ -338,6 +338,7 @@ const WRITE_COMMANDS = {
     SET_POLICY_CATEGORY_RECEIPTS_AND_ITEMIZED_RECEIPT_REQUIRED: 'SetPolicyCategoryReceiptsAndItemizedReceiptRequired',
     SET_POLICY_CATEGORY_MAX_AMOUNT: 'SetPolicyCategoryMaxAmount',
     SET_POLICY_CATEGORY_APPROVER: 'SetPolicyCategoryApprover',
+    SET_POLICY_MEMBER_CATEGORY_VISIBILITY: 'SetPolicyMemberCategoryVisibility',
     SET_POLICY_CATEGORY_TAX: 'SetPolicyCategoryTax',
     SET_POLICY_TAXES_CURRENCY_DEFAULT: 'SetPolicyCurrencyDefaultTax',
     SET_POLICY_TAXES_FOREIGN_CURRENCY_DEFAULT: 'SetPolicyForeignCurrencyDefaultTax',
@@ -760,6 +761,7 @@ const WRITE_COMMANDS = {
     UPDATE_INVOICE_COMPANY_WEBSITE: 'UpdateInvoiceCompanyWebsite',
     GET_CORPAY_BANK_ACCOUNT_FIELDS: 'GetCorpayBankAccountFields',
     BANK_ACCOUNT_CREATE_CORPAY: 'BankAccount_CreateCorpay',
+    CREATE_WISE_BANK_ACCOUNT: 'CreateWiseBankAccount',
     SHARE_BANK_ACCOUNT: 'ShareBankAccount',
     SHARE_BANK_ACCOUNT_AND_UPDATE_POLICY_REIMBURSER: 'ShareBankAccountAndUpdatePolicyReimburser',
     UPDATE_WORKSPACE_CUSTOM_UNIT: 'UpdateWorkspaceCustomUnit',
@@ -788,7 +790,6 @@ const WRITE_COMMANDS = {
     FINISH_CORPAY_BANK_ACCOUNT_ONBOARDING: 'FinishCorpayBankAccountOnboarding',
     ENABLE_GLOBAL_REIMBURSEMENTS_FOR_USD_BANK_ACCOUNT: 'EnableGlobalReimbursementsForUSDBankAccount',
     REOPEN_REPORT: 'ReopenReport',
-    TRAVEL_SIGNUP_REQUEST: 'RequestTravelAccess',
     SET_VACATION_DELEGATE: 'SetVacationDelegate',
     DELETE_VACATION_DELEGATE: 'DeleteVacationDelegate',
     IMPORT_PLAID_ACCOUNTS: 'ImportPlaidAccounts',
@@ -1152,6 +1153,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_POLICY_CATEGORY_RECEIPTS_AND_ITEMIZED_RECEIPT_REQUIRED]: Parameters.SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams;
     [WRITE_COMMANDS.SET_POLICY_CATEGORY_MAX_AMOUNT]: Parameters.SetPolicyCategoryMaxAmountParams;
     [WRITE_COMMANDS.SET_POLICY_CATEGORY_APPROVER]: Parameters.SetPolicyCategoryApproverParams;
+    [WRITE_COMMANDS.SET_POLICY_MEMBER_CATEGORY_VISIBILITY]: Parameters.SetPolicyMemberCategoryVisibilityParams;
     [WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX]: Parameters.SetPolicyCategoryTaxParams;
     [WRITE_COMMANDS.JOIN_POLICY_VIA_INVITE_LINK]: Parameters.JoinPolicyInviteLinkParams;
     [WRITE_COMMANDS.GET_ACCESSIBLE_POLICIES]: null;
@@ -1319,6 +1321,7 @@ type WriteCommandParameters = {
 
     [WRITE_COMMANDS.REJECT_MONEY_REQUEST_IN_BULK]: Parameters.RejectMoneyRequestInBulkParams;
     [WRITE_COMMANDS.BANK_ACCOUNT_CREATE_CORPAY]: Parameters.BankAccountCreateCorpayParams;
+    [WRITE_COMMANDS.CREATE_WISE_BANK_ACCOUNT]: Parameters.CreateWiseBankAccountParams;
 
     [WRITE_COMMANDS.REQUEST_REFUND]: null;
     [WRITE_COMMANDS.CONNECT_POLICY_TO_SAGE_INTACCT]: Parameters.ConnectPolicyToSageIntacctParams;
@@ -1654,7 +1657,6 @@ type WriteCommandParameters = {
     // Change transaction report
     [WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT]: Parameters.ChangeTransactionsReportParams;
     [WRITE_COMMANDS.UNDELETE_TRANSACTIONS]: Parameters.UndeleteTransactionsParams;
-    [WRITE_COMMANDS.TRAVEL_SIGNUP_REQUEST]: null;
     [WRITE_COMMANDS.ASSIGN_REPORT_TO_ME]: Parameters.AssignReportToMeParams;
     [WRITE_COMMANDS.ADD_REPORT_APPROVER]: Parameters.AddReportApproverParams;
     [WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT]: Parameters.LockAccountParams;
@@ -1699,6 +1701,7 @@ type WriteCommandParameters = {
 const READ_COMMANDS = {
     GET_DEFAULT_P2P_MILEAGE_RATE: 'GetDefaultP2PMileageRate',
     GET_CORPAY_BANK_ACCOUNT_FIELDS: 'GetCorpayBankAccountFields',
+    GET_WISE_BANK_ACCOUNT_FIELDS: 'GetWiseBankAccountFields',
     CONNECT_POLICY_TO_QUICKBOOKS_ONLINE: 'ConnectPolicyToQuickbooksOnline',
     CONNECT_POLICY_TO_XERO: 'ConnectPolicyToXero',
     CONNECT_POLICY_TO_NETSUITE_OAUTH: 'ConnectPolicyToNetSuiteOAuth',
@@ -1744,6 +1747,7 @@ const READ_COMMANDS = {
     EXPAND_URL_PREVIEW: 'ExpandURLPreview',
     GET_REPORT_PRIVATE_NOTE: 'GetReportPrivateNote',
     OPEN_ROOM_MEMBERS_PAGE: 'OpenRoomMembersPage',
+    OPEN_REPORT_STATUS_PAGE: 'OpenReportStatusPage',
     SEARCH_FOR_REPORTS: 'SearchForReports',
     SEARCH_FOR_ROOMS_TO_MENTION: 'SearchForRoomsToMention',
     SEARCH_FOR_USERS: 'SearchForUsers',
@@ -1803,6 +1807,7 @@ const READ_COMMANDS = {
     OPEN_CARD_DETAILS_PAGE: 'OpenCardDetailsPage',
     GET_CORPAY_ONBOARDING_FIELDS: 'GetCorpayOnboardingFields',
     GET_WISE_KYC_REVIEW_EMBEDDED_LINK: 'GetWiseKYCReviewEmbeddedLink',
+    GET_WISE_QUOTE: 'GetWiseQuote',
     OPEN_WORKSPACE_PLAN_PAGE: 'OpenWorkspacePlanPage',
     OPEN_SECURITY_SETTINGS_PAGE: 'OpenSecuritySettingsPage',
     OPEN_MULTIFACTOR_AUTHENTICATION_REVOKE_PAGE: 'OpenMultifactorAuthenticationRevokePage',
@@ -1866,9 +1871,11 @@ type ReadCommandParameters = {
     [READ_COMMANDS.GET_OLDER_ACTIONS]: Parameters.GetOlderActionsParams;
     [READ_COMMANDS.GET_NEWER_ACTIONS]: Parameters.GetNewerActionsParams;
     [READ_COMMANDS.GET_CORPAY_BANK_ACCOUNT_FIELDS]: Parameters.GetCorpayBankAccountFieldsParams;
+    [READ_COMMANDS.GET_WISE_BANK_ACCOUNT_FIELDS]: Parameters.GetWiseBankAccountFieldsParams;
     [READ_COMMANDS.EXPAND_URL_PREVIEW]: Parameters.ExpandURLPreviewParams;
     [READ_COMMANDS.GET_REPORT_PRIVATE_NOTE]: Parameters.GetReportPrivateNoteParams;
     [READ_COMMANDS.OPEN_ROOM_MEMBERS_PAGE]: Parameters.OpenRoomMembersPageParams;
+    [READ_COMMANDS.OPEN_REPORT_STATUS_PAGE]: Parameters.OpenReportStatusPageParams;
     [READ_COMMANDS.SEARCH_FOR_REPORTS]: Parameters.SearchForReportsParams;
     [READ_COMMANDS.SEARCH_FOR_ROOMS_TO_MENTION]: Parameters.SearchForRoomsToMentionParams;
     [READ_COMMANDS.SEARCH_FOR_USERS]: Parameters.SearchForUsersParams;
@@ -1934,6 +1941,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_CARD_DETAILS_PAGE]: Parameters.OpenCardDetailsPageParams;
     [READ_COMMANDS.GET_CORPAY_ONBOARDING_FIELDS]: Parameters.GetCorpayOnboardingFieldsParams;
     [READ_COMMANDS.GET_WISE_KYC_REVIEW_EMBEDDED_LINK]: Parameters.GetWiseKYCReviewEmbeddedLinkParams;
+    [READ_COMMANDS.GET_WISE_QUOTE]: Parameters.GetWiseQuoteParams;
     [READ_COMMANDS.OPEN_WORKSPACE_PLAN_PAGE]: Parameters.OpenWorkspacePlanPageParams;
     [READ_COMMANDS.OPEN_SECURITY_SETTINGS_PAGE]: null;
     [READ_COMMANDS.OPEN_MULTIFACTOR_AUTHENTICATION_REVOKE_PAGE]: null;
@@ -1990,6 +1998,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     CALCULATE_BILL_NEW_DOT: 'CalculateBillNewDot',
 
     ACCEPT_SPOTNANA_TERMS: 'AcceptSpotnanaTerms',
+    REQUEST_TRAVEL_ACCESS: 'RequestTravelAccess',
     COMPLETE_GUIDED_SETUP: 'CompleteGuidedSetup',
 
     GET_STATEMENT_PDF: 'GetStatementPDF',
@@ -2041,6 +2050,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE]: Parameters.SetVacationDelegateParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.CALCULATE_BILL_NEW_DOT]: null;
     [SIDE_EFFECT_REQUEST_COMMANDS.ACCEPT_SPOTNANA_TERMS]: Parameters.AcceptSpotnanaTermsParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.REQUEST_TRAVEL_ACCESS]: null;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_SCIM_TOKEN]: Parameters.GetScimTokenParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.PARSE_EXPENSE_FILTERS]: Parameters.ParseExpenseFiltersParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP]: Parameters.CompleteGuidedSetupParams;

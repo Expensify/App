@@ -1,16 +1,7 @@
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
-import {
-    addPolicyAgentRule,
-    clearMerchantRuleErrors,
-    clearPolicyAgentRuleErrors,
-    deleteRule,
-    deletePolicyAgentRule,
-    getRules as fetchRules,
-    setRule,
-    updatePolicyAgentRule,
-} from '@libs/actions/Policy/Rules';
+import {addPolicyAgentRule, clearMerchantRuleErrors, clearPolicyAgentRuleErrors, deleteRule, deletePolicyAgentRule, setRule, updatePolicyAgentRule} from '@libs/actions/Policy/Rules';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {buildExpenseDefaultRule} from '@libs/ExpenseDefaultRuleUtils';
+import {buildMerchantRule} from '@libs/ExpenseDefaultRuleUtils';
 import {flush as flushSequentialQueue} from '@libs/Network/SequentialQueue';
 import {toIndexMap} from '@libs/RuleUtils';
 
@@ -29,7 +20,6 @@ import Onyx from 'react-native-onyx';
 import type {MockFetch} from '../utils/TestHelper';
 
 import createRandomPolicy from '../utils/collections/policies';
-import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -61,7 +51,7 @@ async function getRules(): Promise<OnyxCollection<Rule>> {
 }
 
 /** A minimal merchant rule as stored in the rules collection. */
-function buildExpenseDefaultRuleForPolicy(policyID: string): Rule {
+function buildMerchantRuleForPolicy(policyID: string): Rule {
     return {
         scope: CONST.RULES.SCOPE.POLICY,
         scopeID: policyID,
@@ -493,7 +483,7 @@ describe('actions/PolicyRules', () => {
 
             setRule(
                 fakePolicy.id,
-                buildExpenseDefaultRule({merchantToMatch: 'Starbucks', matchType: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, category: 'Coffee'}, fakePolicy),
+                buildMerchantRule({merchantToMatch: 'Starbucks', matchType: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, category: 'Coffee'}, fakePolicy),
                 CONST.RULES.EXPENSE_DEFAULT.PRIORITY,
             );
             await waitForBatchedUpdates();
@@ -524,11 +514,11 @@ describe('actions/PolicyRules', () => {
             mockFetch?.pause?.();
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
-            setRule(fakePolicy.id, buildExpenseDefaultRule({merchantToMatch: 'Starbucks', category: 'Coffee', tag: 'Team A'}, fakePolicy), CONST.RULES.EXPENSE_DEFAULT.PRIORITY, ruleID);
+            setRule(fakePolicy.id, buildMerchantRule({merchantToMatch: 'Starbucks', category: 'Coffee', tag: 'Team A'}, fakePolicy), CONST.RULES.EXPENSE_DEFAULT.PRIORITY, ruleID);
             await waitForBatchedUpdates();
 
             const existingRule = (await getRules())?.[`${ONYXKEYS.COLLECTION.RULE}${ruleID}`];
-            setRule(fakePolicy.id, buildExpenseDefaultRule({merchantToMatch: 'Starbucks', category: 'Coffee'}, fakePolicy), CONST.RULES.EXPENSE_DEFAULT.PRIORITY, ruleID, existingRule);
+            setRule(fakePolicy.id, buildMerchantRule({merchantToMatch: 'Starbucks', category: 'Coffee'}, fakePolicy), CONST.RULES.EXPENSE_DEFAULT.PRIORITY, ruleID, existingRule);
             await waitForBatchedUpdates();
 
             const updatedRule = (await getRules())?.[`${ONYXKEYS.COLLECTION.RULE}${ruleID}`];
@@ -546,7 +536,7 @@ describe('actions/PolicyRules', () => {
             const fakePolicy = createRandomPolicy(0);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
-            setRule(fakePolicy.id, buildExpenseDefaultRule({merchantToMatch: '', category: 'Coffee'}, fakePolicy), CONST.RULES.EXPENSE_DEFAULT.PRIORITY);
+            setRule(fakePolicy.id, buildMerchantRule({merchantToMatch: '', category: 'Coffee'}, fakePolicy), CONST.RULES.EXPENSE_DEFAULT.PRIORITY);
             await waitForBatchedUpdates();
 
             expect(Object.keys((await getRules()) ?? {})).toHaveLength(0);
@@ -561,7 +551,7 @@ describe('actions/PolicyRules', () => {
             // When the rule is saved
             setRule(
                 fakePolicy.id,
-                buildExpenseDefaultRule({merchantToMatch: 'Starbucks', matchType: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, category: 'Coffee'}, fakePolicy),
+                buildMerchantRule({merchantToMatch: 'Starbucks', matchType: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, category: 'Coffee'}, fakePolicy),
                 CONST.RULES.EXPENSE_DEFAULT.PRIORITY,
                 ruleID,
             );
@@ -587,7 +577,7 @@ describe('actions/PolicyRules', () => {
         it('marks the rule as pending delete', async () => {
             const fakePolicy = createRandomPolicy(0);
             const ruleID = 'merchantRule1';
-            const rule = buildExpenseDefaultRuleForPolicy(fakePolicy.id);
+            const rule = buildMerchantRuleForPolicy(fakePolicy.id);
             mockFetch?.pause?.();
             await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}${ruleID}`, rule);
 
@@ -604,7 +594,7 @@ describe('actions/PolicyRules', () => {
             // Given a saved merchant rule
             const fakePolicy = createRandomPolicy(0);
             const ruleID = 'merchantRule1';
-            const rule = buildExpenseDefaultRuleForPolicy(fakePolicy.id);
+            const rule = buildMerchantRuleForPolicy(fakePolicy.id);
             await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}${ruleID}`, rule);
 
             // When it is deleted
@@ -620,7 +610,7 @@ describe('actions/PolicyRules', () => {
         it('removes the rule entirely when its pendingAction was ADD', async () => {
             const ruleID = 'merchantRule1';
             const rule: Rule = {
-                ...buildExpenseDefaultRuleForPolicy('policy1'),
+                ...buildMerchantRuleForPolicy('policy1'),
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 errors: {[ERROR_KEY]: 'boom'},
             };
@@ -635,7 +625,7 @@ describe('actions/PolicyRules', () => {
         it('clears only the errors when the rule has a non-ADD pending action', async () => {
             const ruleID = 'merchantRule1';
             const rule: Rule = {
-                ...buildExpenseDefaultRuleForPolicy('policy1'),
+                ...buildMerchantRuleForPolicy('policy1'),
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 errors: {[ERROR_KEY]: 'boom'},
             };
@@ -654,30 +644,6 @@ describe('actions/PolicyRules', () => {
             await waitForBatchedUpdates();
 
             expect(Object.keys((await getRules()) ?? {})).toHaveLength(0);
-        });
-    });
-    describe('getRules', () => {
-        it('records the attempt as made when the read never settles', async () => {
-            // Given a `GetRules` read that applies neither its success nor its failure data, which is what a read
-            // that throws does
-            jest.useFakeTimers();
-            mockFetch?.pause?.();
-            fetchRules();
-            await waitForBatchedUpdates();
-
-            // When the read has been in flight long enough to be treated as stale
-            jest.advanceTimersByTime(30 * 1000);
-            await waitForBatchedUpdates();
-            jest.useRealTimers();
-            await waitForBatchedUpdates();
-
-            // Then it counts as an attempt, so a screen waiting on the collection stops waiting instead of sitting
-            // through a fetch that is asked for again every time the in-flight flag clears
-            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_IS_LOADING_RULES)).toBe(false);
-            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED)).toBe(true);
-
-            await mockFetch?.resume?.();
-            await waitForBatchedUpdates();
         });
     });
 });

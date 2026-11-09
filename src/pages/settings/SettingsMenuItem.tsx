@@ -1,4 +1,5 @@
 import MenuItem from '@components/MenuItem';
+import type {FlatNavSidebarRowProps} from '@components/Navigation/FlatNavigationBar/useFlatNavSidebarRowProps';
 
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 
@@ -18,10 +19,14 @@ type SettingsMenuItemProps = {
     isScreenFocused: boolean;
     onPress: () => void;
     wrapperStyle: StyleProp<ViewStyle>;
+
+    /** Overrides that give the row the flat navigation bar's look, empty when the bar is not shown */
+    flatNavRowProps: FlatNavSidebarRowProps;
 };
 
-function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocused, onPress, wrapperStyle}: SettingsMenuItemProps) {
+function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocused, onPress, wrapperStyle, flatNavRowProps}: SettingsMenuItemProps) {
     const popoverAnchor = useRef(null);
+    const {shouldShowBasicTitle, titleStyle, hoveredTitleStyle, selectedStyle, hoveredStyle} = flatNavRowProps;
 
     const onSecondaryInteraction = item.link
         ? (event: GestureResponderEvent | MouseEvent) => {
@@ -51,7 +56,11 @@ function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocus
 
     return (
         <MenuItem
-            wrapperStyle={wrapperStyle}
+            wrapperStyle={[wrapperStyle, selectedStyle]}
+            hoveredStyle={hoveredStyle}
+            shouldShowBasicTitle={shouldShowBasicTitle}
+            titleStyle={titleStyle}
+            hoveredTitleStyle={hoveredTitleStyle}
             title={keyTitle}
             icon={item.icon}
             iconType={item.iconType}

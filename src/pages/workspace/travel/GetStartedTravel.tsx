@@ -27,7 +27,6 @@ function GetStartedTravel({policyID, canWriteTravelFeature, showReadOnlyModal}: 
 
     return (
         <FeatureList
-            menuItems={[]}
             title={translate('workspace.moreFeatures.travel.getStarted.title')}
             subtitle={translate('workspace.moreFeatures.travel.getStarted.subtitle')}
             onCtaPress={handleCtaPress}
