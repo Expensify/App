@@ -411,8 +411,9 @@ function getExpenseReportPreviewText(
     }
 
     const formattedAmount = convertToDisplayString(amount, currency);
-    const description = linkedTransaction ? getDescription(linkedTransaction) : '';
-    const comment = Parser.htmlToText(description || originalMessage?.comment || '').trim();
+    // The transaction is the source of truth. Split actions store the raw `{"comment":""}` payload as their comment
+    const description = linkedTransaction ? getDescription(linkedTransaction) : originalMessage?.comment;
+    const comment = Parser.htmlToText(description ?? '').trim();
 
     return formatReportLastMessageText(translate('iou.expenseAmount', formattedAmount, comment || undefined));
 }

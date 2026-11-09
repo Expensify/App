@@ -51,6 +51,7 @@ function QuickbooksDesktopCustomersPage({policy}: WithPolicyProps) {
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}
                 switchAccessibilityLabel={translate('workspace.qbd.customers')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.IMPORT_CUSTOMERS_SWITCH}
                 isActive={isSwitchOn}
                 onToggle={() =>
                     QuickbooksDesktop.updateQuickbooksDesktopSyncCustomers(

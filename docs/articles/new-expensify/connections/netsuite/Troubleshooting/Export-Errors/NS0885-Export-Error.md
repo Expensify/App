@@ -53,7 +53,7 @@ In the Workspace:
 
 1. Go to **Settings > Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**, then select **Configure** next to NetSuite.
 4. Click **Coding**.
 5. Change the import option from **Tag** to **NetSuite Employee Default**.
 6. Click **Save**.
@@ -75,9 +75,9 @@ Retry exporting the report.
 
 Then in the Workspace:
 
-1. Go to **Workspaces > Accounting**.
-2. Click the three-dot menu next to the NetSuite connection.
-3. Click **Sync Now**.
+1. Select **Workspaces > [workspace name] > Connections**, then select **Configure** next to NetSuite.
+2. Select **More (⋮)**.
+3. Select **Sync now**.
 
 Retry exporting the report.
 
@@ -113,9 +113,10 @@ Retry exporting the report.
 
 Then in the Workspace:
 
-1. Go to **Workspaces > Accounting**.
-2. Click **Sync Now**.
-3. Retry exporting.
+1. Select **Workspaces > [workspace name] > Connections**, then select **Configure** next to NetSuite.
+2. Select **More (⋮)**.
+3. Select **Sync now**.
+4. Retry exporting.
 
 ---
 

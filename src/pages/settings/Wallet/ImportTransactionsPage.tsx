@@ -92,6 +92,7 @@ function ImportTransactionsPage() {
                         <ToggleSettingOptionRow
                             title={translate('workspace.companyCards.importTransactions.transactionsAreReimbursable')}
                             switchAccessibilityLabel={translate('workspace.companyCards.importTransactions.transactionsAreReimbursable')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.IMPORT_TRANSACTIONS_REIMBURSABLE_SWITCH}
                             onToggle={setIsReimbursable}
                             isActive={isReimbursable}
                         />
@@ -100,6 +101,7 @@ function ImportTransactionsPage() {
                         <ToggleSettingOptionRow
                             title={translate('workspace.companyCards.importTransactions.flipAmountSign')}
                             switchAccessibilityLabel={translate('workspace.companyCards.importTransactions.flipAmountSign')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.IMPORT_TRANSACTIONS_FLIP_AMOUNT_SIGN_SWITCH}
                             onToggle={setFlipAmountSign}
                             isActive={flipAmountSign}
                         />

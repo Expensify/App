@@ -590,6 +590,24 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
             );
         case 'permissions':
             return validateArray<'constantEnum'>(value, CONST.REPORT.PERMISSIONS);
+        case 'wiseQuote':
+            return validateObject<ObjectElement<Report, 'wiseQuote'>>(value, {
+                wiseQuoteID: 'string',
+                fee: 'number',
+                rate: 'number',
+                debitedAmount: 'number',
+                creditedAmount: 'number',
+                currency: 'string',
+                paymentCurrency: 'string',
+                expectedDate: 'string',
+                expiresAt: 'string',
+                tax: 'number',
+            });
+        case 'wiseQuoteRequest':
+            return validateObject<ObjectElement<Report, 'wiseQuoteRequest'>>(value, {
+                full: 'boolean',
+                amount: 'number',
+            });
         case 'nextStep':
             return validateObject<ObjectElement<Report, 'nextStep'>>(value, {
                 messageKey: 'string',
@@ -598,6 +616,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 eta: 'object',
                 iconFill: 'string',
                 requiredDepositCurrency: 'string',
+                requiresGlobalReimbursement: 'boolean',
+                depositCurrency: 'string',
             });
         case 'tripData':
             return validateObject<ObjectElement<ReportNameValuePairs, 'tripData'>>(value, {
@@ -605,6 +625,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 endDate: 'string',
                 tripID: 'string',
                 payload: 'object',
+                bookingApprovalState: 'object',
             });
         case 'calendlySchedule':
             return validateObject<ObjectElement<ReportNameValuePairs, 'calendlySchedule'>>(value, {
@@ -645,6 +666,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 creditedAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 creditedCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 withdrawalIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                wiseQuote: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                wiseQuoteRequest: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 avatarUrl: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 chatType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasOutstandingChildRequest: CONST.RED_BRICK_ROAD_PENDING_ACTION,
