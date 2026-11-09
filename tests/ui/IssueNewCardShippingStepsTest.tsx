@@ -83,7 +83,7 @@ function getIssueNewCard() {
         const connection = Onyx.connect({
             key: ISSUE_NEW_CARD_KEY,
             callback: (value) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(value);
             },
         });
