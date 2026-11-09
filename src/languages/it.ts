@@ -1406,6 +1406,14 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase2: 'o trascinalo qui',
         },
         pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Pagina ${page} di ${pageCount}`,
+        translate: 'Traduci',
+        viewOriginal: 'Vedi originale',
+        translationDisclaimer: 'L’IA può commettere errori. Controlla di nuovo l’originale.',
+        translationError: {
+            unreadable: 'Non siamo riusciti a leggere chiaramente questa ricevuta per tradurla.',
+            alreadyInLanguage: 'Questa ricevuta è già nella tua lingua.',
+            generic: 'Non siamo riusciti a tradurre questa ricevuta. Riprova.',
+        },
     },
     quickAction: {
         scanReceipt: 'Scansiona ricevuta',
@@ -2151,7 +2159,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `Cambia lo spazio di lavoro del rendiconto per ulteriori azioni.`,
-
             [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,

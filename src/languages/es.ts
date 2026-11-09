@@ -1401,6 +1401,14 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: 'Añade un recibo',
             phrase2: 'o arrastra y suelta uno aquí',
         },
+        translate: 'Traducir',
+        viewOriginal: 'Ver original',
+        translationDisclaimer: 'La IA puede cometer errores. Por favor, comprueba el original.',
+        translationError: {
+            unreadable: 'No hemos podido leer este recibo con la suficiente claridad como para traducirlo.',
+            alreadyInLanguage: 'Este recibo ya está en tu idioma.',
+            generic: 'No pudimos traducir este recibo. Por favor, inténtalo de nuevo.',
+        },
     },
     quickAction: {
         scanReceipt: 'Escanear recibo',
@@ -2113,7 +2121,6 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_actor, _actorType, _eta, _etaType) => `¡No se requiere ninguna acción adicional!`,
             [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (_actor, _actorType, _eta, _etaType) => `Cambia el espacio de trabajo del informe para realizar más acciones.`,
-
             [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,

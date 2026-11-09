@@ -1444,6 +1444,14 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase2: 'lub przeciągnij i upuść tutaj',
         },
         pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Strona ${page} z ${pageCount}`,
+        translate: 'Przetłumacz',
+        viewOriginal: 'Zobacz oryginał',
+        translationDisclaimer: 'AI może się mylić. Sprawdź proszę oryginał.',
+        translationError: {
+            unreadable: 'Nie mogliśmy odczytać tego paragonu wystarczająco wyraźnie, aby go przetłumaczyć.',
+            alreadyInLanguage: 'Ten paragon jest już w twoim języku.',
+            generic: 'Nie udało się przetłumaczyć tego paragonu. Spróbuj ponownie.',
+        },
     },
     quickAction: {
         scanReceipt: 'Zeskanuj paragon',
@@ -2188,7 +2196,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `Zmień przestrzeń roboczą raportu, aby wykonać dalsze działania.`,
-
             [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,

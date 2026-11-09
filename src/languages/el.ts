@@ -1454,6 +1454,14 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase2: 'ή σύρετε και αποθέστε ένα εδώ',
         },
         pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Σελίδα ${page} από ${pageCount}`,
+        translate: 'Μετάφραση',
+        viewOriginal: 'Προβολή πρωτοτύπου',
+        translationDisclaimer: 'Η τεχνητή νοημοσύνη μπορεί να κάνει λάθη. Παρακαλούμε ελέγξτε ξανά το πρωτότυπο.',
+        translationError: {
+            unreadable: 'Δεν μπορέσαμε να διαβάσουμε αυτήν την απόδειξη αρκετά καθαρά ώστε να τη μεταφράσουμε.',
+            alreadyInLanguage: 'Αυτή η απόδειξη είναι ήδη στη γλώσσα σας.',
+            generic: 'Δεν μπορέσαμε να μεταφράσουμε αυτήν την απόδειξη. Δοκιμάστε ξανά.',
+        },
     },
     quickAction: {
         scanReceipt: 'Σαρώστε απόδειξη',
@@ -2203,7 +2211,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `Αλλάξτε τον χώρο εργασίας της αναφοράς για περαιτέρω ενέργειες.`,
-
             [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,

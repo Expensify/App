@@ -1389,6 +1389,14 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase2: 'または、ここにファイルをドラッグ＆ドロップしてください',
         },
         pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `${pageCount} ページ中 ${page} ページ目`,
+        translate: '翻訳',
+        viewOriginal: '元の内容を表示',
+        translationDisclaimer: 'AI は誤りを犯すことがあります。必ず原文を再確認してください。',
+        translationError: {
+            unreadable: 'この領収書は内容が不鮮明なため、翻訳できませんでした。',
+            alreadyInLanguage: 'このレシートはすでにお使いの言語になっています。',
+            generic: 'この領収書を翻訳できませんでした。もう一度お試しください。',
+        },
     },
     quickAction: {
         scanReceipt: 'レシートをスキャン',
@@ -2130,7 +2138,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `さらに操作を行うには、レポートのワークスペースを変更してください。`,
-
             [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,

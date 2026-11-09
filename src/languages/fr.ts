@@ -1415,6 +1415,14 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase2: 'ou faites-en glisser un ici',
         },
         pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Page ${page} sur ${pageCount}`,
+        translate: 'Traduire',
+        viewOriginal: 'Afficher l’original',
+        translationDisclaimer: 'L’IA peut faire des erreurs. Veuillez vérifier l’original.',
+        translationError: {
+            unreadable: 'Nous n’avons pas pu lire ce reçu avec suffisamment de clarté pour le traduire.',
+            alreadyInLanguage: 'Ce reçu est déjà dans votre langue.',
+            generic: "Nous n'avons pas pu traduire ce reçu. Veuillez réessayer.",
+        },
     },
     quickAction: {
         scanReceipt: 'Scanner le reçu',
@@ -2164,7 +2172,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `Modifiez l’espace de travail de la note de frais pour effectuer d’autres actions.`,
-
             [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
