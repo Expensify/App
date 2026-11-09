@@ -76,6 +76,9 @@ type ExpenseFieldRowProps = {
     /** Whether the field can be changed at all. A non-interactive row drops its border, caret and press handler */
     isInteractive?: boolean;
 
+    /** Text a locked row offers to copy, from a button on hover or a long press on touch. Also makes its value selectable */
+    copyValue?: string;
+
     /**
      * Styles for the `Animated.View` wrapping the row, e.g. the highlight animation `useFieldRowHighlightStyle`
      * runs. It is a layer of its own because the row paints its own background over anything drawn behind it, and
@@ -125,6 +128,7 @@ function ExpenseFieldRow({
     isExpanded,
     isDisabled = false,
     isInteractive = true,
+    copyValue,
     backgroundStyle,
     sentryLabel,
     testID,
@@ -137,7 +141,8 @@ function ExpenseFieldRow({
     // `Required` answers "what goes here", so it goes once the field holds a value. A label that describes the value
     // itself has to stay, or a field the app filled in reads as one the user chose.
     const shouldShowRightLabel = !!rightLabel && (shouldKeepRightLabelWhenFilled || !hasValue);
-    const hasTrailing = shouldShowRightLabel || isInteractive;
+    const shouldShowCopy = !isInteractive && !!copyValue;
+    const hasTrailing = shouldShowRightLabel || isInteractive || shouldShowCopy;
 
     const row = (
         <MenuItem.Row>
@@ -149,6 +154,7 @@ function ExpenseFieldRow({
                             <MenuItem.FieldValue
                                 numberOfLines={numberOfLinesValue}
                                 isMuted={!isInteractive}
+                                isSelectable={shouldShowCopy}
                             >
                                 {value}
                             </MenuItem.FieldValue>
@@ -174,6 +180,7 @@ function ExpenseFieldRow({
                         </>
                     )}
                     {isInteractive && <MenuItem.DownCaret />}
+                    {shouldShowCopy && <MenuItem.Copy value={copyValue} />}
                 </MenuItem.Trailing>
             )}
         </MenuItem.Row>
@@ -202,6 +209,7 @@ function ExpenseFieldRow({
                 // the sign-in prompt rather than the field's selector.
                 onPress={isInteractive ? callFunctionIfActionIsAllowed(onPress, false, session) : undefined}
                 isDisabled={isDisabled}
+                shouldAllowTextSelection={shouldShowCopy}
                 accessibilityLabel={accessibilityLabel}
                 accessibilityState={isExpanded === undefined ? undefined : {expanded: isExpanded}}
                 sentryLabel={sentryLabel}

@@ -1,3 +1,7 @@
+/**
+ * The merchant of a saved expense, edited in place on the expense view. The value is saved when the input loses focus,
+ * through the same write the merchant page uses.
+ */
 import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
@@ -22,33 +26,33 @@ type MerchantInputFieldProps = {
     /** Expense whose merchant is edited */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
-    /** Transaction thread report of the expense */
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
 
     /** Violation message for the merchant, shown while the typed value has no error of its own */
     errorText?: string;
 
     /** Rendered below the input, e.g. the Google search link for a card merchant */
-    footer?: ReactNode;
+    children?: ReactNode;
 };
 
-/**
- * The merchant of a saved expense, edited in place. The value is saved when the input loses focus, through the same
- * write the merchant page uses.
- */
-function MerchantInputField({transaction, transactionThreadReport, errorText = '', footer}: MerchantInputFieldProps) {
+function MerchantInputField({transaction, transactionThreadReport, errorText = '', children}: MerchantInputFieldProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {updateMerchant} = useUpdateTransactionMerchant({transactionID: transaction?.transactionID, transactionThreadReport});
 
     const merchant = getTransactionDetails(transaction)?.merchant;
     const savedMerchant = isInvalidMerchantValue(merchant) ? '' : (merchant ?? '');
-    const {inputValue, setInputValue, markFocused, markBlurred} = useMirroredInputValue(savedMerchant);
+    const {inputValue, setInputValue, startEditing, finishEditing} = useMirroredInputValue(savedMerchant);
     const [inputError, setInputError] = useState('');
 
     const saveMerchant = () => {
-        markBlurred();
-        const newMerchant = inputValue.trim();
+        const typedMerchant = finishEditing();
+        // Leaving the input untouched is not an edit, so it neither validates nor saves.
+        if (typedMerchant === undefined) {
+            setInputError('');
+            return;
+        }
+        const newMerchant = typedMerchant.trim();
         const merchantError = getInlineMerchantErrorMessage(translate, newMerchant, isMerchantRequired(transactionThreadReport, transaction));
         if (merchantError) {
             setInputError(merchantError);
@@ -63,18 +67,18 @@ function MerchantInputField({transaction, transactionThreadReport, errorText = '
     };
 
     return (
-        <View style={[styles.mh5, styles.mv2]}>
+        <View style={[styles.mh4, styles.mv2]}>
             <TextInput
                 value={inputValue}
                 onChangeText={setInputValue}
-                onFocus={markFocused}
+                onFocus={startEditing}
                 onBlur={saveMerchant}
                 label={translate('common.merchant')}
                 accessibilityLabel={translate('common.merchant')}
                 errorText={inputError || errorText}
                 sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.MERCHANT_INPUT}
             />
-            {!!footer && <View style={styles.mt2}>{footer}</View>}
+            {!!children && <View style={styles.mt2}>{children}</View>}
         </View>
     );
 }

@@ -18,7 +18,7 @@ describe('useMirroredInputValue', () => {
     it('keeps what the user typed when the stored value changes mid-edit', () => {
         // Given an input the user is typing in
         const {result, rerender} = renderHook(({storedValue}: {storedValue: string}) => useMirroredInputValue(storedValue), {initialProps: {storedValue: 'Coffee'}});
-        act(() => result.current.markFocused());
+        act(() => result.current.startEditing());
         act(() => result.current.setInputValue('Coffee and cake'));
 
         // When a write lands on the stored value before the user is done
@@ -29,12 +29,50 @@ describe('useMirroredInputValue', () => {
         expect(result.current.inputValue).toBe('Coffee and cake');
     });
 
+    it('reports what was typed when the edit ends, and nothing when the input was left as it was', () => {
+        // Given an input the user focuses twice, typing only the second time
+        const {result} = renderHook(({storedValue}: {storedValue: string}) => useMirroredInputValue(storedValue), {initialProps: {storedValue: 'Coffee'}});
+        let untouchedResult: string | undefined = 'not called';
+        act(() => result.current.startEditing());
+        act(() => {
+            untouchedResult = result.current.finishEditing();
+        });
+        let typedResult: string | undefined;
+        act(() => result.current.startEditing());
+        act(() => result.current.setInputValue('Tea'));
+        act(() => {
+            typedResult = result.current.finishEditing();
+        });
+
+        // Then only the second edit hands back a value, so a caller never saves a field the user merely tabbed through
+        expect(untouchedResult).toBeUndefined();
+        expect(typedResult).toBe('Tea');
+    });
+
+    it('shows a stored value that changed while the untouched input was focused', () => {
+        // Given an input that is focused but not typed in
+        const {result, rerender} = renderHook(({storedValue}: {storedValue: string}) => useMirroredInputValue(storedValue), {initialProps: {storedValue: 'Coffee'}});
+        act(() => result.current.startEditing());
+
+        // When the stored value changes meanwhile and the input is then left
+        rerender({storedValue: 'Coffee Shop'});
+        expect(result.current.inputValue).toBe('Coffee');
+        act(() => {
+            result.current.finishEditing();
+        });
+
+        // Then the input catches up, as otherwise it would keep the old value and a later blur could write it back
+        expect(result.current.inputValue).toBe('Coffee Shop');
+    });
+
     it('follows the stored value again once the input is left', () => {
         // Given an input that was edited and then left
         const {result, rerender} = renderHook(({storedValue}: {storedValue: string}) => useMirroredInputValue(storedValue), {initialProps: {storedValue: 'Coffee'}});
-        act(() => result.current.markFocused());
+        act(() => result.current.startEditing());
         act(() => result.current.setInputValue('Tea'));
-        act(() => result.current.markBlurred());
+        act(() => {
+            result.current.finishEditing();
+        });
 
         // When the stored value changes afterwards
         rerender({storedValue: 'Tea House'});

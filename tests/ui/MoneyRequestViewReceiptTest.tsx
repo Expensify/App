@@ -43,6 +43,8 @@ jest.mock('@react-navigation/native', () => ({
         addListener: jest.fn(() => jest.fn()),
     })),
     useIsFocused: jest.fn(() => true),
+    // Inline field inputs subscribe to screen focus, and these tests render the view outside a navigator
+    useFocusEffect: jest.fn(),
     useRoute: jest.fn(() => ({key: 'central-report', name: '', params: {reportID: '1'}})),
 }));
 
@@ -65,11 +67,6 @@ jest.mock('@components/ReportActionItem/MoneyRequestReceiptView', () => {
 jest.mock('@pages/inbox/report/AnimatedEmptyStateBackground', () => {
     const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string}>>>('react-native');
     return () => <RN.View testID="animated-bg" />;
-});
-
-jest.mock('@components/MenuItemWithTopDescription', () => {
-    const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
-    return ({description}: {description?: string}) => <RN.View testID={`menu-item-${description}`} />;
 });
 
 jest.mock('@components/MenuItem', () => {
@@ -246,7 +243,7 @@ describe('MoneyRequestView receipt visibility with a wide RHP open', () => {
 
         await waitFor(() => {
             // Anchor on an always-rendered field so the absence below reflects the hidden receipt, not an unrendered view.
-            expect(screen.getByTestId('menu-item-common.merchant')).toBeOnTheScreen();
+            expect(screen.getByLabelText('common.merchant')).toBeOnTheScreen();
             expect(screen.queryByTestId('money-request-receipt-view')).not.toBeOnTheScreen();
         });
     });

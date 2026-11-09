@@ -1,17 +1,20 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import AmountInputField from '@components/ReportActionItem/MoneyRequestViewFields/AmountInputField';
 import DescriptionInputField from '@components/ReportActionItem/MoneyRequestViewFields/DescriptionInputField';
 import MerchantInputField from '@components/ReportActionItem/MoneyRequestViewFields/MerchantInputField';
 
-import {updateMoneyRequestDescription, updateMoneyRequestMerchant} from '@userActions/IOU/UpdateMoneyRequest';
+import useUpdateTransactionDate from '@hooks/useUpdateTransactionDate';
+
+import {updateMoneyRequestAmountAndCurrency, updateMoneyRequestDate, updateMoneyRequestDescription, updateMoneyRequestMerchant} from '@userActions/IOU/UpdateMoneyRequest';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, Transaction} from '@src/types/onyx';
+import type {Policy, Report, Transaction} from '@src/types/onyx';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -23,6 +26,13 @@ jest.mock('@userActions/IOU/UpdateMoneyRequest', () => ({
     ...jest.requireActual<Record<string, unknown>>('@userActions/IOU/UpdateMoneyRequest'),
     updateMoneyRequestMerchant: jest.fn(),
     updateMoneyRequestDescription: jest.fn(),
+    updateMoneyRequestAmountAndCurrency: jest.fn(),
+    updateMoneyRequestDate: jest.fn(),
+}));
+// The amount input asks the navigator whether its screen is focused, and these fields render outside one.
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
+    useIsFocused: jest.fn(() => true),
 }));
 jest.mock('@hooks/useCurrencyList', () => ({useCurrencyListActions: jest.fn(() => ({getCurrencyDecimals: jest.fn(() => 2), getCurrencySymbol: jest.fn(() => '$')}))}));
 
@@ -92,13 +102,36 @@ describe('saved expense inline fields', () => {
             await waitForBatchedUpdatesWithAct();
             const input = screen.getByLabelText('Merchant');
 
-            // When the input is focused and left without a real change
+            // When only a trailing space is typed and the input is left
             fireEvent(input, 'focus');
             fireEvent.changeText(input, 'Coffee Shop ');
             fireEvent(input, 'blur');
             await waitForBatchedUpdatesWithAct();
 
             // Then nothing is sent, so no pointless edit shows up on the expense
+            expect(updateMoneyRequestMerchant).not.toHaveBeenCalled();
+        });
+
+        it('does not write the old merchant back when it changed while the untouched input was focused', async () => {
+            // Given the merchant input focused but not typed in
+            const {rerender} = renderMerchant();
+            await waitForBatchedUpdatesWithAct();
+            fireEvent(screen.getByLabelText('Merchant'), 'focus');
+
+            // When the merchant is changed elsewhere, such as on another device, and the input is then left
+            rerender(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentUserPersonalDetailsProvider]}>
+                    <MerchantInputField
+                        transaction={{...transaction, merchant: 'Tea House'}}
+                        transactionThreadReport={threadReport}
+                    />
+                </ComposeProviders>,
+            );
+            fireEvent(screen.getByLabelText('Merchant'), 'blur');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the input shows the new merchant and saves nothing, rather than overwriting it with the stale one
+            expect(screen.getByLabelText('Merchant').props.value).toBe('Tea House');
             expect(updateMoneyRequestMerchant).not.toHaveBeenCalled();
         });
 
@@ -175,6 +208,28 @@ describe('saved expense inline fields', () => {
             expect(updateMoneyRequestDescription).not.toHaveBeenCalled();
         });
 
+        it('does not save a description whose saved HTML ends in a line break when the input is only focused', async () => {
+            // Given a saved description stored as HTML with a trailing line break, which reads back as markdown with a
+            // trailing newline that trimming would turn into a change
+            renderField(
+                <DescriptionInputField
+                    transaction={{...transaction, comment: {comment: 'Team lunch<br />'}}}
+                    transactionThreadReport={threadReport}
+                    isReportInGroupPolicy
+                />,
+            );
+            await waitForBatchedUpdatesWithAct();
+            const input = screen.getByLabelText('Description');
+
+            // When the input is focused and left without typing
+            fireEvent(input, 'focus');
+            fireEvent(input, 'blur');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then nothing is sent, as the user changed nothing
+            expect(updateMoneyRequestDescription).not.toHaveBeenCalled();
+        });
+
         it('shows an error instead of saving a description over the length limit', async () => {
             // Given a saved expense whose description is shown in the input
             renderDescription();
@@ -190,6 +245,124 @@ describe('saved expense inline fields', () => {
             // Then the field reports it under the input and the expense keeps its description
             expect(screen.getByText(/Character limit exceeded/)).toBeOnTheScreen();
             expect(updateMoneyRequestDescription).not.toHaveBeenCalled();
+        });
+    });
+    describe('AmountInputField', () => {
+        const policy: Policy = {
+            id: POLICY_ID,
+            name: 'Workspace',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            owner: 'owner@test.com',
+            outputCurrency: CONST.CURRENCY.USD,
+        };
+        const renderAmount = (amount = 5000) =>
+            renderField(
+                <AmountInputField
+                    transaction={transaction}
+                    transactionThreadReport={threadReport}
+                    policy={policy}
+                    policyCategories={undefined}
+                    amount={amount}
+                    currency={CONST.CURRENCY.USD}
+                    label="Amount"
+                    iouType={CONST.IOU.TYPE.SUBMIT}
+                    allowNegative={false}
+                    isP2P
+                    isCurrencyEditable
+                />,
+            );
+
+        it('saves the typed amount when the input loses focus', async () => {
+            // Given a saved expense whose amount is shown in the input
+            renderAmount();
+            await waitForBatchedUpdatesWithAct();
+            const input = screen.getByLabelText('Amount');
+            expect(input.props.value).toBe('50.00');
+
+            // When a new amount is typed and the input is left
+            fireEvent(input, 'focus');
+            fireEvent.changeText(input, '72.5');
+            fireEvent(input, 'blur');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the amount is saved to that expense in the smallest currency unit, with its currency unchanged
+            expect(updateMoneyRequestAmountAndCurrency).toHaveBeenCalledTimes(1);
+            expect(updateMoneyRequestAmountAndCurrency).toHaveBeenCalledWith(
+                expect.objectContaining({transactionID: TRANSACTION_ID, amount: 7250, currency: CONST.CURRENCY.USD, transactionThreadReport: threadReport}),
+            );
+        });
+
+        it('does not save an amount that is worth the same as the saved one', async () => {
+            // Given a saved expense whose amount is shown in the input
+            renderAmount();
+            await waitForBatchedUpdatesWithAct();
+            const input = screen.getByLabelText('Amount');
+
+            // When the same amount is typed without its trailing zeros and the input is left
+            fireEvent(input, 'focus');
+            fireEvent.changeText(input, '50');
+            fireEvent(input, 'blur');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then nothing is sent, and the input goes back to showing the amount the way the expense holds it
+            expect(updateMoneyRequestAmountAndCurrency).not.toHaveBeenCalled();
+            expect(screen.getByLabelText('Amount').props.value).toBe('50.00');
+        });
+
+        it('brings the saved amount back when the input is cleared', async () => {
+            // Given a saved expense whose amount is shown in the input
+            renderAmount();
+            await waitForBatchedUpdatesWithAct();
+            const input = screen.getByLabelText('Amount');
+
+            // When the amount is deleted and the input is left
+            fireEvent(input, 'focus');
+            fireEvent.changeText(input, '');
+            fireEvent(input, 'blur');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then nothing is sent and the saved amount shows again, since an expense always has an amount
+            expect(updateMoneyRequestAmountAndCurrency).not.toHaveBeenCalled();
+            expect(screen.getByLabelText('Amount').props.value).toBe('50.00');
+        });
+
+        it('shows an error instead of saving an amount the amount page would reject', async () => {
+            // Given a saved expense between two people, which cannot be for nothing
+            renderAmount();
+            await waitForBatchedUpdatesWithAct();
+            const input = screen.getByLabelText('Amount');
+
+            // When zero is typed and the input is left
+            fireEvent(input, 'focus');
+            fireEvent.changeText(input, '0');
+            fireEvent(input, 'blur');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the field reports it under the input and the expense keeps its amount
+            expect(screen.getByText('Please enter a valid amount before continuing')).toBeOnTheScreen();
+            expect(updateMoneyRequestAmountAndCurrency).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('useUpdateTransactionDate', () => {
+        it('saves the picked date to the saved expense', async () => {
+            // Given the save hook for a reported expense
+            const {result} = renderHook(() => useUpdateTransactionDate({transaction, transactionThreadReport: threadReport, isTrackExpense: false}), {
+                wrapper: ({children}: {children: React.ReactNode}) => (
+                    <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentUserPersonalDetailsProvider]}>{children}</ComposeProviders>
+                ),
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // When a date is saved through it
+            act(() => result.current.updateDate('2025-07-15'));
+
+            // Then the date is written to that expense with its parent report, which the write needs to recompute violations
+            expect(updateMoneyRequestDate).toHaveBeenCalledTimes(1);
+            expect(updateMoneyRequestDate).toHaveBeenCalledWith(
+                expect.objectContaining({transactionID: TRANSACTION_ID, value: '2025-07-15', transactionThreadReport: threadReport, parentReport: expenseReport}),
+            );
         });
     });
 });
