@@ -109,6 +109,112 @@ const restrictedHeaderImportPatterns = [
 const victoryChartRendererRestrictedImportPaths = restrictedImportPaths.filter((entry) => entry.name !== '@styles/theme');
 const victoryChartRendererRestrictedImportPatterns = typescriptRestrictedImportPatterns.filter((entry) => !entry.group.includes('@styles/theme/themes/**'));
 
+/**
+ * Pressables and the components that forward their `sentryLabel` prop to one, so the `no-restricted-syntax` rules below can require the label.
+ * The lists come from every JSX component whose props accept `sentryLabel`. Inputs (e.g. TextInput) and wrappers that fall back to a default
+ * label (e.g. FormProvider, RadioButton) are left out. When you add a component that forwards `sentryLabel` to a pressable, add it here.
+ * Names of compound components are written with dots, e.g. `MenuItem.Root`.
+ */
+const SENTRY_LABEL_PRESSABLES = [
+    'PressableWithoutFeedback',
+    'PressableWithFeedback',
+    'PressableWithDelayToggle',
+    'PressableWithoutFocus',
+    'PressableWithSecondaryInteraction',
+    'AnimatedPressableWithoutFeedback',
+    'AnimatedPressableWithSecondaryInteraction',
+];
+
+/** Wrappers that only need a label when they get a press handler, since without one they can render read-only (e.g. a MenuItem without onPress). */
+const SENTRY_LABEL_PRESS_HANDLER_WRAPPERS = [
+    'AnimatedCollapsible',
+    'AnimatedSettlementButton',
+    'AnimatedSubmitButton',
+    'AvatarButtonWithIcon',
+    'BaseMiniContextMenuItem',
+    'Button',
+    'ButtonDisabledWhenOffline',
+    'ButtonWithDropdownMenu',
+    'CardDetailsActionButton',
+    'CardSectionButton',
+    'Checkbox',
+    'ConfirmationPage.PrimaryButton',
+    'ConfirmationPage.SecondaryButton',
+    'ConfirmationPageButtonBase',
+    'ConfirmationPagePrimaryButton',
+    'ContextMenuItem',
+    'DistanceRequestRenderItem',
+    'ExpenseFieldDropdown',
+    'ExpenseFieldRow',
+    'FABFocusableMenuItem',
+    'FeatureTraining.HelpButton',
+    'FloatingActionButton',
+    'FloatingReceiptButton',
+    'FocusableMenuItem',
+    'FormAlertWithSubmitButton',
+    'Header.IconButton',
+    'HeaderIconButton',
+    'HighlightableMenuItem',
+    'HighlightableMenuItemWithTopDescription',
+    'LinkButton',
+    'MenuItem',
+    'MenuItem.Root',
+    'MenuItemAction',
+    'MenuItemAvatarNavigation',
+    'MenuItemField',
+    'MenuItemFieldHTML',
+    'MenuItemNavigation',
+    'MenuItemRoot',
+    'MenuItemSectionRoot',
+    'MenuItemWithLabel',
+    'MenuItemWithTopDescription',
+    'PopoverMenu.Item',
+    'PopoverMenu.RadioItem',
+    'RowMenuItem',
+    'SearchFiltersBarButton',
+    'SelectionButton',
+    'SettlementButton',
+    'SortableHeaderText',
+    'SubmitDraftButton',
+    'Table.Row',
+    'TableRow',
+    'TabSelectorItem',
+    'ToggleDistanceUnitButton',
+    'ViewButton',
+];
+
+/** Wrappers that handle the press themselves (e.g. ThreeDotsMenu opens its menu), so they always need a label. */
+const SENTRY_LABEL_SELF_PRESS_WRAPPERS = [
+    'AvatarWithImagePicker',
+    'BookTravelButton',
+    'DropdownButton',
+    'ExportWithDropdownMenu',
+    'FeatureTraining.ConfirmButton',
+    'MerchantFilterContent',
+    'PopoverMenu.Sub.Trigger',
+    'TextInputFilterContent',
+    'ThreeDotsMenu',
+    'WidgetHeaderMenu',
+];
+
+/** Builds an esquery selector list matching JSX elements named e.g. `Button` or `MenuItem.Root`. */
+function jsxElementNamesSelector(names: string[]): string {
+    return names
+        .map((name) => {
+            const parts = name.split('.');
+            if (parts.length === 1) {
+                return `[name.name="${name}"]`;
+            }
+            return parts
+                .map((part, index) => {
+                    const path = ['name', ...Array<string>(parts.length - 1 - index).fill('object')].join('.');
+                    return index === 0 ? `[${path}.name="${part}"]` : `[${path}.property.name="${part}"]`;
+                })
+                .join('');
+        })
+        .join(', ');
+}
+
 export default defineConfig({
     plugins: ['typescript', 'import', 'jsx-a11y', 'unicorn', 'react'],
     // oxlint reserves `react`, `import` and `jsdoc` for its native ports, so jsPlugins use these aliases.
@@ -570,8 +676,19 @@ export default defineConfig({
                 message: 'Namespace imports from sibling modules are not allowed. Use named imports instead. Example: import { method } from "./libs/module"',
             },
             {
-                selector: 'JSXElement[openingElement.name.name=/^Pressable(WithoutFeedback|WithFeedback|WithDelayToggle|WithoutFocus)$/]:not(:has(JSXAttribute[name.name="sentryLabel"]))',
-                message: 'All Pressable components must include sentryLabel prop for Sentry tracking. Example: <PressableWithoutFeedback sentryLabel="MoreMenu-ExportFile" />',
+                selector: `JSXOpeningElement:matches(${jsxElementNamesSelector(SENTRY_LABEL_PRESSABLES)}):not(:has(> JSXAttribute[name.name="sentryLabel"]))`,
+                message: 'Pressable components must have a sentryLabel from CONST.SENTRY_LABEL. See contributingGuides/SENTRY_LABEL.md.',
+            },
+            {
+                // Spread props may carry the label, which a selector can't see, so those are skipped.
+                selector: `JSXOpeningElement:matches(${jsxElementNamesSelector(SENTRY_LABEL_PRESS_HANDLER_WRAPPERS)}):has(> JSXAttribute[name.name=/^on(Press|LongPress|SecondaryInteraction|Select|Submit)$/]):not(:has(> JSXAttribute[name.name="sentryLabel"])):not(:has(> JSXSpreadAttribute))`,
+                message: 'Button, MenuItem and other pressable wrappers that handle a press must have a sentryLabel from CONST.SENTRY_LABEL. See contributingGuides/SENTRY_LABEL.md.',
+            },
+            {
+                // Spread props may carry the label, which a selector can't see, so those are skipped.
+                selector: `JSXOpeningElement:matches(${jsxElementNamesSelector(SENTRY_LABEL_SELF_PRESS_WRAPPERS)}):not(:has(> JSXAttribute[name.name="sentryLabel"])):not(:has(> JSXSpreadAttribute))`,
+                message:
+                    'ThreeDotsMenu, DropdownButton and other wrappers that handle their own press must have a sentryLabel from CONST.SENTRY_LABEL. See contributingGuides/SENTRY_LABEL.md.',
             },
             {selector: 'LabeledStatement', message: 'Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand.'},
             {selector: 'WithStatement', message: '`with` is disallowed in strict mode because it makes code impossible to predict and optimize. It is also deprecated.'},
@@ -875,9 +992,9 @@ export default defineConfig({
                         forbid: [
                             {
                                 propName: 'fsClass',
-                                allowedFor: ['View', 'Animated.View', 'Text', 'Pressable'],
+                                allowedFor: ['View', 'Animated.View', 'Text', 'Animated.Text', 'Pressable'],
                                 message:
-                                    "The 'fsClass' prop doesn't work for custom components, only RN's View, Text and Pressable.\nPlease use the 'ForwardedFSClassProps' or 'MultipleFSClassProps' types to pass down the desired 'fsClass' value to the allowed components.",
+                                    "The 'fsClass' prop doesn't work for custom components, only RN's View, Text and Pressable (plain or Animated).\nType the component's props with 'ForwardedFSClassProps' and pass 'forwardedFSClass' down to one of those, or wrap the content in 'FSClassView' so text inputs inside follow its class.",
                             },
                         ],
                     },
