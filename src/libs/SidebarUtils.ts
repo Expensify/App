@@ -84,9 +84,11 @@ import {
     isTripRoom,
     isUnread,
     isUnreadWithMention,
+    isUnsupportedReportType,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
 } from './ReportUtils';
+import StringUtils from './StringUtils';
 
 function compareStringDates(a: string, b: string): 0 | 1 | -1 {
     if (a < b) {
@@ -114,10 +116,10 @@ const loggedChatReportIDs = new Set<string>();
 
 /**
  * Builds a normalized sort key for fast string comparison using plain < / > operators.
- * Lowercases the name and zero-pads numeric segments ("Report 2" → "report 000000000000002")
+ * Lowercases and folds accents in the name, then zero-pads numeric segments ("Report 2" → "report 000000000000002")
  * so that numeric ordering is preserved without Intl.Collator.
  *
- * Results are cached at module level so each unique name pays the cost only once.
+ * Results are cached for the current LHN categorization so each unique name pays the cost only once per categorization.
  */
 function buildSortKey(displayName: string): string {
     const cached = sortKeyCache.get(displayName);
@@ -125,7 +127,7 @@ function buildSortKey(displayName: string): string {
         return cached;
     }
 
-    const key = displayName.toLowerCase().replaceAll(DIGIT_SEQUENCE, (match) => match.padStart(NUMERIC_PAD_WIDTH, '0'));
+    const key = StringUtils.normalizeAccents(displayName.toLowerCase()).replaceAll(DIGIT_SEQUENCE, (match) => match.padStart(NUMERIC_PAD_WIDTH, '0'));
     sortKeyCache.set(displayName, key);
     return key;
 }
@@ -148,6 +150,7 @@ type ShouldDisplayReportInLHNParams = {
     currentReportId: string | undefined;
     isInFocusMode: boolean;
     isDefaultRoomsBetaEnabled: boolean;
+    isBillPayBetaEnabled?: boolean;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
     draftComment: OnyxEntry<string>;
     transactions: OnyxCollection<Transaction>;
@@ -168,6 +171,7 @@ function shouldDisplayReportInLHN({
     currentReportId,
     isInFocusMode,
     isDefaultRoomsBetaEnabled,
+    isBillPayBetaEnabled = false,
     transactionViolations,
     draftComment,
     transactions,
@@ -184,7 +188,7 @@ function shouldDisplayReportInLHN({
         return {shouldDisplay: false};
     }
 
-    if ((Object.values(CONST.REPORT.UNSUPPORTED_TYPE) as string[]).includes(report?.type ?? '')) {
+    if (isUnsupportedReportType(report.type, isBillPayBetaEnabled)) {
         return {shouldDisplay: false};
     }
 
@@ -241,6 +245,7 @@ function shouldDisplayReportInLHN({
         currentReportId,
         isInFocusMode,
         isDefaultRoomsBetaEnabled,
+        isBillPayBetaEnabled,
         excludeEmptyChats: true,
         doesReportHaveViolations,
         draftComment,
@@ -296,6 +301,7 @@ function getReportsToDisplayInLHN({
     reports,
     policies,
     isDefaultRoomsBetaEnabled,
+    isBillPayBetaEnabled = false,
     priorityMode,
     draftComments,
     transactionViolations,
@@ -313,6 +319,7 @@ function getReportsToDisplayInLHN({
     reports: OnyxCollection<Report>;
     policies: OnyxCollection<Policy>;
     isDefaultRoomsBetaEnabled: boolean;
+    isBillPayBetaEnabled?: boolean;
     priorityMode: OnyxEntry<PriorityMode>;
     draftComments: OnyxCollection<string>;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
@@ -347,6 +354,7 @@ function getReportsToDisplayInLHN({
             currentReportId,
             isInFocusMode,
             isDefaultRoomsBetaEnabled,
+            isBillPayBetaEnabled,
             transactionViolations,
             draftComment: reportDraftComment,
             transactions,
@@ -384,6 +392,9 @@ type UpdateReportsToDisplayInLHNProps = {
     currentReportId: string | undefined;
     isInFocusMode: boolean;
     isDefaultRoomsBetaEnabled: boolean;
+
+    /** Defaults to false, so bills stay hidden unless the caller has the newDotBillPay beta */
+    isBillPayBetaEnabled?: boolean;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
@@ -405,6 +416,7 @@ function updateReportsToDisplayInLHN({
     currentReportId,
     isInFocusMode,
     isDefaultRoomsBetaEnabled,
+    isBillPayBetaEnabled = false,
     transactionViolations,
     reportNameValuePairs,
     reportAttributes,
@@ -449,6 +461,7 @@ function updateReportsToDisplayInLHN({
             currentReportId,
             isInFocusMode,
             isDefaultRoomsBetaEnabled,
+            isBillPayBetaEnabled,
             transactionViolations,
             draftComment: reportDraftComment,
             transactions,

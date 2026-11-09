@@ -86,7 +86,6 @@ function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow, isMigration, sho
                 addBottomSafeAreaPadding={!isMobileSafari()}
                 keyboardSubmitBehavior={isOAuthFlow ? CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY : undefined}
                 shouldShowLoadingImmediatelyOnPress={!isOAuthFlow}
-                footerContent={shouldShowTokenAuthenticationLink ? <NetSuiteTokenAuthenticationLink policyID={policyID} /> : undefined}
             >
                 {formInputs.map((formInput, index) => (
                     <View
@@ -113,6 +112,7 @@ function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow, isMigration, sho
                         )}
                     </View>
                 ))}
+                {shouldShowTokenAuthenticationLink && <NetSuiteTokenAuthenticationLink policyID={policyID} />}
             </FormProvider>
         </>
     );

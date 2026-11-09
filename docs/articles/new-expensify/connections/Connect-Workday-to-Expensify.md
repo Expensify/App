@@ -25,7 +25,6 @@ To connect Workday, you must:
 - Be a Workspace Admin on a Control workspace in Expensify.
 - Be an administrator in Workday.
 - Ensure every employee in Workday has a work email address.
-- Have **HR** enabled under **More features** in the workspace.
 
 Workday syncs employees to one Expensify workspace. If your organization uses multiple workspaces, choose the workspace you want to sync before connecting Workday.
 
@@ -35,12 +34,12 @@ Workday syncs employees to one Expensify workspace. If your organization uses mu
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces**.
 2. Click the workspace you want to connect to Workday.
-3. In the left menu, select **HR**.
-4. Next to **Workday**, click **Connect**.
+3. Select **Connections**.
+4. Select **Workday**.
 5. In the connection window that opens, sign in with your Workday administrator account and authorize Expensify to access your Workday account.
 6. Wait for the initial connection to complete.
 7. After the connection is established, Workday displays a green status indicator.
-8. Click the green status indicator, then click **Complete setup**.
+8. Select **Configure** next to Workday, then select **Complete setup**.
 9. Choose which Workday data to sync with this workspace, then click **Save**.
 10. Wait for the initial sync to complete.
 
@@ -56,7 +55,7 @@ After the initial sync finishes:
 - Active employees in Workday are added to the workspace.
 - Employees who don't already have an Expensify account receive an email invitation to finish setting up their account.
 - The **Members** tab displays synced employees.
-- You can configure the workspace's **Approval mode** and **Final approver** from the **HR** page.
+- You can configure the workspace's **Approval mode** and **Final approver** by selecting **Configure** next to Workday on the **Connections** page.
 
 Expensify also runs a daily auto-sync to keep employee data up to date:
 
@@ -73,7 +72,7 @@ After the initial sync, choose how expense reports are routed for approval.
 - **Manager Approval** — Employees submit reports to their direct manager from Workday before the final approver.
 - **Custom Approval** — Employees are synced from Workday, but approval workflows are managed manually in Expensify.
 
-Changes to **Approval mode** and **Final approver** are made from the **HR** page.
+Changes to **Approval mode** and **Final approver** are made by selecting **Configure** next to Workday on the **Connections** page.
 
 ---
 
@@ -100,10 +99,9 @@ To refresh the sync manually:
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces**.
 2. Click the name of the workspace connected to Workday.
-3. In the left menu, click **HR**.
-4. Click **Workday**.
-5. Select the three dots **(⋮)**, then click **Sync now**.
-6. Stay on the page and wait for the sync to complete. The **Workday sync complete** screen then opens with the **Added**, **Removed**, and **Skipped** employee counts.
+3. Select **Connections**, then select **Configure** next to Workday.
+4. Select **More (⋮)**, then select **Sync now**.
+5. Stay on the page and wait for the sync to complete. The **Workday sync complete** screen then opens with the **Added**, **Removed**, and **Skipped** employee counts.
 
 Manual syncs are limited to two per day. If you've reached the limit, you'll see **You've reached your sync limit for the day**.
 
@@ -113,10 +111,9 @@ Manual syncs are limited to two per day. If you've reached the limit, you'll see
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces**.
 2. Click the name of the workspace connected to Workday.
-3. In the left menu, click **HR**.
-4. Click **Workday**.
-5. Select the three dots **(⋮)**, then click **Disconnect**.
-6. Confirm by clicking **Disconnect** again.
+3. Select **Connections**, then select **Configure** next to Workday.
+4. Select **More (⋮)**, then select **Disconnect**.
+5. Confirm by selecting **Disconnect** again.
 
 Disconnecting Workday stops future employee syncs and unlocks the **Approvals** setting so approval workflows can be managed in Expensify again. Existing workspace members remain in the workspace.
 
@@ -138,7 +135,7 @@ Yes. Each synced employee that is newly invited to a workspace receives a welcom
 
 ## Why is Workday connected but my employees haven't synced?
 
-Connecting Workday authorizes the integration. To start importing employees, click the green status indicator, select **Complete setup**, choose the data to sync, and click **Save**.
+Connecting Workday authorizes the integration. To start importing employees, select **Configure** next to Workday on the **Connections** page, select **Complete setup**, choose the data to sync, and select **Save**.
 
 ## Why can't I sync Workday again today?
 
