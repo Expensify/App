@@ -40,7 +40,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ReactNode} from 'react';
 
@@ -48,7 +48,7 @@ import React from 'react';
 
 import DatePickerFilterPopup from './DatePickerFilterPopup';
 
-type FilterItem = WithSentryLabel & {
+type FilterItem = WithRequiredSentryLabel & {
     PopoverComponent: (props: PopoverComponentProps) => ReactNode;
     onClosePress: (() => void) | undefined;
     onLandscapePress?: () => void;
