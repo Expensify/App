@@ -1,3 +1,4 @@
+// cspell:ignore RNBF RNPDF
 /**
  * Runs the real react-native-pdf JS (node_modules/react-native-pdf/index.js, with our patches) with react-native-blob-util
  * mocked. NativePDFViewTest mocks react-native-pdf out, so it can't catch problems in the library's own download code.
@@ -13,7 +14,9 @@ import Pdf from 'react-native-pdf';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-type MockTask = Promise<{respInfo: {headers: Record<string, string>}}> & {
+type MockResponse = {respInfo: {headers: Record<string, string>}};
+
+type MockTask = Promise<MockResponse> & {
     uri: string;
     isCanceled: boolean;
     cancel: jest.Mock;
@@ -27,35 +30,38 @@ const mockCachedFiles = new Set<string>();
 
 jest.mock('react-native-blob-util', () => {
     const createTask = (uri: string): MockTask => {
-        let resolveTask: (response: {respInfo: {headers: Record<string, string>}}) => void = () => {};
+        let resolveTask: (response: MockResponse) => void = () => {};
         let rejectTask: (reason: unknown) => void = () => {};
-        const task = new Promise((resolve, reject) => {
+        let isSettled = false;
+        const promise = new Promise<MockResponse>((resolve, reject) => {
             resolveTask = resolve;
             rejectTask = reject;
-        }) as MockTask;
-
-        // Like react-native-blob-util: cancel() rejects the task, and once the task has settled it's a no-op that
-        // never calls its callback
-        const settle = () => {
-            task.cancel = jest.fn();
-        };
-        task.uri = uri;
-        task.isCanceled = false;
-        task.progress = () => task;
-        task.cancel = jest.fn((callback?: (error: unknown) => void) => {
-            task.isCanceled = true;
-            settle();
-            rejectTask(new Error('canceled'));
-            callback?.(null);
         });
-        task.finish = () => {
-            settle();
-            resolveTask({respInfo: {headers: {}}});
-        };
-        task.fail = (error: Error) => {
-            settle();
-            rejectTask(error);
-        };
+
+        const task: MockTask = Object.assign(promise, {
+            uri,
+            isCanceled: false,
+            progress: () => task,
+            // Like react-native-blob-util: cancel() rejects the task, and once the task has settled it's a no-op that
+            // never calls its callback
+            cancel: jest.fn((callback?: (error: unknown) => void) => {
+                if (isSettled) {
+                    return;
+                }
+                isSettled = true;
+                task.isCanceled = true;
+                rejectTask(new Error('canceled'));
+                callback?.(null);
+            }),
+            finish: () => {
+                isSettled = true;
+                resolveTask({respInfo: {headers: {}}});
+            },
+            fail: (error: Error) => {
+                isSettled = true;
+                rejectTask(error);
+            },
+        });
         mockTasks.push(task);
         return task;
     };
@@ -79,8 +85,13 @@ jest.mock('react-native-pdf/PdfView', () => () => null);
 
 type PdfInternals = {
     state: {path: string; isDownloaded: boolean};
+    // eslint-disable-next-line @typescript-eslint/naming-convention -- react-native-pdf's own method name
     _downloadFile: (...args: unknown[]) => Promise<void>;
 };
+
+function isPdfInternals(instance: unknown): instance is PdfInternals {
+    return typeof instance === 'object' && instance !== null && 'state' in instance && '_downloadFile' in instance;
+}
 
 const URL_WITH_OLD_TOKEN = 'https://www.expensify.com/receipts/w_1.pdf?encryptedAuthToken=old';
 const URL_WITH_NEW_TOKEN = 'https://www.expensify.com/receipts/w_1.pdf?encryptedAuthToken=new';
@@ -96,7 +107,10 @@ function renderPdf(uri: string, onError: jest.Mock) {
         />
     );
     const {rerender} = render(renderWithSource(uri));
-    const pdf = screen.UNSAFE_getByType(Pdf).instance as PdfInternals;
+    const pdf: unknown = screen.UNSAFE_getByType(Pdf).instance;
+    if (!isPdfInternals(pdf)) {
+        throw new Error('Expected the react-native-pdf component instance');
+    }
 
     // The library doesn't await _downloadFile, so in the app a rejection from it is an unhandled promise rejection
     const escapedRejections: unknown[] = [];
