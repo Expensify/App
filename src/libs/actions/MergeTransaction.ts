@@ -811,7 +811,7 @@ function mergeTransactionRequest({
             // it holds the two parent fields and nothing else, so it has no reportID and would otherwise never heal.
             // Merging the parent fields onto either leaves a report the screen reads as unloaded, and we navigate
             // straight to this thread after the merge, so it is what the user lands on.
-            const threadReportInOnyx = getReportOrDraftReport(targetTransactionThreadReportID);
+            const threadReportInOnyx = getReportOrDraftReport({reportID: targetTransactionThreadReportID});
             const threadReportKey: `${typeof ONYXKEYS.COLLECTION.REPORT}${string}` = `${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`;
             const threadReportActionsKey: `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}` = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetTransactionThreadReportID}`;
             const threadLoadingStateKey: `${typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${string}` = `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${targetTransactionThreadReportID}`;
@@ -839,7 +839,7 @@ function mergeTransactionRequest({
                 const seededThreadReport = {
                     ...buildTransactionThread(
                         newIOUAction,
-                        getReportOrDraftReport(optimisticDestinationReportID) ?? selfDMReport,
+                        getReportOrDraftReport({reportID: optimisticDestinationReportID}) ?? selfDMReport,
                         currentUserAccountIDParam,
                         undefined,
                         targetTransactionThreadReportID,

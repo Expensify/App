@@ -149,9 +149,10 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
             const existingTargetThreadReportID = targetIOUAction?.childReportID;
             if (existingTargetThreadReportID) {
                 targetTransactionThreadReportIDForMerge = existingTargetThreadReportID;
-                targetTransactionThreadReportForMerge = getReportOrDraftReport(existingTargetThreadReportID, [
-                    currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${existingTargetThreadReportID}`],
-                ]);
+                targetTransactionThreadReportForMerge = getReportOrDraftReport({
+                    reportID: existingTargetThreadReportID,
+                    searchReports: [currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${existingTargetThreadReportID}`]],
+                });
                 targetTransactionThreadParentReportForMerge = targetTransactionReport;
             } else {
                 const createdTransactionThreadReport = createTransactionThreadReport({
