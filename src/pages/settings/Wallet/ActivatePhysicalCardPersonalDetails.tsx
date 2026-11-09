@@ -130,7 +130,7 @@ function ActivatePhysicalCardPersonalDetails({card, lastFourDigits, onBackButton
         return (
             <ValidateCodeActionContent
                 title={translate('cardPage.validateCardTitle')}
-                descriptionPrimary={translate('cardPage.enterSecurityCode', primaryLogin ?? '')}
+                descriptionPrimary={translate('contacts.enterSecurityCode', primaryLogin ?? '')}
                 sendValidateCode={() => requestValidateCodeAction({reasonCode: CONST.EXPENSIFY_CARD.ACTIVATE_CARD_VALIDATE_CODE_REASON})}
                 validateCodeReasonCode={CONST.EXPENSIFY_CARD.ACTIVATE_CARD_VALIDATE_CODE_REASON}
                 validateCodeActionErrorField={CONST.MISSING_PERSONAL_DETAILS_VALIDATE_CODE_FIELD}
