@@ -26,10 +26,12 @@ import Onyx from 'react-native-onyx';
 import {check} from 'react-native-permissions';
 
 import type * as FileUtilsModule from '../../src/libs/fileDownload/FileUtils';
+import type * as MockUseConfirmModalUtil from '../utils/mockUseConfirmModal';
 
 import * as TrackExpense from '../../src/libs/actions/IOU/TrackExpense';
 import cleanupAndNavigateAfterExpenseCreate from '../../src/libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import createMock from '../utils/createMock';
+import {getShowConfirmModalOption, mockShowConfirmModal, resetMockConfirmModal, resolveShowConfirmModal} from '../utils/mockUseConfirmModal';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -79,6 +81,12 @@ jest.mock('@libs/ReceiptStorage', () => ({
 }));
 
 jest.mock('@libs/getCurrentPosition', () => jest.fn());
+
+// Lets tests answer the location permission prompt the way a user would, instead of showing a real modal.
+jest.mock('@hooks/useConfirmModal', () => {
+    const {default: mockUseConfirmModal} = jest.requireActual<typeof MockUseConfirmModalUtil>('../utils/mockUseConfirmModal');
+    return mockUseConfirmModal;
+});
 
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
 
@@ -310,6 +318,8 @@ describe('SubmitDetailsPage', () => {
         jest.clearAllMocks();
         jest.mocked(Navigation.getPreMountedFullscreenRouteKey).mockReturnValue(undefined);
         mockConfirmationListProps = {};
+        resetMockConfirmModal();
+        jest.mocked(check).mockResolvedValue('granted');
         const actualGetReportOrDraftReport = jest.requireActual<ReportUtilsActual>('@libs/ReportUtils').getReportOrDraftReport;
         jest.mocked(getReportOrDraftReport).mockImplementation(actualGetReportOrDraftReport);
         resetNavigationMocksForSubmitDetailsPageTests();
@@ -633,6 +643,77 @@ describe('SubmitDetailsPage', () => {
         expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1);
         expect(jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.[0].gpsPoint).toEqual({lat: 40.7128, long: -74.006});
         expect(getCurrentPosition).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the confirm button loading after the location permission check until the upload settles', async () => {
+        // Given a share that needs GPS (no manually entered scan fields), no earlier permission prompt, granted location permission and a file read that never settles
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, null);
+        });
+        jest.mocked(check).mockResolvedValue('granted');
+        jest.mocked(readFileAsync).mockImplementationOnce(() => new Promise<void>(() => {}));
+        renderSubmitDetailsPage();
+        await waitForBatchedUpdatesWithAct();
+        expect(mockConfirmationListProps.isConfirming).toBe(false);
+
+        // When the user confirms the share
+        fireEvent.press(screen.getByTestId('mock-confirm-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the permission check has already handed off to the upload, yet the button stays loading because the expense is not created yet
+        expect(readFileAsync).toHaveBeenCalledTimes(1);
+        expect(TrackExpense.requestMoney).not.toHaveBeenCalled();
+        expect(mockConfirmationListProps.isConfirming).toBe(true);
+    });
+
+    describe('when the location permission prompt is shown', () => {
+        // Renders a share that needs GPS with an undecided permission, presses confirm and waits for the prompt to appear.
+        async function confirmAndWaitForPermissionPrompt() {
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, null);
+            });
+            jest.mocked(check).mockResolvedValue('denied');
+            renderSubmitDetailsPage();
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByTestId('mock-confirm-button'));
+            await waitForBatchedUpdatesWithAct();
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+            expect(mockConfirmationListProps.isConfirming).toBe(true);
+        }
+
+        it('keeps the confirm button loading until the upload settles after the user taps Not now', async () => {
+            // Given a share that needs GPS, an undecided permission, and a file read that never settles
+            jest.mocked(readFileAsync).mockImplementationOnce(() => new Promise<void>(() => {}));
+            await confirmAndWaitForPermissionPrompt();
+
+            // When the user taps Not now on the prompt
+            await act(async () => {
+                resolveShowConfirmModal({action: 'CLOSE'});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the share is still submitted without location, and the button stays loading because the expense is not created yet
+            expect(readFileAsync).toHaveBeenCalledTimes(1);
+            expect(TrackExpense.requestMoney).not.toHaveBeenCalled();
+            expect(mockConfirmationListProps.isConfirming).toBe(true);
+        });
+
+        it('releases the confirm button without uploading when the user dismisses the prompt by tapping the backdrop', async () => {
+            // Given a share that needs GPS and an undecided permission
+            await confirmAndWaitForPermissionPrompt();
+
+            // When the user taps the backdrop, which ends the flow without a decision
+            await act(async () => {
+                getShowConfirmModalOption('onBackdropPress')?.();
+                resolveShowConfirmModal({action: 'CLOSE'});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then nothing is uploaded and the user can press confirm again
+            expect(readFileAsync).not.toHaveBeenCalled();
+            expect(TrackExpense.requestMoney).not.toHaveBeenCalled();
+            expect(mockConfirmationListProps.isConfirming).toBe(false);
+        });
     });
 
     it('caches nothing and raises nothing when the permission check fails on open', async () => {

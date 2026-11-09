@@ -16,7 +16,7 @@ import type LocationPermissionModalProps from './types';
 
 const isPermissionGranted = (status: string) => status === RESULTS.GRANTED || status === RESULTS.LIMITED;
 
-function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant, onInitialGetLocationCompleted}: LocationPermissionModalProps) {
+function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant}: LocationPermissionModalProps) {
     const isModalActiveRef = useRef(false);
     const dismissedViaBackdropRef = useRef(false);
     const onGrantRef = useRef(onGrant);
@@ -65,6 +65,8 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                 shouldReverseStackedButtons: true,
                 shouldHideOnBackdropPress: true,
                 onBackdropPress: () => {
+                    // Prevent cleanup from calling closeModal() immediately, allowing the exit animation to play out
+                    isModalActiveRef.current = false;
                     dismissedViaBackdropRef.current = true;
                     resetPermissionFlowRef.current();
                 },
@@ -121,8 +123,6 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                 return;
             }
 
-            onInitialGetLocationCompleted?.();
-
             if (isPermissionGranted(status)) {
                 onGrantRef.current();
             } else {
@@ -134,6 +134,8 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
 
         return () => {
             ignore = true;
+            // A backdrop dismissal of a previous flow can end via cleanup before its promise resolves, leaving the flag set.
+            dismissedViaBackdropRef.current = false;
             if (!isModalActiveRef.current) {
                 return;
             }

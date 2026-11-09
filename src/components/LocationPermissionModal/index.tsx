@@ -23,7 +23,7 @@ import type LocationPermissionModalProps from './types';
 
 const isPermissionGranted = (status: string) => status === RESULTS.GRANTED || status === RESULTS.LIMITED;
 
-function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant, onInitialGetLocationCompleted}: LocationPermissionModalProps) {
+function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant}: LocationPermissionModalProps) {
     const [showModal, setShowModal] = useState(false);
     const isGrantedExternallyRef = useRef(false);
     const isModalActiveRef = useRef(false);
@@ -46,12 +46,16 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
 
     const grantPermission = () => {
         isGrantedExternallyRef.current = true;
+        setShowModal(false);
         onGrantRef.current();
     };
 
     const checkPermission = async () => {
+        if (!isModalActiveRef.current) {
+            return;
+        }
         const status = await getLocationPermission();
-        if (!isPermissionGranted(status) || isGrantedExternallyRef.current) {
+        if (!isModalActiveRef.current || !isPermissionGranted(status) || isGrantedExternallyRef.current) {
             return;
         }
         grantPermission();
@@ -66,9 +70,15 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
 
         let ignore = false;
 
-        const resetFlowState = () => {
+        // Stops the permission polling and hides the prompt without reporting an outcome to the caller.
+        const closePrompt = () => {
             isModalActiveRef.current = false;
             setShowModal(false);
+        };
+
+        // The flow ended without a decision, so the caller is only told to reset. It is never fired together with onGrant or onDeny.
+        const abortPermissionFlow = () => {
+            closePrompt();
             resetPermissionFlow();
         };
 
@@ -78,7 +88,6 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                 return;
             }
 
-            onInitialGetLocationCompleted?.();
             if (isPermissionGranted(status)) {
                 grantPermission();
                 return;
@@ -110,7 +119,12 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                 shouldHideOnBackdropPress: true,
                 onBackdropPress: () => {
                     dismissedViaBackdropRef.current = true;
-                    resetFlowState();
+                    // A grant picked up by the polling already reported the outcome, so the dismissal only closes the prompt.
+                    if (isGrantedExternallyRef.current) {
+                        closePrompt();
+                        return;
+                    }
+                    abortPermissionFlow();
                 },
                 isConfirmLoading: false,
             });
@@ -124,13 +138,17 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
 
             // Already handled by the visibility listener
             if (isGrantedExternallyRef.current) {
-                resetFlowState();
+                if (action === ModalActions.CONFIRM) {
+                    closeModal();
+                }
+                closePrompt();
                 return;
             }
 
             if (action !== ModalActions.CONFIRM) {
-                resetFlowState();
+                closePrompt();
                 // A backdrop tap just dismisses the prompt - it's not an explicit denial, unlike tapping "Not now".
+                // The backdrop handler already aborted the flow, so there is nothing more to report.
                 if (!dismissedViaBackdropRef.current) {
                     onDenyRef.current(true);
                 }
@@ -143,7 +161,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             if (hasError && Linking.openSettings) {
                 Linking.openSettings();
                 closeModal();
-                resetFlowState();
+                abortPermissionFlow();
                 return;
             }
 
@@ -155,7 +173,11 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             }
 
             closeModal();
-            resetFlowState();
+            closePrompt();
+            // Polling may have picked up the grant while the OS prompt was open, so the outcome is already reported.
+            if (isGrantedExternallyRef.current) {
+                return;
+            }
             if (isPermissionGranted(result)) {
                 grantPermission();
             } else {
@@ -167,6 +189,9 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
 
         return () => {
             ignore = true;
+            // A backdrop dismissal of a previous flow can end via cleanup before its promise resolves, leaving the flag set.
+            dismissedViaBackdropRef.current = false;
+            setShowModal(false);
             if (!isModalActiveRef.current) {
                 return;
             }

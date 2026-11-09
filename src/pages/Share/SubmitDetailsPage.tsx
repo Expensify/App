@@ -397,6 +397,8 @@ function SubmitDetailsPage({
 
     const finishRequestAndNavigate = (receipt: Receipt, gpsPoint?: GpsPoint) => {
         if (!transaction || !participant) {
+            formHasBeenSubmitted.current = false;
+            setIsConfirming(false);
             return;
         }
 
@@ -697,7 +699,6 @@ function SubmitDetailsPage({
                         }
                         performUpload(false);
                     }}
-                    onInitialGetLocationCompleted={() => setIsConfirming(false)}
                 />
                 <View
                     style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}
