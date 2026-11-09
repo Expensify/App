@@ -158,7 +158,37 @@ function isPolicyScopedRule(rule: Rule | undefined, policyID: string | undefined
 }
 
 /**
- * Returns the policy's expense default rules, with each rule's ID parsed out of its Onyx key.
+ * The order rules are applied in, oldest first, falling back to the ID for two rules created in the same moment.
+ *
+ * The oldest wins because that is what the admin is told when saving a rule matching what another one already
+ * matches: the rule they already have takes priority over the new one. Every expense default is written with the
+ * same `priority`, so there is nothing for that field to decide between two of them. Leaving the rules in Onyx
+ * key order instead would hand it to whichever one the `GetRules` response happened to list first, which is not
+ * an order the client picks or can repeat.
+ */
+function compareByApplicationOrder({ruleID: ruleIDA, rule: ruleA}: RuleWithID, {ruleID: ruleIDB, rule: ruleB}: RuleWithID): number {
+    if (ruleA.created !== ruleB.created) {
+        // An age the rule does not carry is not an age that predates anything, so it goes last rather than
+        // outranking a rule that does carry one.
+        if (!ruleA.created) {
+            return 1;
+        }
+        if (!ruleB.created) {
+            return -1;
+        }
+        return ruleA.created < ruleB.created ? -1 : 1;
+    }
+
+    if (ruleIDA === ruleIDB) {
+        return 0;
+    }
+
+    return ruleIDA < ruleIDB ? -1 : 1;
+}
+
+/**
+ * Returns the policy's expense default rules, in the order they are applied, with each rule's ID parsed out of
+ * its Onyx key.
  *
  * A rule deleted offline sticks around until the request goes through. `shouldExcludeRulesPendingDelete` leaves
  * those out, for callers that would otherwise keep offering a deleted rule.
@@ -180,7 +210,7 @@ function getPolicyExpenseDefaultRules(rulesCollection: OnyxCollection<Rule> | un
         rules.push({ruleID: onyxKey.slice(ONYXKEYS.COLLECTION.RULE.length), rule});
     }
 
-    return rules;
+    return rules.sort(compareByApplicationOrder);
 }
 
 /** Builds the `tax` action value, which carries the rate's name and value alongside its external ID for display. */

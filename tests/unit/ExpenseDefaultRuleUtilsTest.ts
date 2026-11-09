@@ -765,17 +765,18 @@ describe('ExpenseDefaultRuleUtils', () => {
     });
     describe('getCategoryOnlyExpenseDefaultTaxID', () => {
         const policyID = '1';
-        const buildRule = (filters: RuleFilterNode): Rule => ({
+        const buildRule = (filters: RuleFilterNode, taxID = 'id_TAX_RATE_1', created?: string): Rule => ({
             scope: CONST.RULES.SCOPE.POLICY,
             scopeID: policyID,
             triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
             filters,
+            created,
             actions: toIndexMap([
                 {
                     name: CONST.RULES.ACTIONS.SET,
                     field: CONST.RULES.EXPENSE_DEFAULT.FIELD.TAX,
                     // eslint-disable-next-line @typescript-eslint/naming-convention
-                    value: {field_id_TAX: {externalID: 'id_TAX_RATE_1'}},
+                    value: {field_id_TAX: {externalID: taxID}},
                 },
             ]),
         });
@@ -797,6 +798,34 @@ describe('ExpenseDefaultRuleUtils', () => {
             // Then both get the rule's rate, because the rules engine reads the values as alternatives
             expect(getCategoryOnlyExpenseDefaultTaxID(rules, policyID, 'Travel')).toBe('id_TAX_RATE_1');
             expect(getCategoryOnlyExpenseDefaultTaxID(rules, policyID, 'Meals')).toBe('id_TAX_RATE_1');
+        });
+
+        it('picks the same rule whichever order the collection happens to list two rules for the category in', () => {
+            // Given two rules on the same category, created a day apart and setting different rates
+            const categoryFilter = {left: 'category', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']} satisfies RuleFilterNode;
+            const older = buildRule(categoryFilter, 'id_TAX_RATE_1', '2026-01-01T00:00:00Z');
+            const newer = buildRule(categoryFilter, 'id_TAX_RATE_2', '2026-01-02T00:00:00Z');
+
+            // When the rate is resolved from a collection listing the newer one first, and from one listing the older one first
+            const newerFirst = getCategoryOnlyExpenseDefaultTaxID({[`${ONYXKEYS.COLLECTION.RULE}2`]: newer, [`${ONYXKEYS.COLLECTION.RULE}1`]: older}, policyID, 'Travel');
+            const olderFirst = getCategoryOnlyExpenseDefaultTaxID({[`${ONYXKEYS.COLLECTION.RULE}1`]: older, [`${ONYXKEYS.COLLECTION.RULE}2`]: newer}, policyID, 'Travel');
+
+            // Then the same rule wins both times, so the rate does not depend on the order the response arrived in
+            expect(newerFirst).toBe('id_TAX_RATE_1');
+            expect(olderFirst).toBe('id_TAX_RATE_1');
+        });
+
+        it('leaves a rule that carries no age behind one that does', () => {
+            // Given two rules on the same category, one of them stored without a created timestamp
+            const categoryFilter = {left: 'category', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']} satisfies RuleFilterNode;
+            const aged = buildRule(categoryFilter, 'id_TAX_RATE_1', '2026-01-01T00:00:00Z');
+            const ageless = buildRule(categoryFilter, 'id_TAX_RATE_2');
+
+            // When the rate is resolved from a collection listing the ageless one first
+            const taxID = getCategoryOnlyExpenseDefaultTaxID({[`${ONYXKEYS.COLLECTION.RULE}2`]: ageless, [`${ONYXKEYS.COLLECTION.RULE}1`]: aged}, policyID, 'Travel');
+
+            // Then the rule that does carry an age wins, because an unknown age does not predate anything
+            expect(taxID).toBe('id_TAX_RATE_1');
         });
 
         it('ignores a rule that matches every category except this one', () => {
