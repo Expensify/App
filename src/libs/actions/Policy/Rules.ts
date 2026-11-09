@@ -58,13 +58,19 @@ function getRules() {
         return;
     }
 
-    type RulesFetchKey = typeof ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_RULES;
+    type RulesFetchKey = typeof ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_RULES | typeof ONYXKEYS.RAM_ONLY_HAS_RULES_FETCH_FAILED;
 
     const optimisticData: Array<OnyxUpdate<RulesFetchKey>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.RAM_ONLY_IS_LOADING_RULES,
             value: true,
+        },
+        {
+            // This attempt has not failed yet, so an earlier failure stops standing for it.
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_HAS_RULES_FETCH_FAILED,
+            value: false,
         },
     ];
     const successData: Array<OnyxUpdate<RulesFetchKey>> = [
@@ -86,10 +92,18 @@ function getRules() {
             value: false,
         },
         {
-            // A failed attempt still counts as one. Left false, the prefetch hook sees a fetch as needed again the
-            // moment the in-flight flag clears, so a server error retries for as long as the screen stays mounted.
+            // A failure leaves the collection unfetched, so a screen opened later asks for it again rather than
+            // resolving a category's tax against rules that never arrived. The prefetch hook asks at most once
+            // per mount, which is what keeps a server error from retrying on every render.
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED,
+            value: false,
+        },
+        {
+            // Tells the attempt that failed apart from one still to send, so a screen waiting on the collection
+            // stops waiting. Without it, an unfetched collection reads the same either way.
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_HAS_RULES_FETCH_FAILED,
             value: true,
         },
     ];
@@ -98,14 +112,13 @@ function getRules() {
 
     // A read that throws, which is what a 5xx, a 429 or a socket error does, applies neither its success nor its
     // failure data, and `API.read` reports nothing back to the caller. The timer stands in for the failure data
-    // that never ran, so the attempt is recorded as made rather than left looking like one still to send. Marking
-    // only the in-flight flag would have the prefetch hook ask for another fetch the moment it cleared, and a
-    // screen waiting on the collection would wait through every one of them. Writing flags that already hold
-    // these values once the response has landed costs nothing, so the timer runs either way.
+    // that never ran, so a screen waiting on the collection stops waiting instead of waiting for the session. The
+    // fetched flag is left alone, so this is as retryable as any other failure. Writing a flag that already holds
+    // this value once the response has landed costs nothing, so the timer runs either way.
     clearTimeout(staleRulesFetchTimeoutID);
     staleRulesFetchTimeoutID = setTimeout(() => {
         Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_RULES, false);
-        Onyx.set(ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED, true);
+        Onyx.set(ONYXKEYS.RAM_ONLY_HAS_RULES_FETCH_FAILED, true);
     }, RULES_FETCH_TIMEOUT_MS);
 }
 
@@ -119,6 +132,7 @@ function getRules() {
 function resetRulesFetchState() {
     Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_RULES, false);
     Onyx.set(ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED, false);
+    Onyx.set(ONYXKEYS.RAM_ONLY_HAS_RULES_FETCH_FAILED, false);
 }
 
 /**

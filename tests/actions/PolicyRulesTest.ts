@@ -702,7 +702,7 @@ describe('actions/PolicyRules', () => {
     });
 
     describe('getRules', () => {
-        it('records the attempt as made when the read never settles', async () => {
+        it('records the attempt as failed when the read never settles', async () => {
             // Given a `GetRules` read that applies neither its success nor its failure data, which is what a read
             // that throws does
             jest.useFakeTimers();
@@ -716,10 +716,12 @@ describe('actions/PolicyRules', () => {
             jest.useRealTimers();
             await waitForBatchedUpdates();
 
-            // Then it counts as an attempt, so a screen waiting on the collection stops waiting instead of sitting
-            // through a fetch that is asked for again every time the in-flight flag clears
+            // Then it counts as a failed attempt, so a screen waiting on the collection stops waiting
             expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_IS_LOADING_RULES)).toBe(false);
-            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED)).toBe(true);
+            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_HAS_RULES_FETCH_FAILED)).toBe(true);
+
+            // Then the collection is still unfetched, so the next screen that needs it asks again
+            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED)).toBeFalsy();
 
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
