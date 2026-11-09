@@ -1823,6 +1823,9 @@ const translations: TranslationDeepObject<typeof en> = {
             employeeWillReceive: 'O funcionário receberá',
             totalFees: 'Taxas totais',
             fxRate: 'Taxa de câmbio',
+            paymentDetails: 'Detalhes do pagamento',
+            debitedAmount: 'Valor debitado',
+            employeeReceived: 'O funcionário recebeu',
             payAll: 'Pagar tudo',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 relatório',
@@ -7276,11 +7279,14 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 unassignCard: 'Remover cartão',
                 unassignCards: 'Remover cartões',
                 unassign: 'Desatribuir',
-                unassignCardDescription: 'Desvincular este cartão excluirá todas as transações não enviadas.',
-                unassignCardsDescription: 'Remover a atribuição excluirá todas as transações não enviadas dos cartões selecionados.',
+                unassignCardDescription: (transactionsUrl: string) =>
+                    `Desvincular este cartão excluirá permanentemente todas as suas <a href="${transactionsUrl}">transações não enviadas</a>, incluindo transações não informadas e as que estão em relatórios em rascunho. Essa ação não pode ser desfeita.`,
+                unassignCardsDescription: (transactionsUrl: string) =>
+                    `Remover a atribuição excluirá permanentemente todas as <a href="${transactionsUrl}">transações não enviadas</a> dos cartões selecionados, incluindo transações não informadas e as que estão em relatórios em rascunho. Essa ação não pode ser desfeita.`,
                 removeCard: 'Remover cartão',
                 remove: 'Remover',
-                removeCardDescription: 'Remover este cartão excluirá todas as transações não enviadas.',
+                removeCardDescription: (transactionsUrl: string) =>
+                    `Remover este cartão excluirá permanentemente todas as suas <a href="${transactionsUrl}">transações não enviadas</a>, incluindo transações não informadas e as que estão em relatórios em rascunho. Essa ação não pode ser desfeita.`,
                 assignCard: 'Atribuir cartão',
                 cardFeedName: 'Nome do feed do cartão',
                 cardFeedNameDescription: 'Dê um nome exclusivo ao feed do cartão para diferenciá-lo dos outros.',

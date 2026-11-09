@@ -49,6 +49,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.AUTO_SUBMIT_ROOT]: ROUTES.AUTO_SUBMIT_MODAL_ROOT,
                 [SCREENS.DYNAMIC_CHANGE_POLICY_EDUCATIONAL_ROOT]: DYNAMIC_ROUTES.CHANGE_POLICY_EDUCATIONAL.path,
+                [SCREENS.DYNAMIC_PAYMENT_DETAILS_ROOT]: DYNAMIC_ROUTES.PAYMENT_DETAILS.path,
             },
         },
         [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: {
@@ -2430,6 +2431,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 // parse must return a string, so an absent sourceReportID maps to an empty string, which consumers read as absent.
                                 // eslint-disable-next-line rulesdir/no-default-id-values
                                 sourceReportID: (sourceReportID: string | undefined) => sourceReportID ?? '',
+                                // Same as sourceReportID: parse must return a string, so an absent sourcePolicyID maps to an empty string, which consumers read as absent.
+                                // eslint-disable-next-line rulesdir/no-default-id-values
+                                sourcePolicyID: (sourcePolicyID: string | undefined) => sourcePolicyID ?? '',
                             },
                             stringify: {
                                 // eslint-disable-next-line
@@ -2438,6 +2442,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 // stringify must return a string, so an absent sourceReportID maps to an empty string, which drops it from the route.
                                 // eslint-disable-next-line rulesdir/no-default-id-values
                                 sourceReportID: (sourceReportID: string | undefined) => sourceReportID ?? '',
+                                // Same as sourceReportID: stringify must return a string, so an absent sourcePolicyID maps to an empty string, which drops it from the route.
+                                // eslint-disable-next-line rulesdir/no-default-id-values
+                                sourcePolicyID: (sourcePolicyID: string | undefined) => sourcePolicyID ?? '',
                             },
                         },
                     },

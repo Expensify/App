@@ -65,7 +65,7 @@ function CategoryField({
     shouldSelectPolicy,
 }: CategoryFieldProps) {
     const {shouldUseDropdownRows} = useExpenseFormLayout();
-    const {isEditingSplitBill} = useConfirmationFields();
+    const {isEditingSplitBill, isScanRequest} = useConfirmationFields();
     const {isBetaEnabled} = usePermissions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -80,7 +80,8 @@ function CategoryField({
     const shouldDisplayCategoryError = formError === 'violations.categoryOutOfPolicy';
     const iouCategory = categoryState?.category ?? '';
     const willAutoFill = categoryState?.willAutoFill ?? false;
-    const isAutoFillFromReceipt = categoryState?.isAutoFillFromReceipt ?? false;
+    // Scans extract categories from receipts, whereas manual expense categorization runs after creation.
+    const isAutoFillFromReceipt = isScanRequest;
     const decodedCategoryName = getDecodedLeafCategoryName(iouCategory);
     // The list marks and clears by the stored category name, not by the leaf name the row shows.
     const selectedCategory = isCategoryMissing(iouCategory) ? '' : iouCategory;

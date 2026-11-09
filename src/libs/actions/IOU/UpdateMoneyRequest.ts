@@ -2442,10 +2442,12 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             failureData.push(...snapshotUpdates.failureData);
         }
 
+        // A submitted report's next step only depends on its reimbursable spend when the policy has Optional approvals, which have no approvers.
+        // Otherwise it keeps waiting on the same approver, so we don't rebuild it.
         if (
             violationsOnyxData &&
             ((iouReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN) === CONST.REPORT.STATUS_NUM.OPEN ||
-                (hasModifiedReimbursable && iouReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED))
+                (hasModifiedReimbursable && iouReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED && policy.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL))
         ) {
             const moneyRequestReport = updatedMoneyRequestReport ?? iouReport ?? undefined;
             const reportTransactions = [
@@ -2474,6 +2476,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
                 policy,
                 isTrackIntentUser,
                 rules,
+                personalDetailsByLogins: undefined,
             });
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,

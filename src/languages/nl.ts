@@ -1823,6 +1823,9 @@ const translations: TranslationDeepObject<typeof en> = {
             employeeWillReceive: 'Werknemer ontvangt',
             totalFees: 'Totale kosten',
             fxRate: 'Wisselkoers',
+            paymentDetails: 'Betalingsgegevens',
+            debitedAmount: 'Afgeschreven bedrag',
+            employeeReceived: 'Medewerker ontving',
             payAll: 'Alles betalen',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 rapport',
@@ -7263,11 +7266,14 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 unassignCard: 'Kaart loskoppelen',
                 unassignCards: 'Kaarten loskoppelen',
                 unassign: 'Toewijzen ongedaan maken',
-                unassignCardDescription: 'Het loskoppelen van deze kaart verwijdert alle niet-ingediende transacties.',
-                unassignCardsDescription: 'Loskoppelen verwijdert alle niet-ingediende transacties van de geselecteerde kaarten.',
+                unassignCardDescription: (transactionsUrl: string) =>
+                    `Het loskoppelen van deze kaart verwijdert alle <a href="${transactionsUrl}">niet-ingediende transacties</a> van deze kaart permanent, inclusief niet-gerapporteerde transacties en transacties in conceptrapporten. Dit kan niet ongedaan worden gemaakt.`,
+                unassignCardsDescription: (transactionsUrl: string) =>
+                    `Loskoppelen verwijdert alle <a href="${transactionsUrl}">niet-ingediende transacties</a> van de geselecteerde kaarten permanent, inclusief niet-gerapporteerde transacties en transacties in conceptrapporten. Dit kan niet ongedaan worden gemaakt.`,
                 removeCard: 'Kaart verwijderen',
                 remove: 'Verwijderen',
-                removeCardDescription: 'Als je deze kaart verwijdert, worden alle niet-ingediende transacties verwijderd.',
+                removeCardDescription: (transactionsUrl: string) =>
+                    `Als je deze kaart verwijdert, worden alle <a href="${transactionsUrl}">niet-ingediende transacties</a> van deze kaart permanent verwijderd, inclusief niet-gerapporteerde transacties en transacties in conceptrapporten. Dit kan niet ongedaan worden gemaakt.`,
                 assignCard: 'Kaart toewijzen',
                 cardFeedName: 'Naam van kaartfeed',
                 cardFeedNameDescription: 'Geef de kaartfeed een unieke naam zodat je deze kunt onderscheiden van de andere.',
