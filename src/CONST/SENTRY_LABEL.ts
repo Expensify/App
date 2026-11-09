@@ -1000,6 +1000,8 @@ const SENTRY_LABEL = {
             CONNECT_ACCOUNTING: 'HomePage-GettingStartedRow-ConnectAccounting',
             CONFIGURE_APPROVALS: 'HomePage-GettingStartedRow-ConfigureApprovals',
             SETUP_RULES: 'HomePage-GettingStartedRow-SetupRules',
+            ADD_NAME: 'HomePage-GettingStartedRow-AddName',
+            DOWNLOAD_APP: 'HomePage-GettingStartedRow-DownloadApp',
         },
         GETTING_STARTED_CHECKBOX: {
             CREATE_WORKSPACE: 'HomePage-GettingStartedCheckbox-CreateWorkspace',
@@ -1015,6 +1017,8 @@ const SENTRY_LABEL = {
             CONNECT_ACCOUNTING: 'HomePage-GettingStartedCheckbox-ConnectAccounting',
             CONFIGURE_APPROVALS: 'HomePage-GettingStartedCheckbox-ConfigureApprovals',
             SETUP_RULES: 'HomePage-GettingStartedCheckbox-SetupRules',
+            ADD_NAME: 'HomePage-GettingStartedCheckbox-AddName',
+            DOWNLOAD_APP: 'HomePage-GettingStartedCheckbox-DownloadApp',
         },
         GETTING_STARTED_BEGIN_BUTTON: {
             CREATE_WORKSPACE: 'HomePage-GettingStartedBeginButton-CreateWorkspace',
@@ -1030,6 +1034,8 @@ const SENTRY_LABEL = {
             CONNECT_ACCOUNTING: 'HomePage-GettingStartedBeginButton-ConnectAccounting',
             CONFIGURE_APPROVALS: 'HomePage-GettingStartedBeginButton-ConfigureApprovals',
             SETUP_RULES: 'HomePage-GettingStartedBeginButton-SetupRules',
+            ADD_NAME: 'HomePage-GettingStartedBeginButton-AddName',
+            DOWNLOAD_APP: 'HomePage-GettingStartedBeginButton-DownloadApp',
         },
         GETTING_STARTED_FOOTER_HELP: 'HomePage-GettingStartedFooterHelp',
         QUICK_CREATE: {

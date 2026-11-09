@@ -1,8 +1,10 @@
 import useBankLinkedPersonalCards from '@hooks/useBankLinkedPersonalCards';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useHasLoggedIntoMobileApp from '@hooks/useHasLoggedIntoMobileApp';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingIntent from '@hooks/useOnboardingIntent';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRulesPrefetch from '@hooks/useRulesPrefetch';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
@@ -55,7 +57,9 @@ type GettingStartedItemKey =
     | 'inviteAccountant'
     | 'connectAccounting'
     | 'configureApprovals'
-    | 'setupRules';
+    | 'setupRules'
+    | 'addName'
+    | 'downloadApp';
 
 type GettingStartedItem = {
     key: GettingStartedItemKey;
@@ -70,6 +74,9 @@ type GettingStartedItem = {
 type UseGettingStartedItemsResult = {
     shouldShowSection: boolean;
     items: GettingStartedItem[];
+
+    /** The help footer opens the workspace admins room, which invited members cannot open */
+    shouldShowHelpFooter: boolean;
 };
 
 // Onboarding accounting options that link to the Connections page. Keep in sync with `CONST.ONBOARDING_ACCOUNTING_MAPPING`.
@@ -91,6 +98,27 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [hasMerchantRules] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: createHasExpenseDefaultRulesSelector(activePolicyID)});
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [isWorkspaceInvitee = false] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
+        selector: (introSelected) => introSelected?.choice === CONST.ONBOARDING_CHOICES.SUBMIT && introSelected?.inviteType === CONST.ONBOARDING_INVITE_TYPES.WORKSPACE,
+    });
+    const [inviteePolicyState] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: (policies) => {
+            const allPolicies = Object.values(policies ?? {});
+            const groupPolicies = allPolicies.filter((item) => !!item && item.type !== CONST.POLICY.TYPE.PERSONAL && !isPendingDeletePolicy(item));
+            return {
+                // Joining more workspaces later doesn't hide the employee list, because the invite signup above already marks the user
+                // as new. An admin or owner of any workspace keeps the admin flow below instead.
+                isMemberWithoutAdminRole: groupPolicies.length > 0 && groupPolicies.every((item) => !isPolicyAdmin(item) && !isPolicyOwner(item, currentUserAccountID)),
+
+                // The client has no account creation date, but every account gets its personal policy at signup.
+                personalPolicyCreated: allPolicies.find((item) => item?.type === CONST.POLICY.TYPE.PERSONAL)?.created,
+            };
+        },
+    });
+    const isMemberWithoutAdminRole = !!inviteePolicyState?.isMemberWithoutAdminRole;
+    const personalPolicyCreated = inviteePolicyState?.personalPolicyCreated;
+    const [hasName = false, hasNameResult] = usePersonalDetail(currentUserAccountID, (personalDetail) => !!personalDetail?.firstName?.trim() || !!personalDetail?.lastName?.trim());
+    const {hasLoggedIntoMobileApp, isLastMobileAppLoginLoaded} = useHasLoggedIntoMobileApp();
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [reportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
@@ -114,7 +142,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     const personalCards = useBankLinkedPersonalCards();
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || hasAccountingFeatureConnection(policy);
 
-    const emptyResult: UseGettingStartedItemsResult = {shouldShowSection: false, items: []};
+    const emptyResult: UseGettingStartedItemsResult = {shouldShowSection: false, items: [], shouldShowHelpFooter: false};
 
     // Completes on any expense the user has, so expenses created before this step existed also count.
     const addFirstReceiptItem: GettingStartedItem = {
@@ -127,12 +155,45 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
 
     // Hide the whole section as soon as every onboarding to-do is complete, instead of keeping it
     // around for the full Getting Started window.
-    const buildResult = (builtItems: GettingStartedItem[]): UseGettingStartedItemsResult => {
+    const buildResult = (builtItems: GettingStartedItem[], shouldShowHelpFooter = true): UseGettingStartedItemsResult => {
         if (builtItems.every((item) => item.isComplete)) {
             return emptyResult;
         }
-        return {shouldShowSection: true, items: builtItems};
+        return {shouldShowSection: true, items: builtItems, shouldShowHelpFooter};
     };
+
+    if (isWorkspaceInvitee && isMemberWithoutAdminRole) {
+        // The invited workspace can be years old, so the window starts when the invitee's account was created instead.
+        if (!isWithinGettingStartedPeriod(personalPolicyCreated)) {
+            return emptyResult;
+        }
+
+        // Wait for completion data so a user who finished every step doesn't see the section flash in on a cold start.
+        if (!isLastMobileAppLoginLoaded || hasNameResult.status === 'loading') {
+            return emptyResult;
+        }
+
+        return buildResult(
+            [
+                {
+                    key: 'addName',
+                    label: translate('homePage.gettingStartedSection.addName'),
+                    subText: translate('homePage.gettingStartedSection.addNameSubText'),
+                    isComplete: hasName,
+                    route: ROUTES.SETTINGS_DISPLAY_NAME,
+                },
+                addFirstReceiptItem,
+                {
+                    key: 'downloadApp',
+                    label: translate('homePage.gettingStartedSection.downloadApp'),
+                    subText: translate('homePage.gettingStartedSection.downloadAppSubText'),
+                    isComplete: hasLoggedIntoMobileApp,
+                    onPress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.APP_DOWNLOAD_LINKS.path)),
+                },
+            ],
+            false,
+        );
+    }
 
     // "Submit expenses to my employer" writes EMPLOYER when the user picks it themselves and SUBMIT when they were
     // invited to someone else's workspace. Only the former should see this section, which the ownership gate below enforces.
@@ -167,6 +228,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     if (!isSubmitIntent && (!hasUsableWorkspace || !isPaidGroupPolicy(policy))) {
         return {
             shouldShowSection: true,
+            shouldShowHelpFooter: true,
             items: [
                 {
                     key: 'createWorkspace',

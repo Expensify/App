@@ -32,7 +32,7 @@ function GettingStartedSection() {
     const activePolicy = usePolicy(activePolicyID);
     const [guideDetails] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountGuideDetailsSelector});
     const hasAccountExecutive = !!guideDetails?.email && guideDetails.email.toLowerCase() !== CONST.EMAIL.CONCIERGE;
-    const {shouldShowSection, items} = useGettingStartedItems();
+    const {shouldShowSection, items, shouldShowHelpFooter} = useGettingStartedItems();
 
     const openAdminsRoom = () => {
         const policyAdminsReportID = activePolicy?.chatReportIDAdmins?.toString();
@@ -67,20 +67,22 @@ function GettingStartedSection() {
                     />
                 ))}
             </View>
-            <View style={[cardPaddingHorizontal, cardPaddingBottom]}>
-                <PressableWithoutFeedback
-                    onPress={openAdminsRoom}
-                    accessibilityLabel={footerHelpText}
-                    role={CONST.ROLE.LINK}
-                    sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.GETTING_STARTED_FOOTER_HELP}
-                >
-                    <Text style={[styles.textLabelSupporting, styles.gettingStartedFooterLink]}>
-                        {`${translate('homePage.gettingStartedSection.needHelp')} `}
-                        <Text style={[styles.textLabelSupporting, styles.link]}>{helpLinkText}</Text>
-                        {` ${translate('homePage.gettingStartedSection.forGuidedSetup')}`}
-                    </Text>
-                </PressableWithoutFeedback>
-            </View>
+            {shouldShowHelpFooter && (
+                <View style={[cardPaddingHorizontal, cardPaddingBottom]}>
+                    <PressableWithoutFeedback
+                        onPress={openAdminsRoom}
+                        accessibilityLabel={footerHelpText}
+                        role={CONST.ROLE.LINK}
+                        sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.GETTING_STARTED_FOOTER_HELP}
+                    >
+                        <Text style={[styles.textLabelSupporting, styles.gettingStartedFooterLink]}>
+                            {`${translate('homePage.gettingStartedSection.needHelp')} `}
+                            <Text style={[styles.textLabelSupporting, styles.link]}>{helpLinkText}</Text>
+                            {` ${translate('homePage.gettingStartedSection.forGuidedSetup')}`}
+                        </Text>
+                    </PressableWithoutFeedback>
+                </View>
+            )}
         </WidgetContainer>
     );
 }

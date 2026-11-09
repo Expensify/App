@@ -525,6 +525,30 @@ describe('GettingStartedSection', () => {
             expect(screen.queryByText('homePage.gettingStartedSection.talkToAccountExecutive')).toBeNull();
         });
 
+        it('hides the help footer for a member who joined through a workspace invite', async () => {
+            // Given a new invitee, who is not in the #admins room the footer link opens
+            await Onyx.set(ONYXKEYS.SESSION, {accountID: 5});
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.SUBMIT, inviteType: CONST.ONBOARDING_INVITE_TYPES.WORKSPACE});
+            await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, TEST_POLICY_ID);
+            await Onyx.set(
+                `${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}`,
+                createMock<Policy>({id: TEST_POLICY_ID, name: 'Test Workspace', type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.USER, ownerAccountID: 6}),
+            );
+            await Onyx.set(
+                `${ONYXKEYS.COLLECTION.POLICY}personal`,
+                createMock<Policy>({id: 'personal', type: CONST.POLICY.TYPE.PERSONAL, ownerAccountID: 5, created: new Date().toISOString().replace('T', ' ').replace('Z', '')}),
+            );
+            await waitForBatchedUpdates();
+
+            // When the section renders
+            renderGettingStartedSection();
+            await waitForBatchedUpdates();
+
+            // Then the employee steps show without the dead help link
+            expect(screen.getByText('homePage.gettingStartedSection.addName')).toBeTruthy();
+            expect(screen.queryByText('homePage.gettingStartedSection.talkToConcierge')).toBeNull();
+        });
+
         it('opens the #admins room in the RHP when the footer link is pressed on wide layout', async () => {
             await setManageTeamUserState();
             await setAdminsRoom();
