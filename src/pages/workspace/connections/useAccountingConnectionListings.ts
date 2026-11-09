@@ -152,6 +152,9 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
                     : undefined,
             onConnect: () => connect(name, isIntuitEnterpriseSuite),
             onConfigure: () => Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID)),
+            // A connect flow that fails after leaving the app (e.g. Zoho Books OAuth) reports back through the policy.
+            // Intuit Enterprise Suite is a QBO alias, so only the QBO card shows a QBO error.
+            connectError: isIntuitEnterpriseSuite ? undefined : policy?.connectErrors?.[name],
             registerConnectButton: (button) => {
                 const anchorRef = popoverAnchorRefs?.current?.[key];
                 if (!anchorRef) {

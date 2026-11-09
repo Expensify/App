@@ -103,6 +103,7 @@ function fetchConnectionsData(policyID: string | undefined, canUseMergeConnectio
 
 function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id;
+    console.log('policy', policy);
     const styles = useThemeStyles();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
