@@ -8,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
@@ -25,7 +26,7 @@ type HeaderTooltipIconButtonProps = {
     iconFill?: string;
 
     /** Sentry label for this button. */
-    sentryLabel?: string;
+    sentryLabel?: SentryLabel;
 
     /** Additional styles for the pressable, applied after the default `touchableButtonImage`. */
     style?: StyleProp<ViewStyle>;
