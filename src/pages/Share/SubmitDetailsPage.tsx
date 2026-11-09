@@ -1,7 +1,7 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LocationPermissionModal from '@components/LocationPermissionModal';
-import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
+import ScanConfirmationList from '@components/MoneyRequestConfirmationList/variants/ScanConfirmationList';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -717,7 +717,7 @@ function SubmitDetailsPage({
                     style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}
                     onLayout={endOpenSubmitFlowSpan}
                 >
-                    <MoneyRequestConfirmationList
+                    <ScanConfirmationList
                         transaction={transaction}
                         selectedParticipants={participants}
                         // The Share flow never renders an editable participant row (the transaction is not from global create), so there is nothing to open.
