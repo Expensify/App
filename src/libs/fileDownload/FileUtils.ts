@@ -231,7 +231,7 @@ function appendExtensionFromMimeType(fileName: string, mimeType: string | undefi
 let mimeTypeByExtension: Map<string, string> | undefined;
 
 /**
- * Returns the first MIME type mime-db registers for a file extension, e.g. `mkv` resolves to `video/x-matroska`.
+ * Returns the first MIME type mime-db registers for a file extension, e.g. `mp4` resolves to `video/mp4`.
  * Falls back to 'application/octet-stream' for unrecognized extensions.
  * The extension map is built on first use because mime-db holds a few thousand entries.
  */

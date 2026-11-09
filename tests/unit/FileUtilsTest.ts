@@ -86,7 +86,7 @@ describe('FileUtils', () => {
             // Given an extension the helper does not know
             // When the MIME type is resolved
             // Then the generic binary type is returned
-            expect(getMimeType('notarealextension')).toBe('application/octet-stream');
+            expect(getMimeType('nope')).toBe('application/octet-stream');
         });
     });
 
