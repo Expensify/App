@@ -55,6 +55,7 @@ import type {
     SearchWithdrawalType,
     SelectedReports,
     SelectedTransactionInfo,
+    SelectedTransactions,
     SingularSearchStatus,
     SortOrder,
     SyntaxFilterKey,
@@ -89,6 +90,7 @@ import type {
     SearchMerchantGroup,
     SearchMonthGroup,
     SearchQuarterGroup,
+    SearchResultDataType,
     SearchTagGroup,
     SearchTask,
     SearchTransactionAction,
@@ -214,6 +216,7 @@ import {isReportEntry, TODO_SEARCH_KEYS} from './SearchKeyUtils';
 import {
     buildSearchQueryJSON,
     buildSearchQueryString,
+    getAllMatchingReportQuery,
     getCurrentSearchQueryJSON,
     getDateFilterKeys,
     getDateRangeDisplayValueFromFormValue,
@@ -224,6 +227,7 @@ import {
     isFilterNegated,
     isSearchDatePreset,
     removeNegation,
+    serializeQueryJSONForBackend,
     sortOptionsWithEmptyValue,
 } from './SearchQueryUtils';
 import {expenseStatusActionMapping, getSuggestedSearches, isEligibleForStatus, SEARCH_TYPE_MENU_ICON_NAMES} from './SearchSuggestionUtils';
@@ -3241,6 +3245,57 @@ function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): {key:
         default:
             return undefined;
     }
+}
+
+function getAllMatchingExportQueryAndExclusions(
+    queryJSON: SearchQueryJSON,
+    excludedTransactions: SelectedTransactions,
+    searchData: SearchResultDataType | undefined,
+): {queryJSON: SearchQueryJSON; excludedTransactionIDList: string[]} | undefined {
+    const excludedTransactionIDList: string[] = [];
+    const excludedGroupEntries: Array<{key: QueryFilterKey; value: string | number}> = [];
+
+    for (const key of Object.keys(excludedTransactions)) {
+        if (!isGroupEntry(key)) {
+            excludedTransactionIDList.push(key);
+            continue;
+        }
+
+        const group = searchData?.[key];
+        const groupEntry = queryJSON.groupBy && group ? getSelectedGroupFilterEntry(queryJSON.groupBy, group) : undefined;
+        if (!groupEntry) {
+            return undefined;
+        }
+        excludedGroupEntries.push(groupEntry);
+    }
+
+    if (excludedGroupEntries.length === 0) {
+        return {queryJSON, excludedTransactionIDList};
+    }
+
+    const flatFilters = queryJSON.flatFilters.map((filter) => ({...filter, filters: [...filter.filters]}));
+    for (const entry of excludedGroupEntries) {
+        const exclusionFilter = {operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: entry.value};
+        flatFilters.push({key: entry.key, filters: [exclusionFilter]});
+    }
+
+    const exportQueryJSON = buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters}));
+    return exportQueryJSON ? {queryJSON: exportQueryJSON, excludedTransactionIDList} : undefined;
+}
+
+/** Builds the query and the deselected expenses to send to the backend for a "Select all" bulk action on expenses. */
+function getAllMatchingExpenseActionQuery(
+    queryJSON: SearchQueryJSON,
+    excludedTransactions: SelectedTransactions,
+    searchData: SearchResultDataType | undefined,
+): {jsonQuery: string; excludedTransactionIDList: string[]} | undefined {
+    if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+        const reportQuery = getAllMatchingReportQuery(queryJSON, excludedTransactions);
+        return reportQuery ? {jsonQuery: serializeQueryJSONForBackend(reportQuery), excludedTransactionIDList: []} : undefined;
+    }
+
+    const expenseQuery = getAllMatchingExportQueryAndExclusions(queryJSON, excludedTransactions, searchData);
+    return expenseQuery ? {jsonQuery: serializeQueryJSONForBackend(expenseQuery.queryJSON), excludedTransactionIDList: expenseQuery.excludedTransactionIDList} : undefined;
 }
 
 function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: QueryFilterKey, filterValue: string | number): SearchQueryJSON | undefined {
@@ -8135,6 +8190,8 @@ function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, gro
 }
 
 export {
+    getAllMatchingExpenseActionQuery,
+    getAllMatchingExportQueryAndExclusions,
     doesTransactionMatchFooterTotal,
     getSnapshotFooterTotal,
     getSearchBulkEditPolicyID,

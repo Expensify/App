@@ -9,13 +9,13 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import {getAllMatchingExpenseActionQuery} from '@hooks/useSearchBulkActions';
 
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
 import {queueBulkRejectExpenses, rejectMoneyRequestsOnSearch} from '@libs/actions/Search';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getAllMatchingExpenseActionQuery} from '@libs/SearchUIUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import type {SearchReportActionsParamList} from '@navigation/types';

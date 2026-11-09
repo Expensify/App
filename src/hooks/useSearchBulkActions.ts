@@ -85,10 +85,20 @@ import {
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
-import {buildSearchQueryJSON, buildSearchQueryString, getFilterFromQuery, isDefaultExpensesQuery, queryHasViolationFilter, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
+import {
+    buildSearchQueryJSON,
+    buildSearchQueryString,
+    getAllMatchingReportQuery,
+    getFilterFromQuery,
+    isDefaultExpensesQuery,
+    queryHasViolationFilter,
+    serializeQueryJSONForBackend,
+} from '@libs/SearchQueryUtils';
 import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
 import type {SearchGroupKey} from '@libs/SearchUIUtils';
 import {
+    getAllMatchingExpenseActionQuery,
+    getAllMatchingExportQueryAndExclusions,
     getColumnsToShow,
     getSearchColumnTranslationKey,
     getSelectedGroupFilterEntry,
@@ -401,82 +411,12 @@ function getTemplateGroupExportQuery(queryJSON: SearchQueryJSON, selectedTransac
     return getUngroupedTemplateExportQuery(groupFilteredQueryJSON);
 }
 
-function getAllMatchingExportQueryAndExclusions(
-    queryJSON: SearchQueryJSON,
-    excludedTransactions: SelectedTransactions,
-    searchData: SearchResultDataType | undefined,
-): {queryJSON: SearchQueryJSON; excludedTransactionIDList: string[]} | undefined {
-    const excludedTransactionIDList: string[] = [];
-    const excludedGroupEntries: Array<{key: QueryFilterKey; value: string | number}> = [];
-
-    for (const key of Object.keys(excludedTransactions)) {
-        if (!isGroupEntry(key)) {
-            excludedTransactionIDList.push(key);
-            continue;
-        }
-
-        const group = searchData?.[key];
-        const groupEntry = queryJSON.groupBy && group ? getSelectedGroupFilterEntry(queryJSON.groupBy, group) : undefined;
-        if (!groupEntry) {
-            return undefined;
-        }
-        excludedGroupEntries.push(groupEntry);
-    }
-
-    if (excludedGroupEntries.length === 0) {
-        return {queryJSON, excludedTransactionIDList};
-    }
-
-    const flatFilters = queryJSON.flatFilters.map((filter) => ({...filter, filters: [...filter.filters]}));
-    for (const entry of excludedGroupEntries) {
-        const exclusionFilter = {operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: entry.value};
-        flatFilters.push({key: entry.key, filters: [exclusionFilter]});
-    }
-
-    const exportQueryJSON = buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters}));
-    return exportQueryJSON ? {queryJSON: exportQueryJSON, excludedTransactionIDList} : undefined;
-}
-
 type CSVExportQueryJSON = Omit<SearchQueryJSON, 'columns'> & {columns: SearchColumnType[]; searchKey: SearchKey | undefined};
 
 const NON_EXPORTABLE_COLUMNS = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.ACTION]);
 
 function getExportableColumns(columns: SearchColumnType[]): SearchColumnType[] {
     return columns.filter((column) => !NON_EXPORTABLE_COLUMNS.has(column));
-}
-
-function getAllMatchingReportQuery(queryJSON: SearchQueryJSON, excludedTransactions: SelectedTransactions): SearchQueryJSON | undefined {
-    const excludedEntries = Object.values(excludedTransactions);
-    if (excludedEntries.some((transaction) => !transaction.reportID)) {
-        return undefined;
-    }
-    const excludedReportIDs = [...new Set(excludedEntries.map((transaction) => transaction.reportID).filter((reportID): reportID is string => !!reportID))];
-    if (excludedReportIDs.length === 0) {
-        return queryJSON;
-    }
-
-    const flatFilters = queryJSON.flatFilters.map((filter) => ({...filter, filters: [...filter.filters]}));
-    flatFilters.push({
-        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
-        filters: excludedReportIDs.map((reportID) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: reportID})),
-    });
-
-    return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters}));
-}
-
-/** Builds the query and the deselected expenses to send to the backend for a "Select all" bulk action on expenses. */
-function getAllMatchingExpenseActionQuery(
-    queryJSON: SearchQueryJSON,
-    excludedTransactions: SelectedTransactions,
-    searchData: SearchResultDataType | undefined,
-): {jsonQuery: string; excludedTransactionIDList: string[]} | undefined {
-    if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        const reportQuery = getAllMatchingReportQuery(queryJSON, excludedTransactions);
-        return reportQuery ? {jsonQuery: serializeQueryJSONForBackend(reportQuery), excludedTransactionIDList: []} : undefined;
-    }
-
-    const expenseQuery = getAllMatchingExportQueryAndExclusions(queryJSON, excludedTransactions, searchData);
-    return expenseQuery ? {jsonQuery: serializeQueryJSONForBackend(expenseQuery.queryJSON), excludedTransactionIDList: expenseQuery.excludedTransactionIDList} : undefined;
 }
 
 /**
@@ -3715,5 +3655,5 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 }
 
 export default useSearchBulkActions;
-export {getAllMatchingExpenseActionQuery, getFullyDeletedGroupKeysByTransactionID, getGroupKeysSelectedViaGroup, getSelectedGroupKeys, shouldShowBulkDuplicateOption};
+export {getFullyDeletedGroupKeysByTransactionID, getGroupKeysSelectedViaGroup, getSelectedGroupKeys, shouldShowBulkDuplicateOption};
 export type {SearchHeaderOptionValue};

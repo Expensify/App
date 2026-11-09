@@ -9,7 +9,6 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import {getAllMatchingExpenseActionQuery} from '@hooks/useSearchBulkActions';
 import useTransactionsByID from '@hooks/useTransactionsByID';
 
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
@@ -19,6 +18,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {getAllMatchingExpenseActionQuery} from '@libs/SearchUIUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import type {SearchReportActionsParamList} from '@navigation/types';
