@@ -15,11 +15,10 @@ import useSidePanelState from '@hooks/useSidePanelState';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUnreadMarker from '@hooks/useUnreadMarker';
 
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {shouldHidePayAction} from '@libs/ReportActionsUtils';
-import {isArchivedReport, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {isArchivedReport} from '@libs/ReportUtils';
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
@@ -27,7 +26,6 @@ import {useActionListContext} from '@pages/inbox/ActionListContext';
 import {useConciergeChatHistoryActions} from '@pages/inbox/ConciergeChatHistoryContext';
 import AskConciergeWelcome from '@pages/inbox/report/AskConciergeWelcome';
 import ConciergeChatHistoryToggle from '@pages/inbox/report/ConciergeChatHistoryToggle';
-import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
 import {useReportActionsListState} from '@pages/inbox/report/ReportActionsListContext';
 import ReportActionsListHeader from '@pages/inbox/report/ReportActionsListHeader';
 import ReportActionsListPaddingView from '@pages/inbox/report/ReportActionsListPaddingView';
@@ -41,12 +39,13 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {LegendList} from '@legendapp/list/react-native';
 import {useRoute} from '@react-navigation/native';
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useState} from 'react';
 import {Platform, View} from 'react-native';
 
 import type {ReportActionsListProps} from './types';
 
+import filterHiddenSupportTicketSurveys from './filterHiddenSupportTicketSurveys';
+import ReportActionsListFloatingMessageCounter from './ReportActionsListFloatingMessageCounter';
 import useReportActionsListData from './useReportActionsListData';
 import useReportActionsListRenderItem from './useReportActionsListRenderItem';
 import useReportActionsListScroll from './useReportActionsListScroll';
@@ -73,6 +72,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         hasNewerActions,
         oldestUnreadReportAction,
         transactionThreadReport,
+        sortedAllReportActions,
         sortedReportActions: unfilteredReportActions,
         sortedVisibleReportActions: unfilteredVisibleReportActions,
         isConciergeHiddenHistory,
@@ -81,8 +81,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     } = useReportActionsListState();
 
     // Remove rows hidden by the renderer before calculating summary counts, headers, and scroll positions.
-    const sortedReportActions = report?.isWaitingOnBankAccount ? unfilteredReportActions.filter((action) => !shouldHidePayAction(action, true)) : unfilteredReportActions;
-    const sortedVisibleReportActions = report?.isWaitingOnBankAccount
+    const paymentFilteredReportActions = report?.isWaitingOnBankAccount ? unfilteredReportActions.filter((action) => !shouldHidePayAction(action, true)) : unfilteredReportActions;
+    const paymentFilteredVisibleReportActions = report?.isWaitingOnBankAccount
         ? unfilteredVisibleReportActions.filter((action) => !shouldHidePayAction(action, true))
         : unfilteredVisibleReportActions;
 
@@ -98,10 +98,20 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     useRetireMerchantRuleSuggestionOnLeave(reportID);
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
+    // Hidden surveys must not become unread targets that have no rendered row.
+    const sortedReportActions = filterHiddenSupportTicketSurveys({
+        reportActions: paymentFilteredReportActions,
+        sortedAllReportActions,
+        report,
+        reportNameValuePairs,
+    });
+    const sortedVisibleReportActions = filterHiddenSupportTicketSurveys({
+        reportActions: paymentFilteredVisibleReportActions,
+        sortedAllReportActions,
+        report,
+        reportNameValuePairs,
+    });
     const isReportArchived = !!isArchivedReport(reportNameValuePairs);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const reportAttributesSelector = (value: OnyxEntry<OnyxTypes.ReportAttributesDerivedValue>) => {
         const attrs = value?.reports?.[reportID];
@@ -141,7 +151,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
 
     const reportActionsListData = useReportActionsListData({
         sortedVisibleReportActions,
-        reportNameValuePairs,
         isOffline,
         sessionStartTime,
         linkedReportActionID,
@@ -163,7 +172,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         scrollToActionBadgeTarget,
     } = useReportActionsListScroll({
         reportID,
-        sortedVisibleReportActions,
+        // Hidden surveys still prove that the selected page contains the newest action.
+        sortedVisibleReportActions: paymentFilteredVisibleReportActions,
         renderedVisibleReportActions: listData,
         reportActionIDToDisplayIndex,
         markNewestActionAsRead,
@@ -217,13 +227,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
 
     const offlineHistoryHeader = shouldShowOfflineSkeleton ? <ReportActionsSkeletonView shouldAnimate={false} /> : undefined;
 
-    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
-        policy,
-        report,
-        isTrackIntentUser,
-        rules,
-    });
-
     // The guard only mounts this content when the report is loaded, so this is effectively unreachable.
     // It narrows `report` to non-undefined for the render below and stays a safe fallback if the report
     // is cleared mid-session while the latch keeps the content mounted.
@@ -250,14 +253,14 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                 containerStyles={[styles.mh4, styles.mt2]}
                 overlayStyles={styles.merchantRuleCalloutOverlay}
             />
-            <FloatingMessageCounter
+            <ReportActionsListFloatingMessageCounter
+                report={report}
                 hasNewMessages={!!unreadMarkerReportActionID}
                 isActive={isFloatingMessageCounterVisible}
                 onClick={scrollToBottomAndMarkReportAsRead}
                 actionBadge={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.actionBadge : undefined}
                 actionBadgeBrickRoadStatus={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.brickRoadStatus : undefined}
                 onActionBadgePress={scrollToActionBadgeTarget}
-                shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
             />
             <ReportActionsListPaddingView
                 report={report}

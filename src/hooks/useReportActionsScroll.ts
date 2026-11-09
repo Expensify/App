@@ -269,9 +269,13 @@ function useReportActionsScroll({
             return;
         }
         reportScrollManager.scrollToBottom();
+        // The list can already sit at the bottom, so no scroll event corrects the offset left by the linked message.
+        // Sync it here, or the next content size change shows the Latest messages pill again.
+        scrollOffsetRef.current = 0;
+        setIsFloatingMessageCounterVisible(false);
         setIsScrollToBottomEnabled(false);
         completeLiveTailPruneAfterScrollToBottom();
-    }, [isScrollToBottomEnabled, reportScrollManager, setIsScrollToBottomEnabled, completeLiveTailPruneAfterScrollToBottom]);
+    }, [isScrollToBottomEnabled, reportScrollManager, scrollOffsetRef, setIsFloatingMessageCounterVisible, setIsScrollToBottomEnabled, completeLiveTailPruneAfterScrollToBottom]);
 
     // Clear the shouldScrollToLatest route param once the mount scroll above has consumed it, so a later remount of
     // this report doesn't pull the user down again. MoneyRequestReportActionsList clears it the same way for the

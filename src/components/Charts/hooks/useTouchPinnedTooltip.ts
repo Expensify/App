@@ -27,6 +27,8 @@ function useTouchPinnedTooltip(hideTooltip: () => void) {
     };
 
     return {
+        /** Whether the tooltip is shown by a touch tap */
+        isTouchPinned,
         /** Sets whether the tooltip is pinned by a touch tap */
         setIsTouchPinned,
         /** Hides the tooltip and unpins it */

@@ -73,6 +73,8 @@ function LineChartCanvas({
     formatValue: formatValueOverride,
     shouldUseWholeNumberTicks = false,
     onPointPress,
+    onTooltipPress,
+    tooltipFooter,
     labelSteps,
     shouldShowTooltipChange,
     chartWidth,
@@ -236,6 +238,7 @@ function LineChartCanvas({
         activePointPosition,
         onChartMoved,
         dismissTooltip,
+        isTouchPinned,
         onChartTouchStart,
     } = useChartInteractions({
         handlePress: onPointPress ? handlePointPress : undefined,
@@ -420,6 +423,8 @@ function LineChartCanvas({
                     onChartMoved={onChartMoved}
                     onDismiss={dismissTooltip}
                     shouldShowTooltipChange={shouldShowTooltipChange}
+                    onPress={isTouchPinned ? onTooltipPress : undefined}
+                    footer={isTouchPinned ? tooltipFooter : undefined}
                 />
             </Animated.View>
         </GestureDetector>

@@ -115,8 +115,8 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
             onReset={resetChanges}
             onApply={applyChanges}
             onBackButtonPress={onBackButtonPress}
-            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_SINGLE_SELECT}
-            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_SINGLE_SELECT}
+            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.DISPLAY_POPUP_RESET.SORT_BY}
+            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.DISPLAY_POPUP_APPLY.SORT_BY}
         >
             <ListFilterWrapper
                 itemCount={sortableColumns.length}

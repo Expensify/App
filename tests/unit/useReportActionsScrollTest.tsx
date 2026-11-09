@@ -977,6 +977,23 @@ describe('useReportActionsScroll', () => {
             rerender(buildParams());
             expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
         });
+
+        it('clears the stale linked-message offset and hides the pill when consuming the request', async () => {
+            // Given a live-tail jump with the offset and pill left over from a linked message
+            mockIsScrollToBottomEnabled = true;
+            mockScrollOffsetRef.current = CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD + 1;
+            mockIsFloatingMessageCounterVisible = true;
+
+            // When the list consumes the jump without emitting another scroll event
+            await renderScroll();
+
+            // Then later content size changes cannot restore the pill from the historical offset
+            expect(mockScrollOffsetRef.current).toBe(0);
+            expect(mockSetIsFloatingMessageCounterVisible).toHaveBeenCalledWith(false);
+            expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
+            expect(mockSetIsScrollToBottomEnabled).toHaveBeenCalledWith(false);
+            expect(mockCompleteLiveTailPrune).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe('effects', () => {

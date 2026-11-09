@@ -122,6 +122,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pay: '支払う',
             fix: '修正',
             task: 'タスク',
+            add: '追加',
         },
         success: '成功しました',
         group: 'グループ',
@@ -184,6 +185,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dob: '生年月日',
         currentYear: '今年',
         currentMonth: '今月',
+        todayDateLabel: (date: string) => `${date}（本日）`,
         ssnLast4: 'SSN の下4桁',
         ssnFull9: 'SSN の9桁すべて',
         addressLine: (lineNumber: number) => `住所 ${lineNumber} 行目`,
@@ -1057,6 +1059,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             emailDeliveryFailure: {title: 'メール通知をお送りできません', subtitle: 'アカウント'},
             upgradeNetSuiteConnection: {title: 'NetSuite 接続をアップグレードする'},
+            verifyWiseBankAccount: {title: '銀行口座を確認', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `末尾が ${bankAccountLastFour} の銀行口座`},
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -1229,6 +1232,8 @@ const translations: TranslationDeepObject<typeof en> = {
         runningTotal: '累計合計',
         explain: '説明',
         explainChartPrompt: (chartTitle: string) => `${chartTitle} のデータを説明します。`,
+        viewDetails: '詳細を表示',
+        viewAll: 'すべて表示',
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -1793,6 +1798,23 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmApprovalWithHeldAmount: 'レポートには保留中の経費が含まれています。準拠している経費のみを承認しますか、それともレポート全体を承認しますか？',
         confirmApprovalAllHoldAmount: 'すべての経費が保留中です。それでも承認しますか？',
         confirmPay: '支払金額を確認',
+        wisePaymentSummary: {
+            confirmPayment: '支払いを確認',
+            reportTotal: 'レポート合計',
+            unheldAmountBeingPaid: '支払われる保留外の金額',
+            debitAmount: '引き落とし額',
+            employeeWillReceive: '従業員の受取額',
+            totalFees: '手数料合計',
+            fxRate: '為替レート',
+            paymentDetails: '支払いの詳細',
+            debitedAmount: '引き落とし額',
+            employeeReceived: '従業員の受取額',
+            payAll: 'すべて支払う',
+            reportCount: ({count}: {count: number}) => ({
+                one: '1 件のレポート',
+                other: `${count} 件のレポート`,
+            }),
+        },
         confirmPayAmount: '保留されていない金額のみ支払うか、レポート全額を支払ってください。',
         confirmPayAllHoldAmount: () => ({
             one: 'この経費は保留中です。それでも支払いますか？',
@@ -2125,6 +2147,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `さらに操作を行うには、レポートのワークスペースを変更してください。`,
+
+            [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `このワークスペースでは承認しかできません。提出するには、このレポートを別のワークスペースに移動してください。`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2181,14 +2210,15 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `経費の承認を<strong>あなた</strong>が行うのを待っています。`;
+                        return isBill ? `請求書の承認を<strong>あなた</strong>が行うのを待っています。` : `経費の承認を<strong>あなた</strong>が行うのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `<strong>${actor}</strong>による経費の承認を待っています。`;
+                        return isBill ? `<strong>${actor}</strong>による請求書の承認を待っています。` : `<strong>${actor}</strong>による経費の承認を待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `管理者が経費を承認するのを待っています。`;
+                        return isBill ? `管理者が請求書を承認するのを待っています。` : `管理者が経費を承認するのを待っています。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (
@@ -2211,14 +2241,15 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `精算の支払いを<strong>あなた</strong>が行うのを待っています。`;
+                        return isBill ? `この請求書の支払いを<strong>あなた</strong>が行うのを待っています。` : `精算の支払いを<strong>あなた</strong>が行うのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `<strong>${actor}</strong> が経費を支払うのを待っています。`;
+                        return isBill ? `<strong>${actor}</strong> がこの請求書を支払うのを待っています。` : `<strong>${actor}</strong> が経費を支払うのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `管理者が経費を支払うのを待っています。`;
+                        return isBill ? `管理者がこの請求書を支払うのを待っています。` : `管理者が経費を支払うのを待っています。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
@@ -3103,7 +3134,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Wiseの<a href="${CONST.WISE.TERMS_URL}">利用規約</a>および<a href="${CONST.WISE.PRIVACY_URL}">プライバシーポリシー</a>に同意します。`,
                 wiseTermsAccessibilityLabel: 'Wiseの利用規約およびプライバシーポリシーに同意します。',
                 error: '続行するにはすべての規約に同意してください。',
-                alreadySubmitted: 'このビジネスはすでに審査のためにWiseに送信されています。',
             },
             moreInfoNeeded: {headerTitle: '詳細情報が必要です', title: '追加情報を確認', subtitle: '決済パートナーが直接、追加情報を必要としています。数分で完了します。'},
             inReview: {
@@ -3124,6 +3154,7 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: '会社と従業員の銀行口座は異なる通貨を使用しています。',
         },
         wiseGlobalReimbursementsBanner: {title: '世界中の人に支払いましょう', subtitle: 'USD アカウントでグローバル払い戻しを有効にします。'},
+        wiseMoreInfoNeeded: 'グローバル払い戻しを有効にするには、さらに情報が必要です',
         globalReimbursementsEnabled: 'グローバル精算が有効になりました',
     },
     addCardToDigitalWallet: {
@@ -3275,8 +3306,10 @@ ${date} の ${merchant} への ${amount}`,
         addApprovalsDescription: '支払いを承認する前に、追加の承認を必須にする。',
         makeOrTrackPaymentsTitle: '支払',
         makeOrTrackPaymentsDescription: 'Expensifyでの支払いに対する承認済み支払者を追加するか、他の場所で行われた支払いを記録します。',
-        collectEmployeeBankDetails: '従業員の銀行口座情報を収集',
-        collectEmployeeBankDetailsDescription: '従業員の銀行口座情報を収集して、Expensify以外で精算できるようにします。',
+        collectEmployeeBankDetails: '銀行口座情報を収集します',
+        collectEmployeeBankDetailsDescription: 'ワークスペースメンバーから銀行口座情報を収集し、Expensify 外で精算できるようにします。',
+        disablePaymentsTitle: '支払いを無効にしますか？',
+        disablePaymentsPrompt: 'これにより、お支払い設定がすべて削除されます。',
         businessBankAccountCountries: 'ビジネス銀行口座の国',
         businessBankAccountCountriesDescription: 'これらの国の従業員は現地送金の詳細を入力します。それ以外の方は国際電信送金の詳細を入力します。',
         customApprovalWorkflowEnabled:
@@ -4330,7 +4363,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         bankAccountPurposeTitle: '銀行口座で何をしたいですか？',
         getReimbursed: '払い戻しを受ける',
         getReimbursedDescription: '雇用主または他の人から',
-        makePayments: '支払いを行う',
+        makePayments: 'ビジネス支払いを行う',
         makePaymentsDescription: '経費の支払いまたは Expensify カードの発行',
         hasPhoneLoginError: (contactMethodRoute: string) =>
             `銀行口座を連携するには、まず<a href="${contactMethodRoute}">メールアドレスをプライマリログインとして追加</a>してから、もう一度お試しください。電話番号はセカンダリログインとして追加できます。`,
@@ -4429,6 +4462,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         updateSuccessTitle: '銀行口座が更新されました!',
         updateSuccessHeader: '銀行口座が更新されました',
         updateSuccessMessage: 'おめでとうございます。銀行口座の設定が完了し、精算の受け取りができるようになりました。',
+        bankDetails: '銀行口座情報',
+        accountHolderDetails: '口座名義人の詳細',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Expensify のパスワードを入力',
@@ -4436,6 +4471,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         chooseAccountLabel: 'アカウント',
         successTitle: '個人の銀行口座を追加しました！',
         successMessage: 'おめでとうございます。銀行口座の設定が完了し、払い戻しを受け取る準備が整いました。',
+        bankAccountAddedTitle: '銀行口座を追加しました！',
+        bankAccountAddedMessage: '個人の銀行口座の設定が完了し、精算の受け取り準備が整いました。',
     },
     attachmentView: {
         unknownFilename: '不明なファイル名',
@@ -5157,6 +5194,13 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             title: 'まだ旅行を予約できません',
             message:
                 '現在、出張機能が有効なワークスペースのメンバーですが、そのワークスペースはデフォルトではありません。予約するには、デフォルトのワークスペースで出張機能を有効にするか、デフォルトのワークスペースを出張機能が有効なワークスペースに変更してください。',
+        },
+        approval: {
+            status: {outstanding: '未払い', approved: '承認済み', rejected: '却下されました', canceled: 'キャンセルされました'},
+            deadline: {
+                softApproval: (time: string) => `${time}後に自動承認されます。そこまでは無料でキャンセルできます。`,
+                hardApproval: (time: string) => `承認されない場合は ${time} で自動的にキャンセルされます。`,
+            },
         },
     },
     workspace: {
@@ -6131,7 +6175,11 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             noSubsidiariesFoundDescription: 'NetSuite に子会社を追加して、もう一度接続を同期してください',
             tokenInput: {
                 title: 'NetSuite のセットアップ',
-                connectWithTokenAuthentication: '代わりにトークンベース認証（SOAP）で接続します',
+                tokenAuthenticationPrompt: {
+                    beforeLink: 'または、',
+                    link: 'トークンベース認証',
+                    afterLink: '（SOAP）で接続します。',
+                },
                 formSteps: {
                     installBundle: {
                         title: 'Expensify バンドルをインストール',
@@ -6943,6 +6991,15 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: 'すべてのカテゴリを削除または無効にすることはできません',
                 description: `ワークスペースでカテゴリが必須のため、少なくとも1つのカテゴリは有効のままにする必要があります。`,
             },
+            cannotDisableCategoryForMembers: {
+                title: ({categoryName}: {categoryName: string}) => `${categoryName}を無効にできません`,
+                bulkTitle: 'これらのカテゴリーは無効にできません',
+                description: ({count}: {count: number}) => ({
+                    one: '1人のメンバーが選択できるカテゴリがなくなってしまいます。該当メンバーのカテゴリの表示設定を更新してから、もう一度お試しください。',
+                    other: `${count} 人のメンバーが選択できるカテゴリがなくなります。これらのメンバーのカテゴリの表示設定を更新してから、もう一度お試しください。`,
+                }),
+                andMore: ({count}: {count: number}) => `ほか ${count} 件`,
+            },
         },
         moreFeatures: {
             subtitle: 'ビジネスの成長に合わせて、下の切り替えスイッチでさらに多くの機能を有効にしましょう。各機能はナビゲーションメニューに表示され、さらにカスタマイズできます。',
@@ -7108,11 +7165,14 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 unassignCard: 'カードの割り当てを解除',
                 unassignCards: 'カードの割り当てを解除',
                 unassign: '割り当てを解除',
-                unassignCardDescription: 'このカードの割り当てを解除すると、未送信の取引はすべて削除されます。',
-                unassignCardsDescription: '割り当てを解除すると、選択したカードの未送信の取引はすべて削除されます。',
+                unassignCardDescription: (transactionsUrl: string) =>
+                    `このカードの割り当てを解除すると、未報告の取引や下書きレポート内の取引を含む、このカードの<a href="${transactionsUrl}">未送信の取引</a>はすべて完全に削除されます。この操作は元に戻せません。`,
+                unassignCardsDescription: (transactionsUrl: string) =>
+                    `割り当てを解除すると、未報告の取引や下書きレポート内の取引を含む、選択したカードの<a href="${transactionsUrl}">未送信の取引</a>はすべて完全に削除されます。この操作は元に戻せません。`,
                 removeCard: 'カードを削除',
                 remove: '削除',
-                removeCardDescription: 'このカードを削除すると、未送信のすべての取引が削除されます。',
+                removeCardDescription: (transactionsUrl: string) =>
+                    `このカードを削除すると、未報告の取引や下書きレポート内の取引を含む、このカードの<a href="${transactionsUrl}">未送信の取引</a>はすべて完全に削除されます。この操作は元に戻せません。`,
                 assignCard: 'カードを割り当てる',
                 cardFeedName: 'カードフィード名',
                 cardFeedNameDescription: '他のカードフィードと区別できるように、一意の名前を付けてください。',
@@ -7495,7 +7555,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: 'メンバーをコピー',
                 prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
                     one: `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`,
-                    // Japanese has no "one" plural category, so handle the single-workspace case here
                     other:
                         count === 1
                             ? `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`
@@ -7648,6 +7707,13 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             },
             officeLocation: 'オフィス所在地',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name}（${address}）`,
+            categoryVisibility: 'カテゴリの表示',
+            allCategories: 'すべてのカテゴリ',
+            categoriesCount: ({count}: {count: number}) => ({
+                one: '1 件のカテゴリ',
+                other: `${count} 件のカテゴリ`,
+            }),
+            categoryVisibilityRequiredModal: {title: 'メンバーには少なくとも 1 つのカテゴリーが必要です', description: 'このメンバーが使用できるカテゴリを少なくとも 1 つ選択してください。'},
             changeOfficeLocation: 'オフィスの所在地を変更',
             changeWorkArrangement: '勤務形態を変更',
             changeRole: 'ロールを変更',
@@ -8773,6 +8839,8 @@ ${reportName}`,
                     `自動支払いはControlプランでのみご利用いただけます。この機能を有効にするには[アップグレード](${upgradeLink})してください。`,
                 autoPayReportsUnderTitle: '自動支払いレポートの対象:',
                 autoPayReportsUnderDescription: 'この金額以下で完全準拠の経費精算書は、自動的に支払われます。',
+                autoPayCrossBorderFeesDisclosure:
+                    '海外送金には、支払い時点の仲値為替レートが適用されます。すべての海外送金に1%の変動手数料がかかります。ただし、次の通貨を除きます：CRC（1.32%）、KES（1.01%）、MAD（1.60%）、NPR（1.05%）、UGX（1.47%）、UYU（1.12%）。\n\nレポートが自動支払いされる場合、正確なレートと手数料を支払い前に確認することはできません。正確な為替レート、手数料、最終金額を含む詳細な内訳は、支払い直後にレポートで確認できます。',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `この機能を利用するには、${featureName} を追加してください。`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `[その他の機能](${moreFeaturesLink})に移動し、${featureName} を有効にしてこの機能を利用できるようにしてください。`,
@@ -9065,8 +9133,9 @@ ${reportName}`,
                 describeRuleForConcierge: 'ルールの内容を入力すると、Concierge が自動作成します',
                 gotIt: '了解しました',
                 createRule: 'ルールを作成',
-                fallbackBanner: 'これは標準ルールではないため、エージェントルールを作成しました。',
-                fallbackBannerWithExplanation: (explanation: string) => `これは標準ルールではないため、エージェントルールを作成しました。${explanation}`,
+                fallbackBanner: 'これは標準ルールではないため、エージェントルールを作成しました。エージェントルールは、経費またはレポートが作成または更新されたときに実行されます。',
+                fallbackBannerWithExplanation: (explanation: string) =>
+                    `これは標準ルールではないため、エージェントルールを作成しました。エージェントルールは、経費またはレポートが作成または更新されたときに実行されます。${explanation}`,
             },
             tabs: {
                 general: '一般',
@@ -9531,10 +9600,60 @@ ${reportName}`,
             exportNonReimbursable: {label: '会社カード経費のエクスポート形式', values: {EXPENSE: {label: '経費'}}},
             defaultCompanyCardVendor: {label: '全社カードのデフォルトベンダー', description: '自動で一致しない経費に使用するデフォルトの Zoho Books ベンダーを選択してください。'},
             companyCardAccount: {label: '法人カード口座', description: '会社カード取引のエクスポート先を選択します。'},
+            exportToMultipleAccounts: '複数の勘定科目へのエクスポートを設定する',
+            cardProgramAccount: {
+                label: 'カードプログラム口座',
+                description: 'これらのカードプログラムのワークスペースアカウントを上書きします。',
+                descriptionLevel2: 'このカードプログラムのワークスペース口座を上書きします。',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'すべてのプログラムはデフォルトアカウントを使用します';
+                    }
+                    return {
+                        one: `カスタム勘定科目を使用するプログラム：${count} 件`,
+                        other: `${count} 件のプログラム（カスタムアカウントあり）`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'カード単位の口座',
+                description: '個々のカードに対してプログラム口座を上書きします。',
+                descriptionLevel2: 'これらのカードのプログラム口座を上書きします。',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'すべてのカードはプログラムアカウントを使用します';
+                    }
+                    return {
+                        one: `カスタム口座付きカード ${count} 枚`,
+                        other: `カスタム口座のあるカードが ${count} 枚`,
+                    };
+                },
+            },
             noVendorsFound: '取引先が見つかりません',
             noVendorsFoundDescription: 'Zoho Books にベンダーを追加して、もう一度接続を同期してください',
             noAccountsFound: 'アカウントが見つかりません',
             noAccountsFoundDescription: 'Zoho Books に口座を追加して、もう一度同期してください',
+            autoSyncDescription: 'Zoho Books と Expensify を毎日自動で同期します。レポートはリアルタイムで同期されます。',
+            accountingMethods: {
+                label: 'エクスポート方法',
+                description: '経費をいつエクスポートするかを選択します。',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '発生主義',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '現金',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '自己負担経費は、最終承認されるとエクスポートされます',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '立替経費は支払われたときにエクスポートされます',
+                },
+            },
+            syncReimbursedReports: '精算済みレポートを同期',
+            syncReimbursedReportsDescription: 'レポートがACHで支払われると、この口座で支払伝票が作成されます。',
+            billPaymentAccount: {label: '請求支払口座', description: 'Expensify が請求書を支払済みにするときに、Zoho Books が貸方記入するクリアリング勘定を選択します。'},
+            syncExpensifyCardSettlements: 'Expensify カードの決済を同期する',
+            settlementAccount: {label: 'Expensify カード精算口座', description: '清算用の口座を選択すると、Zoho Books に支払いを作成します。'},
+            syncTravelBillingSettlements: '統合トラベル請求の決済を同期',
+            travelBillingSettlementAccount: {label: '統合トラベル請求の決済口座', description: '清算用の口座を選択すると、Zoho Books に支払いを作成します。'},
+            travelBillingPayableAccount: {label: '統合トラベル請求買掛金勘定'},
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central のセットアップ',
@@ -10711,6 +10830,7 @@ ${reportName}`,
         },
         display: {
             label: '表示',
+            labelWithCount: ({count}: {count: number}) => (count > 0 ? `表示 (${count})` : '表示'),
             sortBy: '並べ替え',
             sortOrder: '並べ替え順',
             groupBy: 'グループ化基準',
@@ -10781,11 +10901,14 @@ ${reportName}`,
                 upcoming: '予定',
                 done: '完了',
                 canceled: 'キャンセル済み',
+                outstanding: '未払い',
+                rejected: '却下されました',
             },
         },
         tabs: {
             expenseReports: '経費精算書',
             reports: 'レポート',
+            myReports: '自分のレポート',
             expenses: '経費',
             submit: '下書き',
             approve: '承認が必要',
@@ -11364,6 +11487,7 @@ ${reportName}`,
         autoReportedRejectedExpense: 'この経費精算は却下されました。',
         billableExpense: '請求可能区分は無効になりました',
         cashExpenseWithNoReceipt: (formattedLimit?: string) => `領収書が必要です${formattedLimit ? `${formattedLimit} を超過` : ''}`,
+        categoryNotAllowed: 'カテゴリは許可されていません',
         categoryOutOfPolicy: 'カテゴリは無効です',
         conversionSurcharge: (surcharge: number) => `${surcharge}% の換算手数料を適用しました`,
         customUnitOutOfPolicy: 'このワークスペースでは有効なレートではありません',
@@ -11548,6 +11672,7 @@ ${reportName}`,
             autoReportedRejectedExpense: '経費が却下されました',
             billableExpense: '請求可能区分は無効になりました',
             cashExpenseWithNoReceipt: '領収書が必要です',
+            categoryNotAllowed: 'カテゴリは許可されていません',
             categoryOutOfPolicy: 'カテゴリは無効になっています',
             companyCardRequired: '会社カードが必要です',
             conversionSurcharge: '両替手数料が適用されました',
@@ -12642,6 +12767,7 @@ ${reportName}`,
             other: (count: number) => `${count}日前`,
         }),
         offlineMessage: 'オフラインです。レポート履歴が最新ではない可能性があります。',
+        toMarkAsDone: '完了としてマークする',
     },
 };
 export default translations;

@@ -335,6 +335,7 @@ type ShouldShow = (args: {
     transactions?: OnyxCollection<Transaction>;
     moneyRequestReport?: OnyxEntry<ReportType>;
     moneyRequestPolicy?: OnyxEntry<Policy>;
+    moneyRequestReportOwnerLogin: string | undefined;
     isHarvestReport?: boolean;
     currentUserAccountID: number;
     rules: OnyxCollection<Rule>;
@@ -398,6 +399,8 @@ type ContextMenuActionPayload = {
     encryptedAuthToken: string;
     iouTransaction: OnyxEntry<Transaction>;
     iouTransactionViolations: OnyxEntry<TransactionViolations>;
+    iouTransactionReport: OnyxEntry<ReportType>;
+    moneyRequestActionChildReport: OnyxEntry<ReportType>;
     bankAccountList: OnyxEntry<BankAccountList>;
     isOffline: boolean;
     conciergeReportID: string | undefined;
@@ -735,12 +738,31 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'iou.unhold',
         icon: 'Stopwatch',
-        shouldShow: ({type, moneyRequestReport, moneyRequestAction, moneyRequestPolicy, areHoldRequirementsMet, iouTransaction, currentUserAccountID, rules}) => {
+        shouldShow: ({
+            type,
+            moneyRequestReport,
+            moneyRequestAction,
+            moneyRequestPolicy,
+            areHoldRequirementsMet,
+            iouTransaction,
+            currentUserAccountID,
+            rules,
+            moneyRequestReportOwnerLogin,
+        }) => {
             if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || !areHoldRequirementsMet) {
                 return false;
             }
             const holdReportAction = getReportAction(moneyRequestAction?.childReportID, `${iouTransaction?.comment?.hold ?? ''}`);
-            return canHoldUnholdReportAction(moneyRequestReport, moneyRequestAction, holdReportAction, iouTransaction, moneyRequestPolicy, currentUserAccountID, rules).canUnholdRequest;
+            return canHoldUnholdReportAction(
+                moneyRequestReport,
+                moneyRequestAction,
+                holdReportAction,
+                iouTransaction,
+                moneyRequestPolicy,
+                currentUserAccountID,
+                rules,
+                moneyRequestReportOwnerLogin,
+            ).canUnholdRequest;
         },
         onPress: (
             closePopover,
@@ -749,6 +771,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                 iouTransaction,
                 moneyRequestPolicy,
                 iouTransactionViolations,
+                iouTransactionReport,
+                moneyRequestActionChildReport,
                 isDelegateAccessRestricted,
                 showDelegateNoAccessModal,
                 isOffline,
@@ -765,35 +789,39 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             if (closePopover) {
                 hideContextMenu(false, () =>
-                    changeMoneyRequestHoldStatus(
-                        moneyRequestAction,
+                    changeMoneyRequestHoldStatus({
+                        reportAction: moneyRequestAction,
                         iouTransaction,
-                        moneyRequestPolicy,
+                        iouTransactionReport,
+                        reportActionChildReport: moneyRequestActionChildReport,
+                        policy: moneyRequestPolicy,
                         isOffline,
-                        currentUserPersonalDetails?.login ?? '',
-                        currentUserPersonalDetails.accountID,
-                        iouTransactionViolations,
+                        currentUserLogin: currentUserPersonalDetails?.login ?? '',
+                        currentUserAccountID: currentUserPersonalDetails.accountID,
+                        transactionViolations: iouTransactionViolations,
                         isTrackIntentUser,
                         delegateAccountID,
                         rules,
-                    ),
+                    }),
                 );
                 return;
             }
 
             // No popover to hide, call changeMoneyRequestHoldStatus immediately
-            changeMoneyRequestHoldStatus(
-                moneyRequestAction,
+            changeMoneyRequestHoldStatus({
+                reportAction: moneyRequestAction,
                 iouTransaction,
-                moneyRequestPolicy,
+                iouTransactionReport,
+                reportActionChildReport: moneyRequestActionChildReport,
+                policy: moneyRequestPolicy,
                 isOffline,
-                currentUserPersonalDetails?.login ?? '',
-                currentUserPersonalDetails.accountID,
-                iouTransactionViolations,
+                currentUserLogin: currentUserPersonalDetails?.login ?? '',
+                currentUserAccountID: currentUserPersonalDetails.accountID,
+                transactionViolations: iouTransactionViolations,
                 isTrackIntentUser,
                 delegateAccountID,
                 rules,
-            );
+            });
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.UNHOLD,
@@ -802,12 +830,31 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'iou.hold',
         icon: 'Stopwatch',
-        shouldShow: ({type, moneyRequestReport, moneyRequestAction, moneyRequestPolicy, areHoldRequirementsMet, iouTransaction, currentUserAccountID, rules}) => {
+        shouldShow: ({
+            type,
+            moneyRequestReport,
+            moneyRequestAction,
+            moneyRequestPolicy,
+            areHoldRequirementsMet,
+            iouTransaction,
+            currentUserAccountID,
+            rules,
+            moneyRequestReportOwnerLogin,
+        }) => {
             if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || !areHoldRequirementsMet) {
                 return false;
             }
             const holdReportAction = getReportAction(moneyRequestAction?.childReportID, `${iouTransaction?.comment?.hold ?? ''}`);
-            return canHoldUnholdReportAction(moneyRequestReport, moneyRequestAction, holdReportAction, iouTransaction, moneyRequestPolicy, currentUserAccountID, rules).canHoldRequest;
+            return canHoldUnholdReportAction(
+                moneyRequestReport,
+                moneyRequestAction,
+                holdReportAction,
+                iouTransaction,
+                moneyRequestPolicy,
+                currentUserAccountID,
+                rules,
+                moneyRequestReportOwnerLogin,
+            ).canHoldRequest;
         },
         onPress: (
             closePopover,
@@ -816,6 +863,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                 iouTransaction,
                 moneyRequestPolicy,
                 iouTransactionViolations,
+                iouTransactionReport,
+                moneyRequestActionChildReport,
                 isDelegateAccessRestricted,
                 showDelegateNoAccessModal,
                 isOffline,
@@ -832,35 +881,39 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             if (closePopover) {
                 hideContextMenu(false, () =>
-                    changeMoneyRequestHoldStatus(
-                        moneyRequestAction,
+                    changeMoneyRequestHoldStatus({
+                        reportAction: moneyRequestAction,
                         iouTransaction,
-                        moneyRequestPolicy,
+                        iouTransactionReport,
+                        reportActionChildReport: moneyRequestActionChildReport,
+                        policy: moneyRequestPolicy,
                         isOffline,
-                        currentUserPersonalDetails?.login ?? '',
-                        currentUserPersonalDetails.accountID,
-                        iouTransactionViolations,
+                        currentUserLogin: currentUserPersonalDetails?.login ?? '',
+                        currentUserAccountID: currentUserPersonalDetails.accountID,
+                        transactionViolations: iouTransactionViolations,
                         isTrackIntentUser,
                         delegateAccountID,
                         rules,
-                    ),
+                    }),
                 );
                 return;
             }
 
             // No popover to hide, call changeMoneyRequestHoldStatus immediately
-            changeMoneyRequestHoldStatus(
-                moneyRequestAction,
+            changeMoneyRequestHoldStatus({
+                reportAction: moneyRequestAction,
                 iouTransaction,
-                moneyRequestPolicy,
+                iouTransactionReport,
+                reportActionChildReport: moneyRequestActionChildReport,
+                policy: moneyRequestPolicy,
                 isOffline,
-                currentUserPersonalDetails?.login ?? '',
-                currentUserPersonalDetails.accountID,
-                iouTransactionViolations,
+                currentUserLogin: currentUserPersonalDetails?.login ?? '',
+                currentUserAccountID: currentUserPersonalDetails.accountID,
+                transactionViolations: iouTransactionViolations,
                 isTrackIntentUser,
                 delegateAccountID,
                 rules,
-            );
+            });
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.HOLD,

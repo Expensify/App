@@ -2,7 +2,7 @@
 import useInitial from '@hooks/useInitial';
 
 import {getReportActionMessage, isTransactionThread} from '@libs/ReportActionsUtils';
-import {isExpenseReport, isIOUReport, isInvoiceReport, isResolvedSupportTicket, isSupportTicket} from '@libs/ReportUtils';
+import {isExpenseReport, isIOUReport, isInvoiceReport} from '@libs/ReportUtils';
 
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 import {useReportActionsListState} from '@pages/inbox/report/ReportActionsListContext';
@@ -16,14 +16,7 @@ import type {UseReportActionsListDataParams} from './types';
 
 import getReportActionsWithStreamedReply from './getReportActionsWithStreamedReply';
 
-function useReportActionsListData({
-    sortedVisibleReportActions,
-    reportNameValuePairs,
-    isOffline,
-    sessionStartTime,
-    linkedReportActionID,
-    unreadMarkerReportActionID,
-}: UseReportActionsListDataParams) {
+function useReportActionsListData({sortedVisibleReportActions, isOffline, sessionStartTime, linkedReportActionID, unreadMarkerReportActionID}: UseReportActionsListDataParams) {
     const {report, sortedAllReportActions, parentReportAction, isInitialReportLoadPending, isConciergeHiddenHistory, showFullHistory} = useReportActionsListState();
     const {draftReportAction, isDraftPendingCompletion} = useConciergeDraft();
     const {clearDraft, revealDraftFromReportAction} = useConciergeDraftActions();
@@ -35,35 +28,14 @@ function useReportActionsListData({
           )
         : undefined;
 
-    const shouldHideSupportTicketSurvey = isSupportTicket(report) && (!isResolvedSupportTicket(report) || !!reportNameValuePairs?.reopenedAsReportID);
-    const latestResolvedSupportTicketAction = sortedAllReportActions?.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
-    const latestSupportTicketSurveyAction = latestResolvedSupportTicketAction
-        ? sortedAllReportActions?.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY && action.created >= latestResolvedSupportTicketAction.created)
-        : undefined;
-
     const shouldHideDraft = !!(showHiddenHistory && sessionStartTime && draftReportAction && draftReportAction.created < sessionStartTime);
-    const {reportActionsWithStreamedReply, isSyntheticDraftVisible} = getReportActionsWithStreamedReply({
+    const {reportActionsWithStreamedReply: renderedVisibleReportActions, isSyntheticDraftVisible} = getReportActionsWithStreamedReply({
         sortedVisibleReportActions,
         draftReportAction,
         isDraftPendingCompletion,
         hasPersistedDraft: !!persistedDraftReportAction,
         shouldHideDraft,
     });
-
-    const shouldFilterSupportTicketSurveys =
-        isSupportTicket(report) &&
-        reportActionsWithStreamedReply.some(
-            (action) =>
-                action.actionName === CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY &&
-                (shouldHideSupportTicketSurvey || action.reportActionID !== latestSupportTicketSurveyAction?.reportActionID),
-        );
-    const renderedVisibleReportActions = shouldFilterSupportTicketSurveys
-        ? reportActionsWithStreamedReply.filter(
-              (action) =>
-                  action.actionName !== CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY ||
-                  (!shouldHideSupportTicketSurvey && action.reportActionID === latestSupportTicketSurveyAction?.reportActionID),
-          )
-        : reportActionsWithStreamedReply;
 
     // OpenReport starts with a tiny cached page before replacing it with the hydrated page. Keep that
     // already-visible page mounted until hydration finishes instead of exposing intermediate estimated

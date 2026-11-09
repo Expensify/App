@@ -18,7 +18,6 @@ type ReportActionsListProps = {
 
 type UseReportActionsListDataParams = {
     sortedVisibleReportActions: OnyxTypes.ReportAction[];
-    reportNameValuePairs: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
     isOffline: boolean;
     sessionStartTime: string | null;
     linkedReportActionID: string | undefined;
@@ -57,8 +56,9 @@ type UseReportActionsListRenderItemParams = Pick<
     | 'draftReportActionID'
     | 'isDraftPendingCompletion'
 > &
-    Pick<UseReportActionsListDataParams, 'reportNameValuePairs' | 'isOffline' | 'linkedReportActionID' | 'unreadMarkerReportActionID'> &
+    Pick<UseReportActionsListDataParams, 'isOffline' | 'linkedReportActionID' | 'unreadMarkerReportActionID'> &
     Pick<ReportActionsListProps, 'reportID'> & {
+        reportNameValuePairs: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
         isReportArchived: boolean;
         sortedReportActions: OnyxTypes.ReportAction[];
         onShowPreviousMessages: () => void;

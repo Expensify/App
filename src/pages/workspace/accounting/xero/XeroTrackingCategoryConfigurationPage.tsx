@@ -72,6 +72,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}
                 switchAccessibilityLabel={translate('workspace.xero.trackingCategories')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.IMPORT_TRACKING_CATEGORIES_SWITCH}
                 isActive={isSwitchOn}
                 wrapperStyle={styles.mv3}
                 onToggle={() => updateXeroImportTrackingCategories(policyID, !xeroConfig?.importTrackingCategories, xeroConfig?.importTrackingCategories)}
