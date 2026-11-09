@@ -3,7 +3,7 @@ import {render} from '@testing-library/react-native';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import {putOnHold} from '@libs/actions/IOU/Hold';
-import {queueBulkHoldExpenses} from '@libs/actions/Search';
+import {queueBulkExpenseAction} from '@libs/actions/Search';
 
 import SearchHoldReasonPage from '@pages/Search/SearchHoldReasonPage';
 
@@ -53,7 +53,7 @@ jest.mock('@components/Search/SearchContext', () => ({
     }),
 }));
 jest.mock('@libs/actions/Search', () => ({
-    queueBulkHoldExpenses: jest.fn(),
+    queueBulkExpenseAction: jest.fn(),
 }));
 jest.mock('@libs/actions/IOU/Hold', () => ({
     putOnHold: jest.fn(),
@@ -96,7 +96,10 @@ describe('SearchHoldReasonPage', () => {
         mockSubmitHoldReason?.({comment: 'needs a receipt'});
 
         // Then every matching expense is held by the backend, except the deselected one, and nothing is held per expense
-        expect(queueBulkHoldExpenses).toHaveBeenCalledWith(expect.any(String), 'needs a receipt', ['tx2']);
+        const [action, allMatchingQuery, comment] = jest.mocked(queueBulkExpenseAction).mock.calls.at(0) ?? [];
+        expect(action).toBe(CONST.SEARCH.BULK_ACTION_TYPES.HOLD);
+        expect(allMatchingQuery?.excludedTransactionIDList).toEqual(['tx2']);
+        expect(comment).toBe('needs a receipt');
         expect(putOnHold).not.toHaveBeenCalled();
         expect(mockClearSelectedTransactions).toHaveBeenCalled();
     });
@@ -111,7 +114,7 @@ describe('SearchHoldReasonPage', () => {
 
         // Then the selected expense is held directly and nothing is queued on the backend
         expect(putOnHold).toHaveBeenCalledTimes(1);
-        expect(queueBulkHoldExpenses).not.toHaveBeenCalled();
+        expect(queueBulkExpenseAction).not.toHaveBeenCalled();
     });
 
     it('keeps the reason form from submitting offline when Select all is checked', async () => {

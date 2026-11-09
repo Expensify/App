@@ -13,8 +13,7 @@ import useTransactionsByID from '@hooks/useTransactionsByID';
 
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
 import {putOnHold, putTransactionsOnHold} from '@libs/actions/IOU/Hold';
-import {queueBulkHoldExpenses} from '@libs/actions/Search';
-import Log from '@libs/Log';
+import {queueBulkExpenseAction} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
@@ -25,6 +24,7 @@ import type {SearchReportActionsParamList} from '@navigation/types';
 
 import HoldReasonFormView from '@pages/iou/HoldReasonFormView';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -94,12 +94,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
         }
         if (!isBulkHold && areAllMatchingItemsSelected) {
             // "Select all" can cover more expenses than are loaded, so hand the search query to the backend to hold every match.
-            const allMatchingQuery = currentSearchQueryJSON ? getAllMatchingExpenseActionQuery(currentSearchQueryJSON, excludedTransactions, currentSearchResults?.data) : undefined;
-            if (!allMatchingQuery) {
-                Log.info('[BulkHold] Dropping bulk hold: an excluded row could not be resolved');
-                return;
-            }
-            queueBulkHoldExpenses(allMatchingQuery.jsonQuery, comment, allMatchingQuery.excludedTransactionIDList);
+            queueBulkExpenseAction(CONST.SEARCH.BULK_ACTION_TYPES.HOLD, getAllMatchingExpenseActionQuery(currentSearchQueryJSON, excludedTransactions, currentSearchResults?.data), comment);
             clearSelectedTransactions();
         } else if (isBulkHold) {
             putTransactionsOnHold({

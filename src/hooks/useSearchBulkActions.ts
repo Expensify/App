@@ -39,7 +39,7 @@ import {
     queueBulkApproveReports,
     queueBulkMarkAsExported,
     queueBulkPayReports,
-    queueBulkUnholdExpenses,
+    queueBulkExpenseAction,
     queueBulkSubmitReports,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
@@ -3000,12 +3000,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
 
                 if (areAllMatchingItemsSelected) {
-                    const allMatchingQuery = queryJSON ? getAllMatchingExpenseActionQuery(queryJSON, excludedTransactions, currentSearchResults?.data) : undefined;
-                    if (!allMatchingQuery) {
-                        Log.info('[BulkUnhold] Dropping bulk unhold: an excluded row could not be resolved');
-                        return;
-                    }
-                    queueBulkUnholdExpenses(allMatchingQuery.jsonQuery, allMatchingQuery.excludedTransactionIDList);
+                    queueBulkExpenseAction(CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD, getAllMatchingExpenseActionQuery(queryJSON, excludedTransactions, currentSearchResults?.data));
                     clearSelectedTransactions();
                     return;
                 }
@@ -3109,7 +3104,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 allMatchingOptions.push(payButtonOption);
             }
             // A deselected group that can't be turned into a filter, like a date group, can't be left out of the query.
-            const canQueueExpenseAction = !isOffline && !!queryJSON && !!getAllMatchingExpenseActionQuery(queryJSON, excludedTransactions, currentSearchResults?.data);
+            const canQueueExpenseAction = !isOffline && !!getAllMatchingExpenseActionQuery(queryJSON, excludedTransactions, currentSearchResults?.data);
             // The backend only rejects expenses on reports the user can reject, so one loaded item is enough to offer it.
             if (isExpenseType && canQueueExpenseAction && selectedTransactionsKeys.some((id) => selectedTransactions[id].canReject)) {
                 allMatchingOptions.push(rejectOption);

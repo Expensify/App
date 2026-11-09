@@ -3285,10 +3285,13 @@ function getAllMatchingExportQueryAndExclusions(
 
 /** Builds the query and the deselected expenses to send to the backend for a "Select all" bulk action on expenses. */
 function getAllMatchingExpenseActionQuery(
-    queryJSON: SearchQueryJSON,
+    queryJSON: SearchQueryJSON | undefined,
     excludedTransactions: SelectedTransactions,
     searchData: SearchResultDataType | undefined,
 ): {jsonQuery: string; excludedTransactionIDList: string[]} | undefined {
+    if (!queryJSON) {
+        return undefined;
+    }
     if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
         const reportQuery = getAllMatchingReportQuery(queryJSON, excludedTransactions);
         return reportQuery ? {jsonQuery: serializeQueryJSONForBackend(reportQuery), excludedTransactionIDList: []} : undefined;

@@ -11,8 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
-import {queueBulkRejectExpenses, rejectMoneyRequestsOnSearch} from '@libs/actions/Search';
-import Log from '@libs/Log';
+import {queueBulkExpenseAction, rejectMoneyRequestsOnSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getAllMatchingExpenseActionQuery} from '@libs/SearchUIUtils';
@@ -78,12 +77,11 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
 
         // "Select all" can cover more expenses than are loaded, so hand the search query to the backend to reject every match.
         if (route.name === SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP && areAllMatchingItemsSelected) {
-            const allMatchingQuery = currentSearchQueryJSON ? getAllMatchingExpenseActionQuery(currentSearchQueryJSON, excludedTransactions, currentSearchResults?.data) : undefined;
-            if (!allMatchingQuery) {
-                Log.info('[BulkReject] Dropping bulk reject: an excluded row could not be resolved');
-                return;
-            }
-            queueBulkRejectExpenses(allMatchingQuery.jsonQuery, comment, allMatchingQuery.excludedTransactionIDList);
+            queueBulkExpenseAction(
+                CONST.SEARCH.BULK_ACTION_TYPES.REJECT,
+                getAllMatchingExpenseActionQuery(currentSearchQueryJSON, excludedTransactions, currentSearchResults?.data),
+                comment,
+            );
             clearSelectedTransactions();
             Navigation.dismissToSuperWideRHP();
             return;

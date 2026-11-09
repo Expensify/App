@@ -3,7 +3,7 @@ import {render} from '@testing-library/react-native';
 import type * as OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 
-import {queueBulkRejectExpenses, rejectMoneyRequestsOnSearch} from '@libs/actions/Search';
+import {queueBulkExpenseAction, rejectMoneyRequestsOnSearch} from '@libs/actions/Search';
 
 import SearchRejectReasonPage from '@pages/Search/SearchRejectReasonPage';
 
@@ -57,7 +57,7 @@ jest.mock('@components/OnyxListItemProvider', () => ({
     useAllReportsTransactionsAndViolations: () => undefined,
 }));
 jest.mock('@libs/actions/Search', () => ({
-    queueBulkRejectExpenses: jest.fn(),
+    queueBulkExpenseAction: jest.fn(),
     rejectMoneyRequestsOnSearch: jest.fn(),
 }));
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -94,7 +94,10 @@ describe('SearchRejectReasonPage', () => {
         mockSubmitRejectReason?.({comment: 'missing receipts'});
 
         // Then every matching expense is rejected by the backend, except the deselected one, and nothing is rejected from the app
-        expect(queueBulkRejectExpenses).toHaveBeenCalledWith(expect.any(String), 'missing receipts', ['tx2']);
+        const [action, allMatchingQuery, comment] = jest.mocked(queueBulkExpenseAction).mock.calls.at(0) ?? [];
+        expect(action).toBe(CONST.SEARCH.BULK_ACTION_TYPES.REJECT);
+        expect(allMatchingQuery?.excludedTransactionIDList).toEqual(['tx2']);
+        expect(comment).toBe('missing receipts');
         expect(rejectMoneyRequestsOnSearch).not.toHaveBeenCalled();
         expect(mockClearSelectedTransactions).toHaveBeenCalled();
     });
@@ -109,7 +112,7 @@ describe('SearchRejectReasonPage', () => {
 
         // Then the selected expenses are rejected directly and nothing is queued on the backend
         expect(rejectMoneyRequestsOnSearch).toHaveBeenCalledTimes(1);
-        expect(queueBulkRejectExpenses).not.toHaveBeenCalled();
+        expect(queueBulkExpenseAction).not.toHaveBeenCalled();
     });
 
     it('keeps the reason form from submitting offline when Select all is checked', async () => {

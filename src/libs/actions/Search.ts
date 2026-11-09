@@ -2343,22 +2343,27 @@ function queueBulkPayReports(jsonQuery: string) {
     write(WRITE_COMMANDS.QUEUE_BULK_PAY_REPORTS, {jsonQuery, bulkActionID}, onyxData);
 }
 
-/** Queues a hold, with the given reason, for every expense matching the search query that the user can hold. */
-function queueBulkHoldExpenses(jsonQuery: string, comment: string, excludedTransactionIDList: string[]) {
-    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.HOLD);
-    write(WRITE_COMMANDS.QUEUE_BULK_HOLD_EXPENSES, {jsonQuery, comment, bulkActionID, excludedTransactionIDList: excludedTransactionIDList.join(',')}, onyxData);
-}
+type BulkExpenseActionType = typeof CONST.SEARCH.BULK_ACTION_TYPES.HOLD | typeof CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD | typeof CONST.SEARCH.BULK_ACTION_TYPES.REJECT;
 
-/** Queues an unhold for every held expense matching the search query that the user can unhold. */
-function queueBulkUnholdExpenses(jsonQuery: string, excludedTransactionIDList: string[]) {
-    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD);
-    write(WRITE_COMMANDS.QUEUE_BULK_UNHOLD_EXPENSES, {jsonQuery, bulkActionID, excludedTransactionIDList: excludedTransactionIDList.join(',')}, onyxData);
-}
-
-/** Queues a rejection, with the given reason, for every expense matching the search query on reports the user can reject. */
-function queueBulkRejectExpenses(jsonQuery: string, comment: string, excludedTransactionIDList: string[]) {
-    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.REJECT);
-    write(WRITE_COMMANDS.QUEUE_BULK_REJECT_EXPENSES, {jsonQuery, comment: getParsedComment(comment), bulkActionID, excludedTransactionIDList: excludedTransactionIDList.join(',')}, onyxData);
+/** Queues a Hold, Unhold or Reject, with the reason for Hold and Reject, for every expense matching a Select all search that the user can act on. */
+function queueBulkExpenseAction(action: BulkExpenseActionType, allMatchingQuery: {jsonQuery: string; excludedTransactionIDList: string[]} | undefined, comment = '') {
+    if (!allMatchingQuery) {
+        Log.info(`[BulkExpenseAction] Dropping bulk ${action}: an excluded row could not be resolved`);
+        return;
+    }
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(action);
+    const jsonQuery = allMatchingQuery.jsonQuery;
+    const excludedTransactionIDList = allMatchingQuery.excludedTransactionIDList.join(',');
+    switch (action) {
+        case CONST.SEARCH.BULK_ACTION_TYPES.HOLD:
+            write(WRITE_COMMANDS.QUEUE_BULK_HOLD_EXPENSES, {jsonQuery, comment, bulkActionID, excludedTransactionIDList}, onyxData);
+            break;
+        case CONST.SEARCH.BULK_ACTION_TYPES.REJECT:
+            write(WRITE_COMMANDS.QUEUE_BULK_REJECT_EXPENSES, {jsonQuery, comment: getParsedComment(comment), bulkActionID, excludedTransactionIDList}, onyxData);
+            break;
+        default:
+            write(WRITE_COMMANDS.QUEUE_BULK_UNHOLD_EXPENSES, {jsonQuery, bulkActionID, excludedTransactionIDList}, onyxData);
+    }
 }
 
 /**
@@ -2819,6 +2824,7 @@ function setOptimisticDataForTransactionThreadPreview(
 }
 
 export {
+    queueBulkExpenseAction,
     parseExpenseFilters,
     saveSearch,
     seedMyExpensesSearch,
@@ -2832,9 +2838,6 @@ export {
     queueBulkPayReports,
     queueBulkApproveReports,
     queueBulkSubmitReports,
-    queueBulkHoldExpenses,
-    queueBulkUnholdExpenses,
-    queueBulkRejectExpenses,
     queueBulkMarkAsExported,
     updateAdvancedFilters,
     setSearchContext,

@@ -12,7 +12,7 @@ import {
     getExportTemplates,
     queueBulkApproveReports,
     queueBulkSubmitReports,
-    queueBulkUnholdExpenses,
+    queueBulkExpenseAction,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
     submitMoneyRequestOnSearch,
@@ -47,7 +47,7 @@ jest.mock('@libs/actions/Search', () => ({
     queueExportSearchWithTemplate: jest.fn(() => 'mock-template-export-id'),
     queueBulkApproveReports: jest.fn(),
     queueBulkSubmitReports: jest.fn(),
-    queueBulkUnholdExpenses: jest.fn(),
+    queueBulkExpenseAction: jest.fn(),
     getSearchApproveOnyxData: jest.fn(() => ({})),
     getSearchPayOnyxData: jest.fn(() => ({})),
     bulkDeleteReports: jest.fn(),
@@ -1440,8 +1440,10 @@ describe('useSearchBulkActions - Hold, Unhold and Reject under Select all', () =
         });
 
         // Then the search is handed to the backend with the deselected expense listed, so it stays held
-        expect(queueBulkUnholdExpenses).toHaveBeenCalledTimes(1);
-        expect(queueBulkUnholdExpenses).toHaveBeenCalledWith(expect.any(String), ['tx2']);
+        expect(queueBulkExpenseAction).toHaveBeenCalledTimes(1);
+        const [action, allMatchingQuery] = jest.mocked(queueBulkExpenseAction).mock.calls.at(0) ?? [];
+        expect(action).toBe(CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD);
+        expect(allMatchingQuery?.excludedTransactionIDList).toEqual(['tx2']);
         expect(mockClearSelectedTransactions).toHaveBeenCalled();
     });
 
