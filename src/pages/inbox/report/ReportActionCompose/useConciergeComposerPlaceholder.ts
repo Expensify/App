@@ -1,0 +1,126 @@
+/**
+ * Keeps Concierge prompts that require existing expenses out of an empty account's composer.
+ */
+import useOnyx from '@hooks/useOnyx';
+
+import {isBillReport} from '@libs/BillUtils';
+import {isCurrentUserSubmitter, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {isExpenseUnreported} from '@libs/TransactionUtils';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report, Transaction} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {useState} from 'react';
+
+const DEFAULT_PLACEHOLDER_KEYS = ['common.concierge.composerPlaceholders.createExpense', 'reportActionCompose.askConciergeForHelp'] as const;
+const MAX_EXPENSE_COUNT = 2;
+
+const EXPENSE_PLACEHOLDER_KEYS = [
+    'common.concierge.composerPlaceholders.spendLastMonth',
+    'common.concierge.composerPlaceholders.topExpenses',
+    'common.concierge.composerPlaceholders.spendDrivers',
+    'common.concierge.composerPlaceholders.travelSpendChange',
+    'common.concierge.composerPlaceholders.unsubmitted',
+    'common.concierge.composerPlaceholders.exportCsv',
+] as const;
+
+// Answerable from the user's own expenses, including unreported ones, or from any report they can see.
+const SPEND_INSIGHT_PLACEHOLDER_KEYS = ['common.concierge.composerPlaceholders.topSpender', 'common.concierge.composerPlaceholders.missingCategory'] as const;
+
+const PAYABLE_REPORT_PLACEHOLDER_KEYS = ['common.concierge.composerPlaceholders.awaitingApproval', 'common.concierge.composerPlaceholders.leftToPay'] as const;
+
+const OWN_EXPENSE_REPORT_PLACEHOLDER_KEYS = ['common.concierge.composerPlaceholders.notReimbursed'] as const;
+
+const OWN_REPORT_PLACEHOLDER_KEYS = ['common.concierge.composerPlaceholders.exportPdf'] as const;
+
+function getReportEligibility(reports: OnyxCollection<Report>, isConciergeInboxDM: boolean, accountID: number | undefined) {
+    let ownReportedExpenseCount = 0;
+    let hasAccessibleReports = false;
+    let hasOwnExpenseReports = false;
+    let hasOwnReports = false;
+    if (!isConciergeInboxDM || !accountID) {
+        return {ownReportedExpenseCount, hasAccessibleReports, hasOwnExpenseReports, hasOwnReports};
+    }
+
+    for (const report of Object.values(reports ?? {})) {
+        if (!report || report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report.errorFields?.notFound) {
+            continue;
+        }
+        const isExpenseOrIOUReport = isMoneyRequestReport(report);
+        // Bills and invoices are paid like expense reports, so they count as reports the user can act on.
+        if (!(isExpenseOrIOUReport || isInvoiceReport(report) || isBillReport(report)) || (report.transactionCount ?? 0) <= 0) {
+            continue;
+        }
+        hasAccessibleReports = true;
+        if (!isCurrentUserSubmitter(report, accountID)) {
+            continue;
+        }
+        hasOwnReports = true;
+        // Sent invoices hold sales and bills hold vendor charges, so neither counts as the user's expenses.
+        if (!isExpenseOrIOUReport) {
+            continue;
+        }
+        hasOwnExpenseReports = true;
+        // Report counts include expenses whose transaction records have not been loaded locally.
+        ownReportedExpenseCount = Math.min(MAX_EXPENSE_COUNT, ownReportedExpenseCount + (report.transactionCount ?? 0));
+        // Every flag is already set once two own expenses are counted.
+        if (ownReportedExpenseCount === MAX_EXPENSE_COUNT) {
+            break;
+        }
+    }
+    return {ownReportedExpenseCount, hasAccessibleReports, hasOwnExpenseReports, hasOwnReports};
+}
+
+function getUnreportedExpenseCount(transactions: OnyxCollection<Transaction>, isConciergeInboxDM: boolean, accountID: number | undefined) {
+    if (!isConciergeInboxDM || !accountID) {
+        return 0;
+    }
+
+    // Only distinguish zero, one and multiple expenses, so unrelated edits do not change the selection.
+    let count = 0;
+    for (const transaction of Object.values(transactions ?? {})) {
+        if (!transaction || transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+        // Avoid double-counting owned reports or counting other users' expenses loaded by approvers.
+        if (!isExpenseUnreported(transaction)) {
+            continue;
+        }
+        count++;
+        if (count === MAX_EXPENSE_COUNT) {
+            return count;
+        }
+    }
+    return count;
+}
+
+function useConciergeComposerPlaceholder(isConciergeInboxDM: boolean) {
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
+    const [reportEligibility] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (reports) => getReportEligibility(reports, isConciergeInboxDM, accountID),
+    });
+    const [unreportedExpenseCount = 0] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: (transactions) => getUnreportedExpenseCount(transactions, isConciergeInboxDM, accountID),
+    });
+    const expenseCount = Math.min(MAX_EXPENSE_COUNT, (reportEligibility?.ownReportedExpenseCount ?? 0) + unreportedExpenseCount);
+    const hasAccessibleReports = !!reportEligibility?.hasAccessibleReports;
+
+    // Retain the random seed, not a key that could become invalid when Onyx loads or expenses are removed.
+    const [randomSeed] = useState(() => Math.random());
+    const eligibleKeys = [
+        ...DEFAULT_PLACEHOLDER_KEYS,
+        ...(expenseCount > 0 ? EXPENSE_PLACEHOLDER_KEYS : []),
+        ...(expenseCount > 1 ? (['common.concierge.composerPlaceholders.combineExpenses'] as const) : []),
+        ...(expenseCount > 0 || hasAccessibleReports ? SPEND_INSIGHT_PLACEHOLDER_KEYS : []),
+        ...(hasAccessibleReports ? PAYABLE_REPORT_PLACEHOLDER_KEYS : []),
+        ...(reportEligibility?.hasOwnExpenseReports ? OWN_EXPENSE_REPORT_PLACEHOLDER_KEYS : []),
+        ...(reportEligibility?.hasOwnReports ? OWN_REPORT_PLACEHOLDER_KEYS : []),
+    ];
+
+    return eligibleKeys[Math.floor(randomSeed * eligibleKeys.length)];
+}
+
+export default useConciergeComposerPlaceholder;
