@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
+import useShouldUseApprovalWorkflowRules from '@hooks/useShouldUseApprovalWorkflowRules';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -42,6 +43,7 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
     const personalDetailsByEmail = usePersonalDetailsByEmail();
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules(policy);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
     const policyID = route.params.policyID;
@@ -51,6 +53,7 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
     const employeeList = policy?.employeeList;
     const isDefault = approvalWorkflow?.isDefault;
     const membersEmail = approvalWorkflow?.members.map((member) => member.email);
+    const workflowApproverEmails = new Set(approvalWorkflow?.approvers?.map((approver) => approver?.email));
 
     const currentApproverEmail = currentApprover?.email;
 
@@ -85,6 +88,11 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
                 }
 
                 if (email === currentApproverEmail) {
+                    return null;
+                }
+
+                // Someone who already approves in this workflow approves every report anyway, so the limit can't add them
+                if (shouldUseApprovalWorkflowRules && workflowApproverEmails.has(email)) {
                     return null;
                 }
 

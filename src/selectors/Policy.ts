@@ -6,6 +6,7 @@ import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 import {getConnectedHRProvider} from '@libs/merge/HRUtils';
 import type {PolicyPaymentAttribution} from '@libs/PolicyPaymentUtils';
 import {
+    canCreateExpensesOnPolicy,
     canSendInvoice,
     getActiveAdminWorkspaces,
     getActivePoliciesWithExpenseChat,
@@ -17,9 +18,11 @@ import {
     isPaidGroupPolicy,
     isPendingDeletePolicy,
     isPerDiemEligiblePolicy,
+    isPolicyAccessible,
     isPolicyAdmin,
     isArchivedOrPendingDeletePolicy,
     isArchivedPolicy,
+    isPolicyProvisionedForTravel,
     isTimeTrackingEnabled,
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
@@ -28,7 +31,7 @@ import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, FullPolicySnapshot, Policy, PolicyConnectionSyncProgress, PolicyReportField} from '@src/types/onyx';
+import type {Card, FullPolicySnapshot, Policy, PolicyConnectionSyncProgress, PolicyEmployee, PolicyReportField} from '@src/types/onyx';
 import type {PolicyConnectionName, PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 
@@ -258,6 +261,15 @@ const createHasAdminPolicyWithXeroConnectionSelector =
 const hasActiveAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin).length > 0;
 
 /**
+ * Creates a selector for whether the user belongs to any workspace with Travel enabled and provisioned, so subscribers only
+ * re-render when that answer changes rather than on every policy collection change.
+ */
+const createHasTravelEnabledPolicySelector =
+    (currentUserLogin: string | undefined) =>
+    (policies: OnyxCollection<Policy>): boolean =>
+        Object.values(policies ?? {}).some((policy) => policy?.isTravelEnabled && isPolicyProvisionedForTravel(policy) && isPolicyAccessible(policy, currentUserLogin ?? ''));
+
+/**
  * Creates a selector returning only whether the user has any active workspace they can submit expenses to
  * (paid Collect/Control workspaces, plus free Submit (submit2026) workspaces),
  * so subscribers don't re-render when anything else on the policy collection changes.
@@ -332,6 +344,34 @@ const createPoliciesByIDsSelector = (policyIDs: string[]) => {
             }
         }
         return filtered;
+    };
+};
+
+type MemberCustomFields = Pick<PolicyEmployee, ValueOf<typeof CONST.CUSTOM_FIELD_KEYS>>;
+
+type MemberCustomFieldsByPolicyID = Record<string, Record<string, MemberCustomFields>>;
+
+/**
+ * Creates a selector returning only the member custom fields of the given policies, keyed by policy ID and then
+ * by member login, so a consumer watching for custom field edits doesn't re-render on every other policy write.
+ */
+const createMemberCustomFieldsSelector = (policyIDs: string[]) => {
+    const customFieldKeys = Object.values(CONST.CUSTOM_FIELD_KEYS);
+
+    return (policies: OnyxCollection<Policy>): MemberCustomFieldsByPolicyID => {
+        const customFieldsByPolicyID: MemberCustomFieldsByPolicyID = {};
+        for (const policyID of policyIDs) {
+            const employeeList = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList;
+            if (!employeeList) {
+                continue;
+            }
+            const customFieldsByLogin: Record<string, MemberCustomFields> = {};
+            for (const [login, employee] of Object.entries(employeeList)) {
+                customFieldsByLogin[login] = Object.fromEntries(customFieldKeys.map((key) => [key, employee[key]]));
+            }
+            customFieldsByPolicyID[policyID] = customFieldsByLogin;
+        }
+        return customFieldsByPolicyID;
     };
 };
 
@@ -426,7 +466,7 @@ const createFilteredPoliciesInfoSelector =
         let filteredPoliciesCount = 0;
         let firstPolicy: BillingRestrictionPolicy | undefined;
         for (const policy of Object.values(policies ?? {})) {
-            if (!policy || !shouldShowPolicy(policy, false, email) || isTeachersUnitePolicyID(policy.id)) {
+            if (!policy || !shouldShowPolicy(policy, false, email) || isTeachersUnitePolicyID(policy.id) || !canCreateExpensesOnPolicy(policy, email)) {
                 continue;
             }
             if (filteredPoliciesCount === 0) {
@@ -564,6 +604,30 @@ const policyAvatarFieldsSelector = (policy: OnyxEntry<Policy>): Pick<Policy, 'av
 
 const policyTypeSelector = (policy: OnyxEntry<Policy>) => policy?.type;
 
+/** Keeps only the policy fields `getVisibleTransactionViolations` reads, and only the current user's `employeeList` entry. */
+const createPolicyViolationVisibilitySelector =
+    (email: string) =>
+    (policy: OnyxEntry<Policy>): OnyxEntry<Policy> => {
+        if (!policy) {
+            return policy;
+        }
+        const {id, name, role, type, owner, outputCurrency, autoReporting, autoReportingFrequency, isAttendeeTrackingEnabled, autoCategorizeNewExpenses} = policy;
+        const employee = policy.employeeList?.[email];
+        return {
+            id,
+            name,
+            role,
+            type,
+            owner,
+            outputCurrency,
+            autoReporting,
+            autoReportingFrequency,
+            isAttendeeTrackingEnabled,
+            autoCategorizeNewExpenses,
+            employeeList: employee ? {[email]: employee} : undefined,
+        };
+    };
+
 const policyRoleSelector = (policy: OnyxEntry<Policy>) => policy?.role;
 
 const areInvoicesEnabledSelector = (policy: OnyxEntry<Policy>) => policy?.areInvoicesEnabled;
@@ -613,7 +677,7 @@ const groupByPolicyAccountIDPoliciesSelector = (policies: OnyxCollection<Policy>
         return m;
     }, new Map<number, Policy>());
 
-export type {PolicySelector, TimeSensitiveAdminPolicy};
+export type {MemberCustomFieldsByPolicyID, PolicySelector, TimeSensitiveAdminPolicy};
 export {
     createAllPolicyReportFieldsSelector,
     ownerPoliciesSelector,
@@ -626,9 +690,11 @@ export {
     hasActiveAdminPoliciesSelector,
     createHasAdminPolicyWithXeroConnectionSelector,
     createTimeSensitiveAdminPoliciesSelector,
+    createHasTravelEnabledPolicySelector,
     createHasWorkspaceToSubmitToSelector,
     createPoliciesForAssignedCardsSelector,
     createPoliciesByIDsSelector,
+    createMemberCustomFieldsSelector,
     policyTimeTrackingSelector,
     createIOURequestStartPoliciesSelector,
     policyMapper,
@@ -652,5 +718,6 @@ export {
     isCollectingDepositAccountsSelector,
     createIsInternationalCountrySelector,
     groupByPolicyAccountIDPoliciesSelector,
+    createPolicyViolationVisibilitySelector,
 };
 export type {ReusablePolicyConnectionName};

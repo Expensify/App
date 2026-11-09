@@ -15,15 +15,22 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {TransactionMemberGroupListItemType} from './types';
+import type {TransactionApproverGroupListItemType, TransactionMemberGroupListItemType} from './types';
 
 import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
 import TextCell from './TextCell';
 import TotalCell from './TotalCell';
 
+type MemberGroupListItemType = TransactionMemberGroupListItemType | TransactionApproverGroupListItemType;
+
 type MemberListItemHeaderProps = {
-    member: TransactionMemberGroupListItemType;
-    onCheckboxPress?: (item: TransactionMemberGroupListItemType) => void;
+    /** The person this group is for: the submitter when grouping by from, the approver when grouping by approver */
+    member: MemberGroupListItemType;
+
+    onCheckboxPress?: (item: MemberGroupListItemType) => void;
+
+    /** The column that shows the member's name, which differs between the from and approver groupings */
+    nameColumn?: typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
@@ -59,6 +66,7 @@ function MemberListItemHeader({
     onDownArrowClick,
     columns,
     isLargeScreenWidth,
+    nameColumn = CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM,
 }: MemberListItemHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -83,10 +91,10 @@ function MemberListItemHeader({
                 </UserDetailsTooltip>
             </View>
         ),
-        [CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM]: (
+        [nameColumn]: (
             <View
-                key={CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM}
-                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)}
+                key={nameColumn}
+                style={StyleUtils.getReportTableColumnStyles(nameColumn)}
             >
                 <View style={styles.flexShrink1}>
                     <TextWithTooltip

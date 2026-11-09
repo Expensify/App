@@ -85,7 +85,6 @@ import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import HybridAppModule from '@expensify/react-native-hybrid-app';
-import {isSupportalSessionSelector} from '@selectors/Session';
 import {openAuthSessionAsync} from 'expo-web-browser';
 import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
@@ -148,10 +147,6 @@ Onyx.connectWithoutView({
 
 function isSupportAuthToken(session: OnyxEntry<Session> = deprecatedSession): boolean {
     return session?.authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
-}
-
-function isSupportalSession(): boolean {
-    return isSupportalSessionSelector(deprecatedSession);
 }
 
 /**
@@ -544,11 +539,16 @@ function signOutAndRedirectToSignIn(
 /**
  * @param callback The callback to execute if the action is allowed
  * @param isAnonymousAction The action is allowed for anonymous or not
+ * @param session The current session, used to check whether the user is anonymous
  * @returns same callback if the action is allowed, otherwise a function that signs out and redirects to sign in
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function callFunctionIfActionIsAllowed<TCallback extends ((...args: any[]) => any) | void>(callback: TCallback, isAnonymousAction = false): TCallback | (() => void) {
-    if (isAnonymousUser() && !isAnonymousAction) {
+function callFunctionIfActionIsAllowed<TCallback extends ((...args: any[]) => any) | void>(
+    callback: TCallback,
+    isAnonymousAction: boolean,
+    session: OnyxEntry<Session>,
+): TCallback | (() => void) {
+    if (isAnonymousUser(session) && !isAnonymousAction) {
         return () => {
             close(() => {
                 signOutAndRedirectToSignIn();
@@ -651,10 +651,10 @@ function beginSignIn(email: string) {
 /**
  * Create Onyx update to clean up anonymous user data
  */
-function buildOnyxDataToCleanUpAnonymousUser(): PersonalDetailsOnyxUpdate {
+function buildOnyxDataToCleanUpAnonymousUser(session: OnyxEntry<Session>): PersonalDetailsOnyxUpdate {
     const data: Record<string, null> = {};
-    if (deprecatedSession.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS && deprecatedSession.accountID) {
-        data[deprecatedSession.accountID] = null;
+    if (session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS && session.accountID) {
+        data[session.accountID] = null;
     }
     return buildPersonalDetailsUpdate(data);
 }
@@ -663,7 +663,13 @@ function buildOnyxDataToCleanUpAnonymousUser(): PersonalDetailsOnyxUpdate {
  * Creates an account for the new user and signs them into the application with the newly created account.
  * The marketing attribution captured from the landing URL is sent with the request and cleared once signup succeeds.
  */
-function signUpUser(login: string | undefined, preferredLocale: Locale | undefined, hasSMSMarketingConsent?: boolean, storedMarketingAttribution?: OnyxEntry<StoredMarketingAttribution>) {
+function signUpUser(
+    login: string | undefined,
+    preferredLocale: Locale | undefined,
+    hasSMSMarketingConsent: boolean | undefined,
+    storedMarketingAttribution: OnyxEntry<StoredMarketingAttribution>,
+    session: OnyxEntry<Session>,
+) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -675,7 +681,7 @@ function signUpUser(login: string | undefined, preferredLocale: Locale | undefin
         },
     ];
 
-    const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser();
+    const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser(session);
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.MARKETING_ATTRIBUTION> | PersonalDetailsOnyxUpdate> = [
         {
@@ -713,7 +719,12 @@ function signUpUser(login: string | undefined, preferredLocale: Locale | undefin
     });
 }
 
-function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettings, tryNewDot: TryNewDot | undefined, credentialsParam: Credentials | undefined) {
+function setupNewDotAfterTransitionFromOldDot(
+    hybridAppSettings: HybridAppSettings,
+    tryNewDot: TryNewDot | undefined,
+    credentialsParam: Credentials | undefined,
+    session: OnyxEntry<Session>,
+) {
     // eslint-disable-next-line @typescript-eslint/no-deprecated -- OldDot's handoff payload still carries the boolean, and this is where it gets converted to ACTIVE_SERVER
     const {hybridApp, [ONYXKEYS.SHOULD_USE_STAGING_SERVER]: shouldUseStagingServer, ...newDotOnyxValues} = hybridAppSettings;
 
@@ -755,7 +766,7 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
             const stashedData = hybridApp?.delegateAccessData?.isDelegateAccess
                 ? {
                       [ONYXKEYS.STASHED_CREDENTIALS]: credentialsParam,
-                      [ONYXKEYS.STASHED_SESSION]: deprecatedSession,
+                      [ONYXKEYS.STASHED_SESSION]: session ?? {},
                   }
                 : {
                       [ONYXKEYS.STASHED_CREDENTIALS]: {},
@@ -931,7 +942,7 @@ function signInWithShortLivedAuthToken(authToken: string, isSAML: boolean, exitT
     // waitForUserSignIn keeps a single resolver that openReportFromDeepLink may already hold, so wait on the routes instead.
     Navigation.waitForProtectedRoutes().then(() => {
         // A failed sign-in leaves this waiting, so a later sign-in by another account must not land on this page.
-        if (!login || deprecatedSession.email?.toLowerCase() !== login.toLowerCase()) {
+        if (!login || getCurrentUserEmail()?.toLowerCase() !== login.toLowerCase()) {
             return;
         }
         try {
@@ -973,7 +984,8 @@ function signIn(
     twoFactorAuthCode: string | undefined,
     login: string | undefined,
     storedValidateCode: string | undefined,
-    storedAuthToken?: string,
+    storedAuthToken: string | undefined,
+    session: OnyxEntry<Session>,
 ) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
@@ -987,7 +999,7 @@ function signIn(
         },
     ];
 
-    const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser();
+    const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser(session);
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.CREDENTIALS> | PersonalDetailsOnyxUpdate> = [
         {
@@ -1042,11 +1054,19 @@ function signIn(
     });
 }
 
-function signInWithValidateCode(accountID: number, code: string, preferredLocale: Locale | undefined, twoFactorAuthCode = '', storedValidateCode?: string, storedAuthToken?: string) {
+function signInWithValidateCode(
+    accountID: number,
+    code: string,
+    preferredLocale: Locale | undefined,
+    session: OnyxEntry<Session>,
+    twoFactorAuthCode = '',
+    storedValidateCode?: string,
+    storedAuthToken?: string,
+) {
     // If this is called from the 2fa step, use the validateCode stored in Onyx (passed in as `storedValidateCode`)
     // instead of the one passed from the component state because the state is changing when this method is called.
     const validateCode = twoFactorAuthCode ? storedValidateCode : code;
-    const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser();
+    const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser(session);
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION>> = [
         {
@@ -1656,8 +1676,8 @@ function handleExitToNavigation(exitTo: Route) {
     });
 }
 
-function signInWithValidateCodeAndNavigate(accountID: number, validateCode: string, preferredLocale: Locale | undefined, exitTo?: Route) {
-    signInWithValidateCode(accountID, validateCode, preferredLocale);
+function signInWithValidateCodeAndNavigate(accountID: number, validateCode: string, preferredLocale: Locale | undefined, session: OnyxEntry<Session>, exitTo?: Route) {
+    signInWithValidateCode(accountID, validateCode, preferredLocale, session);
     if (exitTo) {
         handleExitToNavigation(exitTo);
     } else {
@@ -1960,5 +1980,4 @@ export {
     MergeIntoAccountAndLogin,
     resetSMSDeliveryFailureStatus,
     clearDisableTwoFactorAuthErrors,
-    isSupportalSession,
 };

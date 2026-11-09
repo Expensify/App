@@ -120,9 +120,13 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             style={[styles.w100]}
             isDisabled={!isTaskActionable}
-            onPress={callFunctionIfActionIsAllowed(() => {
-                completeTask(taskItem as Report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail, taskItem.reportID);
-            })}
+            onPress={callFunctionIfActionIsAllowed(
+                () => {
+                    completeTask(taskItem as Report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail, taskItem.reportID);
+                },
+                false,
+                session,
+            )}
         >
             <Button.Text>{translate('task.action')}</Button.Text>
         </Button>

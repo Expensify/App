@@ -1,10 +1,8 @@
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,7 +14,6 @@ import {canUseTaxNetSuite, getCustomersOrJobsLabelNetSuite, getNetSuiteImportCus
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 
 import {getImportCustomFieldsSettings} from '@pages/workspace/accounting/netsuite/utils';
-import {getAccountingSettingsRoute} from '@pages/workspace/connections/utils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -34,14 +31,13 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
     const {isBetaEnabled} = usePermissions();
 
     const policyID = policy?.id;
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const config = policy?.connections?.netsuite?.options?.config;
     const {subsidiaryList} = policy?.connections?.netsuite?.options?.data ?? {};
     const selectedSubsidiary = (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID);
 
     return (
         <ConnectionLayout
-            onBackButtonPress={() => Navigation.goBack(getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled, policyID))}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))}
             displayName="NetSuiteImportPage"
             headerTitle="workspace.accounting.import"
             headerSubtitle={config?.subsidiary ?? ''}
@@ -60,6 +56,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                 isActive
                 disabled
                 switchAccessibilityLabel={translate('workspace.netsuite.import.expenseCategories')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.EXPENSE_CATEGORIES_SWITCH}
                 onToggle={() => {}}
             />
             {CONST.NETSUITE_CONFIG.IMPORT_FIELDS.map((importField) => (
@@ -91,30 +88,26 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                     config?.pendingFields,
                 )}
             >
-                <MenuItemWithTopDescription
-                    description={translate(`workspace.netsuite.import.customersOrJobs.title`)}
-                    title={getCustomersOrJobsLabelNetSuite(policy, translate)}
-                    shouldShowRightIcon
-                    numberOfLinesTitle={2}
+                <MenuItemField
+                    name={translate(`workspace.netsuite.import.customersOrJobs.title`)}
                     onPress={() => {
                         if (!policyID) {
                             return;
                         }
                         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS.getRoute(policyID));
                     }}
-                    brickRoadIndicator={
-                        areSettingsInErrorFields(
-                            [
-                                CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS,
-                                CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS,
-                                CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS,
-                            ],
-                            config?.errorFields,
-                        )
-                            ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                            : undefined
-                    }
-                />
+                    value={getCustomersOrJobsLabelNetSuite(policy, translate)}
+                    numberOfLinesValue={2}
+                >
+                    {areSettingsInErrorFields(
+                        [
+                            CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS,
+                            CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS,
+                            CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS,
+                        ],
+                        config?.errorFields,
+                    ) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                </MenuItemField>
             </OfflineWithFeedback>
             {canUseTaxNetSuite(isBetaEnabled(CONST.BETAS.NETSUITE_USA_TAX), selectedSubsidiary?.country) && (
                 <ToggleSettingOptionRow
@@ -124,6 +117,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                     shouldPlaceSubtitleBelowSwitch
                     isActive={config?.syncOptions?.syncTax ?? false}
                     switchAccessibilityLabel={translate('common.tax')}
+                    switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.TAX_SWITCH}
                     onToggle={(isEnabled: boolean) => {
                         if (!policyID) {
                             return;

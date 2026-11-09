@@ -89,6 +89,7 @@ function SearchPageInput({queryJSON, onFocus}: SearchPageInputProps) {
             placeholderTextColor={theme.textSupporting}
             shouldShowClearButton={!!textInputValue}
             shouldHideClearButton={false}
+            clearButtonSentryLabel={CONST.SENTRY_LABEL.SEARCH.PAGE_INPUT_CLEAR_BUTTON}
             onClearInput={() => {
                 setTextInputValue('');
                 submitSearch('');

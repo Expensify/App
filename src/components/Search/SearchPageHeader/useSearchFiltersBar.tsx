@@ -7,27 +7,37 @@ import ReportFieldPopup from '@components/Search/FilterDropdowns/ReportFieldPopu
 import TextFilterPopup from '@components/Search/FilterDropdowns/TextFilterPopup';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
-import type {SearchFilterKey, SearchQueryJSON} from '@components/Search/types';
+import type {SearchQueryJSON} from '@components/Search/types';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {shouldShowInitialCategoryFilterLoading} from '@hooks/useSearchFilterSync';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 
 import {close} from '@libs/actions/Modal';
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
 import {buildQueryStringWithResetFilters, hasFiltersChangedFromDefault, isSearchQuerySavable, removeNegation} from '@libs/SearchQueryUtils';
-import {getFilterViewLabelKey, isAmountFilterKey, isDateFilterKey, isReportFieldKey, isTextFilterKey, mapFiltersFormToLabelValueList, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
+import {
+    FILTER_VIEW_MAP,
+    getFiltersFormWithTripRoomStatuses,
+    getFilterViewLabelKey,
+    isAmountFilterKey,
+    isDateFilterKey,
+    isReportFieldKey,
+    isTextFilterKey,
+    mapFiltersFormToLabelValueList,
+    SKIPPED_SEARCH_FILTERS,
+} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
@@ -60,10 +70,6 @@ type FilterPopupProps = {
     setPopoverWidth: PopoverComponentProps['setPopoverWidth'];
     updateFilterForm: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
-
-function getFilterSentryLabel(filterKey: SearchAdvancedFiltersKey | SearchFilterKey) {
-    return `Search-Filter-${filterKey}`;
-}
 
 function FilterPopup({baseFilterKey, isDefault, searchAdvancedFiltersForm, closeOverlay, setPopoverWidth, updateFilterForm}: FilterPopupProps) {
     const {translate} = useLocalize();
@@ -168,8 +174,9 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     const {currentSearchQueryJSON, currentSearchKey, currentDefaultSearchQueryJSON, currentDefaultSearchQueryFilterKeys} = useSearchQueryContext();
     const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
     const isSavedSearch = !!searchKeyToSavedSearchID(currentSearchKey);
+    const shouldReturnTripRooms = useShouldReturnTripRooms(queryJSON.type);
     const filters = mapFiltersFormToLabelValueList(
-        searchAdvancedFiltersForm,
+        shouldReturnTripRooms ? getFiltersFormWithTripRoomStatuses(searchAdvancedFiltersForm) : searchAdvancedFiltersForm,
         currentDefaultSearchQueryFilterKeys,
         SKIPPED_SEARCH_FILTERS,
         translate,
@@ -189,7 +196,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                     />
                 </ListFilterHeightContextProvider>
             ),
-            sentryLabel: getFilterSentryLabel(filterKey),
+            sentryLabel: FILTER_VIEW_MAP[removeNegation(filterKey)].filterSentryLabel,
             onLandscapePress: () => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS_CONTENT.getRoute(removeNegation(filterKey), true)),
             onClosePress:
                 isDefault && !isSavedSearch

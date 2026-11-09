@@ -1,9 +1,11 @@
+import {useIsCapturingChart} from '@components/Charts/context/ChartCaptureContext';
 import {useTooltipData} from '@components/Charts/hooks';
 import type {ChartDataPoint, ChartSeries} from '@components/Charts/types';
 import formatTooltipComparison from '@components/Charts/utils/formatTooltipComparison';
 
 import useLocalize from '@hooks/useLocalize';
 
+import type {ReactNode} from 'react';
 import type {DerivedValue, SharedValue} from 'react-native-reanimated';
 import type {NonEmptyTuple} from 'type-fest';
 
@@ -39,11 +41,17 @@ type ChartTooltipLayerProps = {
     /** Called with how far the chart moved in the window while the tooltip is shown */
     onChartMoved?: (deltaX: number, deltaY: number) => void;
 
-    /** Hides a tooltip pinned by a touch tap, passed only while it is pinned */
-    onDismiss?: () => void;
+    /** Hides the tooltip */
+    onDismiss: () => void;
 
     /** Whether a compared tooltip shows how the primary series changed against the compared one */
     shouldShowTooltipChange?: boolean;
+
+    /** Called with the shown data point when the tooltip is pressed */
+    onPress?: (dataPoint: ChartDataPoint, index: number) => void;
+
+    /** Shown below the tooltip's amounts */
+    footer?: ReactNode;
 };
 
 /**
@@ -61,7 +69,10 @@ function ChartTooltipLayer({
     onChartMoved,
     onDismiss,
     shouldShowTooltipChange = true,
+    onPress,
+    footer,
 }: ChartTooltipLayerProps) {
+    const isCapturing = useIsCapturingChart();
     const [activeDataIndex, setActiveDataIndex] = useState(-1);
 
     // Set from the content's layout, since on native a value set during render can reach the UI thread before the new content is mounted
@@ -79,7 +90,7 @@ function ChartTooltipLayer({
     const tooltipData = useTooltipData(activeDataIndex, data, series, formatValue);
     const activeDataPoint = data.at(activeDataIndex);
 
-    if (!tooltipData || !activeDataPoint) {
+    if (isCapturing || !tooltipData || !activeDataPoint) {
         return null;
     }
 
@@ -96,6 +107,7 @@ function ChartTooltipLayer({
             onDismiss={onDismiss}
             contentKey={activeDataIndex}
             onContentLayout={() => laidOutIndex.set(activeDataIndex)}
+            onPress={onPress ? () => onPress(activeDataPoint, activeDataIndex) : undefined}
         >
             {comparison ? (
                 <ChartTooltipComparison
@@ -104,11 +116,12 @@ function ChartTooltipLayer({
                 />
             ) : (
                 <ChartTooltipSummary
-                    amount={tooltipData.amount}
-                    percentage={tooltipData.percentage}
+                    value={tooltipData.value}
+                    note={tooltipData.note}
                     expenseCount={tooltipData.expenseCount}
                 />
             )}
+            {footer}
         </ChartTooltip>
     );
 }

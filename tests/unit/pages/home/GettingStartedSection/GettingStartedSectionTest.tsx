@@ -474,16 +474,55 @@ describe('GettingStartedSection', () => {
             expect(screen.queryByText('homePage.gettingStartedSection.talkToAccountExecutive')).toBeNull();
         });
 
-        it('renders "Talk to your account executive" footer copy when the user has an assigned Guide', async () => {
+        describe.each([CONST.ONBOARDING_CHOICES.MANAGE_TEAM, CONST.ONBOARDING_CHOICES.TRACK_PERSONAL, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE])('%s intent', (intent) => {
+            it.each(['', CONST.EMAIL.CONCIERGE, CONST.EMAIL.CONCIERGE.toUpperCase()])('renders Concierge footer copy for Guide email "%s"', async (email) => {
+                // Given an onboarding user without a human Guide, including Concierge in the Guide field.
+                await setManageTeamUserState();
+                await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {choice: intent});
+                await Onyx.merge(ONYXKEYS.ACCOUNT, {guideDetails: {email}});
+                await waitForBatchedUpdates();
+
+                // When the Getting started section renders for this intent.
+                renderGettingStartedSection();
+                await waitForBatchedUpdates();
+
+                // Then Concierge must not be described as an account executive.
+                expect(screen.getByText('homePage.gettingStartedSection.talkToConcierge')).toBeTruthy();
+                expect(screen.queryByText('homePage.gettingStartedSection.talkToAccountExecutive')).toBeNull();
+            });
+        });
+
+        it.each(['guide@expensify.com', CONST.EMAIL.QA_GUIDE])('renders account executive footer copy for assigned Guide "%s"', async (email) => {
+            // Given a human or QA Guide assignment that should retain the existing label.
             await setManageTeamUserState();
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {guideDetails: {email: 'guide@expensify.com'}});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {guideDetails: {email}});
             await waitForBatchedUpdates();
 
+            // When the Getting started section renders.
             renderGettingStartedSection();
             await waitForBatchedUpdates();
 
+            // Then the account executive wording is unchanged.
             expect(screen.getByText('homePage.gettingStartedSection.talkToAccountExecutive')).toBeTruthy();
             expect(screen.queryByText('homePage.gettingStartedSection.talkToConcierge')).toBeNull();
+        });
+
+        it('updates the footer when a human Guide is replaced with Concierge', async () => {
+            // Given an already rendered section with a human Guide.
+            await setManageTeamUserState();
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {guideDetails: {email: 'guide@expensify.com'}});
+            await waitForBatchedUpdates();
+            renderGettingStartedSection();
+            await waitForBatchedUpdates();
+            expect(screen.getByText('homePage.gettingStartedSection.talkToAccountExecutive')).toBeTruthy();
+
+            // When the account's Guide changes to Concierge without remounting the section.
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {guideDetails: {email: CONST.EMAIL.CONCIERGE}});
+            await waitForBatchedUpdates();
+
+            // Then the subscribed footer displays Concierge instead of the old executive label.
+            expect(screen.getByText('homePage.gettingStartedSection.talkToConcierge')).toBeTruthy();
+            expect(screen.queryByText('homePage.gettingStartedSection.talkToAccountExecutive')).toBeNull();
         });
 
         it('opens the #admins room in the RHP when the footer link is pressed on wide layout', async () => {
@@ -546,7 +585,9 @@ describe('GettingStartedSection', () => {
             const row = screen.getByText(/homePage\.gettingStartedSection\.connectAccounting:/);
             fireEvent.press(row);
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_ACCOUNTING.getRoute(TEST_POLICY_ID));
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                ROUTES.WORKSPACE_CONNECTIONS.getRoute(TEST_POLICY_ID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.ACCOUNTING),
+            );
         });
 
         it('navigates to workspace categories when "Customize categories" row is pressed', async () => {

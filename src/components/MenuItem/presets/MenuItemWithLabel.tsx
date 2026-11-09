@@ -2,10 +2,14 @@ import type {MenuItemRootProps} from '@components/MenuItem/layout/MenuItemRoot';
 import MenuItemRoot from '@components/MenuItem/layout/MenuItemRoot';
 import MenuItemLabel from '@components/MenuItem/leaves/content/MenuItemLabel';
 
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -19,6 +23,7 @@ type MenuItemWithLabelProps = MenuItemRootProps & {
  * it stays out of the press target and does not pick up the row's hover background.
  */
 function MenuItemWithLabel({label, onPress, isDisabled = false, sentryLabel, testID, accessibilityLabel, children}: MenuItemWithLabelProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
 
     return (
@@ -27,7 +32,7 @@ function MenuItemWithLabel({label, onPress, isDisabled = false, sentryLabel, tes
                 <MenuItemLabel>{label}</MenuItemLabel>
             </View>
             <MenuItemRoot
-                onPress={onPress ? callFunctionIfActionIsAllowed(onPress) : undefined}
+                onPress={onPress ? callFunctionIfActionIsAllowed(onPress, false, session) : undefined}
                 isDisabled={isDisabled}
                 sentryLabel={sentryLabel}
                 testID={testID}
