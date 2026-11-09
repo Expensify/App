@@ -2,10 +2,15 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import Modal from '@components/Modal';
 import MobileSelectionMenuModalWrapper from '@components/Modal/Global/MobileSelectionMenuModalWrapper';
+import type {MobileSelectionMenuModalWrapperProps} from '@components/Modal/Global/MobileSelectionMenuModalWrapper';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
+import getPlatform from '@libs/getPlatform';
+import {getShouldSuppressBackgroundInputFocus} from '@libs/ModalFocusManager';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -19,6 +24,8 @@ import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithA
 
 let mockReanimatedModalProps: ReanimatedModalProps | undefined;
 
+jest.mock('@libs/getPlatform', () => ({__esModule: true, default: jest.fn(() => 'web')}));
+
 // Only the animation layer is replaced, so the test can report the end of the hide animation. Everything above it,
 // the "Select" menu item included, is the real tree.
 jest.mock('@components/Modal/ReanimatedModal', () => ({
@@ -29,17 +36,19 @@ jest.mock('@components/Modal/ReanimatedModal', () => ({
     },
 }));
 
-async function renderWrapper(closeModal: jest.Mock, resolveModal: jest.Mock = jest.fn()) {
-    render(
+async function renderWrapper(closeModal: jest.Mock, resolveModal: jest.Mock = jest.fn(), options: Partial<MobileSelectionMenuModalWrapperProps> = {}) {
+    const result = render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <MobileSelectionMenuModalWrapper
                 closeModal={closeModal}
                 resolveModal={resolveModal}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECTION_MODE_MENU_ITEM}
+                {...options}
             />
         </ComposeProviders>,
     );
     await waitForBatchedUpdatesWithAct();
+    return result;
 }
 
 async function pressSelect() {
@@ -62,6 +71,7 @@ describe('MobileSelectionMenuModalWrapper', () => {
 
     beforeEach(() => {
         mockReanimatedModalProps = undefined;
+        jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.WEB);
     });
 
     it('resolves CONFIRM as soon as the user picks "Select", and takes its entry off the stack only after the menu hides', async () => {
@@ -132,5 +142,90 @@ describe('MobileSelectionMenuModalWrapper', () => {
 
         // Then the entry stays on the stack, because only a hide the user started should resolve the caller's promise
         expect(closeModal).not.toHaveBeenCalled();
+    });
+
+    it('ignores a second Select press while hiding', async () => {
+        // Given a confirmed menu that is still animating out, another modal may already be on top.
+        const resolveModal = jest.fn();
+        await renderWrapper(jest.fn(), resolveModal);
+        await pressSelect();
+
+        // When Select receives another press before the animation ends.
+        await pressSelect();
+
+        // Then no second modal promise is resolved.
+        expect(resolveModal).toHaveBeenCalledTimes(1);
+    });
+
+    it('passes the table test ID to Select', async () => {
+        // Given a caller that needs its existing selector preserved.
+        const resolveModal = jest.fn();
+        await renderWrapper(jest.fn(), resolveModal, {testID: CONST.SELECTION_LIST_WITH_MODAL_TEST_ID});
+
+        // When Select is pressed through that selector.
+        fireEvent.press(screen.getByTestId(CONST.SELECTION_LIST_WITH_MODAL_TEST_ID), {nativeEvent: {}});
+
+        // Then the same action is confirmed.
+        expect(resolveModal).toHaveBeenCalledWith({action: ModalActions.CONFIRM});
+    });
+
+    it('suppresses iOS background focus on Select only when opted in, until the menu hides', async () => {
+        // Given an opted-in iOS menu, opening it must not suppress focus yet.
+        jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.IOS);
+        await renderWrapper(jest.fn(), jest.fn(), {shouldSkipFocusRestoreOnSelect: true});
+        expect(getShouldSuppressBackgroundInputFocus()).toBe(false);
+
+        // When the user confirms selection.
+        await pressSelect();
+
+        // Then focus restoration is deleted and background focus stays suppressed throughout the hide animation.
+        expect(screen.UNSAFE_getByType(Modal).props.restoreFocusType).toBe(CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE);
+        expect(getShouldSuppressBackgroundInputFocus()).toBe(true);
+        finishHideAnimation();
+        expect(getShouldSuppressBackgroundInputFocus()).toBe(false);
+    });
+
+    it.each([
+        [CONST.PLATFORM.IOS, false],
+        [CONST.PLATFORM.WEB, true],
+    ] as const)('preserves default focus behavior on %s with opt-in %s', async (platform, shouldSkipFocusRestoreOnSelect) => {
+        // Given Search/report defaults on iOS, or an opted-in table on another platform.
+        jest.mocked(getPlatform).mockReturnValue(platform);
+        await renderWrapper(jest.fn(), jest.fn(), {shouldSkipFocusRestoreOnSelect});
+
+        // When the user confirms selection.
+        await pressSelect();
+
+        // Then neither the restore policy nor background focus suppression changes.
+        expect(screen.UNSAFE_getByType(Modal).props.restoreFocusType).not.toBe(CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE);
+        expect(getShouldSuppressBackgroundInputFocus()).toBe(false);
+    });
+
+    it('does not suppress focus when an opted-in iOS menu is dismissed', async () => {
+        // Given an opted-in iOS menu.
+        jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.IOS);
+        await renderWrapper(jest.fn(), jest.fn(), {shouldSkipFocusRestoreOnSelect: true});
+
+        // When the user dismisses without selecting.
+        act(() => mockReanimatedModalProps?.onBackdropPress?.());
+
+        // Then the original focus policy remains in place.
+        expect(getShouldSuppressBackgroundInputFocus()).toBe(false);
+        expect(screen.UNSAFE_getByType(Modal).props.restoreFocusType).not.toBe(CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE);
+        finishHideAnimation();
+    });
+
+    it('releases focus suppression if the wrapper unmounts before hiding', async () => {
+        // Given an iOS selection whose hide animation has not finished.
+        jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.IOS);
+        const {unmount} = await renderWrapper(jest.fn(), jest.fn(), {shouldSkipFocusRestoreOnSelect: true});
+        await pressSelect();
+        expect(getShouldSuppressBackgroundInputFocus()).toBe(true);
+
+        // When the stack is torn down before onModalHide.
+        unmount();
+
+        // Then background inputs are not left suppressed.
+        expect(getShouldSuppressBackgroundInputFocus()).toBe(false);
     });
 });

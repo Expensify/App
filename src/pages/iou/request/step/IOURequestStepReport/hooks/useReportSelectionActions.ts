@@ -234,7 +234,7 @@ function useReportSelectionActions({
                         getCurrencyDecimals,
                         getCurrencySymbol,
                     });
-                    removeTransaction(transaction.transactionID);
+                    removeTransaction(transaction.transactionID, {isDeleted: false});
                 }
             },
         });
@@ -268,7 +268,7 @@ function useReportSelectionActions({
                     getCurrencyDecimals,
                     getCurrencySymbol,
                 });
-                removeTransaction(transaction.transactionID);
+                removeTransaction(transaction.transactionID, {isDeleted: false});
             },
         });
     };

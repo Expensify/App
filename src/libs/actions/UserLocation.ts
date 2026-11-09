@@ -19,12 +19,14 @@ function clearUserLocation() {
 }
 
 function snapshotUserLocation() {
+    // Clear USER_LOCATION before checking permission. It may contain coordinates from another session or AddressSearch,
+    // and submission could otherwise use those coordinates if permission is granted later.
+    clearUserLocation();
     hasLocationPermission().then((isGranted) => {
         if (!isGranted) {
             return;
         }
 
-        clearUserLocation();
         // Best effort: a submit that finds no cached position falls back to a capped read
         getCurrentPosition(
             (successData) => {
