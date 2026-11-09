@@ -74,7 +74,7 @@ import {
     isTimeRequest,
 } from '@libs/TransactionUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -378,7 +378,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
             <MenuItem.Root
                 onPress={
                     isRateInteractive
-                        ? callFunctionIfActionIsAllowed(
+                        ? callIfAuthenticated(
                               () => {
                                   const rateRoute = createDynamicRoute(
                                       DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(

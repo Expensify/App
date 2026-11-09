@@ -9,7 +9,7 @@ import MenuItemChevron from '@components/MenuItem/leaves/trailing/icons/MenuItem
 
 import useOnyx from '@hooks/useOnyx';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -44,7 +44,7 @@ function MenuItemNavigation({title, icon, onPress, isDisabled = false, sentryLab
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     return (
         <MenuItemRoot
-            onPress={callFunctionIfActionIsAllowed(onPress, false, session)}
+            onPress={callIfAuthenticated(onPress, false, session)}
             isDisabled={isDisabled}
             sentryLabel={sentryLabel}
             testID={testID}

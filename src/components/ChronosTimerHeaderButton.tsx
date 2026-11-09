@@ -8,7 +8,7 @@ import {startOrStopChronosTimer} from '@libs/actions/Chronos';
 import Navigation from '@libs/Navigation/Navigation';
 import {canWriteInReport} from '@libs/ReportUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -59,7 +59,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
             value: 'timer' as const,
             text: timerStartTime ? translate('chronos.stopTimer', formatElapsedTime(timerStartTime)) : translate('chronos.startTimer'),
             onSelected: () => {
-                callFunctionIfActionIsAllowed(toggleChronosTimer, false, session)();
+                callIfAuthenticated(toggleChronosTimer, false, session)();
             },
         },
         {
@@ -81,7 +81,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
             <ButtonWithDropdownMenu<ChronosAction>
                 variant={!timerStartTime ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                 onPress={() => {
-                    callFunctionIfActionIsAllowed(toggleChronosTimer, false, session)();
+                    callIfAuthenticated(toggleChronosTimer, false, session)();
                 }}
                 options={options}
                 wrapperStyle={styles.flex1}

@@ -111,7 +111,7 @@ jest.mock('@hooks/useTransactionsAndViolationsForReport', () => () => ({transact
 jest.mock('@userActions/Session', () => ({
     isAnonymousUser: () => false,
     signOutAndRedirectToSignIn: jest.fn(),
-    callFunctionIfActionIsAllowed: (fn: () => void) => fn,
+    callIfAuthenticated: (fn: () => void) => fn,
 }));
 
 const mockShowDeleteModal = jest.fn<void, unknown[]>();

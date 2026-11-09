@@ -56,7 +56,7 @@ import {getSearchParamFromPath} from '@libs/Url';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import {updateGeneralSettings as updatePolicyGeneralSettings} from '@userActions/Policy/Policy';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -451,11 +451,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 errorRowTextStyles={styles.mr3}
             >
                 <MenuItemSectionRoot
-                    onPress={
-                        canWriteMoreFeatures
-                            ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID)), false, session)
-                            : undefined
-                    }
+                    onPress={canWriteMoreFeatures ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID)), false, session) : undefined}
                 >
                     <MenuItem.Row>
                         <MenuItem.Content>
@@ -479,11 +475,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 errorRowTextStyles={styles.mr3}
             >
                 <MenuItemSectionRoot
-                    onPress={
-                        canWriteMoreFeatures
-                            ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_FREQUENCY.getRoute(policyID)), false, session)
-                            : undefined
-                    }
+                    onPress={canWriteMoreFeatures ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_FREQUENCY.getRoute(policyID)), false, session) : undefined}
                 >
                     <MenuItemField.Row
                         name={translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.settlementFrequencyLabel')}
@@ -503,9 +495,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
             >
                 <MenuItemSectionRoot
                     onPress={
-                        canWriteMoreFeatures
-                            ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_MONTHLY_LIMIT.getRoute(policyID)), false, session)
-                            : undefined
+                        canWriteMoreFeatures ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_MONTHLY_LIMIT.getRoute(policyID)), false, session) : undefined
                     }
                 >
                     <MenuItemField.Row

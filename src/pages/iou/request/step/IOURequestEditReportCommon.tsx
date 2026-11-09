@@ -27,7 +27,7 @@ import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, 
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -409,7 +409,7 @@ function IOURequestEditReportCommon({
         autoReportOption = undefined;
     } else {
         autoReportOption = (
-            <MenuItem.Root onPress={callFunctionIfActionIsAllowed(handleAutoReport, false, session)}>
+            <MenuItem.Root onPress={callIfAuthenticated(handleAutoReport, false, session)}>
                 <MenuItem.Row>
                     <MenuItem.Leading>
                         <MenuItem.Icon src={icons.DocumentMagicWand} />

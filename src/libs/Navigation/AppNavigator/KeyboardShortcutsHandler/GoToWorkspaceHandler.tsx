@@ -5,7 +5,7 @@ import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,7 +34,7 @@ function GoToWorkspaceHandler() {
         const unsubscribe = KeyboardShortcut.subscribe(
             shortcutConfig.shortcutKey,
             () => {
-                callFunctionIfActionIsAllowed(
+                callIfAuthenticated(
                     () => {
                         const reportID = Navigation.getTopmostSuperWideRHPReportID() ?? Navigation.getTopmostReportId();
                         if (!reportID) {

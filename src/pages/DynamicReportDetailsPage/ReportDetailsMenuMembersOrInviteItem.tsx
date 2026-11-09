@@ -24,7 +24,7 @@ import {
     isUserCreatedPolicyRoom as isUserCreatedPolicyRoomUtil,
 } from '@libs/ReportUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -91,7 +91,7 @@ function ReportDetailsMenuMembersOrInviteItem({reportID}: ReportDetailsMenuMembe
     ) {
         return (
             <MenuItem.Root
-                onPress={callFunctionIfActionIsAllowed(
+                onPress={callIfAuthenticated(
                     () => {
                         if (shouldOpenRoomMembersPage) {
                             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_MEMBERS.path));

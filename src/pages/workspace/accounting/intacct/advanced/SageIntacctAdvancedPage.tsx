@@ -27,7 +27,7 @@ import {
     updateSageIntacctSyncReimbursementAccountID,
 } from '@userActions/connections/SageIntacct';
 import {clearSageIntacctErrorField} from '@userActions/Policy/Policy';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -114,9 +114,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
             onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))}
         >
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED, CONST.SAGE_INTACCT_CONFIG.ACCOUNTING_METHOD], config?.pendingFields)}>
-                <MenuItem.Root
-                    onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC.path)), false, session)}
-                >
+                <MenuItem.Root onPress={callIfAuthenticated(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC.path)), false, session)}>
                     <MenuItemField.Row
                         name={translate('workspace.accounting.autoSync')}
                         value={config?.autoSync?.enabled ? translate('common.enabled') : translate('common.disabled')}

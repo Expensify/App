@@ -8,7 +8,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import type {IntroSelected} from '@userActions/Report';
 import {joinRoom, navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs, togglePinnedState} from '@userActions/Report';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -63,7 +63,7 @@ const PromotedActions = {
         key: CONST.PROMOTED_ACTIONS.PIN,
         icon: 'Pin',
         translationKey: report.isPinned ? 'common.unPin' : 'common.pin',
-        onSelected: callFunctionIfActionIsAllowed(() => togglePinnedState(report.reportID, !!report.isPinned), false, session),
+        onSelected: callIfAuthenticated(() => togglePinnedState(report.reportID, !!report.isPinned), false, session),
     }),
     share: () => ({
         key: CONST.PROMOTED_ACTIONS.SHARE,
@@ -75,7 +75,7 @@ const PromotedActions = {
         key: CONST.PROMOTED_ACTIONS.JOIN,
         icon: 'ChatBubbles',
         translationKey: 'common.join',
-        onSelected: callFunctionIfActionIsAllowed(
+        onSelected: callIfAuthenticated(
             () => {
                 Navigation.dismissModal();
                 joinRoom(report, currentUserAccountID);

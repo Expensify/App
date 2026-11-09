@@ -548,11 +548,7 @@ function signOutAndRedirectToSignIn(
  * @returns same callback if the action is allowed, otherwise a function that signs out and redirects to sign in
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function callFunctionIfActionIsAllowed<TCallback extends ((...args: any[]) => any) | void>(
-    callback: TCallback,
-    isAnonymousAction: boolean,
-    session: OnyxEntry<Session>,
-): TCallback | (() => void) {
+function callIfAuthenticated<TCallback extends ((...args: any[]) => any) | void>(callback: TCallback, isAnonymousAction: boolean, session: OnyxEntry<Session>): TCallback | (() => void) {
     if (isAnonymousUser(session) && !isAnonymousAction) {
         return () => {
             close(() => {
@@ -1939,7 +1935,7 @@ export {
     beginAppleSignIn,
     beginGoogleSignIn,
     setSupportAuthToken,
-    callFunctionIfActionIsAllowed,
+    callIfAuthenticated,
     signIn,
     signInWithValidateCode,
     handleExitToNavigation,

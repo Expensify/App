@@ -19,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {canFlagReportAction, getOriginalReportID, isChatThread, shouldShowFlagComment} from '@libs/ReportUtils';
 
 import {flagComment as flagCommentUtil} from '@userActions/Report';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -142,7 +142,7 @@ function DynamicFlagCommentPage({parentReportAction, report, parentReport, repor
             shouldShowRightIcon
             title={item.name}
             description={item.description}
-            onPress={callFunctionIfActionIsAllowed(() => flagComment(item.severity), false, session)}
+            onPress={callIfAuthenticated(() => flagComment(item.severity), false, session)}
             style={[styles.pt2, styles.pb4, styles.ph5, styles.flexRow]}
             furtherDetails={item.furtherDetails}
             furtherDetailsIcon={item.furtherDetailsIcon}

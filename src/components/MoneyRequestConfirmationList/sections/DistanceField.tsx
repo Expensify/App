@@ -9,7 +9,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -79,7 +79,7 @@ function DistanceField({hasRoute, distance, unit, customUnit}: DistanceFieldProp
 
     return (
         <MenuItem.Root
-            onPress={isDistanceInteractive ? callFunctionIfActionIsAllowed(openDistancePage, false, session) : undefined}
+            onPress={isDistanceInteractive ? callIfAuthenticated(openDistancePage, false, session) : undefined}
             isDisabled={didConfirm}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DISTANCE_FIELD}
         >

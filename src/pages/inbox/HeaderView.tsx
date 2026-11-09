@@ -90,7 +90,7 @@ import EarlyDiscountBanner from '@pages/settings/Subscription/CardSection/Billin
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 
 import {joinRoom} from '@userActions/Report';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -316,7 +316,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         />
     );
 
-    const join = callFunctionIfActionIsAllowed(() => joinRoom(report, currentUserAccountID), false, session);
+    const join = callIfAuthenticated(() => joinRoom(report, currentUserAccountID), false, session);
 
     const canJoin = canJoinChat(report, parentReportAction, policy, parentReport, isReportArchived);
 

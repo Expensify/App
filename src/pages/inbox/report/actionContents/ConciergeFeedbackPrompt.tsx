@@ -17,7 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {findEmojiByName} from '@libs/EmojiUtils';
 
 import toggleEmojiReaction from '@userActions/EmojiReactions';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -204,7 +204,7 @@ function ConciergeFeedbackPrompt({
             emoji={emoji}
             label={emoji.name === thumbsUp.name ? (positiveTooltipText ?? translate('common.yes')) : (negativeTooltipText ?? translate('common.no'))}
             accessibilityLabel={translate(emoji.name === thumbsUp.name ? 'concierge.feedback.useful' : 'concierge.feedback.notUseful')}
-            onPress={callFunctionIfActionIsAllowed(() => rate(emoji), false, session)}
+            onPress={callIfAuthenticated(() => rate(emoji), false, session)}
             shouldShowTooltip={shouldShowTooltips}
             isSelected={isSelected}
             shouldRenderSelectedReactionBubble={shouldRenderSelectedReactionBubble}

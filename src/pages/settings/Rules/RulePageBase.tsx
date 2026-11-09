@@ -26,7 +26,7 @@ import {getTagArrayFromName} from '@libs/TransactionUtils';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -162,7 +162,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                 <HeaderWithBackButton title={translate(titleKey)} />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <Text style={[styles.textHeadlineH2, styles.reportHorizontalRule, styles.mt4, styles.mb2]}>{translate('expenseRulesPage.addRule.expenseContains')}</Text>
-                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => navigateTo(EXPENSE_RULE_INPUT_IDS.MERCHANT, hash), false, session)}>
+                    <MenuItem.Root onPress={callIfAuthenticated(() => navigateTo(EXPENSE_RULE_INPUT_IDS.MERCHANT, hash), false, session)}>
                         <MenuItemField.Row
                             name={translate('common.merchant')}
                             value={form?.merchantToMatch}

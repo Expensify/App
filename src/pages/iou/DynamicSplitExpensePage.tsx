@@ -66,7 +66,7 @@ import {getChildTransactions, getExpenseTypeTranslationKey, getTransactionType, 
 
 import variables from '@styles/variables';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -561,7 +561,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         <>
             <View style={[styles.w100, styles.flexColumn, styles.mt1, shouldUseNarrowLayout && styles.mb3]}>
                 <MenuItem.Root
-                    onPress={callFunctionIfActionIsAllowed(onAddSplitExpense, false, session)}
+                    onPress={callIfAuthenticated(onAddSplitExpense, false, session)}
                     style={[styles.ph4]}
                     sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.ADD_SPLIT_BUTTON}
                 >
@@ -576,7 +576,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
                 </MenuItem.Root>
                 {isInitialSplit && (
                     <MenuItem.Root
-                        onPress={callFunctionIfActionIsAllowed(onMakeSplitsEven, false, session)}
+                        onPress={callIfAuthenticated(onMakeSplitsEven, false, session)}
                         style={[styles.ph4]}
                         sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.MAKE_SPLITS_EVEN_BUTTON}
                     >

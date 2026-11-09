@@ -12,7 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import hasRenderableChildren from '@libs/hasRenderableChildren';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -106,7 +106,7 @@ function MenuItemFieldPreset({
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     return (
         <MenuItemRoot
-            onPress={onPress ? callFunctionIfActionIsAllowed(onPress, false, session) : undefined}
+            onPress={onPress ? callIfAuthenticated(onPress, false, session) : undefined}
             isDisabled={isDisabled}
             sentryLabel={sentryLabel}
             testID={testID}

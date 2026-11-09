@@ -146,7 +146,7 @@ import AnimatedEmptyStateBackground from '@pages/inbox/report/AnimatedEmptyState
 
 import variables from '@styles/variables';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -1054,7 +1054,7 @@ function MoneyRequestView({
                     shouldAllowTextSelection={!!distanceCopyValue}
                     onPress={
                         canEditDistance
-                            ? callFunctionIfActionIsAllowed(
+                            ? callIfAuthenticated(
                                   () => {
                                       if (!transaction?.transactionID || !transactionThreadReport?.reportID) {
                                           return;
@@ -1127,7 +1127,7 @@ function MoneyRequestView({
                     shouldAllowTextSelection={!!distanceRateCopyValue}
                     onPress={
                         canEditDistanceRate
-                            ? callFunctionIfActionIsAllowed(
+                            ? callIfAuthenticated(
                                   () => {
                                       if (!transaction?.transactionID || !transactionThreadReport?.reportID) {
                                           return;
@@ -1452,7 +1452,7 @@ function MoneyRequestView({
                         shouldAllowTextSelection={!!dateCopyValue}
                         onPress={
                             canEditDate
-                                ? callFunctionIfActionIsAllowed(
+                                ? callIfAuthenticated(
                                       () => {
                                           Navigation.navigate(
                                               createDynamicRoute(
@@ -1495,7 +1495,7 @@ function MoneyRequestView({
                             shouldAllowTextSelection={!!categoryCopyValue}
                             onPress={
                                 canEdit
-                                    ? callFunctionIfActionIsAllowed(
+                                    ? callIfAuthenticated(
                                           () => {
                                               if (shouldShowCategoryDisabledAlert) {
                                                   showCategoryDisabledAlert();
@@ -1581,7 +1581,7 @@ function MoneyRequestView({
                             shouldAllowTextSelection={!!vendorCopyValue}
                             onPress={
                                 canEdit
-                                    ? callFunctionIfActionIsAllowed(
+                                    ? callIfAuthenticated(
                                           () => {
                                               if (!transactionThreadReport?.reportID) {
                                                   return;
@@ -1642,7 +1642,7 @@ function MoneyRequestView({
                             shouldAllowTextSelection={!!taxRateCopyValue}
                             onPress={
                                 canEditTaxFields
-                                    ? callFunctionIfActionIsAllowed(
+                                    ? callIfAuthenticated(
                                           () => {
                                               if (shouldShowTaxDisabledAlert) {
                                                   showTaxDisabledAlert();
@@ -1691,7 +1691,7 @@ function MoneyRequestView({
                             shouldAllowTextSelection={!!taxAmountCopyValue}
                             onPress={
                                 canEditTaxFields
-                                    ? callFunctionIfActionIsAllowed(
+                                    ? callIfAuthenticated(
                                           () => {
                                               if (shouldShowTaxDisabledAlert) {
                                                   showTaxDisabledAlert();

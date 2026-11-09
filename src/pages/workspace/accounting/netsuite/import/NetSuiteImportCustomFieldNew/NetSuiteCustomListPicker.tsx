@@ -6,7 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import Navigation from '@libs/Navigation/Navigation';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,7 +34,7 @@ function NetSuiteCustomListPicker({value, policyID, errorText, isEditing}: NetSu
 
     return (
         <MenuItem.Root
-            onPress={callFunctionIfActionIsAllowed(
+            onPress={callIfAuthenticated(
                 () => {
                     if (!policyID) {
                         return;

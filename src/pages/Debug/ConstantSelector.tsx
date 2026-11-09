@@ -6,7 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -68,7 +68,7 @@ function ConstantSelector({formType, policyID, errorText = '', name, value, onIn
 
     return (
         <MenuItem.Root
-            onPress={callFunctionIfActionIsAllowed(
+            onPress={callIfAuthenticated(
                 () => {
                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.DETAILS_CONSTANT_PICKER.getRoute(formType, name, value, policyID)));
                 },

@@ -17,7 +17,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import BaseDomainMemberDetailsComponent from '@pages/domain/BaseDomainMemberDetailsComponent';
 
 import {revokeDomainAdminAccess} from '@userActions/Domain';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -86,7 +86,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
             {!domainHasOnlyOneAdmin && (
                 <MenuItem.Root
                     isDisabled={isCurrentUserPrimaryContact}
-                    onPress={callFunctionIfActionIsAllowed(handleRevokeAdminAccess, false, session)}
+                    onPress={callIfAuthenticated(handleRevokeAdminAccess, false, session)}
                 >
                     <MenuItem.Row>
                         <MenuItem.Leading>

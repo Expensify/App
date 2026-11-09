@@ -12,7 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
@@ -52,7 +52,7 @@ function MenuItemAvatarNavigation({title, description, accountID, avatarSource, 
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     return (
         <MenuItemRoot
-            onPress={callFunctionIfActionIsAllowed(onPress, false, session)}
+            onPress={callIfAuthenticated(onPress, false, session)}
             isDisabled={isDisabled}
             sentryLabel={sentryLabel}
             testID={testID}

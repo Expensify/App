@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {startSpan} from '@libs/telemetry/activeSpans';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,7 +38,7 @@ function SearchButton({style, shouldUseAutoHitSlop = false}: SearchButtonProps) 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
 
     const onPress = () => {
-        callFunctionIfActionIsAllowed(
+        callIfAuthenticated(
             () => {
                 startSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER, {
                     name: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,

@@ -10,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canWriteInReport, isCompletedTaskReport} from '@libs/ReportUtils';
 import {isActiveTaskEditRoute} from '@libs/TaskUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 import {canActionTask, completeTask, reopenTask} from '@userActions/Task';
 
 import CONST from '@src/CONST';
@@ -49,7 +49,7 @@ function TaskHeaderActionButton({reportID}: TaskHeaderActionButtonProps) {
             <Button
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 isDisabled={!isTaskActionable}
-                onPress={callFunctionIfActionIsAllowed(
+                onPress={callIfAuthenticated(
                     () => {
                         // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
                         if (isActiveTaskEditRoute(reportID)) {

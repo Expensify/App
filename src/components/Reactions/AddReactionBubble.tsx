@@ -19,7 +19,7 @@ import variables from '@styles/variables';
 
 import {emojiPickerRef, resetEmojiPopoverAnchor, showEmojiPicker} from '@userActions/EmojiPickerAction';
 import type {AnchorOrigin} from '@userActions/EmojiPickerAction';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -103,7 +103,7 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
             <PressableWithFeedback
                 ref={ref}
                 style={({hovered, pressed}) => [styles.emojiReactionBubble, styles.userSelectNone, StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, false, isContextMenu)]}
-                onPress={callFunctionIfActionIsAllowed(onPress, false, session)}
+                onPress={callIfAuthenticated(onPress, false, session)}
                 onMouseDown={(event) => {
                     // Allow text input blur when Add reaction is right clicked
                     if (!event || event.button === 2) {
