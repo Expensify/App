@@ -59,6 +59,7 @@ import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getParsedComment, getReportOrDraftReport, getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
+import startOpenCategoryPickerSpan from '@libs/telemetry/startOpenCategoryPickerSpan';
 import {
     getDistanceInMeters,
     getRateID,
@@ -81,6 +82,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import {policyTypeSelector} from '@selectors/Policy';
 import {authTokenTypeSelector} from '@selectors/Session';
@@ -91,7 +93,7 @@ type DynamicSplitExpenseEditPageProps = PlatformStackScreenProps<RightModalNavig
 
 type SplitToggleRowProps = {
     label: string;
-    sentryLabel: string;
+    sentryLabel: SentryLabel;
     isOn: boolean;
     onToggle: (value: boolean) => void;
 };
@@ -504,6 +506,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                         Navigation.navigate(ROUTES.SET_DEFAULT_WORKSPACE.getRoute(categoryRoute));
                                         return;
                                     }
+                                    startOpenCategoryPickerSpan();
                                     Navigation.navigate(categoryRoute);
                                 }}
                             >

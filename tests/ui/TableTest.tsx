@@ -3375,6 +3375,7 @@ describe('Table', () => {
                         columns={props.columns}
                         renderItem={renderSelectableRow}
                         keyExtractor={props.keyExtractor}
+                        compareItems={props.compareItems}
                         selectionEnabled
                         selectedKeys={selectedKeys}
                         isItemInSearch={props.isItemInSearch}
@@ -3443,6 +3444,21 @@ describe('Table', () => {
             pressRow(2, true);
 
             expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,2,3$/);
+        });
+
+        it('should range over the rows in their new order when the table is re-sorted mid-range', () => {
+            render(<ControlledSelectableTable />);
+
+            // Given Apple clicked and a range shift+clicked to Carrot, in the order Apple, Banana, Carrot, Date, Eggplant
+            pressRow(0);
+            pressRow(2, true);
+
+            // When the table is sorted by value (Banana, Date, Apple, Eggplant, Carrot) and the range is shift+clicked to Eggplant
+            fireEvent.press(screen.getByLabelText('Value'));
+            pressRow(3, true);
+
+            // Then the range runs from Apple to Eggplant as they now sit, so Date stays unchecked, Carrot is given back and Banana stays checked
+            expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,2,5$/);
         });
 
         it('should exclude disabled rows from the range', () => {
