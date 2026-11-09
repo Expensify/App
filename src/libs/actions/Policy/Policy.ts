@@ -122,7 +122,7 @@ import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import {buildTaskData, getOnboardingTaskCompletionOnSuccessData, withReviewWorkspaceSettingsTaskData} from '@userActions/Task';
 import type {OnboardingTaskCompletionOnyxData} from '@userActions/Task';
-import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
+import {getIntroSelectedCompanySize, getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingPurpose} from '@userActions/Welcome/OnboardingFlow';
 
 import CONST from '@src/CONST';
@@ -3301,7 +3301,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
             adminsChatReportID,
             onboardingPolicyID: policyID,
             onboardingPurposeSelected,
-            companySize: companySize ?? (introSelected?.companySize as OnboardingCompanySize),
+            companySize: companySize ?? getIntroSelectedCompanySize(introSelected),
             isSelfTourViewed,
             conciergeChat,
             delegateAccountID,
