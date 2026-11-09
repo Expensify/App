@@ -30,7 +30,7 @@ function MoneyRequestReportNavigationCounter({current, total}: MoneyRequestRepor
                 importantForAccessibility="no-hide-descendants"
                 accessibilityElementsHidden
             >
-                {translate('common.currentOfTotal', {current: getWidestNumberWithSameDigitCount(total), total})}
+                {translate('common.currentOfTotal', {current: getWidestNumberWithSameDigitCount(Math.max(current, total)), total})}
             </Text>
             <Text style={[styles.mutedTextLabel, styles.textAlignRight, styles.pAbsolute, styles.t0, styles.r0]}>{translate('common.currentOfTotal', {current, total})}</Text>
         </View>

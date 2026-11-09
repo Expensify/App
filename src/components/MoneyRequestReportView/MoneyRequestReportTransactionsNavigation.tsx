@@ -1,4 +1,3 @@
-import MoneyRequestReportNavigationCounter from '@components/MoneyRequestReportView/MoneyRequestReportNavigationCounter';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PrevNextButtons from '@components/PrevNextButtons';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
@@ -37,6 +36,8 @@ import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@selectors/Policy';
 import React, {startTransition, useEffect, useRef} from 'react';
 import {View} from 'react-native';
+
+import MoneyRequestReportNavigationCounter from './MoneyRequestReportNavigationCounter';
 
 const CAROUSEL_PRESERVING_SCREENS = [
     SCREENS.RIGHT_MODAL.SEARCH_REPORT,

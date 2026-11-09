@@ -1,4 +1,3 @@
-import MoneyRequestReportNavigationCounter from '@components/MoneyRequestReportView/MoneyRequestReportNavigationCounter';
 import PrevNextButtons from '@components/PrevNextButtons';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 
@@ -25,6 +24,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useIsFocused} from '@react-navigation/native';
 import React, {startTransition, useEffect, useState} from 'react';
 import {View} from 'react-native';
+
+import MoneyRequestReportNavigationCounter from './MoneyRequestReportNavigationCounter';
 
 type MoneyRequestReportNavigationProps = {
     reportID?: string;

@@ -11,14 +11,14 @@ describe('libs/NumberUtils', () => {
     });
 
     it('should return 8 followed by 0s with as many digits as the value', () => {
-        // Given counts with one, two and three digits. 0 is Expensify Neue's widest digit and 8 its widest non-zero one,
+        // Given counts with one, two and three digits, plus 0 as the lower bound. 0 is Expensify Neue's widest digit and 8 its widest non-zero one,
         // so 8 followed by 0s is the widest number a counter could show with that many digits
-        const counts = [5, 12, 345];
+        const counts = [0, 5, 12, 345];
 
         // When the widest number with the same digit count is requested for each
         const widestNumbers = counts.map(NumberUtils.getWidestNumberWithSameDigitCount);
 
         // Then each one keeps the digit count and is written as 8 followed by 0s
-        expect(widestNumbers).toEqual([8, 80, 800]);
+        expect(widestNumbers).toEqual([8, 8, 80, 800]);
     });
 });
