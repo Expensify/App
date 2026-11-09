@@ -3292,6 +3292,7 @@ function getAllMatchingExpenseActionQuery(
     if (!queryJSON) {
         return undefined;
     }
+    // A Reports search acts on every expense in each matching report, so a deselected expense leaves out its whole report.
     if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
         const reportQuery = getAllMatchingReportQuery(queryJSON, excludedTransactions);
         return reportQuery ? {jsonQuery: serializeQueryJSONForBackend(reportQuery), excludedTransactionIDList: []} : undefined;
