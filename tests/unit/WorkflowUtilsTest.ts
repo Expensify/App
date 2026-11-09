@@ -2298,11 +2298,15 @@ describe('WorkflowUtils', () => {
         });
 
         describe('when the rules declare more than one default workflow', () => {
-            // Peter (1) is the default approver. Rebecca's (2) workflow also carries the default marker, as rules saved
+            // Approver 1 is the default approver. Approver 2's workflow also carries the default marker, as rules saved
             // before the backend refused a second default can.
-            const peterRules = buildApprovalWorkflowRules(buildWorkflow([10, 11], [1], {isDefault: true}));
-            const rebeccaRules = buildApprovalWorkflowRules(buildWorkflow([20, 21], [2], {isDefault: true}));
-            const existingRules = {...keyRules(peterRules), rebeccaSubmit: rebeccaRules.at(0) as ApprovalWorkflowRule, rebeccaApprove: rebeccaRules.at(1) as ApprovalWorkflowRule};
+            const defaultApproverRules = buildApprovalWorkflowRules(buildWorkflow([10, 11], [1], {isDefault: true}));
+            const otherApproverRules = buildApprovalWorkflowRules(buildWorkflow([20, 21], [2], {isDefault: true}));
+            const existingRules = {
+                ...keyRules(defaultApproverRules),
+                otherApproverSubmit: otherApproverRules.at(0) as ApprovalWorkflowRule,
+                otherApproverApprove: otherApproverRules.at(1) as ApprovalWorkflowRule,
+            };
 
             it('Should pick the default workflow that starts at the default approver', () => {
                 expect(Object.keys(getDefaultWorkflowRules(existingRules, '1@example.com'))).toEqual(['rule0', 'rule1']);
@@ -2313,7 +2317,7 @@ describe('WorkflowUtils', () => {
             });
 
             it('Should not treat a workflow routed like the other default-marked workflow as the default one', () => {
-                // Editing Rebecca's ordinary workflow must not fold it into her default-marked rules
+                // Editing approver 2's ordinary workflow must not fold it into their default-marked rules
                 const rules = buildApprovalWorkflowRulesForSave(buildWorkflow([30], [2]), {existingRules, employees: {}, defaultApprover: '1@example.com'});
 
                 expect(rules).toEqual(buildApprovalWorkflowRules(buildWorkflow([30], [2])));
