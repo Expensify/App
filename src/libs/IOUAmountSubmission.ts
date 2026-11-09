@@ -411,6 +411,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 },
                 isASAPSubmitBetaEnabled,
                 currentUser: {accountID: currentUserAccountID, email: currentUserEmail},
+                currentUserPersonalDetails,
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
                 introSelected,
                 conciergeChat,
@@ -768,7 +769,13 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
 
     if (isSplitBill) {
         const {taxCode, taxAmount} = getTaxForEditedAmount(policy, currentTransaction, newAmount, selectedCurrency, decimals);
-        setDraftSplitTransaction(transactionID, splitDraftTransaction, {amount: newAmount, currency: selectedCurrency, taxCode, taxAmount}, getCurrencyDecimals, getCurrencySymbol);
+        setDraftSplitTransaction(
+            transactionID,
+            splitDraftTransaction ?? transaction,
+            {amount: newAmount, currency: selectedCurrency, taxCode, taxAmount},
+            getCurrencyDecimals,
+            getCurrencySymbol,
+        );
         navigateBack();
         return;
     }

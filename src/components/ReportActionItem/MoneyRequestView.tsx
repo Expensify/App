@@ -108,6 +108,7 @@ import {
 } from '@libs/ReportUtils';
 import {COPYABLE_ROW_DATA_SET, COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 import {getDependentTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
+import startOpenCategoryPickerSpan from '@libs/telemetry/startOpenCategoryPickerSpan';
 import {
     getAttendeesListDisplayString,
     getBillable,
@@ -1172,6 +1173,7 @@ function MoneyRequestView({
         } else if (!policy && shouldSelectPolicy) {
             Navigation.navigate(ROUTES.SET_DEFAULT_WORKSPACE.getRoute(categoryRoute));
         } else {
+            startOpenCategoryPickerSpan();
             Navigation.navigate(categoryRoute);
         }
     };

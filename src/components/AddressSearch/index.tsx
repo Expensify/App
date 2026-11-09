@@ -1,4 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import FSClassView from '@components/FSClassView';
 import LocationErrorMessage from '@components/LocationErrorMessage';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -401,10 +402,10 @@ function AddressSearch({
                 // here: https://github.com/FaridSafi/react-native-google-places-autocomplete#use-inside-a-scrollview-or-flatlist
                 keyboardShouldPersistTaps="always"
             >
-                <View
+                <FSClassView
                     style={styles.w100}
                     ref={containerRef}
-                    fsClass={forwardedFSClass}
+                    forwardedFSClass={forwardedFSClass}
                 >
                     <GooglePlacesAutocomplete
                         disableScroll
@@ -521,7 +522,7 @@ function AddressSearch({
                             locationErrorCode={locationErrorCode}
                         />
                     </GooglePlacesAutocomplete>
-                </View>
+                </FSClassView>
             </ScrollView>
             {isFetchingCurrentLocation && (
                 <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading, styles.w100]}>

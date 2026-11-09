@@ -14,6 +14,7 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, ReactNode, RefObject} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -86,7 +87,7 @@ type ExpenseFieldRowProps = {
      */
     backgroundStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 
-    sentryLabel?: string;
+    sentryLabel?: SentryLabel;
     testID?: string;
 };
 
