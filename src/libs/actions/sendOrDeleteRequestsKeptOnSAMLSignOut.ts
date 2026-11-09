@@ -9,7 +9,7 @@ import type {RequestsKeptOnSAMLSignOut} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
-import {getAll as getAllPersistedRequests, getClientRequestIndex, getOngoingRequest, save as savePersistedRequest} from './PersistedRequests';
+import {getAllIncludingOngoing as getAllPersistedRequestsIncludingOngoing, getClientRequestIndex, save as savePersistedRequest} from './PersistedRequests';
 
 function sendOrDeleteRequestsKeptOnSAMLSignOut(requestsKeptOnSAMLSignOut: RequestsKeptOnSAMLSignOut, accountID: number) {
     if (requestsKeptOnSAMLSignOut.accountID !== accountID) {
@@ -19,9 +19,7 @@ function sendOrDeleteRequestsKeptOnSAMLSignOut(requestsKeptOnSAMLSignOut: Reques
     }
 
     // Another tab may have put them back already, and sending one twice could create it twice.
-    const ongoingRequest = getOngoingRequest();
-    const queuedRequests = ongoingRequest ? [ongoingRequest, ...getAllPersistedRequests()] : getAllPersistedRequests();
-    const queuedRequestIndexes = new Set(queuedRequests.map(getClientRequestIndex));
+    const queuedRequestIndexes = new Set(getAllPersistedRequestsIncludingOngoing().map(getClientRequestIndex));
     for (const request of requestsKeptOnSAMLSignOut.requests) {
         const requestIndex = getClientRequestIndex(request);
         if (requestIndex !== undefined && queuedRequestIndexes.has(requestIndex)) {

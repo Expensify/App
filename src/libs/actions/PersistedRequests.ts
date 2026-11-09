@@ -543,6 +543,11 @@ function getOngoingRequest(): AnyRequest | null {
     return ongoingRequest;
 }
 
+/** The request being sent comes first, since it was taken from the front of the queue */
+function getAllIncludingOngoing(): AnyRequest[] {
+    return ongoingRequest ? [ongoingRequest, ...persistedRequests] : persistedRequests;
+}
+
 /**
  * Reset the pending Onyx write counter. Used ONLY in tests to simulate
  * a clean state before cross-tab event simulations. In production,
@@ -557,6 +562,7 @@ export {
     clear,
     save,
     getAll,
+    getAllIncludingOngoing,
     getClientRequestIndex,
     getCommands,
     endRequestAndRemoveFromQueue,

@@ -15,7 +15,7 @@ import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
 
 import {resetSignInFlow} from './HybridApp';
-import {getAll as getAllPersistedRequests, getOngoingRequest} from './PersistedRequests';
+import {getAllIncludingOngoing as getAllPersistedRequestsIncludingOngoing} from './PersistedRequests';
 
 let currentShouldForceOffline: boolean | undefined;
 let currentIsUsingImportedState: boolean | undefined;
@@ -127,11 +127,7 @@ function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: st
         // Every tab empties the request queue on sign-out, so unsent requests are set aside under the account that owns them.
         if (currentSessionAccountID) {
             keysToPreserve.push(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
-            const ongoingRequest = getOngoingRequest();
-            requestsKeptOnSAMLSignOut = {
-                accountID: currentSessionAccountID,
-                requests: ongoingRequest ? [ongoingRequest, ...getAllPersistedRequests()] : getAllPersistedRequests(),
-            };
+            requestsKeptOnSAMLSignOut = {accountID: currentSessionAccountID, requests: getAllPersistedRequestsIncludingOngoing()};
         }
     }
 
