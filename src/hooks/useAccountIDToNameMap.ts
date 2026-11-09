@@ -6,7 +6,6 @@ import {useAllPersonalDetails} from './usePersonalDetails';
 type AccountIDToNameMap = Record<string, string>;
 
 const MENTION_ACCOUNT_ID_REGEX = /<mention-user[^>]*\saccountID="?(\d+)"?/gi;
-// Same object on every render until Onyx loads the list
 const EMPTY_ACCOUNT_ID_TO_NAME_MAP: AccountIDToNameMap = {};
 
 /** Unique accountIDs referenced by <mention-user accountID=...> tags in the given HTML string */

@@ -24,7 +24,6 @@ function getReportIDToNameMapForRoomsInMarkdown(reportIDToName: ReportIDToNameMa
 }
 
 const MENTION_REPORT_ID_REGEX = /<mention-report[^>]*\sreportID="?(\d+)"?/gi;
-// Same object on every render until Onyx loads the collection
 const EMPTY_REPORT_ID_TO_NAME_MAP: ReportIDToNameMap = {};
 
 /** Unique reportIDs referenced by <mention-report reportID=...> tags in the given HTML string */
