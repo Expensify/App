@@ -1,4 +1,5 @@
 import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
+import {clearExperienceCookie} from '@libs/ExperienceCookie';
 import Log from '@libs/Log';
 import {clearSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import {getIsOffline} from '@libs/NetworkState';
@@ -11,6 +12,7 @@ import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import HybridAppModule from '@expensify/react-native-hybrid-app';
+import {isDelegateSessionSelector, isSupportalSessionSelector} from '@selectors/Session';
 import Onyx from 'react-native-onyx';
 
 import {resetSignInFlow} from './HybridApp';
@@ -19,6 +21,7 @@ let currentShouldForceOffline: boolean | undefined;
 let currentIsUsingImportedState: boolean | undefined;
 let currentSessionAuthToken: string | undefined;
 let currentSessionEmail: string | undefined;
+let currentIsAgentSession = false;
 let currentCredentialsValidateCode: string | undefined;
 let lastAuthTokenWrittenAt = 0;
 let lastAuthTokenWrittenEmail: string | undefined;
@@ -46,6 +49,7 @@ Onyx.connectWithoutView({
         }
         currentSessionAuthToken = session?.authToken;
         currentSessionEmail = session?.email;
+        currentIsAgentSession = isSupportalSessionSelector(session) || isDelegateSessionSelector(session);
     },
 });
 
@@ -168,8 +172,15 @@ function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: st
  * @param isSAMLReauthentication Whether the redirection was triggered by reauthentication for SAML required account
  */
 function redirectToSignIn(signOutReason: SignOutReason, errorMessage?: string, isSAMLReauthentication?: boolean): Promise<void> {
+    // Onyx.clear empties SESSION before its promise resolves, so the session type is read first.
+    // An agent's Supportal or Copilot session must leave the agent's own experience cookie alone, matching Web-Expensify.
+    const shouldClearExperienceCookie = !currentIsAgentSession;
     return clearStorageAndRedirect(signOutReason, errorMessage, isSAMLReauthentication).then(() => {
         clearSessionStorage();
+        if (!shouldClearExperienceCookie) {
+            return;
+        }
+        clearExperienceCookie();
     });
 }
 
