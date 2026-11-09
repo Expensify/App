@@ -10857,7 +10857,6 @@ const CONST = {
             DASHBOARD_TAB: 'Insights-DashboardTab',
             CHART_MENU: 'Insights-ChartMenu',
             TABLE_ROW: 'Insights-TableRow',
-            DETAILS_VIEW_ALL: 'Insights-DetailsViewAll',
             CONTROL_POPUP_APPLY: {
                 DATE: 'Insights-ControlPopupApply-Date',
                 WORKSPACE: 'Insights-ControlPopupApply-Workspace',
@@ -10871,6 +10870,8 @@ const CONST = {
                 GROUP_CURRENCY: 'Insights-ControlPopupReset-GroupCurrency',
                 COMPARE: 'Insights-ControlPopupReset-Compare',
             },
+            DETAILS_TOP_EXPENSE: 'Insights-DetailsTopExpense',
+            DETAILS_TOP_EXPENSES_VIEW_ALL: 'Insights-DetailsTopExpensesViewAll',
         },
         EXPENSE_RULES: {
             TABLE_ROW: 'ExpenseRules-TableRow',
