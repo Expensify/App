@@ -157,8 +157,7 @@ function processResponse<TKey extends OnyxKey>(requestResponse: Promise<Response
         // Store cursor IDs scoped to pagination direction so backfill (getOlderActions)
         // doesn't overwrite the forward cursor used by auto-pagination.
         if (resourceCollectionKey === ONYXKEYS.COLLECTION.REPORT_ACTIONS) {
-            // Display sorting adds DEW routed rows that belong in pages, but the API only accepts IDs returned by the server.
-            const newestFetchedID = newPage.find((id) => id !== CONST.PAGINATION_START_ID && id !== CONST.PAGINATION_END_ID && Object.hasOwn(pageItems, id));
+            const newestFetchedID = newPage.find((id) => id !== CONST.PAGINATION_START_ID && id !== CONST.PAGINATION_END_ID);
             const oldestFetchedID = newPage.findLast((id) => id !== CONST.PAGINATION_START_ID && id !== CONST.PAGINATION_END_ID);
             const isOlderDirection = type === 'previous';
             const value: Record<string, string> = {};
