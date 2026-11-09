@@ -49,8 +49,10 @@ import {
     getDefaultChatEnabledPolicySelection,
     getDefaultTimeTrackingRate,
     getDefaultWorkspacePlanType,
+    getCampfireVendors,
     getDualEntryVendors,
     getCertiniaVendors,
+    getZohoBooksVendors,
     getEligibleBankAccountShareRecipientEmails,
     getExcludedUsers,
     getExpensifyTeamExclusions,
@@ -162,6 +164,7 @@ import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTags, PolicyTagLists, Report, Transaction, TravelSettings} from '@src/types/onyx';
 import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {
+    CampfireVendor,
     Connections,
     DualEntryVendor,
     FinancialForceSyncedEntity,
@@ -171,6 +174,7 @@ import type {
     QBONonReimbursableExportAccountType,
     SageIntacctExportConfig,
     TaxRates,
+    ZohoBooksVendor,
 } from '@src/types/onyx/Policy';
 import type Rule from '@src/types/onyx/Rule';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
@@ -6871,7 +6875,7 @@ describe('PolicyUtils', () => {
             it('uses the Business Central empty state when the synced list has no vendors', () => {
                 const translate = TestHelper.translateLocal;
                 expect(getVendorEmptyState(buildBusinessCentralPolicy([]), translate)).toEqual({
-                    title: translate('workspace.businessCentral.noVendorsFound'),
+                    title: translate('workspace.common.noVendorsFound'),
                     subtitle: translate('workspace.businessCentral.noVendorsFoundDescription'),
                 });
             });
@@ -6980,7 +6984,7 @@ describe('PolicyUtils', () => {
             it('uses the existing DualEntry empty state', () => {
                 const translate = TestHelper.translateLocal;
                 expect(getVendorEmptyState(buildDualEntryPolicy([]), translate)).toEqual({
-                    title: translate('workspace.dualEntry.noVendorsFound'),
+                    title: translate('workspace.common.noVendorsFound'),
                     subtitle: translate('workspace.dualEntry.noVendorsFoundDescription'),
                 });
             });
@@ -7091,7 +7095,7 @@ describe('PolicyUtils', () => {
 
                 // Then localized messages specific to Certinia are returned
                 expect(getVendorEmptyState(policy, translate)).toEqual({
-                    title: translate('workspace.certinia.noVendorsFound'),
+                    title: translate('workspace.common.noVendorsFound'),
                     subtitle: translate('workspace.certinia.noVendorsFoundDescription'),
                 });
             });
@@ -7260,9 +7264,144 @@ describe('PolicyUtils', () => {
                 // When retrieving the vendor empty state
                 // Then QBD-specific messages are returned, not the accounts copy
                 expect(getVendorEmptyState(policy, translate)).toEqual({
-                    title: translate('workspace.qbd.noVendorsFound'),
+                    title: translate('workspace.common.noVendorsFound'),
                     subtitle: translate('workspace.qbd.noVendorsFoundDescription'),
                 });
+            });
+        });
+
+        describe('Campfire vendors', () => {
+            const buildCampfirePolicy = (vendors: CampfireVendor[] | undefined, isConfigured = true): Policy =>
+                createMock<Policy>({
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
+                            config: {isConfigured},
+                            data: vendors === undefined ? undefined : {vendors},
+                        },
+                    },
+                });
+
+            it('returns only active vendor-type records, excluding customers and inactive vendors', () => {
+                // Given a Campfire workspace with a mix of active vendors, inactive vendors, and customers
+                const policy = buildCampfirePolicy([
+                    {id: 'cf-1', name: 'Active Vendor', isActive: true, vendorType: CONST.CAMPFIRE_VENDOR_TYPE.VENDOR},
+                    {id: 'cf-2', name: 'Inactive Vendor', isActive: false, vendorType: CONST.CAMPFIRE_VENDOR_TYPE.VENDOR},
+                    {id: 'cf-3', name: 'Active Customer', isActive: true, vendorType: CONST.CAMPFIRE_VENDOR_TYPE.CUSTOMER},
+                    {id: 'cf-4', name: 'Active Vendor 2', isActive: true, vendorType: CONST.CAMPFIRE_VENDOR_TYPE.VENDOR},
+                ]);
+
+                // When reading the eligible vendor list
+                const vendors = getCampfireVendors(policy);
+
+                // Then only active vendor-type records are returned
+                expect(vendors.map((v) => v.id)).toEqual(['cf-1', 'cf-4']);
+            });
+
+            it('excludes vendors with an empty id', () => {
+                // Given a Campfire workspace with a vendor with no id
+                const policy = buildCampfirePolicy([
+                    {id: '', name: 'No ID Vendor', isActive: true, vendorType: CONST.CAMPFIRE_VENDOR_TYPE.VENDOR},
+                    {id: 'cf-1', name: 'Valid Vendor', isActive: true, vendorType: CONST.CAMPFIRE_VENDOR_TYPE.VENDOR},
+                ]);
+
+                // When reading the eligible vendor list
+                const vendors = getCampfireVendors(policy);
+
+                // Then only the vendor with a valid id is returned
+                expect(vendors).toEqual([{id: 'cf-1', name: 'Valid Vendor', currency: '', email: ''}]);
+            });
+
+            it('returns an empty array when the vendor list is undefined', () => {
+                // Given a Campfire workspace with no synced vendor data
+                const policy = buildCampfirePolicy(undefined);
+
+                // When reading the vendor list
+                // Then an empty array is returned (not undefined)
+                expect(getCampfireVendors(policy)).toEqual([]);
+            });
+
+            it('preserves the vendor email when present', () => {
+                // Given a Campfire vendor with an email address
+                const policy = buildCampfirePolicy([{id: 'cf-1', name: 'Vendor With Email', isActive: true, vendorType: CONST.CAMPFIRE_VENDOR_TYPE.VENDOR, email: 'vendor@example.com'}]);
+
+                // When reading the eligible vendor list
+                const vendors = getCampfireVendors(policy);
+
+                // Then the email is preserved in the normalized shape
+                expect(vendors).toEqual([{id: 'cf-1', name: 'Vendor With Email', currency: '', email: 'vendor@example.com'}]);
+            });
+        });
+
+        describe('Zoho Books vendors', () => {
+            const buildZohoBooksPolicy = (vendors: ZohoBooksVendor[] | undefined, isConfigured = true): Policy =>
+                createMock<Policy>({
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: {
+                            config: {isConfigured},
+                            data: vendors === undefined ? undefined : {vendors},
+                        },
+                    },
+                });
+
+            it('returns only active vendor-type records, excluding customers and inactive vendors', () => {
+                // Given a Zoho Books workspace with a mix of active vendors, inactive vendors, and customers
+                const policy = buildZohoBooksPolicy([
+                    {id: 'zb-1', name: 'Active Vendor', isActive: true, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.VENDOR},
+                    {id: 'zb-2', name: 'Inactive Vendor', isActive: false, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.VENDOR},
+                    {id: 'zb-3', name: 'Active Customer', isActive: true, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.CUSTOMER},
+                    {id: 'zb-4', name: 'Active Vendor 2', isActive: true, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.VENDOR},
+                ]);
+
+                // When reading the eligible vendor list
+                const vendors = getZohoBooksVendors(policy);
+
+                // Then only active vendor-type records are returned
+                expect(vendors.map((v) => v.id)).toEqual(['zb-1', 'zb-4']);
+            });
+
+            it('excludes vendors with an empty id', () => {
+                // Given a Zoho Books workspace with a vendor with no id
+                const policy = buildZohoBooksPolicy([
+                    {id: '', name: 'No ID Vendor', isActive: true, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.VENDOR},
+                    {id: 'zb-1', name: 'Valid Vendor', isActive: true, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.VENDOR},
+                ]);
+
+                // When reading the eligible vendor list
+                const vendors = getZohoBooksVendors(policy);
+
+                // Then only the vendor with a valid id is returned
+                expect(vendors).toEqual([{id: 'zb-1', name: 'Valid Vendor', currency: '', email: ''}]);
+            });
+
+            it('returns an empty array when the vendor list is undefined', () => {
+                // Given a Zoho Books workspace with no synced vendor data
+                const policy = buildZohoBooksPolicy(undefined);
+
+                // When reading the vendor list
+                // Then an empty array is returned (not undefined)
+                expect(getZohoBooksVendors(policy)).toEqual([]);
+            });
+
+            it('preserves the vendor email when present', () => {
+                // Given a Zoho Books vendor with an email address
+                const policy = buildZohoBooksPolicy([{id: 'zb-1', name: 'Vendor With Email', isActive: true, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.VENDOR, email: 'ap@example.com'}]);
+
+                // When reading the eligible vendor list
+                const vendors = getZohoBooksVendors(policy);
+
+                // Then the email is preserved in the normalized shape
+                expect(vendors).toEqual([{id: 'zb-1', name: 'Vendor With Email', currency: '', email: 'ap@example.com'}]);
+            });
+
+            it('returns an empty array when policy has no Zoho Books connection', () => {
+                // Given a policy with no Zoho Books connection
+                const policy = createMock<Policy>({...createRandomPolicy(0), connections: {}});
+
+                // When reading the Zoho Books vendor list
+                // Then an empty array is returned
+                expect(getZohoBooksVendors(policy)).toEqual([]);
             });
         });
 
@@ -8138,7 +8277,7 @@ describe('PolicyUtils', () => {
             it('returns Xero empty state copy when Xero is the active integration', () => {
                 const policy = buildXeroPolicy();
                 expect(getVendorEmptyState(policy, translate)).toEqual({
-                    title: translate('workspace.xero.noVendorsFound'),
+                    title: translate('workspace.common.noVendorsFound'),
                     subtitle: translate('workspace.xero.noVendorsFoundDescription'),
                 });
             });
@@ -8146,7 +8285,7 @@ describe('PolicyUtils', () => {
             it('returns Rillet empty state copy when Rillet is the active integration', () => {
                 const policy = buildRilletPolicy();
                 expect(getVendorEmptyState(policy, translate)).toEqual({
-                    title: translate('workspace.rillet.noVendorsFound'),
+                    title: translate('workspace.common.noVendorsFound'),
                     subtitle: translate('workspace.rillet.noVendorsFoundDescription'),
                 });
             });
@@ -8168,8 +8307,58 @@ describe('PolicyUtils', () => {
                 // When retrieving the vendor empty state
                 // Then QBD-specific messages are returned, not the accounts copy
                 expect(getVendorEmptyState(policy, translate)).toEqual({
-                    title: translate('workspace.qbd.noVendorsFound'),
+                    title: translate('workspace.common.noVendorsFound'),
                     subtitle: translate('workspace.qbd.noVendorsFoundDescription'),
+                });
+            });
+
+            it('returns Campfire empty state copy when Campfire is the active integration', () => {
+                // Given a Campfire workspace with an empty vendor list
+                const policy = createMock<Policy>({
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
+                            config: {isConfigured: true},
+                            data: {vendors: []},
+                        },
+                    },
+                });
+
+                // When retrieving the vendor empty state
+                // Then Campfire-specific messages are returned
+                expect(getVendorEmptyState(policy, translate)).toEqual({
+                    title: translate('workspace.common.noVendorsFound'),
+                    subtitle: translate('workspace.campfire.noVendorsFoundDescription'),
+                });
+            });
+
+            it('returns DualEntry empty state copy when DualEntry is the active integration', () => {
+                // Given a DualEntry workspace with an empty vendor list
+                const policy = createMock<Policy>({
+                    connections: {
+                        dualEntry: {
+                            config: {isConfigured: true, subsidiaryID: '10'},
+                            data: {vendors: []},
+                        },
+                    },
+                });
+
+                // When retrieving the vendor empty state
+                // Then DualEntry-specific messages are returned
+                expect(getVendorEmptyState(policy, translate)).toEqual({
+                    title: translate('workspace.common.noVendorsFound'),
+                    subtitle: translate('workspace.dualEntry.noVendorsFoundDescription'),
+                });
+            });
+
+            it('falls back to QBO default copy when no supported integration is active', () => {
+                // Given a policy with no active vendor-matching integration
+                const policy = createMock<Policy>({...createRandomPolicy(0), connections: {}});
+
+                // When retrieving the vendor empty state
+                // Then the QBO default messages are returned
+                expect(getVendorEmptyState(policy, translate)).toEqual({
+                    title: translate('workspace.qbo.noAccountsFound'),
+                    subtitle: translate('workspace.qbo.noAccountsFoundDescription', 'QuickBooks Online'),
                 });
             });
         });
