@@ -1,5 +1,6 @@
 import HorizontalSafeArea from '@components/HorizontalSafeArea';
 
+import useOnyx from '@hooks/useOnyx';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 
 import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
@@ -11,9 +12,11 @@ import InsightsPage from '@pages/Insights/InsightsPage';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
 import {createNativeBottomTabNavigator} from '@react-navigation/bottom-tabs/unstable';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
 
 import type {NativeTabName} from './NativeTabNavigator/NATIVE_TAB_GLYPHS';
@@ -45,6 +48,7 @@ const renderNativeTabLayout = (props: NativeTabLayoutProps) => <NativeTabLayout 
 
 function TabNavigator() {
     const {shouldShowNativeTabBar, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled} = useNativeTabNavigator();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const windowInsets = useSafeAreaInsets();
     const [tabScreenBottomInset, setTabScreenBottomInset] = useState<number>();
     const isTabBarVertical = getIsTabBarVertical(tabScreenBottomInset, windowInsets);
@@ -77,7 +81,7 @@ function TabNavigator() {
             screenLayout={renderTabScreenLayout}
             screenOptions={getScreenOptions}
             UNSTABLE_router={tabRouterOverride}
-            screenListeners={tabScreenListeners}
+            screenListeners={(props) => tabScreenListeners({...props, session})}
         >
             <Tab.Screen
                 name={SCREENS.HOME}
