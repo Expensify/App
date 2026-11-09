@@ -8145,6 +8145,16 @@ const CONST = {
         ATTACHMENTS: 'attachments',
     },
 
+    // Mirrors Web-Expensify's ExperienceCookie, which the HybridWeb router reads to pick New Expensify or Expensify Classic
+    EXPERIENCE_COOKIE: {
+        NAME: 'experience',
+        VALUES: {
+            NEW: 'new',
+            CLASSIC: 'classic',
+        },
+        MAX_AGE_SECONDS: 31536000,
+    },
+
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
         RETRY_LAZY_REFRESHED: 'RETRY_LAZY_REFRESHED',
