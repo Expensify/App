@@ -339,6 +339,10 @@ const DYNAMIC_ROUTES = {
             SCREENS.REPORT_CHANGE_WORKSPACE.DYNAMIC_ROOT,
         ],
     },
+    PAYMENT_DETAILS: {
+        path: 'payment-details',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+    },
     EDIT_REPORT_FIELD: {
         path: 'edit/policyField/:policyID/:fieldID',
         entryScreens: [
@@ -2865,7 +2869,16 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, backTo?: string, secureKey?: string, isPendingCreation?: boolean, sourceReportID?: string) => {
+        getRoute: (
+            reportID: string | undefined,
+            reportActionID?: string,
+            referrer?: string,
+            backTo?: string,
+            secureKey?: string,
+            isPendingCreation?: boolean,
+            sourceReportID?: string,
+            sourcePolicyID?: string,
+        ) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the REPORT_WITH_ID route');
                 return getUrlWithBackToParam(ROUTES.HOME, backTo);
@@ -2887,6 +2900,10 @@ const ROUTES = {
             // Threaded on the route so it stays scoped to this Concierge navigation entry instead of a global key.
             if (sourceReportID) {
                 queryParams.push(`sourceReportID=${encodeURIComponent(sourceReportID)}`);
+            }
+            // The workspace page the user was viewing when they opened Concierge from the side-pane button (native).
+            if (sourcePolicyID) {
+                queryParams.push(`sourcePolicyID=${encodeURIComponent(sourcePolicyID)}`);
             }
 
             const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';

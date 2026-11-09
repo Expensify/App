@@ -281,6 +281,12 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Should we remove the hover background color of the menu item */
         shouldRemoveHoverBackground?: boolean;
 
+        /** Background of the hovered item in place of the default hover background */
+        hoveredStyle?: StyleProp<ViewStyle>;
+
+        /** Added to the title's style while the item is hovered. Applies to plain text titles, not HTML or parsed ones. */
+        hoveredTitleStyle?: StyleProp<TextStyle>;
+
         rightIconAccountID?: number | string;
 
         iconAccountID?: number;
@@ -534,6 +540,8 @@ function MenuItem({
     shouldGreyOutWhenDisabled = true,
     shouldRemoveBackground = false,
     shouldRemoveHoverBackground = false,
+    hoveredStyle,
+    hoveredTitleStyle,
     shouldUseDefaultCursorWhenDisabled = false,
     shouldShowLoadingSpinnerIcon = false,
     isAnonymousAction = false,
@@ -699,6 +707,9 @@ function MenuItem({
                         style={descriptionTextStyles}
                         numberOfLines={numberOfLinesDescription}
                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: isTitleSelectable}}
+                        // A description on top labels the field, so it stays readable in session recordings even inside a masked container.
+                        // A description below the title can hold user data, like an email, so it keeps the class of its container
+                        fsClass={shouldShowDescriptionOnTop ? CONST.FULLSTORY.CLASS.UNMASK : undefined}
                     >
                         {description}
                     </Text>
@@ -894,7 +905,13 @@ function MenuItem({
                                             ),
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                                         shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
-                                        isHovered && interactive && !focused && !pressed && !shouldRemoveBackground && !shouldRemoveHoverBackground && styles.hoveredComponentBG,
+                                        isHovered &&
+                                            interactive &&
+                                            !focused &&
+                                            !pressed &&
+                                            !shouldRemoveBackground &&
+                                            !shouldRemoveHoverBackground &&
+                                            (hoveredStyle ?? styles.hoveredComponentBG),
                                     ] as StyleProp<ViewStyle>
                                 }
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
@@ -1075,7 +1092,7 @@ function MenuItem({
                                                                 )}
                                                                 {!shouldRenderAsHTML && !shouldParseTitle && !!title && (
                                                                     <Text
-                                                                        style={combinedTitleTextStyle}
+                                                                        style={[combinedTitleTextStyle, isHovered && hoveredTitleStyle]}
                                                                         numberOfLines={numberOfLinesTitle || undefined}
                                                                         dataSet={{
                                                                             [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled,
