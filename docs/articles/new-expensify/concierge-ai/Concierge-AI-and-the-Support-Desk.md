@@ -20,7 +20,7 @@ From your account:
 
 1. Go to **Account > Help**.
 2. Select one of the following options:
-   - **Talk to Concierge:** Connect with AI for lightning-fast support.
+   - **Concierge:** Connect with AI for lightning-fast support.
    - **Talk to a human:** Our human-managed Support Desk for more complex issues.
    - **Expensify HelpSite:** Navigate to our extensive [self-help resources](https://help.expensify.com/).
 
@@ -50,7 +50,7 @@ When you Talk to a human, we open a **support ticket** — a conversation in you
 Here's what that means for you:
 
 - ✅ **You know who you're talking to.** Your rep's name and avatar are on every message.
-- ✅ **Admins can schedule a call, any time.** All admins will see the option on an open ticket to **Book a Call** with your rep. If they don’t have a suitable time available for you, you can request a different rep so you can ensure you have phone support at a time that suits you.
+- ✅ **Admins can schedule a call, any time.** All admins on a paid Workspace will see the option on an open ticket to **Book a Call** with your rep. If they don’t have a suitable time available for you, you can request a different rep so you can ensure you have phone support at a time that suits you.
 - ✅ **You can ask for them again.** Next time you select **Talk to a human**, that rep appears as an option.
 - ✅ **Guaranteed Resolution.** Where your problem is more complex and cannot be resolved by the Support Desk, they will escalate to a manager to ensure you get the best support. If that happens, this will be communicated to you directly.
 
@@ -62,7 +62,6 @@ Your support rep marks the ticket resolved only when your issue is sorted. You'l
 - A quick rating prompt: **How was your support experience? 👍 / 👎**
   - This is your chance to tell us how things went and what we can do better.
 - The option to reopen your ticket. You can use this if you feel the issue was not resolved.
-- An **Open new support ticket** button in place of the message box.
 
 ## Can Concierge help with bank accounts and identity verification?
 
