@@ -35,3 +35,12 @@
 - E/App issue: 🛑
 - PR introducing patch: https://github.com/Expensify/App/pull/100733
 - Reproduction: On iOS, open a chat from an LHN row with a Pay or Approve action, so it opens at the linked expense. The highlighted expense should appear once, a little below the top of the list, and not move afterward.
+
+### [@legendapp+list+3.7.2+005+keep-scroll-adjust-anchor-precise.patch](@legendapp+list+3.7.2+005+keep-scroll-adjust-anchor-precise.patch)
+
+- Reason: LegendList keeps the visible items in place with a hidden anchor view placed 10,000,000 points down. Native layout stores positions as 32-bit floats, which hold that value only to the nearest whole point, so each scroll adjustment was rounded while the items moved by the exact amount. On Android, a chat that opens at a linked message moved up by 1–2 px when the rows above it were measured. This patch moves the anchor to 1,000,000 points, where its position stays precise to 1/16 of a point.
+- Scope: Only the native bundles.
+- Upstream PR/issue: https://github.com/LegendApp/legend-list/pull/602
+- E/App issue: 🛑
+- PR introducing patch: https://github.com/Expensify/App/pull/100733
+- Reproduction: On Android, open a chat from an LHN row with a Fix action, so it opens at the linked expense. When the Latest messages button appears, the messages on screen should not move.
