@@ -34,7 +34,7 @@ Then the repo rules the tooling cannot see (`CLAUDE.md`, `tests/README.md`):
 - A new `Onyx.connectWithoutView` has a comment justifying it. In a component it also needs `@frontend-performance` approval linked in the PR body.
 - New strings go in `src/languages/en.ts` only. The other locales are generated from it by `scripts/generateTranslations.ts`. On a PR from a fork that doesn't run automatically, so say in the handoff that someone from Expensify has to run it.
 - No new `useMemo`, `useCallback` or `React.memo` in a file the React Compiler handles.
-- The `Mobile-Expensify` submodule pointer didn't move by accident: `git diff --ignore-submodules=none upstream/main -- Mobile-Expensify`. Stage by path, never `git add -A`, `git add .` or `git commit -a`.
+- The `Mobile-Expensify` submodule pointer didn't move by accident: `git diff --ignore-submodules=none upstream/main...HEAD -- Mobile-Expensify`. Stage by path, never `git add -A`, `git add .` or `git commit -a`.
 
 ## 2. Verify
 
