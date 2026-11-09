@@ -118,13 +118,8 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
 
     const illustrationIcon = Object.entries(illustrationIcons).find(([name]) => name === feature.icon)?.[1];
     const illustration = Object.entries(illustrations).find(([name]) => name === feature.icon)?.[1];
-    const isIllustration = feature.icon in illustrations;
-    let iconSrc;
-    if (feature.icon in illustrationIcons) {
-        iconSrc = illustrationIcon;
-    } else if (isIllustration) {
-        iconSrc = illustration;
-    }
+    const isIllustration = illustration !== undefined;
+    const iconSrc = illustrationIcon ?? illustration;
 
     const iconAdditionalStyles = feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id ? styles.br0 : undefined;
 
