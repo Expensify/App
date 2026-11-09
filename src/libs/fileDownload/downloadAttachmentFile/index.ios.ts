@@ -22,7 +22,9 @@ const downloadAttachmentFile: DownloadAttachmentFile = (translate, url, fileName
         .then(() => Share.open({url: `file://${localPath}`, failOnCancel: false}))
         .then(() => {})
         .catch(() => showGeneralErrorAlert(translate))
-        .finally(() => RNFetchBlob.fs.unlink(localPath).catch(() => {}));
+        .finally(() => {
+            RNFetchBlob.fs.unlink(localPath).catch(() => {});
+        });
 };
 
 export default downloadAttachmentFile;
