@@ -5,6 +5,7 @@ import Text from '@components/Text';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -71,7 +72,8 @@ function QuickbooksNonReimbursableVendorSelectPage({policy, configKey, updateVen
         isSelected: !currentVendor || currentVendor === CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
     };
     const shouldShowClearOption = canClear && (!!currentVendor || vendorOptions.length > 0);
-    const data: CardListItem[] = shouldShowClearOption ? [clearOption, ...vendorOptions] : vendorOptions;
+    const searchableOptions: CardListItem[] = shouldShowClearOption ? [clearOption, ...vendorOptions] : vendorOptions;
+    const {filteredData: data, textInputOptions} = useSelectionListSearch(searchableOptions, translate('common.noResultsFound'), true);
 
     const selectVendor = (row: CardListItem) => {
         const isCurrentVendorNone = !currentVendor || currentVendor === CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE;
@@ -109,10 +111,12 @@ function QuickbooksNonReimbursableVendorSelectPage({policy, configKey, updateVen
             title="workspace.accounting.defaultVendor"
             headerContent={listHeaderContent}
             data={data}
+            textInputOptions={textInputOptions}
             onSelectRow={selectVendor}
             shouldSingleExecuteRowSelect
-            initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
+            initiallyFocusedOptionKey={searchableOptions.find((mode) => mode.isSelected)?.keyForList}
             listEmptyContent={listEmptyContent}
+            shouldShowListEmptyContent={!textInputOptions.value}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             onBackButtonPress={() => Navigation.goBack()}
             pendingAction={settingsPendingAction([configKey], qboConfig?.pendingFields)}

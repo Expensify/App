@@ -199,4 +199,26 @@ describe('useSelectionListSearch', () => {
         expect(result.current.filteredData).toEqual(data);
         expect(result.current.textInputOptions.headerMessage).toBeUndefined();
     });
+
+    it('shows the search input on a short list when shouldAlwaysShowSearch is true', () => {
+        // Given a short list below the item-limit threshold with shouldAlwaysShowSearch enabled
+        const data = [buildItem('apple')];
+
+        // When the hook runs
+        const {result} = renderHook(() => useSelectionListSearch(data, 'common.noResultsFound', true));
+
+        // Then the search label is set so the input renders regardless of list length
+        expect(result.current.textInputOptions.label).toBe('common.search');
+    });
+
+    it('hides the search input on an empty list even when shouldAlwaysShowSearch is true', () => {
+        // Given an empty list (no items synced yet) with shouldAlwaysShowSearch enabled
+        const data: Item[] = [];
+
+        // When the hook runs
+        const {result} = renderHook(() => useSelectionListSearch(data, 'common.noResultsFound', true));
+
+        // Then the search label stays undefined so the empty-state view renders without a search input above it
+        expect(result.current.textInputOptions.label).toBeUndefined();
+    });
 });
