@@ -1,7 +1,6 @@
 import HorizontalSafeArea from '@components/HorizontalSafeArea';
 
 import useOnyx from '@hooks/useOnyx';
-import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 
 import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {ScreenLayoutProps} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
@@ -17,17 +16,15 @@ import SCREENS from '@src/SCREENS';
 
 import {createNativeBottomTabNavigator} from '@react-navigation/bottom-tabs/unstable';
 import {authTokenTypeSelector} from '@selectors/Session';
-import React, {useState} from 'react';
+import React from 'react';
 
 import type {NativeTabName} from './NativeTabNavigator/NATIVE_TAB_GLYPHS';
 import type {NativeTabLayoutProps} from './NativeTabNavigator/NativeTabLayout';
 
 import isTabHostFullWidth from './NativeTabNavigator/isTabHostFullWidth';
 import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
-import TabBarShapeProbe from './NativeTabNavigator/TabBarShapeProbe';
-import getIsTabBarVertical from './NativeTabNavigator/TabBarShapeProbe/getIsTabBarVertical';
-import TabBarShapeContext from './NativeTabNavigator/TabBarShapeProbe/TabBarShapeContext';
 import tabScreenListeners from './NativeTabNavigator/tabScreenListeners';
+import useIsTabBarVertical from './NativeTabNavigator/useIsTabBarVertical';
 import useNativeTabBarOptions from './NativeTabNavigator/useNativeTabBarOptions';
 import useNativeTabNavigator from './NativeTabNavigator/useNativeTabNavigator';
 import ReportsSplitNavigator from './ReportsSplitNavigator';
@@ -49,19 +46,12 @@ const renderNativeTabLayout = (props: NativeTabLayoutProps) => <NativeTabLayout 
 function TabNavigator() {
     const {shouldShowNativeTabBar, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled} = useNativeTabNavigator();
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
-    const windowInsets = useSafeAreaInsets();
-    const [tabScreenBottomInset, setTabScreenBottomInset] = useState<number>();
-    const isTabBarVertical = getIsTabBarVertical(tabScreenBottomInset, windowInsets);
+    const isTabBarVertical = useIsTabBarVertical();
     const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, dotColors, tabLabels});
     // Either the tab host or each tab screen keeps out of the horizontal safe area, depending on where the bar can sit.
     const renderTabScreenLayout = (props: ScreenLayoutProps) => {
         const tabScreen = bottomTabScreenLayoutWrapper(props);
-        return (
-            <>
-                {isTabHostFullWidth ? <HorizontalSafeArea>{tabScreen}</HorizontalSafeArea> : tabScreen}
-                <TabBarShapeProbe isTabBarShown={shouldShowNativeTabBar} />
-            </>
-        );
+        return isTabHostFullWidth ? <HorizontalSafeArea>{tabScreen}</HorizontalSafeArea> : tabScreen;
     };
 
     // A tab with no bar item draws no icon.
@@ -112,11 +102,7 @@ function TabNavigator() {
         </Tab.Navigator>
     );
 
-    return (
-        <TabBarShapeContext.Provider value={setTabScreenBottomInset}>
-            {isTabHostFullWidth ? tabNavigator : <HorizontalSafeArea>{tabNavigator}</HorizontalSafeArea>}
-        </TabBarShapeContext.Provider>
-    );
+    return isTabHostFullWidth ? tabNavigator : <HorizontalSafeArea>{tabNavigator}</HorizontalSafeArea>;
 }
 
 export default TabNavigator;

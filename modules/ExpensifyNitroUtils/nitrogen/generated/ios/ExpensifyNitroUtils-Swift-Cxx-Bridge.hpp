@@ -16,21 +16,29 @@ namespace margelo::nitro::utils { struct Contact; }
 namespace margelo::nitro::utils { class HybridAppStartTimeModuleSpec; }
 // Forward declaration of `HybridContactsModuleSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridContactsModuleSpec; }
+// Forward declaration of `HybridVerticalBarModuleSpec` to properly resolve imports.
+namespace margelo::nitro::utils { class HybridVerticalBarModuleSpec; }
 // Forward declaration of `StringHolder` to properly resolve imports.
 namespace margelo::nitro::utils { struct StringHolder; }
+// Forward declaration of `VerticalBarEdge` to properly resolve imports.
+namespace margelo::nitro::utils { enum class VerticalBarEdge; }
 
 // Forward declarations of Swift defined types
 // Forward declaration of `HybridAppStartTimeModuleSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridAppStartTimeModuleSpec_cxx; }
 // Forward declaration of `HybridContactsModuleSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridContactsModuleSpec_cxx; }
+// Forward declaration of `HybridVerticalBarModuleSpec_cxx` to properly resolve imports.
+namespace ExpensifyNitroUtils { class HybridVerticalBarModuleSpec_cxx; }
 
 // Include C++ defined types
 #include "Contact.hpp"
 #include "ContactFields.hpp"
 #include "HybridAppStartTimeModuleSpec.hpp"
 #include "HybridContactsModuleSpec.hpp"
+#include "HybridVerticalBarModuleSpec.hpp"
 #include "StringHolder.hpp"
+#include "VerticalBarEdge.hpp"
 #include <NitroModules/Promise.hpp>
 #include <NitroModules/PromiseHolder.hpp>
 #include <NitroModules/Result.hpp>
@@ -223,6 +231,71 @@ namespace margelo::nitro::utils::bridge::swift {
   }
   inline Result_std__shared_ptr_Promise_std__vector_Contact____ create_Result_std__shared_ptr_Promise_std__vector_Contact____(const std::exception_ptr& error) noexcept {
     return Result<std::shared_ptr<Promise<std::vector<Contact>>>>::withError(error);
+  }
+  
+  // pragma MARK: std::function<void()>
+  /**
+   * Specialized version of `std::function<void()>`.
+   */
+  using Func_void = std::function<void()>;
+  /**
+   * Wrapper class for a `std::function<void()>`, this can be used from Swift.
+   */
+  class Func_void_Wrapper final {
+  public:
+    explicit Func_void_Wrapper(std::function<void()>&& func): _function(std::make_unique<std::function<void()>>(std::move(func))) {}
+    inline void call() const noexcept {
+      _function->operator()();
+    }
+  private:
+    std::unique_ptr<std::function<void()>> _function;
+  } SWIFT_NONCOPYABLE;
+  Func_void create_Func_void(void* NON_NULL swiftClosureWrapper) noexcept;
+  inline Func_void_Wrapper wrap_Func_void(Func_void value) noexcept {
+    return Func_void_Wrapper(std::move(value));
+  }
+  
+  // pragma MARK: std::function<void(VerticalBarEdge /* edge */)>
+  /**
+   * Specialized version of `std::function<void(VerticalBarEdge)>`.
+   */
+  using Func_void_VerticalBarEdge = std::function<void(VerticalBarEdge /* edge */)>;
+  /**
+   * Wrapper class for a `std::function<void(VerticalBarEdge / * edge * /)>`, this can be used from Swift.
+   */
+  class Func_void_VerticalBarEdge_Wrapper final {
+  public:
+    explicit Func_void_VerticalBarEdge_Wrapper(std::function<void(VerticalBarEdge /* edge */)>&& func): _function(std::make_unique<std::function<void(VerticalBarEdge /* edge */)>>(std::move(func))) {}
+    inline void call(int edge) const noexcept {
+      _function->operator()(static_cast<VerticalBarEdge>(edge));
+    }
+  private:
+    std::unique_ptr<std::function<void(VerticalBarEdge /* edge */)>> _function;
+  } SWIFT_NONCOPYABLE;
+  Func_void_VerticalBarEdge create_Func_void_VerticalBarEdge(void* NON_NULL swiftClosureWrapper) noexcept;
+  inline Func_void_VerticalBarEdge_Wrapper wrap_Func_void_VerticalBarEdge(Func_void_VerticalBarEdge value) noexcept {
+    return Func_void_VerticalBarEdge_Wrapper(std::move(value));
+  }
+  
+  // pragma MARK: std::shared_ptr<HybridVerticalBarModuleSpec>
+  /**
+   * Specialized version of `std::shared_ptr<HybridVerticalBarModuleSpec>`.
+   */
+  using std__shared_ptr_HybridVerticalBarModuleSpec_ = std::shared_ptr<HybridVerticalBarModuleSpec>;
+  std::shared_ptr<HybridVerticalBarModuleSpec> create_std__shared_ptr_HybridVerticalBarModuleSpec_(void* NON_NULL swiftUnsafePointer) noexcept;
+  void* NON_NULL get_std__shared_ptr_HybridVerticalBarModuleSpec_(std__shared_ptr_HybridVerticalBarModuleSpec_ cppType);
+  
+  // pragma MARK: std::weak_ptr<HybridVerticalBarModuleSpec>
+  using std__weak_ptr_HybridVerticalBarModuleSpec_ = std::weak_ptr<HybridVerticalBarModuleSpec>;
+  inline std__weak_ptr_HybridVerticalBarModuleSpec_ weakify_std__shared_ptr_HybridVerticalBarModuleSpec_(const std::shared_ptr<HybridVerticalBarModuleSpec>& strong) noexcept { return strong; }
+  
+  // pragma MARK: Result<std::function<void()>>
+  using Result_std__function_void____ = Result<std::function<void()>>;
+  inline Result_std__function_void____ create_Result_std__function_void____(const std::function<void()>& value) noexcept {
+    return Result<std::function<void()>>::withValue(value);
+  }
+  inline Result_std__function_void____ create_Result_std__function_void____(const std::exception_ptr& error) noexcept {
+    return Result<std::function<void()>>::withError(error);
   }
 
 } // namespace margelo::nitro::utils::bridge::swift
