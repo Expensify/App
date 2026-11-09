@@ -34,7 +34,6 @@ type WorkspaceMemberRoleListProps = {
     role: string | undefined;
     policy: OnyxEntry<Policy>;
     navigateBackTo?: Route;
-    isLoading?: boolean;
     onSelectRole?: (value: ListItemType) => void;
 
     /** When provided, restricts the selectable roles to this set (e.g. an Authorized Payer may only be an Admin or Payments Admin) */
@@ -129,7 +128,6 @@ function WorkspaceMemberRoleList({
     role,
     policy,
     navigateBackTo = undefined,
-    isLoading = false,
     onSelectRole = () => {},
     allowedRoles = undefined,
     confirmButtonOptions = undefined,
@@ -148,31 +146,29 @@ function WorkspaceMemberRoleList({
                 title={translate('common.role')}
                 onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
             />
-            {!isLoading && (
-                <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
-                    <SelectionList
-                        data={availableRoleItems}
-                        ListItem={SingleSelectListItem}
-                        onSelectRow={onSelectRole}
-                        confirmButtonOptions={confirmButtonOptions}
-                        shouldSingleExecuteRowSelect={!confirmButtonOptions?.showButton}
-                        initiallyFocusedItemKey={availableRoleItems.find((item) => item.isSelected)?.keyForList}
-                        addBottomSafeAreaPadding
-                    >
-                        {!!errorMessage && (
-                            <View style={[styles.ph3, styles.mb3]}>
-                                {/* Remounting is what makes the alert speak again. The list is not inside a `Form`,
-                                    so `FormHelpMessage` has no submit count of its own to re-announce from. */}
-                                <FormHelpMessage
-                                    key={errorAnnouncementKey}
-                                    isError
-                                    message={errorMessage}
-                                />
-                            </View>
-                        )}
-                    </SelectionList>
-                </View>
-            )}
+            <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
+                <SelectionList
+                    data={availableRoleItems}
+                    ListItem={SingleSelectListItem}
+                    onSelectRow={onSelectRole}
+                    confirmButtonOptions={confirmButtonOptions}
+                    shouldSingleExecuteRowSelect={!confirmButtonOptions?.showButton}
+                    initiallyFocusedItemKey={availableRoleItems.find((item) => item.isSelected)?.keyForList}
+                    addBottomSafeAreaPadding
+                >
+                    {!!errorMessage && (
+                        <View style={[styles.ph3, styles.mb3]}>
+                            {/* Remounting is what makes the alert speak again. The list is not inside a `Form`,
+                                so `FormHelpMessage` has no submit count of its own to re-announce from. */}
+                            <FormHelpMessage
+                                key={errorAnnouncementKey}
+                                isError
+                                message={errorMessage}
+                            />
+                        </View>
+                    )}
+                </SelectionList>
+            </View>
         </>
     );
 }
