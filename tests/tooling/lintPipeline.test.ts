@@ -6,7 +6,7 @@ import path from 'node:path';
 import type {OxlintConfig, OxlintDiagnostic} from '../../scripts/lint/oxlint/OxlintLinter';
 import type {LintMessage, LinterResult} from '../../scripts/lint/types';
 
-import {oxlintCodeToESLintRuleID} from '../../config/oxlint/ruleNames.mjs';
+import oxlintCodeToESLintRuleID from '../../config/oxlint/ruleNames.mjs';
 import JSONFormatter from '../../scripts/lint/formatters/JSONFormatter';
 import StylishFormatter from '../../scripts/lint/formatters/StylishFormatter';
 import Linter from '../../scripts/lint/Linter';

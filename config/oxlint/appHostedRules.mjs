@@ -24,8 +24,8 @@ const APP_HOSTED_ESLINT_RULE_IDS = [
 ];
 
 // The App's own hosted rules (hosted/<name>) and the ESLint ID their `eslint-disable` comments use.
-// tsgolint misses `<MenuItem />`; see noDeprecatedSelfClosingJsx.mjs.
 const APP_LOCAL_HOSTED_RULES = {
+    // tsgolint misses `<MenuItem />`; see noDeprecatedSelfClosingJsx.mjs.
     'no-deprecated-self-closing-jsx': '@typescript-eslint/no-deprecated',
 };
 
