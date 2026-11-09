@@ -151,6 +151,7 @@ function FieldsValueSettingsPage({policy, policyID, valueIndex, reportFieldID, i
                             <Switch
                                 isOn={!currentValueDisabled}
                                 accessibilityLabel={translate('workspace.reportFields.enableValue')}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.VALUE_SETTINGS_ENABLE_SWITCH}
                                 onToggle={updateListValueEnabled}
                                 disabled={!canWrite}
                                 disabledAction={withReadOnlyFallback()}

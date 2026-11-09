@@ -32,18 +32,15 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Permissions from '@libs/Permissions';
 import {getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {getChatHistoryTranslationKey, navigateToChatHistory, shouldShowLocalTime as shouldShowLocalTimeUtil} from '@libs/ProfileUtils';
 import {
     findSelfDMReportID,
     getChatByParticipants,
     getReportNotificationPreference,
-    hasAutomatedExpensifyAccountIDs,
     isConciergeChatReport,
     isHiddenForCurrentUser as isReportHiddenForCurrentUser,
     navigateToPrivateNotes,
 } from '@libs/ReportUtils';
-import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
-import {isAgentEmail} from '@libs/SessionUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import {isValidAccountRoute} from '@libs/ValidationUtils';
 
@@ -95,7 +92,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
     const [personalDetails] = useAllPersonalDetails();
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
-    const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -115,8 +112,6 @@ function ProfilePage({route}: ProfilePageProps) {
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const isSupportalSession = useIsSupportalSession();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.PROFILE.path);
-    const policyID = route.params?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -161,7 +156,7 @@ function ProfilePage({route}: ProfilePageProps) {
     // If we have a reportID param this means that we
     // arrived here via the ParticipantsPage and should be allowed to navigate back to it
     const isCustomAgent = !!details?.isCustomAgent;
-    const shouldShowLocalTime = !hasAutomatedExpensifyAccountIDs([accountID]) && !isCustomAgent && !isEmptyObject(timezone) && isParticipantValidated;
+    const shouldShowLocalTime = shouldShowLocalTimeUtil({accountID, timezone, isCustomAgent, isValidated: isParticipantValidated});
     let pronouns = details?.pronouns ?? '';
     if (pronouns?.startsWith(CONST.PRONOUNS.PREFIX)) {
         const localeKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
@@ -171,10 +166,6 @@ function ProfilePage({route}: ProfilePageProps) {
     const isSMSLogin = Str.isSMSLogin(login);
     const phoneNumber = getPhoneNumber(details);
     const formattedLogin = isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login;
-
-    // An admin opens this page from their workspace Members list, which is the only place the member's display name can be set.
-    const canManageMemberDisplayName = !!policyID && !!login && isPolicyAdmin(policy, currentUserLogin) && !!policy?.employeeList?.[login];
-    const hasDisplayNameSet = !!details?.firstName || !!details?.lastName;
 
     const hasAvatar = !!details?.avatar;
     const isLoading = !!personalDetailsMetadata?.[accountID]?.isLoading || isEmptyObject(details);
@@ -291,24 +282,13 @@ function ProfilePage({route}: ProfilePageProps) {
                                 {!!formattedLogin && <MenuItem.Copy value={formattedLogin} />}
                             </MenuItemField>
                         ) : null}
-                        {canManageMemberDisplayName ? (
-                            <OfflineWithFeedback pendingAction={details?.pendingFields?.displayName}>
-                                <MenuItemField
-                                    name={translate('displayNamePage.headerTitle')}
-                                    value={displayName}
-                                    onPress={
-                                        !hasDisplayNameSet ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE_DISPLAY_NAME.getRoute(accountID, policyID))) : undefined
-                                    }
-                                />
-                            </OfflineWithFeedback>
-                        ) : null}
                         {pronouns ? (
                             <MenuItemField
                                 name={translate('profilePage.preferredPronouns')}
                                 value={pronouns}
                             />
                         ) : null}
-                        {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
+                        {shouldShowLocalTime && !!timezone && <AutoUpdateTime timezone={timezone} />}
                         {isCurrentUser && (
                             <MenuItemNavigation
                                 title={translate('common.editYourProfile')}
@@ -337,20 +317,15 @@ function ProfilePage({route}: ProfilePageProps) {
                             <MenuItemAction
                                 title={translate('profilePage.copilotIntoAccount')}
                                 icon={expensifyIcons.UserPlus}
-                                onPress={() => switchToDelegator(login)}
+                                // Agents can't open their Agents pages, so land on Home instead of the default Settings tab
+                                onPress={() => switchToDelegator(login, ROUTES.HOME)}
                             />
                         )}
                         {!!accountID && !isAnonymousUserSession() && (
                             <MenuItemNavigation
-                                title={translate(isCustomAgent || isAgentEmail(login) ? 'profilePage.viewAgentHistory' : 'profilePage.seeChatHistory')}
+                                title={translate(getChatHistoryTranslationKey(isCustomAgent, login))}
                                 icon={expensifyIcons.History}
-                                onPress={() => {
-                                    const query = buildQueryStringFromFilterFormValues({
-                                        type: CONST.SEARCH.DATA_TYPES.CHAT,
-                                        from: [String(accountID)],
-                                    });
-                                    Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
-                                }}
+                                onPress={() => navigateToChatHistory(accountID)}
                             />
                         )}
                         {shouldShowNotificationPreference && (

@@ -240,7 +240,6 @@ import {
     shouldEnableNegative,
     shouldExcludeAncestorReportAction,
     shouldCreateNewMoneyRequestReport,
-    shouldHideBillReport,
     shouldHideSingleReportField,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
@@ -4049,6 +4048,24 @@ describe('ReportUtils', () => {
             expect(actual.workspaceName).toBe('Direct Policy Name');
         });
 
+        it.each([true, false])('returns only the policy name for a bill when the policy is available: %s', (hasPolicy) => {
+            // Given a bill can receive its policy name without the policy record.
+            const billReport: Report = {
+                reportID: 'bill-subtitle',
+                type: CONST.REPORT.UNSUPPORTED_TYPE.BILL,
+                policyID: 'bill-policy',
+                policyName: 'Bill Policy',
+                ownerAccountID: currentUserAccountID,
+            };
+            const billPolicy = hasPolicy ? createMock<Policy>({id: 'bill-policy', name: 'Current Bill Policy'}) : undefined;
+
+            // When the header builds the bill subtitle.
+            const subtitle = getParentNavigationSubtitle(billReport, billPolicy, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
+
+            // Then it omits the owner's expense chat and uses the current policy name when available.
+            expect(subtitle).toEqual({workspaceName: hasPolicy ? 'Current Bill Policy' : 'Bill Policy'});
+        });
+
         it('should use the policy name from the passed policy parameter for invoice reports', () => {
             const testPolicy = createMock<Policy>({
                 id: 'invoicePolicyID',
@@ -4550,6 +4567,70 @@ describe('ReportUtils', () => {
 
             // Even though the chat carries an outstanding-child flag, an all-pending card report can't be actioned yet.
             expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
+        });
+
+        it('returns false when the outstanding child is the member own empty report on a workspace they cannot create expenses on', async () => {
+            // Given the member's own open, empty report on an approve-only workspace
+            // When the LHN checks whether their workspace chat needs attention
+            // Then the outstanding-child flag alone does not show the GBR, since only the owner can act on it
+            const expenseReportID = '7101';
+            const expenseReport = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: expenseReportID,
+                policyID: '1',
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                transactionCount: 0,
+            };
+
+            const policyExpenseChat = {
+                ...createPolicyExpenseChat(101, true),
+                policyID: '1',
+                ownerAccountID: currentUserAccountID,
+                hasOutstandingChildRequest: true,
+                iouReportID: expenseReportID,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {role: CONST.POLICY.ROLE.APPROVE_ONLY});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport);
+            await waitForBatchedUpdates();
+
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
+        });
+
+        it('returns true when the outstanding child is the member own empty report on a workspace they can create expenses on', async () => {
+            // Given the member's own open, empty report on a workspace where they are a regular member
+            // When the LHN checks whether their workspace chat needs attention
+            // Then the outstanding-child flag shows the GBR, since adding expenses is an action for them
+            const expenseReportID = '7102';
+            const expenseReport = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: expenseReportID,
+                policyID: '1',
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                transactionCount: 0,
+            };
+
+            const policyExpenseChat = {
+                ...createPolicyExpenseChat(102, true),
+                policyID: '1',
+                ownerAccountID: currentUserAccountID,
+                hasOutstandingChildRequest: true,
+                iouReportID: expenseReportID,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {role: CONST.POLICY.ROLE.USER});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport);
+            await waitForBatchedUpdates();
+
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
         });
 
         describe('when the outstanding child expense is all on hold', () => {
@@ -5144,6 +5225,38 @@ describe('ReportUtils', () => {
                 const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, 20], undefined);
                 expect(moneyRequestOptions.length).toBe(0);
             });
+
+            it('it is a bill', async () => {
+                // Given a paid group policy
+                const paidPolicy: Policy = {
+                    ...createRandomPolicy(97770),
+                    id: 'billMoneyRequestOptionsPolicy',
+                    type: CONST.POLICY.TYPE.TEAM,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${paidPolicy.id}`, paidPolicy);
+
+                // And an open bill the current user owns, with the vendor as another participant
+                const vendorAccountID = 20;
+                const bill: Report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    type: CONST.REPORT.UNSUPPORTED_TYPE.BILL,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    policyID: paidPolicy.id,
+                    ownerAccountID: currentUserAccountID,
+                    managerID: currentUserAccountID,
+                    participants: buildParticipantsFromAccountIDs([currentUserAccountID, vendorAccountID]),
+                };
+
+                // When getting the money request options for the bill
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(bill, paidPolicy, [currentUserAccountID, vendorAccountID], undefined);
+
+                // Then no option is offered, because a bill's expenses come only from the vendor's invoice
+                expect(moneyRequestOptions.length).toBe(0);
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${paidPolicy.id}`, null);
+            });
+
             it('the current user is an invited user of the iou report', () => {
                 const report: Report = {
                     ...LHNTestUtils.getFakeReport(),
@@ -11710,7 +11823,7 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('isUnsupportedReportType and shouldHideBillReport', () => {
+    describe('isUnsupportedReportType', () => {
         it.each([
             {reportType: CONST.REPORT.UNSUPPORTED_TYPE.BILL, isBillPayBetaEnabled: false, expected: true},
             {reportType: CONST.REPORT.UNSUPPORTED_TYPE.BILL, isBillPayBetaEnabled: true, expected: false},
@@ -11722,18 +11835,6 @@ describe('ReportUtils', () => {
             // When we check whether NewDot supports the type for this user
             // Then only bills depend on the beta, and other unsupported types stay unsupported
             expect(isUnsupportedReportType(reportType, isBillPayBetaEnabled)).toBe(expected);
-        });
-
-        it.each([
-            {reportType: CONST.REPORT.UNSUPPORTED_TYPE.BILL, isBillPayBetaEnabled: false, expected: true},
-            {reportType: CONST.REPORT.UNSUPPORTED_TYPE.BILL, isBillPayBetaEnabled: true, expected: false},
-            {reportType: CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK, isBillPayBetaEnabled: false, expected: false},
-            {reportType: CONST.REPORT.TYPE.INVOICE, isBillPayBetaEnabled: false, expected: false},
-        ])('shouldHideBillReport returns $expected for $reportType when isBillPayBetaEnabled is $isBillPayBetaEnabled', ({reportType, isBillPayBetaEnabled, expected}) => {
-            // Given a report type and the user's newDotBillPay beta state
-            // When the report screen checks whether to hide the report
-            // Then only bills are hidden, and only from users without the beta
-            expect(shouldHideBillReport(reportType, isBillPayBetaEnabled)).toBe(expected);
         });
     });
 
@@ -13331,6 +13432,24 @@ describe('ReportUtils', () => {
             const reportNameValuePair = {private_isArchived: '2024-01-01 00:00:00.000'};
             expect(isReportOutstanding(report, policy.id, undefined, reportNameValuePair)).toBe(false);
         });
+
+        it('should keep returning false for an open bill once bills count as expense reports', () => {
+            // isExpenseReport excludes bills today, so this test protects the behavior for when bills count as expense reports.
+            // Given an open bill and an open expense report on the same policy
+            const expenseReport: Report = {
+                ...createRandomReport(1, undefined),
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const bill: Report = {...expenseReport, type: CONST.REPORT.UNSUPPORTED_TYPE.BILL};
+
+            // When it's checked if each report is outstanding
+            // Then only the expense report is offered as a report to add expenses to, because a bill's expenses come only from the vendor's invoice
+            expect(isReportOutstanding(expenseReport, policy.id, undefined, {})).toBe(true);
+            expect(isReportOutstanding(bill, policy.id, undefined, {})).toBe(false);
+        });
     });
 
     describe('getOutstandingReportsForUser', () => {
@@ -13458,6 +13577,29 @@ describe('ReportUtils', () => {
 
             // Then the result is true
             expect(result).toBe(true);
+        });
+
+        it('should keep returning false for a bill once bills count as expense reports', async () => {
+            // isMoneyRequestReport excludes bills today, so this test protects the behavior for when bills count as expense reports.
+            // Given an open bill and an open expense report with the same owner and policy
+            const expenseReport: Report = {
+                ...createRandomReport(10005, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: currentUserAccountID,
+            };
+            const bill: Report = {...expenseReport, reportID: '10006', type: CONST.REPORT.UNSUPPORTED_TYPE.BILL};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${bill.reportID}`, bill);
+
+            mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
+
+            // When it's checked if expenses can be added to each report
+            // Then only the expense report accepts expenses, because a bill's expenses come only from the vendor's invoice
+            expect(canAddTransaction(expenseReport, undefined)).toBe(true);
+            expect(canAddTransaction(bill, undefined)).toBe(false);
+            expect(canAddTransaction(bill, undefined, false, true)).toBe(false);
         });
 
         it('should return false for an expense report the current user is not the submitter', async () => {
@@ -14588,6 +14730,277 @@ describe('ReportUtils', () => {
             expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
             expect(result?.reportAction?.reportActionID).toBe('iou-action-older');
             expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.PAY);
+        });
+
+        describe('empty open expense report in a workspace chat', () => {
+            const policyID = 'emptyReportAddBadgePolicy';
+            const emptyReportID = 'empty-report-add-badge';
+            const previewAction: ReportAction = {
+                reportActionID: 'empty-report-preview',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childReportID: emptyReportID,
+                created: '2024-01-01 00:00:00',
+                message: [{html: 'report preview', text: 'report preview', type: 'COMMENT'}],
+                originalMessage: {linkedReportID: emptyReportID},
+            };
+
+            const buildEmptyReportPolicy = (role: Policy['role'], policyOverrides?: Partial<Policy>): Policy => ({
+                ...createRandomPolicy(1),
+                id: policyID,
+                type: CONST.POLICY.TYPE.TEAM,
+                role,
+                employeeList: {},
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                autoReporting: false,
+                harvesting: {enabled: false},
+                ...policyOverrides,
+            });
+
+            const setUpEmptyReport = async (
+                role: Policy['role'],
+                {
+                    shouldCachePolicy = true,
+                    policyOverrides,
+                    workspaceChatOverrides,
+                    extraChatReportActions,
+                }: {shouldCachePolicy?: boolean; policyOverrides?: Partial<Policy>; workspaceChatOverrides?: Partial<Report>; extraChatReportActions?: ReportActions} = {},
+            ) => {
+                const emptyReport: Report = {
+                    ...createExpenseReport(42101),
+                    reportID: emptyReportID,
+                    policyID,
+                    ownerAccountID: currentUserAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+                const workspaceChat: Report = {
+                    ...createPolicyExpenseChat(42102),
+                    policyID,
+                    hasOutstandingChildRequest: true,
+                    iouReportID: emptyReportID,
+                    ...workspaceChatOverrides,
+                };
+
+                await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+                if (shouldCachePolicy) {
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, buildEmptyReportPolicy(role, policyOverrides));
+                }
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${emptyReportID}`, emptyReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChat.reportID}`, {[previewAction.reportActionID]: previewAction, ...extraChatReportActions});
+                await waitForBatchedUpdates();
+
+                return workspaceChat;
+            };
+
+            it('should return the ADD badge when the current user can add expenses', async () => {
+                // Given a workspace chat flagged as needing attention because of an empty open report the current user submits
+                const workspaceChat = await setUpEmptyReport(CONST.POLICY.ROLE.USER);
+
+                // When the reason is retrieved for the workspace chat
+                const result = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: workspaceChat,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID,
+                    transactionViolations: undefined,
+                    reportMetadata: undefined,
+                    isReportArchived: false,
+                });
+
+                // Then the row shows an Add badge that targets the empty report's preview, matching the report's Add expense button
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
+                expect(result?.reportAction?.reportActionID).toBe(previewAction.reportActionID);
+                expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.ADD);
+            });
+
+            it('should not return the ADD badge when the current user is approve-only', async () => {
+                // Given the same empty report, but the current user is an approve-only member who can't add expenses
+                const workspaceChat = await setUpEmptyReport(CONST.POLICY.ROLE.APPROVE_ONLY);
+
+                // When the reason is retrieved for the workspace chat
+                const result = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: workspaceChat,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID,
+                    transactionViolations: undefined,
+                    reportMetadata: undefined,
+                    isReportArchived: false,
+                });
+
+                // Then no Add badge is shown, because the user has no way to act on it
+                expect(result?.actionBadge).not.toBe(CONST.REPORT.ACTION_BADGE.ADD);
+            });
+
+            it('should not return the ADD badge once the transactions snapshot has the first expense, even if the module-level cache does not', async () => {
+                // Given an empty report whose first expense is already in the caller's transactions snapshot, but was never written to the
+                // module-level transactions cache, like the reportAttributes derived value recomputing before that cache catches up
+                const workspaceChat = await setUpEmptyReport(CONST.POLICY.ROLE.USER);
+                const firstExpense: Transaction = {...createRandomTransaction(42103), reportID: emptyReportID};
+
+                // When the reason is retrieved with that snapshot
+                const result = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: workspaceChat,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID,
+                    transactionViolations: undefined,
+                    reportMetadata: undefined,
+                    isReportArchived: false,
+                    reportsTransactions: {[emptyReportID]: [firstExpense]},
+                });
+
+                // Then the Add badge is gone, because the report is no longer empty
+                expect(result?.actionBadge).not.toBe(CONST.REPORT.ACTION_BADGE.ADD);
+            });
+
+            it('should not return the ADD badge when the workspace has harvesting enabled', async () => {
+                // Given a workspace chat flagged as needing attention because of another report, plus an empty report the current user could
+                // add expenses to, in a workspace with harvesting on, where an empty report never sets that flag itself
+                const workspaceChat = await setUpEmptyReport(CONST.POLICY.ROLE.USER, {
+                    policyOverrides: {harvesting: {enabled: true}},
+                    workspaceChatOverrides: {iouReportID: 'report-that-set-the-flag'},
+                });
+
+                // When the reason is retrieved for the workspace chat
+                const result = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: workspaceChat,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID,
+                    transactionViolations: undefined,
+                    reportMetadata: undefined,
+                    isReportArchived: false,
+                });
+
+                // Then the chat keeps its bare green dot, because Add would label a dot that the empty report didn't cause
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
+                expect(result?.actionBadge).toBeUndefined();
+            });
+
+            it('should use the policies param when the module-level policy cache does not have the policy yet', async () => {
+                // Given the workspace policy is in the caller's policies snapshot but not in the module-level policy cache
+                const workspaceChat = await setUpEmptyReport(CONST.POLICY.ROLE.USER, {shouldCachePolicy: false});
+
+                // When the reason is retrieved with that policies snapshot
+                const result = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: workspaceChat,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID,
+                    transactionViolations: undefined,
+                    reportMetadata: undefined,
+                    isReportArchived: false,
+                    policies: {[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: buildEmptyReportPolicy(CONST.POLICY.ROLE.USER)},
+                });
+
+                // Then the row still shows the Add badge instead of a bare green dot, because the add check reads the same policy as the badge
+                expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.ADD);
+            });
+
+            it('should return the SUBMIT badge over the ADD badge when a newer report is ready to submit', async () => {
+                // Given an older empty report eligible for Add and a newer report with an expense that needs Submit in the same chat
+                const submitReportID = 'newer-report-to-submit';
+                const submitPreview: ReportAction = {
+                    ...previewAction,
+                    reportActionID: 'newer-submit-report-preview',
+                    childReportID: submitReportID,
+                    created: '2024-01-02 00:00:00',
+                    originalMessage: {linkedReportID: submitReportID},
+                };
+                const workspaceChat = await setUpEmptyReport(CONST.POLICY.ROLE.USER, {
+                    workspaceChatOverrides: {iouReportID: submitReportID},
+                    extraChatReportActions: {[submitPreview.reportActionID]: submitPreview},
+                });
+                const submitReport: Report = {
+                    ...createExpenseReport(42106),
+                    reportID: submitReportID,
+                    policyID,
+                    ownerAccountID: currentUserAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+                const submitExpense: Transaction = {
+                    transactionID: '42107',
+                    reportID: submitReportID,
+                    amount: -100,
+                    currency: CONST.CURRENCY.USD,
+                    merchant: 'Test merchant',
+                    created: '2024-01-02 00:00:00',
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${submitReportID}`, submitReport);
+                await waitForBatchedUpdates();
+
+                // When both previews compete for the row's badge, the older empty report must only be a fallback
+                const result = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: workspaceChat,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID,
+                    transactionViolations: undefined,
+                    reportMetadata: undefined,
+                    isReportArchived: false,
+                    reportsTransactions: {[emptyReportID]: [], [submitReportID]: [submitExpense]},
+                });
+
+                // Then Submit wins and targets the newer preview so the user can act on the report that needs submission
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
+                expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.SUBMIT);
+                expect(result?.reportAction?.reportActionID).toBe(submitPreview.reportActionID);
+            });
+
+            it('should return the Task badge over the ADD badge when the user has an incomplete task, even if the empty report is older', async () => {
+                // Given an empty report preview that is older than an incomplete task assigned to the current user in the same workspace chat
+                const taskAction: ReportAction = {
+                    reportActionID: 'task-newer-than-empty-report',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+                    childType: CONST.REPORT.TYPE.TASK,
+                    childReportID: 'task-report-newer-than-empty-report',
+                    childManagerAccountID: currentUserAccountID,
+                    created: '2024-01-02 00:00:00',
+                    originalMessage: {
+                        assigneeAccountID: currentUserAccountID,
+                        cardID: 42104,
+                    },
+                };
+                const workspaceChat = await setUpEmptyReport(CONST.POLICY.ROLE.USER, {
+                    workspaceChatOverrides: {hasOutstandingChildTask: true},
+                    extraChatReportActions: {[taskAction.reportActionID]: taskAction},
+                });
+
+                // When the reason is retrieved for the workspace chat
+                const result = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: workspaceChat,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID,
+                    transactionViolations: undefined,
+                    reportMetadata: undefined,
+                    isReportArchived: false,
+                });
+
+                // Then the task wins, because Add is only a fallback and must not hide a task the user has to complete
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
+                expect(result?.reportAction?.reportActionID).toBe(taskAction.reportActionID);
+                expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.TASK);
+            });
+
+            it('should not show a green dot that was hidden before when the outstanding child has only pending expenses', async () => {
+                // Given a workspace chat whose outstanding child is another report with only pending card expenses, which hides the chat's
+                // green dot, plus an older empty report the current user could add expenses to
+                const pendingReportID = 'pending-only-report';
+                const pendingExpense: Transaction = {...createRandomTransaction(42105), reportID: pendingReportID, status: CONST.TRANSACTION.STATUS.PENDING};
+                const workspaceChat = await setUpEmptyReport(CONST.POLICY.ROLE.USER, {workspaceChatOverrides: {iouReportID: pendingReportID}});
+
+                // When the reason is retrieved for the workspace chat
+                const result = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: workspaceChat,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID,
+                    transactionViolations: undefined,
+                    reportMetadata: undefined,
+                    isReportArchived: false,
+                    reportsTransactions: {[pendingReportID]: [pendingExpense]},
+                });
+
+                // Then the chat still has no green dot, because Add only labels a dot the chat would show anyway
+                expect(result).toBeNull();
+            });
         });
 
         it('uses the policies param over the deprecated module-level policy cache to decide the Approve badge', async () => {
@@ -16480,6 +16893,30 @@ describe('ReportUtils', () => {
             await Onyx.clear();
         });
 
+        it.each([CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.PAY])('preserves Leave for joined %s transaction threads', async (type) => {
+            // Given a joined transaction thread that is not a tracked expense
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.CHAT,
+                parentReportID: '12345',
+                parentReportActionID: '67890',
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1234]),
+            };
+            const parentReportAction: ReportAction = {
+                ...createRandomReportAction(67890),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                message: [{type: 'COMMENT', html: 'requested $10.00', text: 'requested $10.00', whisperedTo: []}],
+                originalMessage: {type, IOUTransactionID: '123', IOUDetails: {amount: 1000, currency: CONST.CURRENCY.USD, comment: ''}},
+            };
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+
+            // When checking membership actions with the parent action supplied
+            const canLeave = canLeaveChat(report, undefined, currentUserAccountID, false, false, parentReportAction);
+
+            // Then the tracked expense restriction does not remove existing Leave behavior for other transaction threads
+            expect(canLeave).toBe(true);
+        });
+
         it('should return true for root group chat', () => {
             const report: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.GROUP);
 
@@ -16637,6 +17074,33 @@ describe('ReportUtils', () => {
 
             await Onyx.clear();
         });
+
+        it.each([CONST.IOU.REPORT_ACTION_TYPE.TRACK, CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.PAY])(
+            'does not offer Join for a %s transaction thread without its parent report',
+            async (type) => {
+                // Given a hidden transaction thread whose private parent is not available to the current user
+                const report: Report = {
+                    ...createRandomReport(1, undefined),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    parentReportID: '12345',
+                    parentReportActionID: '67890',
+                    participants: {[currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN}},
+                };
+                const parentReportAction: ReportAction = {
+                    ...createRandomReportAction(67890),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    message: [{type: 'COMMENT', html: 'tracked $10.00', text: 'tracked $10.00', whisperedTo: []}],
+                    originalMessage: {type, IOUTransactionID: '123', IOUDetails: {amount: 1000, currency: CONST.CURRENCY.USD, comment: ''}},
+                };
+                await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+
+                // When checking whether the user can join using only the retained parent action
+                const canJoin = canJoinChat(report, parentReportAction, undefined, undefined);
+
+                // Then a transaction thread is not mistaken for an ordinary chat thread
+                expect(canJoin).toBe(false);
+            },
+        );
 
         it('should return false if the parent report action is a whisper action', () => {
             const report: Report = {
@@ -20320,6 +20784,18 @@ describe('ReportUtils', () => {
             const result = canDuplicateExpenseIntoSourceReport(buildParams(sourceReport, {policy: {...sourcePolicy, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}}));
 
             // Then the duplicate falls back to the default workspace routing
+            expect(result).toBe(false);
+        });
+
+        it('returns false when the member cannot create expenses on the source workspace', async () => {
+            // Given an open expense report on a workspace where the current user has the approve-only role
+            const sourceReport = await buildOpenSourceReport();
+
+            // When it's checked whether a duplicate can stay on that report
+            const result = canDuplicateExpenseIntoSourceReport(buildParams(sourceReport, {policy: {...sourcePolicy, role: CONST.POLICY.ROLE.APPROVE_ONLY}}));
+
+            // Then the duplicate falls back to the default workspace routing, because duplicating
+            // would create a new expense the member is not allowed to create there
             expect(result).toBe(false);
         });
 
@@ -26886,9 +27362,9 @@ describe('ReportUtils', () => {
         const mockIcons = createMock<Record<'Location' | 'ReceiptPlus' | 'Plus', IconAsset>>({Location: jest.fn(), ReceiptPlus: jest.fn(), Plus: jest.fn()});
         const mockIouReportID = '12345';
         const mockSentryLabels = {
-            createExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE,
-            trackDistance: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE,
-            addExistingExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_EXISTING,
+            createExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_MENU.CREATE_EXPENSE,
+            trackDistance: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_MENU.TRACK_DISTANCE,
+            addExistingExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_MENU.ADD_EXISTING_EXPENSE,
         };
 
         it('should return exactly 3 dropdown options', () => {
@@ -26956,9 +27432,9 @@ describe('ReportUtils', () => {
                 ownerBillingGracePeriodEnd: undefined,
                 currentUserAccountID,
             });
-            expect(result.at(0)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE);
-            expect(result.at(1)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE);
-            expect(result.at(2)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_EXISTING);
+            expect(result.at(0)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_MENU.CREATE_EXPENSE);
+            expect(result.at(1)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_MENU.TRACK_DISTANCE);
+            expect(result.at(2)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_MENU.ADD_EXISTING_EXPENSE);
         });
 
         it('should pass amountOwed to shouldRestrictUserBillableActions when onSelected is called', () => {
@@ -27552,9 +28028,9 @@ describe('ReportUtils', () => {
         const mockTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(CONST.LOCALES.EN, path, ...params);
         const mockIcons = createMock<Record<'Location' | 'ReceiptPlus' | 'Plus', IconAsset>>({Location: jest.fn(), ReceiptPlus: jest.fn(), Plus: jest.fn()});
         const mockSentryLabels = {
-            createExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE,
-            trackDistance: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE,
-            addExistingExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_EXISTING,
+            createExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_MENU.CREATE_EXPENSE,
+            trackDistance: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_MENU.TRACK_DISTANCE,
+            addExistingExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_MENU.ADD_EXISTING_EXPENSE,
         };
         const policyID = '5001';
         const iouReportID = 'reportABC';
