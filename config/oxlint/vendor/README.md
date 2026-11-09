@@ -31,7 +31,8 @@ Florian Weber (`florian@expensify.com`) and Expensify and declares the ISC licen
 
 - Expensify's disabled `boolean-conditional-rendering` and `prefer-at` rules are not loaded. The existing
   `unicorn/prefer-at` rule and `preferLocaleCompareFromContext.mjs` implementation remain configured.
-- The naming rule uses Babel's Unicode identifier validation instead of compiler scanner helpers.
+- The naming rule uses Babel's identifier predicates instead of compiler scanner helpers, preserving
+  the rule's UTF-16 code-unit iteration rather than treating surrogate pairs as Unicode code points.
   App's configuration has no type or unused modifiers. Those selectors fail explicitly if introduced;
   they are not silently ignored. All other naming checks and diagnostic messages are retained.
 - Testing Library and Storybook use the same compiler-free AST predicates, scope utilities, rule

@@ -45,11 +45,22 @@ export {ASTUtils, AST_NODE_TYPES, AST_TOKEN_TYPES, ESLintUtils, RuleCreator, TSE
 
 const namingUtilities = `
 import {ESLintUtils} from '@typescript-eslint/utils';
-import {isIdentifierName} from '@babel/helper-validator-identifier';
+import {isIdentifierStart, isIdentifierChar} from '@babel/helper-validator-identifier';
 const {RuleCreator} = ESLintUtils;
 const createRule = RuleCreator((name) => 'https://typescript-eslint.io/rules/' + name);
 const getEnumNames = (values) => Object.keys(values).filter((key) => !/^\\d+$/.test(key));
-const requiresQuoting = (name) => !isIdentifierName(name);
+function requiresQuoting(name) {
+    // The naming rule checks UTF-16 code units, not Unicode code points, including surrogate pairs.
+    if (name.length === 0 || !isIdentifierStart(name.charCodeAt(0))) {
+        return true;
+    }
+    for (let index = 1; index < name.length; index += 1) {
+        if (!isIdentifierChar(name.charCodeAt(index))) {
+            return true;
+        }
+    }
+    return false;
+}
 function getParserServices(_context, allowWithoutFullTypeInformation) {
     if (!allowWithoutFullTypeInformation) {
         throw new Error('Type-based naming selectors require a type-aware rule.');

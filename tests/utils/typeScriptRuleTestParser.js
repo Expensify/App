@@ -2,11 +2,14 @@
  * Parses rule fixtures with Oxc's TypeScript ESTree nodes and TypeScript scope analysis, without a
  * compiler. Babel supplies the ESLint tokens and comments that Oxc's parser API does not expose.
  */
+const path = require('node:path');
 const babelParser = require('@babel/eslint-parser');
 const {analyze} = require('@typescript-eslint/scope-manager');
 
 // Node can load Oxc's ESM entry point; Jest's CommonJS module loader cannot.
 const {parseSync, visitorKeys} = process.getBuiltinModule('module').createRequire(__filename)('oxc-parser');
+const JSX_EXTENSIONS = new Set(['.js', '.cjs', '.mjs', '.jsx', '.tsx', '.json']);
+const NON_JSX_EXTENSIONS = new Set(['.ts', '.cts', '.mts']);
 
 /**
  * Oxc provides UTF-16 ranges, while ESLint also requires line and column locations on every node.
@@ -43,14 +46,20 @@ function addLocations(node, lineStarts) {
 module.exports = {
     meta: {name: 'expensify-rule-test-parser', version: '1.0.0'},
     parseForESLint(code, options) {
+        // Known extensions select the compiler's language variant; only unknown extensions use the JSX option.
+        const extension = path.extname(options.filePath ?? '').toLowerCase();
+        const shouldParseJSX = JSX_EXTENSIONS.has(extension) || (!NON_JSX_EXTENSIONS.has(extension) && options.ecmaFeatures?.jsx === true);
+        const filePath = options.filePath ?? (shouldParseJSX ? 'fixture.tsx' : 'fixture.ts');
         const tokenized = babelParser.parse(code, {
             ...options,
+            filePath,
+            ecmaFeatures: {...options.ecmaFeatures, jsx: shouldParseJSX},
             requireConfigFile: false,
             babelOptions: {
                 babelrc: false,
                 configFile: false,
                 parserOpts: {
-                    plugins: ['typescript', 'jsx', 'decorators', 'decoratorAutoAccessors'],
+                    plugins: ['typescript', ...(shouldParseJSX ? ['jsx'] : []), 'decorators', 'decoratorAutoAccessors'],
                     // Oxc validates syntax. Babel only supplies tokens, so allow its recoverable error
                     // for TypeScript parameter decorators, which standard JavaScript decorators forbid.
                     errorRecovery: true,
@@ -58,8 +67,8 @@ module.exports = {
             },
         });
 
-        const parsed = parseSync(options.filePath ?? 'fixture.tsx', code, {
-            lang: options.ecmaFeatures?.jsx ? 'tsx' : 'ts',
+        const parsed = parseSync(filePath, code, {
+            lang: shouldParseJSX ? 'tsx' : 'ts',
             sourceType: options.sourceType,
             range: true,
             preserveParens: false,

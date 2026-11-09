@@ -59,20 +59,30 @@ __export(naming_utilities_exports, {
   requiresQuoting: () => requiresQuoting
 });
 import { ESLintUtils } from "./syntax-rule-utilities.mjs";
-import { isIdentifierName } from "@babel/helper-validator-identifier";
+import { isIdentifierStart, isIdentifierChar } from "@babel/helper-validator-identifier";
+function requiresQuoting(name) {
+  if (name.length === 0 || !isIdentifierStart(name.charCodeAt(0))) {
+    return true;
+  }
+  for (let index = 1; index < name.length; index += 1) {
+    if (!isIdentifierChar(name.charCodeAt(index))) {
+      return true;
+    }
+  }
+  return false;
+}
 function getParserServices(_context, allowWithoutFullTypeInformation) {
   if (!allowWithoutFullTypeInformation) {
     throw new Error("Type-based naming selectors require a type-aware rule.");
   }
   return {};
 }
-var RuleCreator, createRule, getEnumNames, requiresQuoting;
+var RuleCreator, createRule, getEnumNames;
 var init_naming_utilities = __esm({
   "syntax-only:naming-utilities"() {
     ({ RuleCreator } = ESLintUtils);
     createRule = RuleCreator((name) => "https://typescript-eslint.io/rules/" + name);
     getEnumNames = (values) => Object.keys(values).filter((key) => !/^\d+$/.test(key));
-    requiresQuoting = (name) => !isIdentifierName(name);
   }
 });
 
