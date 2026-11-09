@@ -8,8 +8,8 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 
 import * as useConfirmModalModule from '@hooks/useConfirmModal';
-import * as useCurrentUserPersonalDetailsModule from '@hooks/useCurrentUserPersonalDetails';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
+import * as useCurrentUserPersonalDetailsModule from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import * as usePreferredPolicyModule from '@hooks/usePreferredPolicy';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
@@ -232,9 +232,7 @@ describe('WorkspaceMembers', () => {
 
         it.each([false, true])('lets a nonowner Submit Editor leave on narrow layout %s', async (shouldUseNarrowLayout) => {
             // Given a Submit Editor with no plan upgrade or payment, on either supported layout
-            jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
-                createMock<ResponsiveLayoutResult>({shouldUseNarrowLayout, isSmallScreenWidth: shouldUseNarrowLayout}),
-            );
+            jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(createMock<ResponsiveLayoutResult>({shouldUseNarrowLayout, isSmallScreenWidth: shouldUseNarrowLayout}));
             const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
             await waitForBatchedUpdatesWithAct();
             if (!shouldUseNarrowLayout) {

@@ -24,8 +24,8 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -257,10 +257,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const canEditWorkspaceSettings = canEditWorkspaceSettingsUtil(policy, currentUserLogin);
     const canWriteMembers = canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS);
     const canLeave =
-        !!policy &&
-        !isArchivedPolicy(policy) &&
-        !isPolicyOwner(policy, currentUserPersonalDetails.accountID) &&
-        (policyID !== preferredPolicyID || !isRestrictedToPreferredPolicy);
+        !!policy && !isArchivedPolicy(policy) && !isPolicyOwner(policy, currentUserPersonalDetails.accountID) && (policyID !== preferredPolicyID || !isRestrictedToPreferredPolicy);
 
     // Group policies (Collect/Control + Submit) allow member management.
     const canManageMembers = isGroupPolicy(policy);
