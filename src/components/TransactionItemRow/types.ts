@@ -7,6 +7,7 @@ import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRout
 import type {CardList, PersonalDetails, Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {SearchTransaction, SearchTransactionAction} from '@src/types/onyx/SearchResults';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
@@ -115,7 +116,7 @@ type TransactionItemRowProps = {
     /** Precomputed transaction-thread report ID. When provided, skips the per-row report-actions scan used to derive it
      * (lets callers that already know the thread mapping avoid O(transactions × actions) work). */
     transactionThreadReportID?: string;
-    checkboxSentryLabel?: string;
+    checkboxSentryLabel?: SentryLabel;
     isLargeScreenWidth?: boolean;
     /** Precomputed shouldShowAttendees(SUBMIT, policyForMovingExpenses); drilled instead of the policy object
      * to keep the prop ref content-stable across unrelated policy updates. */

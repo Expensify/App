@@ -1852,6 +1852,25 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmApprovalWithHeldAmount: 'Raport zawiera wstrzymane wydatki. Zatwierdzić tylko zgodne wydatki, czy zatwierdzić cały raport?',
         confirmApprovalAllHoldAmount: 'Wszystkie wydatki są wstrzymane. Zatwierdzić mimo to?',
         confirmPay: 'Potwierdź kwotę płatności',
+        wisePaymentSummary: {
+            confirmPayment: 'Potwierdź płatność',
+            reportTotal: 'Suma raportu',
+            unheldAmountBeingPaid: 'Kwota niewstrzymana do zapłaty',
+            debitAmount: 'Kwota obciążenia',
+            employeeWillReceive: 'Pracownik otrzyma',
+            totalFees: 'Łączne opłaty',
+            fxRate: 'Kurs wymiany',
+            paymentDetails: 'Szczegóły płatności',
+            debitedAmount: 'Pobrana kwota',
+            employeeReceived: 'Pracownik otrzymał',
+            payAll: 'Zapłać wszystko',
+            reportCount: ({count}: {count: number}) => ({
+                one: '1 raport',
+                few: `${count} raporty`,
+                many: `${count} raportów`,
+                other: `${count} raportu`,
+            }),
+        },
         confirmPayAmount: 'Zapłać to, co nie jest wstrzymane, lub zapłać cały raport.',
         confirmPayAllHoldAmount: () => ({
             one: 'Ten wydatek jest wstrzymany. Czy mimo to chcesz zapłacić?',
@@ -4426,7 +4445,7 @@ ${amount} dla ${merchant} - ${date}`,
         bankAccountPurposeTitle: 'Co chcesz zrobić ze swoim kontem bankowym?',
         getReimbursed: 'Otrzymać zwrot kosztów',
         getReimbursedDescription: 'Od pracodawcy lub innych',
-        makePayments: 'Dokonywać płatności',
+        makePayments: 'Dokonuj płatności biznesowych',
         makePaymentsDescription: 'Opłacaj wydatki lub wydawaj Karty Expensify',
         hasPhoneLoginError: (contactMethodRoute: string) =>
             `Aby połączyć konto bankowe, <a href="${contactMethodRoute}">dodaj adres e‑mail jako swój główny login</a> i spróbuj ponownie. Numer telefonu możesz dodać jako login dodatkowy.`,
@@ -4528,6 +4547,8 @@ ${amount} dla ${merchant} - ${date}`,
         updateSuccessTitle: 'Konto bankowe zaktualizowane!',
         updateSuccessHeader: 'Konto bankowe zaktualizowane',
         updateSuccessMessage: 'Gratulacje, Twoje konto bankowe jest skonfigurowane i gotowe do przyjmowania zwrotów.',
+        bankDetails: 'Dane bankowe',
+        accountHolderDetails: 'Dane posiadacza konta',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Wpisz hasło do Expensify',
@@ -4535,6 +4556,8 @@ ${amount} dla ${merchant} - ${date}`,
         chooseAccountLabel: 'Konto',
         successTitle: 'Dodano osobiste konto bankowe!',
         successMessage: 'Gratulacje, Twoje konto bankowe zostało skonfigurowane i jest gotowe do otrzymywania zwrotów.',
+        bankAccountAddedTitle: 'Dodano konto bankowe!',
+        bankAccountAddedMessage: 'Gratulacje, twoje osobiste konto bankowe jest skonfigurowane i gotowe do otrzymywania zwrotów.',
     },
     attachmentView: {
         unknownFilename: 'Nieznana nazwa pliku',
@@ -6257,7 +6280,11 @@ ${amount} dla ${merchant} - ${date}`,
             noSubsidiariesFoundDescription: 'Dodaj proszę jednostkę zależną w NetSuite i ponownie zsynchronizuj połączenie',
             tokenInput: {
                 title: 'Konfiguracja NetSuite',
-                connectWithTokenAuthentication: 'Połącz się zamiast tego z użyciem uwierzytelniania opartego na tokenie (SOAP)',
+                tokenAuthenticationPrompt: {
+                    beforeLink: 'Lub połącz się zamiast tego z użyciem',
+                    link: 'uwierzytelniania opartego na tokenie',
+                    afterLink: '(SOAP).',
+                },
                 formSteps: {
                     installBundle: {
                         title: 'Zainstaluj pakiet Expensify',
@@ -7085,6 +7112,15 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 title: 'Nie można usunąć ani wyłączyć wszystkich kategorii',
                 description: `Co najmniej jedna kategoria musi pozostać włączona, ponieważ w Twoim workspace wymagane są kategorie.`,
             },
+            cannotDisableCategoryForMembers: {
+                title: ({categoryName}: {categoryName: string}) => `Nie można wyłączyć ${categoryName}`,
+                bulkTitle: 'Nie można wyłączyć tych kategorii',
+                description: ({count}: {count: number}) => ({
+                    one: '1 członek nie miałby żadnych kategorii do wyboru. Zaktualizuj widoczność kategorii dla tej osoby, a potem spróbuj ponownie:',
+                    other: `${count} członków nie będzie miało żadnych kategorii do wyboru. Zaktualizuj widoczność ich kategorii, a potem spróbuj ponownie:`,
+                }),
+                andMore: ({count}: {count: number}) => `i jeszcze ${count}`,
+            },
         },
         moreFeatures: {
             subtitle: 'Użyj poniższych przełączników, aby włączać kolejne funkcje w miarę rozwoju. Każda funkcja pojawi się w menu nawigacji, gdzie będzie można ją dalej dostosować.',
@@ -7260,11 +7296,14 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 unassignCard: 'Cofnij przypisanie karty',
                 unassignCards: 'Cofnij przypisanie kart',
                 unassign: 'Cofnij przypisanie',
-                unassignCardDescription: 'Cofnięcie przypisania tej karty spowoduje usunięcie wszystkich niewysłanych transakcji.',
-                unassignCardsDescription: 'Cofnięcie przypisania spowoduje usunięcie wszystkich niewysłanych transakcji z wybranych kart.',
+                unassignCardDescription: (transactionsUrl: string) =>
+                    `Cofnięcie przypisania tej karty spowoduje trwałe usunięcie wszystkich jej <a href="${transactionsUrl}">niewysłanych transakcji</a>, w tym nierozliczonych transakcji oraz transakcji w wersjach roboczych raportów. Tej czynności nie da się cofnąć.`,
+                unassignCardsDescription: (transactionsUrl: string) =>
+                    `Cofnięcie przypisania spowoduje trwałe usunięcie wszystkich <a href="${transactionsUrl}">niewysłanych transakcji</a> z wybranych kart, w tym nierozliczonych transakcji oraz transakcji w wersjach roboczych raportów. Tej czynności nie da się cofnąć.`,
                 removeCard: 'Usuń kartę',
                 remove: 'Usuń',
-                removeCardDescription: 'Usunięcie tej karty spowoduje usunięcie wszystkich niewysłanych transakcji.',
+                removeCardDescription: (transactionsUrl: string) =>
+                    `Usunięcie tej karty spowoduje trwałe usunięcie wszystkich jej <a href="${transactionsUrl}">niewysłanych transakcji</a>, w tym nierozliczonych transakcji oraz transakcji w wersjach roboczych raportów. Tej czynności nie da się cofnąć.`,
                 assignCard: 'Przypisz kartę',
                 cardFeedName: 'Nazwa źródła karty',
                 cardFeedNameDescription: 'Nadaj kanałowi karty unikalną nazwę, aby odróżnić go od pozostałych.',
@@ -7797,6 +7836,16 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             },
             officeLocation: 'Lokalizacja biura',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            categoryVisibility: 'Widoczność kategorii',
+            allCategories: 'Wszystkie kategorie',
+            categoriesCount: ({count}: {count: number}) => ({
+                one: '1 kategoria',
+                other: `${count} kategorie`,
+            }),
+            categoryVisibilityRequiredModal: {
+                title: 'Członkowie muszą mieć co najmniej jedną kategorię',
+                description: 'Wybierz co najmniej jedną kategorię, z której ten członek może korzystać.',
+            },
             changeOfficeLocation: 'Zmień lokalizację biura',
             changeWorkArrangement: 'Zmień tryb pracy',
             changeRole: 'Zmień rolę',
@@ -8930,8 +8979,10 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 autoPayApprovedReportsLockedSubtitle: 'Przejdź do „Więcej funkcji” i włącz Workflows, a następnie dodaj płatności, aby odblokować tę funkcję.',
                 autoPayApprovedReportsControlPlanSubtitle: (upgradeLink: string) =>
                     `Automatyczna płatność jest dostępna tylko w planie Control. [Uaktualnij](${upgradeLink}), aby odblokować tę funkcję.`,
-                autoPayReportsUnderTitle: 'Automatycznie opłacaj raporty w ramach',
+                autoPayReportsUnderTitle: 'Automatycznie opłacaj raporty poniżej',
                 autoPayReportsUnderDescription: 'W pełni zgodne raporty wydatków poniżej tej kwoty zostaną opłacone automatycznie.',
+                autoPayCrossBorderFeesDisclosure:
+                    'Płatności zagraniczne korzystają ze średniego kursu rynkowego z chwili płatności. Do wszystkich płatności zagranicznych naliczana jest zmienna opłata w wysokości 1%, z wyjątkiem następujących walut: CRC (1,32%), KES (1,01%), MAD (1,60%), NPR (1,05%), UGX (1,47%), UYU (1,12%).\n\nDokładnych kursów i opłat nie można sprawdzić przed płatnością, gdy raport jest opłacany automatycznie. Pełne, szczegółowe zestawienie (w tym dokładny kurs wymiany, opłaty i kwota końcowa) jest dostępne w raporcie zaraz po płatności.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Dodaj ${featureName}, aby odblokować tę funkcję.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Przejdź do [więcej funkcji](${moreFeaturesLink}) i włącz ${featureName}, aby odblokować tę funkcję.`,
@@ -9704,6 +9755,39 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 description: 'Wybierz domyślnego dostawcę Zoho Books dla wydatków, które nie dopasowują się automatycznie.',
             },
             companyCardAccount: {label: 'Konto karty firmowej', description: 'Wybierz miejsce eksportu transakcji z kart firmowych.'},
+            exportToMultipleAccounts: 'Skonfiguruj eksport do wielu kont',
+            cardProgramAccount: {
+                label: 'Konto programu kartowego',
+                description: 'Zastąp konto przestrzeni roboczej dla tych programów kart.',
+                descriptionLevel2: 'Zastąp konto przestrzeni roboczej dla tego programu kart.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Wszystkie programy używają domyślnego konta';
+                    }
+                    return {
+                        one: `${count} program z niestandardowym kontem`,
+                        few: `${count} programy z niestandardowymi kontami`,
+                        many: `${count} programów z niestandardowymi kontami`,
+                        other: `${count} programu z niestandardowymi kontami`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'Konto przypisane do karty',
+                description: 'Zastąp konto programu dla poszczególnych kart.',
+                descriptionLevel2: 'Zastąp konto programu dla tych kart.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Wszystkie karty korzystają z kont programu';
+                    }
+                    return {
+                        one: `${count} karta z niestandardowym kontem`,
+                        few: `${count} karty z niestandardowymi kontami`,
+                        many: `${count} kart z niestandardowymi kontami`,
+                        other: `${count} karty z niestandardowymi kontami`,
+                    };
+                },
+            },
             noVendorsFound: 'Nie znaleziono dostawców',
             noVendorsFoundDescription: 'Dodaj proszę dostawców w Zoho Books i zsynchronizuj połączenie ponownie',
             noAccountsFound: 'Nie znaleziono kont',
@@ -11598,6 +11682,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         autoReportedRejectedExpense: 'Ten wydatek został odrzucony.',
         billableExpense: 'Rozliczalne już nieważne',
         cashExpenseWithNoReceipt: (formattedLimit?: string) => `Wymagany paragon${formattedLimit ? `powyżej ${formattedLimit}` : ''}`,
+        categoryNotAllowed: 'Kategoria niedozwolona',
         categoryOutOfPolicy: 'Kategoria nie jest już prawidłowa',
         conversionSurcharge: (surcharge: number) => `Zastosowano prowizję za przewalutowanie w wysokości ${surcharge}%`,
         customUnitOutOfPolicy: 'Stawka nie jest ważna dla tego workspace’u',
@@ -11782,6 +11867,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             autoReportedRejectedExpense: 'Wydatek odrzucony',
             billableExpense: 'Opcja rozliczalne nie jest już dostępna',
             cashExpenseWithNoReceipt: 'Wymagany paragon',
+            categoryNotAllowed: 'Kategoria niedozwolona',
             categoryOutOfPolicy: 'Kategoria już nieaktualna',
             companyCardRequired: 'Wymagana karta firmowa',
             conversionSurcharge: 'Naliczono opłatę za przewalutowanie',

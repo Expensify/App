@@ -781,6 +781,9 @@ type FeatureTrainingNavigatorParamList = {
     [SCREENS.FEATURE_TRAINING_ROOT]: undefined;
     [SCREENS.AUTO_SUBMIT_ROOT]: undefined;
     [SCREENS.DYNAMIC_CHANGE_POLICY_EDUCATIONAL_ROOT]: undefined;
+    [SCREENS.DYNAMIC_PAYMENT_DETAILS_ROOT]: {
+        reportID: string;
+    };
 };
 
 type ReferralDetailsNavigatorParamList = {

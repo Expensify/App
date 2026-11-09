@@ -1829,6 +1829,23 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmApprovalWithHeldAmount: "Le rapport contient des dépenses en attente. Approuver uniquement les dépenses conformes, ou approuver l'ensemble du rapport ?",
         confirmApprovalAllHoldAmount: 'Toutes les dépenses sont en attente. Approuver quand même ?',
         confirmPay: 'Confirmer le montant du paiement',
+        wisePaymentSummary: {
+            confirmPayment: 'Confirmer le paiement',
+            reportTotal: 'Total de la note de frais',
+            unheldAmountBeingPaid: 'Montant non retenu à payer',
+            debitAmount: 'Montant débité',
+            employeeWillReceive: 'L’employé recevra',
+            totalFees: 'Frais totaux',
+            fxRate: 'Taux de change',
+            paymentDetails: 'Détails du paiement',
+            debitedAmount: 'Montant débité',
+            employeeReceived: "L'employé a reçu",
+            payAll: 'Tout payer',
+            reportCount: ({count}: {count: number}) => ({
+                one: '1 note de frais',
+                other: `${count} notes de frais`,
+            }),
+        },
         confirmPayAmount: 'Payez ce qui n’est pas en attente, ou payez l’intégralité de la note de frais.',
         confirmPayAllHoldAmount: () => ({
             one: 'Cette dépense est en attente. Voulez-vous tout de même la payer ?',
@@ -4425,7 +4442,7 @@ ${amount} pour ${merchant} - ${date}`,
         bankAccountPurposeTitle: 'Que voulez-vous faire avec votre compte bancaire?',
         getReimbursed: 'Être remboursé',
         getReimbursedDescription: "Par l'employeur ou d'autres",
-        makePayments: 'Effectuer des paiements',
+        makePayments: 'Effectuer des paiements professionnels',
         makePaymentsDescription: 'Payer des dépenses ou émettre des Cartes Expensify',
         hasPhoneLoginError: (contactMethodRoute: string) =>
             `Pour connecter un compte bancaire, veuillez <a href="${contactMethodRoute}">ajouter une adresse e-mail comme identifiant principal</a> puis réessayer. Vous pouvez ajouter votre numéro de téléphone comme identifiant secondaire.`,
@@ -4526,6 +4543,8 @@ ${amount} pour ${merchant} - ${date}`,
         updateSuccessTitle: 'Compte bancaire mis à jour !',
         updateSuccessHeader: 'Compte bancaire mis à jour',
         updateSuccessMessage: 'Félicitations, votre compte bancaire est configuré et prêt à recevoir des remboursements.',
+        bankDetails: 'Coordonnées bancaires',
+        accountHolderDetails: 'Détails du titulaire du compte',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Saisissez le mot de passe Expensify',
@@ -4533,6 +4552,8 @@ ${amount} pour ${merchant} - ${date}`,
         chooseAccountLabel: 'Compte',
         successTitle: 'Compte bancaire personnel ajouté !',
         successMessage: 'Félicitations, votre compte bancaire est configuré et prêt à recevoir des remboursements.',
+        bankAccountAddedTitle: 'Compte bancaire ajouté !',
+        bankAccountAddedMessage: 'Félicitations, votre compte bancaire personnel est configuré et prêt à recevoir des remboursements.',
     },
     attachmentView: {
         unknownFilename: 'Nom de fichier inconnu',
@@ -6282,7 +6303,11 @@ ${amount} pour ${merchant} - ${date}`,
             noSubsidiariesFoundDescription: 'Veuillez ajouter une filiale dans NetSuite et synchroniser à nouveau la connexion',
             tokenInput: {
                 title: 'Configuration NetSuite',
-                connectWithTokenAuthentication: 'Connectez-vous plutôt avec l’authentification par jeton (SOAP)',
+                tokenAuthenticationPrompt: {
+                    beforeLink: 'Ou connectez-vous plutôt avec',
+                    link: 'l’authentification par jeton',
+                    afterLink: '(SOAP).',
+                },
                 formSteps: {
                     installBundle: {
                         title: 'Installer le bundle Expensify',
@@ -7130,6 +7155,15 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 title: 'Impossible de supprimer ou de désactiver toutes les catégories',
                 description: `Au moins une catégorie doit rester activée, car votre espace de travail exige des catégories.`,
             },
+            cannotDisableCategoryForMembers: {
+                title: ({categoryName}: {categoryName: string}) => `Impossible de désactiver ${categoryName}`,
+                bulkTitle: 'Impossible de désactiver ces catégories',
+                description: ({count}: {count: number}) => ({
+                    one: '1 membre n’aurait plus aucune catégorie à sélectionner. Mettez à jour la visibilité de ses catégories, puis réessayez :',
+                    other: `${count} membres se retrouveraient sans aucune catégorie à choisir. Mettez à jour la visibilité de leurs catégories, puis réessayez :`,
+                }),
+                andMore: ({count}: {count: number}) => `et ${count} de plus`,
+            },
         },
         moreFeatures: {
             subtitle:
@@ -7313,11 +7347,14 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 unassignCard: 'Retirer l’assignation de la carte',
                 unassignCards: 'Retirer l’assignation des cartes',
                 unassign: "Retirer l'assignation",
-                unassignCardDescription: "Retirer l'assignation de cette carte supprimera toutes les transactions non soumises.",
-                unassignCardsDescription: "Retirer l'assignation supprimera toutes les transactions non soumises des cartes sélectionnées.",
+                unassignCardDescription: (transactionsUrl: string) =>
+                    `Retirer l'assignation de cette carte supprimera définitivement toutes ses <a href="${transactionsUrl}">transactions non soumises</a>, y compris les transactions non déclarées et celles figurant sur des brouillons de notes de frais. Cette action est irréversible.`,
+                unassignCardsDescription: (transactionsUrl: string) =>
+                    `Retirer l'assignation supprimera définitivement toutes les <a href="${transactionsUrl}">transactions non soumises</a> des cartes sélectionnées, y compris les transactions non déclarées et celles figurant sur des brouillons de notes de frais. Cette action est irréversible.`,
                 removeCard: 'Supprimer la carte',
                 remove: 'Supprimer',
-                removeCardDescription: 'La suppression de cette carte effacera toutes les transactions non soumises.',
+                removeCardDescription: (transactionsUrl: string) =>
+                    `La suppression de cette carte effacera définitivement toutes ses <a href="${transactionsUrl}">transactions non soumises</a>, y compris les transactions non déclarées et celles figurant sur des brouillons de notes de frais. Cette action est irréversible.`,
                 assignCard: 'Assigner une carte',
                 cardFeedName: 'Nom du flux de carte',
                 cardFeedNameDescription: 'Donnez au flux de carte un nom unique afin de pouvoir le distinguer des autres.',
@@ -7856,6 +7893,13 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             },
             officeLocation: 'Lieu de bureau',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            categoryVisibility: 'Visibilité de la catégorie',
+            allCategories: 'Toutes les catégories',
+            categoriesCount: ({count}: {count: number}) => ({
+                one: '1 catégorie',
+                other: `${count} catégories`,
+            }),
+            categoryVisibilityRequiredModal: {title: 'Les membres doivent avoir au moins une catégorie', description: 'Sélectionnez au moins une catégorie que ce membre peut utiliser.'},
             changeOfficeLocation: 'Modifier le lieu de travail',
             changeWorkArrangement: 'Modifier l’organisation du travail',
             changeRole: 'Modifier le rôle',
@@ -9005,6 +9049,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                     `Le paiement automatique n’est disponible qu’avec l’offre Control. [Mettez à niveau](${upgradeLink}) pour déverrouiller cette fonctionnalité.`,
                 autoPayReportsUnderTitle: 'Notes de frais payées automatiquement sous',
                 autoPayReportsUnderDescription: 'Les notes de frais entièrement conformes en dessous de ce montant seront payées automatiquement.',
+                autoPayCrossBorderFeesDisclosure:
+                    'Les paiements internationaux utilisent le taux de change moyen du marché au moment du paiement. Des frais variables de 1 % s’appliquent à tous les paiements internationaux, sauf pour les devises suivantes : CRC (1,32 %), KES (1,01 %), MAD (1,60 %), NPR (1,05 %), UGX (1,47 %), UYU (1,12 %).\n\nLes taux et frais exacts ne peuvent pas être consultés avant le paiement lorsqu’une note de frais est payée automatiquement. Une ventilation détaillée complète (y compris le taux de change exact, les frais et le montant final) est disponible sur la note de frais immédiatement après le paiement.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Ajoutez ${featureName} pour déverrouiller cette fonctionnalité.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Allez dans [plus de fonctionnalités](${moreFeaturesLink}) et activez ${featureName} pour déverrouiller cette fonctionnalité.`,
@@ -9796,6 +9842,35 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 description: 'Choisissez un fournisseur Zoho Books par défaut pour les dépenses qui ne correspondent pas automatiquement.',
             },
             companyCardAccount: {label: 'Compte de carte d’entreprise', description: 'Choisissez où exporter les transactions de carte d’entreprise.'},
+            exportToMultipleAccounts: 'Configurer l’exportation vers plusieurs comptes',
+            cardProgramAccount: {
+                label: 'Compte du programme de carte',
+                description: 'Remplacer le compte de l’espace de travail pour ces programmes de cartes.',
+                descriptionLevel2: 'Remplacer le compte de l’espace de travail pour ce programme de carte.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Tous les programmes utilisent le compte par défaut';
+                    }
+                    return {
+                        one: `${count} programme avec compte personnalisé`,
+                        other: `${count} programmes avec comptes personnalisés`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'Compte par carte',
+                description: 'Remplacez le compte de programme pour des cartes individuelles.',
+                descriptionLevel2: 'Remplacer le compte de programme pour ces cartes.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Toutes les cartes utilisent des comptes de programme';
+                    }
+                    return {
+                        one: `${count} carte avec un compte personnalisé`,
+                        other: `${count} cartes avec comptes personnalisés`,
+                    };
+                },
+            },
             noVendorsFound: 'Aucun fournisseur trouvé',
             noVendorsFoundDescription: 'Veuillez ajouter des fournisseurs dans Zoho Books et synchroniser de nouveau la connexion',
             noAccountsFound: 'Aucun compte trouvé',
@@ -11694,6 +11769,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         autoReportedRejectedExpense: 'Cette dépense a été rejetée.',
         billableExpense: 'Facturable n’est plus valide',
         cashExpenseWithNoReceipt: (formattedLimit?: string) => `Reçu obligatoire${formattedLimit ? `au-delà de ${formattedLimit}` : ''}`,
+        categoryNotAllowed: 'Catégorie non autorisée',
         categoryOutOfPolicy: 'Catégorie plus valide',
         conversionSurcharge: (surcharge: number) => `Surcharge de conversion de ${surcharge}% appliquée`,
         customUnitOutOfPolicy: 'Taux non valide pour cet espace de travail',
@@ -11879,6 +11955,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             autoReportedRejectedExpense: 'Dépense rejetée',
             billableExpense: 'Facturable n’est plus valide',
             cashExpenseWithNoReceipt: 'Reçu obligatoire',
+            categoryNotAllowed: 'Catégorie non autorisée',
             categoryOutOfPolicy: 'Catégorie n’est plus valide',
             companyCardRequired: 'Carte d’entreprise requise',
             conversionSurcharge: 'Surcharge de conversion appliquée',
