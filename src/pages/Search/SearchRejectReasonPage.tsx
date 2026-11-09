@@ -69,14 +69,15 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    // "Select all" can cover more expenses than are loaded, so the backend rejects every match.
+    const shouldQueueOnServer = route.name === SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP && areAllMatchingItemsSelected;
     const onSubmit = ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return;
         }
 
-        // "Select all" can cover more expenses than are loaded, so hand the search query to the backend to reject every match.
-        if (route.name === SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP && areAllMatchingItemsSelected) {
+        if (shouldQueueOnServer) {
             queueBulkExpenseAction(
                 CONST.SEARCH.BULK_ACTION_TYPES.REJECT,
                 getAllMatchingExpenseActionQuery(currentSearchQueryJSON, excludedTransactions, currentSearchResults?.data),
@@ -126,7 +127,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
         <RejectReasonFormView
             onSubmit={onSubmit}
             validate={validate}
-            enabledWhenOffline={route.name !== SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP || !areAllMatchingItemsSelected}
+            enabledWhenOffline={!shouldQueueOnServer}
         />
     );
 }

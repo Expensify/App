@@ -87,13 +87,14 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const ancestors = useAncestors(report);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    // "Select all" can cover more expenses than are loaded, so the backend holds every match.
+    const shouldQueueOnServer = !isBulkHold && areAllMatchingItemsSelected;
     const onSubmit = ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return;
         }
-        if (!isBulkHold && areAllMatchingItemsSelected) {
-            // "Select all" can cover more expenses than are loaded, so hand the search query to the backend to hold every match.
+        if (shouldQueueOnServer) {
             queueBulkExpenseAction(CONST.SEARCH.BULK_ACTION_TYPES.HOLD, getAllMatchingExpenseActionQuery(currentSearchQueryJSON, excludedTransactions, currentSearchResults?.data), comment);
             clearSelectedTransactions();
         } else if (isBulkHold) {
@@ -170,7 +171,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             expenseCount={expenseCount}
             backTo={backTo}
             isSubmitter={isSubmitter}
-            enabledWhenOffline={isBulkHold || !areAllMatchingItemsSelected}
+            enabledWhenOffline={!shouldQueueOnServer}
         />
     );
 }
