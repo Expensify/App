@@ -749,6 +749,24 @@ describe('useReportActionsScroll', () => {
             // Then it follows only inside the same 250-pixel range used before the migration.
             expect(mockScrollToBottom).toHaveBeenCalledTimes(shouldFollow ? 1 : 0);
         });
+
+        it('does not follow a newer page loaded below a linked report preview', async () => {
+            // Given a linked report preview is the newest loaded action of a historical page, at the bottom of the list.
+            mockRouteParams = {reportActionID: LINKED_ACTION_ID};
+            mockIsReportPreviewAction = true;
+            mockLastVisibleActionCreated = '2099-01-01 00:00:00.000';
+            const linkedAction = makeAction(LINKED_ACTION_ID);
+            const {rerender} = await renderScroll(buildParams({hasNewerActions: true, sortedVisibleReportActions: [linkedAction], renderedVisibleReportActions: [linkedAction]}));
+            mockScrollToBottom.mockClear();
+
+            // When the next newer page, which also ends with a report preview, is merged below it.
+            const newerAction = makeAction('2');
+            rerender(buildParams({hasNewerActions: true, sortedVisibleReportActions: [newerAction, linkedAction], renderedVisibleReportActions: [linkedAction, newerAction]}));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the page merge is not treated as a new message, so the list does not jump and request another page.
+            expect(mockScrollToBottom).not.toHaveBeenCalled();
+        });
     });
 
     describe('scrollToBottomAndMarkReportAsRead', () => {

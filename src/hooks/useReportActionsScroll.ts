@@ -160,7 +160,9 @@ function useReportActionsScroll({
 
     const lastAction = sortedVisibleReportActions.at(0);
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
-    const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated || isReportPreviewAction(lastAction);
+    // A report preview can be the newest loaded action of a historical page. While newer pages are missing, loading
+    // the next one must not read as a new message, or each page would scroll to its end and request another.
+    const hasNewestReportAction = !hasNewerActions && (lastAction?.created === lastVisibleActionCreated || isReportPreviewAction(lastAction));
 
     const sortedVisibleReportActionsObjects: OnyxTypes.ReportActions = Object.fromEntries(sortedVisibleReportActions.map((action) => [action.reportActionID, action]));
     const prevSortedVisibleReportActionsObjects = usePrevious(sortedVisibleReportActionsObjects);
