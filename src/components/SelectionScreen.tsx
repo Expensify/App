@@ -209,6 +209,6 @@ function SelectionScreen<T = string>({
     );
 }
 
-export type {SelectorType};
+export type {SelectionScreenProps, SelectorType};
 
 export default SelectionScreen;
