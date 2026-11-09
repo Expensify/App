@@ -8801,7 +8801,7 @@ describe('ReportActionsUtils', () => {
         });
 
         it('returns undefined when the collection holds no Concierge comment to rate', () => {
-            const whisper = conciergeComment('400', '2026-09-05 00:00:00.000', {originalMessage: {html: 'w', whisperedTo: [1]}} as Partial<ReportAction>);
+            const whisper = conciergeComment('400', '2026-09-05 00:00:00.000', {originalMessage: {html: 'w', whisperedTo: [1]}});
             const failed = conciergeComment('500', '2026-09-06 00:00:00.000', {errors: {someError: 'error'}});
 
             expect(ReportActionsUtils.getLatestConciergeFeedbackActionIDFromReportActions({[whisper.reportActionID]: whisper, [failed.reportActionID]: failed})).toBeUndefined();
