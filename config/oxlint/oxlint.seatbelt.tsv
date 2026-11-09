@@ -1485,8 +1485,7 @@
 "../../src/pages/ReimbursementAccount/ReimbursementAccountPage.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../src/pages/ReimbursementAccount/ReimbursementAccountPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/ReimbursementAccount/ReimbursementAccountPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/ReimbursementAccount/ReimbursementAccountPage.tsx"	"react-hooks/refs"	3
-"../../src/pages/ReimbursementAccount/ReimbursementAccountPage.tsx"	"react-hooks/set-state-in-effect"	4
+"../../src/pages/ReimbursementAccount/ReimbursementAccountPage.tsx"	"react-hooks/set-state-in-effect"	2
 "../../src/pages/ReimbursementAccount/ReimbursementAccountPage.tsx"	"rulesdir/no-onyx-loading-status"	4
 "../../src/pages/ReimbursementAccount/USD/BankInfo/BankInfo.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/ReimbursementAccount/USD/BeneficialOwnerInfo/BeneficialOwnersStep.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
