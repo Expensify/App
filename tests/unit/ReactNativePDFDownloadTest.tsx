@@ -114,12 +114,12 @@ function renderPdf(uri: string, onError: jest.Mock) {
 
     // The library doesn't await _downloadFile, so in the app a rejection from it is an unhandled promise rejection
     const escapedRejections: unknown[] = [];
-    const downloadFile = pdf._downloadFile;
-    pdf._downloadFile = (...args) => {
+    const {_downloadFile: downloadFile} = pdf;
+    jest.spyOn(pdf, '_downloadFile').mockImplementation((...args) => {
         const download = downloadFile(...args);
         download.catch((error: unknown) => escapedRejections.push(error));
         return download;
-    };
+    });
 
     return {pdf, escapedRejections, changeSource: (nextURI: string) => rerender(renderWithSource(nextURI))};
 }
