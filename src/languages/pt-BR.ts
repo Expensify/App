@@ -780,7 +780,7 @@ const translations: TranslationDeepObject<typeof en> = {
             tryAgain: 'Tentar novamente',
             giveItAnotherTry: 'Tente novamente',
             thankYouForConfirming: 'Obrigado por confirmar que a transação era sua. Tente novamente no estabelecimento.',
-            ifYouCloseWeWillFreezeCard: 'Se você fechar esta tela, teremos que congelar seu cartão. Você precisará descongelá-lo para usá-lo novamente.',
+            ifYouCloseWeWillFreezeCard: 'Se você fechar esta tela, teremos que bloquear seu cartão. Você precisará desbloqueá-lo para usá-lo novamente.',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Dispositivo não compatível',

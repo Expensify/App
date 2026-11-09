@@ -165,17 +165,23 @@ function getPendingFraudReviewToShow(
 function useNavigateToForcedTransactionReview() {
     const [locallyProcessed3DSTransactionReviews, locallyProcessedReviewsResult] = useOnyx(ONYXKEYS.LOCALLY_PROCESSED_3DS_TRANSACTION_REVIEWS);
     const [transactionsPending3DSReview] = useOnyx(ONYXKEYS.TRANSACTIONS_PENDING_3DS_REVIEW);
-    const [locallyProcessedFraudTransactionReviews] = useOnyx(ONYXKEYS.LOCALLY_PROCESSED_FRAUD_TRANSACTION_REVIEWS);
-    const [transactionsPendingFraudReview] = useOnyx(ONYXKEYS.TRANSACTIONS_PENDING_FRAUD_REVIEW);
+    const [locallyProcessedFraudTransactionReviews, locallyProcessedFraudReviewsResult] = useOnyx(ONYXKEYS.LOCALLY_PROCESSED_FRAUD_TRANSACTION_REVIEWS);
+    const [transactionsPendingFraudReview, transactionsPendingFraudReviewResult] = useOnyx(ONYXKEYS.TRANSACTIONS_PENDING_FRAUD_REVIEW);
+
+    // Until these are read from storage, an empty value does not mean the server has no reviews for us
+    const isLoadingReviewData = isLoadingOnyxValue(locallyProcessedReviewsResult, locallyProcessedFraudReviewsResult, transactionsPendingFraudReviewResult);
 
     // Drop local answers once the server stops listing their review. The server sends null for an empty queue
     useEffect(() => {
+        if (isLoadingReviewData) {
+            return;
+        }
         const transactionIDsToCleanUp = getLocallyProcessedFraudReviewIDsToCleanUp(transactionsPendingFraudReview, locallyProcessedFraudTransactionReviews);
         if (transactionIDsToCleanUp.length === 0) {
             return;
         }
         cleanUpLocallyProcessedFraudTransactionReviews(transactionIDsToCleanUp);
-    }, [transactionsPendingFraudReview, locallyProcessedFraudTransactionReviews]);
+    }, [isLoadingReviewData, transactionsPendingFraudReview, locallyProcessedFraudTransactionReviews]);
 
     // Fixed at mount so the selection below stays stable between renders
     const [mountedAt] = useState(() => Date.now());
@@ -197,11 +203,11 @@ function useNavigateToForcedTransactionReview() {
 
     const {deviceVerificationType, doesDeviceSupportAuthenticationMethod} = useBiometrics();
 
-    const threeDSTransactionIDToShow = isLoadingOnyxValue(locallyProcessedReviewsResult)
-        ? undefined
-        : getPending3DSReviewToShow(transactionsPending3DSReview, locallyProcessed3DSTransactionReviews)?.transactionID;
+    const threeDSTransactionIDToShow = isLoadingReviewData ? undefined : getPending3DSReviewToShow(transactionsPending3DSReview, locallyProcessed3DSTransactionReviews)?.transactionID;
 
-    const fraudTransactionIDToShow = getPendingFraudReviewToShow(transactionsPendingFraudReview, locallyProcessedFraudTransactionReviews, mountedAt)?.transactionID;
+    const fraudTransactionIDToShow = isLoadingReviewData
+        ? undefined
+        : getPendingFraudReviewToShow(transactionsPendingFraudReview, locallyProcessedFraudTransactionReviews, mountedAt)?.transactionID;
 
     useEffect(() => {
         // Review kinds are listed in priority order. The first one this device can actually complete is shown
@@ -261,14 +267,16 @@ function useNavigateToForcedTransactionReview() {
                 const config = FORCED_REVIEW_CONFIG[kind];
 
                 // eslint-disable-next-line no-await-in-loop -- kinds are tried one at a time in priority order
-                if (!(await canNavigateToReview(config, transactionID))) {
-                    continue;
-                }
+                const canNavigate = await canNavigateToReview(config, transactionID);
 
                 if (cancel) {
                     Log.info(`${config.logPrefix} Ignoring navigation - effect was cleaned up while the pending review check was in-flight`, undefined, {transactionID});
                     addBreadcrumb(config, 'Skipped - effect cancelled', {transactionID});
                     return;
+                }
+
+                if (!canNavigate) {
+                    continue;
                 }
 
                 Log.info(`${config.logPrefix} Navigating!`, undefined, {transactionID});

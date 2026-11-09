@@ -56,6 +56,11 @@ function ReviewTransactionPage({route}: ReviewTransactionPageProps) {
     const {executeScenario} = useMultifactorAuthentication();
 
     const reportFraudAndClose = () => {
+        // The explicit report is already on its way and its response closes the screen
+        if (isReportingFraud) {
+            addBreadcrumb('Back-out confirmed while reporting fraud, waiting for the report', {transactionID});
+            return;
+        }
         addBreadcrumb('Back-out confirmed, reporting fraud', {transactionID}, 'warning');
         fireAndForgetReportFraudulentTransaction({transactionID});
         Navigation.closeRHPFlow();
@@ -124,6 +129,8 @@ function ReviewTransactionPage({route}: ReviewTransactionPageProps) {
                         onDeny={reportFraud}
                         authorizeText={translate('multifactorAuthentication.fraudReview.recognizedButton')}
                         denyText={translate('multifactorAuthentication.fraudReview.unrecognizedButton')}
+                        authorizeSentryLabel={CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.REVIEW_TRANSACTION_RECOGNIZED}
+                        denySentryLabel={CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.REVIEW_TRANSACTION_NOT_RECOGNIZED}
                     />
                     <FreezeCardCancelConfirmModal
                         isVisible={isConfirmModalVisible}

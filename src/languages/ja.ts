@@ -773,7 +773,7 @@ const translations: TranslationDeepObject<typeof en> = {
             tryAgain: '再試行',
             giveItAnotherTry: 'もう一度お試しください',
             thankYouForConfirming: 'ご自身の取引であることを確認いただきありがとうございます。加盟店でもう一度お試しください。',
-            ifYouCloseWeWillFreezeCard: 'この画面を閉じると、カードを凍結する必要があります。再度使用するには凍結を解除してください。',
+            ifYouCloseWeWillFreezeCard: 'この画面を閉じると、カードを一時停止する必要があります。再度使用するには一時停止を解除してください。',
         },
         unsupportedDevice: {
             unsupportedDevice: '未対応のデバイス',

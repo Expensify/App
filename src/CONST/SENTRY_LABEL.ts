@@ -2998,6 +2998,8 @@ const SENTRY_LABEL = {
         AUTHORIZE_TRANSACTION_APPROVE: 'MultifactorAuthentication-AuthorizeTransactionApprove',
         AUTHORIZE_TRANSACTION_DENY: 'MultifactorAuthentication-AuthorizeTransactionDeny',
         PROMPT_CONFIRM: 'MultifactorAuthentication-PromptConfirm',
+        REVIEW_TRANSACTION_NOT_RECOGNIZED: 'MultifactorAuthentication-ReviewTransactionNotRecognized',
+        REVIEW_TRANSACTION_RECOGNIZED: 'MultifactorAuthentication-ReviewTransactionRecognized',
         REVOKE_ALL: 'MultifactorAuthentication-RevokeAll',
         REVOKE_DISMISS: 'MultifactorAuthentication-RevokeDismiss',
         REVOKE_THIS_DEVICE: 'MultifactorAuthentication-RevokeThisDevice',
