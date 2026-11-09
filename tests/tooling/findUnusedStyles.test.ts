@@ -19,6 +19,7 @@ await mock.module('glob', () => ({...glob, globSync: mockGlobSync}));
 // Bun imports the native compiler's ESM client directly, without Jest's CommonJS transform.
 const {ComprehensiveStylesFinder} = await import('../../scripts/findUnusedStyles');
 
+// Await compiler I/O before asserting because Bun's promise matchers can stall native RPC callbacks.
 describe('findUnusedStyles', () => {
     let finder: InstanceType<typeof ComprehensiveStylesFinder>;
 
@@ -322,7 +323,8 @@ describe('findUnusedStyles', () => {
             setupMockFiles(stylesContent, malformedContent);
 
             // A parse error must not hide style usages in the recovered syntax tree.
-            await expect(finder.findUnusedStyles()).resolves.toHaveLength(0);
+            const result = await finder.findUnusedStyles();
+            expect(result).toHaveLength(0);
         });
     });
 
@@ -338,7 +340,8 @@ describe('findUnusedStyles', () => {
 
             finder = new ComprehensiveStylesFinder('/test');
 
-            await expect(finder.findUnusedStyles()).resolves.toEqual([]);
+            const result = await finder.findUnusedStyles();
+            expect(result).toEqual([]);
         });
 
         test('should handle directory instead of file', async () => {
@@ -355,7 +358,8 @@ describe('findUnusedStyles', () => {
 
             finder = new ComprehensiveStylesFinder('/test');
 
-            await expect(finder.findUnusedStyles()).resolves.toEqual([]);
+            const result = await finder.findUnusedStyles();
+            expect(result).toEqual([]);
         });
     });
 
