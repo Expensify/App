@@ -297,6 +297,7 @@ function TripRoomPreview({action, containerStyles, isHovered = false}: TripRoomP
                         <Button
                             variant={shouldShowReview ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                             onPress={navigateToTrip}
+                            sentryLabel={CONST.SENTRY_LABEL.TRIP_ROOM_PREVIEW.VIEW_BUTTON}
                         >
                             <Button.Text>{shouldShowReview ? translate('common.review') : translate('common.view')}</Button.Text>
                         </Button>

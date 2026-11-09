@@ -11067,6 +11067,7 @@ const CONST = {
         },
         TRIP_ROOM_PREVIEW: {
             CARD: 'TripRoomPreview-Card',
+            VIEW_BUTTON: 'TripRoomPreview-ViewButton',
         },
         TRANSACTION_ITEM_ROW: {
             ARROW_RIGHT: 'TransactionItemRow-ArrowRight',
