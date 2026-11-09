@@ -22,7 +22,16 @@ import type {ActivatePhysicalCardPersonalDetails as PersonalDetailsToSave} from 
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import {getStreetLines} from '@libs/PersonalDetailsUtils';
-import {getAddressFieldErrors, getFieldRequiredErrors, isValidPastDate, isValidPhoneNumber, meetsMaximumAgeRequirement, meetsMinimumAgeRequirement} from '@libs/ValidationUtils';
+import {
+    doesContainReservedWord,
+    getAddressFieldErrors,
+    getFieldRequiredErrors,
+    isValidLegalName,
+    isValidPastDate,
+    isValidPhoneNumber,
+    meetsMaximumAgeRequirement,
+    meetsMinimumAgeRequirement,
+} from '@libs/ValidationUtils';
 
 import {getNormalizedSubPageValues} from '@pages/MissingPersonalDetails/utils';
 
@@ -46,7 +55,17 @@ type ActivatePhysicalCardPersonalDetailsProps = {
     onBackButtonPress: () => void;
 };
 
-const REQUIRED_FIELDS = [INPUT_IDS.DATE_OF_BIRTH, INPUT_IDS.PHONE_NUMBER, INPUT_IDS.ADDRESS_LINE_1, INPUT_IDS.CITY, INPUT_IDS.STATE, INPUT_IDS.COUNTRY, INPUT_IDS.ZIP_POST_CODE];
+const LEGAL_NAME_FIELDS = [INPUT_IDS.LEGAL_FIRST_NAME, INPUT_IDS.LEGAL_LAST_NAME] as const;
+const REQUIRED_FIELDS = [
+    ...LEGAL_NAME_FIELDS,
+    INPUT_IDS.DATE_OF_BIRTH,
+    INPUT_IDS.PHONE_NUMBER,
+    INPUT_IDS.ADDRESS_LINE_1,
+    INPUT_IDS.CITY,
+    INPUT_IDS.STATE,
+    INPUT_IDS.COUNTRY,
+    INPUT_IDS.ZIP_POST_CODE,
+];
 
 function ActivatePhysicalCardPersonalDetails({card, lastFourDigits, onBackButtonPress}: ActivatePhysicalCardPersonalDetailsProps) {
     const styles = useThemeStyles();
@@ -59,7 +78,9 @@ function ActivatePhysicalCardPersonalDetails({card, lastFourDigits, onBackButton
     const personalDetailsValues = getNormalizedSubPageValues(privatePersonalDetails);
     const shippingAddress = card.nameValuePairs?.shippingAddress;
 
-    // The address the admin shipped the card to is prefilled until the cardholder has a home address of their own
+    // The name and address the admin shipped the card to are prefilled until the cardholder has their own
+    const legalFirstName = personalDetailsValues[INPUT_IDS.LEGAL_FIRST_NAME] || shippingAddress?.legalFirstName;
+    const legalLastName = personalDetailsValues[INPUT_IDS.LEGAL_LAST_NAME] || shippingAddress?.legalLastName;
     const hasHomeAddress = !!personalDetailsValues[INPUT_IDS.ADDRESS_LINE_1];
     const [shippingStreet1, shippingStreet2] = getStreetLines(shippingAddress?.addressStreet);
     const street1 = hasHomeAddress ? personalDetailsValues[INPUT_IDS.ADDRESS_LINE_1] : shippingStreet1;
@@ -75,6 +96,19 @@ function ActivatePhysicalCardPersonalDetails({card, lastFourDigits, onBackButton
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
         const errors = getFieldRequiredErrors(values, REQUIRED_FIELDS, translate);
+        for (const legalNameInputID of LEGAL_NAME_FIELDS) {
+            const legalName = values[legalNameInputID];
+            if (!legalName || errors[legalNameInputID]) {
+                continue;
+            }
+            if (!isValidLegalName(legalName)) {
+                errors[legalNameInputID] = translate('privatePersonalDetails.error.hasInvalidCharacter');
+            } else if (legalName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
+                errors[legalNameInputID] = translate('common.error.characterLimitExceedCounter', legalName.length, CONST.LEGAL_NAME.MAX_LENGTH);
+            } else if (doesContainReservedWord(legalName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+                errors[legalNameInputID] = translate('personalDetails.error.containsReservedWord');
+            }
+        }
         if (values.dob) {
             if (!isValidPastDate(values.dob) || !meetsMaximumAgeRequirement(values.dob)) {
                 errors.dob = translate('bankAccount.error.dob');
@@ -89,8 +123,7 @@ function ActivatePhysicalCardPersonalDetails({card, lastFourDigits, onBackButton
     };
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>) => {
-        const {legalFirstName, legalLastName, ...personalDetails} = buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode);
-        setPersonalDetailsToSave(personalDetails);
+        setPersonalDetailsToSave(buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode));
     };
 
     if (personalDetailsToSave) {
@@ -133,6 +166,26 @@ function ActivatePhysicalCardPersonalDetails({card, lastFourDigits, onBackButton
                     <>
                         <Text style={[styles.textHeadlineLineHeightXXL, styles.mb5]}>{translate('activateCardPage.fillInAllDetails')}</Text>
                         <Text style={[styles.textLabelSupporting, styles.mb3]}>{translate('privatePersonalDetails.basicDetails')}</Text>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.LEGAL_FIRST_NAME}
+                            label={translate('personalInfoStep.legalFirstName')}
+                            aria-label={translate('personalInfoStep.legalFirstName')}
+                            role={CONST.ROLE.PRESENTATION}
+                            defaultValue={legalFirstName}
+                            autoComplete="given-name"
+                        />
+                        <View style={styles.formSpaceVertical} />
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.LEGAL_LAST_NAME}
+                            label={translate('personalInfoStep.legalLastName')}
+                            aria-label={translate('personalInfoStep.legalLastName')}
+                            role={CONST.ROLE.PRESENTATION}
+                            defaultValue={legalLastName}
+                            autoComplete="family-name"
+                        />
+                        <View style={styles.formSpaceVertical} />
                         <InputWrapper
                             InputComponent={DatePicker}
                             inputID={INPUT_IDS.DATE_OF_BIRTH}

@@ -240,6 +240,8 @@ describe('actions/PolicyExpensifyCard', () => {
         it('sends the details the cardholder confirmed with the last four digits and the magic code', async () => {
             // Given a cardholder who confirmed their details while activating a card shipped to an address their admin entered
             const personalDetails = {
+                legalFirstName: 'Test',
+                legalLastName: 'Card',
                 phoneNumber: '+13466666666',
                 addressCity: 'Seattle',
                 addressStreet: '123 Pike Street',

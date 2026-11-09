@@ -127,13 +127,15 @@ describe('ActivatePhysicalCardPersonalDetails', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        // Then the details, the last four digits and the code go out together
+        // Then the details go out with the digits and the code, with the legal name the admin shipped the card to
         const body = TestHelper.getFetchMockCalls(WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_ACTIVATE_EXPENSIFY_CARD).at(-1)?.[1]?.body;
         expect(body instanceof FormData ? Object.fromEntries(body) : {}).toEqual(
             expect.objectContaining({
                 cardID: String(CARD_ID),
                 cardLastFourDigits: LAST_FOUR_DIGITS,
                 validateCode: '123456',
+                legalFirstName: 'Test',
+                legalLastName: 'Card',
                 phoneNumber: '+13466666666',
                 addressStreet: '123 Pike Street',
                 addressZip: '98101',
