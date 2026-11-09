@@ -20,6 +20,7 @@ function PressableWithSecondaryInteraction({
     preventDefaultContextMenu,
     withoutFocusOnSecondaryInteraction,
     enableLongPressWithHover,
+    sentryLabel,
     ref,
     ...rest
 }: PressableWithSecondaryInteractionProps) {
@@ -52,6 +53,7 @@ function PressableWithSecondaryInteraction({
 
     return (
         <PressableWithFeedback
+            sentryLabel={sentryLabel}
             {...rest}
             accessibilityState={accessibilityState}
             accessibilityHasPopup={accessibilityHasPopup}

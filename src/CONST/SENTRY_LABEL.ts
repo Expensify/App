@@ -1,6 +1,7 @@
 const SENTRY_LABEL = {
     TEXT_INPUT: {
         CLEAR_BUTTON: 'TextInput-ClearButton',
+        PASSWORD_VISIBILITY_TOGGLE: 'TextInput-PasswordVisibilityToggle',
     },
     DATE_PICKER: {
         CLEAR_BUTTON: 'DatePicker-ClearButton',
@@ -30,6 +31,8 @@ const SENTRY_LABEL = {
         SIMULATE_FAILING_REQUESTS_SWITCH: 'TestToolMenu-SimulateFailingRequestsSwitch',
         SENTRY_SEND_SWITCH: 'TestToolMenu-SentrySendSwitch',
         SENTRY_DEBUG_SWITCH: 'TestToolMenu-SentryDebugSwitch',
+        BIOMETRICS_TEST: 'TestToolMenu-BiometricsTest',
+        BIOMETRICS_REVOKE: 'TestToolMenu-BiometricsRevoke',
     },
     BILLING_BANNER: {
         RIGHT_ICON: 'BillingBanner-RightIcon',
@@ -68,6 +71,7 @@ const SENTRY_LABEL = {
     },
     POPOVER_MENU: {
         DISMISS_BUTTON: 'PopoverMenu-DismissButton',
+        BACK_BUTTON: 'PopoverMenu-BackButton',
     },
     DISTANCE_REQUEST_FOOTER: {
         ADD_STOP: 'DistanceRequestFooter-AddStop',
@@ -762,6 +766,8 @@ const SENTRY_LABEL = {
         BASE_LIST_ITEM: 'SelectionList-BaseListItem',
         SPLIT_LIST_ITEM_EDIT_BUTTON: 'SplitListItem-EditButton',
         LIST_HEADER_SELECT_ALL: 'SelectionList-ListHeaderSelectAll',
+        SPEND_RULE_LIST_ITEM_CHECKBOX: 'SpendRuleListItem-Checkbox',
+        CONFIRM_BUTTON: 'SelectionList-ConfirmButton',
     },
     CONTEXT_MENU: {
         REPLY_IN_THREAD: 'ContextMenu-ReplyInThread',
@@ -1035,6 +1041,8 @@ const SENTRY_LABEL = {
     MAP_VIEW: {
         COMPASS: 'MapView-Compass',
         TOGGLE_DISTANCE_UNIT: 'MapView-ToggleDistanceUnit',
+        CENTER_BUTTON: 'MapView-CenterButton',
+        GPS_CENTER_BUTTON: 'MapView-GPSCenterButton',
     },
     NEW_CHAT: {
         IMPORT_CONTACTS_ITEM: 'NewChat-ImportContacts',
@@ -1178,6 +1186,8 @@ const SENTRY_LABEL = {
             IMPORT_FROM_FILE_TEMPLATE_LINK: 'WorkspaceCompanyCards-ImportFromFileTemplateLink',
             IMPORT_FROM_FILE_HELP_GUIDE_LINK: 'WorkspaceCompanyCards-ImportFromFileHelpGuideLink',
             PERSONAL_LIABILITY_SWITCH: 'WorkspaceCompanyCards-PersonalLiabilitySwitch',
+            ASSIGN_BUTTON: 'WorkspaceCompanyCards-AssignButton',
+            FEED_ERROR_TRY_AGAIN: 'WorkspaceCompanyCards-FeedErrorTryAgain',
         },
         LIST: {
             NEW_WORKSPACE_BUTTON: 'WorkspaceList-NewWorkspaceButton',
@@ -1532,6 +1542,13 @@ const SENTRY_LABEL = {
             REQUIRE_TAG_LEVEL_SWITCH: 'WorkspaceRules-RequireTagLevelSwitch',
             REQUIRE_TAG_SWITCH: 'WorkspaceRules-RequireTagSwitch',
             TRACK_BILLABLE_SWITCH: 'WorkspaceRules-TrackBillableSwitch',
+            SPEND_RULE_ADD_MERCHANT: 'WorkspaceRules-SpendRuleAddMerchant',
+            SPEND_RULE_CATEGORIES_SAVE: 'WorkspaceRules-SpendRuleCategoriesSave',
+            SPEND_RULE_CURRENCIES_SAVE: 'WorkspaceRules-SpendRuleCurrenciesSave',
+            SPEND_RULE_MERCHANTS_SAVE: 'WorkspaceRules-SpendRuleMerchantsSave',
+        },
+        ROOMS: {
+            ROW: 'WorkspaceRooms-Row',
         },
         EXPENSIFY_CARD: {
             ROW: 'WorkspaceExpensifyCard-Row',
@@ -1657,6 +1674,11 @@ const SENTRY_LABEL = {
     CONFIRM_CONTENT: {
         DISMISS_BUTTON: 'ConfirmContent-DismissButton',
         CONFIRM_BUTTON: 'ConfirmContent-ConfirmButton',
+        CANCEL_BUTTON: 'ConfirmContent-CancelButton',
+    },
+    DECISION_MODAL: {
+        FIRST_OPTION: 'DecisionModal-FirstOption',
+        SECOND_OPTION: 'DecisionModal-SecondOption',
     },
     COPY_TEXT_TO_CLIPBOARD: {
         COPY_BUTTON: 'CopyTextToClipboard-CopyButton',
@@ -1929,6 +1951,10 @@ const SENTRY_LABEL = {
             ENABLE_SWITCH: 'DomainSaml-EnableSwitch',
             REQUIRE_SWITCH: 'DomainSaml-RequireSwitch',
         },
+        LIST: {
+            ROW: 'DomainList-Row',
+            THREE_DOT_MENU: 'DomainList-ThreeDotMenu',
+        },
     },
     FEATURE_TRAINING: {
         CLOSE_BUTTON: 'FeatureTraining-CloseButton',
@@ -1936,6 +1962,84 @@ const SENTRY_LABEL = {
     },
     TOOLTIP: {
         OVERLAY: 'Tooltip-Overlay',
+        EDUCATION_TOOLTIP: 'Tooltip-EducationTooltip',
+    },
+    ADD_EXISTING_EXPENSE: {
+        CONFIRM_BUTTON: 'AddExistingExpense-ConfirmButton',
+    },
+    ANONYMOUS_REPORT_FOOTER: {
+        SIGN_IN_BUTTON: 'AnonymousReportFooter-SignInButton',
+    },
+    AUTO_SUBMIT_MODAL: {
+        CONFIRM_BUTTON: 'AutoSubmitModal-ConfirmButton',
+    },
+    HOLD_OR_REJECT_EDUCATIONAL_MODAL: {
+        CONFIRM_BUTTON: 'HoldOrRejectEducationalModal-ConfirmButton',
+    },
+    HOLD_SUBMITTER_EDUCATIONAL_MODAL: {
+        CONFIRM_BUTTON: 'HoldSubmitterEducationalModal-ConfirmButton',
+    },
+    AVATAR_PAGE_FOOTER: {
+        SAVE_BUTTON: 'AvatarPageFooter-SaveButton',
+    },
+    AVATAR_SELECTOR: {
+        PRESET_AVATAR: 'AvatarSelector-PresetAvatar',
+        LETTER_AVATAR: 'AvatarSelector-LetterAvatar',
+    },
+    BANK_ACCOUNT_VERIFICATION_VIEW: {
+        GO_TO_CONCIERGE: 'BankAccountVerificationView-GoToConcierge',
+        VERIFIED_BUTTON: 'BankAccountVerificationView-VerifiedButton',
+    },
+    BIG_NUMBER_PAD: {
+        KEY: 'BigNumberPad-Key',
+        BACKSPACE: 'BigNumberPad-Backspace',
+    },
+    BULK_ACTION_STATUS_MODAL: {
+        SEND_FROM_CONCIERGE: 'BulkActionStatusModal-SendFromConcierge',
+        GO_TO_CONCIERGE: 'BulkActionStatusModal-GoToConcierge',
+        VIEW_FAILED_REPORTS: 'BulkActionStatusModal-ViewFailedReports',
+        CLOSE: 'BulkActionStatusModal-Close',
+    },
+    EXPORT_DOWNLOAD_STATUS_MODAL: {
+        SEND_FROM_CONCIERGE: 'ExportDownloadStatusModal-SendFromConcierge',
+        GO_TO_CONCIERGE: 'ExportDownloadStatusModal-GoToConcierge',
+        DOWNLOAD_FILE: 'ExportDownloadStatusModal-DownloadFile',
+        CLOSE: 'ExportDownloadStatusModal-Close',
+    },
+    CHECKBOX_WITH_LABEL: {
+        CHECKBOX: 'CheckboxWithLabel-Checkbox',
+    },
+    COLUMNS_SETTINGS_LIST: {
+        SAVE_BUTTON: 'ColumnsSettingsList-SaveButton',
+    },
+    COUNTRY_SELECTOR: {
+        OPEN: 'CountrySelector-Open',
+    },
+    CURRENCY_PICKER: {
+        OPEN: 'CurrencyPicker-Open',
+    },
+    CURRENCY_SELECTOR: {
+        OPEN: 'CurrencySelector-Open',
+    },
+    DOT_INDICATOR_MESSAGE: {
+        RETRY_RECEIPT_UPLOAD: 'DotIndicatorMessage-RetryReceiptUpload',
+        DOWNLOAD_RECEIPT: 'DotIndicatorMessage-DownloadReceipt',
+    },
+    FEEDBACK_SURVEY: {
+        SUBMIT_BUTTON: 'FeedbackSurvey-SubmitButton',
+    },
+    FROZEN_CARD_HEADER: {
+        UNFREEZE: 'FrozenCardHeader-Unfreeze',
+        ASK_TO_UNFREEZE: 'FrozenCardHeader-AskToUnfreeze',
+    },
+    FULLSCREEN_LOADING_INDICATOR: {
+        GO_BACK: 'FullscreenLoadingIndicator-GoBack',
+    },
+    GOVERNMENT_RATE_COUNTRY_SELECTOR: {
+        SAVE_BUTTON: 'GovernmentRateCountrySelector-SaveButton',
+    },
+    DOCUSIGN_FULL_STEP: {
+        OPEN_DOCUSIGN: 'DocusignFullStep-OpenDocusign',
     },
     // Components that require a label get this one when rendered in tests. Tests send nothing to Sentry, so one shared label is enough.
     TEST: {

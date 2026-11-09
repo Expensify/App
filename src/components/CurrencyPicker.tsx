@@ -89,6 +89,7 @@ function CurrencyPicker({
     return (
         <>
             <MenuItem.Root
+                sentryLabel={CONST.SENTRY_LABEL.CURRENCY_PICKER.OPEN}
                 onPress={callFunctionIfActionIsAllowed(() => setIsPickerVisible(true), false, session)}
                 isDisabled={disabled}
                 accessibilityLabel={accessibilityLabel ? [accessibilityLabel, value ? `${value} - ${getCurrencySymbol(value)}` : undefined].filter(Boolean).join(', ') : undefined}

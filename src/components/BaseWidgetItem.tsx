@@ -63,6 +63,7 @@ function BaseWidgetItem({icon, title, subtitle, ctaText, onCtaPress, buttonVaria
                         <Text style={styles.widgetItemTitle}>{title}</Text>
                     </View>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.WIDGET_ITEM}
                         onPress={onCtaPress}
                         size={CONST.BUTTON_SIZE.SMALL}
                         style={styles.widgetItemButton}
