@@ -143,6 +143,55 @@ describe('getReportPreviewAction', () => {
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
     });
 
+    it('canSubmit should return false for an approve-only member', async () => {
+        // Given an open expense report owned by the current user, who has the approve-only role on the policy
+        const report: Report = {
+            ...createRandomReport(REPORT_ID, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        policy.role = CONST.POLICY.ROLE.APPROVE_ONLY;
+        if (policy.harvesting) {
+            policy.harvesting.enabled = false;
+        }
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+            amount: 100,
+            merchant: 'Test Merchant',
+            created: '2025-01-01',
+        });
+
+        // Simulate how components use a hook to pass the isReportArchived parameter
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+
+        await waitForBatchedUpdatesWithAct();
+
+        // When the preview action is resolved
+        const previewAction = getReportPreviewAction({
+            isReportArchived: isReportArchived.current,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            currentUserLogin: CURRENT_USER_EMAIL,
+            report,
+            policy,
+            transactions: [transaction],
+            bankAccountList: {},
+            reportMetadata: undefined,
+            ownerLogin: CURRENT_USER_EMAIL,
+            rules: undefined,
+        });
+
+        // Then it is not SUBMIT
+        expect(previewAction).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
+    });
+
     // The submitter keeps the SUBMIT action on a prevent-self-approval workspace, matching isSubmitAction in
     // ReportPrimaryActionUtils. SubmitActionButton then mounts and renders itself disabled. Returning VIEW here instead
     // would hide the preview's Submit button entirely while the report header still shows a disabled one.
@@ -763,6 +812,52 @@ describe('getReportPreviewAction', () => {
                 created: '2025-01-01',
             });
 
+            expect(
+                getReportPreviewAction({
+                    isReportArchived: false,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_EMAIL,
+                    report,
+                    policy,
+                    transactions: [transaction],
+                    bankAccountList: {},
+                    reportMetadata: undefined,
+                    ownerLogin: CURRENT_USER_EMAIL,
+                    rules: undefined,
+                }),
+            ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+        });
+
+        it('should return VIEW for report whose only expense failed SmartScan with missing fields', async () => {
+            // Given a submitted expense report whose only expense failed SmartScan and has no amount
+            const report = {
+                ...createRandomReport(REPORT_ID, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: CURRENT_USER_ACCOUNT_ID,
+                isWaitingOnBankAccount: false,
+            };
+
+            const policy = createRandomPolicy(0);
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+            policy.approver = CURRENT_USER_EMAIL;
+            policy.approvalMode = CONST.POLICY.APPROVAL_MODE.BASIC;
+            policy.preventSelfApproval = false;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            const transaction = createMock<Transaction>({
+                reportID: `${REPORT_ID}`,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {source: 'receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+                amount: 0,
+                merchant: 'Merchant',
+                created: '2025-01-01',
+            });
+
+            // When getting the report preview action
+            // Then it should be VIEW instead of APPROVE because the expense still needs its missing fields filled in
             expect(
                 getReportPreviewAction({
                     isReportArchived: false,

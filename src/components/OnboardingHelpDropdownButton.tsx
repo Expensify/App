@@ -75,19 +75,14 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
 
     if (hasActiveScheduledCall && latestScheduledCall) {
         options.push({
-            text: `${DateUtils.formatInTimeZoneWithFallback(latestScheduledCall.eventTime, userTimezone, CONST.DATE.WEEKDAY_TIME_FORMAT, {locale: dateFnsLocale})}, ${DateUtils.formatInTimeZoneWithFallback(
-                latestScheduledCall.eventTime,
-                userTimezone,
-                CONST.DATE.MONTH_DAY_YEAR_FORMAT,
-                {locale: dateFnsLocale},
-            )}`,
+            text: DateUtils.formatToLongDateInTimeZone(latestScheduledCall.eventTime, userTimezone, dateFnsLocale, true),
             value: CONST.ONBOARDING_HELP.EVENT_TIME,
             description: `${DateUtils.formatInTimeZoneWithFallback(latestScheduledCall.eventTime, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})} - ${DateUtils.formatInTimeZoneWithFallback(
                 addMinutes(latestScheduledCall.eventTime, 30),
                 userTimezone,
                 CONST.DATE.LOCAL_TIME_FORMAT,
                 {locale: dateFnsLocale},
-            )} ${DateUtils.getZoneAbbreviation(new Date(latestScheduledCall.eventTime), userTimezone)}`,
+            )} ${DateUtils.getZoneAbbreviation(new Date(latestScheduledCall.eventTime), userTimezone, dateFnsLocale)}`,
             descriptionTextStyle: [styles.themeTextColor, styles.ml2],
             displayInDefaultIconColor: true,
             icon: illustrations.HeadSet,

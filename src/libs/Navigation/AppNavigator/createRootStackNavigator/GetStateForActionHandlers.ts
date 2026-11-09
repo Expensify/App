@@ -761,7 +761,10 @@ function handleRemoveFullscreenUnderRHP(
 
     // Tab-switch path: restore the original TAB_NAVIGATOR route saved during pre-insertion.
     if (preInsertedOriginalTabRoute) {
-        const tabNavIndex = routesWithoutRHP.findLastIndex((r) => r.name === NAVIGATORS.TAB_NAVIGATOR);
+        // The pre-insert kept the tab route key, so match by key. Another TAB_NAVIGATOR may have been pushed since,
+        // and writing the saved route over it would leave two routes with the same key.
+        const savedKey = preInsertedOriginalTabRoute.key;
+        const tabNavIndex = routesWithoutRHP.findIndex((r) => r.key === savedKey);
         if (tabNavIndex < 0) {
             preInsertedOriginalTabRoute = undefined;
             return null;
