@@ -6547,11 +6547,33 @@ describe('SearchQueryUtils', () => {
             expect(shouldRefetch).toBe(true);
         });
 
-        test('returns false for other groupings and has filters', () => {
-            // Given a query whose results don't depend on approval state
-            const queryJSON = buildSearchQueryJSON(`type:expense groupBy:from has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+        test('returns true for a positive has:submitted-violation filter', () => {
+            // Given a query filtered to submitted violations, whose matches change when a report is submitted
+            const queryJSON = buildSearchQueryJSON(`type:expense has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
 
-            // When checking whether approval actions should refetch it
+            // When checking whether workflow actions should refetch it
+            const shouldRefetch = queryJSON && shouldRefetchSearchOnReportActionChange(queryJSON);
+
+            // Then it should, because submitting the report adds its expenses to the results
+            expect(shouldRefetch).toBe(true);
+        });
+
+        test('returns true for a negated has:submitted-violation filter', () => {
+            // Given a query that excludes submitted violations
+            const queryJSON = buildSearchQueryJSON(`type:expense -has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+
+            // When checking whether workflow actions should refetch it
+            const shouldRefetch = queryJSON && shouldRefetchSearchOnReportActionChange(queryJSON);
+
+            // Then it should, because submitting a report with violations moves its expenses out of the results
+            expect(shouldRefetch).toBe(true);
+        });
+
+        test('returns false for other groupings and has filters', () => {
+            // Given a query whose results don't depend on submission or approval state
+            const queryJSON = buildSearchQueryJSON(`type:expense groupBy:from has:${CONST.SEARCH.HAS_VALUES.RECEIPT}`);
+
+            // When checking whether workflow actions should refetch it
             const shouldRefetch = queryJSON && shouldRefetchSearchOnReportActionChange(queryJSON);
 
             // Then it shouldn't, so these searches skip walking the report actions

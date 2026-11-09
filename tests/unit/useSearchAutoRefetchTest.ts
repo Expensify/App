@@ -619,7 +619,7 @@ describe('useSearchAutoRefetch', () => {
         expect(search).not.toHaveBeenCalled();
     });
 
-    describe('approval report actions', () => {
+    describe('workflow report actions', () => {
         const transaction1 = createMock<Transaction>({transactionID: '1'});
         const approverProps = createMock<UseSearchAutoRefetch>({
             ...baseProps,
@@ -655,13 +655,18 @@ describe('useSearchAutoRefetch', () => {
                 },
             });
 
-        it.each<ReportActionName>(['APPROVED', 'UNAPPROVED', 'FORWARDED'])('should trigger search when an %s report action is added while grouped by approver', (actionName) => {
+        it.each<ReportActionName>([
+            CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+            CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+            CONST.REPORT.ACTIONS.TYPE.APPROVED,
+            CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+        ])('should trigger search when a %s report action is added while grouped by approver', (actionName) => {
             // Given a search grouped by approver whose results already show a row
             const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
                 initialProps: approverProps,
             });
 
-            // When a report is approved, unapproved or forwarded, which adds a report action but changes no transaction
+            // When a report is submitted, approved or forwarded, which adds a report action but changes no transaction
             rerender(withAddedAction(approverProps, actionName));
 
             // Then the search runs again, because the report's expenses move in or out of an approver group
@@ -687,6 +692,29 @@ describe('useSearchAutoRefetch', () => {
                 rerender(withAddedAction(approvedViolationProps, 'APPROVED'));
 
                 // Then the search runs again, because the report's violations now count as approved violations either way
+                expect(search).toHaveBeenCalledTimes(1);
+            },
+        );
+
+        it.each([CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO])(
+            'should trigger search when a SUBMITTED report action is added while the has:submitted-violation filter uses %s',
+            (operator) => {
+                // Given a search that includes or excludes submitted violations, whose results already show a row
+                const submittedViolationProps = createMock<UseSearchAutoRefetch>({
+                    ...approverProps,
+                    queryJSON: {
+                        ...baseProps.queryJSON,
+                        flatFilters: [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS, filters: [{operator, value: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}]}],
+                    },
+                });
+                const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                    initialProps: submittedViolationProps,
+                });
+
+                // When a report is submitted, which adds a report action but changes no transaction
+                rerender(withAddedAction(submittedViolationProps, 'SUBMITTED'));
+
+                // Then the search runs again, because the report's violations now count as submitted violations either way
                 expect(search).toHaveBeenCalledTimes(1);
             },
         );

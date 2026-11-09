@@ -4,7 +4,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import {search} from '@libs/actions/Search';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {isApprovedAction, isForwardedAction, isUnapprovedAction} from '@libs/ReportActionsUtils';
+import {isApprovedAction, isForwardedAction, isSubmittedAction, isSubmittedAndClosedAction} from '@libs/ReportActionsUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {shouldRefetchSearchOnReportActionChange} from '@libs/SearchQueryUtils';
 import {isReportActionEntry} from '@libs/SearchUIUtils';
@@ -133,8 +133,8 @@ function useSearchAutoRefetch({
             !isChat && !hasTransactionsIDsChange && hasChangedTransactionInSearchResults(transactions, transactionsIDs, previousTransactions, previousTransactionsIDsSet, searchResultsData);
         const hasChangedResultMemberCustomField = !isChat && hasChangedMemberCustomField(memberCustomFields, previousMemberCustomFields);
 
-        // Approving, unapproving or forwarding a report changes no transaction, but it can move the report's expenses in or out of the results.
-        const hasRelevantReportActionChange = !isChat && shouldRefetchOnReportActionChange && hasAddedApprovalReportAction(reportActions, previousReportActions);
+        // Submitting, approving or forwarding a report changes no transaction, but it can move the report's expenses in or out of the results.
+        const hasRelevantReportActionChange = !isChat && shouldRefetchOnReportActionChange && hasAddedWorkflowReportAction(reportActions, previousReportActions);
 
         // Check if there is a change in the transactions or report actions list
         if (
@@ -340,11 +340,11 @@ function hasChangedTransactionInSearchResults(
 }
 
 /**
- * Whether an approved, unapproved or forwarded report action was added, which changes the report's approver and approved violations.
+ * Whether a submitted, approved or forwarded report action was added, which changes the report's approver and its submitted or approved violations.
  *
  * Onyx only replaces the report action maps it writes, so maps with an unchanged reference are skipped, and the walk stops at the first match.
  */
-function hasAddedApprovalReportAction(reportActions: OnyxCollection<ReportActions>, previousReportActions: OnyxCollection<ReportActions>): boolean {
+function hasAddedWorkflowReportAction(reportActions: OnyxCollection<ReportActions>, previousReportActions: OnyxCollection<ReportActions>): boolean {
     for (const [key, actions] of Object.entries(reportActions ?? {})) {
         const previousActions = previousReportActions?.[key];
         if (!actions || actions === previousActions) {
@@ -354,7 +354,7 @@ function hasAddedApprovalReportAction(reportActions: OnyxCollection<ReportAction
             if (previousActions?.[reportActionID]) {
                 continue;
             }
-            if (isApprovedAction(reportAction) || isUnapprovedAction(reportAction) || isForwardedAction(reportAction)) {
+            if (isSubmittedAction(reportAction) || isSubmittedAndClosedAction(reportAction) || isApprovedAction(reportAction) || isForwardedAction(reportAction)) {
                 return true;
             }
         }

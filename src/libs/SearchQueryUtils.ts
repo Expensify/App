@@ -873,12 +873,15 @@ function queryHasHasFilter(queryJSON: SearchQueryJSON | undefined, hasValues: Re
 }
 
 /**
- * Whether the query's results depend on report state that only report actions reveal, so adding an approval action
- * must refetch it: grouping by approver, or an `approved-violation` filter. Negated filters count too, because
- * approving a report moves its expenses out of a `-has:approved-violation` search.
+ * Whether the query's results depend on report state that only report actions reveal, so adding a workflow action
+ * must refetch it: grouping by approver, or a `submitted-violation` or `approved-violation` filter. Negated filters
+ * count too, because submitting or approving a report moves its expenses out of a `-has:submitted-violation` or
+ * `-has:approved-violation` search.
  */
 function shouldRefetchSearchOnReportActionChange(queryJSON: SearchQueryJSON): boolean {
-    return queryJSON.groupBy === CONST.SEARCH.GROUP_BY.APPROVER || queryHasHasFilter(queryJSON, [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION], true);
+    return (
+        queryJSON.groupBy === CONST.SEARCH.GROUP_BY.APPROVER || queryHasHasFilter(queryJSON, [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION], true)
+    );
 }
 
 /**
