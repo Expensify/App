@@ -42,6 +42,10 @@ describe('fraud review actions', () => {
         jest.clearAllMocks();
     });
 
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     describe('confirmRecognizedTransaction', () => {
         it('sends the signed challenge and marks the review as answered on this device', async () => {
             // Given the backend accepts the feedback
@@ -141,7 +145,6 @@ describe('fraud review actions', () => {
 
             // Then the failure is caught and logged, since nobody waits for this request to report it
             expect(logSpy).toHaveBeenCalledWith('[MFA] Failed to report fraudulent transaction', expect.anything());
-            logSpy.mockRestore();
         });
     });
 
