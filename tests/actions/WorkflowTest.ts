@@ -2411,14 +2411,14 @@ describe('actions/Workflow', () => {
             await waitForBatchedUpdates();
 
             // Then employee2 joins the default workflow approved by the default approver, and the other one keeps its members
-            const rules = await getRulesCollection();
-            for (const key of ['ownerDefault1', 'ownerDefault2']) {
-                const rule = rules?.[`${ONYXKEYS.COLLECTION.RULE}${key}`] as ApprovalWorkflowRule;
-                expect(extractSubmitterEmails(rule)).toEqual([employee3Email, employee2Email]);
+            const rules = getApprovalWorkflowRulesForPolicy(await getRulesCollection(), policyID);
+            for (const ruleID of ['ownerDefault1', 'ownerDefault2']) {
+                const rule = rules[ruleID];
+                expect(rule ? extractSubmitterEmails(rule) : []).toEqual([employee3Email, employee2Email]);
             }
-            for (const key of ['otherDefault1', 'otherDefault2']) {
-                const rule = rules?.[`${ONYXKEYS.COLLECTION.RULE}${key}`] as ApprovalWorkflowRule;
-                expect(extractSubmitterEmails(rule)).toEqual([employee4Email]);
+            for (const ruleID of ['otherDefault1', 'otherDefault2']) {
+                const rule = rules[ruleID];
+                expect(rule ? extractSubmitterEmails(rule) : []).toEqual([employee4Email]);
             }
 
             await mockFetch.resume();

@@ -2304,8 +2304,7 @@ describe('WorkflowUtils', () => {
             const otherApproverRules = buildApprovalWorkflowRules(buildWorkflow([20, 21], [2], {isDefault: true}));
             const existingRules = {
                 ...keyRules(defaultApproverRules),
-                otherApproverSubmit: otherApproverRules.at(0) as ApprovalWorkflowRule,
-                otherApproverApprove: otherApproverRules.at(1) as ApprovalWorkflowRule,
+                ...Object.fromEntries(otherApproverRules.map((rule, index) => [`otherApproverRule${index}`, rule])),
             };
 
             it('Should pick the default workflow that starts at the default approver', () => {
