@@ -96,6 +96,23 @@ describe('saved expense inline fields', () => {
             expect(updateMoneyRequestMerchant).toHaveBeenCalledWith(expect.objectContaining({transactionID: TRANSACTION_ID, value: 'Tea House', transactionThreadReport: threadReport}));
         });
 
+        it('strips invisible characters from the typed merchant before saving it', async () => {
+            // Given a saved expense whose merchant is shown in the input
+            renderMerchant();
+            await waitForBatchedUpdatesWithAct();
+            const input = screen.getByLabelText('Merchant');
+
+            // When a merchant pasted with zero-width spaces around it is typed and the input is left
+            fireEvent(input, 'focus');
+            fireEvent.changeText(input, '\u200BTea House\u200B');
+            fireEvent(input, 'blur');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then only the visible merchant is saved, as the merchant page would save it
+            expect(updateMoneyRequestMerchant).toHaveBeenCalledTimes(1);
+            expect(updateMoneyRequestMerchant).toHaveBeenCalledWith(expect.objectContaining({value: 'Tea House'}));
+        });
+
         it('does not save a merchant that did not change', async () => {
             // Given a saved expense whose merchant is shown in the input
             renderMerchant();

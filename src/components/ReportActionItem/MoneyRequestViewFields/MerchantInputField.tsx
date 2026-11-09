@@ -11,6 +11,7 @@ import useUpdateTransactionMerchant from '@hooks/useUpdateTransactionMerchant';
 
 import {isMerchantRequired} from '@libs/MoneyRequestUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import {getInlineMerchantErrorMessage, isInvalidMerchantValue} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
@@ -52,7 +53,8 @@ function MerchantInputField({transaction, transactionThreadReport, errorText = '
             setInputError('');
             return;
         }
-        const newMerchant = typedMerchant.trim();
+        // The merchant page saves the value after its form strips invisible characters, and then trims it.
+        const newMerchant = StringUtils.removeInvisibleCharacters(typedMerchant).trim();
         const merchantError = getInlineMerchantErrorMessage(translate, newMerchant, isMerchantRequired(transactionThreadReport, transaction));
         if (merchantError) {
             setInputError(merchantError);

@@ -1,7 +1,7 @@
 /**
  * Mirrors a value stored in Onyx in local state for a controlled text input. Feeding the stored value straight to the
  * input lets a write that lands mid-typing overwrite what the user typed and move the caret, so the input shows the
- * mirror instead, which picks up outside changes to the stored value only while the input is not being edited.
+ * mirror instead, which picks up outside changes to the stored value until the user types in it.
  */
 import {useState} from 'react';
 
@@ -15,7 +15,7 @@ type UseMirroredInputValueResult = {
     /** Whether the input is being edited */
     isFocused: boolean;
 
-    /** Starts an edit, which holds off outside changes to the stored value */
+    /** Starts an edit. Outside changes to the stored value are held off once the user types */
     startEditing: () => void;
 
     /**
@@ -31,11 +31,13 @@ function useMirroredInputValue(storedValue: string): UseMirroredInputValueResult
     const [prevStoredValue, setPrevStoredValue] = useState(storedValue);
     const [valueAtFocus, setValueAtFocus] = useState<string>();
 
-    // Synced during render rather than in an effect, to avoid a render pass that shows the stale value.
+    // Synced during render rather than in an effect, to avoid a render pass that shows the stale value. A focused input
+    // the user has not typed in yet holds no edit, so it follows the stored value too rather than show an outdated one.
     if (storedValue !== prevStoredValue) {
         setPrevStoredValue(storedValue);
-        if (!isFocused) {
+        if (!isFocused || inputValue === valueAtFocus) {
             setInputValue(storedValue);
+            setValueAtFocus(storedValue);
         }
     }
 
@@ -49,7 +51,7 @@ function useMirroredInputValue(storedValue: string): UseMirroredInputValueResult
         if (inputValue !== valueAtFocus) {
             return inputValue;
         }
-        // The stored value may have changed while the untouched input was focused, and nothing else brings it in.
+        // The user may have typed the value back to what it was while an outside change was held off, and nothing else brings that change in.
         setInputValue(storedValue);
         return undefined;
     };
