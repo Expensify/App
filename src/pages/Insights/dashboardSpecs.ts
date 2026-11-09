@@ -1,14 +1,17 @@
 /** Declares the charts each Insights dashboard renders and how they map to backend graph slots and search views. */
 
-import type {ChartView, SearchChartMetric, SearchGroupBy} from '@components/Search/types';
+import type {ChartView, SearchChartCountDimension, SearchChartMetric, SearchGroupBy} from '@components/Search/types';
 
+import {areApprovalsEnabled} from '@libs/PolicyUtils';
 import {isPolicyEligibleForTopCategories, isPolicyEligibleForTopSpenders} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Beta, InsightsDashboardID, InsightsGraphKey, InsightsSearchKey, Policy} from '@src/types/onyx';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 import type {OnyxCollection} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import {canViewAllPolicyData} from './insightsAccess';
 
@@ -26,6 +29,7 @@ type InsightsChartSpec = {
     sortBy?: string;
     sortOrder?: string;
     limit?: number;
+    workflowStage?: ValueOf<typeof CONST.SEARCH.WORKFLOW_STAGES>;
 
     /** The chart is shown when any workspace in scope passes this. A chart that declares none is always shown. */
     isPolicyEligible?: (policy: Policy, login: string | undefined) => boolean;
@@ -44,6 +48,15 @@ type InsightsDashboardSpec = {
     /** The dashboard is shown when any workspace in scope passes this. A dashboard that declares none is always shown. */
     isPolicyEligible?: (policy: Policy, login: string | undefined) => boolean;
 
+    /** What the dashboard's queries search for, which also sets the type its snapshots are stored with */
+    queryType: SearchDataTypes;
+
+    /** What the charts' counts are counts of, which names them in the tooltip. Defaults to expenses. */
+    countDimension?: SearchChartCountDimension;
+
+    /** Whether the charts link to the Spend page, from their menus and from a pressed point that has no Details panel to open. Defaults to true. */
+    supportsDrillIn?: boolean;
+
     /** Chart across the top of the page, the only one the group-by filter applies to */
     headlineChart: InsightsChartSpec;
 
@@ -55,6 +68,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
     [CONST.INSIGHTS.DASHBOARD.SPEND]: {
         searchKey: CONST.INSIGHTS.SEARCH_KEY.SPEND,
         labelKey: 'common.spend',
+        queryType: CONST.SEARCH.DATA_TYPES.EXPENSE,
         headlineChart: {
             graphKey: CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME,
             titleKey: 'search.spendOverTime',
@@ -92,11 +106,63 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             },
         ],
     },
+    [CONST.INSIGHTS.DASHBOARD.EFFICIENCY]: {
+        searchKey: CONST.INSIGHTS.SEARCH_KEY.EFFICIENCY,
+        labelKey: 'insightsPage.efficiency',
+        beta: CONST.BETAS.INSIGHTS_EFFICIENCY,
+        isPolicyEligible: canViewAllPolicyData,
+        queryType: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+        countDimension: CONST.SEARCH.CHART_COUNT_DIMENSION.REPORT,
+        supportsDrillIn: false,
+        headlineChart: {
+            graphKey: CONST.INSIGHTS.GRAPH.WORKFLOW_EFFICIENCY,
+            titleKey: 'insightsPage.workflowEfficiency',
+            view: CONST.SEARCH.VIEW.BAR,
+            metric: CONST.SEARCH.CHART_METRIC.COUNT,
+        },
+        supportingCharts: [
+            {
+                graphKey: CONST.INSIGHTS.GRAPH.LONGEST_TO_SUBMIT,
+                titleKey: 'insightsPage.longestToSubmit',
+                workflowStage: CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED,
+                view: CONST.SEARCH.VIEW.BAR,
+                groupBy: CONST.SEARCH.GROUP_BY.FROM,
+                metric: CONST.SEARCH.CHART_METRIC.COUNT,
+                sortBy: CONST.SEARCH.SORT_BY_COLUMNS.AVERAGE_TIME,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
+            },
+            {
+                graphKey: CONST.INSIGHTS.GRAPH.SLOWEST_TO_APPROVE,
+                titleKey: 'insightsPage.slowestToApprove',
+                workflowStage: CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED,
+                view: CONST.SEARCH.VIEW.BAR,
+                groupBy: CONST.SEARCH.GROUP_BY.APPROVER,
+                metric: CONST.SEARCH.CHART_METRIC.COUNT,
+                isPolicyEligible: areApprovalsEnabled,
+                sortBy: CONST.SEARCH.SORT_BY_COLUMNS.AVERAGE_TIME,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
+            },
+            {
+                graphKey: CONST.INSIGHTS.GRAPH.MOST_TIME_TO_PAY,
+                titleKey: 'insightsPage.mostTimeToPay',
+                workflowStage: CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID,
+                view: CONST.SEARCH.VIEW.BAR,
+                groupBy: CONST.SEARCH.GROUP_BY.PAID_BY,
+                metric: CONST.SEARCH.CHART_METRIC.COUNT,
+                sortBy: CONST.SEARCH.SORT_BY_COLUMNS.AVERAGE_TIME,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
+            },
+        ],
+    },
     [CONST.INSIGHTS.DASHBOARD.COMPLIANCE]: {
         searchKey: CONST.INSIGHTS.SEARCH_KEY.COMPLIANCE,
         labelKey: 'insightsPage.compliance',
         beta: CONST.BETAS.INSIGHTS_COMPLIANCE,
         isPolicyEligible: canViewAllPolicyData,
+        queryType: CONST.SEARCH.DATA_TYPES.EXPENSE,
         headlineChart: {
             graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_OVER_TIME,
             titleKey: 'insightsPage.compliance',

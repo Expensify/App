@@ -1,6 +1,6 @@
 import {BarChart, LineChart, PieChart} from '@components/Charts';
 import type {ChartDataPoint, ChartValueFormatter} from '@components/Charts/types';
-import formatExpenseCount from '@components/Charts/utils/formatExpenseCount';
+import formatChartCount from '@components/Charts/utils/formatChartCount';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -22,7 +22,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import type {ChartComparison, SearchChartModel} from './buildChartSeries';
-import type {ChartView, GroupedItem, SearchChartMetric, SearchGroupBy, SearchQueryJSON} from './types';
+import type {ChartView, GroupedItem, SearchChartCountDimension, SearchChartMetric, SearchGroupBy, SearchQueryJSON} from './types';
 
 import {buildChartSeries, isChartAverage} from './buildChartSeries';
 import {buildChartDrillDownQuery} from './chartDrillDown';
@@ -55,6 +55,9 @@ type SearchChartViewProps = {
 
     /** What the chart plots for each group: the money it totals, or how many expenses it holds. Defaults to the amount. */
     metric?: SearchChartMetric;
+
+    /** What a group's count counts, which names it in the tooltip. Defaults to expenses. */
+    countDimension?: SearchChartCountDimension;
 
     isLoading?: boolean;
 
@@ -99,6 +102,7 @@ function SearchChartView({
     groupBy,
     data,
     metric = CONST.SEARCH.CHART_METRIC.AMOUNT,
+    countDimension = CONST.SEARCH.CHART_COUNT_DIMENSION.EXPENSE,
     isLoading,
     shouldShowGroupLabels = true,
     shouldUseResponsiveLabels = false,
@@ -126,7 +130,7 @@ function SearchChartView({
     // A count names what it counts, since nothing else in a tooltip or a donut's centre says the number is expenses rather than money.
     // Axis ticks take the bare number instead, to stay short, and `shouldUseWholeNumberTicks` keeps them off fractions of an expense.
     const formatCount: ChartValueFormatter = (value, options) =>
-        options?.shouldUseCompactNotation ? numberFormat(value, {notation: 'compact'}).replace('K', 'k') : formatExpenseCount(value, translate, numberFormat);
+        options?.shouldUseCompactNotation ? numberFormat(value, {notation: 'compact'}).replace('K', 'k') : formatChartCount(value, countDimension, translate, numberFormat);
     const formatValue = isCountMetric ? formatCount : undefined;
 
     // A count says nothing about the money behind it, so a count chart names each group's spend alongside it, in that group's own currency.
@@ -209,6 +213,7 @@ function SearchChartView({
                 yAxisUnit={unit}
                 yAxisUnitPosition={unitPosition}
                 formatValue={formatValue}
+                countDimension={countDimension}
                 shouldUseWholeNumberTicks={isCountMetric}
                 shouldShowLabels={shouldShowGroupLabels}
                 shouldWrapLabels={shouldUseResponsiveLabels}
@@ -226,6 +231,7 @@ function SearchChartView({
                     yAxisUnit={unit}
                     yAxisUnitPosition={unitPosition}
                     formatValue={formatValue}
+                    countDimension={countDimension}
                     shouldUseWholeNumberTicks={isCountMetric}
                 />
             ) : (
@@ -241,6 +247,7 @@ function SearchChartView({
                     yAxisUnit={unit}
                     yAxisUnitPosition={unitPosition}
                     formatValue={formatValue}
+                    countDimension={countDimension}
                     shouldUseWholeNumberTicks={isCountMetric}
                 />
             ),
@@ -256,6 +263,7 @@ function SearchChartView({
                 valueUnitPosition={unitPosition}
                 valueDecimals={getCurrencyDecimals(currency)}
                 formatValue={formatValue}
+                countDimension={countDimension}
                 shouldShowLegend={shouldShowGroupLabels}
                 shouldUseResponsiveLegend={shouldUseResponsiveLabels}
             />

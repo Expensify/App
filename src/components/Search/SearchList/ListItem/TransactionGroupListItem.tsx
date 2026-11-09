@@ -505,6 +505,8 @@ function TransactionGroupListItemImpl({
                     />
                 );
             })(),
+            // Only Insights charts group by who paid, so Search never lists those groups
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: null,
         };
 
         if (searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {

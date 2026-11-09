@@ -12,19 +12,19 @@ type ChartTooltipSummaryProps = {
     /** Optional note shown in parentheses after the value, like its share of total spend */
     note?: string;
 
-    /** Optional translated expense count (e.g., "841 expenses") */
-    expenseCount?: string;
+    /** Optional translated count (e.g., "841 expenses") */
+    countLabel?: string;
 };
 
-/** Renders a single value in the chart tooltip, with its note and expense count */
-function ChartTooltipSummary({value, note, expenseCount}: ChartTooltipSummaryProps) {
+/** Renders a single value in the chart tooltip, with its note and count */
+function ChartTooltipSummary({value, note, countLabel}: ChartTooltipSummaryProps) {
     const styles = useThemeStyles();
     const content = formatValueWithNote(value, note);
 
     return (
         <>
             {!!content && <Text style={styles.chartTooltipText}>{content}</Text>}
-            {!!expenseCount && <Text style={styles.chartTooltipText}>{expenseCount}</Text>}
+            {!!countLabel && <Text style={styles.chartTooltipText}>{countLabel}</Text>}
         </>
     );
 }

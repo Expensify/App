@@ -1,7 +1,6 @@
 import type {SearchCompareMode, SearchGroupBy, SearchQueryJSON, SearchQueryString} from '@components/Search/types';
 
 import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON, getRangeQueryValue} from '@libs/SearchQueryUtils';
-import {hashText} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
@@ -63,14 +62,9 @@ function buildComplianceFilters(filters: InsightsFilters) {
     return commonFilters ? {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: commonFilters, right: actionDates} : actionDates;
 }
 
-/** Charts retain picker dates for labels, but Compliance snapshots must not share Spend's cache keys. */
+/** Builds the query with the dashboard's data type */
 function buildDashboardQuery(query: SearchQueryString, dashboard: InsightsDashboardID): Readonly<SearchQueryJSON> | undefined {
-    const queryJSON = buildSearchQueryJSON(query);
-    if (!queryJSON || dashboard === CONST.INSIGHTS.DASHBOARD.SPEND) {
-        return queryJSON;
-    }
-
-    return {...queryJSON, hash: hashText(`${dashboard}:${queryJSON.hash}`, 2 ** 32)};
+    return buildSearchQueryJSON(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${INSIGHTS_DASHBOARD_SPECS[dashboard].queryType} ${query}`);
 }
 
 /** Builds the dashboard-wide query the whole page is narrowed by. Keeps the grouping the user picked, Running total included, so reopening the dashboard restores it. `getQueryGroupBy` resolves it to a real bucket for the backend request. */
@@ -82,10 +76,12 @@ function buildInsightsQueryString(filters: InsightsFilters): SearchQueryString {
 
 /** Builds a chart's query with the page's filters applied. */
 function applyInsightsFilters(chart: InsightsChartSpec, filters: InsightsFilters, compare?: SearchCompareMode): SearchQueryString {
-    return buildQueryStringFromFilterFormValues(
+    const query = buildQueryStringFromFilterFormValues(
         {...buildFilterFormValues(filters), groupBy: chart.groupBy ?? getQueryGroupBy(filters), view: chart.view, compare},
         {sortBy: chart.sortBy, sortOrder: chart.sortOrder, limit: chart.limit},
     );
+    // Appended, since the workflow stage isn't a filter the Search filter form has
+    return chart.workflowStage ? `${query} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.WORKFLOW_STAGE}:${chart.workflowStage}` : query;
 }
 
 type InsightsChartQuery = {
@@ -159,6 +155,7 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
     return {
         jsonQuery: JSON.stringify({
             hash: queryJSON.hash,
+            type: queryJSON.type,
             groupBy: queryJSON.groupBy,
             filters: dashboard === CONST.INSIGHTS.DASHBOARD.COMPLIANCE ? buildComplianceFilters(filters) : queryJSON.filters,
             inputQuery,

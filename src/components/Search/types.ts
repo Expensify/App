@@ -29,6 +29,7 @@ import type {
     TransactionQuarterGroupListItemType,
     TransactionTagGroupListItemType,
     TransactionApproverGroupListItemType,
+    TransactionPaidByGroupListItemType,
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
@@ -184,6 +185,7 @@ type SearchFooterCount = ValueOf<typeof CONST.SEARCH.FOOTER_COUNT>;
 type SearchFooterTotal = ValueOf<typeof CONST.SEARCH.FOOTER_TOTAL>;
 type SearchCompareMode = ValueOf<typeof CONST.SEARCH.COMPARE>;
 type SearchChartMetric = ValueOf<typeof CONST.SEARCH.CHART_METRIC>;
+type SearchChartCountDimension = ValueOf<typeof CONST.SEARCH.CHART_COUNT_DIMENSION>;
 // PieChart is not implemented so we exclude it here to prevent TypeScript errors in `SearchChartView.tsx`.
 type ChartView = Exclude<SearchView, 'table'>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
@@ -495,7 +497,8 @@ type GroupedItem =
     | TransactionWeekGroupListItemType
     | TransactionYearGroupListItemType
     | TransactionQuarterGroupListItemType
-    | TransactionApproverGroupListItemType;
+    | TransactionApproverGroupListItemType
+    | TransactionPaidByGroupListItemType;
 
 type SearchChartDataRow = {
     /** The point plotted on the chart */
@@ -577,5 +580,6 @@ export type {
     GroupedItem,
     SearchChartDataRow,
     SearchChartMetric,
+    SearchChartCountDimension,
     SearchFilterCommonProps,
 };

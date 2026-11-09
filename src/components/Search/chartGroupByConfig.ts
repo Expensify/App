@@ -140,6 +140,11 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.APPROVER ? (item.formattedApprover ?? '') : ''),
         getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.APPROVER ? `${CONST.SEARCH.GROUP_BY.APPROVER}:${item.accountID}` : ''),
     },
+    [CONST.SEARCH.GROUP_BY.PAID_BY]: {
+        titleIconName: 'Users',
+        getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.PAID_BY ? (item.formattedPaidBy ?? '') : ''),
+        getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.PAID_BY ? `${CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY}:${item.accountID}` : ''),
+    },
 };
 
 export default CHART_GROUP_BY_CONFIG;

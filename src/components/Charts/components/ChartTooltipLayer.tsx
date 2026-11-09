@@ -2,8 +2,11 @@ import {useIsCapturingChart} from '@components/Charts/context/ChartCaptureContex
 import {useTooltipData} from '@components/Charts/hooks';
 import type {ChartDataPoint, ChartSeries} from '@components/Charts/types';
 import formatTooltipComparison from '@components/Charts/utils/formatTooltipComparison';
+import type {SearchChartCountDimension} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
+
+import CONST from '@src/CONST';
 
 import type {ReactNode} from 'react';
 import type {DerivedValue, SharedValue} from 'react-native-reanimated';
@@ -31,6 +34,9 @@ type ChartTooltipLayerProps = {
 
     /** Formats a numeric value for display */
     formatValue: (value: number) => string;
+
+    /** What each point's count counts. Defaults to expenses. */
+    countDimension?: SearchChartCountDimension;
 
     /** The width of the chart container */
     chartWidth: number;
@@ -64,6 +70,7 @@ function ChartTooltipLayer({
     data,
     series,
     formatValue,
+    countDimension = CONST.SEARCH.CHART_COUNT_DIMENSION.EXPENSE,
     chartWidth,
     initialTooltipPosition,
     onChartMoved,
@@ -87,7 +94,7 @@ function ChartTooltipLayer({
 
     const {preferredLocale} = useLocalize();
     const isContentCurrent = useDerivedValue(() => matchedIndex.get() === laidOutIndex.get());
-    const tooltipData = useTooltipData(activeDataIndex, data, series, formatValue);
+    const tooltipData = useTooltipData(activeDataIndex, data, series, formatValue, countDimension);
     const activeDataPoint = data.at(activeDataIndex);
 
     if (isCapturing || !tooltipData || !activeDataPoint) {
@@ -118,7 +125,7 @@ function ChartTooltipLayer({
                 <ChartTooltipSummary
                     value={tooltipData.value}
                     note={tooltipData.note}
-                    expenseCount={tooltipData.expenseCount}
+                    countLabel={tooltipData.countLabel}
                 />
             )}
             {footer}

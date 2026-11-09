@@ -1527,6 +1527,7 @@ const CONST = {
         REPORT_MERGE: 'reportMerge',
         INSIGHTS_AI: 'insightsAI',
         INSIGHTS_COMPLIANCE: 'insightsCompliance',
+        INSIGHTS_EFFICIENCY: 'insightsEfficiency',
         NL_FILTERS: 'nlFilters',
         SUPPORT_TICKET: 'supportTicket',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
@@ -8341,6 +8342,7 @@ const CONST = {
         SORT_BY_COLUMNS: {
             CATEGORY_GL_CODE: 'glcode',
             TAG_GL_CODE: 'tagglcode',
+            AVERAGE_TIME: 'groupaverageduration',
         },
         GROUP_BY: {
             FROM: 'from',
@@ -8355,6 +8357,12 @@ const CONST = {
             YEAR: 'year',
             QUARTER: 'quarter',
             APPROVER: 'approver',
+            PAID_BY: 'paid-by',
+        },
+        WORKFLOW_STAGES: {
+            CREATED_SUBMITTED: 'created-submitted',
+            SUBMITTED_APPROVED: 'submitted-approved',
+            APPROVED_PAID: 'approved-paid',
         },
         /**
          * Single source of truth for which transaction-level columns are available in each column-picker surface:
@@ -8709,6 +8717,10 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
+                PAID_BY: {
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
             };
         },
         get TYPE_DEFAULT_COLUMNS() {
@@ -8771,6 +8783,7 @@ const CONST = {
                 YEAR: [this.TABLE_COLUMNS.GROUP_YEAR, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 QUARTER: [this.TABLE_COLUMNS.GROUP_QUARTER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 APPROVER: [this.TABLE_COLUMNS.AVATAR, this.TABLE_COLUMNS.GROUP_APPROVER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                PAID_BY: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
         },
         BOOLEAN: {
@@ -8963,6 +8976,10 @@ const CONST = {
             AMOUNT: 'amount',
             COUNT: 'count',
         },
+        CHART_COUNT_DIMENSION: {
+            EXPENSE: 'expense',
+            REPORT: 'report',
+        },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
             STATUS: 'status',
@@ -8995,6 +9012,7 @@ const CONST = {
             APPROVED: 'approved',
             ANY_APPROVAL: 'anyApproval',
             PAID: 'paid',
+            WORKFLOW_STAGE: 'workflowStage',
             EXPORTED: 'exported',
             POSTED: 'posted',
             WITHDRAWAL_TYPE: 'withdrawalType',
@@ -12100,10 +12118,12 @@ const CONST = {
     INSIGHTS: {
         DASHBOARD: {
             SPEND: 'spend',
+            EFFICIENCY: 'efficiency',
             COMPLIANCE: 'compliance',
         },
         SEARCH_KEY: {
             SPEND: 'insightsSpend',
+            EFFICIENCY: 'insightsEfficiency',
             COMPLIANCE: 'insightsCompliance',
         },
         GRAPH: {
@@ -12112,6 +12132,10 @@ const CONST = {
             TOP_MERCHANTS: 'topMerchants',
             TOP_CATEGORIES: 'topCategories',
             TOP_SPENDERS: 'topSpenders',
+            WORKFLOW_EFFICIENCY: 'workflowEfficiency',
+            LONGEST_TO_SUBMIT: 'longestToSubmit',
+            SLOWEST_TO_APPROVE: 'slowestToApprove',
+            MOST_TIME_TO_PAY: 'mostTimeToPay',
         },
     },
 

@@ -1364,6 +1364,11 @@ const translations = {
         viewDetails: 'View details',
         viewAll: 'View all',
         compliance: 'Compliance',
+        efficiency: 'Efficiency',
+        workflowEfficiency: 'Workflow efficiency',
+        longestToSubmit: 'Longest to submit',
+        slowestToApprove: 'Slowest to approve',
+        mostTimeToPay: 'Most time to pay',
         runningTotal: 'Running total',
         compare: {
             label: 'Compare',
@@ -1700,6 +1705,12 @@ const translations = {
             return {
                 one: (count: number) => `${formattedCount ?? count} expense`,
                 other: (count: number) => `${formattedCount ?? count} expenses`,
+            };
+        },
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} report`,
+                other: (count: number) => `${formattedCount ?? count} reports`,
             };
         },
         deleteExpense: () => ({
@@ -11378,6 +11389,7 @@ const translations = {
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Year',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarter',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approver',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Paid by',
             },
             feed: 'Feed',
             transactionStatus: {
@@ -11443,6 +11455,7 @@ const translations = {
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Years',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarters',
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approvers',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Payers',
         },
         moneyRequestReport: {
             emptyStateTitle: 'No expenses yet',

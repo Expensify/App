@@ -115,6 +115,7 @@ function InsightsDashboardContent({
         fillsVisibleArea: isEmptyState,
     });
 
+    const {countDimension, supportsDrillIn} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
     const didRequestFail = state === INSIGHTS_DASHBOARD_STATE.ERROR || state === INSIGHTS_DASHBOARD_STATE.STALE;
 
     if (didRequestFail) {
@@ -241,6 +242,8 @@ function InsightsDashboardContent({
                         isDashboardLoaded={headlineChart.isDashboardLoaded}
                         filters={filters}
                         insightsScope={insightsScope}
+                        countDimension={countDimension}
+                        supportsDrillIn={supportsDrillIn}
                         onRetry={onRetry}
                         onGroupByChange={onGroupByChange}
                     />
@@ -264,6 +267,8 @@ function InsightsDashboardContent({
                                         isDashboardLoaded={isDashboardLoaded}
                                         filters={filters}
                                         insightsScope={insightsScope}
+                                        countDimension={countDimension}
+                                        supportsDrillIn={supportsDrillIn}
                                         onRetry={onRetry}
                                     />
                                 ))}
@@ -300,7 +305,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         }
         setFilters(update);
     };
-    const {headlineChart: headlineSpec, supportingCharts: supportingSpecs} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
+    const {headlineChart: headlineSpec, supportingCharts: supportingSpecs, queryType} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
     const eligibleCharts = getVisibleCharts(supportingSpecs, policies, filters.policyIDs, login);
     const eligibleGraphKeys = eligibleCharts.map(({graphKey}) => graphKey).join(',');
     const query = isResolved ? buildInsightsJsonQuery(dashboardID, filters, eligibleCharts) : undefined;
@@ -312,7 +317,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         if (!query || hash === undefined || isOffline) {
             return;
         }
-        getInsights(dashboardID, hash, query.jsonQuery, query.snapshotHashes);
+        getInsights(dashboardID, hash, query.jsonQuery, query.snapshotHashes, queryType);
     };
 
     const onRequestConditionsChanged = useEffectEvent(() => {
