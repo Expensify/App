@@ -22,7 +22,6 @@ function SearchResetFiltersButton() {
     return (
         <View style={[styles.mt6, styles.flexRow, styles.justifyContentCenter]}>
             <Button
-                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={resetFilters}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.EMPTY_STATE.RESET_FILTERS}
             >

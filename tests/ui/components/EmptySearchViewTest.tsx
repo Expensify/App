@@ -14,6 +14,7 @@ import EmptySearchView from '@pages/Search/EmptySearchView';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {defaultTheme} from '@src/styles/theme';
 import type {Beta, Policy} from '@src/types/onyx';
 
 import React, {useContext, useMemo} from 'react';
@@ -164,6 +165,7 @@ describe('EmptySearchView', () => {
 
                 // Then the empty state offers the same reset action as the filter bar
                 expect(screen.getByText(translateLocal('search.searchResults.emptyResults.title'))).toBeVisible();
+                expect(screen.getByRole(CONST.ROLE.BUTTON, {name: translateLocal('search.resetFilters')})).toHaveStyle({backgroundColor: defaultTheme.buttonDefaultBG});
                 fireEvent.press(screen.getByText(translateLocal('search.resetFilters')));
                 expect(setParams).toHaveBeenCalledWith({q: buildQueryStringWithResetFilters(queryJSON, defaultQueryJSON), rawQuery: undefined});
                 setParams.mockRestore();
