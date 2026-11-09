@@ -34,7 +34,7 @@ RCT_EXPORT_METHOD(processFiles:(RCTResponseSenderBlock)callback) {
     // Directories are skipped because processSingleFile expects a readable file with an extension.
     NSDirectoryEnumerator<NSURL *> *enumerator = [[NSFileManager defaultManager] enumeratorAtURL:sharedFilesFolderPathURL
                                                                      includingPropertiesForKeys:@[NSURLIsDirectoryKey]
-                                                                                        options:NSDirectoryEnumerationSkipsHiddenFiles
+                                                                                        options:0
                                                                                    errorHandler:nil];
 
     NSMutableArray *fileFinalPaths = [NSMutableArray array];
