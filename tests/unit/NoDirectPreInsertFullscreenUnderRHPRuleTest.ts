@@ -43,6 +43,9 @@ describe('no-direct-pre-insert-fullscreen-under-rhp', () => {
             'const preInsertFullscreenUnderRHP = () => {}; preInsertFullscreenUnderRHP(route);',
             'const {preInsertFullscreenUnderRHP} = OtherNavigation; preInsertFullscreenUnderRHP(route);',
             'const {preInsertFullscreenUnderRHP} = UnknownNavigation; preInsertFullscreenUnderRHP(route);',
+            // Given a call before its import, the binding has not yet been visited.
+            // When the rule checks the call, then it preserves that traversal behavior.
+            `Navigation.preInsertFullscreenUnderRHP(route); ${NAVIGATION_IMPORT}`,
             `${NAVIGATION_IMPORT} const preInsert = Navigation.preInsertFullscreenUnderRHP; function run() { const preInsert = () => {}; preInsert(route); }`,
             `${NAVIGATION_IMPORT} const {preInsertFullscreenUnderRHP} = Navigation; function run(preInsertFullscreenUnderRHP) { preInsertFullscreenUnderRHP(route); }`,
             {
@@ -51,6 +54,13 @@ describe('no-direct-pre-insert-fullscreen-under-rhp', () => {
             },
         ],
         invalid: [
+            {
+                // Given an import whose module name uses an escape
+                // When the imported Navigation method is called
+                // Then the decoded module name still matches
+                code: String.raw`import Nav from '@libs/Navigation/\u004eavigation'; Nav.preInsertFullscreenUnderRHP(route);`,
+                errors: [{messageId: 'useHookInstead'}],
+            },
             {
                 code: `${NAVIGATION_IMPORT} Navigation.preInsertFullscreenUnderRHP(route);`,
                 errors: [{messageId: 'useHookInstead'}],

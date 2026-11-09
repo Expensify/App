@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
@@ -27,7 +28,7 @@ type HomeSectionExpandToggleProps = {
     collapsedLabel: string;
 
     /** Label for Sentry tracking, from `CONST.SENTRY_LABEL`. Each section passes its own because expanding renders different rows. */
-    sentryLabel: string;
+    sentryLabel: SentryLabel;
 
     /** Optional override for the wrapper style. Defaults to the standard ph5/ph8 padding used by home sections. */
     wrapperStyle?: StyleProp<ViewStyle>;

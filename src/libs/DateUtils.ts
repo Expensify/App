@@ -258,12 +258,15 @@ function datetimeToRelative(locale: Locale | undefined, datetime: string, curren
  *
  * @param datetime
  * @param selectedTimezone
+ * @param dateFnsLocale - language the zone is named in
  * @returns
  */
-function getZoneAbbreviation(datetime: string | Date, selectedTimezone: SelectedTimezone): string {
-    const abbreviation = formatInTimeZone(datetime, selectedTimezone, 'zzz');
+function getZoneAbbreviation(datetime: string | Date, selectedTimezone: SelectedTimezone, dateFnsLocale: DateFnsLocale | undefined): string {
+    // The zone name comes from `Intl`, so passing the language gives its own name for the zone, such as the German
+    // abbreviation for Central European Summer Time, instead of always the English one.
+    const abbreviation = formatInTimeZone(datetime, selectedTimezone, 'zzz', {locale: dateFnsLocale});
     if (abbreviation === 'GMT') {
-        return formatInTimeZone(datetime, selectedTimezone, 'O');
+        return formatInTimeZone(datetime, selectedTimezone, 'O', {locale: dateFnsLocale});
     }
     return abbreviation;
 }
@@ -998,6 +1001,17 @@ function getCancellationDateTimezoneLabel(venueTimezone: string): string {
 }
 
 /**
+ * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language and
+ * whether the year is shown.
+ * They format in UTC, so move the date to the venue's wall-clock time with `toZonedTime` and pass it through
+ * `toUTCWallClockDate`.
+ */
+const memoizedCreateCancellationDateFormatter = memoize(
+    (localeCode: string, shouldIncludeYear: boolean) =>
+        new Intl.DateTimeFormat(localeCode, {weekday: 'long', year: shouldIncludeYear ? 'numeric' : undefined, month: 'short', day: 'numeric', timeZone: 'UTC'}),
+);
+
+/**
  * Returns a formatted cancellation date, preserving the venue's timezone from the ISO string offset.
  * Dates are formatted as follows:
  * 1. When the date refers to the current year: Wednesday, Mar 17 8:00 AM, GMT+7
@@ -1014,8 +1028,12 @@ function getFormattedCancellationDate(isoDateString: string, dateFnsLocale: Date
     // in the device's timezone, so read it as-is and leave out the timezone label instead of guessing one.
     const isWallClockTime = !offsetMatch && !isoDateString.endsWith('Z');
     const date = isWallClockTime ? fromZonedTime(isoDateString, venueTimezone) : new Date(isoDateString);
-    const pattern = isThisYear(date) ? `EEEE, MMM d ${CONST.DATE.LOCAL_TIME_FORMAT}` : `EEEE, MMM d, yyyy ${CONST.DATE.LOCAL_TIME_FORMAT}`;
-    const formattedDate = formatInTimeZone(date, venueTimezone, pattern, {locale: dateFnsLocale});
+    // A hand-written `EEEE, MMM d` fixed the US order, so `Intl` builds the date part in the language's own order. Not
+    // every engine accepts a raw offset like `+07:00` as an `Intl` timeZone, so the venue's wall-clock fields are moved
+    // into a local Date first and formatted without one.
+    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
+    const datePart = memoizedCreateCancellationDateFormatter(dateFnsLocale?.code ?? 'en-US', !isThisYear(date)).format(toUTCWallClockDate(toZonedTime(date, venueTimezone)));
+    const formattedDate = `${datePart} ${formatInTimeZone(date, venueTimezone, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}`;
     if (isWallClockTime) {
         return localTimeLabel ? `${formattedDate}, ${localTimeLabel}` : formattedDate;
     }
@@ -1101,19 +1119,37 @@ function getFormattedDateRangeForPerDiem(date1: Date, date2: Date, dateFnsLocale
 }
 
 /**
- * Returns a formatted date range with the number of days in the range.
- * Format: "YYYY-MM-DD to YYYY-MM-DD (X days)"
+ * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language.
  */
-function getFormattedSplitDateRange(translateParam: LocaleContextProps['translate'], startDate: string | undefined, endDate: string | undefined): string {
+const memoizedCreateSplitDateFormatter = memoize((localeCode: string) => new Intl.DateTimeFormat(localeCode, {year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC'}));
+
+/**
+ * Returns a formatted date range with the number of days in the range.
+ * Format: "Jan 10, 2024 to Jan 15, 2024 (6 days)"
+ *
+ * The dates used to be shown as the raw `yyyy-MM-dd` values, which no language writes that way. They are formatted in
+ * UTC because a `yyyy-MM-dd` string is read as UTC midnight, so the shown day matches the picked day in every timezone.
+ */
+function getFormattedSplitDateRange(
+    translateParam: LocaleContextProps['translate'],
+    startDate: string | undefined,
+    endDate: string | undefined,
+    dateFnsLocale: DateFnsLocale | undefined,
+): string {
     if (!startDate || !endDate) {
         return '';
     }
 
     const start = new Date(startDate);
     const end = new Date(endDate);
+    if (!isValid(start) || !isValid(end)) {
+        return '';
+    }
     const daysCount = differenceInDays(end, start) + 1;
+    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
+    const formatter = memoizedCreateSplitDateFormatter(dateFnsLocale?.code ?? 'en-US');
 
-    return translateParam('iou.splitDateRange', startDate, endDate, daysCount);
+    return translateParam('iou.splitDateRange', formatter.format(start), formatter.format(end), daysCount);
 }
 
 /**
