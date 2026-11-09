@@ -6,6 +6,7 @@ import type {UseSearchAutoRefetch} from '@hooks/useSearchAutoRefetch';
 
 import {search} from '@libs/actions/Search';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MemberCustomFieldsByPolicyID} from '@src/selectors/Policy';
 import type {Transaction} from '@src/types/onyx';
@@ -288,6 +289,29 @@ describe('useSearchAutoRefetch', () => {
 
         rerender(updatedProps);
         expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
+    });
+
+    it.each([
+        ['edited', {amount: 250}],
+        ['removed from its report', {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}],
+    ])('should trigger search on a grouped search when a transaction is %s', (_, transactionChange) => {
+        // Given a search grouped by approver, whose snapshot only holds the groups and not their transactions or reports
+        const transaction = createMock<Transaction>({transactionID: '1', amount: 100, reportID: '10'});
+        const initialProps = createMock<UseSearchAutoRefetch>({
+            ...baseProps,
+            queryJSON: {...baseProps.queryJSON, groupBy: CONST.SEARCH.GROUP_BY.APPROVER},
+            transactions: {transactions_1: transaction},
+            previousTransactions: {transactions_1: transaction},
+        });
+        const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+            initialProps,
+        });
+
+        // When the transaction changes
+        rerender(createMock<UseSearchAutoRefetch>({...initialProps, transactions: {transactions_1: {...transaction, ...transactionChange}}}));
+
+        // Then the search runs again, because the snapshot can't show whether the change touches one of its groups
+        expect(search).toHaveBeenCalledTimes(1);
     });
 
     it('should not trigger search when the edited transaction is absent from the results', () => {
