@@ -11290,6 +11290,8 @@ const CONST = {
         },
         WORKSPACE_EXPENSIFY_CARD: {
             BULK_ACTIONS_DROPDOWN: 'WorkspaceExpensifyCard-BulkActionsDropdown',
+            ISSUE_CARD_SHIPPING_ADDRESS: 'WorkspaceExpensifyCard-IssueCardShippingAddress',
+            ISSUE_CARD_PHONE_NUMBER: 'WorkspaceExpensifyCard-IssueCardPhoneNumber',
         },
         WORKSPACE: {
             APPROVAL_WORKFLOW_SECTION: 'Workspace-ApprovalWorkflowSection',

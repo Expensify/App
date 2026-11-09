@@ -249,11 +249,15 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
                     <MenuItemField
                         name={translate('workspace.card.issueNewCard.shippingAddress')}
                         onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.SHIPPING_ADDRESS)}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE_EXPENSIFY_CARD.ISSUE_CARD_SHIPPING_ADDRESS}
                         value={shippingAddressTitle}
                     />
                 )}
                 {isPhoneNumberStepShown && (
-                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => editStep(CONST.EXPENSIFY_CARD.STEP.PHONE_NUMBER), false, session)}>
+                    <MenuItem.Root
+                        onPress={callFunctionIfActionIsAllowed(() => editStep(CONST.EXPENSIFY_CARD.STEP.PHONE_NUMBER), false, session)}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE_EXPENSIFY_CARD.ISSUE_CARD_PHONE_NUMBER}
+                    >
                         <MenuItemField.Row
                             name={translate('common.phoneNumber')}
                             value={shippingAddress?.phoneNumber}
