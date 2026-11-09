@@ -10,7 +10,7 @@ import type {MultifactorAuthenticationActionParams, MultifactorAuthenticationRea
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {LocallyProcessed3DSChallengeReviews, LocallyProcessedFraudTransactionReviews} from '@src/types/onyx';
+import type {LocallyProcessed3DSChallengeReviews, LocallyProcessedFraudTransactionReviews, TransactionsPendingFraudReview} from '@src/types/onyx';
 
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
@@ -56,30 +56,17 @@ function cleanUpLocallyProcessed3DSTransactionReviews(entriesToDelete: string[])
     Onyx.merge(ONYXKEYS.LOCALLY_PROCESSED_3DS_TRANSACTION_REVIEWS, value);
 }
 
-// Keeps LOCALLY_PROCESSED_FRAUD_TRANSACTION_REVIEWS in sync with the server queue. Non-render code, so it can't use useOnyx
-let locallyProcessedFraudTransactionReviews: OnyxEntry<LocallyProcessedFraudTransactionReviews> = {};
+/** IDs of fraud reviews answered on this device that the server no longer lists as pending */
+function getLocallyProcessedFraudReviewIDsToCleanUp(
+    queue: OnyxEntry<TransactionsPendingFraudReview>,
+    locallyProcessedFraudTransactionReviews: OnyxEntry<LocallyProcessedFraudTransactionReviews>,
+): string[] {
+    return Object.keys(locallyProcessedFraudTransactionReviews ?? {}).filter((transactionID) => !queue?.[transactionID]);
+}
 
-Onyx.connectWithoutView({
-    key: ONYXKEYS.LOCALLY_PROCESSED_FRAUD_TRANSACTION_REVIEWS,
-    callback: (storedLocallyProcessedFraudTransactionReviews) => {
-        locallyProcessedFraudTransactionReviews = storedLocallyProcessedFraudTransactionReviews;
-    },
-});
-
-// The server sends null for an empty fraud review queue, so a missing queue means every local entry is answered
-Onyx.connectWithoutView({
-    key: ONYXKEYS.TRANSACTIONS_PENDING_FRAUD_REVIEW,
-    callback: (queue) => {
-        if (!locallyProcessedFraudTransactionReviews) {
-            return;
-        }
-        const transactionIDsToCleanUp = Object.keys(locallyProcessedFraudTransactionReviews).filter((transactionID) => !queue?.[transactionID]);
-        if (transactionIDsToCleanUp.length === 0) {
-            return;
-        }
-        Onyx.merge(ONYXKEYS.LOCALLY_PROCESSED_FRAUD_TRANSACTION_REVIEWS, Object.fromEntries(transactionIDsToCleanUp.map((transactionID) => [transactionID, null])));
-    },
-});
+function cleanUpLocallyProcessedFraudTransactionReviews(transactionIDs: string[]) {
+    Onyx.merge(ONYXKEYS.LOCALLY_PROCESSED_FRAUD_TRANSACTION_REVIEWS, Object.fromEntries(transactionIDs.map((transactionID) => [transactionID, null])));
+}
 
 /**
  * The rest of this file is concerned with MFA-related API calls
@@ -548,4 +535,6 @@ export {
     confirmRecognizedTransaction,
     reportFraudulentTransaction,
     fireAndForgetReportFraudulentTransaction,
+    getLocallyProcessedFraudReviewIDsToCleanUp,
+    cleanUpLocallyProcessedFraudTransactionReviews,
 };
