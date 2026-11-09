@@ -1,3 +1,4 @@
+import FSClassContext from '@components/FSClassView/FSClassContext';
 import {useInputBlurActions, useInputBlurState} from '@components/InputBlurContext';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import ModalContext from '@components/Modal/ModalContext';
@@ -211,7 +212,7 @@ function ScreenWrapperContainer({
                         style={isAvoidingViewportScroll ? [styles.h100, {marginTop: 1}] : styles.flex1}
                         enabled={shouldEnablePickerAvoiding}
                     >
-                        {children}
+                        <FSClassContext.Provider value={forwardedFSClass}>{children}</FSClassContext.Provider>
                     </PickerAvoidingView>
                 </KeyboardAvoidingView>
             </View>

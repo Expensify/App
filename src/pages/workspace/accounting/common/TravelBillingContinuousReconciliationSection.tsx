@@ -72,6 +72,7 @@ function TravelBillingContinuousReconciliationSection({policy, connectionName, i
                 title={translate('workspace.accounting.syncTravelBillingSettlements')}
                 isActive={!!travelBillingContinuousReconciliation}
                 switchAccessibilityLabel={translate('workspace.accounting.syncTravelBillingSettlements')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_SWITCH}
                 disabled={isToggleDisabled}
                 showLockIcon={isToggleDisabled}
                 disabledText={

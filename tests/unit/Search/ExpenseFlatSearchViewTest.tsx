@@ -105,6 +105,7 @@ const mockSelectedTransactions: {current: Record<string, {isSelected: boolean}>}
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchRowSelectionActions: () => ({toggle: mockToggle, toggleAll: mockToggleAll}),
     useSearchSelectionContext: () => ({selectedTransactions: mockSelectedTransactions.current}),
+    useSearchQueryContext: () => ({currentSearchKey: undefined}),
 }));
 
 function selectKeys(...keys: string[]): Record<string, {isSelected: boolean}> {

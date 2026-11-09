@@ -43,7 +43,8 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('@hooks/useCurrentReportID', () => ({
-    useCurrentReportIDState: () => mockCurrentReportIDState,
+    useCurrentReportIDState: () => ({currentReportID: mockCurrentReportIDState.currentReportID}),
+    useCurrentRHPReportID: () => mockCurrentReportIDState.currentRHPReportID,
 }));
 
 jest.mock('@components/Search/SearchContext', () => ({

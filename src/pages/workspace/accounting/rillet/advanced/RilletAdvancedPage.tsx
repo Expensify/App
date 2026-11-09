@@ -50,7 +50,7 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const autoSync = rilletConfig?.autoSync?.enabled ?? true;
     const accountingMethod = rilletConfig?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL;
     const syncReimbursedReports = rilletConfig?.sync?.syncReimbursedReports ?? true;
-    const billPaymentAccount = rilletData?.accounts?.find((account) => account.code === rilletConfig?.sync?.billPaymentAccountCode);
+    const achPaymentAccount = rilletData?.accounts?.find((account) => account.code === rilletConfig?.sync?.billPaymentAccountCode);
     const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
     const fxExpenseAccount = rilletData?.accounts?.find((account) => account.code === rilletConfig?.sync?.fxExpenseAccountCode);
     const syncExpensifyCardSettlements = rilletConfig?.sync?.syncExpensifyCardSettlements ?? true;
@@ -89,6 +89,7 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 title={translate('workspace.accounting.autoSync')}
                 subtitle={translate('workspace.rillet.autoSyncDescription')}
                 switchAccessibilityLabel={translate('workspace.accounting.autoSync')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RILLET.AUTO_SYNC_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive={autoSync}
@@ -127,6 +128,7 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 title={translate('workspace.rillet.syncReimbursedReports')}
                 subtitle={translate('workspace.rillet.syncReimbursedReportsDescription')}
                 switchAccessibilityLabel={translate('workspace.rillet.syncReimbursedReports')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RILLET.SYNC_REIMBURSED_REPORTS_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive={syncReimbursedReports}
@@ -141,9 +143,9 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.BILL_PAYMENT_ACCOUNT_CODE], rilletConfig?.pendingFields)}>
                     <MenuItemField
-                        name={translate('workspace.rillet.billPaymentAccount.label')}
-                        onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_BILL_PAYMENT_ACCOUNT.getRoute(policyID)) : undefined)}
-                        value={billPaymentAccount ? `${billPaymentAccount?.code} ${billPaymentAccount?.name}` : undefined}
+                        name={translate('workspace.rillet.achPaymentAccount.label')}
+                        onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_ACH_PAYMENT_ACCOUNT.getRoute(policyID)) : undefined)}
+                        value={achPaymentAccount ? `${achPaymentAccount?.code} ${achPaymentAccount?.name}` : undefined}
                     >
                         {areSettingsInErrorFields([CONST.RILLET_CONFIG.BILL_PAYMENT_ACCOUNT_CODE], rilletConfig?.errorFields) && (
                             <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
@@ -170,6 +172,7 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     <ToggleSettingOptionRow
                         title={translate('workspace.rillet.syncExpensifyCardSettlements')}
                         switchAccessibilityLabel={translate('workspace.rillet.syncExpensifyCardSettlements')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RILLET.SYNC_EXPENSIFY_CARD_SETTLEMENTS_SWITCH}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.mv3, styles.mh5]}
                         isActive={syncExpensifyCardSettlements}
@@ -202,6 +205,7 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     <ToggleSettingOptionRow
                         title={translate('workspace.rillet.syncTravelBillingSettlements')}
                         switchAccessibilityLabel={translate('workspace.rillet.syncTravelBillingSettlements')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RILLET.SYNC_TRAVEL_BILLING_SETTLEMENTS_SWITCH}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.mv3, styles.mh5]}
                         isActive={syncTravelInvoicingSettlements}

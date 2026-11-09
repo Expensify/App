@@ -1,5 +1,7 @@
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 
 import type {MenuItemSupportingTextProps} from './base/types';
@@ -15,6 +17,8 @@ function MenuItemFieldName(props: MenuItemSupportingTextProps) {
             {...props}
             slot="top"
             style={styles.textLineHeightNormal}
+            // A field's name is not user data, so it stays readable in session recordings even inside a masked container
+            forwardedFSClass={props.forwardedFSClass ?? CONST.FULLSTORY.CLASS.UNMASK}
         />
     );
 }

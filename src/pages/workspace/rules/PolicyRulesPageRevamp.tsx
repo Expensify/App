@@ -338,6 +338,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={handleNewRule}
                     style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_BUTTON}
                 >
                     <Button.Icon src={icons.Plus} />
                     <Button.Text>{translate('workspace.rules.merchantRules.addRuleTitle')}</Button.Text>
@@ -350,6 +351,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                     options={moreOptions}
                     isSplitButton={false}
                     wrapperStyle={styles.flexGrow0}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.IMPORT_MERCHANT_RULES}
                 />
             </View>
         );
