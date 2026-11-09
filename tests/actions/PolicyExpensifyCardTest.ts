@@ -30,7 +30,7 @@ function getLoadingState() {
         const connection = Onyx.connect({
             key: loadingStateKey,
             callback: (value) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(value);
             },
         });
@@ -42,7 +42,7 @@ function getCardSettingsForFund(key: typeof unresolvedFundSettingsKey | typeof w
         const connection = Onyx.connect({
             key,
             callback: (value) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(value);
             },
         });

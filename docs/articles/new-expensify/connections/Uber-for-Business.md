@@ -10,21 +10,16 @@ Connect your Expensify workspace to Uber for Business to automatically import Ub
 
 # Connect the Uber for Business Integration
 
-## Step 1: Enable Receipt Partners in your Workspace
-1. Go to **Workspaces > [Workspace Name] > More features**.
-2. Toggle on **Receipt partners**.
-3. Once enabled, a new **Receipt partners** section will appear in the left-hand menu.
-
 **Note:** To enable Uber for Business from Expensify Classic, go to **Settings > Workspaces > [Workspace Name] > Accounting**. Under **Travel Integrations**, click **Uber for Business**, then click **Take me to New Expensify**.
 
-## Step 2: Connect Uber for Business
-1. Go to **Workspaces > [Workspace Name] > Receipt partners**
-3. Click **Connect** next to Uber for Business.
-4. Authorize or create your Uber for Business (U4B) account in the new browser tab that opens.
-5. When complete, the tab will close, and a list of workspace members not yet invited to U4B will appear.
-6. Confirm which workspace members should be invited to U4B (they’ll all be selected by default), which will trigger an invite from Uber that each member must accept.
+## How to connect Uber for Business
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**.
+2. Select **Uber for Business**.
+3. Authorize or create your Uber for Business (U4B) account in the new browser tab that opens.
+4. When complete, the tab will close, and a list of workspace members not yet invited to U4B will appear.
+5. Confirm which workspace members should be invited to U4B (they’ll all be selected by default), which will trigger an invite from Uber that each member must accept.
 
-If your connection fails or expires, a warning will appear under **Workspaces > Receipt partners > Uber for Business**. To resolve the error, click the three-dot menu and choose **Enter credentials** to reconnect.
+If your connection fails or expires, a warning will appear on the Uber for Business card in **Workspaces > [workspace name] > Connections**. To resolve the error, select **Fix** next to Uber for Business, select **More (⋮)**, then select **Enter credentials** to reconnect.
 
 # Manage the Uber for Business connection
 
@@ -32,7 +27,7 @@ If your connection fails or expires, a warning will appear under **Workspaces > 
 
 To manually invite members to Uber for Business later:
 
-1. Go to **Workspaces > [Workspace Name] > Receipt partners**
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**, then select **Configure** next to Uber for Business.
 2. Click **Manage invites**.
 3. From here, you can filter the members list, invite new employees, or resend any outstanding invites that haven't been accepted yet.
 
@@ -45,7 +40,7 @@ As an admin, you can also automatically keep your Uber for Business roster in sy
 
 We will automatically detect if your Uber for Business organization uses centralized billing, but you’ll still need to choose which Expensify account should receive the receipts:
 
-1. Go to **Workspaces > [Workspace Name] > Receipt partners**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**, then select **Configure** next to Uber for Business.
 2. Click **Central billing account**.
 3. Select a workspace member (the workspace owner is selected by default).
 4. Click **Save**.
@@ -54,8 +49,8 @@ Selecting a member only highlights that member — the change isn’t applied un
 
 # Disconnect Uber for Business
 
-1. Go to **Workspaces > Receipt partners > Uber for Business**.
-2. Click the three-dot menu.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**, then select **Configure** next to Uber for Business.
+2. Select **More (⋮)**.
 3. Select **Disconnect** and confirm in the modal window.
 
 

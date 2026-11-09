@@ -18,7 +18,7 @@ Before committing, stage everything with `git add -A`. Then start a general-purp
 | Category | Prefix | Focus |
 |----------|--------|-------|
 | Performance | `PERF-*` | Render optimization, memo patterns, useEffect hygiene, data selection |
-| Consistency | `CONSISTENCY-*` | Platform checks, magic values, unused props, ESLint discipline, localization, file naming, JSDoc |
+| Consistency | `CONSISTENCY-*` | Platform checks, magic values, unused props, lint discipline, localization, file naming, JSDoc |
 | Clean React Patterns | `CLEAN-REACT-PATTERNS-*` | Composition, component ownership, state structure, prop typing, function components |
 | UI | `UI-*` | Loading indicators, scrollable pages, styling conventions |
 

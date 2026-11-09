@@ -7,6 +7,7 @@ import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
+import {isBillPayHistoryAction} from '@libs/BillPayReportActionUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     getDelegateAccountIDFromReportAction,
@@ -34,8 +35,9 @@ import {buildUserIcon} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {getStableReportSelector} from '@src/selectors/Report';
-import {getReportActionByIDSelector} from '@src/selectors/ReportAction';
+import {getBillProcessorAccountIDSelector, getReportActionByIDSelector} from '@src/selectors/ReportAction';
 import {pendingDeleteMemberAccountIDsSelector} from '@src/selectors/ReportMetaData';
+import {isLinkedToBillSelector} from '@src/selectors/ReportNameValuePairs';
 import type {InvitedEmailsToAccountIDs, OnyxInputOrEntry, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 
@@ -134,7 +136,21 @@ function useReportActionAvatars({
 
     const delegateAccountID = getDelegateAccountIDFromReportAction(action);
     const delegatePersonalDetails = delegateAccountID ? personalDetails?.[delegateAccountID] : undefined;
-    const actorAccountID = getReportActionActorAccountID(action, iouReport, chatReport, delegatePersonalDetails, shouldUseRealActor);
+    const [isInvoiceLinkedToBill = false] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(isInvoiceReport(iouReport) ? iouReport?.reportID : undefined)}`,
+        {
+            selector: isLinkedToBillSelector,
+        },
+    );
+    const isBillPayHistory = isBillPayHistoryAction(action, iouReport, isInvoiceLinkedToBill);
+    const [billProcessorAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(isBillPayHistory ? iouReport?.reportID : undefined)}`, {
+        selector: getBillProcessorAccountIDSelector,
+    });
+
+    const actorAccountID = getReportActionActorAccountID(action, iouReport, chatReport, delegatePersonalDetails, shouldUseRealActor, {
+        isInvoiceLinkedToBill,
+        processorAccountID: billProcessorAccountID,
+    });
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(action);
 
     const isAInvoiceReport = isInvoiceReport(iouReport ?? null);
@@ -361,6 +377,12 @@ function useReportActionAvatars({
         const policyChatReportIcon = {...getWorkspaceIcon(policyChatReport, translate, policy), id: policyID, name: policy?.name};
         const [firstAvatar] = avatars;
         avatars = [firstAvatar, policyChatReportIcon];
+    }
+
+    // Intake history credits Concierge even when personal details are missing or still use the account's email as its name.
+    if (isBillPayHistory && actorAccountID === CONST.ACCOUNT_ID.CONCIERGE) {
+        avatars = [{id: actorAccountID, type: CONST.ICON_TYPE_AVATAR, source: defaultAvatars.ConciergeAvatar, name: CONST.CONCIERGE_DISPLAY_NAME}];
+        avatarType = CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE;
     }
 
     // When a human Concierge agent reveals themselves, show a subscript avatar

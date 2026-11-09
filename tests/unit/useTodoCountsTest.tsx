@@ -690,6 +690,7 @@ describe('useTodoCounts', () => {
             );
             const reportsToDisplay = SidebarUtils.getReportsToDisplayInLHN({
                 currentReportId: undefined,
+                policies: {},
                 reports,
                 isDefaultRoomsBetaEnabled: false,
                 priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -703,6 +704,7 @@ describe('useTodoCounts', () => {
                 reportAttributes,
                 guideAccountIDs: [],
                 conciergeReportID: undefined,
+                session: undefined,
             });
             const reportIDs = Object.keys(reportsToDisplay).map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, ''));
 

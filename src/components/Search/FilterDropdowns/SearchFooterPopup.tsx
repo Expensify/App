@@ -150,6 +150,8 @@ function SearchFooterPopup({
                 // Reset falls back to the count that matches the search type, which is also what an unset selection shows.
                 onChange={(item) => onCountChange(item?.value ?? defaultCountType)}
                 defaultValue={defaultCountType}
+                applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_POPUP_APPLY.COUNT}
+                resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_POPUP_RESET.COUNT}
             />
         );
     }
@@ -164,6 +166,8 @@ function SearchFooterPopup({
                 closeOverlay={closeOverlay}
                 onChange={(item) => onTotalChange(item?.value ?? CONST.SEARCH.FOOTER_TOTAL.TOTAL)}
                 defaultValue={CONST.SEARCH.FOOTER_TOTAL.TOTAL}
+                applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_POPUP_APPLY.TOTAL}
+                resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_POPUP_RESET.TOTAL}
             />
         );
     }
@@ -180,6 +184,8 @@ function SearchFooterPopup({
             defaultValue={defaultCurrency}
             shouldShowList={isExpanded}
             shouldUseFixedPopoverHeight
+            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_POPUP_APPLY.CURRENCY}
+            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_POPUP_RESET.CURRENCY}
         />
     );
 }
