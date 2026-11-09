@@ -557,6 +557,7 @@ export {
     clear,
     save,
     getAll,
+    getClientRequestIndex,
     getCommands,
     endRequestAndRemoveFromQueue,
     update,
