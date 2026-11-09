@@ -1,6 +1,4 @@
-declare const OXLINT_RULE_RENAMES: Record<string, string>;
-declare const HOSTED_RULE_ESLINT_ID: Record<string, string>;
-declare const HOSTED_RULE_ORIGIN: Record<string, string>;
+declare const APP_HOSTED_RULE_ESLINT_IDS: Record<string, string>;
 declare function oxlintCodeToESLintRuleID(code: string): string;
 
-export {HOSTED_RULE_ESLINT_ID, HOSTED_RULE_ORIGIN, OXLINT_RULE_RENAMES, oxlintCodeToESLintRuleID};
+export {APP_HOSTED_RULE_ESLINT_IDS, oxlintCodeToESLintRuleID};

@@ -1,11 +1,25 @@
 /**
- * oxlint config for `npm run lint` (see contributingGuides/LINTING.md). The rules come from the
- * eslint-config-expensify presets (config/oxlint/presets.mjs), converted each time oxlint loads this file by
- * config/oxlint/derive.mjs. This file only adds the App's own ignores, settings and rules.
+ * oxlint config for `npm run lint` (see contributingGuides/LINTING.md). The rules come from the eslint-config-expensify
+ * presets, converted each time oxlint loads this file by `buildOxlintConfig` from eslint-config-expensify/oxlint. This
+ * file only adds the App's own ignores, settings, plugins and rules.
  */
 /* eslint-disable @typescript-eslint/naming-convention -- the rule names in this file are quoted object keys */
 /* eslint-disable import/extensions -- Node loads this file as ESM, which needs the extension on relative imports */
-import {extendOxlintConfig} from './config/oxlint/derive.mjs';
+import {buildOxlintConfig} from 'eslint-config-expensify/oxlint';
+import {reactCompilerRuleNames} from 'eslint-config-expensify/oxlint/utils';
+
+import {RULE_BY_CATEGORY} from './config/oxlint/reactCompilerRust.mjs';
+import {APP_HOSTED_ESLINT_RULE_IDS, APP_LOCAL_HOSTED_RULES} from './config/oxlint/appHostedRules.mjs';
+
+// React Compiler rules run as `rc/<name>` (config/oxlint/plugins/rc-rules.mjs), the ones the Rust compiler reports. The
+// other compiler rules of eslint-plugin-react-hooks (component-hook-factories, config, gating) are dropped by the package.
+// oxlint's built-in react/<name> versions are not used: an `eslint-disable` comment for react-hooks/exhaustive-deps or
+// react-hooks/rules-of-hooks also hides every compiler error in that component (https://github.com/oxc-project/oxc/issues/26277).
+const rcRuleNames = new Set(Object.values(RULE_BY_CATEGORY));
+const unknownRcRules = [...rcRuleNames].filter((name) => !reactCompilerRuleNames.includes(name));
+if (unknownRcRules.length) {
+    throw new Error(`config/oxlint/reactCompilerRust.mjs maps rules that eslint-plugin-react-hooks does not have: ${unknownRcRules.join(', ')}`);
+}
 
 // An oxlint override replaces a rule's options instead of merging them, so every block that sets
 // `no-restricted-imports` restates the full list, built from these.
@@ -109,10 +123,24 @@ const restrictedHeaderImportPatterns = [
 const victoryChartRendererRestrictedImportPaths = restrictedImportPaths.filter((entry) => entry.name !== '@styles/theme');
 const victoryChartRendererRestrictedImportPatterns = typescriptRestrictedImportPatterns.filter((entry) => !entry.group.includes('@styles/theme/themes/**'));
 
-export default extendOxlintConfig({
+export default await buildOxlintConfig({
+    withNursery: true,
+    presets: ['browser', 'react', 'expensify', 'typescript', 'scripts', 'jest', 'prettier'],
+    transformRule: (ruleID, entry) => {
+        const [prefix, name] = ruleID.split('/');
+        return prefix === 'react-hooks' && rcRuleNames.has(name) ? [`rc/${name}`, entry] : undefined;
+    },
+    plugins: {
+        hosted: './config/oxlint/plugins/hosted-rules.mjs',
+        rulesdir: './config/oxlint/plugins/expensify-rules.mjs',
+    },
+    extraRunningNames: ['rc/', ...[...APP_HOSTED_ESLINT_RULE_IDS.map((ruleID) => ruleID.split('/').at(-1)), ...Object.keys(APP_LOCAL_HOSTED_RULES)].map((name) => `hosted/${name}`)],
     env: {node: true, browser: true, audioworklet: true, jest: true},
     globals: {__DEV__: 'readonly'},
-    jsPlugins: [{name: 'report-name-utils', specifier: './config/oxlint/plugins/report-name-utils.mjs'}],
+    jsPlugins: [
+        {name: 'rc', specifier: './config/oxlint/plugins/rc-rules.mjs'},
+        {name: 'report-name-utils', specifier: './config/oxlint/plugins/report-name-utils.mjs'},
+    ],
     settings: {
         // Read by the hosted eslint-plugin-import rules; without them `no-useless-path-segments` and
         // `no-relative-packages` cannot resolve .ts/.tsx targets and stay silent. Same values as ESLint's.
