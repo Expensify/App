@@ -1,3 +1,4 @@
+import {useColumnResizeController} from '@components/Table/columnResize/ColumnResizeContext';
 import ColumnResizeHandle from '@components/Table/columnResize/ColumnResizeHandle';
 
 import useLocalize from '@hooks/useLocalize';
@@ -83,6 +84,7 @@ function SortableTableHeader({
     const StyleUtils = useStyleUtils();
     const getSearchColumnStyles = useSearchColumnStyles();
     const {translate} = useLocalize();
+    const columnResize = useColumnResizeController();
 
     return (
         <View style={[styles.flex1, styles.alignSelfStretch]}>
@@ -107,10 +109,7 @@ function SortableTableHeader({
                         columnName === CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED ||
                         columnName === CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED;
                     const label = translationKey ? translate(translationKey) : '';
-                    const textStyle = [
-                        columnName === CONST.SEARCH.TABLE_COLUMNS.RECEIPT ? StyleUtils.getTextOverflowStyle('clip') : null,
-                        isYesNoColumn || isConversionAmountColumn ? styles.flexShrink1 : null,
-                    ];
+                    const textStyle = isYesNoColumn || isConversionAmountColumn ? styles.flexShrink1 : null;
 
                     const containerStyle = [
                         getSearchColumnStyles(columnName, {
@@ -149,6 +148,7 @@ function SortableTableHeader({
                                     columnName={columnName}
                                     label={label}
                                     alignment={StyleUtils.getReportTableColumnAlignment(columnName)}
+                                    hasResizeHandle={!!columnResize?.hasHandle(columnName)}
                                     sorting={isSortable ? {activeSortOrder: isActive ? sortOrder : undefined, onSort: (order) => onSortPress(sortByColumnName, order)} : undefined}
                                     labelProps={{text: label, icon, isActive, sortOrder: resolvedSortOrder, innerContainerStyle, textStyle}}
                                 >

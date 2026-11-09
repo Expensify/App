@@ -2,6 +2,7 @@
 import Icon from '@components/Icon';
 import * as PopoverMenu from '@components/PopoverMenu/v2';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import RESIZE_HANDLE_COLUMN_OVERLAP from '@components/Table/columnResize/resizeHandleColumnOverlap';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -10,6 +11,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getButtonState from '@libs/getButtonState';
+import {measureSearchHeaderLabelWidth} from '@libs/getSearchColumnContentToMeasure';
 import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
@@ -18,7 +20,9 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 
-import React from 'react';
+import type {LayoutChangeEvent} from 'react-native';
+
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import type {GetHideColumnHandler} from './hooks/useHideSearchColumn';
@@ -37,7 +41,7 @@ type SearchColumnMenuProps = {
 
 /** The column's heading. Pressing it opens the column menu, which holds the sort options. */
 function SearchColumnMenuTrigger() {
-    const {label, alignment, labelProps} = useSortableColumn();
+    const {label, alignment, hasResizeHandle, labelProps} = useSortableColumn();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -45,9 +49,20 @@ function SearchColumnMenuTrigger() {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
     const isMenuVisible = PopoverMenu.useIsPopoverVisible();
 
+    // An end-aligned label with no room for the caret before it is laid out as start-aligned, so hovering never moves it.
+    const [hasRoomForCaretBeforeLabel, setHasRoomForCaretBeforeLabel] = useState(true);
+    // Reserves the sort arrow, so sorting never flips the layout. `null` on native, which can't measure text.
+    const labelWidth = alignment === 'end' ? measureSearchHeaderLabelWidth(label, styles.gap1.gap) : null;
+    const updateCaretRoom =
+        labelWidth === null
+            ? undefined
+            : (event: LayoutChangeEvent) => {
+                  const caretWidth = variables.iconSizeExtraSmall + styles.mr1.marginRight;
+                  setHasRoomForCaretBeforeLabel(event.nativeEvent.layout.width >= labelWidth + caretWidth);
+              };
+    const layoutAlignment = alignment === 'end' && !hasRoomForCaretBeforeLabel ? 'start' : alignment;
     // The caret goes on the side away from the edge the label is pinned to, so revealing it on hover doesn't move the label.
-    const isCaretBeforeLabel = alignment === 'end';
-    const caretSpacing = isCaretBeforeLabel ? styles.mr1 : styles.ml1;
+    const isCaretBeforeLabel = layoutAlignment === 'end';
 
     return (
         <PopoverMenu.Trigger>
@@ -56,14 +71,14 @@ function SearchColumnMenuTrigger() {
                 role={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU}
                 wrapperStyle={[styles.flex1, styles.alignSelfStretch]}
-                // Fills the cell, so the whole heading opens the menu, and places the label where the cell would.
-                style={[styles.flex1, styles.alignSelfStretch, styles.justifyContentCenter, StyleUtils.getSearchColumnAlignmentStyle(alignment)]}
+                onWrapperLayout={updateCaretRoom}
+                // Fills the cell, so the whole heading opens the menu.
+                style={[styles.flex1, styles.alignSelfStretch, styles.justifyContentCenter]}
             >
                 {({hovered}) => {
                     const isCaretVisible = hovered && !isMenuVisible;
-                    const caret = (
-                        // Collapsed rather than transparent while hidden, so it doesn't take room from the label.
-                        <View style={isCaretVisible ? caretSpacing : [StyleUtils.getWidthStyle(0), styles.overflowHidden]}>
+                    const caret = isCaretVisible && (
+                        <View style={isCaretBeforeLabel ? styles.mr1 : styles.ml1}>
                             <Icon
                                 src={icons.DownArrow}
                                 fill={theme.icon}
@@ -72,14 +87,44 @@ function SearchColumnMenuTrigger() {
                             />
                         </View>
                     );
-
-                    return (
-                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                    const labelRow = (
+                        <View
+                            style={[
+                                styles.flexRow,
+                                styles.alignItemsCenter,
+                                isCaretBeforeLabel && styles.justifyContentEnd,
+                                // Keeps the caret out of the resize handle's hit area.
+                                isCaretVisible && hasResizeHandle && StyleUtils.getPaddingRight(RESIZE_HANDLE_COLUMN_OVERLAP),
+                            ]}
+                        >
                             {isCaretBeforeLabel && caret}
                             <View style={styles.flexShrink1}>
                                 <SortableHeaderLabel {...labelProps} />
                             </View>
                             {!isCaretBeforeLabel && caret}
+                        </View>
+                    );
+
+                    if (layoutAlignment !== 'center') {
+                        return labelRow;
+                    }
+
+                    // A caret taking room would shift a centered label. The spacer and the slot split the spare room, so the label
+                    // rests centered and the caret takes the room after it. The slot never shrinks below the label, so a label
+                    // wider than its cell spills past both edges.
+                    return (
+                        <View style={[styles.flexRow, styles.justifyContentCenter]}>
+                            <View style={[styles.flexGrow1, styles.flexBasis0]} />
+                            <View style={[styles.flexGrow1, styles.flexShrink0]}>
+                                {/* Sizes the slot to the label. */}
+                                <View
+                                    aria-hidden
+                                    style={[styles.opacity0, styles.pointerEventsNone]}
+                                >
+                                    <SortableHeaderLabel {...labelProps} />
+                                </View>
+                                <View style={styles.searchColumnMenuLabelOverlay}>{labelRow}</View>
+                            </View>
                         </View>
                     );
                 }}

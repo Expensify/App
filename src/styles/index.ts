@@ -4127,6 +4127,12 @@ const staticStyles = (theme: ThemeColors) =>
             fontWeight: FontUtils.fontWeight.bold,
         },
 
+        // Lays a centered heading's label over the hidden copy that sizes its slot
+        searchColumnMenuLabelOverlay: {
+            ...StyleSheet.absoluteFill,
+            justifyContent: 'center',
+        },
+
         zIndex10: {
             zIndex: 10,
         },

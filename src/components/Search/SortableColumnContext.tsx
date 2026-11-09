@@ -21,6 +21,9 @@ type SortableColumn = {
     /** Where the column's cells place their content, which the heading follows. */
     alignment: SearchColumnAlignment;
 
+    /** Whether a resize handle sits over the heading's right edge. */
+    hasResizeHandle: boolean;
+
     /** `undefined` when the column doesn't sort. */
     sorting: SortableColumnSorting | undefined;
 
@@ -43,8 +46,7 @@ type SortableColumnProviderProps = SortableColumn & {
     children: React.ReactNode;
 };
 
-function SortableColumnProvider({columnName, label, alignment, sorting, labelProps, children}: SortableColumnProviderProps) {
-    const column = {columnName, label, alignment, sorting, labelProps};
+function SortableColumnProvider({children, ...column}: SortableColumnProviderProps) {
     return <SortableColumnContext.Provider value={column}>{children}</SortableColumnContext.Provider>;
 }
 
