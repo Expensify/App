@@ -96,6 +96,7 @@ function DynamicCategoryDescriptionHintPage({
                                     type="markdown"
                                     autoGrowHeight
                                     maxAutoGrowHeight={maxAutoGrowHeight}
+                                    shouldSubmitForm
                                     excludedMarkdownStyles={['mentionReport']}
                                 />
                             )}
