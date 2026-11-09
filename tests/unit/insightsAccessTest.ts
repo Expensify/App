@@ -1,4 +1,4 @@
-import INSIGHTS_DASHBOARD_SPECS, {getAccessibleDashboards, getVisibleCharts} from '@pages/Insights/dashboardSpecs';
+import INSIGHTS_DASHBOARD_SPECS, {getAccessibleDashboards, getPoliciesInScope, getVisibleCharts} from '@pages/Insights/dashboardSpecs';
 import {canViewAllPolicyData, hasMultipleMembers} from '@pages/Insights/insightsAccess';
 
 import CONST from '@src/CONST';
@@ -36,7 +36,7 @@ const APPROVER_CHART = CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_APPROVER;
 
 /** Returns the graph keys of the Compliance supporting charts the given workspaces make visible. */
 function getVisibleComplianceCharts(policies: Policy[], policyIDs: string[] = []) {
-    return getVisibleCharts(COMPLIANCE_SPEC.supportingCharts, toCollection(policies), policyIDs, LOGIN, COMPLIANCE_SPEC.isPolicyEligible).map(({graphKey}) => graphKey);
+    return getVisibleCharts(COMPLIANCE_SPEC.supportingCharts, getPoliciesInScope(toCollection(policies), policyIDs), LOGIN, COMPLIANCE_SPEC.isPolicyEligible).map(({graphKey}) => graphKey);
 }
 
 const isComplianceBetaEnabled = (beta: Beta) => beta === CONST.BETAS.INSIGHTS_COMPLIANCE;
