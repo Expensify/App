@@ -32,6 +32,7 @@ import {useConciergeChatHistoryActions, useConciergeChatHistoryState} from '@pag
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 import CollapsedSystemMessages from '@pages/inbox/report/CollapsedSystemMessages';
 import ReportActionsList from '@pages/inbox/report/ReportActionsList';
+import ReportActionsListFloatingMessageCounter from '@pages/inbox/report/ReportActionsList/ReportActionsListFloatingMessageCounter';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 import * as ReportActionsNewActionLiveTail from '@pages/inbox/report/useReportActionsNewActionLiveTail';
@@ -178,7 +179,7 @@ jest.mock('@hooks/useReportActionsScroll', () =>
         onLoad: jest.fn(),
     })),
 );
-jest.mock('@pages/inbox/report/FloatingMessageCounter', () => jest.fn(() => null));
+jest.mock('@pages/inbox/report/ReportActionsList/ReportActionsListFloatingMessageCounter', () => jest.fn(() => null));
 jest.mock('@pages/inbox/report/ReportActionsListPaddingView', () => {
     const reactModule = jest.requireActual<typeof React>('react');
     return jest.fn(({children}: {children: React.ReactNode}) => reactModule.createElement(reactModule.Fragment, null, children));
@@ -375,6 +376,34 @@ describe('ReportActionsList (body)', () => {
     afterEach(async () => {
         await waitForBatchedUpdatesWithAct();
         await Onyx.clear();
+    });
+
+    it('leaves counter copy subscriptions in the counter wrapper while forwarding report and navigation props', () => {
+        // Given loaded list content with its counter mocked, copy-only reads must not remain in the parent or model hooks.
+        const reportWithPolicy = {...mockReport, policyID: 'counter-policy'};
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockUseOnyx.mockImplementation((key, options) =>
+            key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}` ? [reportWithPolicy, {status: 'loaded'}] : getMockOnyxValue(key, options),
+        );
+        mockUseUnreadMarker.mockReturnValue({unreadMarkerReportActionID: mockReportActions[1].reportActionID, unreadMarkerReportActionIndex: 1});
+
+        // When the public list mounts its loaded content, the wrapper should receive the same report and scroll handlers.
+        renderReportActionsList();
+
+        // Then the list is mounted, but none of the counter's copy subscriptions have leaked above the mocked wrapper.
+        expect(mockInvertedFlashList).toHaveBeenCalled();
+        const subscribedKeys = mockUseOnyx.mock.calls.map(([key]) => key);
+        expect(subscribedKeys).not.toContain(`${ONYXKEYS.COLLECTION.POLICY}${reportWithPolicy.policyID}`);
+        expect(subscribedKeys).not.toContain(ONYXKEYS.COLLECTION.RULE);
+        expect(subscribedKeys).not.toContain(ONYXKEYS.NVP_INTRO_SELECTED);
+        const counterProps = jest.mocked(ReportActionsListFloatingMessageCounter).mock.lastCall?.[0];
+        const scrollResult = mockUseReportActionsScroll.mock.results.at(-1)?.value as ReturnType<typeof useReportActionsScroll> | undefined;
+        expect(counterProps?.report).toBe(reportWithPolicy);
+        expect(counterProps?.hasNewMessages).toBe(true);
+        expect(counterProps?.isActive).toBe(false);
+        expect(counterProps?.onClick).toBe(scrollResult?.scrollToBottomAndMarkReportAsRead);
+        expect(counterProps?.onActionBadgePress).toBe(scrollResult?.scrollToActionBadgeTarget);
+        expect(counterProps).not.toHaveProperty('shouldShowMarkAsDoneCopy');
     });
 
     describe('Support survey unread markers', () => {

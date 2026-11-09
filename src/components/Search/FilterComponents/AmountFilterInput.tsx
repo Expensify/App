@@ -76,6 +76,7 @@ function AmountFilterInput({ref, baseFilterKey, amount, currency, label, name, a
                 hideSymbol={!currency}
                 decimals={currency ? getCurrencyDecimals(currency) : CONST.DEFAULT_CURRENCY_DECIMALS}
                 label={label}
+                accessibilityLabel={[label.trim(), currency || translate('common.anyCurrency')].join(', ')}
                 testID={name}
                 onInputChange={onAmountChange}
                 allowNegativeInput
