@@ -3,7 +3,6 @@ import HorizontalSafeArea from '@components/HorizontalSafeArea';
 import useOnyx from '@hooks/useOnyx';
 
 import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
-import type {ScreenLayoutProps} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 
 import HomePage from '@pages/home/HomePage';
@@ -48,11 +47,6 @@ function TabNavigator() {
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const isTabBarVertical = useIsTabBarVertical();
     const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, dotColors, tabLabels});
-    // Either the tab host or each tab screen keeps out of the horizontal safe area, depending on where the bar can sit.
-    const renderTabScreenLayout = (props: ScreenLayoutProps) => {
-        const tabScreen = bottomTabScreenLayoutWrapper(props);
-        return isTabHostFullWidth ? <HorizontalSafeArea>{tabScreen}</HorizontalSafeArea> : tabScreen;
-    };
 
     // A tab with no bar item draws no icon.
     const getScreenOptions = ({route}: {route: {name: NativeTabName}}) =>
@@ -68,7 +62,7 @@ function TabNavigator() {
         <Tab.Navigator
             backBehavior="fullHistory"
             layout={renderNativeTabLayout}
-            screenLayout={renderTabScreenLayout}
+            screenLayout={bottomTabScreenLayoutWrapper}
             screenOptions={getScreenOptions}
             UNSTABLE_router={tabRouterOverride}
             screenListeners={(props) => tabScreenListeners({...props, session})}

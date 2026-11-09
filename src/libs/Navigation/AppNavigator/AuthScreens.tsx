@@ -373,12 +373,7 @@ function AuthScreens() {
                         {!isVisitingSecureLink && (
                             <RootStack.Screen
                                 name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
-                                options={{
-                                    ...rootNavigatorScreenOptions.basicModalNavigator,
-                                    // OnboardingModalNavigator pads the horizontal safe area inside its own background, so the screen behind doesn't show in the side insets.
-                                    native: {},
-                                    gestureEnabled: false,
-                                }}
+                                options={{...rootNavigatorScreenOptions.basicModalNavigator, gestureEnabled: false}}
                                 component={OnboardingModalNavigator}
                                 listeners={{
                                     focus: () => {
@@ -416,7 +411,9 @@ function AuthScreens() {
                             options={{
                                 ...rootNavigatorScreenOptions.basicModalNavigator,
                                 native: {
-                                    contentStyle: [rootNavigatorScreenOptions.basicModalNavigator.native?.contentStyle, StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, 0.72)],
+                                    contentStyle: {
+                                        ...StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, 0.72),
+                                    },
                                     animation: InternalPlatformAnimations.FADE,
                                 },
                                 web: {

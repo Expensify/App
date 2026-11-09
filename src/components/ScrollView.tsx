@@ -7,27 +7,46 @@ import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {ScrollView as RNScrollView} from 'react-native';
 
+import HorizontalSafeAreaContext, {HORIZONTAL_SAFE_AREA_PLACEMENT} from './HorizontalSafeArea/HorizontalSafeAreaContext';
+import useHorizontalSafeAreaBleed from './HorizontalSafeArea/useHorizontalSafeAreaBleed';
+
 type ScrollViewProps = RNScrollViewProps & {
     addBottomSafeAreaPadding?: boolean;
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
     ref?: ForwardedRef<ComponentRef<typeof RNScrollView>>;
 };
 
-function ScrollView({children, contentContainerStyle: contentContainerStyleProp, addBottomSafeAreaPadding, addOfflineIndicatorBottomSafeAreaPadding, ref, ...props}: ScrollViewProps) {
-    const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
+function ScrollView({
+    children,
+    style: styleProp,
+    contentContainerStyle: contentContainerStyleProp,
+    addBottomSafeAreaPadding,
+    addOfflineIndicatorBottomSafeAreaPadding,
+    ref,
+    ...props
+}: ScrollViewProps) {
+    const bottomSafeAreaContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding,
         addOfflineIndicatorBottomSafeAreaPadding,
         style: contentContainerStyleProp,
     });
+    const {style, contentContainerStyle} = useHorizontalSafeAreaBleed({
+        style: styleProp,
+        contentContainerStyle: bottomSafeAreaContentContainerStyle,
+        horizontal: props.horizontal,
+    });
 
     return (
-        <RNScrollView
-            ref={ref}
-            contentContainerStyle={contentContainerStyle}
-            {...props}
-        >
-            {children}
-        </RNScrollView>
+        <HorizontalSafeAreaContext.Provider value={HORIZONTAL_SAFE_AREA_PLACEMENT.BOX}>
+            <RNScrollView
+                ref={ref}
+                style={style}
+                contentContainerStyle={contentContainerStyle}
+                {...props}
+            >
+                {children}
+            </RNScrollView>
+        </HorizontalSafeAreaContext.Provider>
     );
 }
 

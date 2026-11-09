@@ -39,8 +39,6 @@ function PublicScreens() {
                     // If you want to change this, make sure there aren't any animation bugs when signing out.
                     // This was put here to prevent excessive animations when resetting the navigation state in `resetNavigationState`
                     animation: Animations.NONE,
-                    // SignInPage pads the safe area itself, so its background fills the side insets too.
-                    hasOwnHorizontalSafeArea: true,
                 }}
                 component={SignInPage}
             />
@@ -75,7 +73,9 @@ function PublicScreens() {
                 options={{
                     ...rootNavigatorScreenOptions.basicModalNavigator,
                     native: {
-                        contentStyle: [rootNavigatorScreenOptions.basicModalNavigator.native?.contentStyle, StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, 0.72)],
+                        contentStyle: {
+                            ...StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, 0.72),
+                        },
                         animation: InternalPlatformAnimations.FADE,
                     },
                     web: {

@@ -1,5 +1,6 @@
 import DismissibleBackdrop from '@components/DismissibleBackdrop';
 import FocusTrapForScreen from '@components/FocusTrap/FocusTrapForScreen';
+import HorizontalSafeAreaContext, {HORIZONTAL_SAFE_AREA_PLACEMENT} from '@components/HorizontalSafeArea/HorizontalSafeAreaContext';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -52,7 +53,9 @@ function CenteredModalLayout({children, width, height, onBackdropPress, contentS
         >
             <FocusTrapForScreen>
                 <View style={styles.getCenteredModalInnerView(shouldDockToBottom, width, height)}>
-                    <View style={safeAreaStyle}>{children}</View>
+                    <HorizontalSafeAreaContext.Provider value={HORIZONTAL_SAFE_AREA_PLACEMENT.BOX}>
+                        <View style={safeAreaStyle}>{children}</View>
+                    </HorizontalSafeAreaContext.Provider>
                 </View>
             </FocusTrapForScreen>
         </DismissibleBackdrop>
