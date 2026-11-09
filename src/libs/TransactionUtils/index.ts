@@ -1709,6 +1709,15 @@ function hasSmartScanFailedWithMissingFields(transactions: Transaction[], report
 }
 
 /**
+ * Whether every expense on the report is still scanning, is a pending card charge, or failed SmartScan with missing
+ * required fields, so there's nothing on the report that can be approved yet. A mixed report stays approvable so one
+ * expense that still needs fixing doesn't block approving the rest.
+ */
+function hasOnlyUnsettledExpenses(transactions: Transaction[], report: OnyxEntry<Report>): boolean {
+    return transactions.length > 0 && transactions.every((transaction) => isScanning(transaction) || isPending(transaction) || hasSmartScanFailedWithMissingFields([transaction], report));
+}
+
+/**
  * Whether a scan-failed expense is one that the backend moves to its own report on payment. Auth only moves it when
  * both the merchant and the amount are unset, so anything with an amount has to stay put to keep the payment total in
  * sync with the server.
@@ -1974,6 +1983,7 @@ export {
     isDistanceTypeRequest,
     recalculateUnreportedTransactionDetails,
     hasSmartScanFailedWithMissingFields,
+    hasOnlyUnsettledExpenses,
     isFailedScanAmountPlaceholder,
     isScanFailedTransactionMovedOnPayment,
     shouldSplitScanFailedTransactions,
