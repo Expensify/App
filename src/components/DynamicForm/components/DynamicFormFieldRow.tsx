@@ -5,6 +5,7 @@ import getLocalizedText, {getFieldLabel, getInputLabel} from '@components/Dynami
 import isSensitiveField from '@components/DynamicForm/utils/isSensitiveField';
 import {getListItems} from '@components/DynamicForm/utils/listItems';
 import summarizeListItem, {getListItemFallbackTitle} from '@components/DynamicForm/utils/summarizeListItem';
+import FSClassView from '@components/FSClassView';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import Text from '@components/Text';
 
@@ -66,14 +67,13 @@ function DynamicFormFieldRow({
                       .map((item, index) => summarizeListItem(item, field.itemFields, translate, getListItemFallbackTitle(field, index, translate)).title)
                       .join(', ')
                 : formatDynamicFieldValue(field, values, translate);
+        // Only the value is masked, so the field name stays readable in session recordings
         return (
-            <View
-                style={[styles.mhn5, styles.pv1]}
-                fsClass={CONST.FULLSTORY.CLASS.MASK}
-            >
+            <View style={[styles.mhn5, styles.pv1]}>
                 <MenuItemField
                     name={label}
                     value={readonlyValue}
+                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                 />
             </View>
         );
@@ -103,12 +103,8 @@ function DynamicFormFieldRow({
     );
     const description = showsDescription ? undefined : getLocalizedText(translate, field.descriptionKey, field.description);
 
-    // Some inputs, such as CountryPicker, do not pass the FullStory class on, so the whole row is masked
     return (
-        <View
-            style={isMenuRow ? [styles.mhn5, styles.pv1] : styles.pv2}
-            fsClass={CONST.FULLSTORY.CLASS.MASK}
-        >
+        <View style={isMenuRow ? [styles.mhn5, styles.pv1] : styles.pv2}>
             {!!labelAbove && !shouldHideLabel && (
                 <Text
                     style={[labelAbove === 'prompt' ? [styles.mt3, !isMenuRow && styles.mb3] : [styles.textStrong, styles.mb3], isMenuRow && styles.ph5]}
@@ -119,7 +115,7 @@ function DynamicFormFieldRow({
                 </Text>
             )}
             {!!description && <Text style={[styles.textSupporting, styles.mb3, isMenuRow && styles.ph5]}>{description}</Text>}
-            {input}
+            <FSClassView forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}>{input}</FSClassView>
         </View>
     );
 }
