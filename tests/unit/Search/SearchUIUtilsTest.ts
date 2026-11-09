@@ -814,6 +814,7 @@ const reportActionListItems = createMock<ReportActionListItemType[]>([
             IOUTransactionID: transactionID,
         },
         reportName: report1.reportName,
+        isInvoiceLinkedToBill: false,
         message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     },
     {
@@ -844,6 +845,7 @@ const reportActionListItems = createMock<ReportActionListItemType[]>([
         ],
         reportActionID: 'Admin',
         reportName: report1.reportName,
+        isInvoiceLinkedToBill: false,
         reportID: '123456789',
     },
     {
@@ -862,6 +864,7 @@ const reportActionListItems = createMock<ReportActionListItemType[]>([
             IOUTransactionID: transactionID2,
         },
         reportName: report2.reportName,
+        isInvoiceLinkedToBill: false,
         message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     },
     {
@@ -880,6 +883,7 @@ const reportActionListItems = createMock<ReportActionListItemType[]>([
             IOUTransactionID: transactionID3,
         },
         reportName: report3.reportName,
+        isInvoiceLinkedToBill: false,
         message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     },
     {
@@ -898,6 +902,7 @@ const reportActionListItems = createMock<ReportActionListItemType[]>([
             IOUTransactionID: transactionID4,
         },
         reportName: report3.reportName,
+        isInvoiceLinkedToBill: false,
         message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     },
 ]);
@@ -3082,6 +3087,44 @@ describe('SearchUIUtils', () => {
                 .filter((item) => item.reportID === snapshotInvoiceID)
                 .map((item) => item.reportActionID);
             expect(snapshotReportActionIDs).toStrictEqual([reimbursedAction.reportActionID]);
+        });
+
+        it('should read the bill link of an invoice from the Search snapshot', () => {
+            // Given a CHAT search result whose invoice and its billID are only in the Search snapshot
+            const snapshotInvoiceID = 'snapshotBillInvoiceID';
+            const commentAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: 'snapshotBillCommentActionID',
+                reportID: snapshotInvoiceID,
+                created: '2025-01-01 00:00:00',
+                message: [{type: 'COMMENT', html: 'hello', text: 'hello'}],
+            } as OnyxTypes.ReportAction;
+            const data: OnyxTypes.SearchResults['data'] = {
+                ...searchResults.data,
+                [`${ONYXKEYS.COLLECTION.REPORT}${snapshotInvoiceID}`]: createMock<OnyxTypes.Report>({reportID: snapshotInvoiceID, type: CONST.REPORT.TYPE.INVOICE}),
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${snapshotInvoiceID}`]: {billID: '123'},
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${snapshotInvoiceID}`]: {[commentAction.reportActionID]: commentAction},
+            };
+
+            // When the CHAT sections are built from the snapshot
+            const [sections] = SearchUIUtils.getSections({
+                dateFnsLocale: undefined,
+                type: CONST.SEARCH.DATA_TYPES.CHAT,
+                data,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                rules: undefined,
+                conciergeReportID: undefined,
+                convertToDisplayString,
+                reportAttributesDerivedValue: {},
+            });
+
+            // Then the row says the invoice is linked to a bill, so its header shows the stored invoice name
+            const invoiceRow = sections.filter(SearchUIUtils.isReportActionListItemType).find((item) => item.reportID === snapshotInvoiceID);
+            expect(invoiceRow?.isInvoiceLinkedToBill).toBe(true);
         });
 
         it('should return getTransactionsSections result when groupBy is undefined', () => {

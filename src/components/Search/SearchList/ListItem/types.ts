@@ -453,6 +453,9 @@ type ReportActionListItemType = ListItem &
         keyForList: string;
 
         reportName: string;
+
+        /** Whether the Search snapshot links the invoice shown in the row header to a bill */
+        isInvoiceLinkedToBill?: boolean;
     };
 
 type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType | ExpenseReportListItemType | TripListItemType;
