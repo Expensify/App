@@ -6550,7 +6550,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     mastercard: '我们与 Mastercard 有全球集成，但资格条件会因银行和卡片项目而异。\n\n要开始使用，只需：',
                     vcf: `1. 请访问[此帮助文章](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP})，查看关于如何设置 Visa 商务卡的详细说明。
 
-2. 请[联系您的银行](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP})，确认他们是否为您的项目支持商业数据连接，并请求他们为您启用。
+2. 请联系您的银行，确认他们是否为您的项目支持商业数据连接，并请求他们为您启用。
 
 3. *启用数据连接并获取相关详细信息后，请继续前往下一屏。*`,
                     gl1025: `1. 访问[此帮助文章](${CONST.COMPANY_CARDS_AMEX_COMMERCIAL_CARD_HELP})，了解 American Express 是否可以为您的项目启用商业数据连接。
@@ -6560,7 +6560,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
 3. *在获取数据连接信息后，继续前往下一屏。*`,
                     cdf: `1. 访问[此帮助文章](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS})，获取有关如何设置 Mastercard 商业卡的详细说明。
 
-2. [联系您的银行](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS})，确认他们是否支持您项目的商业数据流，并请他们为您启用。
+2. 联系您的银行，确认他们是否支持您项目的商业数据流，并请他们为您启用。
 
 3. *一旦数据流已启用并且您获得了相关详细信息，继续到下一屏。*`,
                     stripe: `1. 访问 Stripe 的控制面板，然后前往[设置](${CONST.COMPANY_CARDS_STRIPE_HELP})。

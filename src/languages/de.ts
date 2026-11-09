@@ -6850,7 +6850,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                         'Wir verfügen über globale Integrationen mit Mastercard, allerdings variiert die Berechtigung je nach Bank und Kartenprogramm.\n\nUm loszulegen, müssen Sie nur Folgendes tun:',
                     vcf: `1. Lies dir [diesen Hilfeartikel](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) durch, um detaillierte Anweisungen zum Einrichten deiner Visa Commercial Cards zu erhalten.
 
-2. [Kontaktiere deine Bank](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}), um zu bestätigen, dass sie einen Commercial Feed für dein Programm unterstützt, und bitte sie, diesen zu aktivieren.
+2. Kontaktiere deine Bank, um zu bestätigen, dass sie einen Commercial Feed für dein Programm unterstützt, und bitte sie, diesen zu aktivieren.
 
 3. *Sobald der Feed aktiviert ist und du die Details dazu hast, fahre mit dem nächsten Bildschirm fort.*`,
                     gl1025: `1. Lies dir [diesen Hilfeartikel](${CONST.COMPANY_CARDS_AMEX_COMMERCIAL_CARD_HELP}) durch, um herauszufinden, ob American Express für dein Programm einen Commercial-Feed aktivieren kann.
@@ -6860,7 +6860,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
 3. *Sobald du die Feed-Informationen hast, fahre mit dem nächsten Bildschirm fort.*`,
                     cdf: `1. Lies dir [diesen Hilfeartikel](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) für eine ausführliche Anleitung zur Einrichtung deiner Mastercard Commercial Cards durch.
 
-2. [Kontaktiere deine Bank](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}), um zu bestätigen, dass sie einen Commercial-Feed für dein Programm unterstützt, und bitte sie, diesen zu aktivieren.
+2. Kontaktiere deine Bank, um zu bestätigen, dass sie einen Commercial-Feed für dein Programm unterstützt, und bitte sie, diesen zu aktivieren.
 
 3. *Sobald der Feed aktiviert ist und du seine Details hast, fahre mit dem nächsten Bildschirm fort.*`,
                     stripe: `1. Rufen Sie das Stripe-Dashboard auf und gehen Sie zu [Einstellungen](${CONST.COMPANY_CARDS_STRIPE_HELP}).

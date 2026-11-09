@@ -6802,7 +6802,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                     mastercard: 'Temos integrações globais com a Mastercard, embora a elegibilidade varie de acordo com o banco e o programa do cartão.\n\nPara começar, simplesmente:',
                     vcf: `1. Acesse [este artigo de ajuda](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) para obter instruções detalhadas sobre como configurar seus Visa Commercial Cards.
 
-2. [Entre em contato com o seu banco](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) para verificar se eles oferecem um feed comercial para o seu programa e peça para habilitá-lo.
+2. Entre em contato com o seu banco para verificar se eles oferecem um feed comercial para o seu programa e peça para habilitá-lo.
 
 3. *Assim que o feed estiver habilitado e você tiver os detalhes, continue para a próxima tela.*`,
                     gl1025: `1. Acesse [este artigo de ajuda](${CONST.COMPANY_CARDS_AMEX_COMMERCIAL_CARD_HELP}) para descobrir se a American Express pode ativar um feed comercial para o seu programa.
@@ -6812,7 +6812,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
 3. *Quando tiver as informações do feed, continue para a próxima tela.*`,
                     cdf: `1. Acesse [este artigo de ajuda](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) para obter instruções detalhadas sobre como configurar seus cartões Mastercard Commercial.
 
-2. [Entre em contato com o seu banco](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) para verificar se eles oferecem um feed comercial para o seu programa e peça para habilitá-lo.
+2. Entre em contato com o seu banco para verificar se eles oferecem um feed comercial para o seu programa e peça para habilitá-lo.
 
 3. *Assim que o feed estiver habilitado e você tiver os detalhes, continue para a próxima tela.*`,
                     stripe: `1. Acesse o painel do Stripe e vá para [Configurações](${CONST.COMPANY_CARDS_STRIPE_HELP}).

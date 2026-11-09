@@ -6797,7 +6797,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     mastercard: "Abbiamo integrazioni globali con Mastercard, anche se l'idoneità varia in base alla banca e al programma della carta.\n\nPer iniziare, è sufficiente:",
                     vcf: `1. Visita [questo articolo della guida](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) per istruzioni dettagliate su come configurare le tue Visa Commercial Cards.
 
-2. [Contatta la tua banca](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) per verificare che supporti un feed commerciale per il tuo programma e chiedi che venga abilitato.
+2. Contatta la tua banca per verificare che supporti un feed commerciale per il tuo programma e chiedi che venga abilitato.
 
 3. *Una volta che il feed è stato abilitato e disponi dei relativi dettagli, continua alla schermata successiva.*`,
                     gl1025: `1. Visita [questo articolo di supporto](${CONST.COMPANY_CARDS_AMEX_COMMERCIAL_CARD_HELP}) per scoprire se American Express può abilitare un feed commerciale per il tuo programma.
@@ -6807,7 +6807,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
 3. *Una volta che hai le informazioni sul feed, continua alla schermata successiva.*`,
                     cdf: `1. Visita [questo articolo della guida](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) per istruzioni dettagliate su come configurare le tue Mastercard Commercial Cards.
 
- 2. [Contatta la tua banca](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) per verificare che supporti un flusso commerciale per il tuo programma e chiedi che lo attivino.
+ 2. Contatta la tua banca per verificare che supporti un flusso commerciale per il tuo programma e chiedi che lo attivino.
 
 3. *Una volta che il flusso è stato attivato e ne hai i dettagli, continua alla schermata successiva.*`,
                     stripe: `1. Visita la Dashboard di Stripe e vai su [Settings](${CONST.COMPANY_CARDS_STRIPE_HELP}).

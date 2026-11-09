@@ -6861,7 +6861,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         'Nous proposons des intégrations globales avec Mastercard, bien que l’éligibilité varie selon la banque et le programme de carte.\n\nPour commencer, il vous suffit de :',
                     vcf: `1. Consultez [cet article d'aide](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) pour obtenir des instructions détaillées sur la configuration de vos cartes Visa Commercial Cards.
 
-2. [Contactez votre banque](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) pour vérifier qu'elle prend en charge un flux commercial pour votre programme et demandez-lui de l'activer.
+2. Contactez votre banque pour vérifier qu'elle prend en charge un flux commercial pour votre programme et demandez-lui de l'activer.
 
 3. *Une fois le flux activé et que vous disposez de ses détails, passez à l'écran suivant.*`,
                     gl1025: `1. Consultez [cet article d’aide](${CONST.COMPANY_CARDS_AMEX_COMMERCIAL_CARD_HELP}) pour savoir si American Express peut activer un flux commercial pour votre programme.
@@ -6871,7 +6871,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
 3. *Une fois que vous avez les informations du flux, continuez vers l’écran suivant.*`,
                     cdf: `1. Consultez [cet article d'aide](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) pour des instructions détaillées sur la configuration de vos Mastercard Commercial Cards.
 
- 2. [Contactez votre banque](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) pour vérifier qu'elle prend en charge un flux commercial pour votre programme et demandez-lui de l'activer.
+ 2. Contactez votre banque pour vérifier qu'elle prend en charge un flux commercial pour votre programme et demandez-lui de l'activer.
 
 3. *Une fois le flux activé et que vous disposez de ses détails, continuez vers l'écran suivant.*`,
                     stripe: `1. Accédez au tableau de bord Stripe, puis allez dans [Paramètres](${CONST.COMPANY_CARDS_STRIPE_HELP}).

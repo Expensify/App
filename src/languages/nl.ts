@@ -6790,7 +6790,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     mastercard: 'We hebben wereldwijde integraties met Mastercard, al verschilt de geschiktheid per bank en kaartprogramma.\n\nGa als volgt aan de slag:',
                     vcf: `1. Bezoek [dit hulpartikel](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) voor gedetailleerde instructies over het instellen van je Visa zakelijke kaarten.
 
-2. [Neem contact op met je bank](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) om te controleren of ze een commerciële feed voor je programma ondersteunen en vraag hen om deze in te schakelen.
+2. Neem contact op met je bank om te controleren of ze een commerciële feed voor je programma ondersteunen en vraag hen om deze in te schakelen.
 
 3. *Zodra de feed is ingeschakeld en je de details hebt, ga je verder naar het volgende scherm.*`,
                     gl1025: `1. Bezoek [dit hulpartikel](${CONST.COMPANY_CARDS_AMEX_COMMERCIAL_CARD_HELP}) om te zien of American Express een commerciële feed voor uw programma kan inschakelen.
@@ -6800,7 +6800,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
 3. *Zodra u de feedinformatie heeft, gaat u door naar het volgende scherm.*`,
                     cdf: `1. Bezoek [dit helpartikel](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) voor gedetailleerde instructies over het instellen van je Mastercard Commercial Cards.
 
-2. [Neem contact op met je bank](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) om te controleren of zij een commerciële feed voor je programma ondersteunen, en vraag hen deze in te schakelen.
+2. Neem contact op met je bank om te controleren of zij een commerciële feed voor je programma ondersteunen, en vraag hen deze in te schakelen.
 
 3. *Zodra de feed is ingeschakeld en je de details hebt, ga je verder naar het volgende scherm.*`,
                     stripe: `1. Ga naar het Stripe-dashboard en vervolgens naar [Settings](${CONST.COMPANY_CARDS_STRIPE_HELP}).
