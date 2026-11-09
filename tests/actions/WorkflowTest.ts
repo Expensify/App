@@ -11,6 +11,7 @@ import {
     createApprovalWorkflowRules,
     importApprovalWorkflowRules,
     removeApprovalWorkflow,
+    removeApprovalWorkflowApprover,
     removeApprovalWorkflowRules,
     saveFastEditApprovalWorkflow,
     setApprovalWorkflowApprover,
@@ -192,6 +193,37 @@ describe('actions/Workflow', () => {
         });
     });
 
+    describe('removeApprovalWorkflowApprover', () => {
+        it('should move up the approvers after the removed one, so no empty place is left to fill', async () => {
+            // Given a workflow whose last approver was only marked as circular because they repeat the approver about to be removed
+            const circularApproverIndex = 3;
+            const currentApprovalWorkflow: ApprovalWorkflowOnyx = {
+                ...INITIAL_APPROVAL_WORKFLOW,
+                approvers: [
+                    {email: 'approver1@example.com', displayName: 'Approver 1'},
+                    {email: 'approver2@example.com', displayName: 'Approver 2', overLimitAmount: 100000},
+                    {email: 'approver3@example.com', displayName: 'Approver 3', overLimitAmount: 200000},
+                    {email: 'approver2@example.com', displayName: 'Approver 2', isCircularReference: true},
+                ],
+                errors: {[`approver-${circularApproverIndex}`]: 'workflowsPage.approverCircularReference'},
+            };
+            await Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, currentApprovalWorkflow);
+
+            // When the second approver is removed
+            removeApprovalWorkflowApprover({approverIndex: 1, currentApprovalWorkflow});
+            await waitForBatchedUpdates();
+
+            // Then the approvers after them move up with the reports they get, and the last one no longer repeats anyone
+            const approvalWorkflow = await getApprovalWorkflowState();
+            expect(approvalWorkflow?.approvers).toEqual([
+                {email: 'approver1@example.com', displayName: 'Approver 1', isCircularReference: false},
+                {email: 'approver3@example.com', displayName: 'Approver 3', overLimitAmount: 200000, isCircularReference: false},
+                {email: 'approver2@example.com', displayName: 'Approver 2', isCircularReference: false},
+            ]);
+            expect(approvalWorkflow?.errors).toBeUndefined();
+        });
+    });
+
     describe('validateApprovalWorkflow', () => {
         const removedApprover: Approver = {email: 'removed@example.com', displayName: 'removed@example.com', isNotWorkspaceMember: true};
 
@@ -205,7 +237,7 @@ describe('actions/Workflow', () => {
             await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
 
             // When the admin tries to save it
-            const isValid = validateApprovalWorkflow(approvalWorkflow, true);
+            const isValid = validateApprovalWorkflow(approvalWorkflow);
             await waitForBatchedUpdates();
 
             // Then the save is blocked and the approver shows the error offering to replace them or delete the workflow
@@ -224,7 +256,7 @@ describe('actions/Workflow', () => {
             await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
 
             // When the admin tries to save it
-            const isValid = validateApprovalWorkflow(approvalWorkflow, true);
+            const isValid = validateApprovalWorkflow(approvalWorkflow);
             await waitForBatchedUpdates();
 
             // Then the save is blocked, and since the default workflow can't be deleted the error only asks for a new approver
@@ -233,122 +265,90 @@ describe('actions/Workflow', () => {
             expect(workflowState?.errors?.['approver-0']).toBe('workflowsPage.defaultWorkflowApproverNotWorkspaceMember');
         });
 
-        it('should block saving a workflow whose additional approver for reports over the limit is no longer a workspace member', async () => {
-            // Given a workflow whose approver is a member, but whose reports over the limit go to someone who was removed
+        it('should block saving a workflow whose optional over-limit approver is no longer a workspace member', async () => {
+            // Given a workflow whose reports over 10.00 also go to an optional over-limit approver who was removed
             const approvalWorkflow: ApprovalWorkflowOnyx = {
                 ...INITIAL_APPROVAL_WORKFLOW,
                 members: [{email: employee1Email, displayName: employee1Email}],
-                approvers: [{email: ownerEmail, displayName: ownerEmail, approvalLimit: 1000, overLimitForwardsTo: 'removed@example.com', isOverLimitForwardsToNotWorkspaceMember: true}],
+                approvers: [
+                    {email: ownerEmail, displayName: ownerEmail},
+                    {...removedApprover, overLimitAmount: 1000},
+                ],
             };
             await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
 
             // When the admin tries to save it
-            const isValid = validateApprovalWorkflow(approvalWorkflow, true);
+            const isValid = validateApprovalWorkflow(approvalWorkflow);
             await waitForBatchedUpdates();
 
-            // Then the save is blocked and the approver shows the error asking for a new additional approver
+            // Then the save is blocked and that approver shows the error asking to replace them
             expect(isValid).toBe(false);
             const workflowState = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
-            expect(workflowState?.errors?.['approver-0']).toBe('workflowsPage.overLimitApproverNotWorkspaceMember');
+            expect(workflowState?.errors?.['approver-1']).toBe('workflowsPage.approverNotWorkspaceMember');
         });
 
         it.each([
-            [
-                'earlier in the workflow',
-                [
-                    {email: employee1Email, displayName: employee1Email},
-                    {email: employee2Email, displayName: employee2Email, approvalLimit: 5000, overLimitForwardsTo: employee1Email},
-                    {email: employee3Email, displayName: employee3Email},
-                ],
-                1,
-            ],
-            [
-                'later in the workflow',
-                [
-                    {email: employee1Email, displayName: employee1Email, approvalLimit: 5000, overLimitForwardsTo: employee3Email},
-                    {email: employee2Email, displayName: employee2Email},
-                    {email: employee3Email, displayName: employee3Email},
-                ],
-                0,
-            ],
-        ])('should block saving a workflow whose additional approver for reports over the limit is already an approver %s', async (_description, approvers, limitedApproverIndex) => {
-            // Given a workflow saved as approval workflow rules, whose reports over an approver's limit would go to someone
-            // who already approves in it, so the limit adds no one
-            const approvalWorkflow: ApprovalWorkflowOnyx = {
-                ...INITIAL_APPROVAL_WORKFLOW,
-                members: [{email: employee4Email, displayName: employee4Email}],
-                approvers,
-            };
-            await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
-
-            // When the admin tries to save it
-            const isValid = validateApprovalWorkflow(approvalWorkflow, true);
-            await waitForBatchedUpdates();
-
-            // Then the save is blocked and the limited approver shows the error asking for a different additional approver
-            expect(isValid).toBe(false);
-            const workflowState = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
-            expect(workflowState?.errors?.[`approver-${limitedApproverIndex}`]).toBe('workflowsPage.overLimitApproverInWorkflow');
-        });
-
-        it('should allow saving a workflow whose additional approver for reports over the limit is not one of its approvers', async () => {
-            // Given a workflow saved as approval workflow rules, whose reports over the first approver's limit also go to
-            // someone outside it
+            ['block', 'go down', 5000, 1000, false],
+            ['allow', 'go up', 1000, 5000, true],
+            ['allow', 'stay the same', 1000, 1000, true],
+        ])('should %s saving optional over-limit approvers in a row whose amounts %s', async (_action, _description, firstAmount, secondAmount, expectedIsValid) => {
+            // Given a workflow with two optional over-limit approvers in a row after its first approver
             const approvalWorkflow: ApprovalWorkflowOnyx = {
                 ...INITIAL_APPROVAL_WORKFLOW,
                 members: [{email: employee4Email, displayName: employee4Email}],
                 approvers: [
-                    {email: employee1Email, displayName: employee1Email, approvalLimit: 5000, overLimitForwardsTo: ownerEmail},
-                    {email: employee2Email, displayName: employee2Email},
+                    {email: employee1Email, displayName: employee1Email},
+                    {email: employee2Email, displayName: employee2Email, overLimitAmount: firstAmount},
+                    {email: employee3Email, displayName: employee3Email, overLimitAmount: secondAmount},
                 ],
             };
             await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
 
             // When the admin tries to save it
-            const isValid = validateApprovalWorkflow(approvalWorkflow, true);
+            const isValid = validateApprovalWorkflow(approvalWorkflow);
             await waitForBatchedUpdates();
 
-            // Then it saves, since the limit adds someone who wouldn't otherwise approve the report
-            expect(isValid).toBe(true);
+            // Then it only saves when the amounts don't go down, since without approval workflow rules the first approver sends
+            // the reports over a single amount to a single over-limit approver
+            expect(isValid).toBe(expectedIsValid);
+            const workflowState = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
+            expect(workflowState?.errors?.['approver-2']).toBe(expectedIsValid ? undefined : 'workflowsPage.overLimitAmountBelowPreviousApprover');
         });
     });
 
     describe('setApprovalWorkflowApprover', () => {
-        it('should clear the over-limit flag once a member is picked as the additional approver', async () => {
-            // Given an approver whose reports over the limit go to someone no longer on the workspace
-            const removedEmail = 'removed@example.com';
-            const flaggedApprover: Approver = {
-                email: ownerEmail,
-                displayName: ownerEmail,
-                approvalLimit: 1000,
-                overLimitForwardsTo: removedEmail,
-                isOverLimitForwardsToNotWorkspaceMember: true,
-            };
-            const currentApprovalWorkflow: ApprovalWorkflowOnyx = {...INITIAL_APPROVAL_WORKFLOW, approvers: [flaggedApprover]};
+        it('should keep the reports an approver gets when their employee settings add the approvers after them', async () => {
+            // Given an approver being picked as an optional over-limit approver, who forwards approved reports to employee2
+            const currentApprovalWorkflow: ApprovalWorkflowOnyx = {...INITIAL_APPROVAL_WORKFLOW, approvers: [{email: ownerEmail, displayName: ownerEmail}]};
             await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, currentApprovalWorkflow);
             const policy = createMock<PolicyType>({
                 id: generatePolicyID(),
                 owner: ownerEmail,
                 employeeList: {
                     [ownerEmail]: {email: ownerEmail, role: 'admin', submitsTo: ownerEmail},
-                    [employee1Email]: {email: employee1Email, role: 'user', submitsTo: ownerEmail},
+                    [employee1Email]: {email: employee1Email, role: 'user', submitsTo: ownerEmail, forwardsTo: employee2Email},
+                    [employee2Email]: {email: employee2Email, role: 'user', submitsTo: ownerEmail},
                 },
             });
 
-            // When the admin picks a member as the new additional approver
+            // When they're set as the second approver, with employee settings that read the same as when they were loaded
+            calculateApproversMock.mockImplementation(() => [
+                {email: employee1Email, displayName: employee1Email, forwardsTo: employee2Email},
+                {email: employee2Email, displayName: employee2Email},
+            ]);
             setApprovalWorkflowApprover({
-                approver: {...flaggedApprover, overLimitForwardsTo: employee1Email},
-                approverIndex: 0,
+                approver: {email: employee1Email, displayName: employee1Email, overLimitAmount: 1000},
+                approverIndex: 1,
                 policy,
                 currentApprovalWorkflow,
                 personalDetailsByEmail: {},
             });
             await waitForBatchedUpdates();
 
-            // Then the approver is no longer flagged, so the workflow can be saved
+            // Then the approver they forward to is added after them, and they still only get the reports over the amount
             const approvalWorkflow = await getApprovalWorkflowState();
-            expect(approvalWorkflow?.approvers.at(0)?.overLimitForwardsTo).toBe(employee1Email);
-            expect(approvalWorkflow?.approvers.at(0)?.isOverLimitForwardsToNotWorkspaceMember).toBeFalsy();
+            expect(approvalWorkflow?.approvers.map((approver) => approver?.email)).toEqual([ownerEmail, employee1Email, employee2Email]);
+            expect(approvalWorkflow?.approvers.at(1)?.overLimitAmount).toBe(1000);
         });
 
         it('should add an approver at an empty index', async () => {
@@ -1182,7 +1182,7 @@ describe('actions/Workflow', () => {
         it('should keep ADVANCED approval mode when default approver has overLimitForwardsTo after removing second approver', async () => {
             mockFetch.pause();
 
-            // Given a policy where default approver has both forwardsTo and overLimitForwardsTo
+            // Given a policy where default approver has both forwardsTo and an optional over-limit approver
             const policy = createMock<Policy>({
                 id: '123456789',
                 name: 'Test Workspace',
@@ -1216,13 +1216,16 @@ describe('actions/Workflow', () => {
             });
 
             // Remove employee2 as second approver (forwardsTo will be cleared)
-            // but overLimitForwardsTo to employee1 remains
+            // but employee1 remains as the optional over-limit approver
             const approvalWorkflow = {
                 members: [
                     {email: employee1Email, displayName: employee1Email},
                     {email: employee2Email, displayName: employee2Email},
                 ],
-                approvers: [{email: ownerEmail, displayName: ownerEmail, isCircularReference: false, overLimitForwardsTo: employee1Email, approvalLimit: 500000}],
+                approvers: [
+                    {email: ownerEmail, displayName: ownerEmail, isCircularReference: false},
+                    {email: employee1Email, displayName: employee1Email, isCircularReference: false, overLimitAmount: 500000},
+                ],
                 availableMembers: [],
                 usedApproverEmails: [ownerEmail],
                 isDefault: true,
@@ -1723,9 +1726,10 @@ describe('actions/Workflow', () => {
             });
             const importedWorkflow = approvalWorkflows.find((workflow) => workflow.approvers.at(0)?.email === employee3Email);
             expect(importedWorkflow?.members.map((member) => member.email).sort()).toEqual([employee1Email, employee2Email]);
-            expect(importedWorkflow?.approvers.map(({email, approvalLimit, overLimitForwardsTo}) => ({email, approvalLimit, overLimitForwardsTo}))).toEqual([
-                {email: employee3Email, approvalLimit: 10000, overLimitForwardsTo: employee4Email},
-                {email: ownerEmail, approvalLimit: null, overLimitForwardsTo: undefined},
+            expect(importedWorkflow?.approvers.map(({email, overLimitAmount}) => ({email, overLimitAmount}))).toEqual([
+                {email: employee3Email, overLimitAmount: undefined},
+                {email: employee4Email, overLimitAmount: 10000},
+                {email: ownerEmail, overLimitAmount: undefined},
             ]);
 
             // And no other workflow still lists them

@@ -2037,7 +2037,6 @@
 "../../src/pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsCreatePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsEditPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsEditPage.tsx"	"rulesdir/no-onyx-loading-status"	1
-"../../src/pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsOverLimitApproverPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/workspace/workflows/tabs/WorkflowsPaymentsTab.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/workspace/workflows/tabs/WorkflowsPaymentsTab.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../src/pages/workspace/workflows/tabs/WorkflowsPaymentsTab.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2

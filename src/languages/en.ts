@@ -3543,6 +3543,7 @@ const translations = {
             `Approvals are managed by your ${provider} integration. To update your approval workflow, head to your ${provider} connection settings.`,
         goToProviderSettings: ({provider}: {provider: string}) => `Go to ${provider} settings`,
         approverFromProvider: ({provider}: {provider: string}) => `from ${provider}`,
+        ifReportIsOver: ({amount}: {amount: string}) => `If report is over ${amount}`,
         finalApprover: 'Final approver',
         manager: 'Manager',
         makeOrTrackPaymentsTitle: 'Payments',
@@ -3594,8 +3595,8 @@ const translations = {
         approverInMultipleWorkflows: 'This member already belongs to another approval workflow. Any updates here will reflect there too.',
         approverNotWorkspaceMember: 'This approver is no longer a workspace member. Choose a new approver or delete this workflow.',
         defaultWorkflowApproverNotWorkspaceMember: 'This approver is no longer a workspace member. Choose a new approver.',
-        overLimitApproverNotWorkspaceMember: 'The additional approver for reports over the limit is no longer a workspace member. Choose a new additional approver.',
-        overLimitApproverInWorkflow: 'The additional approver for reports over the limit is already an approver in this workflow. Choose a different additional approver.',
+        overLimitAmountBelowPreviousApprover: 'Enter a report total at least as high as the previous approver’s.',
+        overLimitAmountAboveNextApprover: 'Enter a report total no higher than the next approver’s.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> already approves reports to <strong>${name2}</strong>. Please choose a different approver to avoid a circular workflow.`,
         emptyContent: {
@@ -3617,7 +3618,7 @@ const translations = {
     },
     workflowsCreateApprovalsPage: {
         title: 'Confirm',
-        header: 'Add more approvers and confirm.',
+        header: 'Add more approvers or confirm',
         additionalApprover: 'Additional approver',
         submitButton: 'Add workflow',
     },
@@ -3625,6 +3626,9 @@ const translations = {
         title: 'Edit approval workflow',
         deleteTitle: 'Delete approval workflow',
         deletePrompt: 'Are you sure you want to delete this approval workflow? All members will subsequently follow the default workflow.',
+        hiddenRoutesTitle: 'Some reports will be routed differently',
+        hiddenRoutesPrompt:
+            'This workflow was set up with approvers who send some reports to other approvers, depending on the report total. Saving it keeps only the approvers shown here, so every report will go through them.',
     },
     workflowsExpensesFromPage: {
         title: 'Expenses from',
@@ -3638,24 +3642,19 @@ const translations = {
     workflowsApproverPage: {
         genericErrorMessage: "The approver couldn't be changed. Please try again or contact support.",
         title: 'Set approver',
+        setFirstApprover: 'Set first approver',
+        addApprover: 'Add approver',
         description: 'This person will approve the expenses.',
     },
     workflowsApprovalLimitPage: {
-        title: 'Approver',
-        header: '(Optional) Want to add an approval limit?',
-        description: ({approverName}: {approverName: string}) =>
-            approverName
-                ? `Add another approver when <strong>${approverName}</strong> is approver and report exceeds the amount below:`
-                : 'Add another approver when a report exceeds the amount below:',
-        reportAmountLabel: 'Report amount',
-        additionalApproverLabel: 'Additional approver',
-        skip: 'Skip',
+        whenShouldApprove: ({approverName}: {approverName: string}) => `When should ${approverName} approve?`,
+        always: 'Always',
+        overSetAmount: 'Only for reports over a set amount',
+        reportTotal: 'Report total',
+        approvesOverAmount: ({approverName, amount}: {approverName: string; amount: string}) => `${approverName} only approves reports over ${amount}.`,
+        removeApprover: 'Remove approver',
         next: 'Next',
-        removeLimit: 'Remove limit',
         enterAmountError: 'Please enter a valid amount',
-        enterApproverError: 'Approver is required when you set a report limit',
-        enterBothError: 'Enter a report amount and additional approver',
-        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `Reports above ${approvalLimit} forward to ${approverName}`,
     },
     workflowsPayerPage: {
         title: 'Authorized payer',

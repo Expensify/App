@@ -23,7 +23,9 @@ import {filterRulesForPolicy, getApprovalWorkflowRulesForPolicy} from '@libs/Rul
 import {
     convertApprovalWorkflowRulesToWorkflows,
     convertPolicyEmployeesToApprovalWorkflows,
+    extractSubmitterEmails,
     getWorkflowMemberEmails,
+    hasHiddenEmployeeRoutes,
     includesEveryWorkspaceMember,
     isApprovalWorkflowLockedByIntegration,
 } from '@libs/WorkflowUtils';
@@ -112,13 +114,30 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
 
     const {currentApprovalWorkflow, defaultApprovalWorkflow, defaultWorkflowMembers, usedApproverEmails} = getApprovalWorkflowData();
 
-    const updateApprovalWorkflowCallback = () => {
+    const updateApprovalWorkflowCallback = async () => {
         if (!approvalWorkflow || !initialApprovalWorkflow) {
             return;
         }
 
-        if (!validateApprovalWorkflow(approvalWorkflow, isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS))) {
+        if (!validateApprovalWorkflow(approvalWorkflow)) {
             return;
+        }
+
+        // Saving a workflow the employee settings still route turns it into rules, which only keep the approvers shown, so
+        // the admin is warned when the employee settings route some reports another way
+        const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
+        const ruleSubmitterEmails = new Set(Object.values(getApprovalWorkflowRulesForPolicy(rulesCollection, route.params.policyID)).flatMap(extractSubmitterEmails));
+        const isRoutedByEmployeeSettings = !initialApprovalWorkflow.members.some((member) => ruleSubmitterEmails.has(member.email));
+        if (isMultipleApproversBetaEnabled && isRoutedByEmployeeSettings && hasHiddenEmployeeRoutes(initialApprovalWorkflow.approvers, policy?.employeeList ?? {})) {
+            const result = await showConfirmModal({
+                title: translate('workflowsEditApprovalsPage.hiddenRoutesTitle'),
+                prompt: translate('workflowsEditApprovalsPage.hiddenRoutesPrompt'),
+                confirmText: translate('common.save'),
+                cancelText: translate('common.cancel'),
+            });
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
         }
 
         // A workflow with everyone in it leaves every other workflow empty, so it becomes the default one
@@ -129,7 +148,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             // Pop just this screen rather than the whole RHP stack, so entry points that pushed the editor on top of
             // another screen (e.g. a member's profile) return there instead of being torn down with it.
             // The write is deferred until the close animation ends to avoid re-rendering the animating-out panel.
-            if (isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS)) {
+            if (isMultipleApproversBetaEnabled) {
                 Navigation.goBack(undefined, {
                     afterTransition: () => {
                         updateApprovalWorkflowRules({approvalWorkflow: workflowToSave, initialApprovalWorkflow, policy, rules: rulesCollection, defaultApprovalWorkflow});

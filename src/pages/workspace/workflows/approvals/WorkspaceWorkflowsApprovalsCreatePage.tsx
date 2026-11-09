@@ -67,7 +67,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
             return;
         }
 
-        if (!validateApprovalWorkflow(approvalWorkflow, isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS))) {
+        if (!validateApprovalWorkflow(approvalWorkflow)) {
             return;
         }
 

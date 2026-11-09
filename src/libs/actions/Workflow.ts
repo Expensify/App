@@ -1,7 +1,7 @@
 import {write} from '@libs/API';
 import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, SetApprovalWorkflowParams, UpdateWorkspaceApprovalParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {getDefaultApprover, isNonMemberApprover} from '@libs/PolicyUtils';
+import {getDefaultApprover} from '@libs/PolicyUtils';
 import type {ApprovalWorkflowRulesDiff} from '@libs/RuleUtils';
 import {getApprovalWorkflowRulesForPolicy} from '@libs/RuleUtils';
 import {
@@ -13,8 +13,8 @@ import {
     convertApprovalWorkflowToPolicyEmployees,
     extractSubmitterEmails,
     getApproverChainKey,
+    getApproversFromImportedApprovers,
     getNonMemberApproverError,
-    getOverLimitForwardsToDisplayName,
     getWorkflowMemberEmails,
     hasRuleBasedDefaultWorkflow,
     includesEveryWorkspaceMember,
@@ -586,7 +586,7 @@ function importApprovalWorkflowRules({policy, rules, members, addedMemberEmails}
     // Members listing the same approvers share a workflow
     const workflowsByApprovers = new Map<string, ApprovalWorkflow>();
     for (const member of members) {
-        const approvers = member.approvers.map((approver) => ({...approver, displayName: approver.email}));
+        const approvers = getApproversFromImportedApprovers(member.approvers);
         const approversKey = getApproverChainKey(approvers);
         const workflow: ApprovalWorkflow = workflowsByApprovers.get(approversKey) ?? {members: [], approvers, isDefault: false};
         workflow.members.push({email: member.email, displayName: member.email});
@@ -638,8 +638,7 @@ function setApprovalWorkflowApprover({approver, approverIndex, currentApprovalWo
     }
 
     const approvers: Array<Approver | undefined> = [...currentApprovalWorkflow.approvers];
-    const overLimitForwardsToDisplayName = getOverLimitForwardsToDisplayName(approver.overLimitForwardsTo, personalDetailsByEmail);
-    approvers[approverIndex] = {...approver, overLimitForwardsToDisplayName};
+    approvers[approverIndex] = approver;
 
     // Check if the approver forwards to other approvers and add them to the list
     if (policy.employeeList[approver.email]?.forwardsTo) {
@@ -647,16 +646,10 @@ function setApprovalWorkflowApprover({approver, approverIndex, currentApprovalWo
 
         approvers.splice(approverIndex, approvers.length, ...additionalApprovers);
 
-        // Preserve the new approvalLimit and overLimitForwardsTo values that were passed in,
-        // since calculateApprovers reads from stale policy data
+        // Preserve the reports the approver gets that were passed in, since calculateApprovers reads from stale policy data
         const existingApprover = approvers.at(approverIndex);
         if (existingApprover) {
-            approvers[approverIndex] = {
-                ...existingApprover,
-                approvalLimit: approver.approvalLimit,
-                overLimitForwardsTo: approver.overLimitForwardsTo,
-                overLimitForwardsToDisplayName,
-            };
+            approvers[approverIndex] = {...existingApprover, overLimitAmount: approver.overLimitAmount};
         }
     }
 
@@ -679,8 +672,6 @@ function setApprovalWorkflowApprover({approver, approverIndex, currentApprovalWo
         return {
             ...existingApprover,
             isCircularReference: hasCircularReference,
-            // Re-check, so picking a new additional approver for reports over the limit clears the flag
-            isOverLimitForwardsToNotWorkspaceMember: isNonMemberApprover(policy, existingApprover.overLimitForwardsTo) || undefined,
         };
     });
 
@@ -697,6 +688,22 @@ function clearApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow}:
     approvers[approverIndex] = undefined;
 
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {approvers: lodashDropRightWhile(approvers, (approver) => !approver), errors: null});
+}
+
+/** Take the approver at the specified index out of the approval workflow that is currently edited, moving up the approvers after them */
+function removeApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow}: ClearApprovalWorkflowApproverParams) {
+    if (!currentApprovalWorkflow) {
+        return;
+    }
+
+    const approvers = currentApprovalWorkflow.approvers.filter((approver, index) => index !== approverIndex);
+    Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {
+        // An approver after the removed one may only have repeated them
+        approvers: approvers.map(
+            (approver, index) => approver && {...approver, isCircularReference: approvers.slice(0, index).some((previousApprover) => previousApprover?.email === approver.email)},
+        ),
+        errors: null,
+    });
 }
 
 /** Clear all approvers of the approval workflow that is currently edited */
@@ -793,10 +800,9 @@ type ApprovalWorkflowOnyxValidated = Omit<ApprovalWorkflowOnyx, 'approvers'> & {
 /**
  * Validates the approval workflow and sets the errors on the approval workflow
  * @param approvalWorkflow the approval workflow to validate
- * @param isMultipleApproversBetaEnabled whether the `MULTIPLE_APPROVERS` beta is enabled, which saves the workflow as approval workflow rules
  * @returns true if the approval workflow is valid, false otherwise
  */
-function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx, isMultipleApproversBetaEnabled: boolean): approvalWorkflow is ApprovalWorkflowOnyxValidated {
+function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): approvalWorkflow is ApprovalWorkflowOnyxValidated {
     const errors: Record<string, TranslationPaths> = {};
 
     for (const [approverIndex, approver] of approvalWorkflow.approvers.entries()) {
@@ -813,23 +819,13 @@ function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx, isMult
             errors[`approver-${approverIndex}`] = nonMemberApproverError;
         }
 
-        // Someone who already approves in this workflow approves every report anyway, so the limit can't add them
-        if (
-            isMultipleApproversBetaEnabled &&
-            approver?.overLimitForwardsTo &&
-            approvalWorkflow.approvers.some((workflowApprover) => workflowApprover?.email === approver.overLimitForwardsTo)
-        ) {
-            errors[`approver-${approverIndex}`] = 'workflowsPage.overLimitApproverInWorkflow';
-        }
-
-        // Validate that if overLimitForwardsTo is set, approvalLimit must also be set
-        if (approver?.overLimitForwardsTo && (!approver?.approvalLimit || approver.approvalLimit <= 0)) {
-            errors[`approver-${approverIndex}`] = 'workflowsApprovalLimitPage.enterAmountError';
-        }
-
-        // Validate that if approvalLimit is set, overLimitForwardsTo must also be set
-        if (approver?.approvalLimit && approver.approvalLimit > 0 && !approver?.overLimitForwardsTo) {
-            errors[`approver-${approverIndex}`] = 'workflowsApprovalLimitPage.enterApproverError';
+        // Without approval workflow rules, an approver sends reports on to a single over-limit approver, over a single amount,
+        // so optional over-limit approvers in a row only work with amounts that go up. Rules keep to it too, so a workflow saves
+        // the same way either way.
+        const overLimitAmount = approver?.overLimitAmount;
+        const previousOverLimitAmount = approverIndex > 0 ? approvalWorkflow.approvers.at(approverIndex - 1)?.overLimitAmount : undefined;
+        if (overLimitAmount !== undefined && previousOverLimitAmount !== undefined && overLimitAmount < previousOverLimitAmount) {
+            errors[`approver-${approverIndex}`] = 'workflowsPage.overLimitAmountBelowPreviousApprover';
         }
     }
 
@@ -858,6 +854,7 @@ export {
     setApprovalWorkflow,
     selectApprovalWorkflowForEdit,
     clearApprovalWorkflowApprover,
+    removeApprovalWorkflowApprover,
     clearApprovalWorkflowApprovers,
     clearApprovalWorkflow,
     saveFastEditApprovalWorkflow,

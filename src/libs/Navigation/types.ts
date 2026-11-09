@@ -1147,10 +1147,6 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
         approverIndex: number;
     };
-    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER]: {
-        policyID: string;
-        approverIndex: number;
-    };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {
         policyID: string;
     };

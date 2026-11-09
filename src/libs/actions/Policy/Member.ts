@@ -26,7 +26,7 @@ import {canRoleCreateExpenses, getDefaultApprover, getOwnerChangePayerSuccessDat
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {getApprovalWorkflowRulesForPolicy} from '@libs/RuleUtils';
-import {buildApproverChainFromRules} from '@libs/WorkflowUtils';
+import {buildApproverChainFromRules, getApproverChainKey, getApproversFromImportedApprovers} from '@libs/WorkflowUtils';
 
 import * as FormActions from '@userActions/FormActions';
 import type {DisplayNamePersonalDetails} from '@userActions/PersonalDetails';
@@ -1067,25 +1067,14 @@ async function importPolicyMembers(
             return false;
         }
 
-        // A repeated approver ends the chain, and a limit only counts with someone to receive the reports over it, the way imported approvers are read
+        // A repeated approver ends the chain, the way imported approvers are read
         const currentApprovers = buildApproverChainFromRules({
             submitter: member.email,
             rules: approvalWorkflowRules,
             employees: policy.employeeList ?? {},
             personalDetailsByEmail: {},
         }).filter((approver) => !approver.isCircularReference);
-        return (
-            currentApprovers.length !== member.approvers.length ||
-            member.approvers.some((approver, index) => {
-                const currentApprover = currentApprovers.at(index);
-                const hasCurrentLimit = !!currentApprover?.approvalLimit && !!currentApprover.overLimitForwardsTo;
-                return (
-                    approver.email !== currentApprover?.email ||
-                    approver.approvalLimit !== (hasCurrentLimit ? currentApprover.approvalLimit : undefined) ||
-                    approver.overLimitForwardsTo !== (hasCurrentLimit ? currentApprover.overLimitForwardsTo : undefined)
-                );
-            })
-        );
+        return getApproverChainKey(currentApprovers) !== getApproverChainKey(getApproversFromImportedApprovers(member.approvers));
     };
     const {added, updated} = members.reduce(
         (acc, curr) => {

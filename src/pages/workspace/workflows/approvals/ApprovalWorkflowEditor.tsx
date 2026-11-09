@@ -19,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy} from '@libs/PolicyUtils';
 import sortAlphabetically from '@libs/sortAlphabetically';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
-import {getApprovalLimitDescription, getNonMemberApproverError} from '@libs/WorkflowUtils';
+import {getApproverTitles, getNonMemberApproverError} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -57,8 +57,16 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
     const approverCount = approvalWorkflow.approvers.length;
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
-    const approverDescription = (index: number) =>
-        approverCount > 1 ? `${toLocaleOrdinalWithWords(index + 1)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`;
+    const approverDescriptions = getApproverTitles({
+        approvers: approvalWorkflow.approvers,
+        getTitle: (position, count) =>
+            position > 0 && position === count - 1
+                ? translate('workflowsPage.finalApprover')
+                : `${toLocaleOrdinalWithWords(position + 1)} ${translate('workflowsPage.approver').toLowerCase()}`,
+        currency,
+        translate,
+        convertToDisplayString,
+    });
 
     const getApprovalPendingAction = (index: number) => {
         // The approver's own `pendingAction` takes precedence — it's set when an approver was
@@ -200,14 +208,6 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                     // reaches all of them. With the beta each workflow routes through its own rules and the edit stays in this one.
                     const isApproverInMultipleWorkflows =
                         !isMultipleApproversBetaEnabled && !errorText && approvalWorkflow.usedApproverEmails.some((approverEmail) => approverEmail === approver?.email);
-                    const limitDescription = getApprovalLimitDescription({
-                        approver,
-                        currency,
-                        translate,
-                        formatPhoneNumber,
-                        convertToDisplayString,
-                    });
-                    const hintText = [isApproverInMultipleWorkflows ? translate('workflowsPage.approverInMultipleWorkflows') : undefined, limitDescription].filter(Boolean).join('\n');
 
                     return (
                         <OfflineWithFeedback
@@ -219,7 +219,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                                 accessibilityLabel={formatPhoneNumber(approver?.displayName ?? '')}
                                 titleStyle={styles.textNormalThemeText}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
-                                description={approverDescription(approverIndex)}
+                                description={approverDescriptions.at(approverIndex)}
                                 descriptionTextStyle={!!approver?.displayName && styles.textLabelSupportingNormal}
                                 titleComponent={
                                     approver ? (
@@ -235,7 +235,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                                 }
                                 onPress={() => editApprover(approverIndex)}
                                 shouldShowRightIcon
-                                hintText={hintText}
+                                hintText={isApproverInMultipleWorkflows ? translate('workflowsPage.approverInMultipleWorkflows') : undefined}
                                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                 errorText={errorText}
                                 shouldRenderErrorAsHTML
