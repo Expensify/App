@@ -325,7 +325,7 @@
     "dotenv": "^16.0.3",
     "esbuild": "^0.28.1",
     "eslint": "^9.36.0",
-    "eslint-config-expensify": "github:callstack-internal/eslint-config-expensify#ace7279c74ab2d4a5f1f842af291301e80c4d597",
+    "eslint-config-expensify": "github:callstack-internal/eslint-config-expensify#79f1c70176646ab048d108ad6c97fbfa15900e22",
     "eslint-plugin-jsdoc": "^60.7.0",
     "eslint-plugin-lodash": "^7.4.0",
     "eslint-plugin-react-native-a11y": "^3.3.0",
