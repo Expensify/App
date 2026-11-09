@@ -10,6 +10,9 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import type {TaskForParameters} from '@libs/actions/Report';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
+// Testing only so it's okay to import computeReportName
+// eslint-disable-next-line no-restricted-imports
+import computeReportNameOriginal from '@libs/computeReportName';
 import DateUtils from '@libs/DateUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {compute} from '@libs/Formula';
@@ -24,9 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, getSortedReportActions, getSystemMessageDisplayState, isActionOfType, isWhisperAction} from '@libs/ReportActionsUtils';
-// Testing only so it's okay to import computeReportName
-// eslint-disable-next-line no-restricted-imports
-import {buildReportNameFromParticipantNames, computeReportName as computeReportNameOriginal, getGroupChatName, getPolicyExpenseChatName, getReportName} from '@libs/ReportNameUtils';
+import {buildReportNameFromParticipantNames, getGroupChatName, getPolicyExpenseChatName, getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
     applyLabelToUploadingAttachmentHtml,
@@ -9826,6 +9827,56 @@ describe('ReportUtils', () => {
             ).toBeTruthy();
         });
 
+        it('should return false for a workspace chat the user is not a participant of', () => {
+            // Given the workspace chat behind a report shared with the user, which they are not a participant of
+            const report: Report = {...LHNTestUtils.getFakeReport([1, 2]), chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID: '1'};
+
+            // When checking if it should show in the inbox or search
+            const shouldShow = shouldReportBeInOptionList({
+                report,
+                chatReport: mockedChatReport,
+                currentReportId: undefined,
+                isInFocusMode: false,
+                isDefaultRoomsBetaEnabled: true,
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                draftComment: '',
+                isReportArchived: undefined,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
+                currentUserAccountID,
+            });
+
+            // Then it is left out, since opening it only returns report not found
+            expect(shouldShow).toBe(false);
+        });
+
+        it('should return true for a workspace chat the user is a participant of', () => {
+            // Given a workspace chat the user is a participant of
+            const report: Report = {...LHNTestUtils.getFakeReport([1, currentUserAccountID]), chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID: '1'};
+
+            // When checking if it should show in the inbox or search
+            const shouldShow = shouldReportBeInOptionList({
+                report,
+                chatReport: mockedChatReport,
+                currentReportId: undefined,
+                isInFocusMode: false,
+                isDefaultRoomsBetaEnabled: true,
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                draftComment: '',
+                isReportArchived: undefined,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
+                currentUserAccountID,
+            });
+
+            // Then it still shows
+            expect(shouldShow).toBe(true);
+        });
+
         it('should return true for empty submitted report if it is the current focused report', async () => {
             const report: Report = {...LHNTestUtils.getFakeReport(), total: 0, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, stateNum: CONST.REPORT.STATE_NUM.SUBMITTED};
             const currentReportId = report.reportID;
@@ -14341,7 +14392,7 @@ describe('ReportUtils', () => {
             it('should keep DEW precedence over IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION for an approver without parent access', async () => {
                 // Given the hasParentAccess=false fixture that otherwise yields IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION with an
                 // APPROVE badge, plus a DEW approve failure. The bare DEW dot is intentional: it deep-links to the failure message,
-                // and useOptimisticNextStep keys the "fix the issues" next step off this reason.
+                // and useNextStep keys the "fix the issues" next step off this reason.
                 const policyID = 'testPolicyDEW123';
                 const fakePolicy: Policy = {
                     ...createRandomPolicy(1),
