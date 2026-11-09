@@ -210,7 +210,7 @@ function ScheduleCallPage() {
                                 <Text style={[styles.mb5]}>
                                     <RenderHTML
                                         html={translate('scheduledCall.book.slots', {
-                                            date: DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft.date, userTimezone, CONST.DATE.MONTH_DAY_YEAR_FORMAT, {locale: dateFnsLocale}),
+                                            date: DateUtils.formatToLongDateInTimeZone(scheduleCallDraft.date, userTimezone, dateFnsLocale),
                                         })}
                                     />
                                 </Text>

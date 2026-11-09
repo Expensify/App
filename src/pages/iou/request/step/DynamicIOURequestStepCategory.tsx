@@ -6,6 +6,7 @@ import FixedFooter from '@components/FixedFooter';
 import type {ListItem} from '@components/SelectionList/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 
+import useCreateAndApplyCategory from '@hooks/useCreateAndApplyCategory';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -30,7 +31,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {canCreateCategoryInSitu, canEditWorkspaceSettings, isGroupPolicy} from '@libs/PolicyUtils';
-import {getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
+import {getTransactionDetails, isCurrentUserSubmitter, isSelfDM} from '@libs/ReportUtils';
 import {getRequestType} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -94,13 +95,18 @@ function DynamicIOURequestStepCategory({
     const currentTransaction = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const transactionCategory = getTransactionDetails(currentTransaction)?.category ?? '';
     useRestartOnReceiptFailure(transaction, routeReportID, iouType, action);
-    const currentUserEmailParam = useCurrentUserPersonalDetails().login ?? '';
+    const {login: currentUserEmailParam = '', accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const isOwnExpense = !isEditing || !transactionReport || isCurrentUserSubmitter(transactionReport, currentUserAccountID);
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
 
     const categoryForDisplay = isCategoryMissing(transactionCategory) ? '' : transactionCategory;
 
-    const createCategoryMenuItems = canCreateCategoryInSitu(policy, currentUserEmailParam)
+    const canCreateCategory = canCreateCategoryInSitu(policy, currentUserEmailParam);
+    // Creating a category requires a real workspace. Writing to a draft would clear its default categories.
+    const isDraftOnlyPolicy = !policyData.policy?.id || policyData.policy.id !== policyID;
+    const canCreateSearchedCategory = canCreateCategory && !isDraftOnlyPolicy;
+    const createCategoryMenuItems = canCreateCategory
         ? [
               {
                   icon: expensifyIcons.Plus,
@@ -150,6 +156,7 @@ function DynamicIOURequestStepCategory({
         isEditing,
         isEditingSplit,
     });
+    const createAndApplyCategory = useCreateAndApplyCategory({policyID, policyData, updateCategory: updateTransactionCategory});
 
     const navigateBack = () => {
         Navigation.goBack(backPath);
@@ -159,13 +166,7 @@ function DynamicIOURequestStepCategory({
         Navigation.goBack(backPath, {shouldSkipFocusRestore: true});
     };
 
-    const updateCategory = (category: ListItem) => {
-        const categorySearchText = category.searchText ?? '';
-        const isSelectedCategory = categorySearchText === categoryForDisplay;
-        const updatedCategory = isSelectedCategory ? '' : categorySearchText;
-
-        updateTransactionCategory(updatedCategory);
-
+    const navigateAfterCategoryUpdate = () => {
         // `action === CATEGORIZE` only occurs when categorizing a fresh tracked expense from a report, never from
         // an existing Confirmation screen, so continue forward into Confirmation here.
         if (isDraftUpdate && action === CONST.IOU.ACTION.CATEGORIZE && !backPath.includes('/confirmation/')) {
@@ -176,6 +177,20 @@ function DynamicIOURequestStepCategory({
         }
 
         saveAndNavigateBack();
+    };
+
+    const updateCategory = (category: ListItem) => {
+        const categorySearchText = category.searchText ?? '';
+        const isSelectedCategory = categorySearchText === categoryForDisplay;
+        const updatedCategory = isSelectedCategory ? '' : categorySearchText;
+
+        updateTransactionCategory(updatedCategory);
+        navigateAfterCategoryUpdate();
+    };
+
+    const createSearchedCategory = (categoryName: string) => {
+        createAndApplyCategory(categoryName);
+        navigateAfterCategoryUpdate();
     };
 
     return (
@@ -238,6 +253,8 @@ function DynamicIOURequestStepCategory({
                     selectedCategory={categoryForDisplay}
                     policyID={policyID ?? report?.policyID}
                     onSubmit={updateCategory}
+                    onCreateCategory={canCreateSearchedCategory ? createSearchedCategory : undefined}
+                    ownerAccountID={isOwnExpense ? currentUserAccountID : undefined}
                 />
             )}
         </StepScreenWrapper>

@@ -53,6 +53,7 @@ import {
     getAssignedCompanyCardMessage,
     getAutoCategorizeNewExpensesMessage,
     getAutoPayApprovedReportsEnabledMessage,
+    getAutoPayFeeDisclosureMessage,
     getAutoReimbursementMessage,
     getCardConnectionBrokenMessage,
     getCardIssuedMessage,
@@ -384,8 +385,9 @@ function getExpenseReportPreviewText(
     }
 
     const formattedAmount = convertToDisplayString(amount, currency);
-    const description = linkedTransaction ? getDescription(linkedTransaction) : '';
-    const comment = Parser.htmlToText(description || originalMessage?.comment || '').trim();
+    // The transaction is the source of truth. Split actions store the raw `{"comment":""}` payload as their comment
+    const description = linkedTransaction ? getDescription(linkedTransaction) : originalMessage?.comment;
+    const comment = Parser.htmlToText(description ?? '').trim();
 
     return formatReportLastMessageText(translate('iou.expenseAmount', formattedAmount, comment || undefined));
 }
@@ -1677,6 +1679,8 @@ function getReportAlternateText({
             );
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
             alternateText = Parser.htmlToText(getSettlementAccountLockedMessage(translate, lastAction));
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.AUTO_PAY_FEE_DISCLOSURE)) {
+            alternateText = Parser.htmlToText(getAutoPayFeeDisclosureMessage(translate, lastAction, getPersonalDetailsByID(getOriginalMessage(lastAction)?.accountID, personalDetails)));
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             alternateText = formatReportLastMessageText(`${getLastActorDisplayNamePrefix()}: ${lastMessageText}`);
         } else {

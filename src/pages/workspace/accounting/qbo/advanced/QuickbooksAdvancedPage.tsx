@@ -127,6 +127,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             title: translate('workspace.qbo.advancedConfig.inviteEmployees'),
             subtitle: translate('workspace.qbo.advancedConfig.inviteEmployeesDescription', integrationName),
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.inviteEmployeesDescription', integrationName),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.INVITE_EMPLOYEES_SWITCH,
             isActive: !!qboConfig?.syncPeople,
             onToggle: () => updateQuickbooksOnlineSyncPeople(policyID, !qboConfig?.syncPeople),
             subscribedSetting: CONST.QUICKBOOKS_CONFIG.SYNC_PEOPLE,
@@ -137,6 +138,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             title: translate('workspace.qbo.advancedConfig.createEntities'),
             subtitle: translate('workspace.qbo.advancedConfig.createEntitiesDescription', integrationName),
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.createEntitiesDescription', integrationName),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.AUTO_CREATE_VENDOR_SWITCH,
             isActive: !!qboConfig?.autoCreateVendor,
             onToggle: (isOn: boolean) => {
                 const nonReimbursableVendorCurrentValue = nonReimbursableBillDefaultVendorObject?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE;
@@ -161,6 +163,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             title: translate('workspace.accounting.reimbursedReports'),
             subtitle: translate('workspace.qbo.advancedConfig.reimbursedReportsDescription', integrationName),
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.reimbursedReportsDescription', integrationName),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.SYNC_REIMBURSED_REPORTS_SWITCH,
             isActive: isSyncReimbursedSwitchOn,
             onToggle: () => {
                 updateQuickbooksOnlineSyncReimbursedReports(
@@ -211,6 +214,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     title={item.title}
                     subtitle={item.subtitle}
                     switchAccessibilityLabel={item.switchAccessibilityLabel}
+                    switchSentryLabel={item.switchSentryLabel}
                     shouldPlaceSubtitleBelowSwitch
                     wrapperStyle={styles.mv3}
                     isActive={item.isActive}

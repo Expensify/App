@@ -66,7 +66,7 @@ If you use Certinia PSA/SRP, complete the following before connecting in Expensi
 
 ## How to connect to Certinia in New Expensify
 
-1. From the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**.
 2. Select **Certinia > Connect to Certinia**.
 3. Log in to your Certinia (Salesforce) account when prompted.
 4. Follow the on-screen prompts to authorize the connection.
@@ -81,7 +81,7 @@ Once connected, continue to [Configure Certinia](/articles/new-expensify/connect
 If you want to test the integration against a Certinia **sandbox** instead of your production account, use the sandbox connection option. The configuration experience is identical to production once connected — only the connection endpoints and bundle differ.
 
 1. Install the sandbox version of the Expensify bundle in your Certinia sandbox (the sandbox uses different bundle install links and OAuth endpoints than production).
-2. From the navigation tabs, go to **Workspaces > [Workspace Name] > Accounting**.
+2. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**.
 3. Select **Certinia > Connect to Certinia Sandbox**.
 4. Log in to your Certinia **sandbox** account and follow the on-screen prompts.
 5. Select the company to use.
@@ -105,8 +105,8 @@ Employees who only submit expense reports do not need Certinia access — but ea
 
 ## How do I disconnect Certinia?
 
-1. From the navigation tabs, go to **Workspaces > [Workspace Name] > Accounting**.
-2. Select the three dots **(⋮)** next to the Certinia connection.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**, then select **Configure** next to Certinia.
+2. Select **More (⋮)**.
 3. Click **Disconnect** and confirm.
 
 Disconnecting clears all imported options from Expensify.

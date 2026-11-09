@@ -32,8 +32,8 @@ type UseMoneyRequestReportVisibleActionsParams = {
     /** Whether the current user can perform write actions on the report */
     canPerformWriteAction: boolean;
 
-    /** Whether the harvest-created expense CREATED action should stay visible */
-    shouldShowHarvestCreatedAction: boolean;
+    /** Keeps creation history visible for harvested expense reports, bills, and invoices linked to bills. */
+    shouldShowCreatedAction: boolean;
 
     /** Whether the network is offline */
     isOffline: boolean;
@@ -66,7 +66,7 @@ function useMoneyRequestReportVisibleActions({
     reportActions,
     reportTransactionIDs,
     canPerformWriteAction,
-    shouldShowHarvestCreatedAction,
+    shouldShowCreatedAction,
     isOffline,
     isWaitingOnBankAccount = false,
 }: UseMoneyRequestReportVisibleActionsParams): UseMoneyRequestReportVisibleActionsResult {
@@ -74,7 +74,7 @@ function useMoneyRequestReportVisibleActions({
 
     const reportActionsWithVisiblePayments = isWaitingOnBankAccount ? reportActions.filter((action) => !shouldHidePayAction(action, true)) : reportActions;
     const visibleReportActionsNewestFirst = reportActionsWithVisiblePayments.filter((reportAction) => {
-        const isActionVisibleOnMoneyReport = isActionVisibleOnMoneyRequestReport(reportAction, shouldShowHarvestCreatedAction);
+        const isActionVisibleOnMoneyReport = isActionVisibleOnMoneyRequestReport(reportAction, shouldShowCreatedAction);
         if (!isActionVisibleOnMoneyReport) {
             return false;
         }

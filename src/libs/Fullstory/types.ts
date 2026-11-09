@@ -283,4 +283,4 @@ type ForwardedFSClassProps = {
     forwardedFSClass?: FSClass;
 };
 
-export type {FSPageLike, Fullstory, FullstoryEventName, FullstoryEventPropertiesMap, FullstoryUserVars, GetChatFSClass, ForwardedFSClassProps, ShouldInitialize};
+export type {FSClass, FSPageLike, Fullstory, FullstoryEventName, FullstoryEventPropertiesMap, FullstoryUserVars, GetChatFSClass, ForwardedFSClassProps, ShouldInitialize};
