@@ -1050,6 +1050,35 @@ describe('TSCompilerUtils', () => {
         }
     });
 
+    it('removes empty and ordinary comments without changing regex, URL or nested template values', async () => {
+        // Given regex and template contents that resemble comments, lexing must distinguish them from actual trivia.
+        const code = Str.dedent(`
+            /* real comment */
+            (() => {
+                const url = 'https://example.com/*literal*/';
+                const pattern = /[/*][/*]/;
+                const division = 8 / /**/ 2; // real comment
+                return [
+                    pattern.test(url),
+                    \`// literal \${/**/ pattern.test(url) ? \`nested /* literal */ \${division}\` : 'none'} /* literal */\`,
+                    url,
+                    division,
+                ];
+            })()
+        `);
+        const expected: unknown = runInNewContext(code);
+        const sourceFile = await createSourceFile(code);
+
+        // When comments are removed, AST literal boundaries let the scanner resume inside template substitutions.
+        const printed = await TSCompilerUtils.printWithoutComments(api, sourceFile);
+        const actual: unknown = runInNewContext(printed);
+
+        // Then evaluation is unchanged, including division, while ordinary and empty comments are absent.
+        expect(actual).toEqual(expected);
+        expect(printed).not.toContain('real comment');
+        expect(printed).not.toContain('/**/');
+    });
+
     describe('objectHas', () => {
         it('returns true for top-level property that exists', async () => {
             const source = await createSourceFile(

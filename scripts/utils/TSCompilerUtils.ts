@@ -537,7 +537,7 @@ function isStringConcatenationChain(node: ts.BinaryExpression): boolean {
 
 /**
  * The native printer preserves comments, but translation targets must not carry English context annotations.
- * Inspect parsed token trivia so comment markers inside strings, templates and regular expressions remain intact.
+ * AST literal boundaries keep the scanner from treating regex or template contents as comments.
  */
 async function printWithoutComments(api: API, node: ts.Node): Promise<string> {
     // The beta printer cooks tagged templates without substitutions, changing the raw strings passed to their tags.
@@ -546,20 +546,29 @@ async function printWithoutComments(api: API, node: ts.Node): Promise<string> {
     const lease = await api.createSourceFile('printed.ts', code);
     try {
         const ranges = new Map<number, number>();
-        const collectComments = (child: ts.Node): void => {
-            for (const position of [child.pos, child.end]) {
-                const comments = [...(ts.getLeadingCommentRanges(code, position) ?? []), ...(ts.getTrailingCommentRanges(code, position) ?? [])];
-                for (const comment of comments) {
-                    ranges.set(comment.pos, comment.end);
-                }
+        const literalEnds = new Map<number, number>();
+        const printedTemplates: ts.NoSubstitutionTemplateLiteral[] = [];
+        const collectLiteralBoundaries = (child: ts.Node): void => {
+            if (ts.isRegularExpressionLiteral(child) || ts.isNoSubstitutionTemplateLiteral(child) || ts.isTemplateLiteralLikeNode(child)) {
+                literalEnds.set(child.getStart(), child.end);
             }
-            for (const token of child.getChildren(lease.sourceFile)) {
-                collectComments(token);
+            if (ts.isTaggedTemplateExpression(child) && ts.isNoSubstitutionTemplateLiteral(child.template)) {
+                printedTemplates.push(child.template);
             }
+            child.forEachChild(collectLiteralBoundaries);
         };
-        collectComments(lease.sourceFile);
+        collectLiteralBoundaries(lease.sourceFile);
+        const scanner = ts.createScanner(false, lease.sourceFile.languageVariant, code);
+        for (let token = scanner.scan(); token !== ts.SyntaxKind.EndOfFile; token = scanner.scan()) {
+            const start = scanner.getTokenStart();
+            const literalEnd = literalEnds.get(start);
+            if (literalEnd !== undefined) {
+                scanner.resetTokenState(literalEnd);
+            } else if (token === ts.SyntaxKind.SingleLineCommentTrivia || token === ts.SyntaxKind.MultiLineCommentTrivia) {
+                ranges.set(start, scanner.getTokenEnd());
+            }
+        }
         const replacements = [...ranges].map(([start, end]) => ({start, end, text: code.slice(start, end).replaceAll(/[^\r\n]/g, ' ')}));
-        const printedTemplates = getTaggedTemplatesWithoutSubstitutions(lease.sourceFile);
         if (printedTemplates.length !== rawTemplates.length) {
             throw new Error('Could not preserve tagged template raw text after printing');
         }
