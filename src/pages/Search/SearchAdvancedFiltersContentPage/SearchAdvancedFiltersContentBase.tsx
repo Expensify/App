@@ -126,6 +126,7 @@ function SearchAdvancedFiltersContentBase() {
                                 onChange={(newValues) => {
                                     const updatedValues = {...newValues};
                                     const selectedReceiptTypes = newValues.receiptType;
+                                    // A positive receipt-type selection drops those values from the negated filter so the query can't emit both receiptType and -receiptType for the same value
                                     if (selectedReceiptTypes !== undefined) {
                                         const remainingNegatedReceiptTypes = currentValues?.receiptTypeNot?.filter((receiptType) => !selectedReceiptTypes.includes(receiptType));
                                         updatedValues.receiptTypeNot = remainingNegatedReceiptTypes?.length ? remainingNegatedReceiptTypes : undefined;
