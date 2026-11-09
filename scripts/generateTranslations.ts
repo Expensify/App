@@ -13,9 +13,9 @@ import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
 import en from '@src/languages/en';
 import type {TranslationPaths} from '@src/languages/types';
 
-import type {TemplateExpression} from '@typescript/typescript6';
+import type {TemplateExpression} from 'typescript/ast';
+import type {RetainedSourceFile} from 'typescript/async';
 
-import ts from '@typescript/typescript6';
 import {execFileSync} from 'child_process';
 import * as dotenv from 'dotenv';
 import {Str} from 'expensify-common';
@@ -24,11 +24,15 @@ import fs from 'fs';
 // eslint-disable-next-line you-dont-need-lodash-underscore/get
 import get from 'lodash/get';
 import path from 'path';
+import * as ts from 'typescript/ast';
+import * as factory from 'typescript/ast/factory';
+// eslint-disable-next-line rulesdir/no-api-in-views -- This is TypeScript's compiler client, not Expensify's HTTP API.
+import {API as CompilerAPI} from 'typescript/async';
 
 import type {DiffResult} from './utils/Git';
 import type Translator from './utils/Translator/Translator';
 import type {StringWithContext} from './utils/Translator/types';
-import type {TransformerResult} from './utils/TSCompilerUtils';
+import type {SourceFileTransformer, TransformerResult} from './utils/TSCompilerUtils';
 
 import COLORS from './utils/COLORS';
 import Git from './utils/Git';
@@ -51,8 +55,6 @@ const GENERATED_FILE_PREFIX = Str.dedent(`
      * - Improve context annotations in src/languages/en.ts
      */
 `);
-
-const tsPrinter = ts.createPrinter({removeComments: true});
 
 /**
  * If the estimated cost of translation exceeds this threshold (in USD), prompt the user for confirmation before proceeding.
@@ -106,7 +108,11 @@ class TranslationGenerator {
     /**
      * The file to use as the source of truth for translations.
      */
-    private readonly sourceFile: ts.SourceFile;
+    private sourceFile!: ts.SourceFile;
+
+    private readonly api: CompilerAPI;
+
+    private readonly sourceFileLeases: RetainedSourceFile[] = [];
 
     /**
      * Translator module to perform translations.
@@ -211,9 +217,9 @@ class TranslationGenerator {
      */
     private readonly dedentStringKeys = new Set<number>();
 
-    constructor() {
+    constructor(api: CompilerAPI) {
+        this.api = api;
         this.languagesDir = process.env.LANGUAGES_DIR ?? path.join(__dirname, '../src/languages');
-        const enSourceFile = path.join(this.languagesDir, 'en.ts');
 
         /* eslint-disable @typescript-eslint/naming-convention */
         this.cli = new CLI({
@@ -306,9 +312,6 @@ class TranslationGenerator {
             throw new Error('GITHUB_TOKEN environment variable is required when using --pr-number');
         }
 
-        const sourceCode = fs.readFileSync(enSourceFile, 'utf8');
-        this.sourceFile = ts.createSourceFile(enSourceFile, sourceCode, ts.ScriptTarget.Latest, true);
-
         if (this.cli.flags['dry-run']) {
             console.log('🍸 Dry run enabled');
             this.translator = new DummyTranslator();
@@ -324,34 +327,46 @@ class TranslationGenerator {
     }
 
     public async generateTranslations(): Promise<void> {
-        // map of translations for each locale
-        const translations = new Map<TranslationTargetLocale, Map<number, string>>();
+        try {
+            const enSourceFile = path.join(this.languagesDir, 'en.ts');
+            this.sourceFile = await this.parseSourceFile(enSourceFile, fs.readFileSync(enSourceFile, 'utf8'));
+            // map of translations for each locale
+            const translations = new Map<TranslationTargetLocale, Map<number, string>>();
 
-        if (this.isIncremental && this.pathsToModify.size === 0) {
-            await this.buildPathsFromGitDiff();
+            if (this.isIncremental && this.pathsToModify.size === 0) {
+                await this.buildPathsFromGitDiff();
+            }
+
+            if (this.verbose) {
+                console.log(`🎯 Initial path sets:`);
+                console.log(`   pathsToModify: ${Array.from(this.pathsToModify).join(', ')}`);
+                console.log(`   pathsToAdd: ${Array.from(this.pathsToAdd).join(', ')}`);
+                console.log(`   pathsToRemove: ${Array.from(this.pathsToRemove).join(', ')}`);
+            }
+
+            // Extract strings to translate once (locale-independent)
+            const stringsToTranslate = new Map<number, StringWithContext>();
+            this.extractStringsToTranslate(this.sourceFile, stringsToTranslate);
+
+            // Estimate cost and prompt user if needed (respects --yes/--no flags)
+            await this.promptForCostApproval(stringsToTranslate);
+
+            // Translate locales sequentially (each locale fully translates before the next begins)
+            for (const targetLanguage of this.targetLanguages) {
+                await this.generateTranslationsForLocale(targetLanguage, stringsToTranslate, translations.get(targetLanguage) ?? new Map<number, string>());
+            }
+
+            // Print error summary if there were any failures
+            this.printErrorSummary();
+        } finally {
+            await Promise.all(this.sourceFileLeases.map((lease) => lease.dispose()));
         }
+    }
 
-        if (this.verbose) {
-            console.log(`🎯 Initial path sets:`);
-            console.log(`   pathsToModify: ${Array.from(this.pathsToModify).join(', ')}`);
-            console.log(`   pathsToAdd: ${Array.from(this.pathsToAdd).join(', ')}`);
-            console.log(`   pathsToRemove: ${Array.from(this.pathsToRemove).join(', ')}`);
-        }
-
-        // Extract strings to translate once (locale-independent)
-        const stringsToTranslate = new Map<number, StringWithContext>();
-        this.extractStringsToTranslate(this.sourceFile, stringsToTranslate);
-
-        // Estimate cost and prompt user if needed (respects --yes/--no flags)
-        await this.promptForCostApproval(stringsToTranslate);
-
-        // Translate locales sequentially (each locale fully translates before the next begins)
-        for (const targetLanguage of this.targetLanguages) {
-            await this.generateTranslationsForLocale(targetLanguage, stringsToTranslate, translations.get(targetLanguage) ?? new Map<number, string>());
-        }
-
-        // Print error summary if there were any failures
-        this.printErrorSummary();
+    private async parseSourceFile(fileName: string, sourceText: string): Promise<ts.SourceFile> {
+        const lease = await this.api.createSourceFile(fileName, sourceText);
+        this.sourceFileLeases.push(lease);
+        return lease.sourceFile;
     }
 
     /**
@@ -452,41 +467,33 @@ class TranslationGenerator {
             // Transform en.ts with path filtering for pathsToModify and pathsToAdd.
             // The result is a "patch" of the main translations node, including only the paths that are added or modified,
             // where the values are translated to the target language.
-            const enResult = ts.transform(this.sourceFile, [this.createTranslationTransformer(translationsForLocale)]);
-            const transformedEnSourceFile = enResult.transformed.at(0);
-            if (!transformedEnSourceFile) {
-                throw new Error('Failed to create translated patch from en.ts');
-            }
+            const transformedEnSourceFile = this.createTranslationTransformer(translationsForLocale)(this.sourceFile);
 
             // Extract translated code strings from the transformed en.ts
             const translatedCodeMap = new Map<string, string>();
-            this.extractTranslatedNodes(transformedEnSourceFile, translatedCodeMap);
-            enResult.dispose();
+            await this.extractTranslatedNodes(transformedEnSourceFile, translatedCodeMap);
+
+            const translatedNodes = new Map<string, ts.Expression>();
+            for (const [translationPath, code] of translatedCodeMap) {
+                translatedNodes.set(translationPath, await TSCompilerUtils.parseCodeStringToAST(code, this.api));
+            }
 
             // Transform the target file using the translated node map
             const existingContent = fs.readFileSync(targetPath, 'utf8');
-            const existingSourceFile = ts.createSourceFile(targetPath, existingContent, ts.ScriptTarget.Latest, true);
-            const targetTransformer = this.createIncrementalTargetTransformer(translatedCodeMap);
-            const targetResult = ts.transform(existingSourceFile, [targetTransformer]);
-            const transformedTargetResult = targetResult.transformed.at(0);
-            if (!transformedTargetResult) {
-                throw new Error('Failed to transform target file');
-            }
-            transformedSourceFile = transformedTargetResult;
-            targetResult.dispose();
+            const existingSourceFile = await this.parseSourceFile(targetPath, existingContent);
+            const targetTransformer = this.createIncrementalTargetTransformer(translatedNodes);
+            transformedSourceFile = targetTransformer(existingSourceFile);
         } else {
             // Full transformation for non-incremental mode - transform en.ts
             const transformer = this.createTranslationTransformer(translationsForLocale);
-            const result = ts.transform(this.sourceFile, [transformer]);
-            transformedSourceFile = result.transformed.at(0) ?? this.sourceFile;
-            result.dispose();
+            transformedSourceFile = transformer(this.sourceFile);
         }
 
         // Import en.ts (addImport will check if it already exists)
         transformedSourceFile = TSCompilerUtils.addImport(transformedSourceFile, 'en', './en', true);
 
         // Generate translated TypeScript code
-        const translatedCode = decodeUnicode(tsPrinter.printFile(transformedSourceFile));
+        const translatedCode = decodeUnicode(await TSCompilerUtils.printWithoutComments(this.api, transformedSourceFile));
 
         // Write to file
         const outputPath = path.join(this.languagesDir, `${targetLanguage}.ts`);
@@ -503,7 +510,7 @@ class TranslationGenerator {
         Oxfmt.format(outputPath);
 
         // Apply dedent formatting after Oxfmt so we have accurate source positions
-        this.formatDedentCallsInFile(outputPath);
+        await this.formatDedentCallsInFile(outputPath);
 
         // Format again with Oxfmt to ensure consistent formatting after dedent transformation
         Oxfmt.format(outputPath);
@@ -679,7 +686,7 @@ class TranslationGenerator {
     /**
      * Check if a call expression is a dedent() call (either standalone or Str.dedent()).
      */
-    private isDedentCallExpression(expression: ts.LeftHandSideExpression): boolean {
+    private isDedentCallExpression(expression: ts.Expression): boolean {
         if (ts.isIdentifier(expression) && expression.text === 'dedent') {
             return true;
         }
@@ -892,7 +899,7 @@ class TranslationGenerator {
         const matches = [...input.matchAll(regex)];
 
         const headText = input.slice(0, matches.at(0)?.index ?? input.length);
-        const templateHead = ts.factory.createTemplateHead(headText);
+        const templateHead = factory.createTemplateHead(headText, '', ts.TokenFlags.None);
 
         const spans: ts.TemplateSpan[] = [];
         for (let i = 0; i < matches.length; i++) {
@@ -921,7 +928,7 @@ class TranslationGenerator {
                 expression = translatedExpression;
             } else {
                 // Assume it's a simple identifier or property access
-                expression = ts.factory.createIdentifier(trimmed);
+                expression = factory.createIdentifier(trimmed);
             }
 
             const startOfMatch = match.index;
@@ -929,12 +936,12 @@ class TranslationGenerator {
             const nextStaticTextEnd = i + 1 < matches.length ? matches.at(i + 1)?.index : input.length;
             const staticText = input.slice(nextStaticTextStart, nextStaticTextEnd);
 
-            const literal = i === matches.length - 1 ? ts.factory.createTemplateTail(staticText) : ts.factory.createTemplateMiddle(staticText);
+            const literal = i === matches.length - 1 ? factory.createTemplateTail(staticText, '', ts.TokenFlags.None) : factory.createTemplateMiddle(staticText, '', ts.TokenFlags.None);
 
-            spans.push(ts.factory.createTemplateSpan(expression, literal));
+            spans.push(factory.createTemplateSpan(expression, literal));
         }
 
-        return ts.factory.createTemplateExpression(templateHead, spans);
+        return factory.createTemplateExpression(templateHead, spans);
     }
 
     /**
@@ -1068,7 +1075,7 @@ class TranslationGenerator {
 
                 if (fs.existsSync(targetPath)) {
                     const existingContent = fs.readFileSync(targetPath, 'utf8');
-                    const existingSourceFile = ts.createSourceFile(targetPath, existingContent, ts.ScriptTarget.Latest, true);
+                    const existingSourceFile = await this.parseSourceFile(targetPath, existingContent);
 
                     // Check each path in pathsToModify to see if it actually exists in this target file
                     const existingTranslationsNode = this.findTranslationsNode(existingSourceFile);
@@ -1172,7 +1179,7 @@ class TranslationGenerator {
         // String literals and no-substitution templates can be translated directly
         if (ts.isStringLiteral(node)) {
             const translatedText = translations.get(this.getTranslationKey(node));
-            return translatedText ? ts.factory.createStringLiteral(translatedText) : nodeToUse;
+            return translatedText ? factory.createStringLiteral(translatedText, ts.TokenFlags.None) : nodeToUse;
         }
 
         if (ts.isNoSubstitutionTemplateLiteral(node)) {
@@ -1181,7 +1188,7 @@ class TranslationGenerator {
                 return nodeToUse;
             }
 
-            return ts.factory.createNoSubstitutionTemplateLiteral(translatedText);
+            return factory.createNoSubstitutionTemplateLiteral(translatedText, ts.TokenFlags.None);
         }
 
         if (ts.isTemplateExpression(node)) {
@@ -1217,7 +1224,8 @@ class TranslationGenerator {
     /**
      * Extract translated code strings from a transformed AST for the specified paths.
      */
-    private extractTranslatedNodes(sourceFile: ts.SourceFile, translatedCodeMap: Map<string, string>): void {
+    private async extractTranslatedNodes(sourceFile: ts.SourceFile, translatedCodeMap: Map<string, string>): Promise<void> {
+        const nodesToPrint = new Map<string, ts.Expression>();
         const visitWithPath = (node: ts.Node, currentPath = '') => {
             // Only extract code strings for exact paths in our sets (not hierarchical matches)
             const isAddedPath = this.pathsToAdd.has(currentPath as TranslationPaths);
@@ -1229,8 +1237,7 @@ class TranslationGenerator {
                 }
 
                 // Extract the value (property initializer) as code string
-                const codeString = tsPrinter.printNode(ts.EmitHint.Expression, node.initializer, sourceFile);
-                translatedCodeMap.set(currentPath, codeString);
+                nodesToPrint.set(currentPath, node.initializer);
 
                 return; // Stop recursing into children
             }
@@ -1240,6 +1247,9 @@ class TranslationGenerator {
         };
 
         visitWithPath(sourceFile);
+        for (const [translationPath, initializer] of nodesToPrint) {
+            translatedCodeMap.set(translationPath, await TSCompilerUtils.printWithoutComments(this.api, initializer));
+        }
     }
 
     /**
@@ -1256,7 +1266,7 @@ class TranslationGenerator {
                 oldEnContent = Git.show(this.diffBase, relativePath);
             }
 
-            const oldSourceFile = ts.createSourceFile(this.sourceFile.fileName, oldEnContent, ts.ScriptTarget.Latest, true);
+            const oldSourceFile = await this.parseSourceFile(this.sourceFile.fileName, oldEnContent);
             const oldTranslationsNode = this.findTranslationsNode(oldSourceFile);
 
             // Traverse the old AST to find nodes on removed lines
@@ -1272,7 +1282,7 @@ class TranslationGenerator {
      * Create a transformer factory for translating English code into another language.
      * For incremental translations, only translates paths that are in pathsToModify or pathsToAdd.
      */
-    private createTranslationTransformer(translations: Map<number, string>): ts.TransformerFactory<ts.SourceFile> {
+    private createTranslationTransformer(translations: Map<number, string>): SourceFileTransformer {
         return TSCompilerUtils.createPathAwareTransformer((node: ts.Node, currentPath = ''): TransformerResult => {
             if (this.shouldTranslateNode(node) && this.shouldTranslatePath(currentPath)) {
                 return {
@@ -1288,19 +1298,16 @@ class TranslationGenerator {
      * Format all Str.dedent() calls in a file to ensure proper indentation.
      * This should be called after Oxfmt has formatted the file.
      */
-    private formatDedentCallsInFile(filePath: string): void {
+    private async formatDedentCallsInFile(filePath: string): Promise<void> {
         const fileContent = fs.readFileSync(filePath, 'utf8');
-        const sourceFile = ts.createSourceFile(filePath, fileContent, ts.ScriptTarget.Latest, true);
+        const sourceFile = await this.parseSourceFile(filePath, fileContent);
 
-        const result = ts.transform(sourceFile, [this.createDedentFormattingTransformer()]);
-        const transformedFile = result.transformed.at(0);
+        const transformedFile = this.createDedentFormattingTransformer()(sourceFile);
 
         if (transformedFile) {
-            const formattedCode = decodeUnicode(tsPrinter.printFile(transformedFile));
+            const formattedCode = decodeUnicode(await TSCompilerUtils.printWithoutComments(this.api, transformedFile));
             fs.writeFileSync(filePath, formattedCode, 'utf8');
         }
-
-        result.dispose();
     }
 
     /**
@@ -1308,11 +1315,11 @@ class TranslationGenerator {
      * This runs after translation to ensure that template strings inside Str.dedent() calls
      * have the correct indentation structure.
      */
-    private createDedentFormattingTransformer(): ts.TransformerFactory<ts.SourceFile> {
-        return (context: ts.TransformationContext) => (sourceFile: ts.SourceFile) => {
+    private createDedentFormattingTransformer(): SourceFileTransformer {
+        return (sourceFile: ts.SourceFile) => {
             const visit = (node: ts.Node): ts.Node => {
                 if (!ts.isCallExpression(node) || !this.isDedentCallExpression(node.expression) || !node.arguments[0]) {
-                    return ts.visitEachChild(node, visit, context);
+                    return ts.visitEachChild(node, visit);
                 }
 
                 const argument = node.arguments[0];
@@ -1323,19 +1330,21 @@ class TranslationGenerator {
                 const formatFragment = (text: string, isTail: boolean) => this.formatDedentTemplateContent(text, contentIndentation, templateIndentation, isTail);
 
                 if (ts.isNoSubstitutionTemplateLiteral(argument)) {
-                    return ts.factory.createCallExpression(node.expression, node.typeArguments, [ts.factory.createNoSubstitutionTemplateLiteral(formatFragment(argument.text, true))]);
+                    return factory.updateCallExpression(node, node.expression, node.questionDotToken, node.typeArguments, [
+                        factory.createNoSubstitutionTemplateLiteral(formatFragment(argument.text, true), ts.TokenFlags.None),
+                    ]);
                 }
 
                 if (ts.isTemplateExpression(argument)) {
-                    const newHead = ts.factory.createTemplateHead(formatFragment(argument.head.text, false));
+                    const newHead = factory.createTemplateHead(formatFragment(argument.head.text, false), '', ts.TokenFlags.None);
                     const newSpans = argument.templateSpans.map((span, i) => {
                         const isTail = i === argument.templateSpans.length - 1;
                         const formattedText = formatFragment(span.literal.text, isTail);
-                        const newLiteral = isTail ? ts.factory.createTemplateTail(formattedText) : ts.factory.createTemplateMiddle(formattedText);
-                        return ts.factory.createTemplateSpan(span.expression, newLiteral);
+                        const newLiteral = isTail ? factory.createTemplateTail(formattedText, '', ts.TokenFlags.None) : factory.createTemplateMiddle(formattedText, '', ts.TokenFlags.None);
+                        return factory.createTemplateSpan(span.expression, newLiteral);
                     });
 
-                    return ts.factory.createCallExpression(node.expression, node.typeArguments, [ts.factory.createTemplateExpression(newHead, newSpans)]);
+                    return factory.updateCallExpression(node, node.expression, node.questionDotToken, node.typeArguments, [factory.createTemplateExpression(newHead, newSpans)]);
                 }
 
                 return node;
@@ -1410,11 +1419,11 @@ class TranslationGenerator {
 
     /**
      * Create a transformer factory for incremental translations of target files.
-     * Injects pathsToAdd and pathsToModify directly into the target file by parsing the code strings for the translated paths.
+     * Translated expressions are parsed before visiting because native parsing is asynchronous.
      * Removes pathsToRemove from the target file.
      * Also cleans up any empty object literals that result from the removals.
      */
-    private createIncrementalTargetTransformer(translatedCodeMap: Map<string, string>): ts.TransformerFactory<ts.SourceFile> {
+    private createIncrementalTargetTransformer(translatedNodes: Map<string, ts.Expression>): SourceFileTransformer {
         let mainTranslationsNode: ts.ObjectLiteralExpression | undefined;
         return TSCompilerUtils.createPathAwareTransformer((node: ts.Node, currentPath: string): TransformerResult => {
             if (!mainTranslationsNode) {
@@ -1427,21 +1436,16 @@ class TranslationGenerator {
             }
 
             // Check if this is a property assignment that should be modified
-            if (ts.isPropertyAssignment(node) && currentPath && translatedCodeMap.has(currentPath)) {
-                const translatedCodeString = translatedCodeMap.get(currentPath);
-                if (!translatedCodeString) {
+            if (ts.isPropertyAssignment(node) && currentPath && translatedNodes.has(currentPath)) {
+                const translatedExpression = translatedNodes.get(currentPath);
+                if (!translatedExpression) {
                     // This should never happen
                     throw new Error('An unknown error occurred');
                 }
 
-                // Parse the code string back to an AST expression
-                const translatedExpression = TSCompilerUtils.parseCodeStringToAST(translatedCodeString);
-
-                // Note: There is a minor bug here where leading comments (such as @context) are not preserved between the old property assignment node and the new one.
-                // This doesn't affect functionality at all, as translation target files don't need context annotations for anything, and it's not trivial to fix, so I'm leaving it as is for now.
                 return {
                     action: TransformerAction.Replace,
-                    newNode: () => ts.factory.createPropertyAssignment(node.name, translatedExpression),
+                    newNode: () => TSCompilerUtils.createPropertyAssignment(node.name, translatedExpression),
                 };
             }
 
@@ -1478,12 +1482,9 @@ class TranslationGenerator {
                             // Start with current properties
                             let updatedProperties = [...properties];
 
-                            for (const [addPath, translatedCodeString] of translatedCodeMap) {
-                                // Parse the translated code string back to an AST expression
-                                const translatedExpression = TSCompilerUtils.parseCodeStringToAST(translatedCodeString);
-
+                            for (const [addPath, translatedExpression] of translatedNodes) {
                                 // Inject the value at the correct nested path
-                                const currentObject = ts.factory.createObjectLiteralExpression(updatedProperties);
+                                const currentObject = factory.createObjectLiteralExpression(updatedProperties);
                                 const updatedObject = TSCompilerUtils.injectDeepObjectValue(currentObject, addPath, translatedExpression);
                                 updatedProperties = [...updatedObject.properties];
                                 hasChanges = true;
@@ -1494,7 +1495,7 @@ class TranslationGenerator {
                         }
 
                         // Only create a new node if something actually changed
-                        return hasChanges ? ts.factory.createObjectLiteralExpression(properties) : transformedNode;
+                        return hasChanges ? factory.createObjectLiteralExpression(properties) : transformedNode;
                     },
                 };
             }
@@ -1505,8 +1506,13 @@ class TranslationGenerator {
 }
 
 async function main(): Promise<void> {
-    const generator = new TranslationGenerator();
-    await generator.generateTranslations();
+    const api = new CompilerAPI();
+    try {
+        const generator = new TranslationGenerator(api);
+        await generator.generateTranslations();
+    } finally {
+        await api.close();
+    }
 }
 
 if (require.main === module) {

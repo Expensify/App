@@ -1,30 +1,27 @@
+import {afterEach, beforeEach, describe, expect, it, jest, mock, test} from 'bun:test';
+
 import type {Stats} from 'fs';
-import type * as GlobModule from 'glob';
 
 import {Str} from 'expensify-common';
 import * as fs from 'fs';
-import {globSync} from 'glob';
+import * as glob from 'glob';
+import {API as CompilerAPI, RetainedSourceFile} from 'typescript/async';
 
-import {ComprehensiveStylesFinder} from '../../scripts/findUnusedStyles';
 import createMock from '../utils/createMock';
 
-jest.mock('fs', () => ({
-    ...jest.requireActual<typeof fs>('fs'),
-    readFileSync: jest.fn(),
-    lstatSync: jest.fn(),
-}));
+const mockReadFileSync = jest.fn<typeof fs.readFileSync>();
+const mockLstatSync = jest.fn<typeof fs.lstatSync>();
+const mockGlobSync = jest.fn<typeof glob.globSync>();
 
-jest.mock('glob', () => ({
-    ...jest.requireActual<typeof GlobModule>('glob'),
-    globSync: jest.fn(),
-}));
+await mock.module('fs', () => ({...fs, readFileSync: mockReadFileSync, lstatSync: mockLstatSync}));
+await mock.module('glob', () => ({...glob, globSync: mockGlobSync}));
 
-const mockReadFileSync = jest.mocked(fs.readFileSync);
-const mockLstatSync = jest.mocked(fs.lstatSync);
-const mockGlobSync = jest.mocked(globSync);
+// Bun imports the native compiler's ESM client directly, without Jest's CommonJS transform.
+const {ComprehensiveStylesFinder} = await import('../../scripts/findUnusedStyles');
 
+// Await compiler I/O before asserting because Bun's promise matchers can stall native RPC callbacks.
 describe('findUnusedStyles', () => {
-    let finder: ComprehensiveStylesFinder;
+    let finder: InstanceType<typeof ComprehensiveStylesFinder>;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -39,19 +36,51 @@ describe('findUnusedStyles', () => {
         jest.restoreAllMocks();
     });
 
+    it('releases native source files and closes the compiler after finding styles', async () => {
+        // Given a parsed style file, native allocations must not survive the scan.
+        const closeCompiler = jest.spyOn(CompilerAPI.prototype, Symbol.asyncDispose);
+        const releaseSourceFile = jest.spyOn(RetainedSourceFile.prototype, Symbol.asyncDispose);
+        mockGlobSync.mockReturnValueOnce(['src/styles/example.ts']).mockReturnValueOnce([]);
+        mockReadFileSync.mockReturnValueOnce('const unusedStyle = {color: "red"};');
+
+        // When the scan finishes, it still reports the unused definition.
+        const result = await new ComprehensiveStylesFinder('/test').findUnusedStyles();
+
+        // Then both the source lease and the compiler are disposed.
+        expect(result.map((style) => style.key)).toEqual(['unusedStyle']);
+        expect(releaseSourceFile).toHaveBeenCalledTimes(1);
+        expect(closeCompiler).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes the compiler when a source file cannot be read', async () => {
+        // Given an unreadable style file, the scan must also release its compiler on the error path.
+        const closeCompiler = jest.spyOn(CompilerAPI.prototype, Symbol.asyncDispose);
+        mockGlobSync.mockReturnValueOnce(['src/styles/example.ts']).mockReturnValueOnce([]);
+        mockReadFileSync.mockImplementationOnce(() => {
+            throw new Error('File is unreadable');
+        });
+
+        // When file loading fails, the existing warning behavior allows the scan to finish.
+        const result = await new ComprehensiveStylesFinder('/test').findUnusedStyles();
+
+        // Then no definitions are reported and the compiler is still disposed.
+        expect(result).toEqual([]);
+        expect(closeCompiler).toHaveBeenCalledTimes(1);
+    });
+
     describe('Basic Functionality', () => {
-        it('should find no unused styles when styles file is empty', () => {
+        it('should find no unused styles when styles file is empty', async () => {
             // Setup: Empty styles file, no source files
             mockGlobSync.mockReturnValueOnce([]); // No style files (first call in findAllStyleDefinitions)
             mockGlobSync.mockReturnValueOnce([]); // No source files (second call in loadAllFileContents)
 
             finder = new ComprehensiveStylesFinder('/test');
-            const result = finder.findUnusedStyles();
+            const result = await finder.findUnusedStyles();
 
             expect(result).toEqual([]);
         });
 
-        it('should detect single unused style', () => {
+        it('should detect single unused style', async () => {
             // Setup: One style file with one style, no usage
             const stylesContent = Str.dedent(`
                 const styles = (theme: ThemeColors) => ({
@@ -70,14 +99,14 @@ describe('findUnusedStyles', () => {
                 .mockReturnValueOnce('// No style usage here'); // component file
 
             finder = new ComprehensiveStylesFinder('/test');
-            const result = finder.findUnusedStyles();
+            const result = await finder.findUnusedStyles();
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.key).toBe('unusedStyle');
             expect(result.at(0)?.file).toBe('src/styles/index.ts');
         });
 
-        test('should not report used styles', () => {
+        test('should not report used styles', async () => {
             const stylesContent = Str.dedent(`
                 const styles = (theme: ThemeColors) => ({
                     usedStyle: {
@@ -98,14 +127,14 @@ describe('findUnusedStyles', () => {
             mockReadFileSync.mockReturnValueOnce(stylesContent).mockReturnValueOnce(componentContent);
 
             finder = new ComprehensiveStylesFinder('/test');
-            const result = finder.findUnusedStyles();
+            const result = await finder.findUnusedStyles();
 
             expect(result).toHaveLength(0);
         });
     });
 
     describe('Complex Usage Patterns', () => {
-        it('should detect destructured style usage', () => {
+        it('should detect destructured style usage', async () => {
             const stylesContent = Str.dedent(`
                 const styles = (theme: ThemeColors) => ({
                     destructuredStyle: { color: 'green' },
@@ -121,13 +150,13 @@ describe('findUnusedStyles', () => {
 
             setupMockFiles(stylesContent, componentContent);
 
-            const result = finder.findUnusedStyles();
+            const result = await finder.findUnusedStyles();
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.key).toBe('unusedStyle');
         });
 
-        it('should detect spread pattern usage', () => {
+        it('should detect spread pattern usage', async () => {
             const stylesContent = Str.dedent(`
                 const styles = (theme: ThemeColors) => ({
                     baseStyle: { padding: 10 },
@@ -146,14 +175,14 @@ describe('findUnusedStyles', () => {
 
             setupMockFiles(stylesContent, componentContent);
 
-            const result = finder.findUnusedStyles();
+            const result = await finder.findUnusedStyles();
 
             // When extendedStyle is used, baseStyle should not be unused since it's spread into extendedStyle
             expect(result).toHaveLength(1);
             expect(result.at(0)?.key).toBe('unusedStyle');
         });
 
-        it('should detect object spread pattern usage', () => {
+        it('should detect object spread pattern usage', async () => {
             const stylesContent = Str.dedent(`
                 const styles = (theme: ThemeColors) => ({
                     baseStyle: { p10: { padding: 10 } },
@@ -172,14 +201,14 @@ describe('findUnusedStyles', () => {
 
             setupMockFiles(stylesContent, componentContent);
 
-            const result = finder.findUnusedStyles();
+            const result = await finder.findUnusedStyles();
 
             // When extendedStyle is used, baseStyle should not be unused since it's spread into extendedStyle
             expect(result).toHaveLength(1);
             expect(result.at(0)?.key).toBe('unusedStyle');
         });
 
-        test('should handle dynamic style access', () => {
+        test('should handle dynamic style access', async () => {
             const stylesContent = Str.dedent(`
                 const styles = (theme: ThemeColors) => ({
                     dynamicStyle: { color: 'purple' },
@@ -194,7 +223,7 @@ describe('findUnusedStyles', () => {
 
             setupMockFiles(stylesContent, componentContent);
 
-            const result = finder.findUnusedStyles();
+            const result = await finder.findUnusedStyles();
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.key).toBe('unusedStyle');
@@ -202,7 +231,7 @@ describe('findUnusedStyles', () => {
     });
 
     describe('Utils/Generators/Themes Integration', () => {
-        test('should detect styles used in utils files', () => {
+        test('should detect styles used in utils files', async () => {
             const stylesContent = Str.dedent(`
                 const styles = (theme: ThemeColors) => ({
                     utilUsedStyle: { fontWeight: 'bold' },
@@ -220,7 +249,7 @@ describe('findUnusedStyles', () => {
             mockReadFileSync.mockReturnValueOnce(stylesContent).mockReturnValueOnce(utilContent);
 
             finder = new ComprehensiveStylesFinder('/test');
-            const result = finder.findUnusedStyles();
+            const result = await finder.findUnusedStyles();
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.key).toBe('unusedStyle');
@@ -228,7 +257,7 @@ describe('findUnusedStyles', () => {
     });
 
     describe('Edge Cases', () => {
-        test('should ignore styles mentioned in comments', () => {
+        test('should ignore styles mentioned in comments', async () => {
             const stylesContent = Str.dedent(`
                 const styles = (theme: ThemeColors) => ({
                     commentedStyle: { color: 'orange' },
@@ -245,13 +274,13 @@ describe('findUnusedStyles', () => {
 
             setupMockFiles(stylesContent, componentContent);
 
-            const result = finder.findUnusedStyles();
+            const result = await finder.findUnusedStyles();
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.key).toBe('commentedStyle');
         });
 
-        test('should skip helper constants in styles/index.ts', () => {
+        test('should skip helper constants in styles/index.ts', async () => {
             const stylesContent = Str.dedent(`
                 const touchCalloutNone = { WebkitTouchCallout: 'none' };
                 const lineHeightBadge = { lineHeight: 16 };
@@ -271,13 +300,13 @@ describe('findUnusedStyles', () => {
 
             setupMockFiles(stylesContent, componentContent);
 
-            const result = finder.findUnusedStyles();
+            const result = await finder.findUnusedStyles();
 
             // Should not include touchCalloutNone or lineHeightBadge
             expect(result).toHaveLength(0);
         });
 
-        test('should handle malformed TypeScript files gracefully', () => {
+        test('should handle malformed TypeScript files gracefully', async () => {
             const stylesContent = Str.dedent(`
                 const styles = (theme: ThemeColors) => ({
                     validStyle: { color: 'blue' },
@@ -293,16 +322,14 @@ describe('findUnusedStyles', () => {
 
             setupMockFiles(stylesContent, malformedContent);
 
-            // Should not throw an error
-            expect(() => {
-                const result = finder.findUnusedStyles();
-                expect(result).toHaveLength(0); // Style is used despite syntax error
-            }).not.toThrow();
+            // A parse error must not hide style usages in the recovered syntax tree.
+            const result = await finder.findUnusedStyles();
+            expect(result).toHaveLength(0);
         });
     });
 
     describe('Error Handling', () => {
-        test('should handle file read errors gracefully', () => {
+        test('should handle file read errors gracefully', async () => {
             mockGlobSync.mockReturnValueOnce(['src/styles/index.ts']).mockReturnValueOnce(['src/components/Test.tsx']);
 
             mockReadFileSync
@@ -313,10 +340,11 @@ describe('findUnusedStyles', () => {
 
             finder = new ComprehensiveStylesFinder('/test');
 
-            expect(() => finder.findUnusedStyles()).not.toThrow();
+            const result = await finder.findUnusedStyles();
+            expect(result).toEqual([]);
         });
 
-        test('should handle directory instead of file', () => {
+        test('should handle directory instead of file', async () => {
             mockGlobSync.mockReturnValueOnce(['src/styles/index.ts']).mockReturnValueOnce(['src/components/Test.tsx']);
 
             mockReadFileSync.mockReturnValueOnce('const styles = () => ({});');
@@ -330,12 +358,13 @@ describe('findUnusedStyles', () => {
 
             finder = new ComprehensiveStylesFinder('/test');
 
-            expect(() => finder.findUnusedStyles()).not.toThrow();
+            const result = await finder.findUnusedStyles();
+            expect(result).toEqual([]);
         });
     });
 
     describe('Performance Tests', () => {
-        test('should handle large number of styles efficiently', () => {
+        test('should handle large number of styles efficiently', async () => {
             const manyStyles = Array.from({length: 1000}, (_, i) => `style${i}: { color: 'color${i}' },`).join('\n');
 
             const stylesContent = Str.dedent(`
@@ -353,7 +382,7 @@ describe('findUnusedStyles', () => {
             setupMockFiles(stylesContent, componentContent);
 
             const start = Date.now();
-            const result = finder.findUnusedStyles();
+            const result = await finder.findUnusedStyles();
             const end = Date.now();
 
             expect(result).toHaveLength(999); // All except style0

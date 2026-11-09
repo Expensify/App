@@ -1,9 +1,9 @@
-import * as ts from '@typescript/typescript6';
 import * as fs from 'fs';
 import {globSync} from 'glob';
 import * as path from 'path';
-
-import TSCompilerUtils from './utils/TSCompilerUtils';
+import * as ts from 'typescript/ast';
+// eslint-disable-next-line rulesdir/no-api-in-views -- This is TypeScript's compiler client, not Expensify's HTTP API.
+import {API as CompilerAPI} from 'typescript/async';
 
 type StyleDefinition = {
     key: string;
@@ -29,22 +29,23 @@ class ComprehensiveStylesFinder {
         this.rootDir = rootDir;
     }
 
-    public findUnusedStyles(): StyleDefinition[] {
+    public async findUnusedStyles(): Promise<StyleDefinition[]> {
+        await using api = new CompilerAPI();
         console.log('🔍 Step 1: Finding all style definitions...');
-        this.findAllStyleDefinitions();
+        await this.findAllStyleDefinitions(api);
         console.log(`📊 Found ${this.styleDefinitions.size} style definitions`);
 
         console.log('🔍 Step 2: Loading all file contents...');
         this.loadAllFileContents();
 
         console.log('🔍 Step 3: Comprehensive style usage analysis...');
-        this.findStyleUsagesComprehensive();
+        await this.findStyleUsagesComprehensive(api);
 
         console.log('📊 Step 4: Identifying unused styles...');
         return this.getUnusedStyles();
     }
 
-    private findAllStyleDefinitions(): void {
+    private async findAllStyleDefinitions(api: CompilerAPI): Promise<void> {
         const styleFiles = globSync(`src/styles/${STYLE_FILE_EXTENSIONS}`, {
             cwd: this.rootDir,
             ignore: EXCLUDED_STYLE_DIRS,
@@ -57,9 +58,9 @@ class ComprehensiveStylesFinder {
             const fullPath = path.join(this.rootDir, file);
             try {
                 const fileContent = fs.readFileSync(fullPath, 'utf8');
-                const sourceFile = ts.createSourceFile(fullPath, fileContent, ts.ScriptTarget.Latest, true);
+                await using retained = await api.createSourceFile(fullPath, fileContent);
                 styleFileContents.set(file, fileContent);
-                this.extractStyleKeysFromFile(sourceFile, file);
+                this.extractStyleKeysFromFile(retained.sourceFile, file);
             } catch (error) {
                 console.warn(`Warning: Could not read style file ${file}:`, error);
             }
@@ -68,7 +69,7 @@ class ComprehensiveStylesFinder {
         // Spread crediting must run after every style file has registered its definitions, or glob order decides which spreads count.
         const indexContent = styleFileContents.get('src/styles/index.ts');
         if (indexContent) {
-            this.checkSpreadPatternsInStylesFile(indexContent, 'src/styles/index.ts');
+            await this.checkSpreadPatternsInStylesFile(indexContent, 'src/styles/index.ts', api);
         }
     }
 
@@ -113,7 +114,7 @@ class ComprehensiveStylesFinder {
                 this.extractStyleDefinitionFromNode(node, sourceFile, file);
             }
 
-            ts.forEachChild(node, visit);
+            node.forEachChild(visit);
         };
 
         visit(sourceFile);
@@ -137,7 +138,7 @@ class ComprehensiveStylesFinder {
     private extractStyleDefinitionsFromObject(objectLiteral: ts.ObjectLiteralExpression, sourceFile: ts.SourceFile, file: string): void {
         for (const property of objectLiteral.properties) {
             if (ts.isPropertyAssignment(property) || ts.isMethodDeclaration(property)) {
-                const key = TSCompilerUtils.extractKeyFromPropertyNode(property);
+                const key = this.extractStyleKey(property);
 
                 if (key && this.isStyleKey(key)) {
                     try {
@@ -185,7 +186,7 @@ class ComprehensiveStylesFinder {
     private extractStyleDefinitionFromNode(node: ts.Node, sourceFile: ts.SourceFile, file: string): void {
         // Look for object literal properties (style definitions)
         if (ts.isPropertyAssignment(node) || ts.isMethodDeclaration(node)) {
-            const key = TSCompilerUtils.extractKeyFromPropertyNode(node);
+            const key = this.extractStyleKey(node);
 
             if (key && this.isStyleKey(key)) {
                 try {
@@ -273,13 +274,20 @@ class ComprehensiveStylesFinder {
         }
     }
 
-    private findStyleUsagesComprehensive(): void {
+    private extractStyleKey(node: ts.PropertyAssignment | ts.MethodDeclaration): string | undefined {
+        if (ts.isIdentifier(node.name) || (ts.isPropertyAssignment(node) && ts.isStringLiteral(node.name))) {
+            return node.name.text;
+        }
+        return undefined;
+    }
+
+    private async findStyleUsagesComprehensive(api: CompilerAPI): Promise<void> {
         const allFiles = Array.from(this.fileContents.entries());
         console.log(`Analyzing usage patterns for ${this.styleDefinitions.size} style keys across ${allFiles.length} files...`);
 
         let processedFiles = 0;
         for (const [file, content] of allFiles) {
-            this.analyzeFileForStyleUsage(file, content);
+            await this.analyzeFileForStyleUsage(file, content, api);
             processedFiles++;
 
             // Early termination: if all styles are found, stop processing
@@ -297,10 +305,11 @@ class ComprehensiveStylesFinder {
         console.log(`  Completed analysis.`);
     }
 
-    private analyzeFileForStyleUsage(file: string, content: string): void {
+    private async analyzeFileForStyleUsage(file: string, content: string, api: CompilerAPI): Promise<void> {
         // Use TypeScript AST to get content without comments
         try {
-            const sourceFile = ts.createSourceFile(file, content, ts.ScriptTarget.Latest, true);
+            await using retained = await api.createSourceFile(path.join(this.rootDir, file), content);
+            const sourceFile = retained.sourceFile;
 
             // Use getText() to get content without comments
             const cleanContent = sourceFile.getText();
@@ -308,7 +317,7 @@ class ComprehensiveStylesFinder {
             // Check individual style usage patterns - iterate over current definitions
             const keysToCheck = Array.from(this.styleDefinitions.keys());
             for (const key of keysToCheck) {
-                if (this.isStyleUsedInContent(key, cleanContent, file)) {
+                if (await this.isStyleUsedInContent(key, cleanContent, file, api)) {
                     // Remove the key from definitions since it's used
                     this.styleDefinitions.delete(key);
                 }
@@ -318,16 +327,17 @@ class ComprehensiveStylesFinder {
             console.warn(`Warning: Could not parse ${file} with AST, using original content`);
             const keysToCheck = Array.from(this.styleDefinitions.keys());
             for (const key of keysToCheck) {
-                if (this.isStyleUsedInContent(key, content, file)) {
+                if (await this.isStyleUsedInContent(key, content, file, api)) {
                     this.styleDefinitions.delete(key);
                 }
             }
         }
     }
 
-    private checkSpreadPatternsInStylesFile(content: string, file: string): void {
+    private async checkSpreadPatternsInStylesFile(content: string, file: string, api: CompilerAPI): Promise<void> {
         try {
-            const sourceFile = ts.createSourceFile(file, content, ts.ScriptTarget.Latest, true);
+            await using retained = await api.createSourceFile(path.join(this.rootDir, file), content);
+            const sourceFile = retained.sourceFile;
 
             const visit = (node: ts.Node) => {
                 // Handle object spread assignments (in object literals)
@@ -340,7 +350,7 @@ class ComprehensiveStylesFinder {
                     this.handleSpreadExpression(node.expression);
                 }
 
-                ts.forEachChild(node, visit);
+                node.forEachChild(visit);
             };
 
             visit(sourceFile);
@@ -409,20 +419,21 @@ class ComprehensiveStylesFinder {
                     this.styleDefinitions.delete(name);
                 }
             }
-            ts.forEachChild(node, visit);
+            node.forEachChild(visit);
         };
 
         visit(expression);
     }
 
-    private isStyleUsedInContent(key: string, content: string, file: string): boolean {
+    private async isStyleUsedInContent(key: string, content: string, file: string, api: CompilerAPI): Promise<boolean> {
         // Fast check: if the key doesn't appear at all in the content, it's not used
         if (!content.includes(key)) {
             return false;
         }
 
         try {
-            const sourceFile = ts.createSourceFile(file, content, ts.ScriptTarget.Latest, true);
+            await using retained = await api.createSourceFile(path.join(this.rootDir, file), content);
+            const sourceFile = retained.sourceFile;
 
             let found = false;
 
@@ -443,22 +454,22 @@ class ComprehensiveStylesFinder {
                     const parent = node.parent;
                     if (ts.isPropertyAssignment(parent) && parent.name === node) {
                         // This is a property name, not a usage
-                        ts.forEachChild(node, visit);
+                        node.forEachChild(visit);
                         return;
                     }
                     if (ts.isMethodDeclaration(parent) && parent.name === node) {
                         // This is a method name, not a usage
-                        ts.forEachChild(node, visit);
+                        node.forEachChild(visit);
                         return;
                     }
                     if (ts.isGetAccessorDeclaration(parent) && parent.name === node) {
                         // This is a getter name, not a usage
-                        ts.forEachChild(node, visit);
+                        node.forEachChild(visit);
                         return;
                     }
                     if (ts.isSetAccessorDeclaration(parent) && parent.name === node) {
                         // This is a setter name, not a usage
-                        ts.forEachChild(node, visit);
+                        node.forEachChild(visit);
                         return;
                     }
 
@@ -497,7 +508,7 @@ class ComprehensiveStylesFinder {
                     }
                 }
 
-                ts.forEachChild(node, visit);
+                node.forEachChild(visit);
             };
 
             visit(sourceFile);
@@ -517,12 +528,12 @@ class ComprehensiveStylesFinder {
 }
 
 // CLI interface
-function main() {
+async function main() {
     const rootDir = process.cwd();
 
     try {
         const finder = new ComprehensiveStylesFinder(rootDir);
-        const unusedStyles = finder.findUnusedStyles();
+        const unusedStyles = await finder.findUnusedStyles();
 
         if (unusedStyles.length === 0) {
             console.log('✅ No unused styles found!');

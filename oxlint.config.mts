@@ -245,6 +245,8 @@ export default defineConfig({
         '**/*.config.js',
         '**/*.config.mjs',
         '**/node_modules/**/*',
+        // These are attributed copies of third-party rules, rebuilt with config/oxlint/vendor/build.mjs.
+        'config/oxlint/vendor/{expensify-rules,naming-convention,storybook,syntax-rule-utilities,testing-library}.mjs',
         '**/dist/**/*',
         'server/**/dist/**',
         'server/victory-chart-renderer/.dev/**',
@@ -463,10 +465,6 @@ export default defineConfig({
         'rulesdir/no-unsafe-onyx-read': 'error',
         'rulesdir/no-onyx-get-snapshot-key': 'error',
         'rulesdir/use-double-negation-instead-of-boolean': 'error',
-        // Needs the type of the `&&` left operand, and jsPlugins get no type info.
-        'rulesdir/boolean-conditional-rendering': 'off',
-        // Needs typeChecker.isArrayType; `unicorn/prefer-at` stands in.
-        'rulesdir/prefer-at': 'off',
         // ESLint's copy needs the type checker; a type-free rewrite runs for src/**/*.ts(x) below.
         'rulesdir/prefer-locale-compare-from-context': 'off',
         // config/oxlint/reactCompilerGate.mjs drops its reports in files React Compiler memoizes.
@@ -1149,7 +1147,7 @@ export default defineConfig({
                 'testing-library/prefer-presence-queries': 'error',
                 'testing-library/prefer-screen-queries': 'error',
             },
-            jsPlugins: ['@dword-design/eslint-plugin-import-alias', 'eslint-plugin-testing-library'],
+            jsPlugins: ['@dword-design/eslint-plugin-import-alias', {name: 'testing-library', specifier: './config/oxlint/vendor/testing-library.mjs'}],
         },
         {
             files: ['**/*.{ts,tsx}'],

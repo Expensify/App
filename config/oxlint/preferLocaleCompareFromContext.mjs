@@ -4,27 +4,7 @@
  * skips that check. Only strings have `localeCompare`, so the one difference is an object with its own
  * `localeCompare`, which this copy also reports.
  */
-import {createRequire} from 'node:module';
-import path from 'node:path';
-import {fileURLToPath} from 'node:url';
-
-const require = createRequire(import.meta.url);
-const pluginDir = path.dirname(fileURLToPath(import.meta.url));
-const expensifyPlugin = path.resolve(pluginDir, '../../node_modules/eslint-config-expensify/eslint-plugin-expensify');
-
-/**
- * Loads a module from eslint-plugin-expensify, so this copy uses the same message as the original rule.
- * `require` of these ESM modules returns the namespace, so unwrap `default`.
- * @param {string} relative path inside eslint-plugin-expensify
- * @returns {any}
- */
-function load(relative) {
-    const module = require(path.join(expensifyPlugin, relative));
-    return module?.default ?? module;
-}
-
-const CONST = load('CONST.js');
-const {isInTestFile} = require(path.join(expensifyPlugin, 'utils/index.js'));
+import {CONST, isInTestFile} from './vendor/expensify-rules.mjs';
 
 const message = CONST.MESSAGE.PREFER_LOCALE_COMPARE_FROM_CONTEXT;
 

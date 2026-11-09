@@ -9,7 +9,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Rule} from 'eslint';
 
 import {Linter, RuleTester} from 'eslint';
-import {parser as tsParser} from 'typescript-eslint';
+
+import tsParser from '../utils/typeScriptRuleTestParser';
 
 type LocalRuleModule = Rule.RuleModule & {
     name: string;
