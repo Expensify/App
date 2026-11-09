@@ -56,7 +56,7 @@ function TaxValuePicker({policyID, value, errorText, rightLabel, onInputChange, 
     };
 
     return (
-        <MenuItem.Root onPress={callIfAuthenticated(handlePress, false, session)}>
+        <MenuItem.Root onPress={callIfAuthenticated(handlePress, session)}>
             <MenuItemField.Row
                 name={translate('workspace.taxes.value')}
                 value={value ? getTaxValueWithPercentage(value) : ''}

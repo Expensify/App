@@ -79,7 +79,7 @@ function DistanceField({hasRoute, distance, unit, customUnit}: DistanceFieldProp
 
     return (
         <MenuItem.Root
-            onPress={isDistanceInteractive ? callIfAuthenticated(openDistancePage, false, session) : undefined}
+            onPress={isDistanceInteractive ? callIfAuthenticated(openDistancePage, session) : undefined}
             isDisabled={didConfirm}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DISTANCE_FIELD}
         >

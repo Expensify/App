@@ -204,7 +204,7 @@ function ConciergeFeedbackPrompt({
             emoji={emoji}
             label={emoji.name === thumbsUp.name ? (positiveTooltipText ?? translate('common.yes')) : (negativeTooltipText ?? translate('common.no'))}
             accessibilityLabel={translate(emoji.name === thumbsUp.name ? 'concierge.feedback.useful' : 'concierge.feedback.notUseful')}
-            onPress={callIfAuthenticated(() => rate(emoji), false, session)}
+            onPress={callIfAuthenticated(() => rate(emoji), session)}
             shouldShowTooltip={shouldShowTooltips}
             isSelected={isSelected}
             shouldRenderSelectedReactionBubble={shouldRenderSelectedReactionBubble}

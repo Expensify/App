@@ -218,7 +218,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
             ) : (
                 <MenuItem.Root
                     key="ReportSuspiciousActivity"
-                    onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.DOMAIN_LOCK_ACCOUNT.getRoute(domainAccountID, accountID)), false, session)}
+                    onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.DOMAIN_LOCK_ACCOUNT.getRoute(domainAccountID, accountID)), session)}
                 >
                     <MenuItem.Row>
                         <MenuItem.Leading>

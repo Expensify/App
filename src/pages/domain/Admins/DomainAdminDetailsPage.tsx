@@ -86,7 +86,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
             {!domainHasOnlyOneAdmin && (
                 <MenuItem.Root
                     isDisabled={isCurrentUserPrimaryContact}
-                    onPress={callIfAuthenticated(handleRevokeAdminAccess, false, session)}
+                    onPress={callIfAuthenticated(handleRevokeAdminAccess, session)}
                 >
                     <MenuItem.Row>
                         <MenuItem.Leading>

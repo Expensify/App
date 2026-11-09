@@ -109,21 +109,10 @@ describe('Session', () => {
             const callback = jest.fn();
 
             // When the action is wrapped for an anonymous session passed by the caller
-            const result = SessionUtil.callIfAuthenticated(callback, false, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            const result = SessionUtil.callIfAuthenticated(callback, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
 
             // Then the passed session decides: the callback is replaced by the sign-in redirect
             expect(result).not.toBe(callback);
-        });
-
-        test('allows an anonymous action for a passed anonymous session', () => {
-            // Given an action that anonymous users are allowed to perform, and an anonymous session from the caller
-            const callback = jest.fn();
-
-            // When an action that anonymous users may perform is wrapped for an anonymous session
-            const result = SessionUtil.callIfAuthenticated(callback, true, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
-
-            // Then the original callback is returned untouched
-            expect(result).toBe(callback);
         });
     });
 

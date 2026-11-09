@@ -30,16 +30,12 @@ function ExpenseReportSearchHandler() {
         const unsubscribe = KeyboardShortcut.subscribe(
             shortcutConfig.shortcutKey,
             () => {
-                callIfAuthenticated(
-                    () => {
-                        if (Navigation.isOnboardingFlow() || shouldShowRequire2FAPage) {
-                            return;
-                        }
-                        openSearchRouter('type:expense-report report-id:');
-                    },
-                    false,
-                    sessionRef.current,
-                )();
+                callIfAuthenticated(() => {
+                    if (Navigation.isOnboardingFlow() || shouldShowRequire2FAPage) {
+                        return;
+                    }
+                    openSearchRouter('type:expense-report report-id:');
+                }, sessionRef.current)();
             },
             shortcutConfig.descriptionKey,
             shortcutConfig.modifiers,

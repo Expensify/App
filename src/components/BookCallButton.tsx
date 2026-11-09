@@ -44,7 +44,7 @@ function BookCallButton({calendarLink, avatarAccountID, isNested = false, style}
     const label = translate('videoChatButtonAndMenu.tooltip');
 
     const commonProps = {
-        onPress: callIfAuthenticated(() => openExternalLink(calendarLink), false, session),
+        onPress: callIfAuthenticated(() => openExternalLink(calendarLink), session),
         sentryLabel: CONST.SENTRY_LABEL.ACCOUNT_MANAGER_BOOK_CALL.BUTTON,
         accessibilityLabel: label,
         isNested,

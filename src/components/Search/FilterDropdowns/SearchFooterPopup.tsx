@@ -107,7 +107,7 @@ function SearchFooterPopup({
                 )}
                 {shouldShowTotalSelector && !!totalType && (
                     <MenuItem.Root
-                        onPress={!isTotalLoading ? callIfAuthenticated(() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL), false, session) : undefined}
+                        onPress={!isTotalLoading ? callIfAuthenticated(() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL), session) : undefined}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_TOTAL}
                     >
                         <MenuItemField.Row
@@ -119,7 +119,7 @@ function SearchFooterPopup({
                     </MenuItem.Root>
                 )}
                 <MenuItem.Root
-                    onPress={!isTotalLoading && !isOffline ? callIfAuthenticated(() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY), false, session) : undefined}
+                    onPress={!isTotalLoading && !isOffline ? callIfAuthenticated(() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY), session) : undefined}
                     sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_CURRENCY}
                 >
                     <MenuItemField.Row

@@ -142,7 +142,7 @@ function DynamicFlagCommentPage({parentReportAction, report, parentReport, repor
             shouldShowRightIcon
             title={item.name}
             description={item.description}
-            onPress={callIfAuthenticated(() => flagComment(item.severity), false, session)}
+            onPress={callIfAuthenticated(() => flagComment(item.severity), session)}
             style={[styles.pt2, styles.pb4, styles.ph5, styles.flexRow]}
             furtherDetails={item.furtherDetails}
             furtherDetailsIcon={item.furtherDetailsIcon}

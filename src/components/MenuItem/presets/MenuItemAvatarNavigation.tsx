@@ -52,7 +52,7 @@ function MenuItemAvatarNavigation({title, description, accountID, avatarSource, 
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     return (
         <MenuItemRoot
-            onPress={callIfAuthenticated(onPress, false, session)}
+            onPress={callIfAuthenticated(onPress, session)}
             isDisabled={isDisabled}
             sentryLabel={sentryLabel}
             testID={testID}

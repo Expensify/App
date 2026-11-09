@@ -228,7 +228,7 @@ function DynamicNewTaskPage() {
                             {assignee?.displayName ? (
                                 <MenuItem.Root
                                     accessibilityLabel={`${translate('task.assignee')}, ${assignee.displayName}`}
-                                    onPress={callIfAuthenticated(navigateToAssignee, false, session)}
+                                    onPress={callIfAuthenticated(navigateToAssignee, session)}
                                 >
                                     <MenuItem.Row>
                                         <MenuItem.Content>

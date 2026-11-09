@@ -120,7 +120,7 @@ function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, a
 
     return (
         <MenuItem.Root
-            onPress={isReadOnly ? undefined : callIfAuthenticated(openAttendeePage, false, session)}
+            onPress={isReadOnly ? undefined : callIfAuthenticated(openAttendeePage, session)}
             accessibilityLabel={attendeesAccessibilityLabel}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.ATTENDEES_FIELD}
         >

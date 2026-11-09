@@ -109,7 +109,7 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
                                 onPress={
                                     isSettlementFrequencyBlocked
                                         ? undefined
-                                        : callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY.getRoute(policyID)), false, session)
+                                        : callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY.getRoute(policyID)), session)
                                 }
                             >
                                 <MenuItemField.Row

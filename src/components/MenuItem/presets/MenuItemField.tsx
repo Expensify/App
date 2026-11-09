@@ -106,7 +106,7 @@ function MenuItemFieldPreset({
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     return (
         <MenuItemRoot
-            onPress={onPress ? callIfAuthenticated(onPress, false, session) : undefined}
+            onPress={onPress ? callIfAuthenticated(onPress, session) : undefined}
             isDisabled={isDisabled}
             sentryLabel={sentryLabel}
             testID={testID}

@@ -62,13 +62,9 @@ function DateTimeSelector({errorText = '', name, value, onInputChange, ref}: Dat
 
     return (
         <MenuItem.Root
-            onPress={callIfAuthenticated(
-                () => {
-                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.DETAILS_DATE_TIME_PICKER.getRoute(name, value)));
-                },
-                false,
-                session,
-            )}
+            onPress={callIfAuthenticated(() => {
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.DETAILS_DATE_TIME_PICKER.getRoute(name, value)));
+            }, session)}
         >
             <MenuItemField.Row
                 name={name}

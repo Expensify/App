@@ -413,9 +413,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                     <OfflineWithFeedback pendingAction={card?.nameValuePairs?.pendingFields?.limitType}>
                         <MenuItem.Root
                             onPress={
-                                canWriteExpensifyCard
-                                    ? callIfAuthenticated(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.path)), false, session)
-                                    : undefined
+                                canWriteExpensifyCard ? callIfAuthenticated(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.path)), session) : undefined
                             }
                         >
                             <MenuItemField.Row

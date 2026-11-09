@@ -182,7 +182,7 @@ function ListField({rows, addTitle, addDescription, canAddMore = true, errorText
             {canAddMore && (
                 <MenuItem.Root
                     ref={addRowRef}
-                    onPress={callIfAuthenticated(onAdd, false, session)}
+                    onPress={callIfAuthenticated(onAdd, session)}
                 >
                     <AddRowErrorAnnouncement errorText={errorText} />
                     <MenuItem.Row>

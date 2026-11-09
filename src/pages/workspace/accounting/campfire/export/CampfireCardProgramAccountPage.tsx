@@ -79,7 +79,6 @@ function CampfireCardProgramAccountPage({policy}: WithPolicyConnectionsProps) {
                             <MenuItem.Root
                                 onPress={callIfAuthenticated(
                                     () => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_CARD_PROGRAM_ACCOUNT_SELECTOR.getRoute(policyID, feedWithDomainID)) : undefined),
-                                    false,
                                     session,
                                 )}
                             >

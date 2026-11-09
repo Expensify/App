@@ -338,7 +338,7 @@ function ProfilePage({route}: ProfilePageProps) {
                             />
                         )}
                         {Permissions.canUsePrivateNotes() && !isEmptyObject(report) && !!report.reportID && !isCurrentUser && (
-                            <MenuItem.Root onPress={callIfAuthenticated(() => navigateToPrivateNotes(report, currentUserAccountID, true), false, session)}>
+                            <MenuItem.Root onPress={callIfAuthenticated(() => navigateToPrivateNotes(report, currentUserAccountID, true), session)}>
                                 <MenuItem.Row>
                                     <MenuItem.Leading>
                                         <MenuItem.Icon src={expensifyIcons.Pencil} />

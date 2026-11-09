@@ -504,7 +504,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
                     <MenuItem.Root
                         onPress={
                             canEditCategory
-                                ? callIfAuthenticated(() => Navigation.navigate(getRequireFieldsRuleCategoryRoute(policyID, isEditing ? categoryName : undefined)), false, session)
+                                ? callIfAuthenticated(() => Navigation.navigate(getRequireFieldsRuleCategoryRoute(policyID, isEditing ? categoryName : undefined)), session)
                                 : undefined
                         }
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_CATEGORY}

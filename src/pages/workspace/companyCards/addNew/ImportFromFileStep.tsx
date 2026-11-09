@@ -128,7 +128,7 @@ function ImportFromFileStep() {
                     </PressableWithoutFeedback>
                     <WrappingText text={translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionEnd')} />
                 </View>
-                <MenuItem.Root onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_LAYOUT_NAME.getRoute(policyID)), false, session)}>
+                <MenuItem.Root onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_LAYOUT_NAME.getRoute(policyID)), session)}>
                     <MenuItemField.Row
                         name={translate('workspace.companyCards.addNewCard.companyCardLayoutName')}
                         value={companyCardLayoutName}

@@ -409,7 +409,7 @@ function IOURequestEditReportCommon({
         autoReportOption = undefined;
     } else {
         autoReportOption = (
-            <MenuItem.Root onPress={callIfAuthenticated(handleAutoReport, false, session)}>
+            <MenuItem.Root onPress={callIfAuthenticated(handleAutoReport, session)}>
                 <MenuItem.Row>
                     <MenuItem.Leading>
                         <MenuItem.Icon src={icons.DocumentMagicWand} />

@@ -316,7 +316,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         />
     );
 
-    const join = callIfAuthenticated(() => joinRoom(report, currentUserAccountID), false, session);
+    const join = callIfAuthenticated(() => joinRoom(report, currentUserAccountID), session);
 
     const canJoin = canJoinChat(report, parentReportAction, policy, parentReport, isReportArchived);
 

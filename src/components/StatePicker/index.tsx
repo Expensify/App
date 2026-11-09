@@ -46,7 +46,7 @@ function StatePicker({value, errorText, onInputChange = () => {}}: StatePickerPr
 
     return (
         <>
-            <MenuItem.Root onPress={callIfAuthenticated(() => setIsPickerVisible(true), false, session)}>
+            <MenuItem.Root onPress={callIfAuthenticated(() => setIsPickerVisible(true), session)}>
                 <MenuItemField.Row
                     name={translate('common.state')}
                     value={value ? translate(`allStates.${value as State}.stateName`) : undefined}

@@ -49,21 +49,17 @@ function TaskHeaderActionButton({reportID}: TaskHeaderActionButtonProps) {
             <Button
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 isDisabled={!isTaskActionable}
-                onPress={callIfAuthenticated(
-                    () => {
-                        // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
-                        if (isActiveTaskEditRoute(reportID)) {
-                            return;
-                        }
-                        if (isCompletedTaskReport(report)) {
-                            reopenTask(report, parentReport, currentUserPersonalDetails.accountID, delegateEmail);
-                        } else {
-                            completeTask(report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail);
-                        }
-                    },
-                    false,
-                    session,
-                )}
+                onPress={callIfAuthenticated(() => {
+                    // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
+                    if (isActiveTaskEditRoute(reportID)) {
+                        return;
+                    }
+                    if (isCompletedTaskReport(report)) {
+                        reopenTask(report, parentReport, currentUserPersonalDetails.accountID, delegateEmail);
+                    } else {
+                        completeTask(report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail);
+                    }
+                }, session)}
                 style={styles.flex1}
                 sentryLabel={CONST.SENTRY_LABEL.TASK.HEADER_ACTION_BUTTON}
             >

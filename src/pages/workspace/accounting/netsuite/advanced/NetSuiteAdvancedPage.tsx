@@ -83,7 +83,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 key={item.description}
                 pendingAction={settingsPendingAction(item.subscribedSettings, config?.pendingFields) ?? settingsPendingAction(item.subscribedSettings, autoSyncConfig?.pendingFields)}
             >
-                <MenuItem.Root onPress={item?.onPress ? callIfAuthenticated(item.onPress, false, session) : undefined}>
+                <MenuItem.Root onPress={item?.onPress ? callIfAuthenticated(item.onPress, session) : undefined}>
                     <MenuItemField.Row
                         name={item.description ?? ''}
                         value={item.title}

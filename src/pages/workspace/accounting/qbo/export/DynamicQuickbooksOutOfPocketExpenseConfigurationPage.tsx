@@ -136,7 +136,7 @@ function DynamicQuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPoli
                     errors={section.errors}
                     errorRowStyles={[styles.ph5]}
                 >
-                    <MenuItem.Root onPress={callIfAuthenticated(section.onPress, false, session)}>
+                    <MenuItem.Root onPress={callIfAuthenticated(section.onPress, session)}>
                         <MenuItemField.Row
                             name={section.description ?? ''}
                             value={section.title}

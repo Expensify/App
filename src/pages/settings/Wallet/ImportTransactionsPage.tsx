@@ -67,7 +67,7 @@ function ImportTransactionsPage() {
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween]}>
                 <View>
                     <Text style={[styles.textNormal, styles.mh5, styles.mb5]}>{translate('workspace.companyCards.importTransactions.description')}</Text>
-                    <MenuItem.Root onPress={callIfAuthenticated(navigateToCardNameSelection, false, session)}>
+                    <MenuItem.Root onPress={callIfAuthenticated(navigateToCardNameSelection, session)}>
                         <MenuItemField.Row
                             name={translate('workspace.companyCards.importTransactions.cardDisplayName')}
                             value={cardDisplayName || undefined}

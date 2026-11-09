@@ -38,23 +38,19 @@ function SearchButton({style, shouldUseAutoHitSlop = false}: SearchButtonProps) 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
 
     const onPress = () => {
-        callIfAuthenticated(
-            () => {
-                startSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER, {
-                    name: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
-                    op: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
-                    attributes: {
-                        [CONST.TELEMETRY.ATTRIBUTE_TRIGGER]: 'button',
-                    },
-                });
+        callIfAuthenticated(() => {
+            startSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER, {
+                name: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
+                op: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
+                attributes: {
+                    [CONST.TELEMETRY.ATTRIBUTE_TRIGGER]: 'button',
+                },
+            });
 
-                startSearchPageVisibleSpan();
+            startSearchPageVisibleSpan();
 
-                openSearchRouter(undefined, isSearchTopmostFullScreenRoute());
-            },
-            false,
-            session,
-        )();
+            openSearchRouter(undefined, isSearchTopmostFullScreenRoute());
+        }, session)();
     };
 
     return (

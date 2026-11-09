@@ -32,7 +32,7 @@ function MenuItemWithLabel({label, onPress, isDisabled = false, sentryLabel, tes
                 <MenuItemLabel>{label}</MenuItemLabel>
             </View>
             <MenuItemRoot
-                onPress={onPress ? callIfAuthenticated(onPress, false, session) : undefined}
+                onPress={onPress ? callIfAuthenticated(onPress, session) : undefined}
                 isDisabled={isDisabled}
                 sentryLabel={sentryLabel}
                 testID={testID}

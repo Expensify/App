@@ -50,7 +50,7 @@ function CountryPicker({value, errorText, onInputChange = () => {}, label, disab
     return (
         <>
             <MenuItem.Root
-                onPress={callIfAuthenticated(() => setIsPickerVisible(true), false, session)}
+                onPress={callIfAuthenticated(() => setIsPickerVisible(true), session)}
                 isDisabled={disabled}
                 sentryLabel={CONST.SENTRY_LABEL.COUNTRY_PICKER.OPEN}
             >

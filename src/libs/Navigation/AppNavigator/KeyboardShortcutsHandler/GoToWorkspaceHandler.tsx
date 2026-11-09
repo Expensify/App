@@ -34,27 +34,21 @@ function GoToWorkspaceHandler() {
         const unsubscribe = KeyboardShortcut.subscribe(
             shortcutConfig.shortcutKey,
             () => {
-                callIfAuthenticated(
-                    () => {
-                        const reportID = Navigation.getTopmostSuperWideRHPReportID() ?? Navigation.getTopmostReportId();
-                        if (!reportID) {
-                            return;
-                        }
+                callIfAuthenticated(() => {
+                    const reportID = Navigation.getTopmostSuperWideRHPReportID() ?? Navigation.getTopmostReportId();
+                    if (!reportID) {
+                        return;
+                    }
 
-                        const report = getReportOrDraftReport({reportID});
-                        const policyID = report?.policyID ?? (report?.parentReportID ? getReportOrDraftReport({reportID: report.parentReportID})?.policyID : undefined);
-                        if (!policyID || policyID === CONST.POLICY.ID_FAKE) {
-                            return;
-                        }
+                    const report = getReportOrDraftReport({reportID});
+                    const policyID = report?.policyID ?? (report?.parentReportID ? getReportOrDraftReport({reportID: report.parentReportID})?.policyID : undefined);
+                    if (!policyID || policyID === CONST.POLICY.ID_FAKE) {
+                        return;
+                    }
 
-                        const route = shouldUseNarrowLayoutRef.current
-                            ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID, Navigation.getActiveRoute())
-                            : ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID);
-                        Navigation.navigate(route);
-                    },
-                    false,
-                    sessionRef.current,
-                )();
+                    const route = shouldUseNarrowLayoutRef.current ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID, Navigation.getActiveRoute()) : ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID);
+                    Navigation.navigate(route);
+                }, sessionRef.current)();
             },
             shortcutConfig.descriptionKey,
             shortcutConfig.modifiers,

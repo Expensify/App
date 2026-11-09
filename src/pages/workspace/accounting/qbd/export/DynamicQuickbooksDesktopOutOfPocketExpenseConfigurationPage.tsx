@@ -116,7 +116,7 @@ function DynamicQuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: W
                     // eslint-disable-next-line react/no-array-index-key
                     key={index}
                 >
-                    <MenuItem.Root onPress={callIfAuthenticated(section.onPress, false, session)}>
+                    <MenuItem.Root onPress={callIfAuthenticated(section.onPress, session)}>
                         <MenuItemField.Row
                             name={section.description ?? ''}
                             value={section.title}

@@ -179,25 +179,14 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                             isChecked={isTaskCompleted}
                             disabled={!isTaskActionable}
                             shouldSelectOnPressEnter
-                            onPress={callIfAuthenticated(
-                                () => {
-                                    updateTaskCheckboxStateForAccessibility(isTaskCompleted);
-                                    if (isTaskCompleted) {
-                                        reopenTask(taskContextReport, parentReport, currentUserPersonalDetails.accountID, delegateEmail, taskReportID);
-                                    } else {
-                                        completeTask(
-                                            taskContextReport,
-                                            parentReport?.hasOutstandingChildTask ?? false,
-                                            hasOutstandingChildTask,
-                                            parentReportAction,
-                                            delegateEmail,
-                                            taskReportID,
-                                        );
-                                    }
-                                },
-                                false,
-                                session,
-                            )}
+                            onPress={callIfAuthenticated(() => {
+                                updateTaskCheckboxStateForAccessibility(isTaskCompleted);
+                                if (isTaskCompleted) {
+                                    reopenTask(taskContextReport, parentReport, currentUserPersonalDetails.accountID, delegateEmail, taskReportID);
+                                } else {
+                                    completeTask(taskContextReport, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail, taskReportID);
+                                }
+                            }, session)}
                             accessibilityLabel={taskCheckboxAccessibilityLabel}
                             accessibilityHint={taskCheckboxAccessibilityHint}
                             sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CHECKBOX}

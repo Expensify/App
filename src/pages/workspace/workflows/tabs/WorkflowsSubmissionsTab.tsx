@@ -67,7 +67,7 @@ function WorkflowsSubmissionsTab({policyID}: WorkflowsSubmissionsTabProps) {
             subMenuItems={
                 <View style={[styles.mt3, styles.mbn3]}>
                     <MenuItemSectionRoot
-                        onPress={canWriteWorkflows ? callIfAuthenticated(onPressAutoReportingFrequency, false, session) : undefined}
+                        onPress={canWriteWorkflows ? callIfAuthenticated(onPressAutoReportingFrequency, session) : undefined}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.AUTO_REPORTING_FREQUENCY}
                     >
                         <MenuItemField.Row

@@ -89,7 +89,7 @@ function CurrencyPicker({
     return (
         <>
             <MenuItem.Root
-                onPress={callIfAuthenticated(() => setIsPickerVisible(true), false, session)}
+                onPress={callIfAuthenticated(() => setIsPickerVisible(true), session)}
                 isDisabled={disabled}
                 accessibilityLabel={accessibilityLabel ? [accessibilityLabel, value ? `${value} - ${getCurrencySymbol(value)}` : undefined].filter(Boolean).join(', ') : undefined}
             >

@@ -65,7 +65,7 @@ function BusinessTypePicker({errorText = '', value = '', wrapperStyle, onInputCh
 
     return (
         <View style={wrapperStyle}>
-            <MenuItem.Root onPress={callIfAuthenticated(showPickerModal, false, session)}>
+            <MenuItem.Root onPress={callIfAuthenticated(showPickerModal, session)}>
                 <MenuItemField.Row
                     name={label}
                     value={title}

@@ -31,7 +31,7 @@ function MergeATSFinalApproverMenuItem({policyID, description}: MergeATSFinalApp
     const finalApproverDetails = usePersonalDetailByLogin(finalApprover);
 
     return (
-        <MenuItem.Root onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_RECRUITING_MERGE_FINAL_APPROVER.getRoute(policyID)), false, session)}>
+        <MenuItem.Root onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_RECRUITING_MERGE_FINAL_APPROVER.getRoute(policyID)), session)}>
             <MenuItem.Row>
                 <MenuItemField.Content name={description}>
                     {!!finalApprover && (

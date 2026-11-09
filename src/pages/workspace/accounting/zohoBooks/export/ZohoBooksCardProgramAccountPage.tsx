@@ -84,7 +84,6 @@ function ZohoBooksCardProgramAccountPage({policy}: WithPolicyConnectionsProps) {
                                 onPress={callIfAuthenticated(
                                     () =>
                                         policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_CARD_PROGRAM_ACCOUNT_SELECTOR.getRoute(policyID, feedWithDomainID)) : undefined,
-                                    false,
                                     session,
                                 )}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ZOHO_BOOKS.CARD_PROGRAM_ACCOUNT_FEED}

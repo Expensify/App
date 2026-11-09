@@ -42,7 +42,7 @@ function MenuItemAction({title, icon, onPress, isDisabled = false, sentryLabel, 
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     return (
         <MenuItemRoot
-            onPress={callIfAuthenticated(onPress, false, session)}
+            onPress={callIfAuthenticated(onPress, session)}
             isDisabled={isDisabled}
             sentryLabel={sentryLabel}
             testID={testID}

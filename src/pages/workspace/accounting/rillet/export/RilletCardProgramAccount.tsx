@@ -79,7 +79,6 @@ function RilletCardProgramAccount({policy}: WithPolicyConnectionsProps) {
                             <MenuItem.Root
                                 onPress={callIfAuthenticated(
                                     () => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT_SELECTOR.getRoute(policyID, feedWithDomainID)) : undefined),
-                                    false,
                                     session,
                                 )}
                             >

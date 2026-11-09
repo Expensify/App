@@ -97,7 +97,6 @@ function BusinessCentralAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     <MenuItem.Root
                         onPress={callIfAuthenticated(
                             () => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_ACCOUNTING_METHOD.getRoute(policyID)) : undefined),
-                            false,
                             session,
                         )}
                     >

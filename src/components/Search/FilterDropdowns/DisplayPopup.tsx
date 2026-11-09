@@ -144,14 +144,10 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                 {shouldShowColumnsButton && (
                     <CompactMenuContext.Provider value>
                         <MenuItem.Root
-                            onPress={callIfAuthenticated(
-                                () => {
-                                    closeOverlay();
-                                    openSearchColumns();
-                                },
-                                false,
-                                session,
-                            )}
+                            onPress={callIfAuthenticated(() => {
+                                closeOverlay();
+                                openSearchColumns();
+                            }, session)}
                             accessibilityLabel={translate('search.editColumns')}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMNS_BUTTON}
                         >

@@ -200,7 +200,7 @@ function ExpenseFieldRow({
                 // reads that as a non-interactive row and drops the button role and the focus stop with it.
                 // Otherwise the press is guarded like every other `MenuItem` preset, so an anonymous user gets
                 // the sign-in prompt rather than the field's selector.
-                onPress={isInteractive ? callIfAuthenticated(onPress, false, session) : undefined}
+                onPress={isInteractive ? callIfAuthenticated(onPress, session) : undefined}
                 isDisabled={isDisabled}
                 accessibilityLabel={accessibilityLabel}
                 accessibilityState={isExpanded === undefined ? undefined : {expanded: isExpanded}}

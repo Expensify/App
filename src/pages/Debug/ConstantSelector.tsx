@@ -68,13 +68,9 @@ function ConstantSelector({formType, policyID, errorText = '', name, value, onIn
 
     return (
         <MenuItem.Root
-            onPress={callIfAuthenticated(
-                () => {
-                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.DETAILS_CONSTANT_PICKER.getRoute(formType, name, value, policyID)));
-                },
-                false,
-                session,
-            )}
+            onPress={callIfAuthenticated(() => {
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.DETAILS_CONSTANT_PICKER.getRoute(formType, name, value, policyID)));
+            }, session)}
         >
             <MenuItemField.Row
                 name={name}

@@ -79,7 +79,6 @@ function DualEntryCardProgramAccountPage({policy}: WithPolicyConnectionsProps) {
                             <MenuItem.Root
                                 onPress={callIfAuthenticated(
                                     () => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_CARD_PROGRAM_ACCOUNT_SELECTOR.getRoute(policyID, feedWithDomainID)) : undefined),
-                                    false,
                                     session,
                                 )}
                             >

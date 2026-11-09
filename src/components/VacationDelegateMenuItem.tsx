@@ -133,7 +133,7 @@ function VacationDelegateMenuItemPreset({vacationDelegate, label, timezone, erro
         >
             {hasVacationDelegate ? (
                 <MenuItem.Root
-                    onPress={callIfAuthenticated(onPress, false, session)}
+                    onPress={callIfAuthenticated(onPress, session)}
                     accessibilityLabel={[rowLabel, delegateDisplayName, untilText].filter(Boolean).join(', ')}
                 >
                     <VacationDelegateMenuItemRow

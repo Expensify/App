@@ -34,16 +34,12 @@ function NetSuiteCustomListPicker({value, policyID, errorText, isEditing}: NetSu
 
     return (
         <MenuItem.Root
-            onPress={callIfAuthenticated(
-                () => {
-                    if (!policyID) {
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_SELECTOR.getRoute(policyID, isEditing ? 'edit' : undefined));
-                },
-                false,
-                session,
-            )}
+            onPress={callIfAuthenticated(() => {
+                if (!policyID) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_SELECTOR.getRoute(policyID, isEditing ? 'edit' : undefined));
+            }, session)}
         >
             <MenuItemField.Row
                 name={translate('workspace.netsuite.import.importCustomFields.customLists.fields.listName')}

@@ -32,7 +32,7 @@ function NewChatHandler() {
                 if (Navigation.isOnboardingFlow() || shouldShowRequire2FAPage) {
                     return;
                 }
-                Session.callIfAuthenticated(() => Modal.close(startNewChat), false, sessionRef.current)();
+                Session.callIfAuthenticated(() => Modal.close(startNewChat), sessionRef.current)();
             },
             shortcutConfig.descriptionKey,
             shortcutConfig.modifiers,

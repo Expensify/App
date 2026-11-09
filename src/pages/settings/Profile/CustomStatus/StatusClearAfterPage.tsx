@@ -162,14 +162,14 @@ function StatusClearAfterPage() {
                     name={translate('statusPage.date')}
                     value={customStatusDate}
                     error={customDateError}
-                    onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_DATE), false, session)}
+                    onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_DATE), session)}
                     sentryLabel={CONST.SENTRY_LABEL.CUSTOM_STATUS.CLEAR_AFTER_DATE}
                 />
                 <StatusExpiryField
                     name={translate('statusPage.time')}
                     value={customStatusTime}
                     error={customTimeError}
-                    onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME), false, session)}
+                    onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME), session)}
                     sentryLabel={CONST.SENTRY_LABEL.CUSTOM_STATUS.CLEAR_AFTER_TIME}
                 />
             </>

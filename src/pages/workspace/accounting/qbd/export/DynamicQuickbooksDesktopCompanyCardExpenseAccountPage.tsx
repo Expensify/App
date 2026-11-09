@@ -85,7 +85,7 @@ function DynamicQuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPol
                     key={section.keyForList}
                     pendingAction={settingsPendingAction(section.subscribedSettings, qbdConfig?.pendingFields)}
                 >
-                    <MenuItem.Root onPress={callIfAuthenticated(section.onPress, false, session)}>
+                    <MenuItem.Root onPress={callIfAuthenticated(section.onPress, session)}>
                         <MenuItemField.Row
                             name={section.description}
                             value={section.title}

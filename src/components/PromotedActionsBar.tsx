@@ -63,7 +63,7 @@ const PromotedActions = {
         key: CONST.PROMOTED_ACTIONS.PIN,
         icon: 'Pin',
         translationKey: report.isPinned ? 'common.unPin' : 'common.pin',
-        onSelected: callIfAuthenticated(() => togglePinnedState(report.reportID, !!report.isPinned), false, session),
+        onSelected: callIfAuthenticated(() => togglePinnedState(report.reportID, !!report.isPinned), session),
     }),
     share: () => ({
         key: CONST.PROMOTED_ACTIONS.SHARE,
@@ -75,14 +75,10 @@ const PromotedActions = {
         key: CONST.PROMOTED_ACTIONS.JOIN,
         icon: 'ChatBubbles',
         translationKey: 'common.join',
-        onSelected: callIfAuthenticated(
-            () => {
-                Navigation.dismissModal();
-                joinRoom(report, currentUserAccountID);
-            },
-            false,
-            session,
-        ),
+        onSelected: callIfAuthenticated(() => {
+            Navigation.dismissModal();
+            joinRoom(report, currentUserAccountID);
+        }, session),
     }),
     message: ({
         reportID,

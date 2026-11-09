@@ -91,17 +91,13 @@ function ReportDetailsMenuMembersOrInviteItem({reportID}: ReportDetailsMenuMembe
     ) {
         return (
             <MenuItem.Root
-                onPress={callIfAuthenticated(
-                    () => {
-                        if (shouldOpenRoomMembersPage) {
-                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_MEMBERS.path));
-                        } else {
-                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS.path));
-                        }
-                    },
-                    false,
-                    session,
-                )}
+                onPress={callIfAuthenticated(() => {
+                    if (shouldOpenRoomMembersPage) {
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_MEMBERS.path));
+                    } else {
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS.path));
+                    }
+                }, session)}
                 accessibilityLabel={translate('common.members')}
             >
                 <MenuItem.Row>

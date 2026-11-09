@@ -59,7 +59,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
             value: 'timer' as const,
             text: timerStartTime ? translate('chronos.stopTimer', formatElapsedTime(timerStartTime)) : translate('chronos.startTimer'),
             onSelected: () => {
-                callIfAuthenticated(toggleChronosTimer, false, session)();
+                callIfAuthenticated(toggleChronosTimer, session)();
             },
         },
         {
@@ -81,7 +81,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
             <ButtonWithDropdownMenu<ChronosAction>
                 variant={!timerStartTime ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                 onPress={() => {
-                    callIfAuthenticated(toggleChronosTimer, false, session)();
+                    callIfAuthenticated(toggleChronosTimer, session)();
                 }}
                 options={options}
                 wrapperStyle={styles.flex1}

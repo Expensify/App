@@ -83,7 +83,6 @@ function BusinessCentralCardProgramAccountPage({policy}: WithPolicyConnectionsPr
                                         policyID
                                             ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_CARD_PROGRAM_ACCOUNT_SELECTOR.getRoute(policyID, feedWithDomainID))
                                             : undefined,
-                                    false,
                                     session,
                                 )}
                             >
