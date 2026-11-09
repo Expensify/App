@@ -1972,6 +1972,9 @@ const translations = {
             employeeWillReceive: 'Employee will receive',
             totalFees: 'Total fees',
             fxRate: 'FX rate',
+            paymentDetails: 'Payment details',
+            debitedAmount: 'Debited amount',
+            employeeReceived: 'Employee received',
             payAll: 'Pay all',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 report',
@@ -7913,12 +7916,15 @@ const translations = {
                 unassignCard: 'Unassign card',
                 unassignCards: 'Unassign cards',
                 unassign: 'Unassign',
-                unassignCardDescription: 'Unassigning this card will delete all unsubmitted transactions.',
-                unassignCardsDescription: 'Unassigning will delete all unsubmitted transactions from the selected cards.',
+                unassignCardDescription: (transactionsUrl: string) =>
+                    `Unassigning this card will permanently delete all its <a href="${transactionsUrl}">unsubmitted transactions</a>, including unreported transactions and those on draft reports. This can’t be undone.`,
+                unassignCardsDescription: (transactionsUrl: string) =>
+                    `Unassigning will permanently delete all <a href="${transactionsUrl}">unsubmitted transactions</a> from the selected cards, including unreported transactions and those on draft reports. This can’t be undone.`,
                 assignCard: 'Assign card',
                 removeCard: 'Remove card',
                 remove: 'Remove',
-                removeCardDescription: 'Removing this card will delete all unsubmitted transactions.',
+                removeCardDescription: (transactionsUrl: string) =>
+                    `Removing this card will permanently delete all its <a href="${transactionsUrl}">unsubmitted transactions</a>, including unreported transactions and those on draft reports. This can’t be undone.`,
                 cardFeedName: 'Card feed name',
                 cardFeedNameDescription: 'Give the card feed a unique name so you can tell it apart from the others.',
                 cardFeedTransaction: 'Delete transactions',
