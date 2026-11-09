@@ -399,7 +399,7 @@ describe('reportAttributes compute — policy change code flow', () => {
             reports: {billInvoice: {reportName: 'Acme owes $1.00', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}}},
             locale: null,
         };
-        const computeReportNameMock = jest.mocked(jest.requireMock<typeof ReportNameUtils>('@libs/ReportNameUtils').computeReportName);
+        const computeReportNameMock = jest.requireMock<{default: jest.Mock}>('@libs/computeReportName').default;
         computeReportNameMock.mockClear();
 
         // When only the invoice's reportNameValuePairs update with the bill link
