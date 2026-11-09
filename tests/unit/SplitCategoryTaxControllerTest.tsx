@@ -36,7 +36,6 @@ const mockSetDraftSplitTransaction = jest.mocked(setDraftSplitTransaction);
 const transaction = {
     transactionID: 'txn1',
     amount: 1000,
-    category: 'Car',
     created: '2026-11-10',
     currency: 'USD',
     merchant: 'Merchant',
@@ -51,46 +50,86 @@ const baseProps: SplitCategoryTaxControllerProps = {
     isEditingSplitBill: true,
 };
 
+/** The props the screen has once a category has been picked on it. */
+function withCategory(category: string | undefined, overrides: Partial<SplitCategoryTaxControllerProps> = {}): SplitCategoryTaxControllerProps {
+    return {...baseProps, transaction: {...transaction, category}, ...overrides};
+}
+
 describe('SplitCategoryTaxController', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockAreRulesLoading = false;
     });
 
-    it('replays the category once the rules land', () => {
-        // Given a split draft rendered while the rules are still on their way, so a category picked now resolves
-        // its tax without them
+    it('replays a category picked before the rules arrived', () => {
+        // Given a split draft with no category yet, on a screen opened while the rules are still on their way
         mockAreRulesLoading = true;
-        const {rerender} = render(<SplitCategoryTaxController {...baseProps} />);
+        const {rerender} = render(<SplitCategoryTaxController {...withCategory(undefined)} />);
 
-        // When the rules land
+        // When the user picks a category, which resolves its tax without the rules, and the rules then land
+        rerender(<SplitCategoryTaxController {...withCategory('Car')} />);
         mockAreRulesLoading = false;
-        rerender(<SplitCategoryTaxController {...baseProps} />);
+        rerender(<SplitCategoryTaxController {...withCategory('Car')} />);
 
         // Then the category is written again, which puts it back through the resolution the pick used
-        expect(mockSetDraftSplitTransaction).toHaveBeenCalledWith('txn1', transaction, {category: 'Car'}, expect.any(Function), expect.any(Function), undefined, undefined, undefined, {});
+        expect(mockSetDraftSplitTransaction).toHaveBeenCalledWith(
+            'txn1',
+            {...transaction, category: 'Car'},
+            {category: 'Car'},
+            expect.any(Function),
+            expect.any(Function),
+            undefined,
+            undefined,
+            undefined,
+            {},
+        );
     });
 
-    it('leaves the draft alone when the rules were already there', () => {
-        // Given a split draft rendered after the rules have landed, so its tax was resolved with them
+    it('replays a category picked while the screen was covered by the category selector', () => {
+        // Given a screen opened while the rules were on their way, whose effects then stop because the full page
+        // category selector covers it. The rules land in that window, so no transition is ever seen here.
+        mockAreRulesLoading = true;
+        const {rerender} = render(<SplitCategoryTaxController {...withCategory(undefined)} />);
+        mockAreRulesLoading = false;
+
+        // When the user comes back having picked a category over there
+        rerender(<SplitCategoryTaxController {...withCategory('Car')} />);
+
+        // Then the pick is still reconciled, because this is keyed on which category has been resolved rather
+        // than on the rules arriving
+        expect(mockSetDraftSplitTransaction).toHaveBeenCalledTimes(1);
+    });
+
+    it('leaves the category the screen opened with alone', () => {
+        // Given a split draft that already carries a category, on a screen opened after the rules landed
 
         // When the screen renders and re-renders
-        const {rerender} = render(<SplitCategoryTaxController {...baseProps} />);
-        rerender(<SplitCategoryTaxController {...baseProps} />);
+        const {rerender} = render(<SplitCategoryTaxController {...withCategory('Car')} />);
+        rerender(<SplitCategoryTaxController {...withCategory('Car')} />);
 
-        // Then nothing is written, because a tax the user chose here would be overwritten by the replay
+        // Then nothing is written, because a tax the user chose for that category would be overwritten
         expect(mockSetDraftSplitTransaction).not.toHaveBeenCalled();
     });
 
-    it('leaves the draft alone when no category has been picked', () => {
-        // Given a split draft with no category, rendered while the rules are on their way
-        mockAreRulesLoading = true;
-        const props = {...baseProps, transaction: {...transaction, category: undefined}};
-        const {rerender} = render(<SplitCategoryTaxController {...props} />);
+    it('leaves the draft alone when only the tax changes', () => {
+        // Given a split draft whose category has already been resolved
+        const {rerender} = render(<SplitCategoryTaxController {...withCategory('Car')} />);
 
-        // When the rules land
+        // When the user picks a different tax by hand, leaving the category as it was
+        rerender(<SplitCategoryTaxController {...withCategory('Car', {transaction: {...transaction, category: 'Car', taxCode: 'tax_manual'}})} />);
+
+        // Then nothing is written, so the rate the user chose stands
+        expect(mockSetDraftSplitTransaction).not.toHaveBeenCalled();
+    });
+
+    it('leaves the draft alone when the category is cleared', () => {
+        // Given a split draft with a category, on a screen opened while the rules are on their way
+        mockAreRulesLoading = true;
+        const {rerender} = render(<SplitCategoryTaxController {...withCategory('Car')} />);
+
+        // When the category is cleared and the rules land
         mockAreRulesLoading = false;
-        rerender(<SplitCategoryTaxController {...props} />);
+        rerender(<SplitCategoryTaxController {...withCategory('')} />);
 
         // Then nothing is written, because there is no category whose rule could apply
         expect(mockSetDraftSplitTransaction).not.toHaveBeenCalled();
@@ -99,12 +138,12 @@ describe('SplitCategoryTaxController', () => {
     it('leaves the draft alone when a split is not being edited', () => {
         // Given a confirmation that is not editing a split, so its tax is resolved by TaxController instead
         mockAreRulesLoading = true;
-        const props = {...baseProps, isEditingSplitBill: false};
-        const {rerender} = render(<SplitCategoryTaxController {...props} />);
+        const {rerender} = render(<SplitCategoryTaxController {...withCategory(undefined, {isEditingSplitBill: false})} />);
 
-        // When the rules land
+        // When a category is picked and the rules land
+        rerender(<SplitCategoryTaxController {...withCategory('Car', {isEditingSplitBill: false})} />);
         mockAreRulesLoading = false;
-        rerender(<SplitCategoryTaxController {...props} />);
+        rerender(<SplitCategoryTaxController {...withCategory('Car', {isEditingSplitBill: false})} />);
 
         // Then nothing is written, because this writes only to the split draft
         expect(mockSetDraftSplitTransaction).not.toHaveBeenCalled();

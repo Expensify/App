@@ -1,6 +1,5 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
 import useRulesPrefetch from '@hooks/useRulesPrefetch';
 
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
@@ -11,7 +10,7 @@ import type {Policy, PolicyCategories, Transaction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useEffect} from 'react';
+import {useEffect, useState} from 'react';
 
 type SplitCategoryTaxControllerProps = {
     /** ID of the split whose draft the tax is written to */
@@ -37,23 +36,44 @@ type SplitCategoryTaxControllerProps = {
  * category picked before the rules land keeps whatever tax it was given without them. Replaying the category
  * puts it back through the same resolution the pick used, rather than resolving the rate a second way here.
  *
- * Only the loading-to-loaded transition triggers this, so a tax the user chose before this screen was opened is
- * left alone.
+ * The work is keyed on which category has been resolved rather than on the rules arriving, because the category
+ * can be picked on a screen covering this one, and a covered screen's effects do not run (see
+ * `contributingGuides/ACTIVITY_SCREENS.md`). Keying it on the arrival would lose every pick made over there.
+ * A category the screen opened with is recorded rather than replayed, so a tax the user chose for it earlier
+ * survives.
  */
 function SplitCategoryTaxController({transactionID, transaction, policy, policyCategories, isEditingSplitBill}: SplitCategoryTaxControllerProps) {
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {areRulesLoading} = useRulesPrefetch(isEditingSplitBill && arePolicyRulesEnabled(policy, policyCategories));
-    const wereRulesLoading = usePrevious(areRulesLoading);
+    // Wrapped, so that the category this opened on is told apart from not having recorded one yet.
+    const [resolvedCategory, setResolvedCategory] = useState<{value: string | undefined}>();
     const category = transaction?.category;
 
     useEffect(() => {
-        if (!isEditingSplitBill || areRulesLoading || !wereRulesLoading || !category || !transaction) {
+        if (!isEditingSplitBill) {
+            return;
+        }
+
+        if (!resolvedCategory) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- the category the screen opened on is only knowable on the first run, and replaying it would overwrite a tax picked for it earlier
+            setResolvedCategory({value: category});
+            return;
+        }
+
+        if (areRulesLoading || resolvedCategory.value === category) {
+            return;
+        }
+
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- which category has been resolved is history, so it cannot be derived from the current render
+        setResolvedCategory({value: category});
+
+        if (!category || !transaction) {
             return;
         }
 
         setDraftSplitTransaction(transactionID, transaction, {category}, getCurrencyDecimals, getCurrencySymbol, policy, undefined, undefined, rules);
-    }, [areRulesLoading, wereRulesLoading, category, isEditingSplitBill, transactionID, transaction, policy, rules, getCurrencyDecimals, getCurrencySymbol]);
+    }, [areRulesLoading, resolvedCategory, category, isEditingSplitBill, transactionID, transaction, policy, rules, getCurrencyDecimals, getCurrencySymbol]);
 
     return null;
 }
