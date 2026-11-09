@@ -21,6 +21,8 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
 
+import {setIsSearchTabHovered} from '@libs/Navigation/helpers/searchTabPreloadStore';
+
 import SupportalSwitcherButton from '@pages/inbox/sidebar/SupportalSwitcherButton';
 
 import variables from '@styles/variables';
@@ -30,7 +32,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ValueOf} from 'type-fest';
 
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 import FlatNavAccountStatus from './FlatNavAccountStatus';
@@ -66,6 +68,9 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
 
     const navigateToHome = useHomeTabNavigation(isHomeSelected);
     const navigateToAccount = useAccountTabNavigation(isAccountSelected);
+
+    // The Spend row gets no hover out when the bar goes away while hovered, on a switch to the narrow layout or an unmount.
+    useEffect(() => () => setIsSearchTabHovered(false), []);
 
     const accountLabel = currentUserPersonalDetails.displayName ? currentUserPersonalDetails.displayName : translate('initialSettingsPage.account');
 
@@ -109,6 +114,8 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                 isSelected={selectedTab === NAVIGATION_TABS.SEARCH}
                                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
                                 onPress={navigateToSearch}
+                                onHoverIn={() => setIsSearchTabHovered(true)}
+                                onHoverOut={() => setIsSearchTabHovered(false)}
                             />
                             <FlatNavItem
                                 label={translate('common.insights')}
