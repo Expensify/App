@@ -1,8 +1,7 @@
+import useInputFSClass from '@hooks/useInputFSClass';
 import useTheme from '@hooks/useTheme';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-
-import CONST from '@src/CONST';
 
 import type {ComponentRef, ForwardedRef} from 'react';
 import type {MaskedTextInputProps} from 'react-native-advanced-input-mask';
@@ -22,8 +21,9 @@ type RNMaskedTextInputWithRefProps = MaskedTextInputProps &
         ref?: ForwardedRef<AnimatedTextInputRef>;
     };
 
-function RNMaskedTextInputWithRef({ref, forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK, ...props}: RNMaskedTextInputWithRefProps) {
+function RNMaskedTextInputWithRef({ref, forwardedFSClass, ...props}: RNMaskedTextInputWithRefProps) {
     const theme = useTheme();
+    const fsClass = useInputFSClass(forwardedFSClass, props);
 
     return (
         <MaskedTextInput
@@ -40,7 +40,7 @@ function RNMaskedTextInputWithRef({ref, forwardedFSClass = CONST.FULLSTORY.CLASS
                 ref(refHandle as AnimatedTextInputRef | null);
             }}
             // eslint-disable-next-line react/forbid-component-props
-            fsClass={forwardedFSClass}
+            fsClass={fsClass}
             {...props}
         />
     );

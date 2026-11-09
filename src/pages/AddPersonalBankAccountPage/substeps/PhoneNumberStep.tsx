@@ -60,6 +60,7 @@ function PhoneNumberStep({onNext, onMove, isEditing, shouldDelayAutoFocus, enabl
             onMove={onMove}
             formID={ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM}
             formTitle={translate('personalInfoStep.whatsYourPhoneNumber')}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             formDisclaimer={translate('personalInfoStep.weNeedThisToVerify')}
             validate={validate}
             onSubmit={(values) => {

@@ -106,6 +106,7 @@ function AddressStep({onNext, isEditing, shouldSaveDraft = false, shouldHideCoun
             </View>
             <AddressForm
                 formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
+                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                 onSubmit={updateAddress}
                 submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
                 city={city}
