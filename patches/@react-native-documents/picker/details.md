@@ -5,11 +5,12 @@
 - Reason:
 
     ```
-    In React Native 0.88 `ReactContextBaseJavaModule.getCurrentActivity()` is a plain Kotlin `fun`, so Kotlin no
-    longer exposes a synthetic `currentActivity` property. `val currentActivity = currentActivity` fails with
-    "Function invocation 'currentActivity()' expected". Read `reactApplicationContext.currentActivity` instead.
+    `ReactContextBaseJavaModule.getCurrentActivity()` has been deprecated since React Native 0.80 in favor of
+    `reactApplicationContext.currentActivity`. In React Native 0.88 the class is Kotlin, so the `currentActivity`
+    property the library relies on no longer exists and the Android build fails. The patch applies the replacement
+    React Native suggests.
     ```
 
 - Upstream PR/issue: Fixed upstream from 12.0.0 (11.x still has the bare `currentActivity`). Drop this patch when bumping to >= 12.0.0 (11.0.0 stops shipping CommonJS, 12.0.0 moves iOS to Swift 6 concurrency).
-- E/App issue: https://github.com/Expensify/App/issues/101427
+- E/App issue: https://github.com/Expensify/App/issues/106112
 - PR introducing patch: https://github.com/Expensify/App/pull/101739

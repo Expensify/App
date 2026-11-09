@@ -6,7 +6,7 @@ diff --git a/node_modules/@react-native-documents/picker/android/src/main/java/c
    @ReactMethod
    override fun pick(opts: ReadableMap, promise: Promise) {
 -    val currentActivity = currentActivity
-+    val currentActivity = reactApplicationContext.currentActivity // RN088: getCurrentActivity() is a Kotlin fun now
++    val currentActivity = reactApplicationContext.currentActivity
  
      if (currentActivity == null) {
        rejectWithNullActivity(promise)
@@ -15,7 +15,7 @@ diff --git a/node_modules/@react-native-documents/picker/android/src/main/java/c
  
    override fun saveDocument(options: ReadableMap, promise: Promise) {
 -    val currentActivity = currentActivity
-+    val currentActivity = reactApplicationContext.currentActivity // RN088: getCurrentActivity() is a Kotlin fun now
++    val currentActivity = reactApplicationContext.currentActivity
      if (currentActivity == null) {
        rejectWithNullActivity(promise)
        return
@@ -24,7 +24,7 @@ diff --git a/node_modules/@react-native-documents/picker/android/src/main/java/c
    @ReactMethod
    override fun pickDirectory(opts: ReadableMap, promise: Promise) {
 -    val currentActivity = currentActivity
-+    val currentActivity = reactApplicationContext.currentActivity // RN088: getCurrentActivity() is a Kotlin fun now
++    val currentActivity = reactApplicationContext.currentActivity
      if (currentActivity == null) {
        rejectWithNullActivity(promise)
        return
