@@ -6572,6 +6572,7 @@ describe('actions/Report', () => {
                     getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                     rules: undefined,
                     delegateAccountID: undefined,
+                    personalDetailsByLogins: {},
                     parentReport: undefined,
                     policy: createRandomPolicy(79006),
                     currentUserAccountID,
