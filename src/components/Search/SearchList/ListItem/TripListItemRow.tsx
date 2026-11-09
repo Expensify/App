@@ -84,7 +84,10 @@ function TripListItemRow({item, columns, showTooltip, onViewPress}: TripListItem
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>{traveler}</View>
                     <View style={StyleUtils.getWidthStyle(variables.w80)}>
-                        <TripStatusCell status={item.status} />
+                        <TripStatusCell
+                            status={item.status}
+                            badgeStyles={styles.alignSelfEnd}
+                        />
                     </View>
                 </View>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>

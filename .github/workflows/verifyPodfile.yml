@@ -3,7 +3,6 @@ name: Verify iOS native configuration
 on:
   pull_request:
     types: [opened, synchronize]
-    branches-ignore: [production]
     paths:
       - ios/**
       - 'package.json'

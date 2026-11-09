@@ -14,6 +14,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePayChatReportActions from '@hooks/usePayChatReportActions';
+import usePayWithWiseQuote from '@hooks/usePayWithWiseQuote';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -25,11 +26,12 @@ import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import {getIsOffline} from '@libs/NetworkState';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {canIOUBePaid as canIOUBePaidAction, hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasUpdatedTotal, isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
 
-import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
+import {payInvoice} from '@userActions/IOU/PayMoneyRequest';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,6 +40,7 @@ import type {Transaction} from '@src/types/onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React from 'react';
+import Onyx from 'react-native-onyx';
 
 import useTransactionThreadData from './useTransactionThreadData';
 
@@ -50,6 +53,7 @@ type PayPrimaryActionProps = {
 
 function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryActionProps) {
     const {isBetaEnabled} = usePermissions();
+    const {payWithWiseQuote} = usePayWithWiseQuote();
     const {isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation} = usePaymentAnimationsContext();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -63,15 +67,7 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const activePolicy = usePolicy(activePolicyID);
     const chatReportPolicy = usePolicy(chatReport?.policyID);
@@ -81,7 +77,6 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
-    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
 
@@ -127,20 +122,53 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
 
     const {openHoldMenu} = useMoneyReportHeaderModals();
 
-    const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
+    const refreshSearch = () => {
+        // Read at payment time, since the Wise quote can be confirmed after the network state changes
+        if (!currentSearchQueryJSON || getIsOffline()) {
+            return;
+        }
+        search({
+            searchKey: currentSearchKey,
+            shouldCalculateTotals,
+            offset: 0,
+            queryJSON: currentSearchQueryJSON,
+            isLoading: !!currentSearchResults?.search?.isLoading,
+            shouldReturnTripRooms,
+        });
+    };
+
+    const runPayment = async ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
         if (!type || !chatReport) {
             return;
         }
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
-        } else if (isAnyTransactionOnHold) {
+            return;
+        }
+        if (isAnyTransactionOnHold) {
             openHoldMenu({
                 requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 paymentType: type,
                 methodID,
                 onConfirm: () => startAnimation(),
             });
-        } else if (isInvoiceReport) {
+            return;
+        }
+
+        const [conciergeReportID, introSelected, onboarding, rules, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd] = await Onyx.multiGet([
+            ONYXKEYS.CONCIERGE_REPORT_ID,
+            ONYXKEYS.NVP_INTRO_SELECTED,
+            ONYXKEYS.NVP_ONBOARDING,
+            ONYXKEYS.COLLECTION.RULE,
+            ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
+            ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
+            ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
+        ]);
+        const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+        const isSelfTourViewed = hasSeenTourSelector(onboarding);
+        const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
+
+        if (isInvoiceReport) {
             startAnimation();
             payInvoice({
                 bankAccountList,
@@ -167,45 +195,37 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
                 isTrackIntentUser,
                 rules,
             });
-        } else {
-            payMoneyRequest({
-                bankAccountList,
-                isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
-                getCurrencyDecimals,
-                paymentType: type,
-                chatReport,
-                iouReport: moneyRequestReport,
-                iouReportTransactions: transactions,
-                introSelected,
-                currentUserAccountID: accountID,
-                currentUserLogin: currentUserLogin ?? '',
-                activePolicy,
-                policy,
-                chatReportPolicy,
-                isSelfTourViewed,
-                userBillingGracePeriodEnds,
-                amountOwed,
-                ownerBillingGracePeriodEnd,
-                methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
-                isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
-                onPaid: startAnimation,
-                chatReportActions: getChatReportActions(false),
-                delegateAccountID,
-                isTrackIntentUser,
-                conciergeChat,
-                rules,
-            });
-            if (currentSearchQueryJSON && !isOffline) {
-                search({
-                    searchKey: currentSearchKey,
-                    shouldCalculateTotals,
-                    offset: 0,
-                    queryJSON: currentSearchQueryJSON,
-                    isLoading: !!currentSearchResults?.search?.isLoading,
-                    shouldReturnTripRooms,
-                });
-            }
+            return;
         }
+
+        payWithWiseQuote({
+            bankAccountList,
+            isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+            getCurrencyDecimals,
+            paymentType: type,
+            chatReport,
+            iouReport: moneyRequestReport,
+            iouReportTransactions: transactions,
+            introSelected,
+            currentUserAccountID: accountID,
+            currentUserLogin: currentUserLogin ?? '',
+            activePolicy,
+            policy,
+            chatReportPolicy,
+            isSelfTourViewed,
+            userBillingGracePeriodEnds,
+            amountOwed,
+            ownerBillingGracePeriodEnd,
+            methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+            isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
+            onPaid: startAnimation,
+            onPaymentSent: refreshSearch,
+            chatReportActions: getChatReportActions(false),
+            delegateAccountID,
+            isTrackIntentUser,
+            conciergeChat,
+            rules,
+        });
     };
 
     return (
@@ -222,7 +242,7 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
             policyID={moneyRequestReport?.policyID}
             chatReportID={chatReport?.reportID}
             iouReport={moneyRequestReport}
-            onPress={confirmPayment}
+            onPress={runPayment}
             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
             shouldHidePaymentOptions={!shouldShowPayButton}
             isDisabled={(isOffline && !canAllowSettlement) || isDisabled}
