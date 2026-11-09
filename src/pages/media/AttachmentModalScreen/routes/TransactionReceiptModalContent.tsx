@@ -555,6 +555,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         footerActionButtons = (
             <View style={[styles.flexRow, styles.gap2, styles.ph5, styles.pb5, styles.justifyContentCenter]}>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.RECEIPT_MODAL.CROP_CANCEL}
                     onPress={exitCropMode}
                     style={styles.transactionReceiptButton}
                 >
@@ -562,6 +563,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     <Button.Text>{translate('common.cancel')}</Button.Text>
                 </Button>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.RECEIPT_MODAL.CROP_SAVE}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={saveCrop}
                     isLoading={isCropSaving}
@@ -606,6 +608,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             <View style={[styles.flexRow, styles.gap2, styles.ph5, styles.pb5, styles.justifyContentCenter]}>
                 {!!shouldShowRotateAndCropReceiptButton && (
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.RECEIPT_MODAL.ROTATE}
                         onPress={rotateReceipt}
                         isLoading={isRotating}
                         isDisabled={isRotating}
@@ -617,6 +620,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 )}
                 {!!shouldShowRotateAndCropReceiptButton && (
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.RECEIPT_MODAL.CROP}
                         onPress={enterCropMode}
                         style={styles.transactionReceiptButton}
                     >
@@ -626,6 +630,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 )}
                 {isPDF && !isNative && (
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.RECEIPT_MODAL.ROTATE_PDF}
                         onPress={() => setPdfRotation((prev) => ((prev + 270) % 360) as RotationDegrees)}
                         style={styles.transactionReceiptButton}
                     >
@@ -646,6 +651,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 )}
                 {(shouldShowReplaceReceiptButton || isOdometerImage) && (
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.RECEIPT_MODAL.REPLACE}
                         onPress={() => {
                             const getDestinationRoute = () => {
                                 return isOdometerImage

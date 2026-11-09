@@ -127,8 +127,6 @@ const SENTRY_LABEL_PRESSABLES = [
 
 /** Wrappers that only need a label when they get a press handler, since without one they can render read-only (e.g. a MenuItem without onPress). */
 const SENTRY_LABEL_PRESS_HANDLER_WRAPPERS = [
-    'AnimatedSettlementButton',
-    'AnimatedSubmitButton',
     'AvatarButtonWithIcon',
     'BaseMiniContextMenuItem',
     'Button',
@@ -143,7 +141,6 @@ const SENTRY_LABEL_PRESS_HANDLER_WRAPPERS = [
     'ConfirmationPagePrimaryButton',
     'ContextMenuItem',
     'DistanceRequestRenderItem',
-    'FABFocusableMenuItem',
     'FeatureTraining.HelpButton',
     'FocusableMenuItem',
     'FormAlertWithSubmitButton',
@@ -165,7 +162,6 @@ const SENTRY_LABEL_PRESS_HANDLER_WRAPPERS = [
     'PopoverMenu.RadioItem',
     'RowMenuItem',
     'SelectionButton',
-    'SettlementButton',
     'Table.Row',
     'TableRow',
     'TabSelectorItem',
