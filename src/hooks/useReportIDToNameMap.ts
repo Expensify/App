@@ -32,7 +32,11 @@ function getMentionedReportIDs(htmlString: string | undefined): string[] {
     if (!htmlString?.includes('<mention-report')) {
         return [];
     }
-    return [...new Set(Array.from(htmlString.matchAll(MENTION_REPORT_ID_REGEX), (match) => match[1]))];
+    const reportIDs = new Set<string>();
+    for (const match of htmlString.matchAll(MENTION_REPORT_ID_REGEX)) {
+        reportIDs.add(match[1]);
+    }
+    return [...reportIDs];
 }
 
 /**
