@@ -119,16 +119,17 @@ type ParticipantSearchResultsProps = {
     /** Whether to find the participant matching initiallySelectedReportID and move it to the top of the list */
     shouldMoveSelectedToTop?: boolean;
 
-    onRestrictedParticipantSelected?: () => void;
-
-    /** Callback to dismiss the participant picker overlay before the referral banner navigates, so the referral RHP isn't covered */
-    onCloseParticipantPicker?: () => void;
-
     /**
      * Called before committing a participant/workspace selection.
      * Return true to block the selection (e.g. manual/odometer distance into a commuter-exclusion workspace).
      */
     shouldBlockParticipantSelection?: (policyID?: string) => boolean;
+
+    /** Whether the import contacts prompt may be shown when the picker opens */
+    shouldShowContactImportPrompt?: boolean;
+
+    /** Whether to hold off focusing the search input, e.g. while the share flow is still checking the shared file */
+    shouldDeferTextInputAutoFocus?: boolean;
 };
 
 function ParticipantSearchResults({
@@ -150,9 +151,9 @@ function ParticipantSearchResults({
     initiallySelectedReportID,
     initiallySelectedParticipantAccountID,
     shouldMoveSelectedToTop = false,
-    onRestrictedParticipantSelected,
-    onCloseParticipantPicker,
     shouldBlockParticipantSelection,
+    shouldShowContactImportPrompt = true,
+    shouldDeferTextInputAutoFocus = false,
 }: ParticipantSearchResultsProps) {
     const getParticipantOptionKey = (option: Partial<Participant>) => option.reportID ?? option.accountID?.toString() ?? option.login ?? option.phoneNumber ?? '';
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
@@ -181,7 +182,7 @@ function ParticipantSearchResults({
     const reportAttributesDerived = useReportAttributes();
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
-    // When the surrounding ScreenWrapper runs in edge-to-edge mode (e.g. the new manual expense flow's ParticipantPicker),
+    // When the surrounding ScreenWrapper runs in edge-to-edge mode,
     // it does not apply bottom safe area padding itself, so the fixed footer must consume it. Otherwise the footer
     // (referral banner / Next button) renders behind the system navigation bar.
     const screenWrapperStatusContext = useContext(ScreenWrapperStatusContext);
@@ -504,7 +505,6 @@ function ParticipantSearchResults({
                 isDismissedReferralBanner={isDismissedReferralBanner}
                 onConfirmSelection={confirmSelection}
                 onNewWorkspace={() => onFinish()}
-                onCloseParticipantPicker={onCloseParticipantPicker}
             />
         );
 
@@ -521,7 +521,6 @@ function ParticipantSearchResults({
             optionPolicy &&
             shouldRestrictUserBillableActions(optionPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)
         ) {
-            onRestrictedParticipantSelected?.();
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(optionPolicyID));
             return;
         }
@@ -568,7 +567,7 @@ function ParticipantSearchResults({
         label: translate('selectionList.nameEmailOrPhoneNumber'),
         hint: offlineMessage,
         onChangeText: setSearchTerm,
-        disableAutoFocus: !textInputAutoFocus,
+        disableAutoFocus: !textInputAutoFocus || shouldDeferTextInputAutoFocus,
         headerMessage: header,
     };
 
@@ -578,6 +577,7 @@ function ParticipantSearchResults({
         onFocusTextInput: () => {
             setTextInputAutoFocus(true);
         },
+        isEnabled: shouldShowContactImportPrompt,
     });
 
     return (

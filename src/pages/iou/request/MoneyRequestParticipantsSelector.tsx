@@ -59,16 +59,17 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Whether to find the participant matching initiallySelectedReportID and move it to the top of the list */
     shouldMoveSelectedToTop?: boolean;
 
-    onRestrictedParticipantSelected?: () => void;
-
-    /** Callback to dismiss the participant picker overlay before the referral banner navigates, so the referral RHP isn't covered */
-    onCloseParticipantPicker?: () => void;
-
     /**
      * Called before committing a participant/workspace selection.
      * Return true to block the selection (e.g. manual/odometer distance into a commuter-exclusion workspace).
      */
     shouldBlockParticipantSelection?: (policyID?: string) => boolean;
+
+    /** Whether the import contacts prompt may be shown when the picker opens */
+    shouldShowContactImportPrompt?: boolean;
+
+    /** Whether to hold off focusing the search input, e.g. while the share flow is still checking the shared file */
+    shouldDeferTextInputAutoFocus?: boolean;
 
     ref?: Ref<InputFocusRef>;
 };
@@ -93,9 +94,9 @@ function MoneyRequestParticipantsSelector({
     initiallySelectedReportID,
     initiallySelectedParticipantAccountID,
     shouldMoveSelectedToTop = false,
-    onRestrictedParticipantSelected,
-    onCloseParticipantPicker,
     shouldBlockParticipantSelection,
+    shouldShowContactImportPrompt = true,
+    shouldDeferTextInputAutoFocus = false,
     ref,
 }: MoneyRequestParticipantsSelectorProps) {
     const isFocused = useIsFocused();
@@ -109,7 +110,7 @@ function MoneyRequestParticipantsSelector({
 
     useImperativeHandle(ref, () => ({
         focus: () => {
-            if (!textInputAutoFocus) {
+            if (!textInputAutoFocus || shouldDeferTextInputAutoFocus) {
                 return;
             }
             selectionListRef.current?.focusTextInput?.();
@@ -138,9 +139,9 @@ function MoneyRequestParticipantsSelector({
                     initiallySelectedReportID={initiallySelectedReportID}
                     initiallySelectedParticipantAccountID={initiallySelectedParticipantAccountID}
                     shouldMoveSelectedToTop={shouldMoveSelectedToTop}
-                    onRestrictedParticipantSelected={onRestrictedParticipantSelected}
-                    onCloseParticipantPicker={onCloseParticipantPicker}
                     shouldBlockParticipantSelection={shouldBlockParticipantSelection}
+                    shouldShowContactImportPrompt={shouldShowContactImportPrompt}
+                    shouldDeferTextInputAutoFocus={shouldDeferTextInputAutoFocus}
                 />
             </AlwaysPaintedView>
         </Activity>

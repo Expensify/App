@@ -8,6 +8,7 @@ import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import {clearMoneyRequest, clearMoneyRequestPolicyFields} from '@libs/actions/IOU/MoneyRequest';
 import {clearUnknownUserDetails, saveUnknownUserDetails} from '@libs/actions/Share';
 import Navigation from '@libs/Navigation/Navigation';
+import {shouldValidateFile} from '@libs/ReceiptUtils';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {cancelSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -37,6 +38,8 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [draftTransactionAmount] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {selector: transactionAmountSelector});
+    const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
+    const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT);
     const [selectedReportID, setSelectedReportID] = useState<string | number | undefined>();
     const [selectedParticipantAccountID, setSelectedParticipantAccountID] = useState<number | undefined>();
     const [selectedPolicyID, setSelectedPolicyID] = useState<string | undefined>();
@@ -48,6 +51,10 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+
+    // Focusing the search input opens the keyboard, so wait until the shared file is known and, when it has to be checked
+    // or converted first (e.g. HEIC), until it has passed. Otherwise the keyboard opens just before a file error bottom sheet.
+    const shouldDeferTextInputAutoFocus = !currentAttachment || (shouldValidateFile(currentAttachment) && !validatedFile);
 
     const canUseDefaultPolicy =
         isSubmitFlow &&
@@ -148,6 +155,10 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
             initiallySelectedReportID={selectedReportID !== undefined ? selectedReportID.toString() : undefined}
             initiallySelectedParticipantAccountID={selectedParticipantAccountID}
             shouldExcludeP2P={(draftTransactionAmount ?? 0) < 0}
+            // Share shows file errors in a bottom sheet from the global modal stack. On iOS the contacts prompt opening
+            // over that sheet replaced it mid-presentation and froze the screen, so this flow doesn't show the prompt.
+            shouldShowContactImportPrompt={false}
+            shouldDeferTextInputAutoFocus={shouldDeferTextInputAutoFocus}
             onParticipantsAdded={(value) => {
                 const participant = value.at(0);
                 if (!participant) {

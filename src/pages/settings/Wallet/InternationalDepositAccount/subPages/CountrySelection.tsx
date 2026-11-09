@@ -1,16 +1,13 @@
 import useOnyx from '@hooks/useOnyx';
 
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import Navigation from '@libs/Navigation/Navigation';
-
 import CountrySelectionList from '@pages/settings/Wallet/CountrySelectionList';
+import navigateToUSBankAccountFlow from '@pages/settings/Wallet/InternationalDepositAccount/navigateToUSBankAccountFlow';
 import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
 
 import {fetchCorpayFields} from '@userActions/BankAccounts';
 
 import CONST, {COUNTRIES_US_BANK_FLOW} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {isUserValidatedSelector} from '@selectors/Account';
@@ -22,11 +19,7 @@ function CountrySelection({isEditing, onNext, onMove, formValues, fieldsMap}: Cu
 
     const onCountrySelected = () => {
         if (COUNTRIES_US_BANK_FLOW.includes(selectedCountry)) {
-            if (isUserValidated) {
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_US_BANK_ACCOUNT_ENTRY_POINT.path, ROUTES.SETTINGS_WALLET));
-            } else {
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
-            }
+            navigateToUSBankAccountFlow(isUserValidated);
             return;
         }
         if (!isEmptyObject(fieldsMap) && formValues.bankCountry === selectedCountry) {
