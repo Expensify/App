@@ -90,9 +90,11 @@ describe('SkiaWebChart', () => {
     });
 
     it('should show the unable-to-display empty state without mounting Skia when WebGL is unsupported', () => {
+        // Given a browser without WebGL
         mockIsSkiaWebSupported.mockReturnValue(false);
         const getComponent = createChartLoader();
 
+        // When the chart mounts
         render(
             <SkiaWebChart
                 getComponent={getComponent}
@@ -100,6 +102,8 @@ describe('SkiaWebChart', () => {
             />,
         );
 
+        // Then the empty state shows and neither CanvasKit nor the chart's code loads, because CanvasKit crashes when it
+        // initializes without a GL surface
         expect(screen.getByText('common.unableToDisplayChart')).toBeTruthy();
         expect(screen.getByText('common.webGLNotSupported')).toBeTruthy();
         expect(mockLoadSkiaWeb).not.toHaveBeenCalled();
@@ -138,8 +142,10 @@ describe('SkiaWebChart', () => {
     });
 
     it('should mount the chart once Skia loads when WebGL is supported', async () => {
+        // Given a browser with WebGL
         mockIsSkiaWebSupported.mockReturnValue(true);
 
+        // When the chart mounts for the first time and its loads settle
         render(
             <SkiaWebChart
                 getComponent={createChartLoader()}
@@ -149,6 +155,8 @@ describe('SkiaWebChart', () => {
 
         await waitForBatchedUpdatesWithAct();
 
+        // Then CanvasKit has loaded and the chart replaces the fallback, since the chart draws with Skia and cannot render
+        // before CanvasKit is ready
         expect(screen.getByTestId('loaded-chart')).toBeTruthy();
         expect(mockLoadSkiaWeb).toHaveBeenCalled();
     });
