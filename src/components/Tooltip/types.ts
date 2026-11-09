@@ -68,6 +68,9 @@ type GenericTooltipProps = SharedTooltipProps & {
     shouldForceAnimate?: boolean;
 
     isEducationTooltip?: boolean;
+
+    /** Keeps a hover tooltip open while the pointer moves from the anchor onto the tooltip */
+    shouldKeepOpenWhileHovered?: boolean;
 };
 
 type TooltipProps = ChildrenProps &
@@ -77,6 +80,9 @@ type TooltipProps = ChildrenProps &
 
         /** Whether the current screen or component is actively focused via navigation */
         isFocused?: boolean;
+
+        /** Renders an interactive tooltip that can be hovered and clicked, instead of a pointer-events-none label */
+        isEducationTooltip?: boolean;
 
         ref?: ForwardedRef<BoundsObserver>;
     };

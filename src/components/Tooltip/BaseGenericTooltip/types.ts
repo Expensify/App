@@ -29,6 +29,12 @@ type BaseGenericTooltipProps = {
     /** Handles what to do when hiding the tooltip */
     onHideTooltip?: () => void;
 
+    /** Called when the pointer enters an interactive tooltip */
+    onTooltipMouseEnter?: () => void;
+
+    /** Called when the pointer leaves an interactive tooltip */
+    onTooltipMouseLeave?: () => void;
+
     shouldTeleportPortalToModalLayer?: boolean;
     isEducationTooltip?: boolean;
 } & Pick<

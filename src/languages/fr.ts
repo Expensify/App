@@ -12216,6 +12216,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             saveWithExpensifyTitle: 'Économisez avec la Carte Expensify',
             saveWithExpensifyDescription: 'Utilisez notre calculateur d’économies pour voir comment le cash back de la Carte Expensify peut réduire votre facture Expensify.',
             saveWithExpensifyButton: 'En savoir plus',
+            plan: 'Formule',
         },
         compareModal: {
             comparePlans: 'Comparer les offres',
@@ -12303,11 +12304,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         subscriptionSettings: {
             title: 'Paramètres d’abonnement',
-            summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>
-                `Type d’abonnement : ${subscriptionType}, Taille de l’abonnement : ${subscriptionSize}${expensifyCode ? `, Code Expensify : ${expensifyCode}` : ''}, Renouvellement automatique : ${autoRenew}, Augmentation automatique des licences annuelles : ${autoIncrease}`,
-            none: 'aucun',
-            on: 'activé',
-            off: 'désactivé',
             annual: 'Annuel',
             autoRenew: 'Renouvellement automatique',
             autoIncrease: 'Augmenter automatiquement les licences annuelles',
@@ -12320,12 +12316,24 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             renewsOn: (date: string) => `Se renouvelle le ${date}.`,
             pricingConfiguration: 'Le prix dépend de la configuration. Pour le prix le plus bas, choisissez un abonnement annuel et obtenez la Carte Expensify.',
             learnMore: (hasAdminsRoom: boolean) =>
-                `<muted-text>En savoir plus sur notre <a href="${CONST.PRICING}">page des tarifs</a> ou discutez avec notre équipe dans votre ${hasAdminsRoom ? `<a href="adminsRoom">Salon #admins.</a>` : 'Salon #admins.'}</muted-text>`,
+                `<muted-text>En savoir plus sur notre <a href="${CONST.PRICING}">page de tarification</a> ou discutez avec notre équipe dans votre ${hasAdminsRoom ? `<a href="${CONST.SUBSCRIPTION.ADMINS_ROOM_LINK}">Salon #admins.</a>` : 'salon #admins.'}</muted-text>`,
             estimatedPrice: 'Prix estimé',
             changesBasedOn: 'Cela varie en fonction de votre utilisation de la Carte Expensify et des options d’abonnement ci-dessous.',
             collectBillingDescription: 'Les espaces de travail Collect sont facturés mensuellement par membre, sans engagement annuel.',
             pricing: 'Tarification',
-            editSubscription: 'Modifier l’abonnement',
+            subscriptionType: 'Type d’abonnement',
+            memberCount: ({count}: {count: number}) => ({
+                one: '1 membre',
+                other: `${count} membres`,
+            }),
+            sizeNotSet: `<muted-text>Si vous ne définissez pas la taille de votre abonnement maintenant, nous la définirons automatiquement en fonction du nombre de membres actifs de votre premier mois. <a href="${CONST.PRICING}">En savoir plus</a></muted-text>`,
+            expensifyCodeApplied: 'Code Expensify appliqué',
+            addExpensifyCode: 'Ajouter le code Expensify',
+            saveWithAnnualSubscription: 'Économisez avec un abonnement annuel',
+            autoIncreaseDescription: (amountWithCurrency: string) =>
+                `Économisez jusqu’à ${amountWithCurrency}/mois par membre actif. Des places supplémentaires sont ajoutées automatiquement lorsque les utilisateurs actifs dépassent votre abonnement, prolongeant ainsi votre date de fin annuelle.`,
+            annualSavingsDescription: (hasAdminsRoom: boolean) =>
+                `<muted-text>Pour le prix le plus bas, choisissez un abonnement annuel et obtenez la Carte Expensify. En savoir plus sur notre <a href="${CONST.PRICING}">page des tarifs</a> ou discutez avec notre équipe dans votre ${hasAdminsRoom ? `<a href="${CONST.SUBSCRIPTION.ADMINS_ROOM_LINK}">Salon #admins.</a>` : 'salon #admins.'}</muted-text>`,
         },
         cancelSubscription: {
             title: "Annuler l'abonnement",

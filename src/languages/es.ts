@@ -12444,6 +12444,7 @@ ${reportName}`,
             saveWithExpensifyTitle: 'Ahorra con la Tarjeta Expensify',
             saveWithExpensifyDescription: 'Utiliza nuestra calculadora de ahorro para ver cómo el reembolso en efectivo de la Tarjeta Expensify puede reducir tu factura de Expensify',
             saveWithExpensifyButton: 'Más información',
+            plan: 'Plan',
         },
         compareModal: {
             comparePlans: 'Comparar planes',
@@ -12531,11 +12532,6 @@ ${reportName}`,
         },
         subscriptionSettings: {
             title: 'Configuración de suscripción',
-            summary: (subscriptionType, subscriptionSize, expensifyCode, autoRenew, autoIncrease) =>
-                `Tipo de suscripción: ${subscriptionType}, Tamaño de suscripción: ${subscriptionSize}${expensifyCode ? `, Código Expensify: ${expensifyCode}` : ''}, Renovación automática: ${autoRenew}, Aumento automático de asientos anuales: ${autoIncrease}`,
-            none: 'ninguno',
-            on: 'activado',
-            off: 'desactivado',
             annual: 'Anual',
             autoRenew: 'Auto-renovación',
             autoIncrease: 'Auto-incremento',
@@ -12547,13 +12543,25 @@ ${reportName}`,
             whatsMainReason: '¿Cuál es la razón principal por la que deseas desactivar la auto-renovación?',
             renewsOn: (date) => `Se renovará el ${date}.`,
             pricingConfiguration: 'El precio depende de la configuración. Para obtener el precio más bajo, elige una suscripción anual y obtén la Tarjeta Expensify.',
-            learnMore: (hasAdminsRoom) =>
-                `<muted-text>Obtén más información en nuestra <a href="${CONST.PRICING}">página de precios</a> o chatea con nuestro equipo en tu ${hasAdminsRoom ? `<a href="adminsRoom">sala #admins.</a>` : '#admins room.'}</muted-text>`,
+            learnMore: (hasAdminsRoom: boolean) =>
+                `<muted-text>Obtén más información en nuestra <a href="${CONST.PRICING}">página de precios</a> o chatea con nuestro equipo en tu ${hasAdminsRoom ? `<a href="${CONST.SUBSCRIPTION.ADMINS_ROOM_LINK}">Sala #admins.</a>` : 'sala #admins.'}</muted-text>`,
             estimatedPrice: 'Precio estimado',
             changesBasedOn: 'Esto varía según el uso de tu Tarjeta Expensify y las opciones de suscripción que elijas a continuación.',
             collectBillingDescription: 'Los espacios de trabajo del plan Collect se facturan mensualmente por miembro, sin compromiso anual.',
             pricing: 'Precios',
-            editSubscription: 'Editar suscripción',
+            subscriptionType: 'Tipo de suscripción',
+            memberCount: ({count}: {count: number}) => ({
+                one: '1 miembro',
+                other: `${count} miembros`,
+            }),
+            sizeNotSet: `<muted-text>Si no estableces ahora el tamaño de tu suscripción, lo configuraremos automáticamente en función del número de miembros activos de tu primer mes. <a href="${CONST.PRICING}">Más información</a></muted-text>`,
+            expensifyCodeApplied: 'Código de Expensify aplicado',
+            addExpensifyCode: 'Añadir código de Expensify',
+            saveWithAnnualSubscription: 'Ahorra con una suscripción anual',
+            autoIncreaseDescription: (amountWithCurrency: string) =>
+                `Ahorra hasta ${amountWithCurrency}/mes por miembro activo. Los asientos adicionales se añaden automáticamente cuando los usuarios activos superan tu suscripción, ampliando tu fecha de finalización anual.`,
+            annualSavingsDescription: (hasAdminsRoom: boolean) =>
+                `<muted-text>Para obtener el precio más bajo, elige una suscripción anual y consigue la Tarjeta Expensify. Obtén más información en nuestra <a href="${CONST.PRICING}">página de precios</a> o chatea con nuestro equipo en tu ${hasAdminsRoom ? `<a href="${CONST.SUBSCRIPTION.ADMINS_ROOM_LINK}">Sala #admins.</a>` : 'sala #admins.'}</muted-text>`,
         },
         cancelSubscription: {
             title: 'Cancelar suscripción',

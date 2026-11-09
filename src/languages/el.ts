@@ -12394,6 +12394,7 @@ ${reportName}`,
             saveWithExpensifyDescription:
                 'Χρησιμοποιήστε την αριθμομηχανή εξοικονόμησης για να δείτε πώς η επιστροφή μετρητών από την Κάρτα Expensify μπορεί να μειώσει τον λογαριασμό σας στο Expensify.',
             saveWithExpensifyButton: 'Μάθετε περισσότερα',
+            plan: 'Πλάνο',
         },
         compareModal: {
             comparePlans: 'Σύγκριση προγραμμάτων',
@@ -12481,12 +12482,6 @@ ${reportName}`,
         },
         subscriptionSettings: {
             title: 'Ρυθμίσεις συνδρομής',
-            editSubscription: 'Επεξεργασία συνδρομής',
-            summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>
-                `Τύπος συνδρομής: ${subscriptionType}, Μέγεθος συνδρομής: ${subscriptionSize}${expensifyCode ? `, κωδικός Expensify: ${expensifyCode}` : ''}, Αυτόματη ανανέωση: ${autoRenew}, Αυτόματη ετήσια αύξηση θέσεων: ${autoIncrease}`,
-            none: 'κανένα',
-            on: 'ενεργό',
-            off: 'κλειστό',
             annual: 'Ετήσιο',
             autoRenew: 'Αυτόματη ανανέωση',
             autoIncrease: 'Αυτόματη αύξηση ετήσιων θέσεων',
@@ -12499,11 +12494,24 @@ ${reportName}`,
             renewsOn: (date: string) => `Ανανεώνεται στις ${date}.`,
             pricingConfiguration: 'Η τιμή εξαρτάται από τη ρύθμιση. Για τη χαμηλότερη τιμή, επιλέξτε ετήσια συνδρομή και αποκτήστε την Κάρτα Expensify.',
             learnMore: (hasAdminsRoom: boolean) =>
-                `<muted-text>Μάθετε περισσότερα στη <a href="${CONST.PRICING}">σελίδα τιμών</a> μας ή συνομιλήστε με την ομάδα μας στο ${hasAdminsRoom ? `<a href="adminsRoom">δωμάτιο #admins.</a>` : 'δωμάτιο #admins'} σας</muted-text>`,
+                `<muted-text>Μάθετε περισσότερα στη <a href="${CONST.PRICING}">σελίδα τιμών</a> μας ή συνομιλήστε με την ομάδα μας στο/στην ${hasAdminsRoom ? `<a href="${CONST.SUBSCRIPTION.ADMINS_ROOM_LINK}">δωμάτιο #admins.</a>` : 'δωμάτιο #admins.'}</muted-text>`,
             estimatedPrice: 'Εκτιμώμενη τιμή',
             changesBasedOn: 'Αυτό αλλάζει με βάση τη χρήση της Κάρτας Expensify και τις παρακάτω επιλογές συνδρομής.',
             collectBillingDescription: 'Τα Collect χώρους εργασίας χρεώνονται μηνιαία ανά μέλος, χωρίς ετήσια δέσμευση.',
             pricing: 'Τιμές',
+            subscriptionType: 'Τύπος συνδρομής',
+            memberCount: ({count}: {count: number}) => ({
+                one: '1 μέλος',
+                other: `${count} μέλη`,
+            }),
+            sizeNotSet: `<muted-text>Αν δεν ορίσετε τώρα το μέγεθος της συνδρομής σας, θα το ορίσουμε αυτόματα με βάση τον αριθμό ενεργών μελών του πρώτου σας μήνα. <a href="${CONST.PRICING}">Μάθετε περισσότερα</a></muted-text>`,
+            expensifyCodeApplied: 'Ο κωδικός Expensify εφαρμόστηκε',
+            addExpensifyCode: 'Προσθήκη κωδικού Expensify',
+            saveWithAnnualSubscription: 'Εξοικονομήστε με ετήσια συνδρομή',
+            autoIncreaseDescription: (amountWithCurrency: string) =>
+                `Εξοικονομήστε έως ${amountWithCurrency}/μήνα για κάθε ενεργό μέλος. Επιπλέον θέσεις προστίθενται αυτόματα όταν οι ενεργοί χρήστες υπερβούν τη συνδρομή σας, παρατείνοντας την ετήσια ημερομηνία λήξης σας.`,
+            annualSavingsDescription: (hasAdminsRoom: boolean) =>
+                `<muted-text>Για τη χαμηλότερη τιμή, επιλέξτε ετήσια συνδρομή και αποκτήστε την Κάρτα Expensify. Μάθετε περισσότερα στη <a href="${CONST.PRICING}">σελίδα τιμολόγησης</a> μας ή συνομιλήστε με την ομάδα μας στο ${hasAdminsRoom ? `<a href="${CONST.SUBSCRIPTION.ADMINS_ROOM_LINK}">δωμάτιο #admins.</a>` : 'δωμάτιο #admins.'} σας</muted-text>`,
         },
         cancelSubscription: {
             title: 'Ακύρωση συνδρομής',
