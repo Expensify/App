@@ -25,7 +25,7 @@ import {
     setOnboardingUserReportedIntegration,
 } from '@libs/actions/Welcome';
 import {ONBOARDING_FEATURES} from '@libs/actions/Welcome/OnboardingFeatures';
-import type {OnboardingFeatureMapItem} from '@libs/actions/Welcome/OnboardingFeatures';
+import type {OnboardingFeatureID, OnboardingFeatureMapItem} from '@libs/actions/Welcome/OnboardingFeatures';
 import Navigation from '@libs/Navigation/Navigation';
 import {isGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 
@@ -39,7 +39,7 @@ import ROUTES from '@src/ROUTES';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
-import type {BaseOnboardingInterestedFeaturesProps, Feature, SectionObject} from './types';
+import type {BaseOnboardingInterestedFeaturesProps, Feature, FeatureDetails, SectionObject} from './types';
 
 function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardingInterestedFeaturesProps) {
     const styles = useThemeStyles();
@@ -58,89 +58,87 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const {isOffline} = useNetwork();
     const {completeOnboardingFlow, isLoading} = useCompleteOnboarding();
 
-    const features: Feature[] = ONBOARDING_FEATURES.map((feature) => {
-        switch (feature.id) {
-            case CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED:
-                return {
-                    ...feature,
-                    title: translate('workspace.moreFeatures.categories.title'),
-                    subtitle: translate('workspace.moreFeatures.categories.subtitle'),
-                    icon: illustrations.FolderOpen,
-                };
-            case CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED:
-                return {
-                    ...feature,
-                    title: translate('workspace.moreFeatures.connections.title'),
-                    subtitle: translate('workspace.moreFeatures.connections.subtitle'),
-                    icon: illustrations.Accounting,
-                };
-            case CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED:
-                return {
-                    ...feature,
-                    title: translate('workspace.moreFeatures.companyCards.title'),
-                    subtitle: translate('workspace.moreFeatures.companyCards.subtitle'),
-                    icon: illustrations.CompanyCard,
-                };
-            case CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED:
-                return {
-                    ...feature,
-                    title: translate('workspace.moreFeatures.workflows.title'),
-                    subtitle: translate('workspace.moreFeatures.workflows.subtitle'),
-                    icon: illustrations.Workflows,
-                };
-            case CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED:
-                return {
-                    ...feature,
-                    title: translate('workspace.moreFeatures.travel.title'),
-                    subtitle: translate('workspace.moreFeatures.travel.subtitle'),
-                    icon: illustrations.Luggage,
-                };
-            case CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED:
-                return {
-                    ...feature,
-                    title: translate('workspace.moreFeatures.rules.title'),
-                    subtitle: translate('workspace.moreFeatures.rules.subtitle'),
-                    icon: illustrations.Rules,
-                };
-            case CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED:
-                return {
-                    ...feature,
-                    title: translate('workspace.moreFeatures.distanceRates.title'),
-                    subtitle: translate('workspace.moreFeatures.distanceRates.subtitle'),
-                    icon: illustrations.Car,
-                };
-            case CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED:
-                return {
-                    ...feature,
-                    title: translate('workspace.moreFeatures.expensifyCard.title'),
-                    subtitle: translate('workspace.moreFeatures.expensifyCard.subtitle'),
-                    icon: illustrations.HandCard,
-                };
-            case CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED:
-                return {
-                    ...feature,
-                    title: translate('workspace.moreFeatures.tags.title'),
-                    subtitle: translate('workspace.moreFeatures.tags.subtitle'),
-                    icon: illustrations.Tag,
-                };
-            case CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED:
-                return {
-                    ...feature,
-                    title: translate('workspace.moreFeatures.perDiem.title'),
-                    subtitle: translate('workspace.moreFeatures.perDiem.subtitle'),
-                    icon: illustrations.PerDiem,
-                };
-            case CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED:
-                return {
-                    ...feature,
-                    title: translate('workspace.moreFeatures.timeTracking.title'),
-                    subtitle: translate('workspace.moreFeatures.timeTracking.subtitle'),
-                    icon: illustrations.Clock,
-                };
-            default:
-                return {...feature, title: feature.id, icon: illustrations.FolderOpen};
-        }
-    });
+    const featureDetails: Record<OnboardingFeatureID, FeatureDetails> = {
+        [CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED]: {
+            title: translate('workspace.moreFeatures.categories.title'),
+            subtitle: translate('workspace.moreFeatures.categories.subtitle'),
+            icon: illustrations.FolderOpen,
+            sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_ITEM.CATEGORIES,
+            checkboxSentryLabel: CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_CHECKBOX.CATEGORIES,
+        },
+        [CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]: {
+            title: translate('workspace.moreFeatures.connections.title'),
+            subtitle: translate('workspace.moreFeatures.connections.subtitle'),
+            icon: illustrations.Accounting,
+            sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_ITEM.CONNECTIONS,
+            checkboxSentryLabel: CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_CHECKBOX.CONNECTIONS,
+        },
+        [CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED]: {
+            title: translate('workspace.moreFeatures.companyCards.title'),
+            subtitle: translate('workspace.moreFeatures.companyCards.subtitle'),
+            icon: illustrations.CompanyCard,
+            sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_ITEM.COMPANY_CARDS,
+            checkboxSentryLabel: CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_CHECKBOX.COMPANY_CARDS,
+        },
+        [CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED]: {
+            title: translate('workspace.moreFeatures.workflows.title'),
+            subtitle: translate('workspace.moreFeatures.workflows.subtitle'),
+            icon: illustrations.Workflows,
+            sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_ITEM.WORKFLOWS,
+            checkboxSentryLabel: CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_CHECKBOX.WORKFLOWS,
+        },
+        [CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED]: {
+            title: translate('workspace.moreFeatures.travel.title'),
+            subtitle: translate('workspace.moreFeatures.travel.subtitle'),
+            icon: illustrations.Luggage,
+            sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_ITEM.TRAVEL,
+            checkboxSentryLabel: CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_CHECKBOX.TRAVEL,
+        },
+        [CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]: {
+            title: translate('workspace.moreFeatures.rules.title'),
+            subtitle: translate('workspace.moreFeatures.rules.subtitle'),
+            icon: illustrations.Rules,
+            sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_ITEM.RULES,
+            checkboxSentryLabel: CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_CHECKBOX.RULES,
+        },
+        [CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED]: {
+            title: translate('workspace.moreFeatures.distanceRates.title'),
+            subtitle: translate('workspace.moreFeatures.distanceRates.subtitle'),
+            icon: illustrations.Car,
+            sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_ITEM.DISTANCE_RATES,
+            checkboxSentryLabel: CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_CHECKBOX.DISTANCE_RATES,
+        },
+        [CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]: {
+            title: translate('workspace.moreFeatures.expensifyCard.title'),
+            subtitle: translate('workspace.moreFeatures.expensifyCard.subtitle'),
+            icon: illustrations.HandCard,
+            sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_ITEM.EXPENSIFY_CARDS,
+            checkboxSentryLabel: CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_CHECKBOX.EXPENSIFY_CARDS,
+        },
+        [CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED]: {
+            title: translate('workspace.moreFeatures.tags.title'),
+            subtitle: translate('workspace.moreFeatures.tags.subtitle'),
+            icon: illustrations.Tag,
+            sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_ITEM.TAGS,
+            checkboxSentryLabel: CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_CHECKBOX.TAGS,
+        },
+        [CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]: {
+            title: translate('workspace.moreFeatures.perDiem.title'),
+            subtitle: translate('workspace.moreFeatures.perDiem.subtitle'),
+            icon: illustrations.PerDiem,
+            sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_ITEM.PER_DIEM_RATES,
+            checkboxSentryLabel: CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_CHECKBOX.PER_DIEM_RATES,
+        },
+        [CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED]: {
+            title: translate('workspace.moreFeatures.timeTracking.title'),
+            subtitle: translate('workspace.moreFeatures.timeTracking.subtitle'),
+            icon: illustrations.Clock,
+            sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_ITEM.TIME_TRACKING,
+            checkboxSentryLabel: CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_CHECKBOX.TIME_TRACKING,
+        },
+    };
+
+    const features: Feature[] = ONBOARDING_FEATURES.map((feature) => ({...feature, ...featureDetails[feature.id]}));
 
     const defaultSelectedFeatures = features.filter((feature) => !!feature.enabledByDefault).map((feature) => feature.id);
     const persistedSelectedFeatures = onboardingInterestedFeaturesMap?.filter((feature) => feature.enabled).map((feature) => feature.id);
@@ -235,10 +233,10 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                     isSmallScreenWidth && !isInLandscapeMode ? styles.onboardingTileNarrow : styles.onboardingInterestedFeaturesItemWide,
                     isSelected && styles.onboardingTileSelected,
                 ]}
-                sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_ITEM}
+                sentryLabel={item.sentryLabel}
             >
                 <Checkbox
-                    sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_ITEM}
+                    sentryLabel={item.checkboxSentryLabel}
                     accessibilityLabel={item.title}
                     isChecked={isSelected}
                     onPress={() => {
