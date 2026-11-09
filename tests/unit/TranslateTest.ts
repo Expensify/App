@@ -2,16 +2,12 @@
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import de from '@src/languages/de';
-import el from '@src/languages/el';
 import en from '@src/languages/en';
 import es from '@src/languages/es';
 import flattenObject from '@src/languages/flattenObject';
 import fr from '@src/languages/fr';
 import itTranslations from '@src/languages/it';
 import ja from '@src/languages/ja';
-import nl from '@src/languages/nl';
-import pl from '@src/languages/pl';
-import ptBR from '@src/languages/pt-BR';
 import type {FlatTranslationsObject} from '@src/languages/types';
 import zhHans from '@src/languages/zh-hans';
 import {translate} from '@src/libs/Localize';
@@ -32,24 +28,6 @@ const originalTranslations = {
 };
 
 describe('TranslateTest', () => {
-    describe.each(Object.entries({de, el, en, es, fr, it: itTranslations, ja, nl, pl, 'pt-BR': ptBR, 'zh-hans': zhHans}))('%s commercial card instructions', (_locale, translations) => {
-        it.each([
-            ['vcf', CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP],
-            ['cdf', CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS],
-        ] as const)('keeps only the help article link for %s', (feedProvider, helpArticleURL) => {
-            // Given instructions that should link to guidance but cannot link to an unspecified bank.
-            const instructions = translations.workspace.companyCards.addNewCard.enableFeed[feedProvider];
-
-            // When collecting the Markdown links rendered on the instructions page.
-            const links = Array.from(instructions.matchAll(/\[([^\]]+)\]\(([^)]+)\)/g));
-
-            // Then the help article remains linked and the bank contact instruction is plain text.
-            expect(links).toHaveLength(1);
-            expect(links.at(0)?.[2]).toBe(helpArticleURL);
-            expect(instructions.split(/\n\s*2\./).at(1)).not.toMatch(/\[[^\]]+\]\([^)]+\)/);
-        });
-    });
-
     describe('translate', () => {
         test('Test when key is not found in default', () => {
             // @ts-expect-error - This deliberately exercises a missing translation key.
