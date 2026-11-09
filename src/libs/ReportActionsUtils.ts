@@ -898,7 +898,11 @@ function getPaymentMessageWithExpectedDate(translate: LocalizedTranslate, dateFn
     if (!formattedExpectedDate) {
         return paymentMessage;
     }
-    const expectedDateMessage = translate('nextStep.message.waitingForPayment', '', CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN, formattedExpectedDate, CONST.NEXT_STEP.ETA_TYPE.DATE_TIME);
+    const expectedDateMessage = translate('nextStep.message.waitingForPayment', {
+        actorType: CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN,
+        eta: formattedExpectedDate,
+        etaType: CONST.NEXT_STEP.ETA_TYPE.DATE_TIME,
+    });
     return translate('iou.paymentWithExpectedDate', {paymentMessage, expectedDateMessage});
 }
 
@@ -2594,14 +2598,24 @@ const isIOUActionMatchingTransactionList = (
  * Returns a report action if there is exactly one transaction thread for the report, and undefined otherwise.
  */
 function getOneTransactionThreadReportAction(
-    report: OnyxEntry<Pick<Report, 'type'>>,
+    report: OnyxEntry<Pick<Report, 'type' | 'transactionCount'>>,
     chatReport: OnyxEntry<Report>,
     reportActions: OnyxEntry<ReportActions> | ReportAction[],
     isOffline: boolean | undefined = undefined,
     reportTransactionIDs?: string[],
 ): ReportAction<'IOU'> | undefined {
-    // If the report is not an IOU, Expense report, or Invoice, it shouldn't be treated as one-transaction report.
-    if (report?.type !== CONST.REPORT.TYPE.IOU && report?.type !== CONST.REPORT.TYPE.EXPENSE && report?.type !== CONST.REPORT.TYPE.INVOICE) {
+    // Only reports that hold expenses have expense threads, so other report types never show the one-expense view.
+    if (
+        report?.type !== CONST.REPORT.TYPE.IOU &&
+        report?.type !== CONST.REPORT.TYPE.EXPENSE &&
+        report?.type !== CONST.REPORT.UNSUPPORTED_TYPE.BILL &&
+        report?.type !== CONST.REPORT.TYPE.INVOICE
+    ) {
+        return;
+    }
+
+    // Loaded actions can miss some expenses of a bill, so only the count from the server shows that a bill has one expense.
+    if (report?.type === CONST.REPORT.UNSUPPORTED_TYPE.BILL && report.transactionCount !== 1) {
         return;
     }
 

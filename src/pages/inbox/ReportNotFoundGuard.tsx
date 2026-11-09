@@ -7,10 +7,11 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {shouldHideBillReport} from '@libs/BillUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {isReportTransactionThread, isValidReportIDFromPath, shouldHideBillReport} from '@libs/ReportUtils';
+import {isReportNotFound, isReportTransactionThread, isValidReportIDFromPath} from '@libs/ReportUtils';
 import {getParentReportActionDeletionStatus} from '@libs/TransactionNavigationUtils';
 
 import CONST from '@src/CONST';
@@ -56,7 +57,7 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     const isOptimisticDelete = report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
     const isInvalidReportPath = !!routeParams?.reportID && !isValidReportIDFromPath(routeParams.reportID);
     const isLoading = isLoadingApp !== false || isLoadingReportData || (!isOffline && !!isLoadingInitialReportActions);
-    const reportExists = !!reportID || isOptimisticDelete || userLeavingStatus;
+    const reportExists = !isReportNotFound(report) && (!!reportID || isOptimisticDelete || userLeavingStatus);
     // A pre-mounted destination for a report the submit has not created yet: offline drops the actions-loading
     // term above, so the guard would otherwise flash not-found until the optimistic report row lands. Only
     // SCREENS.REPORT sets and clears this flag, so ignore it on the RHP report screen where it could never expire.

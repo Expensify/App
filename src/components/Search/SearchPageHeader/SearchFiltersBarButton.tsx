@@ -15,10 +15,9 @@ type SearchFiltersBarButtonProps = WithSentryLabel & {
     icon: IconAsset;
     text: string;
     onPress: () => void;
-    isDisabled?: boolean;
 };
 
-function SearchFiltersBarButton({icon, text, onPress, isDisabled = false, sentryLabel}: SearchFiltersBarButtonProps) {
+function SearchFiltersBarButton({icon, text, onPress, sentryLabel}: SearchFiltersBarButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -28,9 +27,7 @@ function SearchFiltersBarButton({icon, text, onPress, isDisabled = false, sentry
             accessibilityRole="button"
             onPress={onPress}
             style={[styles.searchFiltersBarButton]}
-            hoverStyle={isDisabled ? undefined : styles.hoveredComponentBG}
-            disabled={isDisabled}
-            disabledStyle={styles.buttonOpacityDisabled}
+            hoverStyle={styles.hoveredComponentBG}
             sentryLabel={sentryLabel}
         >
             <Icon

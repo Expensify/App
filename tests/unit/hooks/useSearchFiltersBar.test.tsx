@@ -65,11 +65,7 @@ const queryJSON: SearchQueryJSON = {
 };
 
 function mockSearchResultsContext(overrides: Record<string, unknown> = {}) {
-    mockUseSearchResultsContext.mockReturnValue({
-        shouldShowFiltersBarLoading: false,
-        currentSearchResults: {search: {hash: queryJSON.hash, hasSuccessfulResponse: true}},
-        ...overrides,
-    });
+    mockUseSearchResultsContext.mockReturnValue({shouldShowFiltersBarLoading: false, currentSearchResults: undefined, ...overrides});
 }
 
 function mockSearchQueryContext(overrides: Record<string, unknown> = {}) {

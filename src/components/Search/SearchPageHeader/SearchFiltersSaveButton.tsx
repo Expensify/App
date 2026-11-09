@@ -29,7 +29,7 @@ function SearchFiltersSaveButton() {
     const {currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
     const {currentSearchResults, shouldUseLiveData} = useSearchResultsContext();
     const {isOffline} = useNetwork();
-    const isSaveDisabled = !isSearchQuerySavable(currentSearchQueryJSON, undefined, currentSearchResults?.search, !isOffline && !shouldUseLiveData);
+    const isUpdateDisabled = !isSearchQuerySavable(currentSearchQueryJSON, undefined, currentSearchResults?.search, !isOffline && !shouldUseLiveData);
     const activeSavedSearch = useActiveSavedSearch();
     const activeSavedSearchID = searchKeyToSavedSearchID(currentSearchKey);
 
@@ -53,12 +53,11 @@ function SearchFiltersSaveButton() {
     };
 
     const updateActiveSavedSearch = () => {
-        setIsSaveEditsModalVisible(false);
-
-        if (isSaveDisabled || !activeSavedSearchID || !currentSearchQueryJSON) {
+        if (isUpdateDisabled || !activeSavedSearchID || !currentSearchQueryJSON) {
             return;
         }
 
+        setIsSaveEditsModalVisible(false);
         saveSearch({id: activeSavedSearchID, queryJSON: currentSearchQueryJSON, newName: activeSavedSearch?.name});
     };
 
@@ -68,7 +67,6 @@ function SearchFiltersSaveButton() {
                 icon={expensifyIcons.Bookmark}
                 text={translate('common.save')}
                 onPress={savePressed}
-                isDisabled={isSaveDisabled}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVE_FILTERS_BUTTON}
             />
             {!!activeSavedSearchID && (
@@ -80,6 +78,8 @@ function SearchFiltersSaveButton() {
                     onFirstOptionSubmit={createNewSavedSearch}
                     secondOptionText={translate('search.saveEdits.updateExisting')}
                     onSecondOptionSubmit={updateActiveSavedSearch}
+                    isSecondOptionDisabled={isUpdateDisabled}
+                    secondOptionSentryLabel={CONST.SENTRY_LABEL.SEARCH.UPDATE_SAVED_VIEW}
                     isVisible={isSaveEditsModalVisible}
                     onClose={() => setIsSaveEditsModalVisible(false)}
                     shouldRenderPromptAsHTML={false}

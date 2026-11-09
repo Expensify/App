@@ -226,7 +226,7 @@ describe('search snapshot terminal state', () => {
     });
 
     it.each([
-        ['type:expense groupBy:reports action:submit from:12345', 'search.searchResults.unsupportedGrouping'],
+        ['type:expense-report groupBy:category', 'search.searchResults.unsupportedGrouping'],
         ['type:expense status:drafts reportID:0', 'search.searchResults.invalidReportID'],
         ['type:expense is:unreported', 'search.searchResults.unsupportedFilter'],
         [`type:expense-report ${Array.from({length: 77}, (_, index) => `R00${String(index).padStart(9, '0')}`).join(' ')}`, 'search.searchResults.tooManyKeywords'],
