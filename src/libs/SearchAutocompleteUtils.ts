@@ -1,15 +1,16 @@
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
-import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
+import {getSubstitutionMapKey, getSubstitutionMapKeyWithIndex} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
+import type {Filter, SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
 
 import CONST from '@src/CONST';
-import type {PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
 
 import type {MarkdownRange} from '@expensify/react-native-live-markdown';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {getTagNamesFromTagsLists} from './PolicyUtils';
 import {parse} from './SearchParser/autocompleteParser';
-import {getUserFriendlyKey, getUserFriendlyValue} from './SearchQueryUtils';
+import {getUserFriendlyKey, getUserFriendlyValue, resolvePolicyIDFromName} from './SearchQueryUtils';
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS: SearchFilterKey[] = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
@@ -92,6 +93,22 @@ function getAutocompleteTags(allPoliciesTagsLists: OnyxCollection<PolicyTagLists
         }
     }
     return Array.from(uniqueTagNames);
+}
+
+/** Resolves typed workspaces consistently for suggestions and highlighting, including duplicate names selected from autocomplete. */
+function getAutocompletePolicyFilter(ranges: AutocompleteParserRange[], policies: OnyxCollection<Policy>, substitutions?: SubstitutionMap): Filter {
+    const policyIdRanges = ranges.filter((range) => range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
+    const keyValueCount = new Map<string, number>();
+    const policyIDs = policyIdRanges.map((range) => {
+        const baseKey = getSubstitutionMapKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, range.value);
+        const index = keyValueCount.get(baseKey) ?? 0;
+        keyValueCount.set(baseKey, index + 1);
+        const fullKey = getSubstitutionMapKeyWithIndex(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, range.value, index);
+        return substitutions?.[fullKey] ?? resolvePolicyIDFromName(range.value, policies);
+    });
+
+    // An explicit unscoped filter prevents falling back to the submitted workspace after it is removed from the input.
+    return {value: policyIDs.length > 0 ? policyIDs : undefined, isNegated: policyIdRanges.at(0)?.negated ?? false};
 }
 
 /**
@@ -418,6 +435,7 @@ function getTrimmedUserSearchQueryPreservingComma(textInputValue: string, fieldK
 export {
     CONTINUATION_DETECTION_SEARCH_FILTER_KEYS,
     getAutocompleteCategories,
+    getAutocompletePolicyFilter,
     getAutocompleteQueryWithComma,
     getAutocompleteRecentCategories,
     getAutocompleteRecentTags,

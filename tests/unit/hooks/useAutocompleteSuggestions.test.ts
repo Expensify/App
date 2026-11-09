@@ -49,6 +49,7 @@ jest.mock('@hooks/useCurrencyList', () => ({
 
 jest.mock('@libs/SearchAutocompleteUtils', () => ({
     parseForAutocomplete: jest.fn(),
+    getAutocompletePolicyFilter: jest.requireActual<typeof SearchAutocompleteUtils>('@libs/SearchAutocompleteUtils').getAutocompletePolicyFilter,
     getAutocompleteTags: jest.fn(() => ['Engineering', 'Marketing', 'Sales', 'Design']),
     getAutocompleteRecentTags: jest.fn(() => ['Engineering', 'Marketing']),
     getAutocompleteCategories: jest.fn(() => ['Travel', 'Office Supplies', 'Meals', 'Software']),

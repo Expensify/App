@@ -1,6 +1,5 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
-import {getSubstitutionMapKey, getSubstitutionMapKeyWithIndex} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import type {SearchFilterKey, UserFriendlyKey} from '@components/Search/types';
 
 import {getBankAccountSearchLabel, isFilterableBankAccount} from '@libs/BankAccountUtils';
@@ -13,13 +12,14 @@ import {getAllTaxRates, getCleanedTagName, getExpensifyTeamExclusions, shouldSho
 import {
     CONTINUATION_DETECTION_SEARCH_FILTER_KEYS,
     getAutocompleteCategories,
+    getAutocompletePolicyFilter,
     getAutocompleteRecentCategories,
     getAutocompleteRecentTags,
     getAutocompleteTags,
     getAutocompleteTaxList,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import {getUserFriendlyKey, getUserFriendlyValue, isFilterSupported, resolvePolicyIDFromName} from '@libs/SearchQueryUtils';
+import {getUserFriendlyKey, getUserFriendlyValue, isFilterSupported} from '@libs/SearchQueryUtils';
 import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -149,17 +149,8 @@ function useAutocompleteSuggestions({
 
     const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
     const {autocomplete, ranges = []} = parsedQuery ?? {};
-    const policyIdRanges = ranges.filter((range) => range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
-    const keyValueCount = new Map<string, number>();
-    const typedPolicyIDs = policyIdRanges.map((range) => {
-        const baseKey = getSubstitutionMapKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, range.value);
-        const index = keyValueCount.get(baseKey) ?? 0;
-        keyValueCount.set(baseKey, index + 1);
-        const fullKey = getSubstitutionMapKeyWithIndex(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, range.value, index);
-        return autocompleteSubstitutions?.[fullKey] ?? resolvePolicyIDFromName(range.value, policies);
-    });
-    // Removing a typed workspace must also remove the submitted search's workspace scope.
-    const {exportedToFilterOptions} = useExportedToFilterOptions({value: typedPolicyIDs.length > 0 ? typedPolicyIDs : undefined, isNegated: policyIdRanges.at(0)?.negated ?? false});
+    const typedPolicyFilter = getAutocompletePolicyFilter(ranges, policies, autocompleteSubstitutions);
+    const {exportedToFilterOptions} = useExportedToFilterOptions(typedPolicyFilter);
 
     let autocompleteKey = autocomplete?.key;
     let autocompleteValue = autocomplete?.value ?? '';
@@ -588,7 +579,7 @@ function useAutocompleteSuggestions({
                 }
                 workspaceList.push({id: singlePolicy.id, name: singlePolicy.name ?? ''});
             }
-            const alreadySelectedPolicyIds = autocompleteSubstitutions && new Set(typedPolicyIDs);
+            const alreadySelectedPolicyIds = autocompleteSubstitutions && new Set(typedPolicyFilter.value);
 
             const filteredPolicies = workspaceList
                 .filter((workspace) => {

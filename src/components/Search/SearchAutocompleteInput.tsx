@@ -14,7 +14,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setSearchContext} from '@libs/actions/Search';
-import {getAutocompleteCategories, getAutocompleteTags, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
+import {getAutocompleteCategories, getAutocompletePolicyFilter, getAutocompleteTags, parseForAutocomplete, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
@@ -116,7 +116,9 @@ function SearchAutocompleteInput({
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const userLogins = new Set(Object.keys(loginList ?? {}));
 
-    const {exportedToFilterOptions} = useExportedToFilterOptions();
+    const ranges = parseForAutocomplete(value)?.ranges ?? [];
+    const [typedPolicyFilter] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => getAutocompletePolicyFilter(ranges, policies, substitutionMap)});
+    const {exportedToFilterOptions} = useExportedToFilterOptions(typedPolicyFilter ?? getAutocompletePolicyFilter(ranges, undefined, substitutionMap));
     const exportedTo = new Set(exportedToFilterOptions);
 
     const offlineMessage: string = isOffline && shouldShowOfflineMessage ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';

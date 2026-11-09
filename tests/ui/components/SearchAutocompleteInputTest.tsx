@@ -2,18 +2,23 @@
 import {act, render, screen} from '@testing-library/react-native';
 
 import SearchAutocompleteInput from '@components/Search/SearchAutocompleteInput';
+import {getSubstitutionMapKeyWithIndex} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
+import useExportedToFilterOptions from '@hooks/useExportedToFilterOptions';
 import useFocusAfterNav from '@hooks/useFocusAfterNav';
 
 import {setSearchContext} from '@libs/actions/Search';
+import {getAllPolicyValues} from '@libs/SearchQueryUtils';
 
 import type {ThemeColors} from '@styles/theme/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy} from '@src/types/onyx';
 
+import type * as FastEquals from 'fast-equals';
 import type {ForwardedRef} from 'react';
 import type {View as NativeView, ViewProps} from 'react-native';
 import type * as Reanimated from 'react-native-reanimated';
@@ -43,15 +48,17 @@ jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}))
 jest.mock('@hooks/useNetwork', () => () => ({isOffline: false}));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({displayName: 'Current User'}));
 jest.mock('@hooks/useCurrencyList', () => ({useCurrencyListState: () => ({currencyList: mockCurrencyList})}));
-jest.mock('@hooks/useExportedToFilterOptions', () => () => ({exportedToFilterOptions: mockExportedToFilterOptions}));
+jest.mock('@hooks/useExportedToFilterOptions', () => jest.fn(() => ({exportedToFilterOptions: mockExportedToFilterOptions})));
 jest.mock('@hooks/useOnyx', () => {
-    // This runs the real selector on the raw value, and like the real hook it keeps the output's identity until the raw value changes.
-    const selections = new Map<string, {rawValue: unknown; selected: unknown}>();
+    // Selectors may capture the typed query, so recompute their output and preserve identity when that output is unchanged.
+    const {deepEqual} = jest.requireActual<typeof FastEquals>('fast-equals');
+    const selections = new Map<string, {selected: unknown}>();
     return (key: string, options?: {selector: (rawValue: unknown) => unknown}) => {
         const rawValue = mockOnyxValues[key];
+        const selected = options ? options.selector(rawValue) : rawValue;
         let selection = selections.get(key);
-        if (!selection || selection.rawValue !== rawValue) {
-            selection = {rawValue, selected: options ? options.selector(rawValue) : rawValue};
+        if (!selection || !deepEqual(selection.selected, selected)) {
+            selection = {selected};
             selections.set(key, selection);
         }
         return [selection.selected];
@@ -87,9 +94,69 @@ beforeEach(() => {
     mockCurrencyList = {};
     mockOnyxValues = {};
     mockExportedToFilterOptions = [];
+    jest.mocked(useExportedToFilterOptions).mockImplementation(() => ({exportedToFilterOptions: mockExportedToFilterOptions, connectedIntegrationNames: new Set<string>()}));
 });
 
 describe('SearchAutocompleteInput', () => {
+    test.each([
+        {scope: 'workspace:"CAD WS"', expectedIDs: ['cad'], isNegated: false, shouldHighlight: true},
+        {scope: 'workspace:"USD WS"', expectedIDs: ['usd'], isNegated: false, shouldHighlight: false},
+        {scope: '', expectedIDs: undefined, isNegated: false, shouldHighlight: true},
+        {scope: '-workspace:"USD WS"', expectedIDs: ['usd'], isNegated: true, shouldHighlight: true},
+        {scope: '-workspace:"CAD WS"', expectedIDs: ['cad'], isNegated: true, shouldHighlight: false},
+        {scope: 'workspace:cad', expectedIDs: ['cad'], isNegated: false, shouldHighlight: true},
+        {scope: 'workspace:"Shared WS","Shared WS"', expectedIDs: ['usd', 'cad'], isNegated: false, shouldHighlight: true},
+    ])('scopes exported-to highlighting to the typed $scope instead of submitted USD scope', ({scope, expectedIDs, isNegated, shouldHighlight}) => {
+        // Given USD submitted scope and two workspaces, with occurrence-indexed selections for duplicate display names.
+        const policies = {
+            [`${ONYXKEYS.COLLECTION.POLICY}usd`]: createMock<Policy>({id: 'usd', name: 'USD WS', outputCurrency: CONST.CURRENCY.USD}),
+            [`${ONYXKEYS.COLLECTION.POLICY}cad`]: createMock<Policy>({id: 'cad', name: 'CAD WS', outputCurrency: CONST.CURRENCY.CAD}),
+        };
+        mockOnyxValues = {[ONYXKEYS.COLLECTION.POLICY]: policies};
+        const canadianTemplate = 'Canadian Multiple Tax Export';
+        const standardTemplate = 'All Data - Expense Level Export';
+        jest.mocked(useExportedToFilterOptions).mockImplementation((override) => {
+            const scopedPolicies = getAllPolicyValues(override ?? {value: ['usd'], isNegated: false}, ONYXKEYS.COLLECTION.POLICY, policies);
+            return {
+                exportedToFilterOptions: scopedPolicies.some((policy) => policy.outputCurrency === CONST.CURRENCY.CAD) ? [standardTemplate, canadianTemplate] : [standardTemplate],
+                connectedIntegrationNames: new Set<string>(),
+            };
+        });
+        const substitutionMap = {
+            [getSubstitutionMapKeyWithIndex(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, 'Shared WS', 0)]: 'usd',
+            [getSubstitutionMapKeyWithIndex(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, 'Shared WS', 1)]: 'cad',
+        };
+        const {rerender} = render(
+            <SearchAutocompleteInput
+                value={'type:expense workspace:"USD WS"'}
+                onSearchQueryChange={jest.fn()}
+                substitutionMap={substitutionMap}
+            />,
+        );
+
+        // When the user edits the workspace and selects an export value without submitting another search.
+        const query = `${scope} exported-to:"${canadianTemplate}"`;
+        rerender(
+            <SearchAutocompleteInput
+                value={query}
+                onSearchQueryChange={jest.fn()}
+                substitutionMap={substitutionMap}
+            />,
+        );
+
+        // Then highlighting uses the same resolved scope as suggestions, and standard exports remain recognized.
+        expect(useExportedToFilterOptions).toHaveBeenLastCalledWith({value: expectedIDs, isNegated});
+        const parser = input.mock.lastCall?.[0].parser;
+        const highlight = {start: query.indexOf(`"${canadianTemplate}"`), type: 'mention-user', length: canadianTemplate.length + 2};
+        if (shouldHighlight) {
+            expect(parser?.(query)).toContainEqual(highlight);
+        } else {
+            expect(parser?.(query)).not.toContainEqual(highlight);
+        }
+        const standardQuery = `${scope} exported-to:"${standardTemplate}"`;
+        expect(parser?.(standardQuery)).toContainEqual({start: standardQuery.indexOf(`"${standardTemplate}"`), type: 'mention-user', length: standardTemplate.length + 2});
+    });
+
     test.each([
         {description: 'string colors', border: 'red', focusedBorder: 'blue', expected: 'rgba(255, 0, 0, 1)', focusedExpected: 'rgba(0, 0, 255, 1)'},
         {description: 'transparent neighbor', border: 'transparent', focusedBorder: 'red', expected: 'rgba(255, 0, 0, 0)', focusedExpected: 'rgba(255, 0, 0, 1)'},
