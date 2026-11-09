@@ -1234,6 +1234,8 @@ const translations: TranslationDeepObject<typeof en> = {
         explainChartPrompt: (chartTitle: string) => `${chartTitle} のデータを説明します。`,
         viewDetails: '詳細を表示',
         viewAll: 'すべて表示',
+        topExpenses: '上位の経費',
+        noExpensesInRange: 'この範囲内に経費はありません',
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -1798,6 +1800,23 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmApprovalWithHeldAmount: 'レポートには保留中の経費が含まれています。準拠している経費のみを承認しますか、それともレポート全体を承認しますか？',
         confirmApprovalAllHoldAmount: 'すべての経費が保留中です。それでも承認しますか？',
         confirmPay: '支払金額を確認',
+        wisePaymentSummary: {
+            confirmPayment: '支払いを確認',
+            reportTotal: 'レポート合計',
+            unheldAmountBeingPaid: '支払われる保留外の金額',
+            debitAmount: '引き落とし額',
+            employeeWillReceive: '従業員の受取額',
+            totalFees: '手数料合計',
+            fxRate: '為替レート',
+            paymentDetails: '支払いの詳細',
+            debitedAmount: '引き落とし額',
+            employeeReceived: '従業員の受取額',
+            payAll: 'すべて支払う',
+            reportCount: ({count}: {count: number}) => ({
+                one: '1 件のレポート',
+                other: `${count} 件のレポート`,
+            }),
+        },
         confirmPayAmount: '保留されていない金額のみ支払うか、レポート全額を支払ってください。',
         confirmPayAllHoldAmount: () => ({
             one: 'この経費は保留中です。それでも支払いますか？',
@@ -4346,7 +4365,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         bankAccountPurposeTitle: '銀行口座で何をしたいですか？',
         getReimbursed: '払い戻しを受ける',
         getReimbursedDescription: '雇用主または他の人から',
-        makePayments: '支払いを行う',
+        makePayments: 'ビジネス支払いを行う',
         makePaymentsDescription: '経費の支払いまたは Expensify カードの発行',
         hasPhoneLoginError: (contactMethodRoute: string) =>
             `銀行口座を連携するには、まず<a href="${contactMethodRoute}">メールアドレスをプライマリログインとして追加</a>してから、もう一度お試しください。電話番号はセカンダリログインとして追加できます。`,
@@ -4445,6 +4464,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         updateSuccessTitle: '銀行口座が更新されました!',
         updateSuccessHeader: '銀行口座が更新されました',
         updateSuccessMessage: 'おめでとうございます。銀行口座の設定が完了し、精算の受け取りができるようになりました。',
+        bankDetails: '銀行口座情報',
+        accountHolderDetails: '口座名義人の詳細',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Expensify のパスワードを入力',
@@ -4452,6 +4473,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         chooseAccountLabel: 'アカウント',
         successTitle: '個人の銀行口座を追加しました！',
         successMessage: 'おめでとうございます。銀行口座の設定が完了し、払い戻しを受け取る準備が整いました。',
+        bankAccountAddedTitle: '銀行口座を追加しました！',
+        bankAccountAddedMessage: '個人の銀行口座の設定が完了し、精算の受け取り準備が整いました。',
     },
     attachmentView: {
         unknownFilename: '不明なファイル名',
@@ -6154,7 +6177,11 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             noSubsidiariesFoundDescription: 'NetSuite に子会社を追加して、もう一度接続を同期してください',
             tokenInput: {
                 title: 'NetSuite のセットアップ',
-                connectWithTokenAuthentication: '代わりにトークンベース認証（SOAP）で接続します',
+                tokenAuthenticationPrompt: {
+                    beforeLink: 'または、',
+                    link: 'トークンベース認証',
+                    afterLink: '（SOAP）で接続します。',
+                },
                 formSteps: {
                     installBundle: {
                         title: 'Expensify バンドルをインストール',
@@ -7140,11 +7167,14 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 unassignCard: 'カードの割り当てを解除',
                 unassignCards: 'カードの割り当てを解除',
                 unassign: '割り当てを解除',
-                unassignCardDescription: 'このカードの割り当てを解除すると、未送信の取引はすべて削除されます。',
-                unassignCardsDescription: '割り当てを解除すると、選択したカードの未送信の取引はすべて削除されます。',
+                unassignCardDescription: (transactionsUrl: string) =>
+                    `このカードの割り当てを解除すると、未報告の取引や下書きレポート内の取引を含む、このカードの<a href="${transactionsUrl}">未送信の取引</a>はすべて完全に削除されます。この操作は元に戻せません。`,
+                unassignCardsDescription: (transactionsUrl: string) =>
+                    `割り当てを解除すると、未報告の取引や下書きレポート内の取引を含む、選択したカードの<a href="${transactionsUrl}">未送信の取引</a>はすべて完全に削除されます。この操作は元に戻せません。`,
                 removeCard: 'カードを削除',
                 remove: '削除',
-                removeCardDescription: 'このカードを削除すると、未送信のすべての取引が削除されます。',
+                removeCardDescription: (transactionsUrl: string) =>
+                    `このカードを削除すると、未報告の取引や下書きレポート内の取引を含む、このカードの<a href="${transactionsUrl}">未送信の取引</a>はすべて完全に削除されます。この操作は元に戻せません。`,
                 assignCard: 'カードを割り当てる',
                 cardFeedName: 'カードフィード名',
                 cardFeedNameDescription: '他のカードフィードと区別できるように、一意の名前を付けてください。',
@@ -8811,6 +8841,8 @@ ${reportName}`,
                     `自動支払いはControlプランでのみご利用いただけます。この機能を有効にするには[アップグレード](${upgradeLink})してください。`,
                 autoPayReportsUnderTitle: '自動支払いレポートの対象:',
                 autoPayReportsUnderDescription: 'この金額以下で完全準拠の経費精算書は、自動的に支払われます。',
+                autoPayCrossBorderFeesDisclosure:
+                    '海外送金には、支払い時点の仲値為替レートが適用されます。すべての海外送金に1%の変動手数料がかかります。ただし、次の通貨を除きます：CRC（1.32%）、KES（1.01%）、MAD（1.60%）、NPR（1.05%）、UGX（1.47%）、UYU（1.12%）。\n\nレポートが自動支払いされる場合、正確なレートと手数料を支払い前に確認することはできません。正確な為替レート、手数料、最終金額を含む詳細な内訳は、支払い直後にレポートで確認できます。',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `この機能を利用するには、${featureName} を追加してください。`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `[その他の機能](${moreFeaturesLink})に移動し、${featureName} を有効にしてこの機能を利用できるようにしてください。`,
@@ -9578,6 +9610,35 @@ ${reportName}`,
             exportNonReimbursable: {label: '会社カード経費のエクスポート形式', values: {EXPENSE: {label: '経費'}}},
             defaultCompanyCardVendor: {label: '全社カードのデフォルトベンダー', description: '自動で一致しない経費に使用するデフォルトの Zoho Books ベンダーを選択してください。'},
             companyCardAccount: {label: '法人カード口座', description: '会社カード取引のエクスポート先を選択します。'},
+            exportToMultipleAccounts: '複数の勘定科目へのエクスポートを設定する',
+            cardProgramAccount: {
+                label: 'カードプログラム口座',
+                description: 'これらのカードプログラムのワークスペースアカウントを上書きします。',
+                descriptionLevel2: 'このカードプログラムのワークスペース口座を上書きします。',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'すべてのプログラムはデフォルトアカウントを使用します';
+                    }
+                    return {
+                        one: `カスタム勘定科目を使用するプログラム：${count} 件`,
+                        other: `${count} 件のプログラム（カスタムアカウントあり）`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'カード単位の口座',
+                description: '個々のカードに対してプログラム口座を上書きします。',
+                descriptionLevel2: 'これらのカードのプログラム口座を上書きします。',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'すべてのカードはプログラムアカウントを使用します';
+                    }
+                    return {
+                        one: `カスタム口座付きカード ${count} 枚`,
+                        other: `カスタム口座のあるカードが ${count} 枚`,
+                    };
+                },
+            },
             noVendorsFound: '取引先が見つかりません',
             noVendorsFoundDescription: 'Zoho Books にベンダーを追加して、もう一度接続を同期してください',
             noAccountsFound: 'アカウントが見つかりません',
@@ -11436,6 +11497,7 @@ ${reportName}`,
         autoReportedRejectedExpense: 'この経費精算は却下されました。',
         billableExpense: '請求可能区分は無効になりました',
         cashExpenseWithNoReceipt: (formattedLimit?: string) => `領収書が必要です${formattedLimit ? `${formattedLimit} を超過` : ''}`,
+        categoryNotAllowed: 'カテゴリは許可されていません',
         categoryOutOfPolicy: 'カテゴリは無効です',
         conversionSurcharge: (surcharge: number) => `${surcharge}% の換算手数料を適用しました`,
         customUnitOutOfPolicy: 'このワークスペースでは有効なレートではありません',
@@ -11620,6 +11682,7 @@ ${reportName}`,
             autoReportedRejectedExpense: '経費が却下されました',
             billableExpense: '請求可能区分は無効になりました',
             cashExpenseWithNoReceipt: '領収書が必要です',
+            categoryNotAllowed: 'カテゴリは許可されていません',
             categoryOutOfPolicy: 'カテゴリは無効になっています',
             companyCardRequired: '会社カードが必要です',
             conversionSurcharge: '両替手数料が適用されました',

@@ -8,6 +8,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -50,7 +51,7 @@ type MoreFeatureToggleProps = {
     onCloseError?: () => void;
 
     /** Sentry label of the feature's switch, from `CONST.SENTRY_LABEL.WORKSPACE.MORE_FEATURES`. */
-    switchSentryLabel: string;
+    switchSentryLabel: SentryLabel;
 };
 
 function MoreFeatureToggle({icon, title, subtitle, isActive, pendingAction, onToggle, onPress, disabled, disabledAction, errors, onCloseError, switchSentryLabel}: MoreFeatureToggleProps) {

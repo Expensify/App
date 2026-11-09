@@ -846,6 +846,13 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/export/ZohoBooksDefaultCompanyCardVendorPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_COMPANY_CARD_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/export/ZohoBooksCompanyCardAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_CARD_PROGRAM_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/export/ZohoBooksCardProgramAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_CARD_PROGRAM_ACCOUNT_SELECTOR]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/export/ZohoBooksCardProgramAccountSelectorPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_CARD_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/export/ZohoBooksCardAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_CARD_ACCOUNT_CARD_LIST]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/export/ZohoBooksCardAccountCardListPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_EXISTING_CONNECTIONS]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/ZohoBooksExistingConnectionsPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_ORGANIZATION_SELECTOR]: () =>

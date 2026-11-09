@@ -49,6 +49,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.AUTO_SUBMIT_ROOT]: ROUTES.AUTO_SUBMIT_MODAL_ROOT,
                 [SCREENS.DYNAMIC_CHANGE_POLICY_EDUCATIONAL_ROOT]: DYNAMIC_ROUTES.CHANGE_POLICY_EDUCATIONAL.path,
+                [SCREENS.DYNAMIC_PAYMENT_DETAILS_ROOT]: DYNAMIC_ROUTES.PAYMENT_DETAILS.path,
             },
         },
         [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: {
@@ -671,6 +672,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_VENDOR_BILL_DATE]: {path: ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_VENDOR_BILL_DATE.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_DEFAULT_COMPANY_CARD_VENDOR]: {path: ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_DEFAULT_COMPANY_CARD_VENDOR.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_COMPANY_CARD_ACCOUNT]: {path: ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_COMPANY_CARD_ACCOUNT.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_CARD_PROGRAM_ACCOUNT]: {path: ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_CARD_PROGRAM_ACCOUNT.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_CARD_PROGRAM_ACCOUNT_SELECTOR]: {path: ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_CARD_PROGRAM_ACCOUNT_SELECTOR.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_CARD_ACCOUNT]: {path: ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_CARD_ACCOUNT.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_CARD_ACCOUNT_CARD_LIST]: {path: ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_CARD_ACCOUNT_CARD_LIST.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_IMPORT]: {path: ROUTES.POLICY_ACCOUNTING_XERO_IMPORT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_CHART_OF_ACCOUNTS]: {path: ROUTES.POLICY_ACCOUNTING_XERO_CHART_OF_ACCOUNTS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_ORGANIZATION]: {path: ROUTES.POLICY_ACCOUNTING_XERO_ORGANIZATION.route},
@@ -2425,6 +2430,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 // parse must return a string, so an absent sourceReportID maps to an empty string, which consumers read as absent.
                                 // eslint-disable-next-line rulesdir/no-default-id-values
                                 sourceReportID: (sourceReportID: string | undefined) => sourceReportID ?? '',
+                                // Same as sourceReportID: parse must return a string, so an absent sourcePolicyID maps to an empty string, which consumers read as absent.
+                                // eslint-disable-next-line rulesdir/no-default-id-values
+                                sourcePolicyID: (sourcePolicyID: string | undefined) => sourcePolicyID ?? '',
                             },
                             stringify: {
                                 // eslint-disable-next-line
@@ -2433,6 +2441,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 // stringify must return a string, so an absent sourceReportID maps to an empty string, which drops it from the route.
                                 // eslint-disable-next-line rulesdir/no-default-id-values
                                 sourceReportID: (sourceReportID: string | undefined) => sourceReportID ?? '',
+                                // Same as sourceReportID: stringify must return a string, so an absent sourcePolicyID maps to an empty string, which drops it from the route.
+                                // eslint-disable-next-line rulesdir/no-default-id-values
+                                sourcePolicyID: (sourcePolicyID: string | undefined) => sourcePolicyID ?? '',
                             },
                         },
                     },
