@@ -12135,8 +12135,8 @@ const CONST = {
             VIOLATIONS_BY_APPROVER: 'violationsByApprover',
         },
         VIOLATION_STAGE: {
-            SUBMITTERS: 'submitters',
-            APPROVERS: 'approvers',
+            SUBMITTED: 'submitted',
+            APPROVED: 'approved',
         },
     },
 

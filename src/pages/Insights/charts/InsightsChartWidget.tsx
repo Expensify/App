@@ -101,7 +101,7 @@ function InsightsChartWidget({
     insightsScope,
     onRetry,
     onGroupByChange,
-    violationStage = CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTERS,
+    violationStage = CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED,
     onViolationStageChange,
 }: InsightsChartWidgetProps) {
     const styles = useThemeStyles();
@@ -173,7 +173,7 @@ function InsightsChartWidget({
         isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && (state === INSIGHTS_CHART_STATE.READY || isLoading) ? (
             <InsightsExplainButton
                 explainPrompt={translate('insightsPage.explainChartPrompt', translate(chart.titleKey))}
-                insightsScope={insightsScope}
+                insightsScope={chart.hasViolationStageControl ? {...insightsScope, violationStage} : insightsScope}
             />
         ) : null;
 

@@ -40,10 +40,10 @@ import React, {useEffect, useEffectEvent, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 
-import type {InsightsViolationStage} from './dashboardSpecs';
+import type {InsightsViolationStage, InsightsViolationStages} from './dashboardSpecs';
 import type {InsightsCaptureRef} from './exportInsightsDashboard/types';
 import type {InsightsFilters} from './insightsFilters';
-import type {InsightsChartQuery, InsightsViolationStages} from './insightsQueries';
+import type {InsightsChartQuery} from './insightsQueries';
 import type {InsightsDashboardChart, InsightsDashboardState} from './resolveDashboardState';
 
 import InsightsAICardRow from './ai/InsightsAICardRow';

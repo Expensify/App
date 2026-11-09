@@ -35,9 +35,9 @@ function InsightsViolationStageDropdown({value, onChange}: InsightsControlProps<
             showLabel={false}
             items={items}
             value={selectedItem}
-            defaultValue={CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTERS}
+            defaultValue={CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED}
             closeOverlay={closeOverlay}
-            onChange={(item) => onChange(item?.value ?? CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTERS)}
+            onChange={(item) => onChange(item?.value ?? CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED)}
             applySentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_APPLY.VIOLATION_STAGE}
             resetSentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_RESET.VIOLATION_STAGE}
         />
