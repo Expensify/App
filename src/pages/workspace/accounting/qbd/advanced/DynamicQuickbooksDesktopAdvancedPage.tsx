@@ -48,6 +48,7 @@ function DynamicQuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsPro
             title: translate('workspace.qbd.advancedConfig.createEntities'),
             subtitle: translate('workspace.qbd.advancedConfig.createEntitiesDescription'),
             switchAccessibilityLabel: translate('workspace.qbd.advancedConfig.createEntitiesDescription'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.AUTO_CREATE_VENDOR_SWITCH,
             isActive: !!qbdConfig?.shouldAutoCreateVendor,
             onToggle: (isOn: boolean) => {
                 updateQuickbooksDesktopShouldAutoCreateVendor(policyID, isOn);
@@ -105,6 +106,7 @@ function DynamicQuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsPro
                     title={item.title}
                     subtitle={item.subtitle}
                     switchAccessibilityLabel={item.switchAccessibilityLabel}
+                    switchSentryLabel={item.switchSentryLabel}
                     shouldPlaceSubtitleBelowSwitch
                     wrapperStyle={styles.mv3}
                     isActive={item.isActive}

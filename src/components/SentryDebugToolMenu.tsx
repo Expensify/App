@@ -4,6 +4,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setIsSentryDebugEnabled, setIsSentrySendEnabled, setSentryDebugHighlightedSpanOps} from '@libs/actions/SentryDebug';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React, {useState} from 'react';
@@ -21,6 +22,7 @@ function SentrySendToggle({isEnabled}: {isEnabled: boolean}) {
         <TestToolRow title={translate('initialSettingsPage.troubleshoot.sentrySendDescription')}>
             <Switch
                 accessibilityLabel={translate('initialSettingsPage.troubleshoot.sentrySendDescription')}
+                sentryLabel={CONST.SENTRY_LABEL.TEST_TOOL_MENU.SENTRY_SEND_SWITCH}
                 isOn={isEnabled}
                 onToggle={() => setIsSentrySendEnabled(!isEnabled)}
             />
@@ -35,6 +37,7 @@ function SentryDebugToggle({isEnabled}: {isEnabled: boolean}) {
         <TestToolRow title={translate('initialSettingsPage.troubleshoot.sentryDebugDescription')}>
             <Switch
                 accessibilityLabel={translate('initialSettingsPage.troubleshoot.sentryDebugDescription')}
+                sentryLabel={CONST.SENTRY_LABEL.TEST_TOOL_MENU.SENTRY_DEBUG_SWITCH}
                 isOn={isEnabled}
                 onToggle={() => setIsSentryDebugEnabled(!isEnabled)}
             />

@@ -165,7 +165,7 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
                         </View>
                         <View>
                             <Text style={[styles.textHeadlineH1, styles.textAlignCenter, styles.mb3]}>{config.headline}</Text>
-                            <View style={[styles.renderHTML]}>
+                            <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter]}>
                                 <RenderHTML html={config.descriptionHtml} />
                             </View>
                         </View>

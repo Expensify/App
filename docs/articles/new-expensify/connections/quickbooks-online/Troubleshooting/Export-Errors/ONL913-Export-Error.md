@@ -104,7 +104,7 @@ You can also update the export account configuration:
 
 1. Go to the **Workspaces** navigation tab on the left.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**, then select **Configure** next to QuickBooks Online.
 4. Click **Export**.
 5. Select a valid export account based on the supported account types.
 6. Click **Save**.
@@ -113,7 +113,7 @@ You can also update the export account configuration:
 
 1. Tap the **Workspaces** navigation tab on the bottom.
 2. Select your Workspace.
-3. Tap **Accounting**.
+3. Select **Connections**, then select **Configure** next to QuickBooks Online.
 4. Tap **Export**.
 5. Select a valid export account based on the supported account types.
 6. Tap **Save**.
