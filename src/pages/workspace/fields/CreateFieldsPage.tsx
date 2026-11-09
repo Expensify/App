@@ -58,7 +58,7 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, ge
     const reportTypeForTarget = isInvoiceField ? CONST.REPORT.TYPE.INVOICE : CONST.REPORT.TYPE.EXPENSE;
     const fieldTarget = isInvoiceField ? CONST.REPORT_FIELD_TARGETS.INVOICE : CONST.REPORT_FIELD_TARGETS.EXPENSE;
     // Fields that failed to be created are left out, so the user can retry with the same name without dismissing the error first.
-    const fieldList = getReportFieldsWithoutFailedAdds(policy?.fieldList, policy?.errorFields);
+    const fieldList = getReportFieldsWithoutFailedAdds(policy?.fieldList);
 
     const policyReportIDsSelector = (reports: OnyxCollection<Report>) =>
         Object.values(reports ?? {})

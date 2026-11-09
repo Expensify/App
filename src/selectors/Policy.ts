@@ -285,7 +285,7 @@ const createHasWorkspaceToSubmitToSelector =
  */
 const createAllPolicyReportFieldsSelector = (policies: OnyxCollection<Policy>, localeCompare: (a: string, b: string) => number) => {
     const allPolicyReportFields = Object.values(policies ?? {}).reduce<Record<string, PolicyReportField>>((acc, policy) => {
-        Object.assign(acc, getReportFieldsWithoutFailedAdds(policy?.fieldList, policy?.errorFields));
+        Object.assign(acc, getReportFieldsWithoutFailedAdds(policy?.fieldList));
         return acc;
     }, {});
 

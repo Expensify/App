@@ -16,11 +16,11 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
-import {getLatestErrorField} from '@libs/ErrorUtils';
+import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getConnectedIntegration, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
 import type {PolicyFeature} from '@libs/PolicyUtils';
-import {getReportFieldKey, isFailedReportFieldAdd} from '@libs/ReportUtils';
+import {isFailedReportFieldAdd} from '@libs/ReportUtils';
 import {getReportFieldTypeTranslationKey, isReportFieldImportedFromIntegration} from '@libs/WorkspaceReportFieldUtils';
 
 import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
@@ -121,7 +121,6 @@ function WorkspaceFieldsSection({
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
     const fieldList = policy?.fieldList;
-    const errorFields = policy?.errorFields;
     const hasImportedField = Object.values(fieldList ?? {}).some((field) => fieldFilter(field) && isReportFieldImportedFromIntegration(field, policy));
     const {canWrite, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, policyFeature);
 
@@ -140,20 +139,16 @@ function WorkspaceFieldsSection({
         : Object.values(fieldList)
               .filter(fieldFilter)
               .sort((a, b) => localeCompare(a.name, b.name))
-              .map((field) => {
-                  const fieldKey = getReportFieldKey(field.fieldID);
-
-                  return {
-                      text: field.name,
-                      keyForList: String(field.fieldID),
-                      fieldID: field.fieldID,
-                      pendingAction: field.pendingAction,
-                      errors: getLatestErrorField({errorFields: errorFields?.fieldList?.[fieldKey] ?? {}}, 'defaultValue'),
-                      isDisabled: field.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                      isFailedAdd: isFailedReportFieldAdd(field, errorFields),
-                      rightLabel: Str.recapitalize(translate(getReportFieldTypeTranslationKey(field.type ?? CONST.REPORT_FIELD_TYPES.TEXT))),
-                  };
-              });
+              .map((field) => ({
+                  text: field.name,
+                  keyForList: String(field.fieldID),
+                  fieldID: field.fieldID,
+                  pendingAction: field.pendingAction,
+                  errors: getLatestError(field.errors ?? undefined),
+                  isDisabled: field.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                  isFailedAdd: isFailedReportFieldAdd(field),
+                  rightLabel: Str.recapitalize(translate(getReportFieldTypeTranslationKey(field.type ?? CONST.REPORT_FIELD_TYPES.TEXT))),
+              }));
 
     const navigateToFieldSettings = (item: FieldListItem) => {
         // A field that failed to be created doesn't exist on the server, so its settings can't be saved. The user dismisses the error instead.

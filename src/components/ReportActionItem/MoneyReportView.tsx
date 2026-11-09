@@ -134,7 +134,7 @@ function MoneyReportView({
         StyleUtils.getColorStyle(theme.textSupporting),
     ];
 
-    const {fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {}, reportNameValuePairs, policy?.errorFields);
+    const {fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {}, reportNameValuePairs);
     const policyReportFields = Object.values(fieldsByName).filter((field) => isReportFieldTargetMatchingReport(report, field));
 
     const isOnlyTitleFieldEnabled = policyReportFields.every(shouldHideSingleReportField);

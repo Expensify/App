@@ -75,7 +75,7 @@ function FieldsInitialValuePage({policy, policyID, reportFieldID, featureName, e
 
         if (
             (reportField?.type === CONST.REPORT_FIELD_TYPES.TEXT || reportField?.type === CONST.REPORT_FIELD_TYPES.FORMULA) &&
-            hasCircularReferences(formInitialValue, reportField?.name, getReportFieldsForTarget(getReportFieldsWithoutFailedAdds(policy?.fieldList, policy?.errorFields), expectedTarget))
+            hasCircularReferences(formInitialValue, reportField?.name, getReportFieldsForTarget(getReportFieldsWithoutFailedAdds(policy?.fieldList), expectedTarget))
         ) {
             errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.circularReferenceError');
         }

@@ -284,7 +284,7 @@ import type {
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
-import type {ErrorFields, Icon, OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
+import type {Icon, OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {ACHAccount, PolicyReportField} from '@src/types/onyx/Policy';
 import type {Participant, Participants, ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
@@ -20187,12 +20187,10 @@ describe('ReportUtils', () => {
             const policyID = '3';
             const baseField = createMock<PolicyReportField>({type: CONST.REPORT_FIELD_TYPES.TEXT, values: [], disabledOptions: [], defaultValue: ''});
             const savedField = {...baseField, fieldID: 'field_id_SAVED', name: 'Saved'};
-            const failedField = {...baseField, fieldID: 'field_id_FAILED', name: 'Failed', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+            const failedField = {...baseField, fieldID: 'field_id_FAILED', name: 'Failed', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, errors: {1: 'Error'}};
             const fakePolicy: Policy = {
                 ...createRandomPolicy(Number(policyID)),
                 fieldList: {expensify_field_id_SAVED: savedField, expensify_field_id_FAILED: failedField},
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- ErrorFields doesn't model the nested fieldList.<fieldKey>.defaultValue shape the server uses
-                errorFields: {fieldList: {expensify_field_id_FAILED: {defaultValue: {1: 'Error'}}}} as unknown as ErrorFields,
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
@@ -23813,12 +23811,10 @@ describe('ReportUtils', () => {
                 fieldList: fieldList1,
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            const failedPolicyField = {...fieldList2.expensify_field_id_LIST_POLICY, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- ErrorFields doesn't model the nested fieldList.<fieldKey>.defaultValue shape the server uses
-            const policyErrorFields = {fieldList: {expensify_field_id_LIST_POLICY: {defaultValue: {1: 'Error'}}}} as unknown as ErrorFields;
+            const failedPolicyField = {...fieldList2.expensify_field_id_LIST_POLICY, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, errors: {1: 'Error'}};
 
             // When getting the available report fields
-            const availableFields = getAvailableReportFields(report, [failedPolicyField], policyErrorFields);
+            const availableFields = getAvailableReportFields(report, [failedPolicyField]);
 
             // Then the failed field is not shown on the report
             expect(availableFields).toEqual(Object.values(fieldList1));
@@ -23835,7 +23831,7 @@ describe('ReportUtils', () => {
             const pendingPolicyField = {...fieldList2.expensify_field_id_LIST_POLICY, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
 
             // When getting the available report fields
-            const availableFields = getAvailableReportFields(report, [pendingPolicyField], {});
+            const availableFields = getAvailableReportFields(report, [pendingPolicyField]);
 
             // Then the pending field is still shown, because it hasn't failed
             expect(availableFields.map(({fieldID}) => fieldID)).toEqual(['field_id_LIST_POLICY']);
@@ -23863,40 +23859,34 @@ describe('ReportUtils', () => {
         const baseField = createMock<PolicyReportField>({type: 'text', values: [], disabledOptions: [], defaultValue: ''});
         const savedField = {...baseField, fieldID: 'field_id_SAVED', name: 'Saved'};
         const offlineField = {...baseField, fieldID: 'field_id_OFFLINE', name: 'Offline', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
-        const failedField = {...baseField, fieldID: 'field_id_FAILED', name: 'Failed', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
-        const updateFailedField = {...baseField, fieldID: 'field_id_UPDATE_FAILED', name: 'Update failed'};
+        const failedField = {...baseField, fieldID: 'field_id_FAILED', name: 'Failed', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, errors: {1: 'Error'}};
+        const updateFailedField = {...baseField, fieldID: 'field_id_UPDATE_FAILED', name: 'Update failed', errors: {2: 'Error'}};
         const fieldList = {
             expensify_field_id_SAVED: savedField,
             expensify_field_id_OFFLINE: offlineField,
             expensify_field_id_FAILED: failedField,
             expensify_field_id_UPDATE_FAILED: updateFailedField,
         };
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- ErrorFields doesn't model the nested fieldList.<fieldKey>.defaultValue shape the server uses
-        const policyErrorFields = {
-            fieldList: {
-                expensify_field_id_FAILED: {defaultValue: {1: 'Error'}},
-                expensify_field_id_UPDATE_FAILED: {defaultValue: {2: 'Error'}},
-            },
-        } as unknown as ErrorFields;
 
         it('should leave out only the fields that failed to be created', () => {
             // Given a policy with a saved field, a field added offline, a field whose creation failed, and an existing field whose update failed
 
             // When removing the failed adds
-            const fields = getReportFieldsWithoutFailedAdds(fieldList, policyErrorFields);
+            const fields = getReportFieldsWithoutFailedAdds(fieldList);
 
             // Then only the field whose creation failed is left out, because it doesn't exist on the server. The others do, or are still being created.
             expect(Object.keys(fields)).toEqual(['expensify_field_id_SAVED', 'expensify_field_id_OFFLINE', 'expensify_field_id_UPDATE_FAILED']);
         });
 
-        it('should keep every field when the policy has no errors', () => {
-            // Given a policy without report field errors
+        it.each([undefined, null, {}])('should keep pending adds with empty errors: %p', (errors) => {
+            // Given a pending field whose creation has not failed
+            const pendingFieldList = {expensify_field_id_OFFLINE: {...offlineField, errors}};
 
-            // When removing the failed adds
-            const fields = getReportFieldsWithoutFailedAdds(fieldList, undefined);
+            // When removing failed adds without relying on shared policy errors
+            const fields = getReportFieldsWithoutFailedAdds(pendingFieldList);
 
             // Then no field is left out, because a pending ADD without an error hasn't failed
-            expect(fields).toEqual(fieldList);
+            expect(fields).toEqual(pendingFieldList);
         });
     });
 
