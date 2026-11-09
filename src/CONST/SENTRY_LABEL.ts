@@ -41,6 +41,9 @@ const SENTRY_LABEL = {
     ACCOUNT_MANAGER_BOOK_CALL: {
         BUTTON: 'AccountManagerBookCallButton-Button',
     },
+    TALK_TO_HUMAN: {
+        BUTTON: 'TalkToHumanButton-Button',
+    },
     HIGH_CONTRAST_MODE_SWITCHER: {
         TOGGLE: 'HighContrastModeSwitcher-Toggle',
     },

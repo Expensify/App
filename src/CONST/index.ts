@@ -834,7 +834,9 @@ const CONST = {
         FNS_TIMEZONE_FORMAT_STRING: "yyyy-MM-dd'T'HH:mm:ssXXX",
         FNS_DB_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss.SSS',
         ORDINAL_DAY_OF_MONTH: 'do',
-        MONTH_DAY_YEAR_ORDINAL_FORMAT: 'MMMM do, yyyy',
+        // `PPP` is date-fns' long localized date. In en-US it already carries the ordinal day this constant is named
+        // for, so English output is unchanged, while other languages stop being forced into the US component order.
+        MONTH_DAY_YEAR_ORDINAL_FORMAT: 'PPP',
         SECONDS_PER_DAY: 24 * 60 * 60,
         MONTH_DAYS,
     },
@@ -2592,13 +2594,19 @@ const CONST = {
             REJECTED_REPORT: 'rejectedReport',
             CHANGE_WORKSPACE: 'changeWorkspace',
             APPROVE_ONLY_SUBMIT_BLOCKED: 'approveOnlySubmitBlocked',
+            STRICT_POLICY_RULE_VIOLATIONS: 'strictPolicyRuleViolations',
+            DYNAMIC_EXTERNAL_WORKFLOW_SUBMIT_ERROR: 'dynamicExternalWorkflowSubmitError',
+            DYNAMIC_EXTERNAL_WORKFLOW_APPROVE_ERROR: 'dynamicExternalWorkflowApproveError',
+            DYNAMIC_EXTERNAL_WORKFLOW_OFFLINE: 'dynamicExternalWorkflowOffline',
         },
         ICONS: {
             HOURGLASS: 'hourglass',
             CHECKMARK: 'checkmark',
             STOPWATCH: 'stopwatch',
             BOX: 'box',
+            DOT_INDICATOR: 'dotIndicator',
         },
+
         ETA_KEY: {
             SHORTLY: 'shortly',
             TODAY: 'today',
@@ -2608,14 +2616,14 @@ const CONST = {
             LAST_DAY_OF_MONTH: 'lastDayOfMonth',
             END_OF_TRIP: 'endOfTrip',
         },
+        ETA_TYPE: {
+            KEY: 'key',
+            DATE_TIME: 'dateTime',
+        },
         ACTOR_TYPE: {
             CURRENT_USER: 'currentUser',
             OTHER_USER: 'otherUser',
             UNSPECIFIED_ADMIN: 'unspecifiedAdmin',
-        },
-        ETA_TYPE: {
-            KEY: 'key',
-            DATE_TIME: 'dateTime',
         },
     },
     REPORT_LAYOUT: {
@@ -2827,6 +2835,8 @@ const CONST = {
         SPAN_NAVIGATE_TO_REPORTS_FIRST_PAINT: 'ManualNavigateToReportsFirstPaint',
         SPAN_NAVIGATE_TO_REPORTS_CONTENT_LOAD: 'ManualNavigateToReportsContentLoad',
         SPAN_NAVIGATE_TO_INBOX_TAB: 'ManualNavigateToInboxTab',
+        /** From the idle Spend tab preload until its first content is on screen, the background cost the preload adds. */
+        SPAN_PRELOAD_SEARCH_TAB: 'ManualPreloadSearchTab',
         SPAN_OD_ND_TRANSITION: 'ManualOdNdTransition',
         SPAN_OD_ND_TRANSITION_LOGGED_OUT: 'ManualOdNdTransitionLoggedOut',
         SPAN_OPEN_SEARCH_ROUTER: 'ManualOpenSearchRouter',

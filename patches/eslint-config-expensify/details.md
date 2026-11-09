@@ -1,6 +1,6 @@
 # `eslint-config-expensify` patches
 
-### [eslint-config-expensify+4.0.8+001+import-typescript6.patch](eslint-config-expensify+4.0.8+001+import-typescript6.patch)
+### [eslint-config-expensify+4.0.20+001+import-typescript6.patch](eslint-config-expensify+4.0.20+001+import-typescript6.patch)
 
 - Reason:
 
