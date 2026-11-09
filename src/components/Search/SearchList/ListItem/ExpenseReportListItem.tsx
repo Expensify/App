@@ -114,6 +114,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const {isSelectAllChecked: isSelected, isIndeterminate} = useGroupCheckboxState({
         groupKey: item.keyForList,
         groupTransactions: reportItem.transactions ?? [],
+        groupCount: undefined,
     });
     const {translate, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
