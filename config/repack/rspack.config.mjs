@@ -115,7 +115,7 @@ export default Repack.defineRspackConfig((env) => {
                                 jsx: {runtime: 'automatic', development: isDev, refresh: isDev},
                             },
                         },
-                        {loader: path.resolve(__dirname, '../rsbuild/loaders/fullstory-annotation-loader.mjs')},
+                        {loader: path.resolve(__dirname, '../rsbuild/loaders/fullstory-annotation-loader.mjs'), options: {native: true}},
                     ],
                 },
                 {

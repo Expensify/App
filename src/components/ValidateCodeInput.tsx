@@ -21,6 +21,7 @@ import Animated, {useAnimatedStyle, useSharedValue, withDelay, withRepeat, withS
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 
 import FormHelpMessage from './FormHelpMessage';
+import FSClassView from './FSClassView';
 import Text from './Text';
 import TextInput from './TextInput';
 import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
@@ -460,9 +461,9 @@ function ValidateCodeInput({
 
     return (
         <>
-            <View
+            <FSClassView
                 style={[styles.validateCodeInputContainer]}
-                fsClass={CONST.FULLSTORY.CLASS.MASK}
+                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             >
                 <GestureDetector gesture={tapGesture}>
                     {/* Android does not handle touch on invisible Views so I created a wrapper around invisible TextInput just to handle taps */}
@@ -547,7 +548,7 @@ function ValidateCodeInput({
                         </View>
                     );
                 })}
-            </View>
+            </FSClassView>
             {!!errorText && (
                 <FormHelpMessage
                     isError

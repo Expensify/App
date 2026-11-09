@@ -16,6 +16,7 @@ import Text from '@components/Text';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useEnvironment from '@hooks/useEnvironment';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -143,6 +144,7 @@ function SubscriptionSettings() {
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_EXPENSIFY_CODE);
     };
     const illustrations = useMemoizedLazyIllustrations(['SubscriptionAnnual', 'SubscriptionPPU']);
+    const delegateAccountID = useDelegateAccountID();
 
     const options: Array<OptionsPickerItem<SubscriptionType>> = [
         {
@@ -311,6 +313,7 @@ function SubscriptionSettings() {
                                         <ToggleSettingOptionRow
                                             title={translate('subscription.subscriptionSettings.autoRenew')}
                                             switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
+                                            switchSentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.AUTO_RENEW_SWITCH}
                                             onToggle={handleAutoRenewToggle}
                                             isActive={privateSubscription?.autoRenew}
                                         />
@@ -323,7 +326,8 @@ function SubscriptionSettings() {
                                     <View style={styles.mt3}>
                                         <ToggleSettingOptionRow
                                             customTitle={customTitle}
-                                            switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
+                                            switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoIncrease')}
+                                            switchSentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.AUTO_INCREASE_SWITCH}
                                             onToggle={handleAutoIncreaseToggle}
                                             isActive={privateSubscription?.addNewUsersAutomatically ?? false}
                                         />
@@ -369,6 +373,7 @@ function SubscriptionSettings() {
                                 hasCompletedGuidedSetupFlow,
                                 conciergePersonalDetails,
                                 shouldDismissModal: false,
+                                delegateAccountID,
                             });
                         }}
                     >

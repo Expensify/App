@@ -46,13 +46,13 @@ function FeedSelector({onFeedSelect, CardFeedIcon, feedName, supportingText, sho
             style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}
             accessibilityLabel={[feedName, supportingText].filter(Boolean).join(', ')}
             role={CONST.ROLE.BUTTON}
-            sentryLabel="FeedSelector"
+            sentryLabel={CONST.SENTRY_LABEL.FEED_SELECTOR.BUTTON}
         >
             {CardFeedIcon}
 
             <View style={styles.flex1}>
                 <View style={[styles.flexRow, styles.gap1, styles.alignItemsCenter]}>
-                    <CaretWrapper>
+                    <CaretWrapper style={[styles.flexShrink1, styles.mw100]}>
                         <Text
                             numberOfLines={1}
                             style={[styles.textStrong, styles.flexShrink1]}

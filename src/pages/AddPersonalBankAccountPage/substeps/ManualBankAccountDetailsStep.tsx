@@ -80,6 +80,7 @@ function ManualBankAccountDetailsStep({onNext, isEditing}: ManualProps) {
                 value={bankAccountPersonalDetails?.routingNumber ?? ''}
                 inputMode={CONST.INPUT_MODE.NUMERIC}
                 shouldSaveDraft
+                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             />
             <InputWrapper
                 InputComponent={TextInput}
@@ -91,6 +92,7 @@ function ManualBankAccountDetailsStep({onNext, isEditing}: ManualProps) {
                 value={bankAccountPersonalDetails?.accountNumber ?? ''}
                 inputMode={CONST.INPUT_MODE.NUMERIC}
                 shouldSaveDraft
+                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             />
         </FormProvider>
     );
