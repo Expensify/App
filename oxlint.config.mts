@@ -145,7 +145,6 @@ const SENTRY_LABEL_PRESS_HANDLER_WRAPPERS = [
     'FocusableMenuItem',
     'FormAlertWithSubmitButton',
     'HighlightableMenuItem',
-    'LinkButton',
     'MenuItem',
     'MenuItem.Root',
     'MenuItemAction',
