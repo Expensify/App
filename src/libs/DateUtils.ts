@@ -557,15 +557,39 @@ function extractTime12Hour(dateTimeString: string, isFullFormat = false): string
 }
 
 /**
+ * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language and
+ * whether the year is shown.
+ * They format in UTC, so pass dates through `toUTCWallClockDate` to show them in the device's current timezone.
+ */
+const memoizedCreateNumericDateFormatter = memoize(
+    (localeCode: string, shouldIncludeYear: boolean) =>
+        new Intl.DateTimeFormat(localeCode, {year: shouldIncludeYear ? 'numeric' : undefined, month: '2-digit', day: '2-digit', timeZone: 'UTC'}),
+);
+
+/**
+ * Formats a date's local calendar fields as a short numeric date, e.g. 06/20 or 06/20/2026.
+ *
+ * The custom status used the machine formats `MM-dd` and `yyyy-MM-dd` for display, which no language writes that way.
+ * `Intl` gives each language its own order and separators, such as `20.06.2026` in German.
+ */
+function formatToNumericDate(date: Date, dateFnsLocale: DateFnsLocale | undefined, shouldIncludeYear: boolean): string {
+    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
+    return memoizedCreateNumericDateFormatter(dateFnsLocale?.code ?? 'en-US', shouldIncludeYear).format(toUTCWallClockDate(date));
+}
+
+/**
  * param {string} dateTimeString
- * returns {string} example: 2023-05-16 11:10 PM
+ * returns {string} example: 05/16/2023 11:10 PM
  */
 function formatDateTimeTo12Hour(dateTimeString: string, dateFnsLocale: DateFnsLocale | undefined): string {
     if (!dateTimeString) {
         return '';
     }
     const date = new Date(dateTimeString);
-    return format(date, `${CONST.DATE.FNS_FORMAT_STRING} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {locale: dateFnsLocale});
+    if (!isValid(date)) {
+        return '';
+    }
+    return `${formatToNumericDate(date, dateFnsLocale, true)} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}`;
 }
 
 /**
@@ -591,7 +615,7 @@ function getDateFromStatusType(type: CustomStatusTypes): string {
 
 /**
  * param {string} data - either a value from CONST.CUSTOM_STATUS_TYPES or a dateTime string in the format YYYY-MM-DD HH:mm
- * returns {string} example: 2023-05-16 11:10 PM or 'Today'
+ * returns {string} example: 05/16/2023 11:10 PM or 'Today'
  */
 function getLocalizedTimePeriodDescription(translate: LocalizedTranslate, dateFnsLocale: DateFnsLocale | undefined, data: string): string {
     switch (data) {
@@ -610,7 +634,7 @@ function getLocalizedTimePeriodDescription(translate: LocalizedTranslate, dateFn
  * param {string} inputDate - Date string in 'YYYY-MM-DD HH:mm:ss' format representing the source time.
  * param {SelectedTimezone} inputDateTimeZone - Timezone in which the inputDate is provided.
  * param {SelectedTimezone} currentSelectedTimezone - Current user's timezone to display the result in.
- * returns {string} - A localized string such as 'Until 05:34 PM', 'Until tomorrow', or 'Until Jul 01 05:34 PM'.
+ * returns {string} - A localized string such as 'Until 05:34 PM', 'Until tomorrow', or 'Until 07/01 05:34 PM'.
  */
 function getStatusUntilDate(
     translate: LocalizedTranslate,
@@ -640,11 +664,11 @@ function getStatusUntilDate(
 
     // If it's further in the future than tomorrow but within the same year
     if (isAfter(input, now) && isSameYear(input, now)) {
-        return translate('statusPage.untilTime', format(input, `${CONST.DATE.SHORT_DATE_FORMAT} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {locale: dateFnsLocale}));
+        return translate('statusPage.untilTime', `${formatToNumericDate(input, dateFnsLocale, false)} ${format(input, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}`);
     }
 
     // If it's in another year
-    return translate('statusPage.untilTime', format(input, `${CONST.DATE.FNS_FORMAT_STRING} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {locale: dateFnsLocale}));
+    return translate('statusPage.untilTime', `${formatToNumericDate(input, dateFnsLocale, true)} ${format(input, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}`);
 }
 
 /**
@@ -1204,6 +1228,21 @@ function formatToLongDateInTimeZone(date: string | Date, timeZone: SelectedTimez
 }
 
 /**
+ * Formats a UTC datetime or calendar date as a long date without moving the day to the device's timezone, the way
+ * `formatToLongDateInTimeZone` does for a given timezone.
+ *
+ * @returns June 20, 2026
+ */
+function formatToLongDateInUTC(datetime: string, dateFnsLocale: DateFnsLocale | undefined): string {
+    const date = toDate(datetime, {timeZone: 'UTC'});
+    if (!isValid(date)) {
+        return '';
+    }
+    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
+    return memoizedCreateLongDateInTimeZoneFormatter(dateFnsLocale?.code ?? 'en-US', 'UTC', false).format(date);
+}
+
+/**
  * Converts a UTC datetime string to a date string (yyyy-MM-dd) in the target timezone.
  * @param utcDateTime - Datetime string in UTC format (yyyy-MM-dd HH:mm:ss or yyyy-MM-dd HH:mm:ss.SSS)
  * @param timeZone - Target timezone to display the date in
@@ -1454,6 +1493,7 @@ const DateUtils = {
     getMonthNames,
     getDaysOfWeek,
     formatWithUTCTimeZone,
+    formatToLongDateInUTC,
     formatMachineDateWithUTCTimeZone,
     getWeekEndsOn,
     isTimeAtLeastOneMinuteInFuture,
