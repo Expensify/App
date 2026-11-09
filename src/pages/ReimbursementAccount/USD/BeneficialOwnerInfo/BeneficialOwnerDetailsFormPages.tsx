@@ -17,6 +17,7 @@ import React from 'react';
 import AddressUBO from './subSteps/BeneficialOwnerDetailsFormSubSteps/AddressUBO';
 import ConfirmationUBO from './subSteps/BeneficialOwnerDetailsFormSubSteps/ConfirmationUBO';
 import DateOfBirthUBO from './subSteps/BeneficialOwnerDetailsFormSubSteps/DateOfBirthUBO';
+import EmailUBO from './subSteps/BeneficialOwnerDetailsFormSubSteps/EmailUBO';
 import LegalNameUBO from './subSteps/BeneficialOwnerDetailsFormSubSteps/LegalNameUBO';
 import SocialSecurityNumberUBO from './subSteps/BeneficialOwnerDetailsFormSubSteps/SocialSecurityNumberUBO';
 
@@ -30,6 +31,7 @@ type BeneficialOwnerSubPageProps = SubPageProps & {
 
 const pages = [
     {pageName: SUB_PAGE_NAMES.LEGAL_NAME, component: LegalNameUBO},
+    {pageName: SUB_PAGE_NAMES.EMAIL, component: EmailUBO},
     {pageName: SUB_PAGE_NAMES.DATE_OF_BIRTH, component: DateOfBirthUBO},
     {pageName: SUB_PAGE_NAMES.SSN_LAST_4, component: SocialSecurityNumberUBO},
     {pageName: SUB_PAGE_NAMES.ADDRESS, component: AddressUBO},

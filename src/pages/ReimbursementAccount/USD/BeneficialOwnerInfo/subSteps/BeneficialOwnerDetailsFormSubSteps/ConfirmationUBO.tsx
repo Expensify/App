@@ -37,6 +37,15 @@ function ConfirmationUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifie
             },
         },
         {
+            id: 'email',
+            description: translate('common.email'),
+            title: values.email,
+            shouldShowRightIcon: true,
+            onPress: () => {
+                onMove(UBO_STEP_INDEXES.EMAIL);
+            },
+        },
+        {
             id: 'date-of-birth',
             description: translate('common.dob'),
             title: values.dob,

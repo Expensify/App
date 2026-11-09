@@ -862,6 +862,7 @@ const CONST = {
                 PREFIX: 'beneficialOwner',
                 FIRST_NAME: 'firstName',
                 LAST_NAME: 'lastName',
+                EMAIL: 'email',
                 DOB: 'dob',
                 SSN_LAST_4: 'ssnLast4',
                 STREET: 'street',
@@ -941,6 +942,7 @@ const CONST = {
                 ARE_THERE_MORE_UBOS: 'are-there-more-ubos',
                 UBOS_LIST: 'ubos-list',
                 LEGAL_NAME: 'legal-name',
+                EMAIL: 'email',
                 DATE_OF_BIRTH: 'date-of-birth',
                 SSN_LAST_4: 'ssn',
                 ADDRESS: 'address',
@@ -8120,9 +8122,10 @@ const CONST = {
             },
             UBO: {
                 LEGAL_NAME: 0,
-                DATE_OF_BIRTH: 1,
-                SSN: 2,
-                ADDRESS: 3,
+                EMAIL: 1,
+                DATE_OF_BIRTH: 2,
+                SSN: 3,
+                ADDRESS: 4,
             },
         },
     },
@@ -11807,6 +11810,7 @@ const CONST = {
         },
         BANK_ACCOUNT: {
             DATA_SECURE_LINK: 'BankAccount-DataSecureLink',
+            BENEFICIAL_OWNER_EMAIL: 'BankAccount-Enter-BeneficialOwnerEmail',
         },
         EARLY_DISCOUNT_BANNER: {
             DISMISS_BUTTON: 'EarlyDiscountBanner-DismissButton',
