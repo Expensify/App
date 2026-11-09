@@ -73,7 +73,7 @@ describe('shouldShowPushNotification', () => {
         const sentMoneyAction = createMock<ReportAction>({
             reportActionID: '100',
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-            originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUDetails: {amount: 100, currency: CONST.CURRENCY.USD, comment: ''}, amount: 100, currency: CONST.CURRENCY.USD},
+            message: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUDetails: {amount: 100, currency: CONST.CURRENCY.USD, comment: ''}, amount: 100, currency: CONST.CURRENCY.USD},
         });
         await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.SINGLE_EXPENSE_TABLE_VIEW]);
         await Onyx.set(ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW, CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE);

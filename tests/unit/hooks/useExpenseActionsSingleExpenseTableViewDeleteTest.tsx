@@ -63,7 +63,7 @@ async function setUpSingleExpenseReport(
         ...createRandomReportAction(Number(iouActionID)),
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         actorAccountID: 0,
-        originalMessage: {
+        message: {
             IOUReportID: expenseReportID,
             IOUTransactionID: transactionID,
             type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,

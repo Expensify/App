@@ -20,7 +20,7 @@ function buildIOUAction(type: typeof CONST.IOU.REPORT_ACTION_TYPE.CREATE | typeo
     return createMock<ReportAction>({
         reportActionID: REPORT_ACTION_ID,
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-        originalMessage: {
+        message: {
             type,
             IOUTransactionID: '100',
             ...(type === CONST.IOU.REPORT_ACTION_TYPE.PAY && {IOUDetails: {amount: 100, comment: '', currency: CONST.CURRENCY.USD}}),

@@ -151,11 +151,9 @@ function usePrevNextParentReportActions(
     // copy too. Otherwise a snapshot-only "Pay someone" sibling looks like a normal expense in the table view, and its
     // press waits on a parent action that never resolves: the pay action isn't an expense-creation action.
     const isPrevSentMoneyReport =
-        !!reportedParentReportActions?.isPrevSentMoneyReport ||
-        isSentMoneyReportSelector(snapshotData?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${prevTransactionReportID}`]);
+        !!reportedParentReportActions?.isPrevSentMoneyReport || isSentMoneyReportSelector(snapshotData?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${prevTransactionReportID}`]);
     const isNextSentMoneyReport =
-        !!reportedParentReportActions?.isNextSentMoneyReport ||
-        isSentMoneyReportSelector(snapshotData?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nextTransactionReportID}`]);
+        !!reportedParentReportActions?.isNextSentMoneyReport || isSentMoneyReportSelector(snapshotData?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nextTransactionReportID}`]);
 
     // Live report actions win over the snapshot: the snapshot only fills in siblings the live pass couldn't resolve
     // (i.e. unreported ones). A search snapshot is a point-in-time copy, so for a reported transaction it can hold an
@@ -214,14 +212,8 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldD
         selector: prevNextTransactionsSelector,
     });
 
-    const {prevParentReportAction, nextParentReportAction, hasPrevParentReportActions, hasNextParentReportActions, isPrevSentMoneyReport, isNextSentMoneyReport} = usePrevNextParentReportActions(
-        currentTransaction?.reportID,
-        prevTransactionID,
-        nextTransactionID,
-        prevTransaction?.reportID,
-        nextTransaction?.reportID,
-        snapshot?.data,
-    );
+    const {prevParentReportAction, nextParentReportAction, hasPrevParentReportActions, hasNextParentReportActions, isPrevSentMoneyReport, isNextSentMoneyReport} =
+        usePrevNextParentReportActions(currentTransaction?.reportID, prevTransactionID, nextTransactionID, prevTransaction?.reportID, nextTransaction?.reportID, snapshot?.data);
 
     const prevParentReportID = prevParentReportAction?.reportID ?? prevTransaction?.reportID;
     const nextParentReportID = nextParentReportAction?.reportID ?? nextTransaction?.reportID;
@@ -447,28 +439,10 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldD
     };
 
     const onNext = (e: GestureResponderEvent | KeyboardEvent | undefined) =>
-        navigateToSibling(
-            e,
-            nextTransactionID,
-            nextTransaction,
-            nextParentReportAction,
-            nextTransactionParentReport,
-            nextThreadReport,
-            hasNextParentReportActions,
-            isNextSentMoneyReport,
-        );
+        navigateToSibling(e, nextTransactionID, nextTransaction, nextParentReportAction, nextTransactionParentReport, nextThreadReport, hasNextParentReportActions, isNextSentMoneyReport);
 
     const onPrevious = (e: GestureResponderEvent | KeyboardEvent | undefined) =>
-        navigateToSibling(
-            e,
-            prevTransactionID,
-            prevTransaction,
-            prevParentReportAction,
-            prevTransactionParentReport,
-            prevThreadReport,
-            hasPrevParentReportActions,
-            isPrevSentMoneyReport,
-        );
+        navigateToSibling(e, prevTransactionID, prevTransaction, prevParentReportAction, prevTransactionParentReport, prevThreadReport, hasPrevParentReportActions, isPrevSentMoneyReport);
 
     // Replays a staged press once its parent action arrives, but only if the user is still where they pressed -
     // this screen stays mounted under a pushed RHP, and resuming from there would yank them out with a stale backTo.

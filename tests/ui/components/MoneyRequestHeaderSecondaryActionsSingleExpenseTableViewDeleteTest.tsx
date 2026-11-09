@@ -26,9 +26,9 @@ import type * as ReactNavigationNative from '@react-navigation/native';
 
 import React from 'react';
 
-import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
+import createMock from '../../utils/createMock';
 
 const TEST_THREAD_REPORT_ID = '1001';
 const TEST_CHAT_REPORT_ID = '2002';
@@ -41,22 +41,23 @@ const threadReport: Report = {...createRandomReport(1), reportID: TEST_THREAD_RE
 const iouReport: Report = {...createRandomReport(3), reportID: TEST_IOU_REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE, chatReportID: TEST_CHAT_REPORT_ID};
 const transaction: Transaction = {...createRandomTransaction(4), transactionID: TEST_TRANSACTION_ID, reportID: TEST_IOU_REPORT_ID};
 
-const parentReportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
-    ...createRandomReportAction(5),
+const parentReportAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
+    actorAccountID: 5,
+    created: '2026-01-01 00:00:00',
     reportActionID: TEST_PARENT_ACTION_ID,
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
     reportID: TEST_IOU_REPORT_ID,
     childReportID: TEST_THREAD_REPORT_ID,
-    originalMessage: {
+    message: {
         IOUTransactionID: TEST_TRANSACTION_ID,
         IOUReportID: TEST_IOU_REPORT_ID,
         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+        text: '',
         amount: transaction.amount,
         currency: transaction.currency,
     },
-    message: undefined,
     previousMessage: undefined,
-};
+});
 
 let mockCapturedDropdownOptions: Array<{value: string; onSelected: (this: void) => void}> = [];
 
