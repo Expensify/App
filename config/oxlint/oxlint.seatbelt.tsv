@@ -2013,9 +2013,7 @@
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldEdit.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	12
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomListPicker.tsx"	"no-restricted-syntax"	1
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomListSelectorPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteImportAddCustomListPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteImportAddCustomSegmentContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteImportAddCustomSegmentPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteMenuWithTopDescriptionForm.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/subPages/ChooseSegmentTypeStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/subPages/ConfirmCustomListStep.tsx"	"no-restricted-syntax"	2
@@ -2148,7 +2146,6 @@
 "../../src/pages/workspace/categories/DynamicEditCategoryPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/categories/DynamicExpenseLimitTypeSelectorPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/categories/ImportedCategoriesPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/categories/ImportedCategoriesPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/workspace/categories/WorkspaceCategoriesPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/categories/WorkspaceCategoriesPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/companyCards/addNew/AmexCustomFeed.tsx"	"no-restricted-imports"	1
@@ -2297,7 +2294,6 @@
 "../../src/pages/workspace/fields/FieldsAddListValuePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/fields/FieldsEditValuePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/fields/FieldsInitialListValuePage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/fields/FieldsInitialListValuePage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/workspace/fields/FieldsInitialValuePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/fields/FieldsListValuesPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/fields/FieldsListValuesPage.tsx"	"no-restricted-syntax"	2
@@ -2327,7 +2323,6 @@
 "../../src/pages/workspace/members/ImportedMembersConfirmationPage.tsx"	"no-restricted-syntax"	2
 "../../src/pages/workspace/members/ImportedMembersConfirmationPage.tsx"	"react-hooks/refs"	7
 "../../src/pages/workspace/members/ImportedMembersPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/members/ImportedMembersPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/workspace/members/ImportMembersPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/members/ImportMembersPage.tsx"	"no-restricted-syntax"	1
 "../../src/pages/workspace/members/ImportMembersPage.tsx"	"rulesdir/no-default-id-values"	1
@@ -2361,7 +2356,6 @@
 "../../src/pages/workspace/perDiem/EditPerDiemDestinationPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/perDiem/EditPerDiemSubratePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/perDiem/ImportedPerDiemPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/perDiem/ImportedPerDiemPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/workspace/perDiem/WorkspacePerDiemDetailsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/perDiem/WorkspacePerDiemDetailsPage.tsx"	"no-restricted-syntax"	5
 "../../src/pages/workspace/perDiem/WorkspacePerDiemPage.tsx"	"no-restricted-imports"	1
@@ -2391,11 +2385,9 @@
 "../../src/pages/workspace/rules/FlagForReviewRules/FlagForReviewRuleAmountPageBase.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/workspace/rules/IndividualExpenseRulesSectionRevamp.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/workspace/rules/MerchantRules/AddCategoryToMatchPage.tsx"	"no-restricted-syntax"	1
-"../../src/pages/workspace/rules/MerchantRules/AddMerchantRulePage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/workspace/rules/MerchantRules/AddMerchantToMatchPage.tsx"	"no-restricted-syntax"	1
 "../../src/pages/workspace/rules/MerchantRules/ExpenseDefaultTypePage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/workspace/rules/MerchantRules/ExpenseDefaultTypePage.tsx"	"no-restricted-syntax"	1
-"../../src/pages/workspace/rules/MerchantRules/ImportedMerchantRulesPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/workspace/rules/MerchantRules/MerchantRulePageBase.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/rules/RulesNewPage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/workspace/rules/SpendRules/SpendRuleCardPage.tsx"	"no-restricted-syntax"	1
@@ -2411,12 +2403,9 @@
 "../../src/pages/workspace/tags/DynamicWorkspaceViewTagsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/tags/DynamicWorkspaceViewTagsPage.tsx"	"no-restricted-syntax"	2
 "../../src/pages/workspace/tags/ImportedMultiLevelTagsPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/tags/ImportedMultiLevelTagsPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/workspace/tags/ImportedTagsPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/tags/ImportedTagsPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/workspace/tags/ImportMultiLevelTagsSettingsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/tags/ImportMultiLevelTagsSettingsPage.tsx"	"no-restricted-syntax"	1
-"../../src/pages/workspace/tags/ImportMultiLevelTagsSettingsPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/workspace/tags/ImportTagsOptionsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/tags/ImportTagsOptionsPage.tsx"	"no-restricted-syntax"	2
 "../../src/pages/workspace/tags/ImportTagsPage.tsx"	"rulesdir/no-onyx-loading-status"	1
@@ -2489,7 +2478,6 @@
 "../../src/pages/workspace/workflows/WorkspaceWorkflowsPayerPage.tsx"	"no-restricted-syntax"	1
 "../../src/pages/workspace/WorkspaceAgentsPage.tsx"	"no-restricted-syntax"	2
 "../../src/pages/workspace/WorkspaceConfirmationOwnerSelectorPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/WorkspaceConfirmationOwnerSelectorPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/workspace/WorkspaceConfirmationSuccessPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/WorkspaceInitialPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/WorkspaceJoinUserPage.tsx"	"rulesdir/no-onyx-loading-status"	1
