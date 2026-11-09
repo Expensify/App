@@ -301,7 +301,12 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     const isFocused = useIsFocused();
     const {login} = useCurrentUserPersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const {filters, defaultFilters, isResolved, setFilters} = useInsightsFilters(dashboardID);
+    const arePoliciesLoaded = policies !== undefined;
+    // Checked against the next filters, because a workspace change can turn the upsell on or off
+    const {filters, defaultFilters, isResolved, setFilters} = useInsightsFilters(
+        dashboardID,
+        (next) => arePoliciesLoaded && shouldUpsellControlPlan(dashboardID, getPoliciesInScope(policies, next.policyIDs), next.policyIDs, login),
+    );
     const {headerRef, controlsRef, contentRef, isExporting, isLoading: isChartLoading, exportDashboard, captureContext} = useInsightsExport(dashboardID, filters);
     const updateFilters = (update: Partial<InsightsFilters>) => {
         if (isExporting) {
@@ -313,7 +318,6 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     const policiesInScope = getPoliciesInScope(policies, filters.policyIDs);
     const eligibleCharts = getVisibleCharts(supportingSpecs, policiesInScope, login);
     const eligibleGraphKeys = eligibleCharts.map(({graphKey}) => graphKey).join(',');
-    const arePoliciesLoaded = policies !== undefined;
     // Settled from the policies already in Onyx, so the charts are never requested for a dashboard the upsell stands in for
     const shouldUpsell = arePoliciesLoaded && shouldUpsellControlPlan(dashboardID, policiesInScope, filters.policyIDs, login);
     const upgradeablePolicyIDs = shouldUpsell ? getUpgradeablePolicyIDsInScope(policiesInScope, login) : [];
