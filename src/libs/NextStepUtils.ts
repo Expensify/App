@@ -1,4 +1,5 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import CONST from '@src/CONST';
 import type {Policy, Report, ReportAction, Rule, Transaction, TransactionViolations} from '@src/types/onyx';
@@ -13,7 +14,15 @@ import {addMonths, format, isPast, parseISO, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
 
 import DateUtils from './DateUtils';
-import {canSubmitOwnReportOnPolicy, getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimbursementChoice, getReimburserAccountID, isArchivedPolicy} from './PolicyUtils';
+import {
+    canCreateExpensesOnPolicy,
+    canSubmitOwnReportOnPolicy,
+    getApprovalWorkflow,
+    getCorrectedAutoReportingFrequency,
+    getReimbursementChoice,
+    getReimburserAccountID,
+    isArchivedPolicy,
+} from './PolicyUtils';
 import {getOriginalMessage} from './ReportActionMessageUtils';
 import {isDynamicExternalWorkflowApproveFailedAction} from './ReportActionTypeGuards';
 import {
@@ -57,6 +66,7 @@ type BuildNextStepNewParams = {
     isTrackIntentUser: boolean | undefined;
     translate?: LocaleContextProps['translate'];
     rules: OnyxCollection<Rule>;
+    personalDetailsByLogins?: PersonalDetailsByLogin;
 };
 
 type GetReportNextStepParams = {
@@ -205,6 +215,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
         bypassNextApproverID,
         isTrackIntentUser,
         rules,
+        personalDetailsByLogins,
     } = params;
 
     if (!isExpenseReport(report)) {
@@ -216,7 +227,6 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
     const isInstantSubmitEnabled = autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
     const shouldShowFixMessage = hasViolations && isInstantSubmitEnabled && !isASAPSubmitBetaEnabled;
     const hasTransactions = doesReportContainTransactions(report);
-    const approverAccountID = bypassNextApproverID ?? getNextApproverAccountID(report, rules, isUnapprove);
     const reimburserAccountID = getReimburserAccountID(policy);
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
@@ -345,6 +355,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             // We want to show pending approval next step for cases where the policy has approvals enabled
             const policyApprovalMode = getApprovalWorkflow(policy);
             if ([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policyApprovalMode)) {
+                const approverAccountID = bypassNextApproverID ?? getNextApproverAccountID(report, rules, isUnapprove, undefined, personalDetailsByLogins);
                 nextStep = {
                     messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -446,6 +457,21 @@ function getReportNextStep({
     // The member can never submit their own report on this workspace, so the report has to be moved elsewhere to submit.
     if (isOpenExpenseReport(moneyRequestReport) && moneyRequestReport?.ownerAccountID === currentUserAccountID && !canSubmitOwnReportOnPolicy(policy, currentUserEmail)) {
         return buildApproveOnlySubmitBlockedNextStep();
+    }
+
+    // An open, empty report only waits for its owner to add expenses, which a member without the create-expense permission, such as approve-only, cannot do.
+    // The viewer's policy role stands in for the owner's role only when the viewer owns the report, so the check is limited to that case.
+    if (
+        moneyRequestReport?.ownerAccountID === currentUserAccountID &&
+        policy &&
+        isOpenExpenseReport(moneyRequestReport) &&
+        !doesReportContainTransactions(moneyRequestReport) &&
+        !canCreateExpensesOnPolicy(policy, moneyRequestReportOwnerLogin)
+    ) {
+        return {
+            messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
+            icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+        };
     }
 
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);

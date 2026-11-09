@@ -373,6 +373,10 @@ const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportF
     };
 };
 
+function shouldReportFieldBeEditable(outstandingReports: Array<OnyxEntry<OnyxTypes.Report>>, currentReportID: string | undefined, isUnreportedOrNew: boolean): boolean {
+    return isUnreportedOrNew ? outstandingReports.length >= 1 : outstandingReports.some((report) => report?.reportID !== currentReportID);
+}
+
 // --- InvoiceSenderField ---
 
 type InvoiceSenderWorkspace = {id: string | undefined; name: string | undefined; avatarURL: string | undefined} | undefined;
@@ -408,6 +412,7 @@ export {
     perDiemSliceSelector,
     receiptSliceSelector,
     reportFieldTransactionStateSelector,
+    shouldReportFieldBeEditable,
     tagSliceSelector,
     taxSliceSelector,
     timeStateSelector,

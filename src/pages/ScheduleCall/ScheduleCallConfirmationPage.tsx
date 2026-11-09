@@ -74,7 +74,7 @@ function ScheduleCallConfirmationPage() {
 
     let dateTimeString = '';
     if (scheduleCallDraft?.timeSlot && scheduleCallDraft.date) {
-        const dateString = DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft.date, userTimezone, CONST.DATE.MONTH_DAY_YEAR_FORMAT, {locale: dateFnsLocale});
+        const dateString = DateUtils.formatToLongDateInTimeZone(scheduleCallDraft.date, userTimezone, dateFnsLocale);
         const timeString = `${DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft?.timeSlot, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})} - ${DateUtils.formatInTimeZoneWithFallback(
             addMinutes(scheduleCallDraft?.timeSlot, 30),
             userTimezone,
@@ -82,7 +82,7 @@ function ScheduleCallConfirmationPage() {
             {locale: dateFnsLocale},
         )}`;
 
-        const timezoneString = DateUtils.getZoneAbbreviation(new Date(scheduleCallDraft?.timeSlot), userTimezone);
+        const timezoneString = DateUtils.getZoneAbbreviation(new Date(scheduleCallDraft?.timeSlot), userTimezone, dateFnsLocale);
 
         dateTimeString = `${dateString} from ${timeString} ${timezoneString}`;
     }

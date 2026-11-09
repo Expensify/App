@@ -4392,6 +4392,7 @@ function updateReportField({
     const optimisticChangeFieldAction = buildOptimisticChangeFieldAction(reportField, previousReportField, accountID);
     const predictedNextStatus = getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
 
+    // A closed or open report has no next approver, so personalDetailsByLogins isn't needed.
     const optimisticNextStep = buildOptimisticNextStep({
         report,
         predictedNextStatus,
@@ -4403,6 +4404,7 @@ function updateReportField({
         isASAPSubmitBetaEnabled,
         isTrackIntentUser,
         rules,
+        personalDetailsByLogins: undefined,
     });
 
     const isInvoiceField = report.type === CONST.REPORT.TYPE.INVOICE && reportField.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
@@ -4881,6 +4883,7 @@ function buildNewReportOptimisticData({
         optimisticReportData.reportName = reportName;
     }
 
+    // A new report is open and has no next approver, so personalDetailsByLogins isn't needed.
     const optimisticNextStep = buildOptimisticNextStep({
         report: optimisticReportData,
         predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
@@ -4891,6 +4894,7 @@ function buildNewReportOptimisticData({
         isASAPSubmitBetaEnabled,
         isTrackIntentUser,
         rules,
+        personalDetailsByLogins: undefined,
     });
     if (optimisticNextStep) {
         optimisticReportData.nextStep = optimisticNextStep;
@@ -8452,6 +8456,7 @@ function buildOptimisticChangePolicyData({
     reportTransactions,
     rules,
     delegateAccountID,
+    personalDetailsByLogins,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -8470,6 +8475,7 @@ function buildOptimisticChangePolicyData({
     reportTransactions: Transaction[];
     rules: OnyxCollection<Rule>;
     delegateAccountID: number | undefined;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 }) {
     const optimisticData: Array<
         OnyxUpdate<
@@ -8525,7 +8531,7 @@ function buildOptimisticChangePolicyData({
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                managerID: getNextApproverAccountID(report, rules, true),
+                managerID: getNextApproverAccountID(report, rules, true, undefined, personalDetailsByLogins),
             },
         });
 
@@ -8576,6 +8582,7 @@ function buildOptimisticChangePolicyData({
             bypassNextApproverID: shouldResetApprovalChain ? newManagerAccountID : undefined,
             isTrackIntentUser,
             rules,
+            personalDetailsByLogins,
         });
 
         optimisticData.push({
@@ -8962,6 +8969,7 @@ function changeReportPolicy({
     reportTransactions,
     rules,
     delegateAccountID,
+    personalDetailsByLogins,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -8980,6 +8988,7 @@ function changeReportPolicy({
     reportTransactions: Transaction[];
     rules: OnyxCollection<Rule>;
     delegateAccountID: number | undefined;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 }) {
     if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report) || shouldBlockChangeReportPolicyForMapOrGPSRequirement(reportTransactions, policy)) {
         return;
@@ -9002,6 +9011,7 @@ function changeReportPolicy({
         reportTransactions,
         rules,
         delegateAccountID,
+        personalDetailsByLogins,
     });
 
     const params = {
@@ -9125,6 +9135,7 @@ function changeReportPolicyAndInviteSubmitter({
         reportTransactions,
         rules,
         delegateAccountID,
+        personalDetailsByLogins,
     });
 
     const optimisticData = [...optimisticAddMembersData, ...optimisticChangePolicyData];
