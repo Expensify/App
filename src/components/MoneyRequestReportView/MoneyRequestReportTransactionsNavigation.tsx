@@ -85,6 +85,74 @@ const collectParentReportActions = (
     }
 };
 
+// React Compiler treats the snapshot as mutated until the scan below passes it to collectParentReportActions. Inline in
+// the component that range spans the useOnyx calls, so neither selector was cached and both reran on every render.
+function usePrevNextParentReportActions(
+    currentTransactionReportID: string | undefined,
+    prevTransactionID: string | undefined,
+    nextTransactionID: string | undefined,
+    prevTransactionReportID: string | undefined,
+    nextTransactionReportID: string | undefined,
+    snapshotData: OnyxTypes.SearchResults['data'] | undefined,
+) {
+    // Only the prev/next parent actions are ever read, so resolve them inside the selector instead of returning
+    // a Map of every money request action on the three parent reports (fast-equals compares Maps in O(n^2)).
+    const parentReportActionsSelector = (allReportActions: OnyxCollection<OnyxTypes.ReportActions>) => {
+        // An unreported (self-DM) sibling's IOU action lives in the self-DM, since report "0" holds no actions
+        // of its own. Looking it up there is the only way such a sibling resolves from live data at all.
+        const isPrevUnreported = prevTransactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        const isNextUnreported = nextTransactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        const selfDMReportID = isPrevUnreported || isNextUnreported ? findSelfDMReportID() : undefined;
+        const prevActionsReportID = isPrevUnreported ? selfDMReportID : prevTransactionReportID;
+        const nextActionsReportID = isNextUnreported ? selfDMReportID : nextTransactionReportID;
+        // Whether the sibling's parent report has any actions at all, which is what separates "not fetched yet"
+        // from "fetched, but this expense has no creation action". Only the former is worth waiting for.
+        const hasPrevParentReportActions = !!Object.keys(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${prevActionsReportID}`] ?? {}).length;
+        const hasNextParentReportActions = !!Object.keys(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nextActionsReportID}`] ?? {}).length;
+        const parentActions: PrevNextParentReportActions = {prevParentReportAction: undefined, nextParentReportAction: undefined};
+        if (!prevTransactionID && !nextTransactionID) {
+            return {...parentActions, hasPrevParentReportActions, hasNextParentReportActions};
+        }
+        const parentReportIDs = new Set([currentTransactionReportID, prevActionsReportID, nextActionsReportID]);
+        for (const parentReportID of parentReportIDs) {
+            const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}` as const;
+            collectParentReportActions(allReportActions?.[key], prevTransactionID, nextTransactionID, parentActions);
+        }
+        return {...parentActions, hasPrevParentReportActions, hasNextParentReportActions};
+    };
+
+    const [reportedParentReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+        selector: parentReportActionsSelector,
+    });
+
+    // The live pass above resolves a sibling from its parent report's actions (the self-DM's, for an unreported
+    // one), so it only finds what has already been fetched into Onyx. Scanning the snapshot's report actions is
+    // what resolves a sibling whose parent actions were never loaded in this session.
+    const snapshotParentReportActions: PrevNextParentReportActions = {
+        prevParentReportAction: undefined,
+        nextParentReportAction: undefined,
+    };
+    if (snapshotData && (prevTransactionID ?? nextTransactionID)) {
+        for (const [key, reportActionsForReport] of Object.entries(snapshotData)) {
+            if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS)) {
+                collectParentReportActions(reportActionsForReport as OnyxTypes.ReportActions, prevTransactionID, nextTransactionID, snapshotParentReportActions);
+            }
+        }
+    }
+
+    // Live report actions win over the snapshot: the snapshot only fills in siblings the live pass couldn't resolve
+    // (i.e. unreported ones). A search snapshot is a point-in-time copy, so for a reported transaction it can hold an
+    // older copy of the same IOU action, for example one still missing the childReportID of a thread that has since
+    // been created. Letting that stale copy win would make prev/next believe the sibling has no thread and create a
+    // duplicate one instead of navigating to the existing thread.
+    return {
+        prevParentReportAction: reportedParentReportActions?.prevParentReportAction ?? snapshotParentReportActions.prevParentReportAction,
+        nextParentReportAction: reportedParentReportActions?.nextParentReportAction ?? snapshotParentReportActions.nextParentReportAction,
+        hasPrevParentReportActions: !!reportedParentReportActions?.hasPrevParentReportActions,
+        hasNextParentReportActions: !!reportedParentReportActions?.hasNextParentReportActions,
+    };
+}
+
 function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldDisplayNarrowVersion}: MoneyRequestReportRHPNavigationButtonsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -126,63 +194,14 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldD
         selector: prevNextTransactionsSelector,
     });
 
-    const prevTransactionReportID = prevTransaction?.reportID;
-    const nextTransactionReportID = nextTransaction?.reportID;
-
-    // Only the prev/next parent actions are ever read, so resolve them inside the selector instead of returning
-    // a Map of every money request action on the three parent reports (fast-equals compares Maps in O(n^2)).
-    const parentReportActionsSelector = (allReportActions: OnyxCollection<OnyxTypes.ReportActions>) => {
-        // An unreported (self-DM) sibling's IOU action lives in the self-DM, since report "0" holds no actions
-        // of its own. Looking it up there is the only way such a sibling resolves from live data at all.
-        const isPrevUnreported = prevTransactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-        const isNextUnreported = nextTransactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-        const selfDMReportID = isPrevUnreported || isNextUnreported ? findSelfDMReportID() : undefined;
-        const prevActionsReportID = isPrevUnreported ? selfDMReportID : prevTransactionReportID;
-        const nextActionsReportID = isNextUnreported ? selfDMReportID : nextTransactionReportID;
-        // Whether the sibling's parent report has any actions at all, which is what separates "not fetched yet"
-        // from "fetched, but this expense has no creation action". Only the former is worth waiting for.
-        const hasPrevParentReportActions = !!Object.keys(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${prevActionsReportID}`] ?? {}).length;
-        const hasNextParentReportActions = !!Object.keys(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nextActionsReportID}`] ?? {}).length;
-        const parentActions: PrevNextParentReportActions = {prevParentReportAction: undefined, nextParentReportAction: undefined};
-        if (!prevTransactionID && !nextTransactionID) {
-            return {...parentActions, hasPrevParentReportActions, hasNextParentReportActions};
-        }
-        const parentReportIDs = new Set([currentTransaction?.reportID, prevActionsReportID, nextActionsReportID]);
-        for (const parentReportID of parentReportIDs) {
-            const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}` as const;
-            collectParentReportActions(allReportActions?.[key], prevTransactionID, nextTransactionID, parentActions);
-        }
-        return {...parentActions, hasPrevParentReportActions, hasNextParentReportActions};
-    };
-
-    const [reportedParentReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
-        selector: parentReportActionsSelector,
-    });
-
-    // The live pass above resolves a sibling from its parent report's actions (the self-DM's, for an unreported
-    // one), so it only finds what has already been fetched into Onyx. Scanning the snapshot's report actions is
-    // what resolves a sibling whose parent actions were never loaded in this session.
-    const snapshotData = snapshot?.data;
-    const parentActions: PrevNextParentReportActions = {
-        prevParentReportAction: undefined,
-        nextParentReportAction: undefined,
-    };
-    if (snapshotData && (prevTransactionID ?? nextTransactionID)) {
-        for (const [key, reportActionsForReport] of Object.entries(snapshotData)) {
-            if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS)) {
-                collectParentReportActions(reportActionsForReport as OnyxTypes.ReportActions, prevTransactionID, nextTransactionID, parentActions);
-            }
-        }
-    }
-    const snapshotParentReportActions = parentActions;
-
-    // Live report actions win over the snapshot: the snapshot only fills in siblings the live pass couldn't resolve
-    // (i.e. unreported ones). A search snapshot is a point-in-time copy, so for a reported transaction it can hold an
-    // older copy of the same IOU action, for example one still missing the childReportID of a thread that has since
-    // been created. Letting that stale copy win would make prev/next believe the sibling has no thread and create a
-    // duplicate one instead of navigating to the existing thread.
-    const prevParentReportAction = reportedParentReportActions?.prevParentReportAction ?? snapshotParentReportActions.prevParentReportAction;
-    const nextParentReportAction = reportedParentReportActions?.nextParentReportAction ?? snapshotParentReportActions.nextParentReportAction;
+    const {prevParentReportAction, nextParentReportAction, hasPrevParentReportActions, hasNextParentReportActions} = usePrevNextParentReportActions(
+        currentTransaction?.reportID,
+        prevTransactionID,
+        nextTransactionID,
+        prevTransaction?.reportID,
+        nextTransaction?.reportID,
+        snapshot?.data,
+    );
 
     const prevParentReportID = prevParentReportAction?.reportID ?? prevTransaction?.reportID;
     const nextParentReportID = nextParentReportAction?.reportID ?? nextTransaction?.reportID;
@@ -389,26 +408,10 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldD
     };
 
     const onNext = (e: GestureResponderEvent | KeyboardEvent | undefined) =>
-        navigateToSibling(
-            e,
-            nextTransactionID,
-            nextTransaction,
-            nextParentReportAction,
-            nextTransactionParentReport,
-            nextThreadReport,
-            !!reportedParentReportActions?.hasNextParentReportActions,
-        );
+        navigateToSibling(e, nextTransactionID, nextTransaction, nextParentReportAction, nextTransactionParentReport, nextThreadReport, hasNextParentReportActions);
 
     const onPrevious = (e: GestureResponderEvent | KeyboardEvent | undefined) =>
-        navigateToSibling(
-            e,
-            prevTransactionID,
-            prevTransaction,
-            prevParentReportAction,
-            prevTransactionParentReport,
-            prevThreadReport,
-            !!reportedParentReportActions?.hasPrevParentReportActions,
-        );
+        navigateToSibling(e, prevTransactionID, prevTransaction, prevParentReportAction, prevTransactionParentReport, prevThreadReport, hasPrevParentReportActions);
 
     // Replays a staged press once its parent action arrives, but only if the user is still where they pressed -
     // this screen stays mounted under a pushed RHP, and resuming from there would yank them out with a stale backTo.

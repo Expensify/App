@@ -24,7 +24,7 @@ type PaymentActionParams = {
 
 type SettlementButtonProps = WithSentryLabel & {
     /** Callback to execute when this button is pressed. Receives payment action params. */
-    onPress: (params: PaymentActionParams) => void;
+    onPress: (params: PaymentActionParams) => void | Promise<void>;
 
     /** Callback when the payment options popover is shown */
     onPaymentOptionsShow?: () => void;

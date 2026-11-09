@@ -6,6 +6,7 @@ import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 import {getConnectedHRProvider} from '@libs/merge/HRUtils';
 import type {PolicyPaymentAttribution} from '@libs/PolicyPaymentUtils';
 import {
+    canCreateExpensesOnPolicy,
     canSendInvoice,
     getActiveAdminWorkspaces,
     getActivePoliciesWithExpenseChat,
@@ -465,7 +466,7 @@ const createFilteredPoliciesInfoSelector =
         let filteredPoliciesCount = 0;
         let firstPolicy: BillingRestrictionPolicy | undefined;
         for (const policy of Object.values(policies ?? {})) {
-            if (!policy || !shouldShowPolicy(policy, false, email) || isTeachersUnitePolicyID(policy.id)) {
+            if (!policy || !shouldShowPolicy(policy, false, email) || isTeachersUnitePolicyID(policy.id) || !canCreateExpensesOnPolicy(policy, email)) {
                 continue;
             }
             if (filteredPoliciesCount === 0) {
@@ -603,6 +604,30 @@ const policyAvatarFieldsSelector = (policy: OnyxEntry<Policy>): Pick<Policy, 'av
 
 const policyTypeSelector = (policy: OnyxEntry<Policy>) => policy?.type;
 
+/** Keeps only the policy fields `getVisibleTransactionViolations` reads, and only the current user's `employeeList` entry. */
+const createPolicyViolationVisibilitySelector =
+    (email: string) =>
+    (policy: OnyxEntry<Policy>): OnyxEntry<Policy> => {
+        if (!policy) {
+            return policy;
+        }
+        const {id, name, role, type, owner, outputCurrency, autoReporting, autoReportingFrequency, isAttendeeTrackingEnabled, autoCategorizeNewExpenses} = policy;
+        const employee = policy.employeeList?.[email];
+        return {
+            id,
+            name,
+            role,
+            type,
+            owner,
+            outputCurrency,
+            autoReporting,
+            autoReportingFrequency,
+            isAttendeeTrackingEnabled,
+            autoCategorizeNewExpenses,
+            employeeList: employee ? {[email]: employee} : undefined,
+        };
+    };
+
 const policyRoleSelector = (policy: OnyxEntry<Policy>) => policy?.role;
 
 const areInvoicesEnabledSelector = (policy: OnyxEntry<Policy>) => policy?.areInvoicesEnabled;
@@ -693,5 +718,6 @@ export {
     isCollectingDepositAccountsSelector,
     createIsInternationalCountrySelector,
     groupByPolicyAccountIDPoliciesSelector,
+    createPolicyViolationVisibilitySelector,
 };
 export type {ReusablePolicyConnectionName};

@@ -63,6 +63,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import type {RowChromeWidths} from '@components/Table/columnResize/getResizableColumnLayout';
 
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
+import type {TodoCounts} from '@hooks/useTodoCounts';
 
 import type {ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
@@ -109,7 +110,7 @@ import {deepEqual} from 'fast-equals';
 
 import type {TransactionPreviewData} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
-import type {SearchKey} from './SearchKeyUtils';
+import type {ReportKey, SearchKey} from './SearchKeyUtils';
 import type {SearchTypeMenuItem} from './SearchSuggestionUtils';
 
 import {startMoneyRequest} from './actions/IOU/MoneyRequest';
@@ -152,6 +153,7 @@ import {
 } from './PolicyUtils';
 import {
     getIOUActionForReportID,
+    getIOUReportIDFromReportActionPreview,
     getOriginalMessage,
     isCreatedAction,
     isDeletedAction,
@@ -208,6 +210,7 @@ import {
     shouldReportShowSubscript,
 } from './ReportUtils';
 import {getAmountFilterDisplayValue} from './SearchAmountFilterUtils';
+import {isReportEntry, TODO_SEARCH_KEYS} from './SearchKeyUtils';
 import {
     buildSearchQueryJSON,
     buildSearchQueryString,
@@ -248,7 +251,6 @@ import {
     hasDisplayableMCC,
     isDeletedTransaction,
     isOnHold,
-    isPending,
     isScanning,
     isViolationDismissed,
     shouldShowAttendees as shouldShowAttendeesUtils,
@@ -584,6 +586,33 @@ function getTripStatusOptions(translate: LocalizedTranslate): Array<MultiSelectI
     ];
 }
 
+function getTripRoomStatusOptions(translate: LocalizedTranslate): Array<MultiSelectItem<SingularSearchStatus>> {
+    return CONST.SEARCH.TRIP_FILTER_STATUSES.map((status) => ({text: translate(`search.trip.status.${status}`), value: status}));
+}
+
+const legacyTripStatusToTripRoomStatus: Record<string, string> = {
+    [CONST.SEARCH.STATUS.TRIP.CURRENT]: CONST.SEARCH.TRIP_STATUS.UPCOMING,
+    [CONST.SEARCH.STATUS.TRIP.PAST]: CONST.SEARCH.TRIP_STATUS.DONE,
+};
+
+/**
+ * Maps the statuses trip searches used before trip rooms (current and past) to the ones trip rooms use (upcoming and done),
+ * so saved searches keep their status selected.
+ */
+function normalizeTripStatuses(statuses: string[]): string[] {
+    return [...new Set(statuses.map((status) => legacyTripStatusToTripRoomStatus[status] ?? status))];
+}
+
+/** Normalizes a trip rooms filters form's statuses, so the status chip of a saved status:current reads Upcoming */
+function getFiltersFormWithTripRoomStatuses(form: Partial<SearchAdvancedFiltersForm>): Partial<SearchAdvancedFiltersForm> {
+    const {[FILTER_KEYS.STATUS]: status, [FILTER_KEYS.STATUS_NOT]: statusNot} = form;
+    return {
+        ...form,
+        ...(status && {[FILTER_KEYS.STATUS]: normalizeTripStatuses(status)}),
+        ...(statusNot && {[FILTER_KEYS.STATUS_NOT]: normalizeTripStatuses(statusNot)}),
+    };
+}
+
 function getTaskStatusOptions(translate: LocalizedTranslate): Array<MultiSelectItem<SingularSearchStatus>> {
     return [
         {text: translate('common.outstanding'), value: CONST.SEARCH.STATUS.TASK.OUTSTANDING},
@@ -597,8 +626,6 @@ const emptyPersonalDetails = {
     displayName: undefined,
     login: undefined,
 };
-
-type ReportKey = `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`;
 
 type TransactionKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
 
@@ -711,9 +738,13 @@ function doesSearchItemMatchSort(key: SearchKey, itemSortBy: string | undefined,
     return GENERIC_SEARCH_KEYS.has(key) || (itemSortBy === currentSortBy && itemSortOrder === currentSortOrder);
 }
 
-const TODO_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.SUBMIT, CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.PAY, CONST.SEARCH.SEARCH_KEYS.EXPORT]);
 const MONTHLY_ACCRUAL_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]);
 const RECONCILIATION_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.STATEMENTS, CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]);
+
+/** Narrows a search key to a to-do search, so its live count can be read from TodoCounts. */
+function isTodoSearchKey(searchKey: SearchKey): searchKey is keyof TodoCounts {
+    return TODO_SEARCH_KEYS.has(searchKey);
+}
 
 /**
  * Determines if the current user is eligible for the approve suggestion on a given policy.
@@ -788,6 +819,7 @@ function getSuggestedSearchesVisibility(
         const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
         const isAuditor = policy.role === CONST.POLICY.ROLE.AUDITOR;
         const isPaymentsAdmin = policy.role === CONST.POLICY.ROLE.PAYMENTS_ADMIN;
+        const isCardAdmin = policy.role === CONST.POLICY.ROLE.CARD_ADMIN;
         const isExporter = !!currentUserEmail && isPreferredExporter(policy, currentUserEmail);
 
         const isSubmittedTo =
@@ -807,8 +839,8 @@ function getSuggestedSearchesVisibility(
         const isEligibleForExportSuggestion = isExporter && !!getValidConnectedIntegration(policy);
         const isEligibleForStatementsSuggestion = isPaidPolicy && (hasCardFeed || !!defaultExpensifyCard);
         const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && (isAdmin || isAuditor || isPaymentsAdmin) && isApprovalEnabled && isPaymentEnabled;
-        const isEligibleForUnapprovedCardSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isApprovalEnabled && (hasCardFeed || !!defaultExpensifyCard);
-        const isEligibleForExpensifyCardSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isECardEnabled;
+        const isEligibleForUnapprovedCardSuggestion = isPaidPolicy && (isAdmin || isAuditor || isCardAdmin) && isApprovalEnabled && (hasCardFeed || !!defaultExpensifyCard);
+        const isEligibleForExpensifyCardSuggestion = isPaidPolicy && (isAdmin || isAuditor || isCardAdmin) && isECardEnabled;
         const isEligibleForReimbursementsSuggestion = isPaidPolicy && (isAdmin || isAuditor || isPaymentsAdmin) && isPaymentEnabled && hasVBBA && hasReimburser;
         const memberCount = Object.keys(policy.employeeList ?? {}).length;
         const isEligibleForTopSpendersSuggestion = isPolicyEligibleForTopSpenders(policy, currentUserEmail);
@@ -906,21 +938,6 @@ function getTransactionItemCommonFormattedProperties(
         formattedTotal,
         formattedMerchant,
     };
-}
-
-function isReportEntry(key: string): key is ReportKey {
-    return key.startsWith(ONYXKEYS.COLLECTION.REPORT);
-}
-
-/** The IDs of the expense reports in search data */
-function getExpenseReportIDs(data: OnyxTypes.SearchResults['data']): Record<string, boolean> {
-    const reportIDs: Record<string, boolean> = {};
-    for (const key of Object.keys(data)) {
-        if (isReportEntry(key) && isExpenseReportUtil(data[key])) {
-            reportIDs[key.replace(ONYXKEYS.COLLECTION.REPORT, '')] = true;
-        }
-    }
-    return reportIDs;
 }
 
 /**
@@ -2005,7 +2022,7 @@ function getTransactionsSections({
             const reportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
             const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, rules, actions);
             const transactionPendingAction = getTransactionPendingAction(transactionItem);
-            const reportOwnerAccountIDAsAttendee = getReportOwnerAccountIDAsAttendee(transactionItem, currentAccountID);
+            const reportOwnerAccountIDAsAttendee = getReportOwnerAccountIDAsAttendee(transactionItem, currentAccountID, report?.ownerAccountID);
             const reportOwnerAsAttendee = reportOwnerAccountIDAsAttendee ? getReportOwnerAsAttendee(personalDetailsMap.get(reportOwnerAccountIDAsAttendee.toString())) : undefined;
             const transactionAttendees = getAttendees(transactionItem, reportOwnerAsAttendee);
             const isUnreported = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -2338,13 +2355,11 @@ function getActions(
         return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.DONE];
     }
 
-    const hasOnlyPendingCardOrScanningTransactions = allReportTransactions.length > 0 && allReportTransactions.every((t) => isScanning(t) || isPending(t));
-
     const ownerLogin = getLoginByAccountID(report.ownerAccountID, data.personalDetailsList);
     const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules);
     const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, submitToAccountID, policy);
 
-    if (canApproveIOU(report, policy, reportMetadata, currentUserAccountID, allReportTransactions) && isAllowedToApproveExpenseReport && !hasOnlyPendingCardOrScanningTransactions) {
+    if (canApproveIOU(report, policy, reportMetadata, currentUserAccountID, allReportTransactions) && isAllowedToApproveExpenseReport) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.APPROVE);
     }
 
@@ -2615,9 +2630,16 @@ function createAndOpenSearchTransactionThread({
 }: CreateAndOpenSearchTransactionThreadParams): string | undefined {
     const isUnreportedTransaction = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isDeleted = isDeletedTransaction(item);
-    const iouReportAction = getIOUActionForReportID(isUnreportedTransaction ? findSelfDMReportID() : item.reportID, item.transactionID);
-    const expenseOwnerAccountID = (iouReportAction ?? item.reportAction)?.actorAccountID;
-    if (isUnreportedTransaction && expenseOwnerAccountID !== currentUserAccountID) {
+    // An unreported expense lives in its owner's self DM, which is not the viewer's when an admin opens a member's expense
+    const actionReportID = item.reportAction?.reportID ? String(item.reportAction.reportID) : undefined;
+    const ownerSelfDMReportID = actionReportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? actionReportID : undefined;
+    const ownSelfDMAction = isUnreportedTransaction ? getIOUActionForReportID(findSelfDMReportID(), item.transactionID) : undefined;
+    const isOwnExpense = (ownSelfDMAction ?? item.reportAction)?.actorAccountID === currentUserAccountID;
+    const expenseSelfDMReportID = isOwnExpense ? (findSelfDMReportID() ?? ownerSelfDMReportID) : ownerSelfDMReportID;
+    const selfDMReportID = isUnreportedTransaction ? expenseSelfDMReportID : undefined;
+    const iouReportAction = getIOUActionForReportID(selfDMReportID ?? item.reportID, item.transactionID);
+    // Another member's unreported expense can only open in their self DM
+    if (isUnreportedTransaction && !selfDMReportID) {
         return;
     }
 
@@ -2659,6 +2681,7 @@ function createAndOpenSearchTransactionThread({
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
             fullPolicySnapshotLastModified: iouReport?.policyID ? fullPolicySnapshotLastModifiedByPolicyID?.[iouReport.policyID] : undefined,
+            selfDMReportID,
         });
     }
 
@@ -3904,6 +3927,23 @@ function getQuarterSections(
 }
 
 /**
+ * Chat search returns the actions of every report the user can access, including bills. Bills stay out of Search for
+ * every user until Search supports paying bills, so this removes the actions on bills and the previews that link to a bill.
+ */
+function omitBillReportActionRows(rows: ReportActionListItemType[], data: OnyxTypes.SearchResults['data']): ReportActionListItemType[] {
+    const isBill = (reportID: string | undefined) => {
+        if (!reportID) {
+            return false;
+        }
+
+        const report = data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+        return report?.reportID === reportID && report.type === CONST.REPORT.UNSUPPORTED_TYPE.BILL;
+    };
+
+    return rows.filter((row) => !isBill(row.reportID) && !isBill(getIOUReportIDFromReportActionPreview(row)));
+}
+
+/**
  * Organizes data into appropriate list sections for display based on the type of search results.
  */
 function getSections({
@@ -3937,7 +3977,9 @@ function getSections({
     shouldReturnTripRooms = false,
 }: GetSectionsParams): GetSectionsResult {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
-        return [...getReportActionsSections(data, reportAttributesDerivedValue, visibleReportActionsData), false];
+        // The count keeps the bill actions, because paging compares it with the server offset, which counts them.
+        const [reportActionRows, reportActionCount] = getReportActionsSections(data, reportAttributesDerivedValue, visibleReportActionsData);
+        return [omitBillReportActionRows(reportActionRows, data), reportActionCount, false];
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
         return [...getTaskSections(data, formatPhoneNumber, translate, conciergeReportID, reportNameValuePairs, reportAttributesDerivedValue, queryJSON), false];
@@ -5066,6 +5108,7 @@ type TypeMenuSectionsParams = {
     isTrackIntentUser: boolean;
     hasReportAwaitingApproval?: boolean;
     policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>;
+    session: OnyxEntry<OnyxTypes.Session>;
 };
 
 function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuSection[] {
@@ -5083,6 +5126,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         isTrackIntentUser,
         hasReportAwaitingApproval = false,
         policyCategories,
+        session,
     } = params;
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
@@ -5124,7 +5168,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
                                       buttonAction: () => {
                                           interceptAnonymousUser(() => {
                                               startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN);
-                                          });
+                                          }, session);
                                       },
                                   },
                               ]
@@ -5399,12 +5443,12 @@ function getValidGroupBy(groupBy: string | undefined): ValueOf<typeof CONST.SEAR
     return groupBy && Object.values(CONST.SEARCH.GROUP_BY).includes(groupBy as ValueOf<typeof CONST.SEARCH.GROUP_BY>) ? (groupBy as ValueOf<typeof CONST.SEARCH.GROUP_BY>) : undefined;
 }
 
-function getStatusOptions(translate: LocalizedTranslate, type: SearchDataTypes) {
+function getStatusOptions(translate: LocalizedTranslate, type: SearchDataTypes, shouldReturnTripRooms = false) {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.INVOICE:
             return getInvoiceStatusOptions(translate);
         case CONST.SEARCH.DATA_TYPES.TRIP:
-            return getTripStatusOptions(translate);
+            return shouldReturnTripRooms ? getTripRoomStatusOptions(translate) : getTripStatusOptions(translate);
         case CONST.SEARCH.DATA_TYPES.TASK:
             return getTaskStatusOptions(translate);
         case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
@@ -5531,7 +5575,8 @@ function collectViolationNamesForTransaction(violationNames: Set<string>, violat
     }
 
     for (const violation of transactionViolations) {
-        if (violation.name) {
+        // Search, Insights and the CSV export skip the cash expense notice that only Classic records, so this column skips it too.
+        if (violation.name && violation.name !== CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT) {
             violationNames.add(violation.name);
         }
     }
@@ -5967,228 +6012,401 @@ function isGroupedFilterKey(key: SearchAdvancedFiltersKey): key is keyof typeof 
 type FilterView = {
     labelKey: TranslationPaths;
     icon: ExpensifyIconName;
+
+    /** Label of the filter's chip in the filters bar, shared by the filter and its negation */
+    filterSentryLabel: ValueOf<typeof CONST.SENTRY_LABEL.SEARCH.FILTER>;
+
+    advancedFilterSentryLabel: ValueOf<typeof CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER>;
+
+    /** Label of the apply button that applies the filter from its popup in the filters bar */
+    applySentryLabel: ValueOf<typeof CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY>;
 };
 
 const FILTER_VIEW_MAP = {
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE]: {
         labelKey: 'task.assignee',
         icon: 'UserCheck',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.ASSIGNEE,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.ASSIGNEE,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.ASSIGNEE,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE]: {
         labelKey: 'iou.attendees',
         icon: 'Users',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.ATTENDEE,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.ATTENDEE,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.ATTENDEE,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT]: {
         labelKey: 'common.bankAccount',
         icon: 'Bank',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.BANK_ACCOUNT,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.BANK_ACCOUNT,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.BANK_ACCOUNT,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE]: {
         labelKey: 'search.filters.billable',
         icon: 'Paycheck',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.BILLABLE,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.BILLABLE,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.BILLABLE,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID]: {
         labelKey: 'common.card',
         icon: 'CreditCard',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.CARD_ID,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.CARD_ID,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.CARD_ID,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY]: {
         labelKey: 'common.category',
         icon: 'Folder',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.CATEGORY,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.CATEGORY,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.CATEGORY,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY]: {
         labelKey: 'common.currency',
         icon: 'MoneyCircle',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.CURRENCY,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.CURRENCY,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.CURRENCY,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED]: {
         labelKey: 'search.filters.rejected',
         icon: 'ThumbsDown',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.DECLINED,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.DECLINED,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.DECLINED,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION]: {
         labelKey: 'common.description',
         icon: 'Document',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.DESCRIPTION,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.DESCRIPTION,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.DESCRIPTION,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE]: {
         labelKey: 'search.expenseType',
         icon: 'ExpenseCopy',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.EXPENSE_TYPE,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.EXPENSE_TYPE,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.EXPENSE_TYPE,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE]: {
         labelKey: 'search.receiptType',
         icon: 'Receipt',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.RECEIPT_TYPE,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.RECEIPT_TYPE,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.RECEIPT_TYPE,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS]: {
         labelKey: 'search.filters.transactionStatus.label',
         icon: 'CreditCardHourglass',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.TRANSACTION_STATUS,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.TRANSACTION_STATUS,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.TRANSACTION_STATUS,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO]: {
         labelKey: 'search.exportedTo',
         icon: 'Export',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.EXPORTED_TO,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.EXPORTED_TO,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.EXPORTED_TO,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED]: {
         labelKey: 'search.filters.feed',
         icon: 'CreditCardMultiple',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.FEED,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.FEED,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.FEED,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM]: {
         labelKey: 'common.from',
         icon: 'User',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.FROM,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.FROM,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.FROM,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER]: {
         labelKey: 'common.approver',
         icon: 'UserCheck',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.APPROVER,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.APPROVER,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.APPROVER,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS]: {
         labelKey: 'search.has',
         icon: 'Paperclip',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.HAS,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.HAS,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.HAS,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD]: {
         labelKey: 'search.filters.held',
         icon: 'Stopwatch',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.HELD,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.HELD,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.HELD,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.IN]: {
         labelKey: 'common.in',
         icon: 'Inbox',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.IN,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.IN,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.IN,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.IS]: {
         labelKey: 'search.filters.is',
         icon: 'DotIndicatorUnfilled',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.IS,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.IS,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.IS,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD]: {
         labelKey: 'search.filters.keyword',
         icon: 'Bookmark',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.KEYWORD,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.KEYWORD,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.KEYWORD,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]: {
         labelKey: 'common.merchant',
         icon: 'Basket',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.MERCHANT,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.MERCHANT,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.MERCHANT,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY]: {
         labelKey: 'search.filters.paidBy',
         icon: 'MoneyBag',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.PAID_BY,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.PAID_BY,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.PAID_BY,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID]: {
         labelKey: 'workspace.common.workspace',
         icon: 'Building',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.POLICY_ID,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.POLICY_ID,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.POLICY_ID,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY]: {
         labelKey: 'search.filters.purchaseCurrency',
         icon: 'MoneyCircle',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.PURCHASE_CURRENCY,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.PURCHASE_CURRENCY,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.PURCHASE_CURRENCY,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE]: {
         labelKey: 'common.reimbursable',
         icon: 'Paycheck',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.REIMBURSABLE,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.REIMBURSABLE,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.REIMBURSABLE,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID]: {
         labelKey: 'common.reportID',
         icon: 'Fingerprint',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.REPORT_ID,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.REPORT_ID,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.REPORT_ID,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS]: {
         labelKey: 'common.status',
         icon: 'DotIndicator',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.STATUS,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.STATUS,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.STATUS,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG]: {
         labelKey: 'common.tag',
         icon: 'Tag',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.TAG,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.TAG,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.TAG,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR]: {
         labelKey: 'common.vendor',
         icon: 'Building',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.VENDOR,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.VENDOR,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.VENDOR,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE]: {
         labelKey: 'workspace.taxes.taxRate',
         icon: 'Percent',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.TAX_RATE,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.TAX_RATE,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.TAX_RATE,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE]: {
         labelKey: 'common.type',
         icon: 'Cash',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.TYPE,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.TYPE,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.TYPE,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.TO]: {
         labelKey: 'common.to',
         icon: 'UserArrowLeft',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.TO,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.TO,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.TO,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE]: {
         labelKey: 'common.title',
         icon: 'Bookmark',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.TITLE,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.TITLE,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.TITLE,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTER_USER_ID]: {
         labelKey: 'workspace.common.customField1',
         icon: 'Pencil',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.SUBMITTER_USER_ID,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.SUBMITTER_USER_ID,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.SUBMITTER_USER_ID,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTER_PAYROLL_ID]: {
         labelKey: 'workspace.common.customField2',
         icon: 'Pencil',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.SUBMITTER_PAYROLL_ID,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.SUBMITTER_PAYROLL_ID,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.SUBMITTER_PAYROLL_ID,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.ORDER_DEAL_NUMBERS]: {
         labelKey: 'common.internationalReimbursementIDs',
         icon: 'Hashtag',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.ORDER_DEAL_NUMBERS,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.ORDER_DEAL_NUMBERS,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.ORDER_DEAL_NUMBERS,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID]: {
         labelKey: 'common.withdrawalID',
         icon: 'Fingerprint',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.WITHDRAWAL_ID,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.WITHDRAWAL_ID,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.WITHDRAWAL_ID,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE]: {
         labelKey: 'search.withdrawalType',
         icon: 'Cash',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.WITHDRAWAL_TYPE,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.WITHDRAWAL_TYPE,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.WITHDRAWAL_TYPE,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS]: {
         labelKey: 'common.withdrawalStatus',
         icon: 'DotIndicator',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.WITHDRAWAL_STATUS,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.WITHDRAWAL_STATUS,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.WITHDRAWAL_STATUS,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS]: {
         labelKey: 'common.paidStatus',
         icon: 'MoneyBag',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.PAID_STATUS,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.PAID_STATUS,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.PAID_STATUS,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT]: {
         labelKey: 'iou.amount',
         icon: 'Coins',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.AMOUNT,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.AMOUNT,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.AMOUNT,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT]: {
         labelKey: 'common.purchaseAmount',
         icon: 'Coins',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.PURCHASE_AMOUNT,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.PURCHASE_AMOUNT,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.PURCHASE_AMOUNT,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED]: {
         labelKey: 'common.amountDebited',
         icon: 'Coins',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.AMOUNT_DEBITED,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.AMOUNT_DEBITED,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.AMOUNT_DEBITED,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED]: {
         labelKey: 'common.amountReimbursed',
         icon: 'Coins',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.AMOUNT_REIMBURSED,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.AMOUNT_REIMBURSED,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.AMOUNT_REIMBURSED,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL]: {
         labelKey: 'common.total',
         icon: 'Coins',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.TOTAL,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.TOTAL,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.TOTAL,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE]: {
         labelKey: 'common.date',
         icon: 'CalendarSolid',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.DATE,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.DATE,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.DATE,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED]: {
         labelKey: 'search.filters.approved',
         icon: 'ThumbsUp',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.APPROVED,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.APPROVED,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.APPROVED,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL]: {
         labelKey: 'search.filters.anyApproval',
         icon: 'ThumbsUp',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.ANY_APPROVAL,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.ANY_APPROVAL,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.ANY_APPROVAL,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED]: {
         labelKey: 'search.filters.submitted',
         icon: 'Send',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.SUBMITTED,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.SUBMITTED,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.SUBMITTED,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID]: {
         labelKey: 'search.filters.paid',
         icon: 'MoneyBag',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.PAID,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.PAID,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.PAID,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED]: {
         labelKey: 'search.filters.exported',
         icon: 'Export',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.EXPORTED,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.EXPORTED,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.EXPORTED,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED]: {
         labelKey: 'search.filters.posted',
         icon: 'Paycheck',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.POSTED,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.POSTED,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.POSTED,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN]: {
         labelKey: 'search.filters.withdrawn',
         icon: 'CalendarSolid',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.WITHDRAWN,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.WITHDRAWN,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.WITHDRAWN,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD]: {
         labelKey: 'workspace.common.reportField',
         icon: 'Tag',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.REPORT_FIELD,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.REPORT_FIELD,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.REPORT_FIELD,
     },
 } satisfies Partial<Record<SyntaxFilterKey, FilterView>>;
 
@@ -6371,7 +6589,8 @@ function getDisplayValue(
         if (!status?.length) {
             return;
         }
-        const statusOptions = getStatusOptions(translate, type);
+        // Trip rooms statuses only come from beta queries and current/past from the rest, so both sets are labelled
+        const statusOptions = type === CONST.SEARCH.DATA_TYPES.TRIP ? [...getTripRoomStatusOptions(translate), ...getTripStatusOptions(translate)] : getStatusOptions(translate, type);
         return statusOptions
             .filter((option) => status.includes(option.value))
             .map((option) => option.text)
@@ -6704,6 +6923,7 @@ function getMultiSelectFilterOptions(
     translate: LocalizedTranslate,
     policies?: OnyxCollection<OnyxTypes.Policy>,
     policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>,
+    shouldReturnTripRooms = false,
 ) {
     if (filterKey === FILTER_KEYS.HAS) {
         return getHasOptions(translate, type, {policies, policyCategories});
@@ -6728,7 +6948,7 @@ function getMultiSelectFilterOptions(
     }
 
     if (filterKey === FILTER_KEYS.STATUS) {
-        return type ? getStatusOptions(translate, type) : [];
+        return type ? getStatusOptions(translate, type, shouldReturnTripRooms) : [];
     }
 
     if (filterKey === FILTER_KEYS.WITHDRAWAL_STATUS) {
@@ -7468,19 +7688,11 @@ function getSearchTableRowInsetWidth(columnCount: number): number {
  */
 function getSearchTableRowChromeWidths(columnCount: number): RowChromeWidths {
     return {
-        selectionColumnWidth: variables.searchTableRowCheckboxWidth + SEARCH_TABLE_ROW_ARROW_WIDTH,
+        selectionColumnWidth: variables.tableCheckboxColumnWidth + SEARCH_TABLE_ROW_ARROW_WIDTH,
         totalGapWidth: (columnCount + 1) * variables.searchTableColumnGap,
         rowMarginWidth: variables.searchTableRowChromeWidth,
         rowPaddingWidth: 0,
     };
-}
-
-/**
- * One stored layout per data type, since each shows its own columns. Grouped tables don't resize, so the group-by isn't
- * part of it. Not per query, so a filter change keeps the widths.
- */
-function getSearchColumnResizingID(type: SearchDataTypes): string {
-    return `${CONST.TABLES.COLUMN_RESIZING_IDS.SEARCH_PREFIX}:${type}`;
 }
 
 function getTableMinWidth(
@@ -7498,7 +7710,7 @@ function getTableMinWidth(
     // table scrolls at all. Only a caller that also passes real column widths has the rest of the arithmetic right;
     // adding it on top of the estimates below, which already run several columns over, makes a table reserve room twice
     // and scroll while it still has space.
-    let minWidth = shouldIncludeRowChrome ? getSearchTableRowInsetWidth(columns.length) : variables.searchTableRowCheckboxWidth;
+    let minWidth = shouldIncludeRowChrome ? getSearchTableRowInsetWidth(columns.length) : variables.tableCheckboxColumnWidth;
 
     for (const column of columns) {
         // A caller that knows a column's real minimum passes it in, so use that over the estimate below. The estimates
@@ -7711,6 +7923,29 @@ function getSearchBulkEditPolicyID(
     return activePolicyID;
 }
 
+/**
+ * Whether every selected expense belongs to the given member: it's on a report they submitted, or not on a report yet,
+ * which only its owner can see. Bulk editing limits the category list to their categories only in that case.
+ */
+function isEverySearchBulkEditExpenseOwnedBy(
+    selectedTransactionIDs: string[],
+    accountID: number,
+    allTransactions: OnyxCollection<OnyxTypes.Transaction> | undefined,
+    allReports: OnyxCollection<OnyxTypes.Report> | undefined,
+): boolean {
+    if (selectedTransactionIDs.length === 0) {
+        return false;
+    }
+
+    return selectedTransactionIDs.every((transactionID) => {
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        if (!transaction?.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            return true;
+        }
+        return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`]?.ownerAccountID === accountID;
+    });
+}
+
 function filterValidHasValues(hasValues: HasFilterValues | undefined, type: SearchDataTypes | undefined, translate: LocalizedTranslate): HasFilterValues | undefined {
     if (!hasValues || !type) {
         return undefined;
@@ -7903,6 +8138,7 @@ export {
     doesTransactionMatchFooterTotal,
     getSnapshotFooterTotal,
     getSearchBulkEditPolicyID,
+    isEverySearchBulkEditExpenseOwnedBy,
     getSuggestedSearches,
     getSections,
     getSuggestedSearchesVisibility,
@@ -7926,8 +8162,6 @@ export {
     isTransactionApproverGroupListItemType,
     isGroupedItemArray,
     isGroupEntry,
-    isReportEntry,
-    getExpenseReportIDs,
     isTransactionEntry,
     isSearchResultsEmpty,
     isTransactionListItemType,
@@ -7939,6 +8173,8 @@ export {
     isReportActionEntry,
     isTaskListItemType,
     isTripListItemType,
+    normalizeTripStatuses,
+    getFiltersFormWithTripRoomStatuses,
     getActions,
     getPrimaryAction,
     createTypeMenuSections,
@@ -7984,7 +8220,6 @@ export {
     getSearchColumnTranslationKey,
     getSearchTableRowInsetWidth,
     getSearchTableRowChromeWidths,
-    getSearchColumnResizingID,
     getTableMinWidth,
     getGroupColumnWidthFlags,
     getGroupTableScrollLayout,
@@ -8013,7 +8248,7 @@ export {
     isReportFieldKey,
     getSingleSelectFilterOptions,
     getMultiSelectFilterOptions,
-    TODO_SEARCH_KEYS,
+    isTodoSearchKey,
     MONTHLY_ACCRUAL_SEARCH_KEYS,
     RECONCILIATION_SEARCH_KEYS,
     FILTER_VIEW_MAP,

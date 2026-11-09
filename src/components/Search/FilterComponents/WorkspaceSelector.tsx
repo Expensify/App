@@ -28,7 +28,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -109,7 +108,7 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
     const theme = useTheme();
     const styles = useThemeStyles();
     const isAppLoadPending = useIsAppLoadPending();
-    const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>(), policiesResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: advancedSearchPoliciesSelector});
+    const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: advancedSearchPoliciesSelector});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     // Fetch the full (unfiltered) workspace list and apply the search filter locally, so pinning is decided from the
     // full list length rather than the filtered result count (see reordering below).
@@ -224,7 +223,7 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
                     onSelectRow={updateSelectedItems}
                     shouldPreventDefaultFocusOnSelectRow={false}
                     shouldShowTextInput={shouldShowWorkspaceSearchInput}
-                    shouldShowLoadingPlaceholder={isLoadingOnyxValue(policiesResult) || !ready}
+                    shouldShowLoadingPlaceholder={!ready}
                     textInputOptions={textInputOptions}
                     shouldStopPropagation
                     canSelectMultiple
