@@ -455,6 +455,7 @@ const SENTRY_LABEL = {
             AMOUNT: 'Search-FilterPopupApplyValue-Amount',
             REPORT_FIELD: 'Search-FilterPopupApplyValue-ReportField',
         },
+        AMOUNT_MODIFIER: 'Search-AmountModifier',
         DISPLAY_POPUP_APPLY: {
             SORT_BY: 'Search-DisplayPopupApply-SortBy',
             SORT_ORDER: 'Search-DisplayPopupApply-SortOrder',

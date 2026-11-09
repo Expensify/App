@@ -16953,6 +16953,23 @@ describe('SearchUIUtils', () => {
     describe('mapFiltersFormToLabelValueList', () => {
         const convertToDisplayStringWithoutCurrency = jest.fn((amount = 0) => `${amount}`);
 
+        it.each([
+            {form: {amountGreaterThan: '6000', amountGreaterThanOrEqualTo: '5000'}, expected: 'Greater than 60.00, Greater than or equal to 50.00'},
+            {form: {amountGreaterThanOrEqualTo: '50.00 AUD', amountLessThanOrEqualTo: '100.00 AUD'}, expected: 'Between 50.00 AUD and 100.00 AUD'},
+            {form: {amountGreaterThanOrEqualTo: '50.00 AUD'}, expected: 'Greater than or equal to 50.00 AUD'},
+            {form: {amountLessThanOrEqualTo: '100.00 AUD'}, expected: 'Less than or equal to 100.00 AUD'},
+        ])('shows inclusive amount bounds in one chip: $expected', ({form, expected}) => {
+            // Given inclusive operands must appear in the filter bar, not only in the search AST.
+            const formatAmount = (amount: number) => (amount / 100).toFixed(2);
+
+            // When the hydrated form is mapped to visible chips.
+            const chips = SearchUIUtils.mapFiltersFormToLabelValueList(form, new Set(), new Set(), translateLocal, undefined, localeCompare, formatAmount);
+
+            // Then bounds share the Amount chip and keep their comparison currency.
+            expect(chips).toHaveLength(1);
+            expect(chips.at(0)).toMatchObject({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, value: expected});
+        });
+
         it('places default filters before non-default filters', () => {
             const form = {
                 [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD]: 'hotel',

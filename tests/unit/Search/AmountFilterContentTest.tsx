@@ -48,6 +48,78 @@ beforeEach(() => {
 });
 
 describe('AmountFilterContent currency selection', () => {
+    it('retains both operators when a raw query constrains the same side twice', () => {
+        // Given the strict bound is stronger than the inclusive bound selected by the editor.
+        const onChange = jest.fn();
+        render(
+            <AmountFilterContent
+                baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
+                value={{GreaterThan: '6000', GreaterThanOrEqualTo: '5000'}}
+                onChange={onChange}
+            />,
+        );
+
+        // When the user confirms without changing either constraint.
+        fireEvent.press(screen.getByRole('button'));
+
+        // Then reopening the filter cannot broaden the result set from over 60 to at least 50.
+        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({amountGreaterThan: '6000', amountGreaterThanOrEqualTo: '5000'}));
+    });
+
+    it('keeps inclusive range operators and currencies when confirming Between', () => {
+        // Given NL parsing supplied an inclusive AUD range rather than the editor's strict range.
+        const onChange = jest.fn();
+        render(
+            <AmountFilterContent
+                baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
+                value={{GreaterThanOrEqualTo: '50.00 AUD', LessThanOrEqualTo: '100.00 AUD'}}
+                onChange={onChange}
+            />,
+        );
+
+        // When the lower bound is edited and the existing Between selection is confirmed.
+        const [lowerBound, upperBound] = screen.UNSAFE_getAllByType(AmountFilterInput);
+        expect(lowerBound?.props).toMatchObject({amount: '50.00', currency: 'AUD', label: 'search.filters.amount.greaterThanOrEqualTo'});
+        expect(upperBound?.props).toMatchObject({amount: '100.00', currency: 'AUD', label: 'search.filters.amount.lessThanOrEqualTo'});
+        act(() => jest.mocked(NumberWithSymbolForm).mock.calls.at(-2)?.[0].onInputChange?.('60'));
+        fireEvent.press(screen.getByRole('button'));
+
+        // Then editing does not silently exclude the original endpoints or enable strict comparisons.
+        expect(onChange).toHaveBeenCalledWith({
+            amountEqualTo: undefined,
+            amountGreaterThan: undefined,
+            amountLessThan: undefined,
+            amountGreaterThanOrEqualTo: '60.00 AUD',
+            amountLessThanOrEqualTo: '100.00 AUD',
+        });
+    });
+
+    it('clears inclusive bounds when switching to Equal to', () => {
+        // Given an inclusive range must not remain active behind a replacement amount filter.
+        const onChange = jest.fn();
+        render(
+            <AmountFilterContent
+                baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
+                value={{GreaterThanOrEqualTo: '50.00 AUD', LessThanOrEqualTo: '100.00 AUD'}}
+                onChange={onChange}
+            />,
+        );
+
+        // When Equal to replaces Between.
+        fireEvent.press(screen.getByTestId('base-list-item-EqualTo'), {nativeEvent: {}});
+        act(() => jest.mocked(NumberWithSymbolForm).mock.lastCall?.[0].onInputChange?.('75'));
+        fireEvent.press(screen.getByRole('button'));
+
+        // Then both inclusive operands are explicitly removed from the merged form.
+        expect(onChange).toHaveBeenCalledWith({
+            amountEqualTo: '75.00 USD',
+            amountGreaterThan: undefined,
+            amountLessThan: undefined,
+            amountGreaterThanOrEqualTo: undefined,
+            amountLessThanOrEqualTo: undefined,
+        });
+    });
+
     it('stacks Between inputs vertically on desktop', () => {
         // Given a saved range rendered with desktop layout and real theme styles.
         render(
@@ -389,6 +461,59 @@ describe('AmountFilterContent currency selection', () => {
 });
 
 describe('AmountPopup currency selection', () => {
+    it('preserves both same-side constraints when applying an active chip comparison', () => {
+        // Given a raw query includes a stricter comparison alongside the inclusive operand.
+        const updateFilterForm = jest.fn();
+        render(
+            <AmountPopup
+                baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
+                label="Amount"
+                value={{GreaterThan: '6000', GreaterThanOrEqualTo: '5000'}}
+                updateFilterForm={updateFilterForm}
+                closeOverlay={jest.fn()}
+            />,
+        );
+
+        // When the existing inclusive comparison is opened and both popup steps are applied unchanged.
+        fireEvent.press(screen.getByText('search.filters.amount.greaterThanOrEqualTo'), {nativeEvent: {}});
+        act(() => jest.mocked(BasePopup).mock.lastCall?.[0].onApply());
+        act(() => jest.mocked(BasePopup).mock.lastCall?.[0].onApply());
+
+        // Then confirming the chip cannot broaden the search by dropping the strict bound.
+        expect(updateFilterForm).toHaveBeenCalledWith(expect.objectContaining({amountGreaterThan: '6000', amountGreaterThanOrEqualTo: '5000'}));
+    });
+
+    it('edits an inclusive chip bound without changing its operator or the other bound', () => {
+        // Given the chip popup opens an inclusive range produced by Describe your search.
+        const updateFilterForm = jest.fn();
+        const closeOverlay = jest.fn();
+        render(
+            <AmountPopup
+                baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
+                label="Amount"
+                value={{GreaterThanOrEqualTo: '50.00 AUD', LessThanOrEqualTo: '100.00 AUD'}}
+                updateFilterForm={updateFilterForm}
+                closeOverlay={closeOverlay}
+            />,
+        );
+
+        // When the inclusive lower bound is edited and both popup steps are applied.
+        fireEvent.press(screen.getByText('search.filters.amount.greaterThanOrEqualTo'), {nativeEvent: {}});
+        act(() => jest.mocked(NumberWithSymbolForm).mock.lastCall?.[0].onInputChange?.('60'));
+        act(() => jest.mocked(BasePopup).mock.lastCall?.[0].onApply());
+        act(() => jest.mocked(BasePopup).mock.lastCall?.[0].onApply());
+
+        // Then the popup submits both inclusive operands and closes normally.
+        expect(updateFilterForm).toHaveBeenCalledWith({
+            amountEqualTo: '',
+            amountGreaterThan: undefined,
+            amountLessThan: undefined,
+            amountGreaterThanOrEqualTo: '60.00 AUD',
+            amountLessThanOrEqualTo: '100.00 AUD',
+        });
+        expect(closeOverlay).toHaveBeenCalled();
+    });
+
     it('submits the default policy currency for a new quick filter', () => {
         // Given a new purchase-amount filter and a GBP default expense policy.
         jest.mocked(useDefaultExpensePolicy).mockReturnValue(createMock<Policy>({outputCurrency: 'GBP'}));

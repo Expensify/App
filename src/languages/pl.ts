@@ -10872,7 +10872,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             completed: 'Zakończono',
             amount: {
                 lessThan: (amount?: string) => `Mniej niż ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Mniejsze lub równe ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Większe niż ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Większe lub równe ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `Między ${greaterThan} a ${lessThan}`;

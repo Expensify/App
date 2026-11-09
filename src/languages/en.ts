@@ -11244,7 +11244,9 @@ const translations = {
             completed: 'Completed',
             amount: {
                 lessThan: (amount?: string) => `Less than ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Less than or equal to ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Greater than ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Greater than or equal to ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `Between ${greaterThan} and ${lessThan}`;

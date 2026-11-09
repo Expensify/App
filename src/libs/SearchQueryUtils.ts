@@ -642,6 +642,8 @@ function buildAmountFilterQuery(filterKey: SearchAmountFilterKeys, filterValues:
     const equalTo = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`];
     const lessThan = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`];
     const greaterThan = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`];
+    const greaterThanOrEqualTo = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN_OR_EQUAL_TO}`];
+    const lessThanOrEqualTo = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN_OR_EQUAL_TO}`];
 
     const amountStrings = [];
 
@@ -655,6 +657,14 @@ function buildAmountFilterQuery(filterKey: SearchAmountFilterKeys, filterValues:
 
     if (lessThan) {
         amountStrings.push(`${filterKey}<${sanitizeSearchValue(lessThan)}`);
+    }
+
+    if (greaterThanOrEqualTo) {
+        amountStrings.push(`${filterKey}>=${sanitizeSearchValue(greaterThanOrEqualTo)}`);
+    }
+
+    if (lessThanOrEqualTo) {
+        amountStrings.push(`${filterKey}<=${sanitizeSearchValue(lessThanOrEqualTo)}`);
     }
 
     if (negatedAmount) {
@@ -2182,11 +2192,14 @@ function buildFilterFormValuesFromQuery(
             filtersForm[rangeKey] = undefined;
         }
 
-        if (AMOUNT_FILTER_KEYS.includes(filterKey as SearchAmountFilterKeys)) {
+        const amountFilterKey = AMOUNT_FILTER_KEYS.find((key: string) => key === filterKey);
+        if (amountFilterKey) {
             const negatedKey = `${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.NOT_MODIFIER}`;
             const equalToKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`;
             const lessThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`;
             const greaterThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`;
+            const greaterThanOrEqualToKey = `${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN_OR_EQUAL_TO}` as const;
+            const lessThanOrEqualToKey = `${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN_OR_EQUAL_TO}` as const;
 
             const isValidAmount = (value: string) => {
                 const parsed = parseAmountFilterValue(value);
@@ -2208,6 +2221,12 @@ function buildFilterFormValuesFromQuery(
             filtersForm[greaterThanKey] =
                 filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN && isValidAmount(filter.value.toString()))?.value.toString() ??
                 filtersForm[greaterThanKey];
+            filtersForm[greaterThanOrEqualToKey] =
+                filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO && isValidAmount(filter.value.toString()))?.value.toString() ??
+                filtersForm[greaterThanOrEqualToKey];
+            filtersForm[lessThanOrEqualToKey] =
+                filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO && isValidAmount(filter.value.toString()))?.value.toString() ??
+                filtersForm[lessThanOrEqualToKey];
             filtersForm[negatedKey] =
                 filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO && isValidAmount(filter.value.toString()))?.value.toString() ??
                 filtersForm[negatedKey];

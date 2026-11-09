@@ -10693,7 +10693,9 @@ ${reportName}`,
             completed: '完了',
             amount: {
                 lessThan: (amount?: string) => `${amount ?? ''} 未満`,
+                lessThanOrEqualTo: (amount?: string) => `${amount ?? ''}以下`,
                 greaterThan: (amount?: string) => `${amount ?? ''}より大きい`,
+                greaterThanOrEqualTo: (amount?: string) => `${amount ?? ''}以上`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `${greaterThan} 以上 ${lessThan} 未満`;

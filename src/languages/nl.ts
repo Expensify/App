@@ -10842,7 +10842,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             completed: 'Voltooid',
             amount: {
                 lessThan: (amount?: string) => `Minder dan ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Kleiner dan of gelijk aan ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Groter dan ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Groter dan of gelijk aan ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `Tussen ${greaterThan} en ${lessThan}`;
