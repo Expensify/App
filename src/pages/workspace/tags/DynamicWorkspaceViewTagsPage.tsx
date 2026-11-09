@@ -21,6 +21,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -76,6 +77,7 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {showConfirmModal} = useConfirmModal();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const dropdownButtonRef = useRef<ComponentRef<typeof View>>(null);
     const isFocused = useIsFocused();
     const policyData = usePolicyData(policyID);
@@ -121,7 +123,7 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
             return;
         }
 
-        setWorkspaceTagEnabled(policyData, {[tagName]: {name: tagName, enabled: value}}, orderWeight, isVendorMatchingBetaEnabled);
+        setWorkspaceTagEnabled(policyData, {[tagName]: {name: tagName, enabled: value}}, orderWeight, isVendorMatchingBetaEnabled, getReviewWorkspaceSettingsTaskCompletion());
     };
 
     const navigateToTagSettings = (tag: PolicyTag) => {
@@ -256,7 +258,7 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
                         return;
                     }
                     setSelectedTags([]);
-                    setWorkspaceTagEnabled(policyData, tagsToDisable, orderWeight, isVendorMatchingBetaEnabled);
+                    setWorkspaceTagEnabled(policyData, tagsToDisable, orderWeight, isVendorMatchingBetaEnabled, getReviewWorkspaceSettingsTaskCompletion());
                 },
             });
         }
@@ -268,7 +270,7 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => {
                     setSelectedTags([]);
-                    setWorkspaceTagEnabled(policyData, tagsToEnable, orderWeight, isVendorMatchingBetaEnabled);
+                    setWorkspaceTagEnabled(policyData, tagsToEnable, orderWeight, isVendorMatchingBetaEnabled, getReviewWorkspaceSettingsTaskCompletion());
                 },
             });
         }

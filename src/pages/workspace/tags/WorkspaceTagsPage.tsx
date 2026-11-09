@@ -27,6 +27,7 @@ import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
@@ -118,6 +119,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const {showConfirmModal} = useConfirmModal();
     const {showDownloadErrorModal} = useAlertModals();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {backTo, policyID} = route.params;
     const policyData = usePolicyData(policyID);
     const {policy, tags: policyTags} = policyData;
@@ -279,7 +281,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             return;
         }
 
-        setWorkspaceTagEnabled(policyData, {[tagName]: {name: tagName, enabled: value}}, 0, isVendorMatchingBetaEnabled);
+        setWorkspaceTagEnabled(policyData, {[tagName]: {name: tagName, enabled: value}}, 0, isVendorMatchingBetaEnabled, getReviewWorkspaceSettingsTaskCompletion());
     };
 
     const shouldShowGLCodeColumn = isControlPolicyWithWideLayout && !isMultiLevelTags && Object.values(policyTagLists?.at(0)?.tags ?? {}).some((tag) => !!tag['GL Code']);
@@ -387,7 +389,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 canEditName: canWriteTags && !isSelectionModeActive,
                 action: () => navigateToTagSettings(tag.name),
                 onToggleEnabled: (enabled: boolean) => handleTagEnabledToggle(enabled, tag),
-                onRenameName: (newName: string) => showInlineEditError(renameTagInline(translate, policyData, tag.name, newName, isVendorMatchingBetaEnabled)),
+                onRenameName: (newName: string) =>
+                    showInlineEditError(renameTagInline(translate, policyData, tag.name, newName, isVendorMatchingBetaEnabled, getReviewWorkspaceSettingsTaskCompletion())),
                 onClose: () =>
                     clearPolicyTagErrors({
                         policyID,
@@ -667,7 +670,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     clearTableSelection();
 
                     // Disable the selected tags
-                    setWorkspaceTagEnabled(policyData, tagsToDisable, 0, isVendorMatchingBetaEnabled);
+                    setWorkspaceTagEnabled(policyData, tagsToDisable, 0, isVendorMatchingBetaEnabled, getReviewWorkspaceSettingsTaskCompletion());
                 },
             });
         }
@@ -679,7 +682,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => {
                     clearTableSelection();
-                    setWorkspaceTagEnabled(policyData, tagsToEnable, 0, isVendorMatchingBetaEnabled);
+                    setWorkspaceTagEnabled(policyData, tagsToEnable, 0, isVendorMatchingBetaEnabled, getReviewWorkspaceSettingsTaskCompletion());
                 },
             });
         }

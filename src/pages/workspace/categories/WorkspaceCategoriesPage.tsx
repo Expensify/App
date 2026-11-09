@@ -362,7 +362,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             text: translate('workspace.categories.autoCategorizeNewExpenses'),
             value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
             shouldCloseModalOnSelect: false,
-            onSelected: () => setPolicyAutoCategorizeNewExpenses(policyId, !(policy?.autoCategorizeNewExpenses ?? true)),
+            onSelected: () => setPolicyAutoCategorizeNewExpenses(policyId, !(policy?.autoCategorizeNewExpenses ?? true), getReviewWorkspaceSettingsTaskCompletion()),
             numberOfLinesTitle: 0,
             shouldIgnoreCompactStyle: true,
             innerContainerStyle: styles.alignItemsCenter,
@@ -374,7 +374,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 isOn: policy?.autoCategorizeNewExpenses ?? true,
                 accessibilityLabel: translate('workspace.categories.autoCategorizeNewExpenses'),
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.AUTO_CATEGORIZE_SWITCH,
-                onToggle: (value: boolean) => setPolicyAutoCategorizeNewExpenses(policyId, value),
+                onToggle: (value: boolean) => setPolicyAutoCategorizeNewExpenses(policyId, value, getReviewWorkspaceSettingsTaskCompletion()),
                 disabled: !policy?.areCategoriesEnabled || !hasEnabledCategories,
             },
         });

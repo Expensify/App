@@ -66,7 +66,14 @@ function renameCategoryInline(
     renamePolicyCategory(policyData, {oldName: currentName, newName: sanitized}, isVendorMatchingBetaEnabled, reviewWorkspaceSettingsTaskData);
 }
 
-function renameTagInline(translate: LocalizedTranslate, policyData: PolicyData, oldName: string, newName: string, isVendorMatchingBetaEnabled: boolean | undefined): string | undefined {
+function renameTagInline(
+    translate: LocalizedTranslate,
+    policyData: PolicyData,
+    oldName: string,
+    newName: string,
+    isVendorMatchingBetaEnabled: boolean | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+): string | undefined {
     const sanitized = StringUtils.sanitizeName(newName);
     const currentDisplayName = getCleanedTagName(oldName);
     const {tags} = getTagList(policyData.tags, 0);
@@ -80,7 +87,7 @@ function renameTagInline(translate: LocalizedTranslate, policyData: PolicyData, 
         return getTagNameErrorMessage(translate, tagError, newName);
     }
 
-    renamePolicyTag(policyData, {oldName, newName: sanitized}, 0, isVendorMatchingBetaEnabled);
+    renamePolicyTag(policyData, {oldName, newName: sanitized}, 0, isVendorMatchingBetaEnabled, reviewWorkspaceSettingsTaskData);
 }
 
 function renameCompanyCardInline(
