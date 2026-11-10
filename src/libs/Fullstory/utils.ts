@@ -204,6 +204,7 @@ function buildFullstoryUserVars({
             paid_member: userMetadata?.paidMember,
             nps_score: userMetadata?.npsScore,
             nps_response_date: getUTCDate(userMetadata?.npsResponseDate),
+            nudged_date: getUTCDate(userMetadata?.nudgedDate),
         } satisfies FullstoryUserVars,
         (_key, value) => value !== undefined,
     );
