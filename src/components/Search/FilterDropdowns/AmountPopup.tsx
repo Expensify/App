@@ -138,6 +138,7 @@ function AmountPopup({baseFilterKey, label, value, closeOverlay, updateFilterFor
         >
             {modifierConfig.map((modifier) => (
                 <MenuItem
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.AMOUNT_MODIFIER_ITEM}
                     key={modifier}
                     title={title[modifier]}
                     description={formatAmount(amountValues[modifier])}

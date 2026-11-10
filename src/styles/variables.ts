@@ -202,6 +202,11 @@ export default {
     // Space between a row's background edge and its icon. The header and dividers line up with the icon, at the inset plus this.
     flatNavigationBarRowPadding: 12,
     flatNavigationBarHeaderHeight: 72,
+    flatNavigationBarCreateButtonHeight: 32,
+    // Centers the design's 204px wide Create button in the bar.
+    flatNavigationBarCreateButtonInset: 14,
+    // Space between the Create button and the first row below it.
+    flatNavigationBarCreateButtonGap: 16,
     flatNavigationBarLogoWidth,
     flatNavigationBarLogoHeight,
     popoverMargin: 18,
