@@ -175,6 +175,8 @@ export default {
     conciergeAskColumnMaxWidth: 720,
     centeredContentMaxWidth: 1200,
     insightsEmptyStateIllustrationSize: 136,
+    insightsSummaryHistoryIllustrationWidth: 36,
+    insightsSummaryHistoryIllustrationHeight: 48,
     insightsAICardTextWidth: 250,
     minScanTooltipWidth: 320,
     chartTooltipMinWidth: 200,

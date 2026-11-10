@@ -722,6 +722,7 @@ export type {default as AddAdminToDomainParams} from './AddAdminToDomainParams';
 export type {default as UpdateSamlRequiredParams} from './UpdateSamlRequiredParams';
 export type {default as AddMemberToDomainParams} from './AddMemberToDomainParams';
 export type {default as GetInsightsParams} from './GetInsightsParams';
+export type {default as GetInsightsDetailsParams} from './GetInsightsDetailsParams';
 export type {default as OpenSearchPageParams} from './OpenSearchPageParams';
 export type {default as ParseExpenseFiltersParams} from './ParseExpenseFiltersParams';
 export type {default as OpenSearchTagFiltersPageParams} from './OpenSearchTagFiltersPageParams';

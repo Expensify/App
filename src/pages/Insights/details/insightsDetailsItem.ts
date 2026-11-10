@@ -111,4 +111,4 @@ function resolveInsightsDetailsItem({groupBy, itemKey, periodEnd, member, dateFn
     }
 }
 
-export {getInsightsDetailsItemParams, resolveInsightsDetailsItem};
+export {getInsightsDetailsItemParams, getPeriodTitle, resolveInsightsDetailsItem};

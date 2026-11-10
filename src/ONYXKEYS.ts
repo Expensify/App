@@ -1100,6 +1100,9 @@ const ONYXKEYS = {
         /** One entry per Insights dashboard and set of filters, keyed by dashboard ID and query hash, holding everything the backend returns for it */
         INSIGHTS: 'insights_',
 
+        /** One entry per Insights Details panel, keyed by a hash of the graph, filters, period and item it describes */
+        INSIGHTS_DETAILS: 'insightsDetails_',
+
         // Shared NVPs
         /** Collection of agent prompts keyed by agent accountID, representing agents owned by the current user */
         /** Deprecated. Use agent_ instead */
@@ -1731,6 +1734,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.POLICY_MERGE_ATS_INITIAL_SYNC_MODAL_SHOWN]: boolean;
     [ONYXKEYS.COLLECTION.SNAPSHOT]: OnyxTypes.SearchResults;
     [ONYXKEYS.COLLECTION.INSIGHTS]: OnyxTypes.InsightsDashboard;
+    [ONYXKEYS.COLLECTION.INSIGHTS_DETAILS]: OnyxTypes.InsightsDetails;
     [ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT]: OnyxTypes.Agent;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: OnyxTypes.BillingGraceEndPeriod;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER]: OnyxTypes.CardFeeds;

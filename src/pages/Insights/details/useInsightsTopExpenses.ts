@@ -15,24 +15,16 @@ import {buildTopExpensesQueryJSON} from '@pages/Insights/insightsQueries';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import type {ValueOf} from 'type-fest';
-
 import {useEffect, useEffectEvent} from 'react';
 
-const TOP_EXPENSES_STATE = {
-    READY: 'ready',
-    LOADING: 'loading',
-    STALE: 'stale',
-    ERROR: 'error',
-    OFFLINE: 'offline',
-} as const;
+import type {InsightsDetailsSectionState} from './insightsDetailsSectionState';
 
-type TopExpensesState = ValueOf<typeof TOP_EXPENSES_STATE>;
+import {getInsightsDetailsSectionState, INSIGHTS_DETAILS_SECTION_STATE} from './insightsDetailsSectionState';
 
 type TopExpenses = {
     expenses: TransactionListItemType[];
     queryJSON: Readonly<SearchQueryJSON> | undefined;
-    state: TopExpensesState;
+    state: InsightsDetailsSectionState;
     retry: () => void;
 };
 
@@ -63,16 +55,9 @@ function useInsightsTopExpenses(query: SearchQueryString | undefined): TopExpens
     const isLoaded = isSearchDataLoaded(snapshot, queryJSON);
     const hasErrors = Object.keys(snapshot?.errors ?? {}).length > 0;
 
-    let state: TopExpensesState = TOP_EXPENSES_STATE.READY;
-    if (isOffline && (!isLoaded || hasErrors)) {
-        state = TOP_EXPENSES_STATE.OFFLINE;
-    } else if (hasErrors) {
-        state = snapshot?.search?.responseJsonCode === CONST.JSON_CODE.NO_RESPONSE ? TOP_EXPENSES_STATE.STALE : TOP_EXPENSES_STATE.ERROR;
-    } else if (!isLoaded) {
-        state = TOP_EXPENSES_STATE.LOADING;
-    }
+    const state = getInsightsDetailsSectionState({isOffline, isLoaded, hasErrors, responseJsonCode: snapshot?.search?.responseJsonCode});
 
-    if (!queryJSON || !snapshot?.data || state !== TOP_EXPENSES_STATE.READY) {
+    if (!queryJSON || !snapshot?.data || state !== INSIGHTS_DETAILS_SECTION_STATE.READY) {
         return {expenses: [], queryJSON, state, retry};
     }
 
@@ -98,5 +83,4 @@ function useInsightsTopExpenses(query: SearchQueryString | undefined): TopExpens
     return {expenses, queryJSON, state, retry};
 }
 
-export {TOP_EXPENSES_STATE};
 export default useInsightsTopExpenses;

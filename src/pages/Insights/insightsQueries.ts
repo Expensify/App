@@ -89,6 +89,11 @@ function applyInsightsFilters(chart: InsightsChartSpec, filters: InsightsFilters
     );
 }
 
+/** Builds the dashboard-wide query at the bucket the charts are drawn with, without a comparison. */
+function buildDashboardQueryJSON(filters: InsightsFilters): Readonly<SearchQueryJSON> | undefined {
+    return buildSearchQueryJSON(buildInsightsQueryString({...filters, groupBy: getQueryGroupBy(filters), compare: undefined}));
+}
+
 type InsightsChartQuery = {
     chart: InsightsChartSpec;
     queryJSON: Readonly<SearchQueryJSON> | undefined;
@@ -135,7 +140,7 @@ type InsightsQuery = {
 function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: InsightsFilters, supportingChartSpecs: InsightsChartSpec[]): InsightsQuery | undefined {
     // The backend saves inputQuery as the dashboard's filters, so it keeps the Group by the user picked, not the one fitted to the date range
     const inputQuery = buildInsightsQueryString(filters);
-    const queryJSON = buildSearchQueryJSON(buildInsightsQueryString({...filters, groupBy: getQueryGroupBy(filters), compare: undefined}));
+    const queryJSON = buildDashboardQueryJSON(filters);
     if (!queryJSON) {
         return undefined;
     }
@@ -178,6 +183,6 @@ function buildTopExpensesQueryJSON(query: SearchQueryString): Readonly<SearchQue
     return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, sortBy: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, sortOrder: CONST.SEARCH.SORT_ORDER.DESC, limit: TOP_EXPENSES_LIMIT}));
 }
 
-export {applyInsightsFilters, buildDateFormValues, buildInsightsQueryString, buildTopExpensesQueryJSON, TOP_EXPENSES_LIMIT};
+export {applyInsightsFilters, buildDashboardQueryJSON, buildDateFormValues, buildInsightsQueryString, buildTopExpensesQueryJSON, TOP_EXPENSES_LIMIT};
 export type {InsightsChartQuery, InsightsQuery};
 export default buildInsightsJsonQuery;
