@@ -67,6 +67,9 @@ const renderIOURequestEditReportCommon = ({
         <NavigationContainer>
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
                 <IOURequestEditReportCommon
+                    createReportSentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                    autoReportSentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                    removeFromReportSentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     selectedReportID={selectedReportID}
                     selectedPolicyID={selectedPolicyID}
                     transactionPolicyID={transactionPolicyID}

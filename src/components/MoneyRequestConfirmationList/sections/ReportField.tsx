@@ -5,6 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOutstandingReports from '@hooks/useOutstandingReports';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -28,7 +29,7 @@ import React from 'react';
 import ExpenseFieldDropdown from './ExpenseFieldDropdown';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import ReportFieldDropdown from './ReportFieldDropdown';
-import {reportFieldTransactionStateSelector} from './selectors';
+import {reportFieldTransactionStateSelector, shouldReportFieldBeEditable} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
 type ReportFieldProps = {
@@ -49,6 +50,8 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const {translate, localeCompare} = useLocalize();
     const {isBetaEnabled} = usePermissions();
+    const ownerAccountID = selectedParticipants?.at(0)?.ownerAccountID;
+    const [ownerPersonalDetail] = usePersonalDetail(ownerAccountID);
 
     const policyID = selectedParticipants?.at(0)?.policyID;
     const [outstandingReportsForPolicy] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {selector: createOutstandingReportsForPolicySelector(policyID)});
@@ -75,8 +78,6 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
      */
     const transactionReportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${transactionReportID}`];
     const shouldUseTransactionReport = (!!transactionReportEntry && isReportOutstanding(transactionReportEntry, policyID, rules, transactionReportNameValuePair, false)) || isUnreported;
-
-    const ownerAccountID = selectedParticipants?.at(0)?.ownerAccountID;
 
     const availableOutstandingReports = getOutstandingReportsForUser(policyID, ownerAccountID, rules, reportNameValuePairs, outstandingReportsForPolicy ?? {}, false).sort(
         (report1, report2) => sortOutstandingReportsBySelected(report1, report2, undefined, localeCompare),
@@ -114,13 +115,13 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
         return name;
     })();
 
-    const outstandingReports = useOutstandingReports(undefined, isFromGlobalCreate && !isPerDiemRequest ? undefined : policyID, ownerAccountID, false);
+    const outstandingReports = useOutstandingReports(undefined, isFromGlobalCreate && !isPerDiemRequest ? undefined : policyID, ownerAccountID, false, ownerPersonalDetail?.login);
     // The list offers a new report and, for a new expense, no report at all, so there is always a choice to make.
     // Editing an expense that is already on a report can hide both (someone else's expense, edited by a non-admin),
-    // so there the row needs a second report to choose from. Creating from inside an expense report locks the row,
+    // so there the row needs another report to choose from. Creating from inside an expense report locks the row,
     // since the expense can only go on that report.
     const mayHideListOptions = action === CONST.IOU.ACTION.EDIT && !isUnreported;
-    const shouldReportBeEditable = (!mayHideListOptions || outstandingReports.length > 1) && !isMoneyRequestReport(reportID);
+    const shouldReportBeEditable = (!mayHideListOptions || shouldReportFieldBeEditable(outstandingReports, selectedReportID, isUnreported)) && !isMoneyRequestReport(reportID);
     // Editing a saved expense's report and moving a per diem expense both navigate on from the list (to the report, or to
     // the destination step when the workspace changes), so those keep the full page.
     const shouldOpenInDropdown = isBetaEnabled(CONST.BETAS.ANCHORED_FIELD_DROPDOWNS) && !!transactionID && shouldReportBeEditable && action !== CONST.IOU.ACTION.EDIT && !isPerDiemRequest;

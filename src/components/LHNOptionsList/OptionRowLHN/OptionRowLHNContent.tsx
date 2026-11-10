@@ -16,7 +16,7 @@ import {StyleSheet, View} from 'react-native';
 import OptionRowLHN from './OptionRowLHN';
 
 /** Kept apart from `OptionRowLHNData` because React Compiler does not memoize `getOptionData` when it is called there. */
-type OptionRowLHNContentProps = Pick<OptionRowLHNProps, 'onSelectRow' | 'onLayout' | 'testID' | 'hasDraftComment'> & {
+type OptionRowLHNContentProps = Pick<OptionRowLHNProps, 'onSelectRow' | 'onLayout' | 'testID' | 'hasDraftComment' | 'shouldUseFlatNavigationBar'> & {
     optionDataParams: Parameters<typeof SidebarUtils.getOptionData>[0];
 
     /** Whether focus is enabled for the row and its report is the open one. An empty focused row renders nothing instead of a placeholder. */

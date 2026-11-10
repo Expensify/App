@@ -20,7 +20,7 @@ import Onyx from 'react-native-onyx';
 import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key, localeCompare: (a: string, b: string) => a.localeCompare(b)}));
-jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn()}));
+jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn(), navigationRef: {getCurrentRoute: jest.fn(() => undefined)}}));
 jest.mock('@hooks/useReportAttributes', () => ({useDerivedReportNameByReportID: () => undefined}));
 
 let mockIsAnchoredDropdownsBetaEnabled = true;
@@ -191,6 +191,13 @@ describe('ReportField', () => {
         // Given a saved expense on a report, in a workspace with no other outstanding report. The list can hide its new
         // report option for an edit, which would leave nothing but the report the expense is already on
         mockOutstandingReports = [outstandingReport];
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${outstandingReport.reportID}`, {
+            ...outstandingReport,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {reportID: outstandingReport.reportID});
+        await waitForBatchedUpdates();
 
         // When the form renders the report row to edit it
         renderReportRow({action: CONST.IOU.ACTION.EDIT});

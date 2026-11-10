@@ -556,7 +556,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
 
     let qboTokenExpiryHint;
     if (qboTokenExpiryDate && canWriteAccounting) {
-        const formattedExpiryDate = DateUtils.formatWithUTCTimeZone(qboTokenExpiryDate.toISOString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale);
+        const formattedExpiryDate = DateUtils.formatToLongDateInUTC(qboTokenExpiryDate.toISOString(), dateFnsLocale);
         qboTokenExpiryHint = (
             <>
                 {translate(
