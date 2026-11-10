@@ -4,11 +4,14 @@ import type {SearchColumnType, SearchCustomColumnIds, SearchQueryJSON} from '@co
 import {buildSearchQueryString, queryHasViolationFilter} from '@libs/SearchQueryUtils';
 import {getCustomColumns, getRequiredSearchColumns, getValidGroupBy, navigateToSearchWithColumns} from '@libs/SearchUIUtils';
 
-/** `undefined` for a column users can't hide. */
-type GetHideColumnHandler = (column: SearchColumnType) => (() => void) | undefined;
+type HideSearchColumn = {
+    /** The shown columns users can hide from their menu. */
+    hidableColumns: ReadonlySet<SearchColumnType>;
+    hideColumn: (column: SearchColumnType) => void;
+};
 
 /** @param columns The columns the table shows, in order. */
-function useHideSearchColumn(queryJSON: SearchQueryJSON, columns: SearchColumnType[]): GetHideColumnHandler {
+function useHideSearchColumn(queryJSON: SearchQueryJSON, columns: SearchColumnType[]): HideSearchColumn {
     const {currentSearchKey} = useSearchQueryContext();
 
     // A grouped table shows only its group columns, so saving what it shows would drop the expense columns its groups expand to.
@@ -20,19 +23,16 @@ function useHideSearchColumn(queryJSON: SearchQueryJSON, columns: SearchColumnTy
     const columnsToSave = savedColumns.length > 0 ? savedColumns : shownColumns;
     const requiredColumns = new Set<SearchColumnType>(getRequiredSearchColumns(queryHasViolationFilter(queryJSON)));
 
-    const getHideColumnHandler: GetHideColumnHandler = (column) => {
-        if (isGrouped || !selectableColumns.has(column) || requiredColumns.has(column) || columnsToSave.length <= 1) {
-            return undefined;
-        }
+    const canHideAnyColumn = !isGrouped && columnsToSave.length > 1;
+    const hidableColumns = new Set(canHideAnyColumn ? shownColumns.filter((column) => !requiredColumns.has(column)) : []);
 
-        return () => {
-            const query = buildSearchQueryString({...queryJSON, columns: columnsToSave.filter((columnToSave) => columnToSave !== column)});
-            navigateToSearchWithColumns(query, currentSearchKey);
-        };
+    const hideColumn = (column: SearchColumnType) => {
+        const query = buildSearchQueryString({...queryJSON, columns: columnsToSave.filter((columnToSave) => columnToSave !== column)});
+        navigateToSearchWithColumns(query, currentSearchKey);
     };
 
-    return getHideColumnHandler;
+    return {hidableColumns, hideColumn};
 }
 
 export default useHideSearchColumn;
-export type {GetHideColumnHandler};
+export type {HideSearchColumn};

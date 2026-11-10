@@ -25,7 +25,7 @@ import type {LayoutChangeEvent} from 'react-native';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-import type {GetHideColumnHandler} from './hooks/useHideSearchColumn';
+import type {HideSearchColumn} from './hooks/useHideSearchColumn';
 
 import {useSortableColumn} from './SortableColumnContext';
 import {SortableHeaderLabel} from './SortableHeaderText';
@@ -35,9 +35,7 @@ const MENU_ANCHOR_ALIGNMENT: AnchorAlignment = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-type SearchColumnMenuProps = {
-    getHideColumnHandler: GetHideColumnHandler;
-};
+type SearchColumnMenuProps = HideSearchColumn;
 
 /** The column's heading. Pressing it opens the column menu, which holds the sort options. */
 function SearchColumnMenuTrigger() {
@@ -134,9 +132,8 @@ function SearchColumnMenuTrigger() {
 }
 
 /** A `SortableTableHeader` child that turns each column's heading into the column's menu. */
-function SearchColumnMenu({getHideColumnHandler}: SearchColumnMenuProps) {
+function SearchColumnMenu({hidableColumns, hideColumn}: SearchColumnMenuProps) {
     const {columnName, sorting} = useSortableColumn();
-    const onHideColumn = getHideColumnHandler(columnName);
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong', 'Checkmark', 'Columns', 'EyeDisabled']);
@@ -177,11 +174,11 @@ function SearchColumnMenu({getHideColumnHandler}: SearchColumnMenuProps) {
                         <PopoverMenu.Separator />
                     </>
                 )}
-                {!!onHideColumn && (
+                {hidableColumns.has(columnName) && (
                     <PopoverMenu.Item
                         text={translate('search.columnMenu.hideColumn')}
                         icon={icons.EyeDisabled}
-                        onSelect={onHideColumn}
+                        onSelect={() => hideColumn(columnName)}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_HIDE_COLUMN}
                     />
                 )}

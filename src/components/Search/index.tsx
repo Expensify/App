@@ -1012,7 +1012,7 @@ function Search({
 
     const previousColumns = usePrevious(currentColumns);
     const [columnsToShow, setColumnsToShow] = useState<SearchColumnType[]>(getEmptyArray);
-    const getHideColumnHandler = useHideSearchColumn(queryJSON, columnsToShow);
+    const {hidableColumns, hideColumn} = useHideSearchColumn(queryJSON, columnsToShow);
 
     // If columns have changed, trigger an animation before settings columnsToShow to prevent
     // new columns appearing before the fade out animation happens
@@ -1635,7 +1635,12 @@ function Search({
                 isExpenseReportView={isExpenseReportType || shouldReturnTripRooms}
                 isActionColumnWide={isActionColumnWide}
             >
-                {shouldShowColumnMenu && <SearchColumnMenu getHideColumnHandler={getHideColumnHandler} />}
+                {shouldShowColumnMenu && (
+                    <SearchColumnMenu
+                        hidableColumns={hidableColumns}
+                        hideColumn={hideColumn}
+                    />
+                )}
             </SearchTableHeader>
         </View>
     );
