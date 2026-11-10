@@ -174,7 +174,6 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
                 title: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.sageAccounting,
                 // Sage Accounting shares the Sage logo with Sage Intacct
                 icon: accountingIcons.IntacctSquare,
-                waitlistConnectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING,
             },
         ];
     });
