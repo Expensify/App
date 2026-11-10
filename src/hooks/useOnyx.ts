@@ -1,6 +1,7 @@
 import {SearchQueryContext, SearchResultsContext} from '@components/Search/SearchContext';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 
+import {isSnapshotCensusEnabled, recordSnapshotRead} from '@libs/SnapshotCensus';
 import isSnapshotCompatibleKey from '@libs/SnapshotUtils';
 
 import CONST from '@src/CONST';
@@ -103,6 +104,10 @@ const useOnyx: UseOnyxWithoutSnapshots = <TKey extends OnyxKey, TReturnValue = O
 
     // Extract the specific key data from snapshot if in search mode
     const result = resolveSnapshotAwareResult<TKey, TReturnValue>(shouldUseSnapshot, !!selector, originalResult, key);
+
+    if (__DEV__ && shouldUseSnapshot && currentSearchHash && isSnapshotCensusEnabled()) {
+        recordSnapshotRead(key, currentSearchHash, selectorProp, getKeyData);
+    }
 
     return result;
 };
