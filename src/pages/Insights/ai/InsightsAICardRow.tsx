@@ -47,6 +47,7 @@ function InsightsAICardRow({insights, insightsScope, hasFailedToLoad}: InsightsA
     const cards = isLoading
         ? Array.from({length: MAX_CARD_COUNT}, (item, index) => <InsightsAICardSkeleton key={index} />)
         : (insights ?? [])
+              // The type requires a chip, but insights persisted from older responses have only text, and the card would crash on them
               .filter((insight) => !!insight.chip)
               .map((insight) => (
                   <InsightsAICard
