@@ -127,8 +127,6 @@ const SENTRY_LABEL_PRESSABLES = [
 
 /** Wrappers that only need a label when they get a press handler, since without one they can render read-only (e.g. a MenuItem without onPress). */
 const SENTRY_LABEL_PRESS_HANDLER_WRAPPERS = [
-    'AnimatedSettlementButton',
-    'AnimatedSubmitButton',
     'AvatarButtonWithIcon',
     'BaseMiniContextMenuItem',
     'Button',
@@ -142,14 +140,10 @@ const SENTRY_LABEL_PRESS_HANDLER_WRAPPERS = [
     'ConfirmationPageButtonBase',
     'ConfirmationPagePrimaryButton',
     'ContextMenuItem',
-    'DistanceRequestRenderItem',
-    'FABFocusableMenuItem',
     'FeatureTraining.HelpButton',
     'FocusableMenuItem',
     'FormAlertWithSubmitButton',
     'HighlightableMenuItem',
-    'HighlightableMenuItemWithTopDescription',
-    'LinkButton',
     'MenuItem',
     'MenuItem.Root',
     'MenuItemAction',
@@ -165,7 +159,6 @@ const SENTRY_LABEL_PRESS_HANDLER_WRAPPERS = [
     'PopoverMenu.RadioItem',
     'RowMenuItem',
     'SelectionButton',
-    'SettlementButton',
     'Table.Row',
     'TableRow',
     'TabSelectorItem',
@@ -174,16 +167,7 @@ const SENTRY_LABEL_PRESS_HANDLER_WRAPPERS = [
 ];
 
 /** Wrappers that handle the press themselves (e.g. ThreeDotsMenu opens its menu), so they always need a label. */
-const SENTRY_LABEL_SELF_PRESS_WRAPPERS = [
-    'AvatarWithImagePicker',
-    'BookTravelButton',
-    'DropdownButton',
-    'FeatureTraining.ConfirmButton',
-    'MerchantFilterContent',
-    'PopoverMenu.Sub.Trigger',
-    'TextInputFilterContent',
-    'ThreeDotsMenu',
-];
+const SENTRY_LABEL_SELF_PRESS_WRAPPERS = ['AvatarWithImagePicker', 'BookTravelButton', 'FeatureTraining.ConfirmButton', 'PopoverMenu.Sub.Trigger', 'ThreeDotsMenu'];
 
 /** Builds an esquery selector list matching JSX elements named e.g. `Button` or `MenuItem.Root`. */
 function jsxElementNamesSelector(names: string[]): string {
@@ -1103,7 +1087,7 @@ export default defineConfig({
             jsPlugins: ['eslint-plugin-you-dont-need-lodash-underscore'],
         },
         {
-            files: ['.github/**/*', 'scripts/**/*', 'server/**/*', 'tests/**/*'],
+            files: ['.github/**/*', 'scripts/**/*', 'server/**/*', 'tests/**/*', '.claude/skills/*/scripts/**/*'],
             rules: {
                 'no-await-in-loop': 'off',
                 'core/no-restricted-syntax': ['error', 'ForInStatement', 'LabeledStatement', 'WithStatement'],
