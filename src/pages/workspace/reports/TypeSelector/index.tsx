@@ -30,6 +30,7 @@ function TypeSelector({value, label = '', rightLabel, errorText = '', route, ref
 
     return (
         <MenuItemWithTopDescription
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.CREATE_TYPE}
             ref={ref}
             shouldShowRightIcon
             title={value ? Str.recapitalize(translate(getReportFieldTypeTranslationKey(value as PolicyReportFieldType))) : ''}
