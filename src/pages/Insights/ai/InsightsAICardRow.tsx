@@ -1,3 +1,4 @@
+import {useIsCapturingChart} from '@components/Charts/context/ChartCaptureContext';
 import ScrollView from '@components/ScrollView';
 
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
@@ -43,6 +44,7 @@ function InsightsAICardRow({insights, insightsScope, hasFailedToLoad}: InsightsA
     const {isOffline} = useNetwork();
 
     const isLoading = insights === undefined && !hasFailedToLoad && !isOffline;
+    const isCapturing = useIsCapturingChart();
 
     const cards = isLoading
         ? Array.from({length: MAX_CARD_COUNT}, (item, index) => <InsightsAICardSkeleton key={index} />)
@@ -57,7 +59,7 @@ function InsightsAICardRow({insights, insightsScope, hasFailedToLoad}: InsightsA
                   />
               ));
 
-    if (!cards.length) {
+    if (!cards.length || (isLoading && isCapturing)) {
         return null;
     }
 
