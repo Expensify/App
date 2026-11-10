@@ -47,6 +47,7 @@ import AutomaticFieldHint from './AutomaticFieldHint';
 import ExpenseFieldRow from './ExpenseFieldRow';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {amountSliceSelector} from './selectors';
+import useSplitDraftBaseTransaction from './useSplitDraftBaseTransaction';
 import useTransactionSelector from './useTransactionSelector';
 
 type AmountFieldProps = {
@@ -89,7 +90,7 @@ function AmountField({
     const {translate, preferredLocale} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    const {splitDraftTransaction, baseTransaction} = useSplitDraftBaseTransaction(transactionID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const amountInputRef = useRef<BaseTextInputRef | null>(null);
     const currencyButtonRef = useRef<View>(null);
@@ -240,7 +241,7 @@ function AmountField({
 
             setDraftSplitTransaction(
                 transactionID,
-                splitDraftTransaction,
+                baseTransaction,
                 {
                     amount: updatedAmount,
                     currency: updatedCurrency,

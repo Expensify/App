@@ -82,7 +82,7 @@ function ScheduleCallConfirmationPage() {
             {locale: dateFnsLocale},
         )}`;
 
-        const timezoneString = DateUtils.getZoneAbbreviation(new Date(scheduleCallDraft?.timeSlot), userTimezone);
+        const timezoneString = DateUtils.getZoneAbbreviation(new Date(scheduleCallDraft?.timeSlot), userTimezone, dateFnsLocale);
 
         dateTimeString = `${dateString} from ${timeString} ${timezoneString}`;
     }

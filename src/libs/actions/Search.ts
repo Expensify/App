@@ -69,7 +69,7 @@ import {
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
-import {isReportEntry, savedSearchIDToSearchKey, TODO_SEARCH_KEYS} from '@libs/SearchKeyUtils';
+import {getSearchColumnResizingID, isReportEntry, savedSearchIDToSearchKey, TODO_SEARCH_KEYS} from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON, buildSearchQueryString, getFooterSelectionFromQuery, normalizeDatePresetsInQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -1029,7 +1029,10 @@ function deleteSavedSearch(savedSearchID: string) {
             },
         },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES | typeof ONYXKEYS.SEARCH_FILTERS>> = [
+    const searchKey = savedSearchIDToSearchKey(savedSearchID);
+    // The saved query may have been edited across data types, and each type keeps its own widths.
+    const tableColumnWidths = Object.fromEntries(Object.values(CONST.SEARCH.DATA_TYPES).map((type) => [getSearchColumnResizingID(type, searchKey), null]));
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES | typeof ONYXKEYS.SEARCH_FILTERS | typeof ONYXKEYS.TABLE_COLUMN_WIDTHS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SAVED_SEARCHES,
@@ -1041,8 +1044,13 @@ function deleteSavedSearch(savedSearchID: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SEARCH_FILTERS,
             value: {
-                [savedSearchIDToSearchKey(savedSearchID)]: null,
+                [searchKey]: null,
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.TABLE_COLUMN_WIDTHS,
+            value: tableColumnWidths,
         },
     ];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES>> = [
@@ -2335,6 +2343,12 @@ function queueBulkPayReports(jsonQuery: string) {
     write(WRITE_COMMANDS.QUEUE_BULK_PAY_REPORTS, {jsonQuery, bulkActionID}, onyxData);
 }
 
+/** Moves every report matching the search query that the user can move to the given workspace. */
+function queueBulkChangeReportPolicy(jsonQuery: string, policyID: string) {
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE);
+    write(WRITE_COMMANDS.QUEUE_BULK_CHANGE_REPORT_POLICY, {jsonQuery, policyID, bulkActionID}, onyxData);
+}
+
 /**
  * Queues a bulk approval for every report matching the given search query. The backend pages through all matches itself,
  * so this covers reports beyond the currently loaded page(s) when "Select all" is checked in Search.
@@ -2806,6 +2820,7 @@ export {
     queueBulkPayReports,
     queueBulkApproveReports,
     queueBulkSubmitReports,
+    queueBulkChangeReportPolicy,
     queueBulkMarkAsExported,
     updateAdvancedFilters,
     setSearchContext,
