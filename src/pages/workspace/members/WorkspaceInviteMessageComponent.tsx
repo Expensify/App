@@ -290,6 +290,9 @@ function WorkspaceInviteMessageComponent({
 
     const invitingMemberEmail = Object.keys(invitedEmailsToAccountIDsDraft ?? {}).at(0) ?? '';
     const invitingMemberDetails = usePersonalDetailByLogin(invitingMemberEmail);
+    // formatPhoneNumber replaces spaces with a non-breaking space unconditionally, even for strings it otherwise
+    // returns unchanged, so an ordinary multi-word display name would get its spaces silently swapped. Only format
+    // when the display name is actually an SMS login.
     const invitingMemberName = Str.isSMSLogin(invitingMemberDetails?.displayName ?? '')
         ? formatPhoneNumber(invitingMemberDetails?.displayName ?? '')
         : (invitingMemberDetails?.displayName ?? '');

@@ -31,6 +31,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {ComponentRef} from 'react';
 
 import {canSwitchAccountsSelector} from '@selectors/Account';
+import {Str} from 'expensify-common';
 import React, {useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -49,7 +50,13 @@ type AccountSwitcherButtonProps = {
     isScreenFocused: boolean;
 };
 
-const filterMenuItem = (item: PopoverMenuItem, searchInput: string) => tokenizedSearch([item], searchInput, (option) => [option.text, option.description ?? '']).length > 0;
+type AccountSwitcherMenuItem = PopoverMenuItem & {
+    /** The account's unformatted login with the SMS domain stripped, so search still matches typed digits or the bare login even though `description` is reformatted for readability via formatPhoneNumber. */
+    rawLogin: string;
+};
+
+const filterMenuItem = (item: AccountSwitcherMenuItem, searchInput: string) =>
+    tokenizedSearch([item], searchInput, (option) => [option.text, option.description ?? '', option.rawLogin]).length > 0;
 
 /** The "Switch" button and its delegator menu. Renders nothing for accounts that have no other account to switch to. */
 function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
@@ -159,11 +166,12 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
         personalDetails: PersonalDetails | undefined,
         errors?: Errors,
         additionalProps: Partial<Omit<PopoverMenuItem, 'icon' | 'iconType'>> = {},
-    ): PopoverMenuItem => {
+    ): AccountSwitcherMenuItem => {
         const error = Object.values(errors ?? {}).at(0) ?? '';
         return {
             text: formatPhoneNumber(personalDetails?.displayName ?? personalDetails?.login ?? ''),
             description: formatPhoneNumber(personalDetails?.login ?? ''),
+            rawLogin: Str.removeSMSDomain(personalDetails?.login ?? ''),
             avatarID: personalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             icon: personalDetails?.avatar ?? '',
             iconType: CONST.ICON_TYPE_AVATAR,
@@ -178,7 +186,7 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
     };
 
     const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {isSelected: true});
-    const delegatorMenuItems: PopoverMenuItem[] = sortAlphabetically(
+    const delegatorMenuItems: AccountSwitcherMenuItem[] = sortAlphabetically(
         delegators
             .filter(({email}) => email !== currentUserPersonalDetails.login)
             .map(({email, role}) => {
