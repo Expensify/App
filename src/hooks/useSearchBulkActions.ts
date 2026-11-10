@@ -429,7 +429,7 @@ function getUngroupedTemplateExportQuery(queryJSON: SearchQueryJSON): SearchQuer
 }
 
 /**
- * The groupings a template export can scope to the selected groups. Keep this in sync with `getSelectedGroupFilterEntry`.
+ * The groupings a template export can scope to the selected groups. Keep this in sync with the groupings `getSelectedGroupFilterEntry` returns a `kind: 'value'` entry for.
  * Time-based groupings are left out because the template export would drop their date scope.
  */
 const TEMPLATE_EXPORTABLE_GROUP_BYS = new Set<SearchGroupBy>([
