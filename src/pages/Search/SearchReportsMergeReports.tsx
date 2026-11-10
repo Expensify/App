@@ -266,6 +266,7 @@ function SearchMergeReports() {
                     footerContent={
                         !isLoading && (
                             <FormAlertWithSubmitButton
+                                sentryLabel={CONST.SENTRY_LABEL.SEARCH.MERGE_REPORTS_CONFIRM_BUTTON}
                                 buttonText={translate('common.confirm')}
                                 onSubmit={mergeSelectedReports}
                                 message={hasReportFieldMismatch ? translate('search.mergeReports.reportFieldsMismatch') : ''}
