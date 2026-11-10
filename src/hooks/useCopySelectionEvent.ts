@@ -8,6 +8,7 @@ import {useEffect} from 'react';
 
 const copyableTextSelector = `[data-${CONST.COPYABLE_TEXT_ELEMENT}=true]`;
 const copyableRowSelector = `[data-${CONST.COPYABLE_ROW_ELEMENT}=true]`;
+const shouldPreserveCopyableSelectionAnchor = typeof navigator !== 'undefined' && isMobileChrome();
 
 let copyableSelectionAnchor: {node: Node; offset: number} | null = null;
 
@@ -76,7 +77,6 @@ export default function useCopySelectionEvent() {
             return;
         }
 
-        const shouldPreserveCopyableSelectionAnchor = isMobileChrome();
         if (copySelectionEventConsumerCount === 0) {
             document.addEventListener('copy', copySelectionToClipboard);
             if (shouldPreserveCopyableSelectionAnchor) {

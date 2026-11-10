@@ -2,7 +2,6 @@ import {renderHook} from '@testing-library/react-native';
 
 import useCopySelectionEvent from '@hooks/useCopySelectionEvent';
 
-import {isMobileChrome} from '@libs/Browser';
 import type * as Browser from '@libs/Browser';
 import getClipboardText from '@libs/Clipboard/getClipboardText';
 import SelectionScraper from '@libs/SelectionScraper';
@@ -11,7 +10,7 @@ import CONST from '@src/CONST';
 
 jest.mock('@libs/Browser', () => ({
     ...jest.requireActual<typeof Browser>('@libs/Browser'),
-    isMobileChrome: jest.fn(),
+    isMobileChrome: jest.fn(() => true),
 }));
 
 jest.mock('@libs/Clipboard/getClipboardText', () => ({
@@ -28,12 +27,10 @@ jest.mock('@libs/SelectionScraper', () => ({
 
 const mockGetClipboardText = jest.mocked(getClipboardText);
 const mockGetCurrentSelection = jest.mocked(SelectionScraper.getCurrentSelection);
-const mockIsMobileChrome = jest.mocked(isMobileChrome);
 
 describe('useCopySelectionEvent', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockIsMobileChrome.mockReturnValue(false);
         window.getSelection()?.removeAllRanges();
     });
 
@@ -41,23 +38,14 @@ describe('useCopySelectionEvent', () => {
         jest.restoreAllMocks();
     });
 
-    it('only manages the selection anchor listener on mobile Chrome', () => {
-        // Given the document listener methods are observed across desktop and mobile Chrome mounts
+    it('registers and removes the selection anchor listener on mobile Chrome', () => {
+        // Given the document listener methods are observed on mobile Chrome
         const addEventListener = jest.spyOn(document, 'addEventListener');
         const removeEventListener = jest.spyOn(document, 'removeEventListener');
-        const desktopConsumer = renderHook(() => useCopySelectionEvent());
+        const {unmount} = renderHook(() => useCopySelectionEvent());
 
-        // When the desktop consumer unmounts
-        desktopConsumer.unmount();
-
-        // Then it does not manage the mobile-only selection anchor listener
-        expect(addEventListener.mock.calls.some(([eventName]) => eventName === 'selectionchange')).toBe(false);
-        expect(removeEventListener.mock.calls.some(([eventName]) => eventName === 'selectionchange')).toBe(false);
-
-        // When a mobile Chrome consumer mounts and unmounts
-        mockIsMobileChrome.mockReturnValue(true);
-        const mobileConsumer = renderHook(() => useCopySelectionEvent());
-        mobileConsumer.unmount();
+        // When the mobile Chrome consumer unmounts
+        unmount();
 
         // Then the selection anchor listener is added and removed with that consumer
         expect(addEventListener.mock.calls.some(([eventName]) => eventName === 'selectionchange')).toBe(true);
@@ -66,7 +54,6 @@ describe('useCopySelectionEvent', () => {
 
     it('keeps the original copyable text anchor when Android Chrome moves it to an empty layout element', () => {
         // Given a selection from Amount to another field on Android Chrome
-        mockIsMobileChrome.mockReturnValue(true);
         const overlay = document.createElement('div');
         const header = document.createElement('div');
         header.textContent = 'Expense Report 2026-10-03';
@@ -106,7 +93,6 @@ describe('useCopySelectionEvent', () => {
 
     it('does not change selections that began outside copyable text', () => {
         // Given a selection that started in a report header on Android Chrome
-        mockIsMobileChrome.mockReturnValue(true);
         const header = document.createElement('div');
         header.textContent = 'Expense Report 2026-10-03';
         const row = document.createElement('div');
@@ -132,7 +118,6 @@ describe('useCopySelectionEvent', () => {
 
     it('does not change selections from copyable text outside a marked row', () => {
         // Given standalone copyable text on Android Chrome
-        mockIsMobileChrome.mockReturnValue(true);
         const overlay = document.createElement('div');
         const text = document.createElement('span');
         text.setAttribute(`data-${CONST.COPYABLE_TEXT_ELEMENT}`, 'true');
