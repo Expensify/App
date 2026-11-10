@@ -4748,9 +4748,9 @@ function getCustomColumns(value?: SearchDataTypes | SearchGroupBy): SearchCustom
     }
 }
 
-/** Whether users can pick and reorder the columns of a search of this type. */
+/** Whether users can pick and reorder the columns of a search of this type. A trip search shows expenses unless it returns trip rooms, and only the rooms table has columns to pick. */
 function canEditSearchColumns(type: SearchDataTypes, shouldReturnTripRooms: boolean): boolean {
-    return type === CONST.SEARCH.DATA_TYPES.EXPENSE || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || shouldReturnTripRooms;
+    return (type !== CONST.SEARCH.DATA_TYPES.TRIP || shouldReturnTripRooms) && getCustomColumns(type).length > 0;
 }
 
 /**
