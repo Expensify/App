@@ -1549,6 +1549,7 @@ const CONST = {
         SCAN_FLASH_TORCH: 'scanFlashTorch',
         NEW_DOT_BILL_PAY: 'newDotBillPay',
         HYBRID_WEB: 'hybridWeb',
+        MILEAGE_UI: 'mileageUI',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
