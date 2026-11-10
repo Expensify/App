@@ -2458,6 +2458,7 @@ const ROUTES = {
         },
     },
     SEARCH_REJECT_REASON_RHP: 'search/reject',
+    SEARCH_CHANGE_WORKSPACE_RHP: 'search/change-workspace/search',
     SEARCH_EDIT_MULTIPLE_TRANSACTIONS_RHP: 'search/edit-multiple-transactions',
     SEARCH_EDIT_MULTIPLE_AMOUNT_RHP: 'search/edit-multiple/amount',
     SEARCH_EDIT_MULTIPLE_DESCRIPTION_RHP: 'search/edit-multiple/description',
@@ -3560,6 +3561,15 @@ const ROUTES = {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS_CURRENCY_CONVERSION_FEES route');
             }
             return `workspaces/${policyID}/workflows/currency-conversion-fees` as const;
+        },
+    },
+    WORKSPACE_WORKFLOWS_REIMBURSEMENT_COUNTRIES: {
+        route: 'workspaces/:policyID/workflows/reimbursement-countries',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS_REIMBURSEMENT_COUNTRIES route');
+            }
+            return `workspaces/${policyID}/workflows/reimbursement-countries` as const;
         },
     },
     WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET: {

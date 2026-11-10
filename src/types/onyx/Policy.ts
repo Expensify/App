@@ -3721,6 +3721,12 @@ type ACHAccount = {
     sharees?: string[];
 };
 
+/** Reimbursement info for a specific country in a policy */
+type ReimbursementCountryInfo = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** ID of the withdrawal account the policy reimburses from in this country, when one is connected */
+    bankAccountID?: number;
+}>;
+
 /** Commuter exclusion configuration for a policy */
 type CommuterExclusions = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** How commuter mileage is excluded */
@@ -4104,7 +4110,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             enabled?: boolean;
 
             /** Countries (keyed by ISO code) where the company has a withdrawal account it can reimburse from */
-            countries?: Record<string, unknown>;
+            countries?: Record<string, ReimbursementCountryInfo>;
         };
 
         /** The set reimburser for the policy */
@@ -4429,6 +4435,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
     | 'isRecruitingEnabled'
     | 'isTimeTrackingEnabled'
     | 'timeTrackingDefaultRate'
+    | 'reimbursementCountries'
 >;
 
 /** Stages of policy connection sync */
