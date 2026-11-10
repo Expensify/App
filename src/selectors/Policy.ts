@@ -386,6 +386,9 @@ const createMemberCustomFieldsSelector = (policyIDs: string[]) => {
             }
             const customFieldsByLogin: Record<string, MemberCustomFields> = {};
             for (const [login, employee] of Object.entries(employeeList)) {
+                if (!employee) {
+                    continue;
+                }
                 customFieldsByLogin[login] = Object.fromEntries(customFieldKeys.map((key) => [key, employee[key]]));
             }
             customFieldsByPolicyID[policyID] = customFieldsByLogin;
