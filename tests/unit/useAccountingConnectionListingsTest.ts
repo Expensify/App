@@ -125,7 +125,7 @@ describe('useAccountingConnectionListings', () => {
 
         // Then Sage Accounting follows Sage Intacct and offers its waitlist instead of a connect flow
         expect(keys.indexOf(CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING)).toBe(keys.indexOf(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT) + 1);
-        expect(findListing(CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING)?.waitlistConnectionName).toBe(CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING);
+        expect(findListing(CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING)?.onConnect).toBeUndefined();
     });
 
     it('should offer the Sage Accounting waitlist to users in the beta too', () => {
@@ -136,7 +136,8 @@ describe('useAccountingConnectionListings', () => {
         const sageAccounting = findListing(CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING);
 
         // Then they see the same waitlist card as everyone else
-        expect(sageAccounting?.waitlistConnectionName).toBe(CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING);
+        expect(sageAccounting).toBeDefined();
+        expect(sageAccounting?.onConnect).toBeUndefined();
     });
 
     it('should offer Business Central alongside Campfire to a workspace in the Business Central beta', () => {
