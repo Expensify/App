@@ -13360,6 +13360,7 @@ ${reportName}`,
             other: (count: number) => `hace ${count} d`,
         }),
         offlineMessage: 'Estás sin conexión. El historial de informes puede estar desactualizado.',
+        receivedPayment: 'pago recibido',
     },
 };
 export default translations;

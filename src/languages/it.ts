@@ -12972,6 +12972,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         }),
         offlineMessage: 'Sei offline. La cronologia dei report potrebbe non essere aggiornata.',
         toMarkAsDone: 'segnare come completato',
+        receivedPayment: 'pagamento ricevuto',
     },
 };
 export default translations;

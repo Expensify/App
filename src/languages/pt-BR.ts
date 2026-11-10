@@ -12938,6 +12938,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         }),
         offlineMessage: 'Você está offline. O histórico de relatórios pode estar desatualizado.',
         toMarkAsDone: 'marcar como concluída',
+        receivedPayment: 'pagamento recebido',
     },
 };
 export default translations;

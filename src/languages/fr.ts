@@ -13061,6 +13061,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         }),
         offlineMessage: 'Vous êtes hors ligne. L’historique des notes de frais peut être obsolète.',
         toMarkAsDone: 'marquer comme terminé',
+        receivedPayment: 'paiement reçu',
     },
 };
 export default translations;

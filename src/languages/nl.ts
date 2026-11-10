@@ -12938,6 +12938,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         }),
         offlineMessage: 'Je bent offline. Rapportgeschiedenis is mogelijk verouderd.',
         toMarkAsDone: 'markeren als voltooid',
+        receivedPayment: 'betaling ontvangen',
     },
 };
 export default translations;
