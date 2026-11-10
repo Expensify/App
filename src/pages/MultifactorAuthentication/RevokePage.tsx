@@ -208,6 +208,7 @@ function MultifactorAuthenticationRevokePage() {
                             {isCurrentDeviceRegistered && (
                                 <RevokeRow
                                     title={translate('multifactorAuthentication.revoke.thisDevice')}
+                                    sentryLabel={CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.REVOKE_THIS_DEVICE}
                                     isLoading={isThisDeviceLoading}
                                     onPress={() => {
                                         if (!localCredentialID) {
@@ -220,6 +221,7 @@ function MultifactorAuthenticationRevokePage() {
                             {otherDeviceCount > 0 && (
                                 <RevokeRow
                                     title={translate('multifactorAuthentication.revoke.otherDevices', {count: otherDeviceCount})}
+                                    sentryLabel={CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.REVOKE_OTHER_DEVICES}
                                     isLoading={isOtherDevicesLoading}
                                     onPress={() => {
                                         promptRevoke(otherDevicesConfirmMode());

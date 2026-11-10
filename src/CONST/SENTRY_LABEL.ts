@@ -1519,7 +1519,13 @@ const SENTRY_LABEL = {
         },
         CONNECTIONS: {
             CARD: 'WorkspaceConnections-Card',
-            MERGE_CONFIG_ROW: 'WorkspaceConnections-MergeConfigRow',
+            MERGE_CONFIG_ROW: {
+                HR_GROUPS: 'WorkspaceConnections-MergeConfigRow-HRGroups',
+                HR_APPROVAL_MODE: 'WorkspaceConnections-MergeConfigRow-HRApprovalMode',
+                HR_FINAL_APPROVER: 'WorkspaceConnections-MergeConfigRow-HRFinalApprover',
+                RECRUITING_FILTERS: 'WorkspaceConnections-MergeConfigRow-RecruitingFilters',
+                RECRUITING_APPROVAL_MODE: 'WorkspaceConnections-MergeConfigRow-RecruitingApprovalMode',
+            },
             UBER_CENTRAL_BILLING_ACCOUNT: 'WorkspaceConnections-UberCentralBillingAccount',
             UBER_MANAGE_INVITES: 'WorkspaceConnections-UberManageInvites',
             CONFIGURE_BUTTON: 'WorkspaceConnections-ConfigureButton',
@@ -1808,7 +1814,8 @@ const SENTRY_LABEL = {
         PROMPT_CONFIRM: 'MultifactorAuthentication-PromptConfirm',
         REVOKE_ALL: 'MultifactorAuthentication-RevokeAll',
         REVOKE_DISMISS: 'MultifactorAuthentication-RevokeDismiss',
-        REVOKE_ROW: 'MultifactorAuthentication-RevokeRow',
+        REVOKE_THIS_DEVICE: 'MultifactorAuthentication-RevokeThisDevice',
+        REVOKE_OTHER_DEVICES: 'MultifactorAuthentication-RevokeOtherDevices',
         VALIDATE_CODE_VERIFY: 'MultifactorAuthentication-ValidateCodeVerify',
     },
     RESTRICTED_ACTION: {
