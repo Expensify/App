@@ -1,7 +1,6 @@
 import {render, screen} from '@testing-library/react-native';
 
 import TaskReportAvatar from '@components/Avatar/connected/TaskReportAvatar';
-import {PersonalDetailsContext} from '@components/OnyxListItemProvider';
 
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
@@ -71,9 +70,17 @@ const PERSONAL_DETAILS: PersonalDetailsList = {
     [DELEGATE_ACCOUNT_ID]: {accountID: DELEGATE_ACCOUNT_ID, login: DELEGATE_LOGIN, avatar: DELEGATE_AVATAR_URL},
 };
 
-/** Renders inside the live personal details context, which the account icons resolve from. */
-const renderWithPersonalDetails = (ui: React.ReactElement, personalDetails: PersonalDetailsList = PERSONAL_DETAILS) =>
-    render(<PersonalDetailsContext.Provider value={personalDetails}>{ui}</PersonalDetailsContext.Provider>);
+let mockPersonalDetails: PersonalDetailsList = {};
+
+// The live list, which the component reads while there is no Search snapshot
+jest.mock('react-native-onyx', () =>
+    jest.requireActual<{default: (getPersonalDetails: () => unknown) => unknown}>('../../../../utils/mockOnyxWithLivePersonalDetails').default(() => mockPersonalDetails),
+);
+
+const renderWithPersonalDetails = (ui: React.ReactElement, personalDetails: PersonalDetailsList = PERSONAL_DETAILS) => {
+    mockPersonalDetails = personalDetails;
+    return render(ui);
+};
 
 /** Serves a task assigned in a workspace chat and, optionally, the action that created it from the map. */
 const seedTask = (reportOverrides: Partial<Report> = {}, delegateAccountID?: number) => {

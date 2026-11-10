@@ -11,25 +11,36 @@ import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import useOnyx from './useOnyx';
 
+// On Search, @hooks/useOnyx reads the snapshot, which is missing while it loads. The live list covers that gap.
+function usePersonalDetailsByIDs(accountIDs: Array<number | undefined> | undefined): UseOnyxResult<PersonalDetailsList>;
+function usePersonalDetailsByIDs<TReturn>(accountIDs: Array<number | undefined> | undefined, selector: (personalDetails: PersonalDetailsList) => TReturn): UseOnyxResult<TReturn>;
+function usePersonalDetailsByIDs<TReturn>(accountIDs: Array<number | undefined> | undefined, selector?: (personalDetails: PersonalDetailsList) => TReturn) {
+    // Wrapped so a missing list (undefined) differs from a selector that returns undefined, and Onyx still deep-compares the selector output
+    const wrappedSelector = (personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
+        if (!personalDetailsList) {
+            return undefined;
+        }
+        const personalDetails = personalDetailsListSelector(accountIDs)(personalDetailsList);
+        return {value: selector ? selector(personalDetails) : personalDetails};
+    };
+    const [personalDetailsFromSnapshot, result] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: wrappedSelector});
+    const [livePersonalDetails] = useOnyxWithoutSnapshots(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: wrappedSelector});
+    const loaded = personalDetailsFromSnapshot ?? livePersonalDetails;
+    if (loaded) {
+        return [loaded.value, result];
+    }
+    return [selector ? selector({}) : {}, result];
+}
+
 // Pass a selector when only part of the record is needed, so the caller doesn't re-render on the person's other fields
 function usePersonalDetail(accountID: number | undefined): UseOnyxResult<PersonalDetails | undefined>;
 function usePersonalDetail<TReturn>(accountID: number | undefined, selector: (personalDetail: PersonalDetails | undefined) => TReturn): UseOnyxResult<TReturn>;
 function usePersonalDetail<TReturn>(accountID: number | undefined, selector?: (personalDetail: PersonalDetails | undefined) => TReturn) {
-    const personalDetailSelector = (personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
-        const personalDetail = personalDetailsSelector(accountID)(personalDetailsList);
+    const personalDetailSelector = (personalDetails: PersonalDetailsList) => {
+        const personalDetail = personalDetailsSelector(accountID)(personalDetails);
         return selector ? selector(personalDetail) : personalDetail;
     };
-    return useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailSelector});
-}
-
-function usePersonalDetailsByIDs(accountIDs: Array<number | undefined> | undefined): UseOnyxResult<PersonalDetailsList>;
-function usePersonalDetailsByIDs<TReturn>(accountIDs: Array<number | undefined> | undefined, selector: (personalDetails: PersonalDetailsList) => TReturn): UseOnyxResult<TReturn>;
-function usePersonalDetailsByIDs<TReturn>(accountIDs: Array<number | undefined> | undefined, selector?: (personalDetails: PersonalDetailsList) => TReturn) {
-    const personalDetailsByIDsSelector = (personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
-        const personalDetails = personalDetailsListSelector(accountIDs)(personalDetailsList);
-        return selector ? selector(personalDetails) : personalDetails;
-    };
-    return useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsByIDsSelector});
+    return usePersonalDetailsByIDs([accountID], personalDetailSelector);
 }
 
 // Re-renders on any account change, prefer usePersonalDetail/usePersonalDetailsByIDs when the accounts are known

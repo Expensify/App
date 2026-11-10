@@ -1,9 +1,7 @@
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
-
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
@@ -35,7 +33,7 @@ import {buildUserIcon} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {getStableReportSelector} from '@src/selectors/Report';
-import {getBillProcessorAccountIDSelector, getReportActionByIDSelector} from '@src/selectors/ReportAction';
+import {getBillProcessorAccountIDSelector, getReportActionByIDSelector, parentActionAccountIDsSelector} from '@src/selectors/ReportAction';
 import {pendingDeleteMemberAccountIDsSelector} from '@src/selectors/ReportMetaData';
 import {isLinkedToBillSelector} from '@src/selectors/ReportNameValuePairs';
 import type {InvitedEmailsToAccountIDs, OnyxInputOrEntry, Policy, Report, ReportAction} from '@src/types/onyx';
@@ -43,6 +41,10 @@ import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+
+// getIcons reads parent actions from the live store, not the search snapshot
+// eslint-disable-next-line no-restricted-imports
+import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import useReportPreviewSenderID from './useReportPreviewSenderID';
 
@@ -74,13 +76,8 @@ function useReportActionAvatars({
 }) {
     const defaultAvatars = useDefaultAvatars();
     /* Get avatar type */
-    const allPersonalDetails = usePersonalDetails();
     const {formatPhoneNumber, translate} = useLocalize();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [personalDetailsFromSnapshot] = useAllPersonalDetails();
-    // When the search hash changes, personalDetails from the snapshot will be undefined if it hasn't been fetched yet.
-    // Therefore, we will fall back to allPersonalDetails while the data is being fetched.
-    const personalDetails = personalDetailsFromSnapshot ?? allPersonalDetails;
 
     const isReportAChatReport = report?.type === CONST.REPORT.TYPE.CHAT && report?.chatType !== CONST.REPORT.CHAT_TYPE.TRIP_ROOM;
 
@@ -135,7 +132,6 @@ function useReportActionAvatars({
     const [policyChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${Number(chatReportIDAnnounce) ? chatReportIDAnnounce : chatReportIDAdmins}`);
 
     const delegateAccountID = getDelegateAccountIDFromReportAction(action);
-    const delegatePersonalDetails = delegateAccountID ? personalDetails?.[delegateAccountID] : undefined;
     const [isInvoiceLinkedToBill = false] = useOnyx(
         `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(isInvoiceReport(iouReport) ? iouReport?.reportID : undefined)}`,
         {
@@ -146,12 +142,44 @@ function useReportActionAvatars({
     const [billProcessorAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(isBillPayHistory ? iouReport?.reportID : undefined)}`, {
         selector: getBillProcessorAccountIDSelector,
     });
+    const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(action);
+
+    const [chatReportParentActionAccountIDs] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.parentReportID)}`, {
+        selector: parentActionAccountIDsSelector(chatReport?.parentReportActionID),
+    });
+    const [iouReportParentActionAccountIDs] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReport?.parentReportID)}`, {
+        selector: parentActionAccountIDsSelector(iouReport?.parentReportActionID),
+    });
+
+    // Every account the avatars, names and getIcons below can look up, so the row skips writes to anyone else
+    const [personalDetails] = usePersonalDetailsByIDs([
+        ...accountIDs,
+        action?.actorAccountID,
+        action?.adminAccountID,
+        action?.childOwnerAccountID,
+        action?.childManagerAccountID,
+        delegateAccountID,
+        humanAgentAccountID,
+        billProcessorAccountID,
+        reportPreviewSenderID,
+        policyAccountID,
+        CONST.ACCOUNT_ID.CONCIERGE,
+        CONST.ACCOUNT_ID.NOTIFICATIONS,
+        ...[chatReport, iouReport, reportChatReport].flatMap((participantsReport) => [
+            participantsReport?.ownerAccountID,
+            participantsReport?.managerID,
+            participantsReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL ? participantsReport.invoiceReceiver.accountID : undefined,
+            ...Object.keys(participantsReport?.participants ?? {}).map(Number),
+        ]),
+        ...(chatReportParentActionAccountIDs ?? []),
+        ...(iouReportParentActionAccountIDs ?? []),
+    ]);
+    const delegatePersonalDetails = delegateAccountID ? personalDetails?.[delegateAccountID] : undefined;
 
     const actorAccountID = getReportActionActorAccountID(action, iouReport, chatReport, delegatePersonalDetails, shouldUseRealActor, {
         isInvoiceLinkedToBill,
         processorAccountID: billProcessorAccountID,
     });
-    const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(action);
 
     const isAInvoiceReport = isInvoiceReport(iouReport ?? null);
 

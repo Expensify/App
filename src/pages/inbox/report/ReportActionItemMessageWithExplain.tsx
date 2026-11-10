@@ -1,4 +1,4 @@
-import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
+import {useSession} from '@components/OnyxListItemProvider';
 import RenderHTML from '@components/RenderHTML';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -10,6 +10,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {openLink} from '@libs/actions/Link';
 import {explain} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import {getParticipantsPersonalDetails} from '@libs/PersonalDetailsUtils';
 import {hasReasoning} from '@libs/ReportActionsUtils';
 
@@ -46,7 +47,6 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
     const session = useSession();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const delegateAccountID = useDelegateAccountID();
-    const personalDetails = usePersonalDetails();
 
     const actionHasReasoning = hasReasoning(action);
     const computedMessage = actionHasReasoning ? `${message}${translate('iou.AskToExplain')}` : message;
@@ -54,7 +54,7 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
     const explainAction = async () => {
         const [introSelected, onboarding, conciergeReportID] = await Onyx.multiGet([ONYXKEYS.NVP_INTRO_SELECTED, ONYXKEYS.NVP_ONBOARDING, ONYXKEYS.CONCIERGE_REPORT_ID]);
         const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-        const participantsPersonalDetails = getParticipantsPersonalDetails([personalDetail.accountID, Number(action?.actorAccountID)], personalDetails);
+        const participantsPersonalDetails = getParticipantsPersonalDetails([personalDetail.accountID, Number(action?.actorAccountID)], getAllPersonalDetails());
         explain({
             childReport,
             originalReport,

@@ -1,7 +1,6 @@
 import {cleanup, render, screen} from '@testing-library/react-native';
 
 import WorkspaceHorizontalAvatars from '@components/Avatar/connected/WorkspaceHorizontalAvatars';
-import {PersonalDetailsContext} from '@components/OnyxListItemProvider';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,8 +39,14 @@ jest.mock('@hooks/useLocalize', () =>
 
 const PERSONAL_DETAILS = {[ACTOR_ACCOUNT_ID]: {accountID: ACTOR_ACCOUNT_ID, login: 'zoe@example.com', displayName: 'Zoe'}};
 
-/** Renders inside the live personal details context, which a name sort reads. */
-const renderWithPersonalDetails = (ui: React.ReactElement) => render(<PersonalDetailsContext.Provider value={PERSONAL_DETAILS}>{ui}</PersonalDetailsContext.Provider>);
+const mockPersonalDetails = PERSONAL_DETAILS;
+
+// The live list, which the component reads while there is no Search snapshot
+jest.mock('react-native-onyx', () =>
+    jest.requireActual<{default: (getPersonalDetails: () => unknown) => unknown}>('../../../../utils/mockOnyxWithLivePersonalDetails').default(() => mockPersonalDetails),
+);
+
+const renderWithPersonalDetails = (ui: React.ReactElement) => render(ui);
 
 jest.mock('@components/Avatar/layouts/HorizontalAvatars', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

@@ -6,10 +6,10 @@ import SingleAvatar from '@components/Avatar/layouts/SingleAvatar';
 import SubscriptAvatar from '@components/Avatar/layouts/SubscriptAvatar';
 import SubscriptCardFeedAvatar from '@components/Avatar/layouts/SubscriptCardFeedAvatar';
 import type {AvatarIcon} from '@components/Avatar/types';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
 import useStyleUtils from '@hooks/useStyleUtils';
 
 import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';
@@ -17,6 +17,7 @@ import {sortIconsByName} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 import type {InvitedEmailsToAccountIDs, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {CardFeed} from '@src/types/onyx/CardFeeds';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
@@ -115,7 +116,6 @@ function ReportActionAvatars({
     shouldUseRealActor = false,
 }: ReportActionAvatarsProps) {
     const accountIDs = passedAccountIDs.filter((accountID) => accountID !== CONST.DEFAULT_NUMBER_ID);
-    const allPersonalDetails = usePersonalDetails();
     const {localeCompare} = useLocalize();
     const StyleUtils = useStyleUtils();
 
@@ -152,6 +152,12 @@ function ReportActionAvatars({
         shouldUseRealActor,
     });
 
+    const shouldSortByName = !!sortAvatars?.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME);
+    // Only a name sort reads personal details, and only for the accounts in the stack
+    const [iconPersonalDetails] = useAllPersonalDetailsWithoutSnapshots(
+        personalDetailsListSelector(shouldSortByName ? unsortedIcons.map((icon) => (typeof icon.id === 'number' ? icon.id : undefined)) : undefined),
+    );
+
     if (!unsortedIcons.length) {
         return null;
     }
@@ -173,7 +179,7 @@ function ReportActionAvatars({
     let icons: IconType[] = unsortedIcons;
     if (sortAvatars && avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_HORIZONTAL) {
         if (sortAvatars.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME)) {
-            icons = sortIconsByName(unsortedIcons, allPersonalDetails, localeCompare);
+            icons = sortIconsByName(unsortedIcons, iconPersonalDetails, localeCompare);
         } else if (sortAvatars.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.ID)) {
             icons = lodashSortBy(unsortedIcons, (icon) => icon.id);
         }

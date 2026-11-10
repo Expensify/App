@@ -1,15 +1,10 @@
-import {act, renderHook} from '@testing-library/react-native';
+import {renderHook} from '@testing-library/react-native';
 
 import useSortedIcons from '@components/Avatar/connected/useSortedIcons';
-import {PersonalDetailsContext} from '@components/OnyxListItemProvider';
 
 import CONST from '@src/CONST';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
-
-import type {Dispatch, PropsWithChildren, SetStateAction} from 'react';
-
-import React, {useEffect, useState} from 'react';
 
 const ZOE_ACCOUNT_ID = 42;
 const ADAM_ACCOUNT_ID = 7;
@@ -33,10 +28,12 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 
-/** Provides the live personal details context, which the hook reads for a name sort. */
-function PersonalDetailsWrapper({children}: PropsWithChildren) {
-    return React.createElement(PersonalDetailsContext.Provider, {value: mockPersonalDetails}, children);
-}
+// The hook reads the live personal details list for a name sort
+jest.mock('@hooks/usePersonalDetails', () => ({
+    useAllPersonalDetailsWithoutSnapshots: jest.fn((selector?: (personalDetails: PersonalDetailsList | undefined) => unknown) => [
+        selector ? selector(mockPersonalDetails) : mockPersonalDetails,
+    ]),
+}));
 
 describe('useSortedIcons', () => {
     beforeEach(() => {
@@ -46,7 +43,7 @@ describe('useSortedIcons', () => {
     it('should keep the given order without a sort', () => {
         // Given icons in an arbitrary order and no sort
         // When the hook resolves the order
-        const {result} = renderHook(() => useSortedIcons(ICONS, undefined), {wrapper: PersonalDetailsWrapper});
+        const {result} = renderHook(() => useSortedIcons(ICONS, undefined));
 
         // Then the icons are returned untouched, so a caller can rely on its own order
         expect(result.current).toBe(ICONS);
@@ -61,7 +58,7 @@ describe('useSortedIcons', () => {
     ])('should order the icons %s', (_case, sort, expectedIcons) => {
         // Given icons in an arbitrary order and a sort
         // When the hook resolves the order
-        const {result} = renderHook(() => useSortedIcons(ICONS, sort), {wrapper: PersonalDetailsWrapper});
+        const {result} = renderHook(() => useSortedIcons(ICONS, sort));
 
         // Then the icons come back in the requested order, and the given array is left as it was
         expect(result.current).toEqual(expectedIcons);
@@ -73,51 +70,40 @@ describe('useSortedIcons', () => {
         mockPersonalDetails = {[ZOE_ACCOUNT_ID]: {accountID: ZOE_ACCOUNT_ID, displayName: 'Zoe'}};
 
         // When the icons are sorted by name
-        const {result} = renderHook(() => useSortedIcons([UNNAMED_ZOE_ICON, ADAM_ICON], CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME), {wrapper: PersonalDetailsWrapper});
+        const {result} = renderHook(() => useSortedIcons([UNNAMED_ZOE_ICON, ADAM_ICON], CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME));
 
         // Then the icon sorts by the personal-details name rather than its empty name
         expect(result.current).toEqual([ADAM_ICON, UNNAMED_ZOE_ICON]);
     });
-    it('sorts with the same fallback when the provider is absent or its value is undefined', () => {
-        // Given an unnamed account icon with no personal details available
+
+    it('should sort an unnamed icon first when personal details are not loaded', () => {
+        // Given an unnamed account icon while the personal details list has not loaded
         const icons = [ADAM_ICON, UNNAMED_ZOE_ICON];
         mockPersonalDetails = undefined;
-        // When the actual name sorter reads null outside the provider or undefined inside it
-        const outside = renderHook(() => useSortedIcons(icons, CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME));
-        const inside = renderHook(() => useSortedIcons(icons, CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME), {wrapper: PersonalDetailsWrapper});
-        // Then the missing-name icon sorts first and neither call mutates the source
-        expect(outside.result.current).toEqual([UNNAMED_ZOE_ICON, ADAM_ICON]);
-        expect(inside.result.current).toEqual(outside.result.current);
+
+        // When the icons are sorted by name
+        const {result} = renderHook(() => useSortedIcons(icons, CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME));
+
+        // Then the missing-name icon sorts first and the given array is left as it was
+        expect(result.current).toEqual([UNNAMED_ZOE_ICON, ADAM_ICON]);
         expect(icons).toEqual([ADAM_ICON, UNNAMED_ZOE_ICON]);
     });
 
-    it('subscribes to personal details only for a name sort', () => {
-        // Given ID sorting, which does not depend on personal details
-        let updateDetails: Dispatch<SetStateAction<PersonalDetailsList>> = jest.fn<void, [SetStateAction<PersonalDetailsList>]>();
-        const observeDetails = jest.fn<void, [PersonalDetailsList]>();
-        function UpdatingDetailsWrapper({children}: PropsWithChildren) {
-            const [details, setDetails] = useState<PersonalDetailsList>({});
-            useEffect(() => {
-                updateDetails = setDetails;
-                observeDetails(details);
-            }, [details]);
-            return React.createElement(PersonalDetailsContext.Provider, {value: details}, children);
-        }
-        let renders = 0;
-        const {result} = renderHook(
-            () => {
-                renders += 1;
-                return useSortedIcons(ICONS, CONST.REPORT_ACTION_AVATARS.SORT_BY.ID);
-            },
-            {wrapper: UpdatingDetailsWrapper},
-        );
-        const before = renders;
-        // When only context details change without rerendering the hook's parent
-        const updatedDetails: PersonalDetailsList = {[ZOE_ACCOUNT_ID]: {accountID: ZOE_ACCOUNT_ID, displayName: 'Aaron'}};
-        act(() => updateDetails(updatedDetails));
-        // Then no context subscription causes a render for an ID-only sort
-        expect(observeDetails).toHaveBeenLastCalledWith(updatedDetails);
-        expect(renders).toBe(before);
-        expect(result.current).toEqual([ADAM_ICON, ZOE_ICON, WORKSPACE_ICON]);
+    it('should select no account for a sort that is not by name', () => {
+        // Given personal details for every account in the stack
+        mockPersonalDetails = {
+            [ZOE_ACCOUNT_ID]: {accountID: ZOE_ACCOUNT_ID, displayName: 'Zoe'},
+            [ADAM_ACCOUNT_ID]: {accountID: ADAM_ACCOUNT_ID, displayName: 'Adam'},
+        };
+        const {useAllPersonalDetailsWithoutSnapshots} = jest.requireMock<{
+            useAllPersonalDetailsWithoutSnapshots: jest.Mock<unknown, [(personalDetails: PersonalDetailsList | undefined) => PersonalDetailsList]>;
+        }>('@hooks/usePersonalDetails');
+
+        // When the icons are sorted by ID
+        renderHook(() => useSortedIcons(ICONS, CONST.REPORT_ACTION_AVATARS.SORT_BY.ID));
+
+        // Then the selector picks no account, so a personal details write never re-renders the stack
+        const selector = useAllPersonalDetailsWithoutSnapshots.mock.lastCall?.[0];
+        expect(selector?.(mockPersonalDetails)).toEqual({});
     });
 });

@@ -3,13 +3,12 @@
  */
 import getAvatarLayout from '@components/Avatar/layouts/getAvatarLayout';
 import type {AvatarIcon} from '@components/Avatar/types';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import {isBillPayHistoryAction} from '@libs/BillPayReportActionUtils';
@@ -48,9 +47,12 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {getStableReportSelector} from '@selectors/Report';
-import {getBillProcessorAccountIDSelector, getReportActionByIDSelector} from '@selectors/ReportAction';
+import {getBillProcessorAccountIDSelector, getReportActionByIDSelector, parentActionAccountIDsSelector} from '@selectors/ReportAction';
 import {pendingDeleteMemberAccountIDsSelector} from '@selectors/ReportMetaData';
 import {isLinkedToBillSelector} from '@selectors/ReportNameValuePairs';
+// getIcons reads parent actions from the live store, not the search snapshot
+// eslint-disable-next-line no-restricted-imports
+import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import useInvoiceReportIcons from './useInvoiceReportIcons';
 import useIOUReportIcons from './useIOUReportIcons';
@@ -141,10 +143,6 @@ function useActionAvatar({action: passedAction, report, shouldUseRealActor}: Use
     const defaultAvatars = useDefaultAvatars();
     const {formatPhoneNumber, translate} = useLocalize();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const livePersonalDetails = usePersonalDetails();
-    const [personalDetailsFromSnapshot] = useAllPersonalDetails();
-    // On Search, the snapshot can hold an account missing from the live list. Fall back to the live list while the snapshot loads.
-    const personalDetails = personalDetailsFromSnapshot ?? livePersonalDetails;
 
     const isReportAChatReport = report?.type === CONST.REPORT.TYPE.CHAT && report?.chatType !== CONST.REPORT.CHAT_TYPE.TRIP_ROOM;
     const [reportChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`, {selector: getStableReportSelector});
@@ -177,7 +175,6 @@ function useActionAvatar({action: passedAction, report, shouldUseRealActor}: Use
     const reportPreviewSenderID = isIOUReportPreview ? iouReportIcons.senderAccountID : senderAccountIDFromLookup;
 
     const delegateAccountIDFromAction = getDelegateAccountIDFromReportAction(action);
-    const delegatePersonalDetails = delegateAccountIDFromAction ? personalDetails?.[delegateAccountIDFromAction] : undefined;
     const [isInvoiceLinkedToBill = false] = useOnyx(
         `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(isOtherAction && isInvoiceReport(iouReport) ? iouReport?.reportID : undefined)}`,
         {selector: isLinkedToBillSelector},
@@ -186,6 +183,37 @@ function useActionAvatar({action: passedAction, report, shouldUseRealActor}: Use
     const [billProcessorAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(isBillPayHistory ? iouReport?.reportID : undefined)}`, {
         selector: getBillProcessorAccountIDSelector,
     });
+    const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(action);
+
+    const [chatReportParentActionAccountIDs] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.parentReportID)}`, {
+        selector: parentActionAccountIDsSelector(chatReport?.parentReportActionID),
+    });
+    const [iouReportParentActionAccountIDs] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReport?.parentReportID)}`, {
+        selector: parentActionAccountIDsSelector(iouReport?.parentReportActionID),
+    });
+
+    // Every account the avatars, names and getIcons below can look up, so the row skips writes to anyone else
+    const [personalDetails] = usePersonalDetailsByIDs([
+        action?.actorAccountID,
+        action?.adminAccountID,
+        action?.childOwnerAccountID,
+        action?.childManagerAccountID,
+        delegateAccountIDFromAction,
+        humanAgentAccountID,
+        billProcessorAccountID,
+        reportPreviewSenderID,
+        CONST.ACCOUNT_ID.CONCIERGE,
+        CONST.ACCOUNT_ID.NOTIFICATIONS,
+        ...[chatReport, iouReport, reportChatReport].flatMap((participantsReport) => [
+            participantsReport?.ownerAccountID,
+            participantsReport?.managerID,
+            participantsReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL ? participantsReport.invoiceReceiver.accountID : undefined,
+            ...Object.keys(participantsReport?.participants ?? {}).map(Number),
+        ]),
+        ...(chatReportParentActionAccountIDs ?? []),
+        ...(iouReportParentActionAccountIDs ?? []),
+    ]);
+    const delegatePersonalDetails = delegateAccountIDFromAction ? personalDetails?.[delegateAccountIDFromAction] : undefined;
     const actorAccountID = getReportActionActorAccountID(action, iouReport, chatReport, delegatePersonalDetails, shouldUseRealActor, {
         isInvoiceLinkedToBill,
         processorAccountID: billProcessorAccountID,
@@ -285,7 +313,6 @@ function useActionAvatar({action: passedAction, report, shouldUseRealActor}: Use
 
     // Every other action follows `useReportActionAvatars` with an action passed in. That hook still renders other surfaces until
     // https://github.com/Expensify/App/issues/94591 deletes it, so a fix to these rules belongs in both places until then.
-    const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(action);
     const isAInvoiceReport = isInvoiceReport(iouReport ?? null);
     // Actions inside an invoice report picture their actor, named by display name.
     const shouldUseActorAccountID = isAInvoiceReport && !isAReportPreviewAction;

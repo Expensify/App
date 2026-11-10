@@ -216,7 +216,14 @@ function getParentReportActionWithoutThreadRepliesSelector(parentReportActions: 
     return parentReportActionWithoutThreadReplies;
 }
 
+// The accounts a thread's parent action can credit, which getIcons shows for chat threads and expense requests
+const parentActionAccountIDsSelector = (parentReportActionID: string | undefined) => (parentReportActions: OnyxEntry<ReportActions>) => {
+    const parentAction = parentReportActionID ? parentReportActions?.[parentReportActionID] : undefined;
+    return parentAction ? [parentAction.actorAccountID, parentAction.adminAccountID, parentAction.childOwnerAccountID, parentAction.childManagerAccountID] : undefined;
+};
+
 export {
+    parentActionAccountIDsSelector,
     getBillPayHistoryParticipantSelector,
     getBillProcessorAccountIDSelector,
     getLatestFeedbackActionIDByAuthorSelector,

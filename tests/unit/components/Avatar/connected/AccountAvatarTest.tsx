@@ -41,9 +41,10 @@ jest.mock('@hooks/useStyleUtils', () => jest.fn(() => ({getContainerStyles: mock
 
 let mockPersonalDetails: PersonalDetailsList = {};
 
-jest.mock('@components/OnyxListItemProvider', () => ({
-    usePersonalDetails: () => mockPersonalDetails,
-}));
+// The live list, which the component reads while there is no Search snapshot
+jest.mock('react-native-onyx', () =>
+    jest.requireActual<{default: (getPersonalDetails: () => unknown) => unknown}>('../../../../utils/mockOnyxWithLivePersonalDetails').default(() => mockPersonalDetails),
+);
 
 jest.mock('@components/Avatar/layouts/SingleAvatar', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

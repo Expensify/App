@@ -2,13 +2,12 @@
  * Resolves an IOU report's avatars and layout, shared by IOUReportAvatar and the report preview rows in a chat.
  */
 import type {AvatarIcon} from '@components/Avatar/types';
-import {PersonalDetailsContext} from '@components/OnyxListItemProvider';
 import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';
@@ -24,10 +23,8 @@ import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {personalDetailsListSelector} from '@selectors/PersonalDetails';
 import {getStableReportSelector} from '@selectors/Report';
 import {getReportActionByIDSelector} from '@selectors/ReportAction';
-import {use} from 'react';
 
 type IOUReportLayout = ValueOf<Pick<typeof CONST.REPORT_ACTION_AVATARS.TYPE, 'SINGLE' | 'MULTIPLE_DIAGONAL'>>;
 
@@ -89,9 +86,7 @@ function useIOUReportIcons(reportID: string | undefined, reportPreviewAction?: O
     const delegateAccountID = getDelegateAccountIDFromReportAction(reportPreview);
     // Only the accounts the report can picture are read, so a change to anyone else's details doesn't re-render the avatar.
     const accountIDs = [managerAccountID, ownerAccountID, reportPreview?.childManagerAccountID, reportPreview?.childOwnerAccountID, delegateAccountID, senderAccountID];
-    // On Search, the snapshot can hold an account missing from the live list. Fall back to the live list while the snapshot loads.
-    const [personalDetailsFromSnapshot] = useAllPersonalDetails((personalDetailsList) => (personalDetailsList ? personalDetailsListSelector(accountIDs)(personalDetailsList) : undefined));
-    const personalDetails = personalDetailsFromSnapshot ?? use(PersonalDetailsContext) ?? undefined;
+    const [personalDetails] = usePersonalDetailsByIDs(accountIDs);
     const delegateDetails = delegateAccountID ? personalDetails?.[delegateAccountID] : undefined;
     // A copilot created the report for its owner. Until the copilot's personal details load, the report reads as the manager's instead.
     const actorAccountID = delegateDetails ? (ownerAccountID ?? reportPreview?.childOwnerAccountID) : (managerAccountID ?? reportPreview?.childManagerAccountID);
