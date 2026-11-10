@@ -24,7 +24,7 @@ import type {Policy} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -56,6 +56,10 @@ function BaseRequestStepWorkspace({transaction, getPolicies, onSelectWorkspace}:
     const selectedWorkspace = transaction?.participants?.[0];
     const customUnitPolicy = getPolicyByCustomUnitID(transaction, allPolicies);
     const initiallyFocusedKey = selectedWorkspace?.policyID ?? customUnitPolicy?.id;
+    // Picking a row only marks it. The footer button moves on, so a workspace that starts out selected can be kept
+    // without having to tap it again.
+    const [draftPolicyID, setDraftPolicyID] = useState<string>();
+    const selectedPolicyID = draftPolicyID ?? initiallyFocusedKey;
 
     const availableWorkspaces = getPolicies(allPolicies, currentUserLogin);
     const workspaceOptions: WorkspaceListItem[] = availableWorkspaces
@@ -66,7 +70,7 @@ function BaseRequestStepWorkspace({transaction, getPolicies, onSelectWorkspace}:
             text: policy.name,
             policyID: policy.id,
             keyForList: policy.id,
-            isSelected: initiallyFocusedKey === policy.id,
+            isSelected: selectedPolicyID === policy.id,
         }));
 
     const filterWorkspace = (workspaceOption: WorkspaceListItem, searchInput: string) => {
@@ -76,8 +80,10 @@ function BaseRequestStepWorkspace({transaction, getPolicies, onSelectWorkspace}:
     const sortWorkspaces = (data: WorkspaceListItem[]) => data.sort((a, b) => localeCompare(a.text ?? '', b?.text ?? ''));
     const [inputValue, setInputValue, filteredWorkspaceOptions] = useSearchResults(workspaceOptions, filterWorkspace, sortWorkspaces);
 
-    const selectWorkspace = (item: WorkspaceListItem) => {
-        const policyID = item.policyID;
+    const selectWorkspace = (policyID: string | undefined) => {
+        if (!policyID) {
+            return;
+        }
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
         if (shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
@@ -103,8 +109,13 @@ function BaseRequestStepWorkspace({transaction, getPolicies, onSelectWorkspace}:
             <SelectionList
                 key={initiallyFocusedKey}
                 data={filteredWorkspaceOptions}
-                onSelectRow={selectWorkspace}
-                shouldSingleExecuteRowSelect
+                onSelectRow={(item) => setDraftPolicyID(item.policyID)}
+                confirmButtonOptions={{
+                    showButton: true,
+                    text: translate('common.next'),
+                    onConfirm: () => selectWorkspace(selectedPolicyID),
+                    isDisabled: !selectedPolicyID,
+                }}
                 ListItem={UserListItem}
                 initiallyFocusedItemKey={initiallyFocusedKey}
             />

@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 
+import {getSelectedWorkspacePolicyID} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPerDiemCustomUnit, getPolicyByCustomUnitID} from '@libs/PolicyUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -47,9 +48,11 @@ function DynamicIOURequestStepDestination({
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const reportPolicyID = getIOURequestPolicyID(transaction, report);
-    // From global create the route report is a placeholder with no policy, and from a self DM it is the fake one. Either
-    // way the per diem form has already pointed the draft at the workspace's custom unit, which identifies the policy.
-    const policyID = !reportPolicyID || reportPolicyID === CONST.POLICY.ID_FAKE ? getPolicyByCustomUnitID(transaction, allPolicies)?.id : reportPolicyID;
+    // The workspace picked in the form's "To" row wins, since the route report stays on the one the flow started from.
+    // From global create that report is a placeholder with no policy, and from a self DM it is the fake one. Either way
+    // the per diem form has already pointed the draft at the workspace's custom unit, which identifies the policy.
+    const routePolicyID = !reportPolicyID || reportPolicyID === CONST.POLICY.ID_FAKE ? getPolicyByCustomUnitID(transaction, allPolicies)?.id : reportPolicyID;
+    const policyID = getSelectedWorkspacePolicyID(transaction, action) ?? routePolicyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const {accountID} = useCurrentUserPersonalDetails();
     const personalPolicy = usePersonalPolicy();

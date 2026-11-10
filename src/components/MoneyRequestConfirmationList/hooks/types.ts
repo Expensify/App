@@ -96,9 +96,6 @@ type UseParticipantSectionParams = {
     /** Keeps the "To" header, so it pairs with the invoice "Send from" field. */
     isTypeInvoice: boolean;
 
-    /** Per diem and time participant rows can never be edited. */
-    isPerDiemRequest: boolean;
-
     /** Whether the expense is a time expense, whose participant row can never be edited. */
     isTimeRequest: boolean;
 

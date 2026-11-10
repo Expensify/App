@@ -145,6 +145,14 @@ function clearSubrates(transactionID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {subRates: []}}});
 }
 
+/**
+ * Points a per diem draft at another workspace's per diem unit. The destination and subrates are rates of the previous
+ * workspace, so they are cleared and the user picks them again from the new workspace's rates.
+ */
+function resetPerDiemCustomUnit(transactionID: string, customUnitID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {customUnitID, customUnitRateID: null, subRates: []}}});
+}
+
 function addSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string, quantity: number, id: string, name: string, rate: number) {
     if (!transaction) {
         return;
@@ -1302,6 +1310,7 @@ export {
     removeSubrate,
     updateSubrate,
     clearSubrates,
+    resetPerDiemCustomUnit,
     addSubrate,
     computePerDiemExpenseAmount,
     isValidPerDiemExpenseAmount,
