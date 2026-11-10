@@ -27282,6 +27282,7 @@ describe('ReportUtils', () => {
                 transactionViolations: {},
                 isReportArchived: false,
                 allTransactions: {},
+                policies: {},
                 currentUserLogin: currentUserEmail,
                 currentUserAccountID,
                 isOffline,
