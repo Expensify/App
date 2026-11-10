@@ -43,6 +43,7 @@ import React from 'react';
 import type {UseReportActionsListRenderItemParams} from './types';
 
 import ReportActionsListRow from './ReportActionsListRow';
+import SkeletonBelowLinkedAction from './SkeletonBelowLinkedAction';
 
 /** Builds the report-actions row renderer and the `extraData` values that must re-render rows when they change. */
 function useReportActionsListRenderItem({
@@ -66,6 +67,9 @@ function useReportActionsListRenderItem({
     unreadMarkerReportActionID,
     linkedReportActionID,
     onShowPreviousMessages,
+    shouldShowSkeletonBelowLinkedAction,
+    hasRowsBelowLinkedAction,
+    hideSkeletonBelowLinkedAction,
 }: UseReportActionsListRenderItemParams) {
     const {
         report,
@@ -138,7 +142,7 @@ function useReportActionsListRenderItem({
 
         const collapsedSystemMessageRun = systemMessageRun && !systemMessageRun.isExpanded ? systemMessageRun : undefined;
 
-        return (
+        const row = (
             <ReportActionsListRow
                 index={index}
                 isNewest={index === listData.length - 1}
@@ -179,6 +183,22 @@ function useReportActionsListRenderItem({
                 shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
             />
         );
+        if (reportAction.reportActionID !== linkedReportActionID) {
+            return row;
+        }
+        // The linked row always renders as a fragment, so removing the skeleton does not remount the row.
+        return (
+            <>
+                {row}
+                {shouldShowSkeletonBelowLinkedAction && (
+                    <SkeletonBelowLinkedAction
+                        linkedActionIndex={index}
+                        hasNewerRows={hasRowsBelowLinkedAction}
+                        onNewerRowMeasured={hideSkeletonBelowLinkedAction}
+                    />
+                )}
+            </>
+        );
     };
 
     // Ensure row presentation updates when these values change without changing the action data.
@@ -191,6 +211,8 @@ function useReportActionsListRenderItem({
         latestConciergeFeedbackActionIDs,
         expandedSystemMessageReportActionIDs,
         focusRequestedReportActionID,
+        shouldShowSkeletonBelowLinkedAction,
+        hasRowsBelowLinkedAction,
     ];
 
     return {renderItem, extraData};

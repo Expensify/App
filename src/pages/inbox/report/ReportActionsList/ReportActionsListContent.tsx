@@ -164,6 +164,9 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         loadedInitialViewportListID,
         shouldShowInitialViewportSkeleton,
         shouldShowNewerActionsSkeleton,
+        shouldShowSkeletonBelowLinkedAction,
+        hasRowsBelowLinkedAction,
+        hideSkeletonBelowLinkedAction,
         shouldBeAlignedToTop,
         onShowPreviousMessages,
         isFloatingMessageCounterVisible,
@@ -200,6 +203,9 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         unreadMarkerReportActionID,
         linkedReportActionID,
         onShowPreviousMessages,
+        shouldShowSkeletonBelowLinkedAction,
+        hasRowsBelowLinkedAction,
+        hideSkeletonBelowLinkedAction,
     });
 
     const latestActionsFooter = (
@@ -219,7 +225,12 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                 reportID={reportID}
                 isDraftPendingCompletion={isDraftPendingCompletion}
             />
-            {shouldShowNewerActionsSkeleton && <ReportActionsSkeletonView shouldAnimate={!isOffline} />}
+            {shouldShowNewerActionsSkeleton && (
+                // While the linked row shows its own skeleton, this one only keeps the content tall enough for the link to open near the top
+                <View style={shouldShowSkeletonBelowLinkedAction && styles.opacity0}>
+                    <ReportActionsSkeletonView shouldAnimate={!isOffline && !shouldShowSkeletonBelowLinkedAction} />
+                </View>
+            )}
         </>
     );
 

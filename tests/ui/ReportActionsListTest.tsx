@@ -1030,6 +1030,42 @@ describe('ReportActionsList (body)', () => {
         expect(screen.queryByTestId('ReportActionsSkeletonCover')).toBeNull();
     });
 
+    it('renders the skeleton below a linked action inside its row while newer rows are measured', () => {
+        // Given a chat opened at a linked action while LegendList still hides the newer rows below it.
+        mockUseRoute.mockReturnValue({key: 'report', name: 'Report', params: {reportActionID: '2'}});
+        const originalImplementation = mockUseReportActionsScroll.getMockImplementation();
+        const defaultScrollState = mockUseReportActionsScroll(createMock<Parameters<typeof useReportActionsScroll>[0]>({}));
+        mockUseReportActionsScroll.mockReturnValue({...defaultScrollState, shouldShowSkeletonBelowLinkedAction: true, hideSkeletonBelowLinkedAction: jest.fn()});
+        const renderCell = (item: OnyxTypes.ReportAction, index: number) => {
+            const cell = getCapturedListProps()?.renderItem?.({item, index});
+            if (!React.isValidElement(cell)) {
+                throw new Error('Expected renderItem to return an element');
+            }
+            render(cell);
+        };
+        try {
+            renderReportActionsList();
+            const [createdAction, linkedAction] = mockReportActions;
+            if (!createdAction || !linkedAction) {
+                throw new Error('Expected two report actions');
+            }
+
+            // When LegendList renders the linked row.
+            renderCell(linkedAction, 1);
+
+            // Then the row carries the skeleton, so newer rows added after it cannot push the skeleton away.
+            expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
+
+            // When LegendList renders the row above it.
+            renderCell(createdAction, 0);
+
+            // Then that row has no skeleton, because only the linked row borders the area where the newer rows appear.
+            expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
+        } finally {
+            mockUseReportActionsScroll.mockImplementation(originalImplementation);
+        }
+    });
+
     it.each(['2', 'another-action'])('positions a newly opened link after the previous link was cleared: %s', async (reportActionID) => {
         // Given a positioned linked list is kept mounted when returning to its latest messages.
         mockUseNetwork.mockReturnValue({isOffline: false});

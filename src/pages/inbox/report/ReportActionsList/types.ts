@@ -62,6 +62,9 @@ type UseReportActionsListRenderItemParams = Pick<
         isReportArchived: boolean;
         sortedReportActions: OnyxTypes.ReportAction[];
         onShowPreviousMessages: () => void;
+        shouldShowSkeletonBelowLinkedAction: boolean;
+        hasRowsBelowLinkedAction: boolean;
+        hideSkeletonBelowLinkedAction: () => void;
     };
 
 type UseReportActionsListTelemetryParams = {

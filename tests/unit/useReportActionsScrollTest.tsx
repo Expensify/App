@@ -344,6 +344,29 @@ describe('useReportActionsScroll', () => {
             expect(result.current.shouldShowNewerActionsSkeleton).toBe(false);
         });
 
+        it('keeps the skeleton below a linked action until its row reports the first newer row as measured', async () => {
+            // Given a linked final action that opened above a skeleton for the newer page.
+            mockRouteParams = {reportActionID: LINKED_ACTION_ID};
+            const linkedAction = makeAction(LINKED_ACTION_ID);
+            const {result, rerender} = await renderScroll({hasNewerActions: true, sortedVisibleReportActions: [linkedAction], renderedVisibleReportActions: [linkedAction]});
+            expect(result.current.shouldShowSkeletonBelowLinkedAction).toBe(true);
+
+            // When the newest page adds a row below the link.
+            const newerAction = makeAction('2');
+            rerender(buildParams({sortedVisibleReportActions: [newerAction, linkedAction], renderedVisibleReportActions: [linkedAction, newerAction]}));
+
+            // Then the linked row keeps its skeleton, because LegendList hides the new row until it is measured.
+            // The footer skeleton is gone, since nothing newer is left to load.
+            expect(result.current.shouldShowSkeletonBelowLinkedAction).toBe(true);
+            expect(result.current.shouldShowNewerActionsSkeleton).toBe(false);
+
+            // When the skeleton reports that LegendList measured the row.
+            act(() => result.current.hideSkeletonBelowLinkedAction());
+
+            // Then the linked row drops its skeleton, because the measured row is visible and fills the space below the link.
+            expect(result.current.shouldShowSkeletonBelowLinkedAction).toBe(false);
+        });
+
         it('prefers a linked action over a later unread marker', async () => {
             // Given a linked action followed by an unread action in chronological order.
             mockRouteParams = {reportActionID: LINKED_ACTION_ID};

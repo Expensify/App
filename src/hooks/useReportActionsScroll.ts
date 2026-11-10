@@ -119,6 +119,15 @@ type UseReportActionsScrollResult = {
     /** Whether to show a skeleton below a linked final action while newer actions are still to load */
     shouldShowNewerActionsSkeleton: boolean;
 
+    /** Whether the linked action's row shows a skeleton below it until the first newer row is measured */
+    shouldShowSkeletonBelowLinkedAction: boolean;
+
+    /** Whether rows follow the linked action whose row shows that skeleton */
+    hasRowsBelowLinkedAction: boolean;
+
+    /** Called by that skeleton once LegendList has measured the first newer row */
+    hideSkeletonBelowLinkedAction: () => void;
+
     /** onLoad handler that enables pill tracking after initial positioning settles */
     onLoad: () => void;
 
@@ -350,6 +359,13 @@ function useReportActionsScroll({
         setNewerActionsSkeletonListID(listID);
     }
     const shouldShowNewerActionsSkeleton = hasNewerActions && (isLinkedTargetLastRow || newerActionsSkeletonListID === listID);
+    // LegendList hides each newer row until it is measured, and rendering a page of them can take seconds on a slow
+    // device. The footer skeleton moves below them as soon as they enter the data, so the linked action's row covers
+    // the area below it until the first of them is measured.
+    const [measuredNewerRowListID, setMeasuredNewerRowListID] = useState<string>();
+    const hasRowsBelowLinkedAction = newerActionsSkeletonListID === listID && targetIndex >= 0 && targetIndex < renderedVisibleReportActions.length - 1;
+    const shouldShowSkeletonBelowLinkedAction = newerActionsSkeletonListID === listID && measuredNewerRowListID !== listID && (hasNewerActions || hasRowsBelowLinkedAction);
+    const hideSkeletonBelowLinkedAction = () => setMeasuredNewerRowListID(listID);
     const isLinkedLastAction = isLinkedTargetLastRow && !hasNewerActions;
     let initialScrollIndex: number | undefined;
     let initialScrollIndexParams: {viewPosition?: number; viewOffset?: number} | undefined;
@@ -445,6 +461,9 @@ function useReportActionsScroll({
         initialScrollIndex,
         initialScrollIndexParams,
         shouldShowNewerActionsSkeleton,
+        shouldShowSkeletonBelowLinkedAction,
+        hasRowsBelowLinkedAction,
+        hideSkeletonBelowLinkedAction,
         onLoad,
         onItemSizeChanged,
         trackLinkedMessageScroll,
