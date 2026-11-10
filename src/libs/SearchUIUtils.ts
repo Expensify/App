@@ -88,6 +88,7 @@ import type {
     SearchCardGroup,
     SearchCategoryGroup,
     SearchDataTypes,
+    SearchGroup,
     SearchMemberGroup,
     SearchMerchantGroup,
     SearchTagGroup,
@@ -3243,73 +3244,69 @@ function getReportSections({
     return [reportIDToTransactionsValues, reportIDToTransactionsValues.length, hasDeletedTransaction];
 }
 
-/** The inclusive yyyy-MM-dd range a time-based group covers, or undefined for any other grouping or a group missing its date fields. */
-function getGroupDateRange(groupBy: string, groupData: unknown): SearchDateRange | undefined {
-    if (typeof groupData !== 'object' || !groupData) {
-        return undefined;
-    }
+const MONTHS_PER_YEAR = 12;
+const QUARTERS_PER_YEAR = 4;
 
+/** `Date` rolls an out-of-range month or quarter into another year, so a range is only built for one that names a real period. */
+function isPeriodNumberInRange(value: number, periodsPerYear: number): boolean {
+    return Number.isInteger(value) && value >= 1 && value <= periodsPerYear;
+}
+
+/** The inclusive yyyy-MM-dd range a time-based group covers, or undefined for any other grouping or a group missing its date fields. */
+function getGroupDateRange(groupBy: string, group: SearchGroup): SearchDateRange | undefined {
     switch (groupBy) {
-        case CONST.SEARCH.GROUP_BY.DAY: {
-            const day = 'day' in groupData ? groupData.day : undefined;
-            return typeof day === 'string' && day ? {start: day, end: day} : undefined;
-        }
-        case CONST.SEARCH.GROUP_BY.MONTH: {
-            const year = 'year' in groupData ? groupData.year : undefined;
-            const month = 'month' in groupData ? groupData.month : undefined;
-            return typeof year === 'number' && typeof month === 'number' && month ? DateUtils.getMonthDateRange(year, month) : undefined;
-        }
-        case CONST.SEARCH.GROUP_BY.WEEK: {
-            const week = 'week' in groupData ? groupData.week : undefined;
-            return typeof week === 'string' && week ? DateUtils.getWeekDateRange(week) : undefined;
-        }
-        case CONST.SEARCH.GROUP_BY.YEAR: {
-            const year = 'year' in groupData ? groupData.year : undefined;
-            return typeof year === 'number' ? DateUtils.getYearDateRange(year) : undefined;
-        }
-        case CONST.SEARCH.GROUP_BY.QUARTER: {
-            const year = 'year' in groupData ? groupData.year : undefined;
-            const quarter = 'quarter' in groupData ? groupData.quarter : undefined;
-            return typeof year === 'number' && typeof quarter === 'number' ? DateUtils.getQuarterDateRange(year, quarter) : undefined;
-        }
+        case CONST.SEARCH.GROUP_BY.DAY:
+            return 'day' in group && group.day ? {start: group.day, end: group.day} : undefined;
+        case CONST.SEARCH.GROUP_BY.WEEK:
+            return 'week' in group && group.week ? DateUtils.getWeekDateRange(group.week) : undefined;
+        case CONST.SEARCH.GROUP_BY.MONTH:
+            return 'month' in group && Number.isInteger(group.year) && isPeriodNumberInRange(group.month, MONTHS_PER_YEAR) ? DateUtils.getMonthDateRange(group.year, group.month) : undefined;
+        case CONST.SEARCH.GROUP_BY.QUARTER:
+            return 'quarter' in group && Number.isInteger(group.year) && isPeriodNumberInRange(group.quarter, QUARTERS_PER_YEAR)
+                ? DateUtils.getQuarterDateRange(group.year, group.quarter)
+                : undefined;
+        case CONST.SEARCH.GROUP_BY.YEAR:
+            return 'year' in group && Number.isInteger(group.year) ? DateUtils.getYearDateRange(group.year) : undefined;
         default:
             return undefined;
     }
 }
 
+/** The search a time-based group opens, shared by its section and the active hashes so the snapshot kept for the group is the one opening it reads. */
+function buildDateGroupTransactionsQuery(groupBy: string, group: SearchGroup, queryJSON: SearchQueryJSON | undefined): SearchQueryJSON | undefined {
+    const dateRange = getGroupDateRange(groupBy, group);
+    return queryJSON && dateRange ? buildDateRangeGroupQuery(queryJSON, dateRange).transactionsQueryJSON : undefined;
+}
+
 /** The filter that scopes a query to one selected group, or undefined when the grouping or the group's data can't be turned into one. */
-function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): SelectedGroupFilterEntry | undefined {
+function getSelectedGroupFilterEntry(groupBy: string, group: SearchGroup): SelectedGroupFilterEntry | undefined {
     switch (groupBy) {
         case CONST.SEARCH.GROUP_BY.FROM:
-            return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, value: (groupData as SearchMemberGroup).accountID};
-        case CONST.SEARCH.GROUP_BY.APPROVER: {
-            if (!groupData || typeof groupData !== 'object' || !('accountID' in groupData) || typeof groupData.accountID !== 'number') {
-                return undefined;
-            }
-            return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER, value: groupData.accountID};
-        }
+            return 'accountID' in group ? {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, value: group.accountID} : undefined;
+        case CONST.SEARCH.GROUP_BY.APPROVER:
+            return 'accountID' in group ? {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER, value: group.accountID} : undefined;
         case CONST.SEARCH.GROUP_BY.CARD:
-            return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: (groupData as SearchCardGroup).cardID};
+            return 'cardID' in group ? {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: group.cardID} : undefined;
         case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
-            return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID, value: (groupData as SearchWithdrawalIDGroup).entryID};
-        case CONST.SEARCH.GROUP_BY.CATEGORY: {
-            const category = (groupData as SearchCategoryGroup).category;
-            return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: !category ? CONST.SEARCH.CATEGORY_EMPTY_VALUE : category};
-        }
-        case CONST.SEARCH.GROUP_BY.MERCHANT: {
-            const merchant = (groupData as SearchMerchantGroup).merchant;
-            return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: merchant === '' ? CONST.SEARCH.MERCHANT_EMPTY_VALUE : merchant};
-        }
-        case CONST.SEARCH.GROUP_BY.TAG: {
-            const tag = (groupData as SearchTagGroup).tag;
-            return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, value: tag === '' || tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : tag};
-        }
+            return 'entryID' in group ? {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID, value: group.entryID} : undefined;
+        case CONST.SEARCH.GROUP_BY.CATEGORY:
+            return 'category' in group
+                ? {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: !group.category ? CONST.SEARCH.CATEGORY_EMPTY_VALUE : group.category}
+                : undefined;
+        case CONST.SEARCH.GROUP_BY.MERCHANT:
+            return 'merchant' in group
+                ? {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: group.merchant === '' ? CONST.SEARCH.MERCHANT_EMPTY_VALUE : group.merchant}
+                : undefined;
+        case CONST.SEARCH.GROUP_BY.TAG:
+            return 'tag' in group
+                ? {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, value: group.tag === '' || group.tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : group.tag}
+                : undefined;
         case CONST.SEARCH.GROUP_BY.DAY:
         case CONST.SEARCH.GROUP_BY.WEEK:
         case CONST.SEARCH.GROUP_BY.MONTH:
         case CONST.SEARCH.GROUP_BY.QUARTER:
         case CONST.SEARCH.GROUP_BY.YEAR: {
-            const dateRange = getGroupDateRange(groupBy, groupData);
+            const dateRange = getGroupDateRange(groupBy, group);
             return dateRange ? {kind: 'dateRange', dateRange} : undefined;
         }
         default:
@@ -3340,8 +3337,12 @@ function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | unde
 
     const searchHashes = new Set<number>();
 
-    for (const [key, group] of Object.entries(data)) {
-        if (!group || !isGroupEntry(key)) {
+    for (const key of Object.keys(data)) {
+        if (!isGroupEntry(key)) {
+            continue;
+        }
+        const group = data[key];
+        if (!group) {
             continue;
         }
 
@@ -3407,14 +3408,11 @@ function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | unde
             case CONST.SEARCH.GROUP_BY.WEEK:
             case CONST.SEARCH.GROUP_BY.YEAR:
             case CONST.SEARCH.GROUP_BY.QUARTER: {
-                const dateRange = getGroupDateRange(queryJSON.groupBy, group);
-                if (dateRange) {
-                    transactionsQueryJSON = buildDateRangeGroupQuery(queryJSON, dateRange).transactionsQueryJSON;
-                }
+                transactionsQueryJSON = buildDateGroupTransactionsQuery(queryJSON.groupBy, group, queryJSON);
                 break;
             }
             case CONST.SEARCH.GROUP_BY.APPROVER: {
-                if ('accountID' in group && typeof group.accountID === 'number') {
+                if ('accountID' in group) {
                     transactionsQueryJSON = buildApproverGroupQuery(queryJSON, group.accountID);
                 }
                 break;
@@ -3833,7 +3831,7 @@ function getDaySections(
             continue;
         }
 
-        const transactionsQueryJSON = queryJSON ? buildDateRangeGroupQuery(queryJSON, {start: dayGroup.day, end: dayGroup.day}).transactionsQueryJSON : undefined;
+        const transactionsQueryJSON = buildDateGroupTransactionsQuery(CONST.SEARCH.GROUP_BY.DAY, dayGroup, queryJSON);
         daySections[key] = {
             groupedBy: CONST.SEARCH.GROUP_BY.DAY,
             transactions: [],
@@ -3869,9 +3867,7 @@ function getMonthSections(
             if (!('year' in monthGroup) || !('month' in monthGroup)) {
                 continue;
             }
-            const dateResult =
-                queryJSON && monthGroup.year && monthGroup.month ? buildDateRangeGroupQuery(queryJSON, DateUtils.getMonthDateRange(monthGroup.year, monthGroup.month)) : undefined;
-            const transactionsQueryJSON = dateResult?.transactionsQueryJSON;
+            const transactionsQueryJSON = buildDateGroupTransactionsQuery(CONST.SEARCH.GROUP_BY.MONTH, monthGroup, queryJSON);
 
             monthSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
@@ -3907,8 +3903,12 @@ function getWeekSections(
             if (!('week' in weekGroup)) {
                 continue;
             }
-            const rawRange = DateUtils.getWeekDateRange(weekGroup.week);
-            const dateResult = queryJSON && weekGroup.week ? buildDateRangeGroupQuery(queryJSON, rawRange) : undefined;
+            const rawRange = getGroupDateRange(CONST.SEARCH.GROUP_BY.WEEK, weekGroup);
+            // The week's dates are also its label, so a group without a valid week has nothing to show
+            if (!rawRange) {
+                continue;
+            }
+            const dateResult = queryJSON ? buildDateRangeGroupQuery(queryJSON, rawRange) : undefined;
             weeks[key] = {
                 weekGroup,
                 weekStart: dateResult?.start ?? rawRange.start,
@@ -3953,8 +3953,7 @@ function getYearSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
             if (!('year' in yearGroup) || typeof yearGroup.year !== 'number') {
                 continue;
             }
-            const transactionsQueryJSON =
-                queryJSON && yearGroup.year !== undefined ? buildDateRangeGroupQuery(queryJSON, DateUtils.getYearDateRange(yearGroup.year))?.transactionsQueryJSON : undefined;
+            const transactionsQueryJSON = buildDateGroupTransactionsQuery(CONST.SEARCH.GROUP_BY.YEAR, yearGroup, queryJSON);
             const formattedYear = String(yearGroup.year);
 
             yearSections[key] = {
@@ -3986,10 +3985,7 @@ function getQuarterSections(
             if (!('year' in quarterGroup) || typeof quarterGroup.year !== 'number' || !('quarter' in quarterGroup) || typeof quarterGroup.quarter !== 'number') {
                 continue;
             }
-            const transactionsQueryJSON =
-                queryJSON && quarterGroup.year !== undefined && quarterGroup.quarter !== undefined
-                    ? buildDateRangeGroupQuery(queryJSON, DateUtils.getQuarterDateRange(quarterGroup.year, quarterGroup.quarter))?.transactionsQueryJSON
-                    : undefined;
+            const transactionsQueryJSON = buildDateGroupTransactionsQuery(CONST.SEARCH.GROUP_BY.QUARTER, quarterGroup, queryJSON);
             const formattedQuarter = DateUtils.getFormattedQuarterForSearch(quarterGroup.year, quarterGroup.quarter, dateFnsLocale);
             const shortFormattedQuarter = DateUtils.getShortFormattedQuarterForSearch(quarterGroup.year, quarterGroup.quarter, dateFnsLocale, shouldShowShortLabelYear);
 

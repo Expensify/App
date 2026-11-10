@@ -9032,7 +9032,10 @@ describe('SearchUIUtils', () => {
 
         it('should give each selected merchant group a merchant filter entry with its own value', () => {
             // Given the "Amazon" group and the "No merchant" group of a merchant-grouped search
-            const groups = [{merchant: 'Amazon'}, {merchant: ''}];
+            const groups = [
+                {count: 1, total: 100, currency: CONST.CURRENCY.USD, merchant: 'Amazon'},
+                {count: 1, total: 100, currency: CONST.CURRENCY.USD, merchant: ''},
+            ];
 
             // When the export builds the filter entry for each selected group
             const selectedGroupEntries = groups.map((group) => SearchUIUtils.getSelectedGroupFilterEntry(CONST.SEARCH.GROUP_BY.MERCHANT, group));
