@@ -1366,6 +1366,8 @@ const SENTRY_LABEL = {
         ACCOUNTING: {
             EXACT_ONLINE_WAITLIST_BUTTON: 'WorkspaceAccounting-ExactOnlineWaitlistButton',
             CARD_SECTION_ADD_BUTTON: 'WorkspaceAccounting-CardSectionAddButton',
+            CREATE_NEW_CONNECTION: 'WorkspaceAccounting-CreateNewConnection',
+            COPY_EXISTING_CONNECTION: 'WorkspaceAccounting-CopyExistingConnection',
             TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_SWITCH: 'WorkspaceAccounting-TravelBillingContinuousReconciliationSwitch',
             CONTINUOUS_RECONCILIATION_SWITCH: 'WorkspaceAccounting-ContinuousReconciliationSwitch',
             QBO: {
