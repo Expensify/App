@@ -80,6 +80,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         allApprovers = [];
     } else {
         const membersEmail = approvalWorkflow?.members?.map((member) => member.email);
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, employeePersonalDetails);
         const approvers = Object.values(employeeList)
             .map((employee): SelectionListApprover | null => {
                 const email = employee.email;
@@ -113,7 +114,6 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 if (!shouldUseApprovalWorkflowRules && !isDefault && approverIndex === 0 && defaultApprover === email) {
                     return null;
                 }
-                const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, employeePersonalDetails);
                 const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
                 if (!accountID) {
                     return null;
