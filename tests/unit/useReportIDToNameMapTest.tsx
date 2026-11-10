@@ -157,6 +157,7 @@ describe('getMentionedReportIDs', () => {
 
     it('returns the reportID when the attribute name is lowercase', () => {
         // Given HTML that went through a DOM serializer, which lowercases attribute names, and that ExpensiMark still accepts
+        // cspell:disable-next-line
         const html = 'hello <mention-report reportid="123"></mention-report>';
 
         // When reading the mentioned reportIDs
