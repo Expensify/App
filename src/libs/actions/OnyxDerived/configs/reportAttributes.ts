@@ -262,7 +262,8 @@ export default createOnyxDerivedValueConfig({
         ],
         {currentValue, sourceValues, triggeredKeys},
     ) => {
-        // Read the in-memory offline state directly (NETWORK is a dependency so recompute still fires when it changes).
+        // Read the in-memory offline state directly. NETWORK is a dependency, but a NETWORK-only change finds no report updates and hits the
+        // "No updates to process" early return below, so existing attributes (e.g. oneTransactionThreadReportID) keep the isOffline from their last recompute.
         const isOffline = getIsOffline();
         const dateFnsLocale = IntlStore.getDateFnsLocale(preferredLocale);
         const translate: LocalizedTranslate = (path, ...parameters) => translateForLocale(preferredLocale, path, ...parameters);

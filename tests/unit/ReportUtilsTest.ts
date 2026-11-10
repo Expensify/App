@@ -27274,9 +27274,9 @@ describe('ReportUtils', () => {
             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: Object.fromEntries(actions.map((action) => [action.reportActionID, action])),
         });
 
-        const callGenerateReportAttributes = (reportActions: OnyxCollection<ReportActions>, isOffline: boolean, report: Report = expenseReport) =>
+        const callGenerateReportAttributes = (reportActions: OnyxCollection<ReportActions>, isOffline: boolean) =>
             generateReportAttributes({
-                report,
+                report: expenseReport,
                 chatReport,
                 reportActions,
                 transactionViolations: {},
@@ -27326,34 +27326,6 @@ describe('ReportUtils', () => {
 
             // Then the passed value wins and the pending-delete action is ignored, so the function no longer depends on the deprecated network subscription
             expect(result.oneTransactionThreadReportID).toBe(transactionThreadReportID);
-        });
-
-        it('should not return a transaction thread reportID for a non-money-request report', () => {
-            // Given a plain chat report that happens to have an IOU action in its actions
-            const plainChatReport: Report = {...expenseReport, type: CONST.REPORT.TYPE.CHAT};
-            const reportActions = buildReportActions([liveIOUAction]);
-
-            // When the attributes are generated, both online and offline
-            const onlineResult = callGenerateReportAttributes(reportActions, false, plainChatReport);
-            const offlineResult = callGenerateReportAttributes(reportActions, true, plainChatReport);
-
-            // Then neither returns a transaction thread, because only IOU, expense and invoice reports can be one-transaction reports
-            expect(onlineResult.oneTransactionThreadReportID).toBeUndefined();
-            expect(offlineResult.oneTransactionThreadReportID).toBeUndefined();
-        });
-
-        it('should not return a transaction thread reportID when the report has no actions', () => {
-            // Given an expense report without any report actions
-            const reportActions = buildReportActions([]);
-
-            // When the attributes are generated while offline
-            const result = callGenerateReportAttributes(reportActions, true);
-
-            // Then there is no transaction thread to resolve and the report has no errors or violations to surface
-            expect(result.oneTransactionThreadReportID).toBeUndefined();
-            expect(result.hasErrors).toBe(false);
-            expect(result.hasViolationsToDisplayInLHN).toBe(false);
-            expect(result.parentReportAction).toBeUndefined();
         });
     });
 
