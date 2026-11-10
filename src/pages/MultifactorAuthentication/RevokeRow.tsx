@@ -4,10 +4,11 @@ import MenuItem from '@components/MenuItem';
 import useLocalize from '@hooks/useLocalize';
 
 import CONST from '@src/CONST';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 
-type RevokeRowProps = {
+type RevokeRowProps = WithRequiredSentryLabel & {
     /** Which set of devices this row revokes */
     title: string;
 
@@ -19,7 +20,7 @@ type RevokeRowProps = {
 };
 
 /** A row naming a set of registered devices, with a `Revoke` button in the trailing cell */
-function RevokeRow({title, isLoading, onPress}: RevokeRowProps) {
+function RevokeRow({title, isLoading, onPress, sentryLabel}: RevokeRowProps) {
     const {translate} = useLocalize();
 
     return (
@@ -30,6 +31,7 @@ function RevokeRow({title, isLoading, onPress}: RevokeRowProps) {
                 </MenuItem.Content>
                 <MenuItem.Trailing>
                     <Button
+                        sentryLabel={sentryLabel}
                         variant={CONST.BUTTON_VARIANT.DANGER}
                         size={CONST.BUTTON_SIZE.SMALL}
                         isLoading={isLoading}

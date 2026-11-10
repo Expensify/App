@@ -422,6 +422,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 </View>
                 <View style={[styles.dFlex, styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BILLING_VIEW_ON_SPEND}
                         onPress={handleViewOnSpend}
                         style={shouldStackButtons ? styles.flex1 : undefined}
                     >
@@ -429,6 +430,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                     </Button>
                     {shouldShowPayButton && canWriteMoreFeatures && (
                         <ButtonDisabledWhenOffline
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BILLING_PAY_BALANCE}
                             onPress={handlePayBalance}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             style={shouldStackButtons ? styles.flex1 : undefined}
@@ -452,6 +454,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 errorRowTextStyles={styles.mr3}
             >
                 <MenuItemSectionRoot
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BILLING_SETTLEMENT_ACCOUNT}
                     onPress={canWriteMoreFeatures ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID)), session) : undefined}
                 >
                     <MenuItem.Row>
@@ -476,6 +479,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 errorRowTextStyles={styles.mr3}
             >
                 <MenuItemSectionRoot
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BILLING_SETTLEMENT_FREQUENCY}
                     onPress={canWriteMoreFeatures ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_FREQUENCY.getRoute(policyID)), session) : undefined}
                 >
                     <MenuItemField.Row
@@ -495,6 +499,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 errorRowTextStyles={styles.mr3}
             >
                 <MenuItemSectionRoot
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BILLING_MONTHLY_LIMIT}
                     onPress={canWriteMoreFeatures ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_MONTHLY_LIMIT.getRoute(policyID)), session) : undefined}
                 >
                     <MenuItemField.Row
