@@ -8327,20 +8327,17 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             successDescription: 'あなたはこのワークスペースのオーナーになりました。',
             errorTitle: 'おっと！ちょっと待って…',
             errorDescription: `<muted-text><centered-text>このワークスペースの所有権の移譲中に問題が発生しました。もう一度お試しいただくか、サポートが必要な場合は<concierge-link>Concierge にお問い合わせください</concierge-link>。</centered-text></muted-text>`,
-            takeOverAllWorkspacesTitle: 'すべてのワークスペースを引き継ぐ',
-            takeOverAllWorkspacesText: ({email, workspaceName}: {email: string; workspaceName: string}) => ({
-                one: `${email} は、あなたが管理者になっているワークスペースを 1 つ所有しています。
-
-そのワークスペースの請求管理を引き継ぎますか？`,
-                other: (count: number) => `${email} さんは、あなたが管理者になっているワークスペースを ${count} 件（${workspaceName} を含む）所有しています。
-
-すべてのワークスペースの支払い管理を引き継ぎますか？ それとも、このワークスペースだけにしますか？`,
+            takeOverAllWorkspacesTitle: 'ワークスペースを引き継ぐ',
+            takeOverAllWorkspacesText: ({ownerName}: {ownerName: string}) => ({
+                one: `${ownerName} さんは、あなたが管理者になっているワークスペースを 1 つ所有しています。引き継ぎますか？`,
+                other: (count: number) =>
+                    `${ownerName} さんは、あなたが管理者になっているワークスペースを ${count} 件所有しています。すべて引き継ぎますか、それともこのワークスペースだけにしますか？`,
             }),
             takeOverAllWorkspacesButtonText: () => ({
-                one: '1 件のワークスペースを引き継ぐ',
-                other: (count: number) => `すべての ${count} 件のワークスペースを引き継ぐ`,
+                one: 'はい、引き継ぎます',
+                other: (count: number) => `はい、${count} 件すべて`,
             }),
-            takeOverThisWorkspaceButtonText: 'このワークスペースのみ',
+            takeOverThisWorkspaceButtonText: 'いいえ、このワークスペースだけ',
             successAllWorkspacesDescription: () => ({
                 one: '数分後に、あなたがこのワークスペースのオーナーになります。',
                 other: (count: number) => `数分後には、${count} 個すべてのワークスペースのオーナーになります。`,

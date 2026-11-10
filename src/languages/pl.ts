@@ -8452,22 +8452,16 @@ Jeśli chcesz przejąć rozliczenia za całą ich subskrypcję, poproś ich najp
             successDescription: 'Jesteś teraz właścicielem tego workspace’u.',
             errorTitle: 'Ups! Nie tak szybko...',
             errorDescription: `<muted-text><centered-text>Wystąpił problem z przeniesieniem własności tego workspace’u. Spróbuj ponownie lub <concierge-link>skontaktuj się z Concierge</concierge-link>, aby uzyskać pomoc.</centered-text></muted-text>`,
-            takeOverAllWorkspacesTitle: 'Przejmij wszystkie przestrzenie robocze',
-            takeOverAllWorkspacesText: ({email, workspaceName}: {email: string; workspaceName: string}) => ({
-                one: `${email} jest właścicielem 1 przestrzeni roboczej, w której jesteś administratorem.
-
-Czy chcesz przejąć za nią rozliczenia?`,
-                other: (count: number) => `${email} jest właścicielem ${count} przestrzeni roboczych, w których jesteś administratorem, w tym ${workspaceName}.
-
-Chcesz przejąć rozliczenia za wszystkie te przestrzenie czy tylko za tę jedną?`,
+            takeOverAllWorkspacesTitle: 'Przejmij przestrzenie robocze',
+            takeOverAllWorkspacesText: ({ownerName}: {ownerName: string}) => ({
+                one: `${ownerName} jest właścicielem 1 przestrzeni roboczej, w której jesteś administratorem. Czy chcesz ją przejąć?`,
+                other: (count: number) => `${ownerName} jest właścicielem ${count} przestrzeni roboczych, w których jesteś administratorem. Chcesz przejąć wszystkie, czy tylko tę jedną?`,
             }),
             takeOverAllWorkspacesButtonText: () => ({
-                one: 'Przejmij 1 przestrzeń roboczą',
-                few: (count: number) => `Przejmij wszystkie ${count} przestrzenie robocze`,
-                many: (count: number) => `Przejmij wszystkie ${count} przestrzeni roboczych`,
-                other: (count: number) => `Przejmij wszystkie ${count} przestrzeni roboczych`,
+                one: 'Tak, przejmij ją',
+                other: (count: number) => `Tak, wszystkie ${count}`,
             }),
-            takeOverThisWorkspaceButtonText: 'Tylko ta przestrzeń robocza',
+            takeOverThisWorkspaceButtonText: 'Nie, tylko tę',
             successAllWorkspacesDescription: () => ({
                 one: 'Za kilka minut będziesz właścicielem tej przestrzeni roboczej.',
                 other: (count: number) => `Za kilka minut będziesz właścicielem wszystkich ${count} przestrzeni roboczych.`,

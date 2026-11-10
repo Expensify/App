@@ -41,9 +41,7 @@ function WorkspaceOwnerChangeAllWorkspacesCheck({policy, policyIDs, onTakeOverTh
     return (
         <>
             <Text style={[styles.textHeadline, styles.mt3, styles.mb2]}>{translate('workspace.changeOwner.takeOverAllWorkspacesTitle')}</Text>
-            <Text style={styles.flex1}>
-                {translate('workspace.changeOwner.takeOverAllWorkspacesText', {email: policy?.owner ?? '', workspaceName: policy?.name ?? '', count: policyIDs.length})}
-            </Text>
+            <Text style={styles.flex1}>{translate('workspace.changeOwner.takeOverAllWorkspacesText', {ownerName: policy?.owner ?? '', count: policyIDs.length})}</Text>
             <View style={[styles.pb5, styles.gap3]}>
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}

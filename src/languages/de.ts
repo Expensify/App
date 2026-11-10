@@ -8499,20 +8499,16 @@ Wenn du die Abrechnung für das gesamte Abonnement übernehmen willst, bitte sie
             successDescription: 'Sie sind jetzt der/die Besitzer:in dieses Arbeitsbereichs.',
             errorTitle: 'Ups! Nicht so schnell ...',
             errorDescription: `<muted-text><centered-text>Beim Übertragen der Inhaberschaft für diesen Workspace ist ein Problem aufgetreten. Versuche es erneut oder <concierge-link>wende dich für Hilfe an Concierge</concierge-link>.</centered-text></muted-text>`,
-            takeOverAllWorkspacesTitle: 'Alle Arbeitsbereiche übernehmen',
-            takeOverAllWorkspacesText: ({email, workspaceName}: {email: string; workspaceName: string}) => ({
-                one: `${email} besitzt 1 Arbeitsbereich, bei dem Sie Administrator sind.
-
-Möchten Sie die Abrechnung dafür übernehmen?`,
-                other: (count: number) => `${email} besitzt ${count} Arbeitsbereiche, bei denen Sie Administrator sind, darunter ${workspaceName}.
-
-Möchten Sie die Abrechnung für alle oder nur für diesen einen übernehmen?`,
+            takeOverAllWorkspacesTitle: 'Arbeitsbereiche übernehmen',
+            takeOverAllWorkspacesText: ({ownerName}: {ownerName: string}) => ({
+                one: `${ownerName} besitzt 1 Arbeitsbereich, in dem Sie Administrator sind. Möchten Sie ihn übernehmen?`,
+                other: (count: number) => `${ownerName} besitzt ${count} Arbeitsbereiche, in denen Sie Administrator sind. Möchten Sie alle übernehmen oder nur diesen einen?`,
             }),
             takeOverAllWorkspacesButtonText: () => ({
-                one: '1 Arbeitsbereich übernehmen',
-                other: (count: number) => `Alle ${count} Arbeitsbereiche übernehmen`,
+                one: 'Ja, übernehmen',
+                other: (count: number) => `Ja, alle ${count}`,
             }),
-            takeOverThisWorkspaceButtonText: 'Nur dieser Arbeitsbereich',
+            takeOverThisWorkspaceButtonText: 'Nein, nur diesen',
             successAllWorkspacesDescription: () => ({
                 one: 'Sie werden in wenigen Minuten Eigentümer dieses Arbeitsbereichs sein.',
                 other: (count: number) => `Sie werden in wenigen Minuten Eigentümer aller ${count} Arbeitsbereiche sein.`,

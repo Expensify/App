@@ -113,10 +113,10 @@ describe('DynamicWorkspaceOwnerChangeWrapperPage', () => {
         // Then nothing is transferred yet, and the user is asked whether to take over both
         expect(mockCheckBulkTransferPolicyBillingOwner).toHaveBeenCalledWith(['1', '2']);
         expect(requestWorkspaceOwnerChange).not.toHaveBeenCalled();
-        expect(screen.getByText('Take over all 2 workspaces')).toBeOnTheScreen();
+        expect(screen.getByText('Yes, all 2')).toBeOnTheScreen();
 
         // When the user takes over all of them
-        fireEvent.press(screen.getByText('Take over all 2 workspaces'));
+        fireEvent.press(screen.getByText('Yes, all 2'));
 
         // Then billing for both is taken over together
         expect(queueBulkTransferPolicyBillingOwner).toHaveBeenCalledWith('1', ['1', '2']);
@@ -124,20 +124,20 @@ describe('DynamicWorkspaceOwnerChangeWrapperPage', () => {
     });
 
     it('continues with this workspace only when the user picks it', async () => {
-        // Given the user is asked whether to take over both of the owner's workspaces
+        // Given the user is asked whether to take over both
         await setPolicies(createOwnerPolicy('1'), createOwnerPolicy('2'));
         mockCheckBulkTransferPolicyBillingOwner.mockResolvedValue(['1', '2']);
         renderOwnerChangePage();
         await waitForBatchedUpdatesWithAct();
 
         // When the user picks just this workspace
-        fireEvent.press(screen.getByText('Just this workspace'));
+        fireEvent.press(screen.getByText('No, just this one'));
         await waitForBatchedUpdatesWithAct();
 
         // Then only this workspace goes through the usual transfer
         expect(requestWorkspaceOwnerChange).toHaveBeenCalledWith(expect.objectContaining({id: '1'}), CURRENT_USER_ACCOUNT_ID, 'admin@example.com');
         expect(queueBulkTransferPolicyBillingOwner).not.toHaveBeenCalled();
-        expect(screen.queryByText('Just this workspace')).not.toBeOnTheScreen();
+        expect(screen.queryByText('No, just this one')).not.toBeOnTheScreen();
     });
 
     it('transfers this workspace without asking when the server can only take over this one', async () => {
@@ -151,7 +151,7 @@ describe('DynamicWorkspaceOwnerChangeWrapperPage', () => {
 
         // Then the usual transfer runs, so its duplicate subscription step can explain why
         expect(requestWorkspaceOwnerChange).toHaveBeenCalledWith(expect.objectContaining({id: '1'}), CURRENT_USER_ACCOUNT_ID, 'admin@example.com');
-        expect(screen.queryByText('Just this workspace')).not.toBeOnTheScreen();
+        expect(screen.queryByText('No, just this one')).not.toBeOnTheScreen();
     });
 
     it('skips the check when the owner has no other workspace the user is an admin on', async () => {

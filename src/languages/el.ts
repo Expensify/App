@@ -8779,20 +8779,16 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             successDescription: 'Είστε πλέον ο ιδιοκτήτης αυτού του χώρου εργασίας.',
             errorTitle: 'Ουπς! Όχι τόσο γρήγορα...',
             errorDescription: `<muted-text><centered-text>Παρουσιάστηκε πρόβλημα κατά τη μεταφορά της ιδιοκτησίας αυτού του χώρου εργασίας. Δοκιμάστε ξανά ή <concierge-link>επικοινωνήστε με το Concierge</concierge-link> για βοήθεια.</centered-text></muted-text>`,
-            takeOverAllWorkspacesTitle: 'Αναλάβετε όλους τους χώρους εργασίας',
-            takeOverAllWorkspacesText: ({email, workspaceName}: {email: string; workspaceName: string}) => ({
-                one: `${email} είναι κάτοχος 1 χώρου εργασίας στον οποίο είστε διαχειριστής.
-
-Θέλετε να αναλάβετε τη χρέωσή του;`,
-                other: (count: number) => `Το ${email} διαθέτει ${count} χώρους εργασίας στους οποίους είστε διαχειριστής, συμπεριλαμβανομένου του ${workspaceName}.
-
-Θέλετε να αναλάβετε τη χρέωση για όλους ή μόνο για αυτόν;`,
+            takeOverAllWorkspacesTitle: 'Αναλάβετε χώρους εργασίας',
+            takeOverAllWorkspacesText: ({ownerName}: {ownerName: string}) => ({
+                one: `Ο/Η ${ownerName} είναι κάτοχος 1 χώρου εργασίας όπου είστε διαχειριστής. Θέλετε να τον αναλάβετε;`,
+                other: (count: number) => `Ο/Η ${ownerName} είναι κάτοχος ${count} χώρων εργασίας στους οποίους είστε διαχειριστής. Θέλετε να αναλάβετε όλους ή μόνο αυτόν;`,
             }),
             takeOverAllWorkspacesButtonText: () => ({
-                one: 'Αναλάβετε 1 χώρο εργασίας',
-                other: (count: number) => `Αναλάβετε και τους ${count} χώρους εργασίας`,
+                one: 'Ναι, αναλάβετέ τον',
+                other: (count: number) => `Ναι, και τους ${count}`,
             }),
-            takeOverThisWorkspaceButtonText: 'Μόνο αυτός ο χώρος εργασίας',
+            takeOverThisWorkspaceButtonText: 'Όχι, μόνο αυτόν',
             successAllWorkspacesDescription: () => ({
                 one: 'Θα γίνετε ο κάτοχος αυτού του χώρου εργασίας σε λίγα λεπτά.',
                 other: (count: number) => `Θα γίνετε ο κάτοχος και των ${count} χώρων εργασίας σε λίγα λεπτά.`,

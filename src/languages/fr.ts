@@ -8523,19 +8523,16 @@ Si vous souhaitez prendre en charge la facturation de l’ensemble de son abonne
             successDescription: 'Vous êtes maintenant le responsable de cet espace de travail.',
             errorTitle: 'Oups ! Pas si vite...',
             errorDescription: `<muted-text><centered-text>Un problème est survenu lors du transfert de la propriété de cet espace de travail. Réessayez ou <concierge-link>contactez Concierge</concierge-link> pour obtenir de l'aide.</centered-text></muted-text>`,
-            takeOverAllWorkspacesTitle: 'Prendre la main sur tous les espaces de travail',
-            takeOverAllWorkspacesText: ({email, workspaceName}: {email: string; workspaceName: string}) => ({
-                one: `${email} est responsable d’1 espace de travail dont vous êtes administrateur.
-
-Voulez-vous en prendre la facturation ?`,
-                other: (count: number) =>
-                    `${email} est responsable de ${count} espaces de travail dont vous êtes administrateur, y compris ${workspaceName}. Voulez-vous reprendre la facturation pour tous ou seulement pour celui-ci ?`,
+            takeOverAllWorkspacesTitle: 'Reprendre les espaces de travail',
+            takeOverAllWorkspacesText: ({ownerName}: {ownerName: string}) => ({
+                one: `${ownerName} possède 1 espace de travail où vous êtes administrateur. Voulez-vous le reprendre ?`,
+                other: (count: number) => `${ownerName} possède ${count} espaces de travail où vous êtes administrateur. Voulez-vous tous les reprendre, ou seulement celui-ci ?`,
             }),
             takeOverAllWorkspacesButtonText: () => ({
-                one: 'Prendre la main sur 1 espace de travail',
-                other: (count: number) => `Prendre la main sur les ${count} espaces de travail`,
+                one: 'Oui, le reprendre',
+                other: (count: number) => `Oui, les ${count} espaces`,
             }),
-            takeOverThisWorkspaceButtonText: 'Seulement cet espace de travail',
+            takeOverThisWorkspaceButtonText: 'Non, seulement celui-ci',
             successAllWorkspacesDescription: () => ({
                 one: 'Vous serez le responsable de cet espace de travail dans quelques minutes.',
                 other: (count: number) => `Vous serez le responsable des ${count} espaces de travail dans quelques minutes.`,

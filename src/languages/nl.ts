@@ -8427,20 +8427,16 @@ Als je de facturering voor hun volledige abonnement wilt overnemen, laat hen je 
             successDescription: 'Je bent nu de eigenaar van deze werkruimte.',
             errorTitle: 'Oeps! Niet zo snel...',
             errorDescription: `<muted-text><centered-text>Er is een probleem opgetreden bij het overdragen van het eigendom van deze werkruimte. Probeer het opnieuw of <concierge-link>neem contact op met Concierge</concierge-link> voor hulp.</centered-text></muted-text>`,
-            takeOverAllWorkspacesTitle: 'Neem alle werkruimtes over',
-            takeOverAllWorkspacesText: ({email, workspaceName}: {email: string; workspaceName: string}) => ({
-                one: `${email} is eigenaar van 1 werkruimte waarop jij beheerder bent.
-
-Wil je de facturatie daarvoor overnemen?`,
-                other: (count: number) => `${email} is eigenaar van ${count} werkruimtes waarvan jij beheerder bent, waaronder ${workspaceName}.
-
-Wil je de facturering overnemen voor al deze werkruimtes, of alleen voor deze?`,
+            takeOverAllWorkspacesTitle: 'Werkruimtes overnemen',
+            takeOverAllWorkspacesText: ({ownerName}: {ownerName: string}) => ({
+                one: `${ownerName} is eigenaar van 1 werkruimte waar jij beheerder bent. Wil je die overnemen?`,
+                other: (count: number) => `${ownerName} is eigenaar van ${count} werkruimtes waar jij beheerder bent. Wil je ze allemaal overnemen, of alleen deze?`,
             }),
             takeOverAllWorkspacesButtonText: () => ({
-                one: 'Neem 1 werkruimte over',
-                other: (count: number) => `Neem alle ${count} werkruimtes over`,
+                one: 'Ja, overnemen',
+                other: (count: number) => `Ja, alle ${count}`,
             }),
-            takeOverThisWorkspaceButtonText: 'Alleen deze werkruimte',
+            takeOverThisWorkspaceButtonText: 'Nee, alleen deze',
             successAllWorkspacesDescription: () => ({
                 one: 'Je bent over een paar minuten de eigenaar van deze werkruimte.',
                 other: (count: number) => `Je wordt over een paar minuten de eigenaar van alle ${count} werkruimtes.`,
