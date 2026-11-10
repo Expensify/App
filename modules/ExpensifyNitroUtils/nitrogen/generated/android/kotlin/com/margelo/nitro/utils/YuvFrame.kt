@@ -44,7 +44,10 @@ data class YuvFrame(
   val uvPixelStride: Double,
   @DoNotStrip
   @Keep
-  val rotation: Double
+  val rotation: Double,
+  @DoNotStrip
+  @Keep
+  val owner: Double
 ) {
   /* primary constructor */
 
@@ -60,6 +63,7 @@ data class YuvFrame(
       && Objects.deepEquals(this.uvRowStride, other.uvRowStride)
       && Objects.deepEquals(this.uvPixelStride, other.uvPixelStride)
       && Objects.deepEquals(this.rotation, other.rotation)
+      && Objects.deepEquals(this.owner, other.owner)
   }
 
   override fun hashCode(): Int {
@@ -72,7 +76,8 @@ data class YuvFrame(
       yRowStride,
       uvRowStride,
       uvPixelStride,
-      rotation
+      rotation,
+      owner
     ).contentDeepHashCode()
   }
 
@@ -84,8 +89,8 @@ data class YuvFrame(
     @Keep
     @Suppress("unused")
     @JvmStatic
-    private fun fromCpp(y: ArrayBuffer, u: ArrayBuffer, v: ArrayBuffer, width: Double, height: Double, yRowStride: Double, uvRowStride: Double, uvPixelStride: Double, rotation: Double): YuvFrame {
-      return YuvFrame(y, u, v, width, height, yRowStride, uvRowStride, uvPixelStride, rotation)
+    private fun fromCpp(y: ArrayBuffer, u: ArrayBuffer, v: ArrayBuffer, width: Double, height: Double, yRowStride: Double, uvRowStride: Double, uvPixelStride: Double, rotation: Double, owner: Double): YuvFrame {
+      return YuvFrame(y, u, v, width, height, yRowStride, uvRowStride, uvPixelStride, rotation, owner)
     }
   }
 }

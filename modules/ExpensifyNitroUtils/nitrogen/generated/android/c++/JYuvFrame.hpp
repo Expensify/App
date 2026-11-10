@@ -50,6 +50,8 @@ namespace margelo::nitro::utils {
       double uvPixelStride = this->getFieldValue(fieldUvPixelStride);
       static const auto fieldRotation = clazz->getField<double>("rotation");
       double rotation = this->getFieldValue(fieldRotation);
+      static const auto fieldOwner = clazz->getField<double>("owner");
+      double owner = this->getFieldValue(fieldOwner);
       return YuvFrame(
         y->cthis()->getArrayBuffer(),
         u->cthis()->getArrayBuffer(),
@@ -59,7 +61,8 @@ namespace margelo::nitro::utils {
         yRowStride,
         uvRowStride,
         uvPixelStride,
-        rotation
+        rotation,
+        owner
       );
     }
 
@@ -69,7 +72,7 @@ namespace margelo::nitro::utils {
      */
     [[maybe_unused]]
     static jni::local_ref<JYuvFrame::javaobject> fromCpp(const YuvFrame& value) {
-      using JSignature = JYuvFrame(jni::alias_ref<JArrayBuffer::javaobject>, jni::alias_ref<JArrayBuffer::javaobject>, jni::alias_ref<JArrayBuffer::javaobject>, double, double, double, double, double, double);
+      using JSignature = JYuvFrame(jni::alias_ref<JArrayBuffer::javaobject>, jni::alias_ref<JArrayBuffer::javaobject>, jni::alias_ref<JArrayBuffer::javaobject>, double, double, double, double, double, double, double);
       static const auto clazz = javaClassStatic();
       static const auto create = clazz->getStaticMethod<JSignature>("fromCpp");
       return create(
@@ -82,7 +85,8 @@ namespace margelo::nitro::utils {
         value.yRowStride,
         value.uvRowStride,
         value.uvPixelStride,
-        value.rotation
+        value.rotation,
+        value.owner
       );
     }
   };

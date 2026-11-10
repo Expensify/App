@@ -10,11 +10,13 @@ import NitroModules
 /// See ``HybridDocumentDetectorModuleSpec``
 public protocol HybridDocumentDetectorModuleSpec_protocol: HybridObject {
   // Properties
-  var isSupported: Bool { get }
+  
 
   // Methods
   func detect(pixelBuffer: UInt64) throws -> DetectedDocument?
   func detectYuv(frame: YuvFrame) throws -> DetectedDocument?
+  func open() throws -> Double
+  func release(owner: Double) throws -> Void
 }
 
 public extension HybridDocumentDetectorModuleSpec_protocol {

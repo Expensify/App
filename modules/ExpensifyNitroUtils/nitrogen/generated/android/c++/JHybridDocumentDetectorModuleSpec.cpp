@@ -55,11 +55,7 @@ namespace margelo::nitro::utils {
   }
 
   // Properties
-  bool JHybridDocumentDetectorModuleSpec::getIsSupported() {
-    static const auto method = _javaPart->javaClassStatic()->getMethod<jboolean()>("isSupported");
-    auto __result = method(_javaPart);
-    return static_cast<bool>(__result);
-  }
+  
 
   // Methods
   std::optional<DetectedDocument> JHybridDocumentDetectorModuleSpec::detect(uint64_t pixelBuffer) {
@@ -71,6 +67,15 @@ namespace margelo::nitro::utils {
     static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JDetectedDocument>(jni::alias_ref<JYuvFrame> /* frame */)>("detectYuv");
     auto __result = method(_javaPart, JYuvFrame::fromCpp(frame));
     return __result != nullptr ? std::make_optional(__result->toCpp()) : std::nullopt;
+  }
+  double JHybridDocumentDetectorModuleSpec::open() {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<double()>("open");
+    auto __result = method(_javaPart);
+    return __result;
+  }
+  void JHybridDocumentDetectorModuleSpec::release(double owner) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<void(double /* owner */)>("release");
+    method(_javaPart, owner);
   }
 
 } // namespace margelo::nitro::utils

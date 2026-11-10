@@ -26,9 +26,7 @@ import com.margelo.nitro.core.HybridObject
 )
 abstract class HybridDocumentDetectorModuleSpec: HybridObject() {
   // Properties
-  @get:DoNotStrip
-  @get:Keep
-  abstract val isSupported: Boolean
+  
 
   // Methods
   abstract fun detect(pixelBuffer: ULong): DetectedDocument?
@@ -43,6 +41,14 @@ abstract class HybridDocumentDetectorModuleSpec: HybridObject() {
   @DoNotStrip
   @Keep
   abstract fun detectYuv(frame: YuvFrame): DetectedDocument?
+  
+  @DoNotStrip
+  @Keep
+  abstract fun open(): Double
+  
+  @DoNotStrip
+  @Keep
+  abstract fun release(owner: Double): Unit
 
   // Default implementation of `HybridObject.toString()`
   override fun toString(): String {

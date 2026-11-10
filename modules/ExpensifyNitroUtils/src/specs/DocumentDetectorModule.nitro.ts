@@ -27,15 +27,22 @@ type YuvFrame = {
     uvPixelStride: number;
 
     rotation: number;
+
+    /** Token from open() of the scanner that sent the frame */
+    owner: number;
 };
 
 interface DocumentDetectorModule extends HybridObject<{ios: 'swift'; android: 'kotlin'}> {
-    readonly isSupported: boolean;
-
     detect(pixelBuffer: UInt64): DetectedDocument | undefined;
 
     // Android frames do not expose a buffer pointer the detector can use.
     detectYuv(frame: YuvFrame): DetectedDocument | undefined;
+
+    /** Claims the detector for a scanner and returns the token its frames and release() must carry */
+    open(): number;
+
+    /** Frees the detector's model and buffers, unless another scanner has opened the detector since */
+    release(owner: number): void;
 }
 
 export type {DocumentCorner, DetectedDocument, YuvFrame, DocumentDetectorModule};

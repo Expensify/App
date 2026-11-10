@@ -48,10 +48,11 @@ namespace margelo::nitro::utils {
     double uvRowStride     SWIFT_PRIVATE;
     double uvPixelStride     SWIFT_PRIVATE;
     double rotation     SWIFT_PRIVATE;
+    double owner     SWIFT_PRIVATE;
 
   public:
     YuvFrame() = default;
-    explicit YuvFrame(std::shared_ptr<ArrayBuffer> y, std::shared_ptr<ArrayBuffer> u, std::shared_ptr<ArrayBuffer> v, double width, double height, double yRowStride, double uvRowStride, double uvPixelStride, double rotation): y(y), u(u), v(v), width(width), height(height), yRowStride(yRowStride), uvRowStride(uvRowStride), uvPixelStride(uvPixelStride), rotation(rotation) {}
+    explicit YuvFrame(std::shared_ptr<ArrayBuffer> y, std::shared_ptr<ArrayBuffer> u, std::shared_ptr<ArrayBuffer> v, double width, double height, double yRowStride, double uvRowStride, double uvPixelStride, double rotation, double owner): y(y), u(u), v(v), width(width), height(height), yRowStride(yRowStride), uvRowStride(uvRowStride), uvPixelStride(uvPixelStride), rotation(rotation), owner(owner) {}
 
   public:
     friend bool operator==(const YuvFrame& lhs, const YuvFrame& rhs) = default;
@@ -75,7 +76,8 @@ namespace margelo::nitro {
         JSIConverter<double>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "yRowStride"))),
         JSIConverter<double>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "uvRowStride"))),
         JSIConverter<double>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "uvPixelStride"))),
-        JSIConverter<double>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "rotation")))
+        JSIConverter<double>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "rotation"))),
+        JSIConverter<double>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "owner")))
       );
     }
     static inline jsi::Value toJSI(jsi::Runtime& runtime, const margelo::nitro::utils::YuvFrame& arg) {
@@ -89,6 +91,7 @@ namespace margelo::nitro {
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "uvRowStride"), JSIConverter<double>::toJSI(runtime, arg.uvRowStride));
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "uvPixelStride"), JSIConverter<double>::toJSI(runtime, arg.uvPixelStride));
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "rotation"), JSIConverter<double>::toJSI(runtime, arg.rotation));
+      obj.setProperty(runtime, PropNameIDCache::get(runtime, "owner"), JSIConverter<double>::toJSI(runtime, arg.owner));
       return obj;
     }
     static inline bool canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
@@ -108,6 +111,7 @@ namespace margelo::nitro {
       if (!JSIConverter<double>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "uvRowStride")))) return false;
       if (!JSIConverter<double>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "uvPixelStride")))) return false;
       if (!JSIConverter<double>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "rotation")))) return false;
+      if (!JSIConverter<double>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "owner")))) return false;
       return true;
     }
   };

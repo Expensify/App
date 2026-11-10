@@ -75,9 +75,7 @@ namespace margelo::nitro::utils {
 
   public:
     // Properties
-    inline bool getIsSupported() noexcept override {
-      return _swiftPart.isSupported();
-    }
+    
 
   public:
     // Methods
@@ -96,6 +94,20 @@ namespace margelo::nitro::utils {
       }
       auto __value = std::move(__result.value());
       return __value;
+    }
+    inline double open() override {
+      auto __result = _swiftPart.open();
+      if (__result.hasError()) [[unlikely]] {
+        std::rethrow_exception(__result.error());
+      }
+      auto __value = std::move(__result.value());
+      return __value;
+    }
+    inline void release(double owner) override {
+      auto __result = _swiftPart.release(std::forward<decltype(owner)>(owner));
+      if (__result.hasError()) [[unlikely]] {
+        std::rethrow_exception(__result.error());
+      }
     }
 
   private:

@@ -8,7 +8,6 @@ import Vision
  * the four corners onto the paper, and bends the shape onto the paper's real edge for the outline drawn in JS.
  */
 final class HybridDocumentDetectorModule: HybridDocumentDetectorModuleSpec {
-    // Same as the Android detector and EDGE_POINTS_PER_SIDE in JS.
     private static let outlinePointsPerSide = 24
 
     // Wider than Android's 0.15: Vision's quad keeps to the flat part of a crumpled receipt, and a folded strip reached
@@ -70,8 +69,6 @@ final class HybridDocumentDetectorModule: HybridDocumentDetectorModuleSpec {
     private let request = VNDetectDocumentSegmentationRequest()
 
     public var memorySize: Int { MemoryLayout<HybridDocumentDetectorModule>.size }
-
-    var isSupported: Bool { true }
 
     func detect(pixelBuffer: UInt64) throws -> DetectedDocument? {
         guard let rawPointer = UnsafeRawPointer(bitPattern: UInt(pixelBuffer)) else {
@@ -255,6 +252,15 @@ final class HybridDocumentDetectorModule: HybridDocumentDetectorModuleSpec {
     func detectYuv(frame: YuvFrame) throws -> DetectedDocument? {
         return nil
     }
+
+    private var lastOwner = 0.0
+
+    func open() throws -> Double {
+        lastOwner += 1
+        return lastOwner
+    }
+
+    func release(owner: Double) throws {}
 
     // Vision's quad keeps to the flat part of a crumpled receipt, so its sides run inside the paper. Each side is moved onto
     // the paper's edge and the corners are taken where those lines meet.

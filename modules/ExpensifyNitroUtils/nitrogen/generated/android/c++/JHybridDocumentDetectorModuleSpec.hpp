@@ -50,12 +50,14 @@ namespace margelo::nitro::utils {
 
   public:
     // Properties
-    bool getIsSupported() override;
+    
 
   public:
     // Methods
     std::optional<DetectedDocument> detect(uint64_t pixelBuffer) override;
     std::optional<DetectedDocument> detectYuv(const YuvFrame& frame) override;
+    double open() override;
+    void release(double owner) override;
 
   private:
     jni::global_ref<JHybridDocumentDetectorModuleSpec::JavaPart> _javaPart;

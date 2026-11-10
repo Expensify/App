@@ -233,6 +233,35 @@ function getEdgeShape(edge: DocumentEdge, poseCorners?: DocumentQuad): EdgeShape
     return {corners, offsets};
 }
 
+// The native detectors choose their own number of points per side, so their edge is redrawn with EDGE_POINTS_PER_SIDE
+// points per side. Returns undefined when the edge can't be split into four equal sides.
+function resampleEdge(edge: DocumentEdge): DocumentEdge | undefined {
+    'worklet';
+
+    if (edge.length === EDGE_POINT_COUNT) {
+        return edge;
+    }
+    if (edge.length === 0 || edge.length % 4 !== 0) {
+        return undefined;
+    }
+    const pointsPerSide = edge.length / 4;
+    const resampled: DocumentEdge = [];
+    for (let side = 0; side < 4; side++) {
+        for (let point = 0; point < EDGE_POINTS_PER_SIDE; point++) {
+            const position = (point / EDGE_POINTS_PER_SIDE) * pointsPerSide;
+            const before = Math.floor(position);
+            const share = position - before;
+            const from = edge.at(side * pointsPerSide + before);
+            const to = edge.at((side * pointsPerSide + before + 1) % edge.length);
+            if (!from || !to) {
+                return undefined;
+            }
+            resampled.push({x: from.x + (to.x - from.x) * share, y: from.y + (to.y - from.y) * share});
+        }
+    }
+    return resampled;
+}
+
 function buildEdge(corners: DocumentQuad, offsets: number[], bendShare: number): DocumentEdge {
     'worklet';
 
@@ -322,6 +351,7 @@ export {
     getViewEdgeAndCorners,
     getEdgeShape,
     buildEdge,
+    resampleEdge,
     filterOneEuro,
     hasLocalBendChange,
 };

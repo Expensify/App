@@ -49,12 +49,14 @@ namespace margelo::nitro::utils {
 
     public:
       // Properties
-      virtual bool getIsSupported() = 0;
+      
 
     public:
       // Methods
       virtual std::optional<DetectedDocument> detect(uint64_t pixelBuffer) = 0;
       virtual std::optional<DetectedDocument> detectYuv(const YuvFrame& frame) = 0;
+      virtual double open() = 0;
+      virtual void release(double owner) = 0;
 
     protected:
       // Hybrid Setup

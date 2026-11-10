@@ -18,8 +18,8 @@ public extension YuvFrame {
   /**
    * Create a new instance of `YuvFrame`.
    */
-  init(y: ArrayBuffer, u: ArrayBuffer, v: ArrayBuffer, width: Double, height: Double, yRowStride: Double, uvRowStride: Double, uvPixelStride: Double, rotation: Double) {
-    self.init(y.getArrayBuffer(), u.getArrayBuffer(), v.getArrayBuffer(), width, height, yRowStride, uvRowStride, uvPixelStride, rotation)
+  init(y: ArrayBuffer, u: ArrayBuffer, v: ArrayBuffer, width: Double, height: Double, yRowStride: Double, uvRowStride: Double, uvPixelStride: Double, rotation: Double, owner: Double) {
+    self.init(y.getArrayBuffer(), u.getArrayBuffer(), v.getArrayBuffer(), width, height, yRowStride, uvRowStride, uvPixelStride, rotation, owner)
   }
 
   @inline(__always)
@@ -65,5 +65,10 @@ public extension YuvFrame {
   @inline(__always)
   var rotation: Double {
     return self.__rotation
+  }
+  
+  @inline(__always)
+  var owner: Double {
+    return self.__owner
   }
 }

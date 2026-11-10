@@ -35,7 +35,7 @@ const FADE_OUT_TIME_CONSTANT_MS = 50;
 const FADE_IN_TIME_CONSTANT_MS = 120;
 
 type DocumentOutlineProps = {
-    /** The receipt's edge in view points, or null when no receipt is found */
+    /** The receipt's edge in preview view points, with a corner every EDGE_POINTS_PER_SIDE points, or null to hide the outline */
     edge: SharedValue<DocumentEdge | null>;
 
     /** Whether the receipt is moving too fast for the outline to follow it */

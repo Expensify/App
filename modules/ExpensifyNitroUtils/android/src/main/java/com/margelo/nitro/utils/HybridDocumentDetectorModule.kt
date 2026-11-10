@@ -9,6 +9,8 @@ import com.margelo.nitro.NitroModules
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
+import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.ceil
@@ -27,8 +29,6 @@ import kotlin.math.sqrt
 class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
     override val memorySize: Long = 0L
 
-    override val isSupported: Boolean = true
-
     private class Region(val x: Double, val y: Double, val width: Double, val height: Double)
 
     private class Pass(
@@ -46,6 +46,10 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
     private enum class Gate { REJECTED, ACCEPTED, REACQUIRED, JUMPED, UNCONFIRMED }
 
     private var session: OrtSession? = null
+    private val releaseExecutor = Executors.newSingleThreadExecutor()
+    private val lastOwner = AtomicLong(0)
+    private val currentOwner = AtomicLong(0)
+    private var sessionOptions: OrtSession.SessionOptions? = null
     private var didFailToLoad = false
     private val input: FloatBuffer =
         ByteBuffer.allocateDirect(INPUT_CHANNELS * INPUT_SIZE * INPUT_SIZE * Float.SIZE_BYTES).order(ByteOrder.nativeOrder()).asFloatBuffer()
@@ -72,8 +76,42 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
 
     override fun detect(pixelBuffer: ULong): DetectedDocument? = null
 
+    override fun open(): Double {
+        val owner = lastOwner.incrementAndGet()
+        currentOwner.set(owner)
+        return owner.toDouble()
+    }
+
+    override fun release(owner: Double) {
+        if (currentOwner.compareAndSet(owner.toLong(), NO_OWNER)) {
+            releaseExecutor.execute { freeResources() }
+        }
+    }
+
+    @Synchronized
+    private fun freeResources() {
+        if (currentOwner.get() != NO_OWNER) {
+            return
+        }
+        session?.close()
+        session = null
+        sessionOptions?.close()
+        sessionOptions = null
+        luma = ByteArray(0)
+        integral = IntArray(0)
+        chromaU = ByteArray(0)
+        chromaV = ByteArray(0)
+        trackedCorners = null
+        pendingCorners = null
+        failedAcquisitions = 0
+        isPendingFromFullFrame = false
+    }
+
     @Synchronized
     override fun detectYuv(frame: YuvFrame): DetectedDocument? {
+        if (frame.owner.toLong() != currentOwner.get()) {
+            return null
+        }
         val session = getSession() ?: return null
         val width = frame.width.toInt()
         val height = frame.height.toInt()
@@ -774,12 +812,17 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
         return try {
             val context = NitroModules.applicationContext ?: return null
             val model = context.assets.open(MODEL_ASSET_PATH).use { it.readBytes() }
-            val options = OrtSession.SessionOptions().apply {
-                setOptimizationLevel(OrtSession.SessionOptions.OptLevel.ALL_OPT)
-                setIntraOpNumThreads(INFERENCE_THREADS)
-            }
-            OrtEnvironment.getEnvironment().createSession(model, options).also {
-                session = it
+            val options = OrtSession.SessionOptions()
+            try {
+                options.setOptimizationLevel(OrtSession.SessionOptions.OptLevel.ALL_OPT)
+                options.setIntraOpNumThreads(INFERENCE_THREADS)
+                OrtEnvironment.getEnvironment().createSession(model, options).also {
+                    session = it
+                    sessionOptions = options
+                }
+            } catch (error: Throwable) {
+                options.close()
+                throw error
             }
         } catch (error: Throwable) {
             Log.e(TAG, "Could not load the document detection model", error)
@@ -994,7 +1037,6 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
 
         private const val SNAP_MAX_CORNER_SHIFT = 2.0
 
-        // Same as the iOS detector and EDGE_POINTS_PER_SIDE in JS.
         private const val OUTLINE_POINTS_PER_SIDE = 24
 
         private const val LUMA_SEARCH_CELLS = 1.5
@@ -1010,6 +1052,8 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
         private const val TIP_BACKING_PIXELS = 8.0
 
         private const val TIP_MASK_CELLS = 2.0
+
+        private const val NO_OWNER = 0L
 
         private const val MAX_INWARD_BEND = 0.025
 

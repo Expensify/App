@@ -9,7 +9,6 @@ import type {CameraRef, Frame, PreviewView} from 'react-native-vision-camera';
 
 import {getDocumentDetectorNitroModule} from '@expensify/nitro-utils';
 import {useEffect, useState} from 'react';
-import {Platform} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
 import {useFrameOutput} from 'react-native-vision-camera';
 import {createSynchronizable, scheduleOnRN} from 'react-native-worklets';
@@ -18,25 +17,18 @@ import type {OneEuroState, ViewEdge} from './edgeGeometry';
 import type DocumentQuad from './types';
 import type {DocumentEdge, QuadPoint} from './types';
 
-import {buildEdge, EDGE_POINT_COUNT, filterOneEuro, getEdgeShape, getViewEdgeAndCorners, hasLocalBendChange} from './edgeGeometry';
+import {buildEdge, EDGE_POINT_COUNT, filterOneEuro, getEdgeShape, getViewEdgeAndCorners, hasLocalBendChange, resampleEdge} from './edgeGeometry';
+import documentReader from './readDocument';
 
 // A module-level value, not an import: under Worklets Bundle Mode a worklet resolves captured imports again on its own runtime.
 const documentDetector = getDocumentDetectorNitroModule();
 
 // Same reason: a worklet that captures an import gets a remote function, which throws when the worklet calls it.
-const edgeGeometry = {EDGE_POINT_COUNT, buildEdge, filterOneEuro, getEdgeShape, getViewEdgeAndCorners, hasLocalBendChange};
+const edgeGeometry = {EDGE_POINT_COUNT, buildEdge, filterOneEuro, getEdgeShape, getViewEdgeAndCorners, hasLocalBendChange, resampleEdge};
 
-const MIN_VISION_CONFIDENCE = 0.3;
+const platformReader = {readDocument: documentReader.readDocument};
 
-const IS_IOS = Platform.OS === 'ios';
-
-const MIN_MODEL_CONFIDENCE = 0.6;
-
-const ROTATION_TO_UPRIGHT = {up: 0, right: 270, down: 180, left: 90} as const;
-
-// Android's model takes a 256x256 input, so a small frame keeps copying and shrinking it cheap. iOS moves Vision's edge
-// onto the paper in the camera image itself, so it gets a sharper frame.
-const FRAME_OUTPUT_RESOLUTION = IS_IOS ? {width: 1280, height: 960} : {width: 640, height: 480};
+const FRAME_OUTPUT_RESOLUTION = documentReader.frameResolution;
 
 const MIN_ANALYSIS_INTERVAL_MS = 80;
 
@@ -73,9 +65,7 @@ const CANDIDATE_DETECTIONS = 4;
 // A fold or tear spans only a few points, so this many neighboring points apart counts as a change of shape.
 const MIN_CHANGED_POINTS = 3;
 
-// Further off the straight side than this (a share of the shorter side), a point is a shadow or a misread curl. Higher on
-// iOS, where Vision's corners sit on the flat part of a crumpled receipt, so the real edge can lie well outside them.
-const MAX_BEND = IS_IOS ? 0.25 : 0.12;
+const MAX_BEND = documentReader.maxBend;
 
 const UNLOCK_SPEED = 210;
 
@@ -129,6 +119,7 @@ function createFrameState() {
         lastDetectedAt: createSynchronizable(0, {fixedType: true}),
         lastPreviewCheckAt: createSynchronizable(0, {fixedType: true}),
         skippedShapes: createSynchronizable(0, {fixedType: true}),
+        owner: createSynchronizable(0, {fixedType: true}),
         // The smoothed corners, bend and bend share behind the shown outline. Not fixedType, so written with setBlocking.
         outlineState: createSynchronizable<OutlineState | null>(null),
         shownEdge: createSynchronizable<DocumentEdge | null>(null),
@@ -218,7 +209,7 @@ function getTimestamp(): number {
 function useDocumentEdgeDetection({cameraRef, isEnabled}: UseDocumentEdgeDetectionParams) {
     const edge = useSharedValue<DocumentEdge | null>(null);
     const isMoving = useSharedValue(false);
-    const [{lastAnalysisAt, loggedErrorCount, lastDetectedAt, lastPreviewCheckAt, skippedShapes, outlineState, shownEdge}] = useState(createFrameState);
+    const [{lastAnalysisAt, loggedErrorCount, lastDetectedAt, lastPreviewCheckAt, skippedShapes, owner, outlineState, shownEdge}] = useState(createFrameState);
 
     const [preview, setPreview] = useState<PreviewView | undefined>(undefined);
     const syncPreview = () => {
@@ -231,6 +222,15 @@ function useDocumentEdgeDetection({cameraRef, isEnabled}: UseDocumentEdgeDetecti
     useEffect(() => {
         setPreview(cameraRef.current?.preview);
     }, [cameraRef]);
+
+    useEffect(() => {
+        const token = documentDetector?.open() ?? 0;
+        owner.setDirty(token);
+        return () => {
+            owner.setDirty(0);
+            documentDetector?.release(token);
+        };
+    }, [owner]);
 
     const setOutline = (outline: DocumentEdge | null) => {
         'worklet';
@@ -470,51 +470,13 @@ function useDocumentEdgeDetection({cameraRef, isEnabled}: UseDocumentEdgeDetecti
         }
         lastAnalysisAt.setDirty(startedAt);
 
-        let corners: DocumentQuad | null = null;
-        let detectedEdge: DocumentEdge | undefined;
-        let toCameraPoint: (point: QuadPoint) => QuadPoint = getUnchangedPoint;
-        let detectedAt: number;
-
-        if (!documentDetector?.isSupported) {
+        const frameOwner = owner.getDirty();
+        if (!documentDetector || frameOwner === 0) {
             return;
         }
-        if (IS_IOS) {
-            const nativeBuffer = frame.getNativeBuffer();
-            try {
-                const document = documentDetector.detect(nativeBuffer.pointer);
-                // VisionCamera 5.2.3 on iOS rotates converted frame points twice, swapping x and y, so Vision's raw-buffer corners are used as they are.
-                if (document && document.confidence >= MIN_VISION_CONFIDENCE && document.corners.length === 4) {
-                    corners = document.corners;
-                    detectedEdge = document.outline;
-                }
-            } finally {
-                nativeBuffer.release();
-            }
-            detectedAt = getTimestamp();
-        } else {
-            const [yPlane, uPlane, vPlane] = frame.getPlanes();
-            if (!yPlane?.isValid || !uPlane?.isValid || !vPlane?.isValid) {
-                throw new Error(`Frame has no YUV planes (pixelFormat=${frame.pixelFormat})`);
-            }
-            const document = documentDetector.detectYuv({
-                y: yPlane.getPixelBuffer(),
-                u: uPlane.getPixelBuffer(),
-                v: vPlane.getPixelBuffer(),
-                width: frame.width,
-                height: frame.height,
-                yRowStride: yPlane.bytesPerRow,
-                uvRowStride: uPlane.bytesPerRow,
-                // A plane's width is rowStride / pixelStride, so this gives the chroma pixel stride back.
-                uvPixelStride: Math.round(uPlane.bytesPerRow / uPlane.width),
-                rotation: ROTATION_TO_UPRIGHT[frame.orientation],
-            });
-            detectedAt = getTimestamp();
-            if (document && document.confidence >= MIN_MODEL_CONFIDENCE && document.corners.length === 4) {
-                corners = document.corners;
-                detectedEdge = document.outline;
-                toCameraPoint = (point) => frame.convertFramePointToCameraPoint({x: point.x * frame.width, y: point.y * frame.height});
-            }
-        }
+        const {corners, outline, toCameraPoint} = platformReader.readDocument(frame, documentDetector, frameOwner);
+        const detectedAt = getTimestamp();
+        const detectedEdge = outline ? edgeGeometry.resampleEdge(outline) : undefined;
         if (!preview || detectedAt - lastPreviewCheckAt.getDirty() >= PREVIEW_CHECK_INTERVAL_MS) {
             lastPreviewCheckAt.setDirty(detectedAt);
             scheduleOnRN(syncPreview);

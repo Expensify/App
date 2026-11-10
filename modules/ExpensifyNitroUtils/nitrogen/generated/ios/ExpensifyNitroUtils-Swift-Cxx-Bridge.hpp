@@ -297,5 +297,23 @@ namespace margelo::nitro::utils::bridge::swift {
   inline Result_std__optional_DetectedDocument__ create_Result_std__optional_DetectedDocument__(const std::exception_ptr& error) noexcept {
     return Result<std::optional<DetectedDocument>>::withError(error);
   }
+  
+  // pragma MARK: Result<double>
+  using Result_double_ = Result<double>;
+  inline Result_double_ create_Result_double_(double value) noexcept {
+    return Result<double>::withValue(std::move(value));
+  }
+  inline Result_double_ create_Result_double_(const std::exception_ptr& error) noexcept {
+    return Result<double>::withError(error);
+  }
+  
+  // pragma MARK: Result<void>
+  using Result_void_ = Result<void>;
+  inline Result_void_ create_Result_void_() noexcept {
+    return Result<void>::withValue();
+  }
+  inline Result_void_ create_Result_void_(const std::exception_ptr& error) noexcept {
+    return Result<void>::withError(error);
+  }
 
 } // namespace margelo::nitro::utils::bridge::swift

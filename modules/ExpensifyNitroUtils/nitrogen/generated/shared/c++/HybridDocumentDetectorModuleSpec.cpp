@@ -14,9 +14,10 @@ namespace margelo::nitro::utils {
     HybridObject::loadHybridMethods();
     // load custom methods/properties
     registerHybrids(this, [](Prototype& prototype) {
-      prototype.registerHybridGetter("isSupported", &HybridDocumentDetectorModuleSpec::getIsSupported);
       prototype.registerHybridMethod("detect", &HybridDocumentDetectorModuleSpec::detect);
       prototype.registerHybridMethod("detectYuv", &HybridDocumentDetectorModuleSpec::detectYuv);
+      prototype.registerHybridMethod("open", &HybridDocumentDetectorModuleSpec::open);
+      prototype.registerHybridMethod("release", &HybridDocumentDetectorModuleSpec::release);
     });
   }
 
