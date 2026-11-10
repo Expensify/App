@@ -156,7 +156,7 @@ function DynamicExitSurveyReasonPage() {
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={submitAndSwitchToClassic}
                     isDisabled={isSwitchingToClassic}
-                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_EXIT_SURVEY.GO_TO_CLASSIC}
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_EXIT_SURVEY.SUBMIT_REASON_AND_GO_TO_CLASSIC}
                 >
                     <Button.Text>{translate('exitSurvey.goToExpensifyClassic')}</Button.Text>
                 </ButtonDisabledWhenOffline>

@@ -8160,7 +8160,7 @@ const CONST = {
             NEW: 'new',
             CLASSIC: 'classic',
         },
-        MAX_AGE_SECONDS: 31536000,
+        MAX_AGE_SECONDS: 365 * 24 * 60 * 60,
     },
 
     SESSION_STORAGE_KEYS: {

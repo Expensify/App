@@ -174,15 +174,15 @@ function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: st
  */
 function redirectToSignIn(signOutReason: SignOutReason, errorMessage?: string, isSAMLReauthentication?: boolean, isStashingSession?: boolean): Promise<void> {
     // Onyx.clear empties SESSION before its promise resolves, so the session type is read first.
-    // A Supportal or Copilot session runs in the agent's own browser, and an agent starting Supportal stashes their own session,
-    // so both leave the experience cookie of the agent's account alone.
+    // A Supportal or Copilot session runs in the agent's own browser, and starting Supportal stashes the agent's session,
+    // so neither clears the agent's experience cookie.
+    // Signing out clears the cookie for every account, matching the backend, so a cookie left from the beta can't route the next user.
     const shouldClearExperienceCookie = !currentIsAgentSession && !isStashingSession;
     return clearStorageAndRedirect(signOutReason, errorMessage, isSAMLReauthentication).then(() => {
         clearSessionStorage();
-        if (!shouldClearExperienceCookie) {
-            return;
+        if (shouldClearExperienceCookie) {
+            clearExperienceCookie();
         }
-        clearExperienceCookie();
     });
 }
 

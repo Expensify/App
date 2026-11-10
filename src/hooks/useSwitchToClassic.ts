@@ -61,7 +61,7 @@ function useSwitchToClassic(): UseSwitchToClassic {
     const openClassic = useOpenClassic();
     const [requestStatus] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, {selector: requestStatusSelector});
 
-    // Local state rather than the persisted isLoading alone, so a request that never finished in an earlier session can't disable the buttons,
+    // Tracked locally instead of relying on the persisted isLoading, so a request left unfinished in an earlier session can't disable the buttons
     // and a switch started in another tab doesn't navigate this one
     const [step, setStep] = useState<ValueOf<typeof SWITCH_STEP>>(SWITCH_STEP.IDLE);
 
@@ -69,7 +69,7 @@ function useSwitchToClassic(): UseSwitchToClassic {
     // The step returns to idle once the request finishes, so a later request from another tab can't act on this screen.
     useEffect(() => {
         if (step === SWITCH_STEP.SENDING && requestStatus === REQUEST_STATUS.PENDING) {
-            // The step disables the buttons, and it has to wait for the Onyx update that the request's optimistic data triggers
+            // SAVING can only be set in reaction to the request's optimistic Onyx update, so it has to happen in an effect
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setStep(SWITCH_STEP.SAVING);
             return;

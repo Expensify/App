@@ -20,10 +20,10 @@ function useOpenClassic(): () => void {
     const [isDelegateSession = false] = useOnyx(ONYXKEYS.SESSION, {selector: isDelegateSessionSelector});
 
     // A Supportal or Copilot session runs in the agent's own browser, so it must not overwrite the cookie that belongs to the agent's account
-    const shouldMarkExperienceClassic = isBetaEnabled(CONST.BETAS.HYBRID_WEB) && !isSupportalSession && !isDelegateSession;
+    const shouldWriteExperienceCookie = isBetaEnabled(CONST.BETAS.HYBRID_WEB) && !isSupportalSession && !isDelegateSession;
 
     return () => {
-        if (shouldMarkExperienceClassic) {
+        if (shouldWriteExperienceCookie) {
             writeExperienceCookie(CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC);
         }
         openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);

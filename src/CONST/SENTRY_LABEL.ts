@@ -1951,6 +1951,7 @@ const SENTRY_LABEL = {
     SETTINGS_EXIT_SURVEY: {
         GO_TO_CLASSIC: 'SettingsExitSurvey-GoToExpensifyClassic',
         GO_BACK_JUST_ONCE: 'SettingsExitSurvey-GoBackJustOnce',
+        SUBMIT_REASON_AND_GO_TO_CLASSIC: 'SettingsExitSurvey-SubmitReasonAndGoToClassic',
     },
     MESSAGES_ROW: {
         DISMISS: 'MessagesRow-Dismiss',
