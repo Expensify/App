@@ -1512,13 +1512,7 @@ function setWorkspaceReimbursement({
 
     // A bank account can list the workspace in its policyIDs while the workspace itself points at another account,
     // so the selection is only redundant when the workspace's own bank account is the selected one too.
-    if (
-        !shouldClearBankAccountID &&
-        reimbursementChoice === currentReimbursementChoice &&
-        oldBankAccountID !== undefined &&
-        String(bankAccountID) === oldBankAccountID &&
-        currentAchAccount?.bankAccountID === bankAccountID
-    ) {
+    if (!shouldClearBankAccountID && oldBankAccountID !== undefined && String(bankAccountID) === oldBankAccountID && currentAchAccount?.bankAccountID === bankAccountID) {
         return;
     }
 

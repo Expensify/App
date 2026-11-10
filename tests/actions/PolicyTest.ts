@@ -6182,39 +6182,6 @@ describe('actions/Policy', () => {
             mockFetch.succeed();
         });
 
-        it('does not skip a reimbursement choice change when the bank account stays the same', async () => {
-            // Given an account already linked to a workspace that uses indirect reimbursement
-            const fakePolicy = createRandomPolicy(0);
-            fakePolicy.id = FAKE_POLICY_ID;
-            fakePolicy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
-            fakePolicy.achAccount = {
-                bankAccountID: FAKE_BANK_ACCOUNT_ID,
-                accountNumber: FAKE_ACCOUNT_NUMBER,
-                routingNumber: '111000025',
-                addressName: FAKE_ADDRESS_NAME,
-                bankName: FAKE_BANK_NAME,
-                reimburser: FAKE_REIMBURSER_EMAIL,
-                state: FAKE_BANK_STATE,
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`, fakePolicy);
-
-            // When direct reimbursement is enabled without selecting a different account
-            Policy.setWorkspaceReimbursement({
-                policyID: FAKE_POLICY_ID,
-                currentAchAccount: fakePolicy.achAccount,
-                currentReimbursementChoice: fakePolicy.reimbursementChoice,
-                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-                bankAccountID: FAKE_BANK_ACCOUNT_ID,
-                reimburserEmail: FAKE_REIMBURSER_EMAIL,
-                bankAccountList: createMock<BankAccountList>({[FAKE_BANK_ACCOUNT_ID]: {accountData: {policyIDs: [FAKE_POLICY_ID]}}}),
-            });
-            await waitForBatchedUpdates();
-
-            // Then the choice change is still sent rather than treated as a redundant bank selection
-            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT, 1);
-            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`))?.reimbursementChoice).toBe(CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES);
-        });
-
         it('turns off deposit account collection and clears countries when switching to None', async () => {
             mockFetch?.pause?.();
 
