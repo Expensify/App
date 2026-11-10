@@ -4,7 +4,7 @@ import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -66,7 +66,7 @@ function BusinessTypePicker({errorText = '', value = '', wrapperStyle, onInputCh
     return (
         <View style={wrapperStyle}>
             <MenuItem.Root
-                onPress={callFunctionIfActionIsAllowed(showPickerModal, false, session)}
+                onPress={callIfAuthenticated(showPickerModal, session)}
                 sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.BUSINESS_TYPE_PICKER}
             >
                 <MenuItemField.Row
