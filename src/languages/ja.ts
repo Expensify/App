@@ -1182,6 +1182,10 @@ const translations: TranslationDeepObject<typeof en> = {
             setupTravelSubText: '出張用のルールを設定する',
             addFirstReceipt: '最初のレシートを追加する',
             addFirstReceiptSubText: 'レシートをスキャンするか手入力します',
+            addName: '氏名を追加してください',
+            addNameSubText: 'Expensify でチームメイトにあなたを認識してもらいましょう。',
+            downloadApp: 'アプリをダウンロード',
+            downloadAppSubText: '領収書をスキャンして経費を提出し、外出先でもレポートを承認できます。',
         },
         yourSpend: {
             title: 'あなたの支出',

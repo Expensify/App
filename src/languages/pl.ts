@@ -1220,6 +1220,10 @@ const translations: TranslationDeepObject<typeof en> = {
             setupTravelSubText: 'Skonfiguruj zasady dotyczące podróży',
             addFirstReceipt: 'Dodaj swój pierwszy paragon',
             addFirstReceiptSubText: 'Zeskanuj lub wprowadź paragon ręcznie',
+            addName: 'Dodaj swoje imię',
+            addNameSubText: 'Pomóż współpracownikom rozpoznać cię w Expensify.',
+            downloadApp: 'Pobierz aplikację',
+            downloadAppSubText: 'Skanuj paragony, wysyłaj wydatki i zatwierdzaj raporty w dowolnym miejscu.',
         },
         yourSpend: {
             title: 'Twoje wydatki',

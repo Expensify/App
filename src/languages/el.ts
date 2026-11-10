@@ -1236,6 +1236,10 @@ const translations: TranslationDeepObject<typeof en> = {
             setupTravelSubText: 'Ρύθμιση ειδικών κανόνων για ταξίδια',
             addFirstReceipt: 'Προσθέστε την πρώτη σας απόδειξη',
             addFirstReceiptSubText: 'Σαρώστε ή καταχωρίστε χειροκίνητα μια απόδειξη',
+            addName: 'Προσθέστε το όνομά σας',
+            addNameSubText: 'Βοηθήστε τους συναδέλφους σας να σας αναγνωρίζουν στο Expensify.',
+            downloadApp: 'Κατεβάστε την εφαρμογή',
+            downloadAppSubText: 'Σαρώστε αποδείξεις, υποβάλετε δαπάνες και εγκρίνετε αναφορές όπου κι αν βρίσκεστε.',
         },
         upcomingTravel: 'Επερχόμενα ταξίδια',
         upcomingTravelSection: {

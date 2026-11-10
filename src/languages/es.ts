@@ -1180,6 +1180,10 @@ const translations: TranslationDeepObject<typeof en> = {
             setupTravelSubText: 'Configura reglas específicas de viaje',
             addFirstReceipt: 'Añade tu primer recibo',
             addFirstReceiptSubText: 'Escanear o introducir manualmente un recibo',
+            addName: 'Añade tu nombre',
+            addNameSubText: 'Ayuda a tus compañeros de trabajo a reconocerte en Expensify.',
+            downloadApp: 'Descarga la app',
+            downloadAppSubText: 'Escanea recibos, envía gastos y aprueba informes donde estés.',
         },
         upcomingTravel: 'Próximos viajes',
         upcomingTravelSection: {
