@@ -3,20 +3,23 @@
  */
 import Growl from '@libs/Growl';
 
+import Navigation from '@navigation/Navigation';
+
 import {switchToOldDot} from '@userActions/ExitSurvey';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ExitSurveyResponseForm} from '@src/types/form/ExitSurveyResponseForm';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
-
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 
 import {useEffect, useState} from 'react';
 
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useOpenClassic from './useOpenClassic';
+
+type UseSwitchToClassicOptions = {
+    /** Whether the screen is a modal to close before Classic opens, because on desktop and native Classic opens in the browser and the app stays behind it */
+    shouldDismissModal?: boolean;
+};
 
 type UseSwitchToClassic = {
     /** Records the switch with the exit survey response and opens Classic once the server has saved it */
@@ -26,74 +29,40 @@ type UseSwitchToClassic = {
     isSwitchingToClassic: boolean;
 };
 
-const REQUEST_STATUS = {
-    PENDING: 'pending',
-    SAVED: 'saved',
-    FAILED: 'failed',
-} as const;
-
-const SWITCH_STEP = {
-    IDLE: 'idle',
-
-    // switchToClassic was called, but its optimistic data hasn't reached this hook yet, so the form may still hold an earlier request's result
-    SENDING: 'sending',
-
-    // The form tracks the request started here
-    SAVING: 'saving',
-} as const;
-
-/**
- * Reads the state of the latest SwitchToOldDot request from the form. Only the request's own data sets isLoading, so a form without it,
- * like one reset when the exit survey opens in another tab, says nothing about the request.
- */
-function requestStatusSelector(form: OnyxEntry<ExitSurveyResponseForm>): ValueOf<typeof REQUEST_STATUS> | undefined {
-    if (form?.isLoading === undefined) {
-        return undefined;
-    }
-    if (form.isLoading) {
-        return REQUEST_STATUS.PENDING;
-    }
-    return isEmptyObject(form.errors) ? REQUEST_STATUS.SAVED : REQUEST_STATUS.FAILED;
-}
-
-function useSwitchToClassic(): UseSwitchToClassic {
+function useSwitchToClassic({shouldDismissModal = false}: UseSwitchToClassicOptions = {}): UseSwitchToClassic {
     const {translate} = useLocalize();
     const openClassic = useOpenClassic();
-    const [requestStatus] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, {selector: requestStatusSelector});
 
-    // Tracked locally instead of relying on the persisted isLoading, so a request left unfinished in an earlier session can't disable the buttons
-    // and a switch started in another tab doesn't navigate this one
-    const [step, setStep] = useState<ValueOf<typeof SWITCH_STEP>>(SWITCH_STEP.IDLE);
+    // Only the request started on this screen can open Classic or show an error here, so a switch from another tab doesn't act on it
+    const [pendingRequestID, setPendingRequestID] = useState<string>();
+    const [requestResult] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, {
+        selector: (form) => (pendingRequestID ? form?.switchToOldDotResults?.[pendingRequestID] : undefined),
+    });
 
-    // Classic opens only after the switch is saved, because Classic sends users who still prefer New Expensify back to it.
-    // The step returns to idle once the request finishes, so a later request from another tab can't act on this screen.
+    // Classic opens only after the switch is saved, because Classic sends users who still prefer New Expensify back to it
     useEffect(() => {
-        if (step === SWITCH_STEP.SENDING && requestStatus === REQUEST_STATUS.PENDING) {
-            // SAVING can only be set in reaction to the request's optimistic Onyx update, so it has to happen in an effect
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setStep(SWITCH_STEP.SAVING);
+        if (!requestResult) {
             return;
         }
-        if (step !== SWITCH_STEP.SAVING) {
-            return;
-        }
-        if (requestStatus === REQUEST_STATUS.FAILED) {
-            setStep(SWITCH_STEP.IDLE);
+
+        // The request only finishes when its outcome arrives through Onyx, so the pending request can only be cleared in reaction to it
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setPendingRequestID(undefined);
+        if (requestResult === CONST.EXIT_SURVEY.SWITCH_RESULT.FAILED) {
             Growl.error({bodyText: translate('common.genericErrorMessage')});
             return;
         }
-        if (requestStatus === REQUEST_STATUS.SAVED) {
-            setStep(SWITCH_STEP.IDLE);
-            openClassic();
+        if (shouldDismissModal) {
+            Navigation.dismissModal();
         }
-    }, [step, requestStatus, translate, openClassic]);
+        openClassic();
+    }, [requestResult, translate, openClassic, shouldDismissModal]);
 
     const switchToClassic = (exitSurveyResponse: string | undefined) => {
-        setStep(SWITCH_STEP.SENDING);
-        switchToOldDot(exitSurveyResponse);
+        setPendingRequestID(switchToOldDot(exitSurveyResponse));
     };
 
-    return {switchToClassic, isSwitchingToClassic: step !== SWITCH_STEP.IDLE};
+    return {switchToClassic, isSwitchingToClassic: !!pendingRequestID};
 }
 
 export default useSwitchToClassic;

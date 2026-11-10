@@ -60,7 +60,7 @@ function DynamicExitSurveyReasonPage() {
     const {windowHeight} = useWindowDimensions();
     const {contentHeaderHeight} = useContentHeaderHeight();
     const {inputCallbackRef} = useAutoFocusInput(true);
-    const {switchToClassic, isSwitchingToClassic} = useSwitchToClassic();
+    const {switchToClassic, isSwitchingToClassic} = useSwitchToClassic({shouldDismissModal: true});
 
     // Device safe area top and bottom insets.
     // When the keyboard is shown, the bottom inset doesn't affect the height, so we take it out from the calculation.

@@ -1,7 +1,8 @@
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {rand64} from '@libs/NumberUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {OnyxUpdate} from 'react-native-onyx';
@@ -9,23 +10,17 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 /**
- * Save the user's response to the mandatory exit survey in the back-end. The form's isLoading tells the caller when the switch is saved,
+ * Save the user's response to the mandatory exit survey in the back-end. The outcome is stored under the returned request ID,
  * and the response is kept when the request fails so the user can retry.
  */
-function switchToOldDot(exitSurveyResponse: string | undefined) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM,
-            value: {isLoading: true, errors: null},
-        },
-    ];
+function switchToOldDot(exitSurveyResponse: string | undefined): string {
+    const requestID = rand64();
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM | typeof ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM,
-            value: {isLoading: false},
+            value: {switchToOldDotResults: {[requestID]: CONST.EXIT_SURVEY.SWITCH_RESULT.SAVED}},
         },
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -38,7 +33,7 @@ function switchToOldDot(exitSurveyResponse: string | undefined) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM,
-            value: {isLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+            value: {switchToOldDotResults: {[requestID]: CONST.EXIT_SURVEY.SWITCH_RESULT.FAILED}},
         },
     ];
 
@@ -47,8 +42,10 @@ function switchToOldDot(exitSurveyResponse: string | undefined) {
         {
             surveyResponse: exitSurveyResponse,
         },
-        {optimisticData, successData, failureData},
+        {successData, failureData},
     );
+
+    return requestID;
 }
 
 /**

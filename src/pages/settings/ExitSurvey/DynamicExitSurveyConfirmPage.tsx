@@ -40,7 +40,7 @@ function DynamicExitSurveyConfirmPage() {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['MushroomTopHat']);
-    const {switchToClassic, isSwitchingToClassic} = useSwitchToClassic();
+    const {switchToClassic, isSwitchingToClassic} = useSwitchToClassic({shouldDismissModal: true});
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [exitSurveyResponse] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, {
         selector: exitResponseSelector,
