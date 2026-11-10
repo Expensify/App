@@ -9,6 +9,9 @@ import DescriptionInputField from '@components/ReportActionItem/MoneyRequestView
 import MerchantInputField from '@components/ReportActionItem/MoneyRequestViewFields/MerchantInputField';
 import TaxAmountInputField from '@components/ReportActionItem/MoneyRequestViewFields/TaxAmountInputField';
 
+import type {DuplicateTransactionsAndViolations} from '@hooks/useDuplicateTransactionsAndViolations';
+import useMoneyRequestUpdateParams from '@hooks/useMoneyRequestUpdateParams';
+import type {MoneyRequestUpdateParams} from '@hooks/useMoneyRequestUpdateParams';
 import useUpdateTransactionDate from '@hooks/useUpdateTransactionDate';
 
 import {
@@ -68,10 +71,19 @@ const transaction: Transaction = {
 const expenseReport: Report = {reportID: EXPENSE_REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: POLICY_ID};
 const threadReport: Report = {reportID: THREAD_REPORT_ID, type: CONST.REPORT.TYPE.CHAT, parentReportID: EXPENSE_REPORT_ID, parentReportActionID: 'action1', policyID: POLICY_ID};
 
-const renderField = (field: React.ReactElement) =>
-    render(<ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentUserPersonalDetailsProvider]}>{field}</ComposeProviders>);
+// The expense has no duplicates, so a save has none of their violations to recompute.
+const NO_DUPLICATES: DuplicateTransactionsAndViolations = {duplicateTransactions: {}, duplicateTransactionViolations: {}};
+
+function Providers({children}: {children: React.ReactNode}) {
+    return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentUserPersonalDetailsProvider]}>{children}</ComposeProviders>;
+}
+
+const renderField = (field: React.ReactElement) => render(<Providers>{field}</Providers>);
 
 describe('saved expense inline fields', () => {
+    // What each field saves with, read the way the expense view reads it and hands it down
+    let updateParams: MoneyRequestUpdateParams;
+
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -81,6 +93,9 @@ describe('saved expense inline fields', () => {
         await Onyx.clear();
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_REPORT_ID}`, expenseReport);
         await waitForBatchedUpdatesWithAct();
+        const {result} = renderHook(() => useMoneyRequestUpdateParams(TRANSACTION_ID, threadReport), {wrapper: Providers});
+        await waitForBatchedUpdatesWithAct();
+        updateParams = result.current;
     });
 
     describe('MerchantInputField', () => {
@@ -88,7 +103,7 @@ describe('saved expense inline fields', () => {
             renderField(
                 <MerchantInputField
                     transaction={transaction}
-                    transactionThreadReport={threadReport}
+                    updateParams={updateParams}
                     errorText={errorText}
                 />,
             );
@@ -152,12 +167,12 @@ describe('saved expense inline fields', () => {
 
             // When the merchant is changed elsewhere, such as on another device, and the input is then left
             rerender(
-                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentUserPersonalDetailsProvider]}>
+                <Providers>
                     <MerchantInputField
                         transaction={{...transaction, merchant: 'Tea House'}}
-                        transactionThreadReport={threadReport}
+                        updateParams={updateParams}
                     />
-                </ComposeProviders>,
+                </Providers>,
             );
             fireEvent(screen.getByLabelText('Merchant'), 'blur');
             await waitForBatchedUpdatesWithAct();
@@ -200,7 +215,7 @@ describe('saved expense inline fields', () => {
             renderField(
                 <DescriptionInputField
                     transaction={transaction}
-                    transactionThreadReport={threadReport}
+                    updateParams={updateParams}
                     isReportInGroupPolicy
                 />,
             );
@@ -246,7 +261,7 @@ describe('saved expense inline fields', () => {
             renderField(
                 <DescriptionInputField
                     transaction={{...transaction, comment: {comment: 'Team lunch<br />'}}}
-                    transactionThreadReport={threadReport}
+                    updateParams={updateParams}
                     isReportInGroupPolicy
                 />,
             );
@@ -292,7 +307,8 @@ describe('saved expense inline fields', () => {
             renderField(
                 <AmountInputField
                     transaction={transaction}
-                    transactionThreadReport={threadReport}
+                    updateParams={updateParams}
+                    duplicates={NO_DUPLICATES}
                     policy={policy}
                     policyCategories={undefined}
                     amount={amount}
@@ -393,7 +409,7 @@ describe('saved expense inline fields', () => {
             renderField(
                 <TaxAmountInputField
                     transaction={taxedTransaction}
-                    transactionThreadReport={threadReport}
+                    updateParams={updateParams}
                     policy={taxPolicy}
                     taxAmount={300}
                     currency={CONST.CURRENCY.USD}
@@ -455,11 +471,12 @@ describe('saved expense inline fields', () => {
     describe('useUpdateTransactionDate', () => {
         it('saves the picked date to the saved expense', async () => {
             // Given the save hook for a reported expense
-            const {result} = renderHook(() => useUpdateTransactionDate({transaction, transactionThreadReport: threadReport, isTrackExpense: false}), {
-                wrapper: ({children}: {children: React.ReactNode}) => (
-                    <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentUserPersonalDetailsProvider]}>{children}</ComposeProviders>
-                ),
-            });
+            const {result} = renderHook(
+                () => useUpdateTransactionDate({transaction, updateParams: useMoneyRequestUpdateParams(TRANSACTION_ID, threadReport), duplicates: NO_DUPLICATES, isTrackExpense: false}),
+                {
+                    wrapper: Providers,
+                },
+            );
             await waitForBatchedUpdatesWithAct();
 
             // When a date is saved through it

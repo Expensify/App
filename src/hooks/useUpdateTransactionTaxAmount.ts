@@ -11,14 +11,16 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import useMoneyRequestUpdateParams from './useMoneyRequestUpdateParams';
+import type {MoneyRequestUpdateParams} from './useMoneyRequestUpdateParams';
+
 import useOnyx from './useOnyx';
 
 type UseUpdateTransactionTaxAmountParams = {
     /** ID of the saved expense being written to */
     transactionID: string | undefined;
 
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+    /** What the write needs to recompute the expense's violations, read once by the caller */
+    updateParams: MoneyRequestUpdateParams;
 
     /** Policy the tax belongs to. For an unreported expense it is the workspace the expense would move to */
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -29,8 +31,7 @@ type UseUpdateTransactionTaxAmountResult = {
     updateTaxAmount: (taxAmount: number) => void;
 };
 
-function useUpdateTransactionTaxAmount({transactionID, transactionThreadReport, policy}: UseUpdateTransactionTaxAmountParams): UseUpdateTransactionTaxAmountResult {
-    const updateParams = useMoneyRequestUpdateParams(transactionID, transactionThreadReport);
+function useUpdateTransactionTaxAmount({transactionID, updateParams, policy}: UseUpdateTransactionTaxAmountParams): UseUpdateTransactionTaxAmountResult {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policy?.id)}`);
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(policy?.id)}`);
 

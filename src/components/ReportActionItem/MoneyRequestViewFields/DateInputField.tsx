@@ -4,6 +4,8 @@
  */
 import DatePicker from '@components/DatePicker';
 
+import type {DuplicateTransactionsAndViolations} from '@hooks/useDuplicateTransactionsAndViolations';
+import type {MoneyRequestUpdateParams} from '@hooks/useMoneyRequestUpdateParams';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUpdateTransactionDate from '@hooks/useUpdateTransactionDate';
 
@@ -22,7 +24,11 @@ type DateInputFieldProps = {
     /** Expense whose date is edited */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+    /** What a save needs to recompute the expense's violations, read once by the expense view */
+    updateParams: MoneyRequestUpdateParams;
+
+    /** The expense's duplicates, whose violations a save can change, read once by the expense view */
+    duplicates: DuplicateTransactionsAndViolations;
 
     /** Whether the expense is tracked rather than reported */
     isTrackExpense: boolean;
@@ -34,9 +40,9 @@ type DateInputFieldProps = {
     errorText?: string;
 };
 
-function DateInputField({transaction, transactionThreadReport, isTrackExpense, label, errorText = ''}: DateInputFieldProps) {
+function DateInputField({transaction, updateParams, duplicates, isTrackExpense, label, errorText = ''}: DateInputFieldProps) {
     const styles = useThemeStyles();
-    const {updateDate} = useUpdateTransactionDate({transaction, transactionThreadReport, isTrackExpense});
+    const {updateDate} = useUpdateTransactionDate({transaction, updateParams, duplicates, isTrackExpense});
     const savedDate = getFormattedCreated(transaction);
     const [isCleared, setIsCleared] = useState(false);
 

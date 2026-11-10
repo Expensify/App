@@ -8,6 +8,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import useMoneyRequestUpdateParams from '@hooks/useMoneyRequestUpdateParams';
 import useNavigateBackOnSave from '@hooks/useNavigateBackOnSave';
 import useOnyx from '@hooks/useOnyx';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
@@ -53,7 +54,8 @@ function DynamicIOURequestStepMerchant({
 }: DynamicIOURequestStepMerchantProps) {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_MERCHANT.path);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-    const {updateMerchant: updateSavedExpenseMerchant} = useUpdateTransactionMerchant({transactionID, transactionThreadReport: report});
+    const updateParams = useMoneyRequestUpdateParams(transactionID, report);
+    const {updateMerchant: updateSavedExpenseMerchant} = useUpdateTransactionMerchant({transactionID, updateParams});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();

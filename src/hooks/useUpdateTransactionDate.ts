@@ -11,9 +11,10 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import type {DuplicateTransactionsAndViolations} from './useDuplicateTransactionsAndViolations';
+import type {MoneyRequestUpdateParams} from './useMoneyRequestUpdateParams';
+
 import useDistanceRateOriginalPolicy from './useDistanceRateOriginalPolicy';
-import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
-import useMoneyRequestUpdateParams from './useMoneyRequestUpdateParams';
 import useNetwork from './useNetwork';
 import usePersonalPolicy from './usePersonalPolicy';
 import usePolicy from './usePolicy';
@@ -23,7 +24,11 @@ type UseUpdateTransactionDateParams = {
     /** Saved expense being written to */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+    /** What the write needs to recompute the expense's violations, read once by the caller */
+    updateParams: MoneyRequestUpdateParams;
+
+    /** The expense's duplicates, whose violations a new date can change, read once by the caller */
+    duplicates: DuplicateTransactionsAndViolations;
 
     /** Whether the expense is tracked rather than reported, which takes its distance rates from the workspace for moving expenses */
     isTrackExpense: boolean;
@@ -34,9 +39,9 @@ type UseUpdateTransactionDateResult = {
     updateDate: (created: string) => void;
 };
 
-function useUpdateTransactionDate({transaction, transactionThreadReport, isTrackExpense}: UseUpdateTransactionDateParams): UseUpdateTransactionDateResult {
+function useUpdateTransactionDate({transaction, updateParams: allUpdateParams, duplicates, isTrackExpense}: UseUpdateTransactionDateParams): UseUpdateTransactionDateResult {
     const transactionID = transaction?.transactionID;
-    const {policy, policyTagList, violations, ...updateParams} = useMoneyRequestUpdateParams(transactionID, transactionThreadReport);
+    const {policy, policyTagList, violations, ...updateParams} = allUpdateParams;
     const {isOffline} = useNetwork();
     const personalPolicy = usePersonalPolicy();
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
@@ -45,7 +50,6 @@ function useUpdateTransactionDate({transaction, transactionThreadReport, isTrack
     const customUnitRateID = isDistanceRequest(transaction) ? transaction?.comment?.customUnit?.customUnitRateID : undefined;
     const shouldLookupDistancePolicy = !!customUnitRateID && !getDistanceRateCustomUnitRate(effectivePolicy, customUnitRateID);
     const distanceOriginalPolicy = useDistanceRateOriginalPolicy(customUnitRateID, shouldLookupDistancePolicy);
-    const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
 
     const updateDate = (created: string) => {
         if (!transactionID) {
@@ -54,8 +58,8 @@ function useUpdateTransactionDate({transaction, transactionThreadReport, isTrack
         updateMoneyRequestDate({
             ...updateParams,
             transactionID,
-            transactions: duplicateTransactions,
-            transactionViolations: duplicateTransactionViolations,
+            transactions: duplicates.duplicateTransactions,
+            transactionViolations: duplicates.duplicateTransactionViolations,
             value: created,
             policy: effectivePolicy,
             policyForTrackExpense,

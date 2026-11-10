@@ -8,6 +8,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import useMoneyRequestUpdateParams from '@hooks/useMoneyRequestUpdateParams';
 import useNavigateBackOnSave from '@hooks/useNavigateBackOnSave';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -67,7 +68,8 @@ function DynamicIOURequestStepDescription({
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
-    const {updateDescription} = useUpdateTransactionDescription({transaction, transactionThreadReport: report});
+    const updateParams = useMoneyRequestUpdateParams(transaction?.transactionID, report);
+    const {updateDescription} = useUpdateTransactionDescription({transaction, updateParams});
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();

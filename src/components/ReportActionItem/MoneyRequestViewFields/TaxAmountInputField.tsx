@@ -6,6 +6,7 @@ import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
+import type {MoneyRequestUpdateParams} from '@hooks/useMoneyRequestUpdateParams';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUpdateTransactionTaxAmount from '@hooks/useUpdateTransactionTaxAmount';
 
@@ -25,7 +26,8 @@ type TaxAmountInputFieldProps = {
     /** Expense whose tax amount is edited */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+    /** What a save needs to recompute the expense's violations, read once by the expense view */
+    updateParams: MoneyRequestUpdateParams;
 
     /** Policy the tax rate belongs to, which caps the tax amount */
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -40,11 +42,11 @@ type TaxAmountInputFieldProps = {
     label: string;
 };
 
-function TaxAmountInputField({transaction, transactionThreadReport, policy, taxAmount, currency, label}: TaxAmountInputFieldProps) {
+function TaxAmountInputField({transaction, updateParams, policy, taxAmount, currency, label}: TaxAmountInputFieldProps) {
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
-    const {updateTaxAmount} = useUpdateTransactionTaxAmount({transactionID: transaction?.transactionID, transactionThreadReport, policy});
+    const {updateTaxAmount} = useUpdateTransactionTaxAmount({transactionID: transaction?.transactionID, updateParams, policy});
 
     const decimals = getCurrencyDecimals(currency);
     // The tax amount page caps the tax at what the expense's tax rate works out to, as the create form does.

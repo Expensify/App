@@ -32,10 +32,12 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
+import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useEnvironment from '@hooks/useEnvironment';
 import useHasMultipleSplitChildren from '@hooks/useHasMultipleSplitChildren';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMoneyRequestUpdateParams from '@hooks/useMoneyRequestUpdateParams';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -306,6 +308,9 @@ function MoneyRequestView({
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${getNonEmptyStringOnyxID(linkedTransactionID)}`);
     const transactionViolations = useTransactionViolations(transaction?.transactionID, false, distanceOriginalPolicy ?? policy);
     const allTransactionViolations = useAllTransactionViolations(transaction?.transactionID);
+    // Read once here and handed to every field that saves in place, rather than once per field.
+    const updateParams = useMoneyRequestUpdateParams(transaction?.transactionID, transactionThreadReport);
+    const duplicates = useDuplicateTransactionsAndViolations(transaction?.transactionID ? [transaction.transactionID] : []);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -1047,10 +1052,11 @@ function MoneyRequestView({
 
     const distanceCopyValue = distanceToDisplay || undefined;
     const distanceRateCopyValue = rateToDisplay || undefined;
-    const amountCopyValue = amountTitle || undefined;
+    // While a receipt is scanning, the amount and merchant show its status, which is not a value to copy.
+    const amountCopyValue = isTransactionScanning ? undefined : amountTitle || undefined;
     const descriptionHTML = updatedTransactionDescription ?? transactionDescription;
     const descriptionCopyValue = descriptionHTML ? Parser.htmlToText(descriptionHTML) : undefined;
-    const merchantCopyValue = updatedMerchantTitle;
+    const merchantCopyValue = isTransactionScanning ? undefined : updatedMerchantTitle || undefined;
     const dateCopyValue = actualTransactionDate;
     const categoryValue = updatedTransaction?.category ?? categoryForDisplay;
     const decodedCategoryName = getDecodedLeafCategoryName(categoryValue);
@@ -1179,6 +1185,15 @@ function MoneyRequestView({
             startOpenCategoryPickerSpan();
             Navigation.navigate(categoryRoute);
         }
+    };
+
+    const openMerchantPage = () => {
+        if (!transaction?.transactionID || !transactionThreadReport?.reportID) {
+            return;
+        }
+        Navigation.navigate(
+            createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport.reportID)),
+        );
     };
 
     const openVendorPage = () => {
@@ -1484,7 +1499,8 @@ function MoneyRequestView({
                 {canEditAmountInline ? (
                     <AmountInputField
                         transaction={transaction}
-                        transactionThreadReport={transactionThreadReport}
+                        updateParams={updateParams}
+                        duplicates={duplicates}
                         policy={policy}
                         policyCategories={policyCategories}
                         amount={actualAmount ?? 0}
@@ -1516,7 +1532,7 @@ function MoneyRequestView({
                     {canEdit ? (
                         <DescriptionInputField
                             transaction={transaction}
-                            transactionThreadReport={transactionThreadReport}
+                            updateParams={updateParams}
                             isReportInGroupPolicy={isPolicyExpenseChat}
                             hint={getCategoryDescriptionHint(policyCategories, transaction?.category, arePolicyRulesEnabled(policy, policyCategories))}
                             errorText={getErrorForField('comment')}
@@ -1542,7 +1558,7 @@ function MoneyRequestView({
                     {canEditMerchant && !isTransactionScanning ? (
                         <MerchantInputField
                             transaction={transaction}
-                            transactionThreadReport={transactionThreadReport}
+                            updateParams={updateParams}
                             errorText={getErrorForField('merchant')}
                         >
                             {shouldShowGoogleMerchantSearchLink && renderGoogleMerchantSearchLink()}
@@ -1553,9 +1569,11 @@ function MoneyRequestView({
                                 name={translate('common.merchant')}
                                 value={updatedMerchantTitle}
                                 numberOfLinesValue={0}
-                                copyValue={merchantCopyValue || undefined}
+                                // A merchant still being scanned can't be typed over in place, so it keeps its page.
+                                onPress={openMerchantPage}
+                                copyValue={merchantCopyValue}
                                 errorText={getErrorForField('merchant')}
-                                isInteractive={false}
+                                isInteractive={canEditMerchant}
                                 sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.MERCHANT_FIELD}
                             />
                             {shouldShowGoogleMerchantSearchLink && <View style={[styles.mh4, styles.mb2]}>{renderGoogleMerchantSearchLink()}</View>}
@@ -1567,7 +1585,8 @@ function MoneyRequestView({
                 {canEditDate ? (
                     <DateInputField
                         transaction={transaction}
-                        transactionThreadReport={transactionThreadReport}
+                        updateParams={updateParams}
+                        duplicates={duplicates}
                         isTrackExpense={isTrackExpense}
                         label={dateDescription}
                         errorText={dateError}
@@ -1668,7 +1687,7 @@ function MoneyRequestView({
                     {canEditTaxAmountInline ? (
                         <TaxAmountInputField
                             transaction={transaction}
-                            transactionThreadReport={transactionThreadReport}
+                            updateParams={updateParams}
                             policy={policy}
                             taxAmount={Math.abs(transactionTaxAmount ?? 0)}
                             currency={currency}

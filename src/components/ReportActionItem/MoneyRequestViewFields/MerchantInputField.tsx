@@ -6,6 +6,7 @@ import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
 import useMirroredInputValue from '@hooks/useMirroredInputValue';
+import type {MoneyRequestUpdateParams} from '@hooks/useMoneyRequestUpdateParams';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUpdateTransactionMerchant from '@hooks/useUpdateTransactionMerchant';
 
@@ -27,7 +28,8 @@ type MerchantInputFieldProps = {
     /** Expense whose merchant is edited */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+    /** What a save needs to recompute the expense's violations, read once by the expense view */
+    updateParams: MoneyRequestUpdateParams;
 
     /** Violation message for the merchant, shown while the typed value has no error of its own */
     errorText?: string;
@@ -36,10 +38,10 @@ type MerchantInputFieldProps = {
     children?: ReactNode;
 };
 
-function MerchantInputField({transaction, transactionThreadReport, errorText = '', children}: MerchantInputFieldProps) {
+function MerchantInputField({transaction, updateParams, errorText = '', children}: MerchantInputFieldProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {updateMerchant} = useUpdateTransactionMerchant({transactionID: transaction?.transactionID, transactionThreadReport});
+    const {updateMerchant} = useUpdateTransactionMerchant({transactionID: transaction?.transactionID, updateParams});
 
     const merchant = getTransactionDetails(transaction)?.merchant;
     const savedMerchant = isInvalidMerchantValue(merchant) ? '' : (merchant ?? '');
@@ -55,7 +57,7 @@ function MerchantInputField({transaction, transactionThreadReport, errorText = '
         }
         // The merchant page saves the value after its form strips invisible characters, and then trims it.
         const newMerchant = StringUtils.removeInvisibleCharacters(typedMerchant).trim();
-        const merchantError = getInlineMerchantErrorMessage(translate, newMerchant, isMerchantRequired(transactionThreadReport, transaction));
+        const merchantError = getInlineMerchantErrorMessage(translate, newMerchant, isMerchantRequired(updateParams.transactionThreadReport, transaction));
         if (merchantError) {
             setInputError(merchantError);
             return;

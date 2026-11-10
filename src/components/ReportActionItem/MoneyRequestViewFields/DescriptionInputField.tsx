@@ -6,6 +6,7 @@ import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
 import useMirroredInputValue from '@hooks/useMirroredInputValue';
+import type {MoneyRequestUpdateParams} from '@hooks/useMoneyRequestUpdateParams';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUpdateTransactionDescription from '@hooks/useUpdateTransactionDescription';
 
@@ -28,7 +29,8 @@ type DescriptionInputFieldProps = {
     /** Expense whose description is edited */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+    /** What a save needs to recompute the expense's violations, read once by the expense view */
+    updateParams: MoneyRequestUpdateParams;
 
     /** Whether the expense is on a group workspace, where a description can mention a room */
     isReportInGroupPolicy: boolean;
@@ -40,10 +42,10 @@ type DescriptionInputFieldProps = {
     errorText?: string;
 };
 
-function DescriptionInputField({transaction, transactionThreadReport, isReportInGroupPolicy, hint, errorText = ''}: DescriptionInputFieldProps) {
+function DescriptionInputField({transaction, updateParams, isReportInGroupPolicy, hint, errorText = ''}: DescriptionInputFieldProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {updateDescription} = useUpdateTransactionDescription({transaction, transactionThreadReport});
+    const {updateDescription} = useUpdateTransactionDescription({transaction, updateParams});
 
     // The saved description is HTML, so it is compared and edited as markdown.
     const savedDescription = Parser.htmlToMarkdown(getDescription(transaction));

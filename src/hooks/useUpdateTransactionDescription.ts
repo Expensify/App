@@ -11,14 +11,16 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import useMoneyRequestUpdateParams from './useMoneyRequestUpdateParams';
+import type {MoneyRequestUpdateParams} from './useMoneyRequestUpdateParams';
+
 import useOnyx from './useOnyx';
 
 type UseUpdateTransactionDescriptionParams = {
     /** Saved expense being written to */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+    /** What the write needs to recompute the expense's violations, read once by the caller */
+    updateParams: MoneyRequestUpdateParams;
 };
 
 type UseUpdateTransactionDescriptionResult = {
@@ -26,10 +28,9 @@ type UseUpdateTransactionDescriptionResult = {
     updateDescription: (description: string) => void;
 };
 
-function useUpdateTransactionDescription({transaction, transactionThreadReport}: UseUpdateTransactionDescriptionParams): UseUpdateTransactionDescriptionResult {
+function useUpdateTransactionDescription({transaction, updateParams}: UseUpdateTransactionDescriptionParams): UseUpdateTransactionDescriptionResult {
     const transactionID = transaction?.transactionID;
-    const updateParams = useMoneyRequestUpdateParams(transactionID, transactionThreadReport);
-    const [policyVendors] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${getNonEmptyStringOnyxID(transactionThreadReport?.policyID)}`);
+    const [policyVendors] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${getNonEmptyStringOnyxID(updateParams.transactionThreadReport?.policyID)}`);
 
     const updateDescription = (description: string) => {
         if (!transactionID) {

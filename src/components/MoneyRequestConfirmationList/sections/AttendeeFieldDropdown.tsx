@@ -5,6 +5,7 @@
 import AttendeePickerModal from '@components/AttendeePicker/AttendeePickerModal';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 
+import useMoneyRequestUpdateParams from '@hooks/useMoneyRequestUpdateParams';
 import useOnyx from '@hooks/useOnyx';
 import useReportOwnerAsAttendee from '@hooks/useReportOwnerAsAttendee';
 import useUpdateTransactionAttendees from '@hooks/useUpdateTransactionAttendees';
@@ -40,7 +41,8 @@ function AttendeeFieldDropdown({transactionID, iouType, isVisible, onClose, ...p
     // A saved expense being edited is read as saved, and anything else from its draft, the same as the full page reads it.
     const [transaction] = useOnyx(`${isEditing ? ONYXKEYS.COLLECTION.TRANSACTION : ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const {updateAttendees} = useUpdateTransactionAttendees({transactionID, report, isEditing});
+    const updateParams = useMoneyRequestUpdateParams(transactionID, report);
+    const {updateAttendees} = useUpdateTransactionAttendees({transactionID, updateParams, isEditing});
     const reportOwnerAsAttendee = useReportOwnerAsAttendee(transaction);
     const originalAttendees = getOriginalAttendees(transaction, reportOwnerAsAttendee);
 

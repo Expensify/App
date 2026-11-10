@@ -3,6 +3,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import useMoneyRequestUpdateParams from '@hooks/useMoneyRequestUpdateParams';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
@@ -66,7 +67,8 @@ function DynamicIOURequestStepTaxAmountPage({
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.path);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-    const {updateTaxAmount: updateSavedExpenseTaxAmount} = useUpdateTransactionTaxAmount({transactionID, transactionThreadReport: report, policy});
+    const updateParams = useMoneyRequestUpdateParams(transactionID, report);
+    const {updateTaxAmount: updateSavedExpenseTaxAmount} = useUpdateTransactionTaxAmount({transactionID, updateParams, policy});
 
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();

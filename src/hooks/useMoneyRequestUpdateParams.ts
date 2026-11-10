@@ -59,4 +59,7 @@ function useMoneyRequestUpdateParams(transactionID: string | undefined, transact
     };
 }
 
+type MoneyRequestUpdateParams = ReturnType<typeof useMoneyRequestUpdateParams>;
+
 export default useMoneyRequestUpdateParams;
+export type {MoneyRequestUpdateParams};

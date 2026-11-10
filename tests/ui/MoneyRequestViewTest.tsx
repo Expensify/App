@@ -249,6 +249,35 @@ describe('MoneyRequestView edit fields', () => {
         expect(screen.getByLabelText(amountLabel).props.value).toBe('-50.00');
     });
 
+    it('keeps the merchant of a receipt being scanned as a field that opens its page', async () => {
+        // Given an open expense whose receipt is still being scanned, so its merchant is not known yet
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                amount: 0,
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING, source: 'receipt.jpg'},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the expense view renders
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the merchant shows the scan's status in a field that can still be pressed to open the merchant page, as it
+        // could before, instead of an input that would invite typing over a value the scan is about to fill in
+        await waitFor(() => {
+            expect(screen.getByRole('button', {name: fieldLabel('common.merchant')})).toHaveTextContent(/iou\.receiptStatusTitle$/);
+        });
+        expect(screen.queryByDisplayValue('iou.receiptStatusTitle')).not.toBeOnTheScreen();
+    });
+
     it('locks the fields of a settled expense', async () => {
         // Given a settled expense, whose amount, merchant and date can no longer be edited
         const threadReport = {

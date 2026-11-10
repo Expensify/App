@@ -9,15 +9,20 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
-import useMoneyRequestUpdateParams from './useMoneyRequestUpdateParams';
+import type {DuplicateTransactionsAndViolations} from './useDuplicateTransactionsAndViolations';
+import type {MoneyRequestUpdateParams} from './useMoneyRequestUpdateParams';
+
 import useOnyx from './useOnyx';
 
 type UseUpdateTransactionAmountParams = {
     /** Saved expense being written to */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+    /** What the write needs to recompute the expense's violations, read once by the caller */
+    updateParams: MoneyRequestUpdateParams;
+
+    /** The expense's duplicates, whose violations a new amount can change, read once by the caller */
+    duplicates: DuplicateTransactionsAndViolations;
 
     /** Policy the tax of the new amount is worked out against. For an unreported expense it is the workspace the expense would move to */
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -31,10 +36,8 @@ type UseUpdateTransactionAmountResult = {
     updateAmount: (amount: number, currency: string) => void;
 };
 
-function useUpdateTransactionAmount({transaction, transactionThreadReport, policy, policyCategories}: UseUpdateTransactionAmountParams): UseUpdateTransactionAmountResult {
+function useUpdateTransactionAmount({transaction, updateParams, duplicates, policy, policyCategories}: UseUpdateTransactionAmountParams): UseUpdateTransactionAmountResult {
     const transactionID = transaction?.transactionID;
-    const updateParams = useMoneyRequestUpdateParams(transactionID, transactionThreadReport);
-    const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
 
     const updateAmount = (amount: number, currency: string) => {
@@ -45,13 +48,13 @@ function useUpdateTransactionAmount({transaction, transactionThreadReport, polic
             policy,
             transactionID,
             transaction,
-            transactionThreadReport,
+            transactionThreadReport: updateParams.transactionThreadReport,
             parentReport: updateParams.parentReport,
             iouReportOwnerLogin: updateParams.iouReportOwnerLogin,
             amount,
             currency,
-            duplicateTransactions,
-            duplicateTransactionViolations,
+            duplicateTransactions: duplicates.duplicateTransactions,
+            duplicateTransactionViolations: duplicates.duplicateTransactionViolations,
             policyCategories,
             currentUserAccountID: updateParams.currentUserAccountIDParam,
             currentUserEmail: updateParams.currentUserEmailParam,

@@ -1,5 +1,6 @@
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import useMoneyRequestUpdateParams from '@hooks/useMoneyRequestUpdateParams';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useReportOwnerAsAttendee from '@hooks/useReportOwnerAsAttendee';
@@ -37,7 +38,8 @@ function DynamicIOURequestStepAttendees({
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [transaction] = useOnyx(`${isEditing ? ONYXKEYS.COLLECTION.TRANSACTION : ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID || CONST.DEFAULT_NUMBER_ID}`);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const {updateAttendees} = useUpdateTransactionAttendees({transactionID, report, isEditing});
+    const updateParams = useMoneyRequestUpdateParams(transactionID, report);
+    const {updateAttendees} = useUpdateTransactionAttendees({transactionID, updateParams, isEditing});
     const reportOwnerAsAttendee = useReportOwnerAsAttendee(transaction);
     const [attendees, setAttendees] = useState<Attendee[]>(() => getOriginalAttendees(transaction, reportOwnerAsAttendee));
     const previousAttendees = usePrevious(attendees);

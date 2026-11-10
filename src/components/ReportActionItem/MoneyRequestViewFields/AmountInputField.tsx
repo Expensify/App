@@ -7,7 +7,9 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import type {DuplicateTransactionsAndViolations} from '@hooks/useDuplicateTransactionsAndViolations';
 import useLocalize from '@hooks/useLocalize';
+import type {MoneyRequestUpdateParams} from '@hooks/useMoneyRequestUpdateParams';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUpdateTransactionAmount from '@hooks/useUpdateTransactionAmount';
 
@@ -31,7 +33,11 @@ type AmountInputFieldProps = {
     /** Expense whose amount is edited */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+    /** What a save needs to recompute the expense's violations, read once by the expense view */
+    updateParams: MoneyRequestUpdateParams;
+
+    /** The expense's duplicates, whose violations a save can change, read once by the expense view */
+    duplicates: DuplicateTransactionsAndViolations;
 
     /** Policy the tax of the new amount is worked out against */
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -68,7 +74,8 @@ type AmountInputFieldProps = {
 
 function AmountInputField({
     transaction,
-    transactionThreadReport,
+    updateParams,
+    duplicates,
     policy,
     policyCategories,
     amount,
@@ -84,7 +91,7 @@ function AmountInputField({
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
-    const {updateAmount} = useUpdateTransactionAmount({transaction, transactionThreadReport, policy, policyCategories});
+    const {updateAmount} = useUpdateTransactionAmount({transaction, updateParams, duplicates, policy, policyCategories});
     const currencyButtonRef = useRef<View>(null);
 
     const decimals = getCurrencyDecimals(currency);

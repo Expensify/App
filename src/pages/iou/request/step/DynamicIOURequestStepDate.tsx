@@ -4,8 +4,10 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import useMoneyRequestUpdateParams from '@hooks/useMoneyRequestUpdateParams';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
@@ -66,7 +68,9 @@ function DynamicIOURequestStepDate({
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
     const policyForTrackExpense = usePolicy(isTrackExpense ? policyForMovingExpensesID : undefined);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-    const {updateDate: updateSavedExpenseDate} = useUpdateTransactionDate({transaction, transactionThreadReport: report, isTrackExpense});
+    const updateParams = useMoneyRequestUpdateParams(transactionID, report);
+    const duplicates = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
+    const {updateDate: updateSavedExpenseDate} = useUpdateTransactionDate({transaction, updateParams, duplicates, isTrackExpense});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
