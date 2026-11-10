@@ -22,8 +22,7 @@ const OTHER_WORKSPACE_CHAT_ID = 'otherWorkspaceChat';
 jest.mock('@hooks/useDefaultExpensePolicy', () => ({__esModule: true, default: () => ({id: 'defaultPolicy', autoReporting: true})}));
 jest.mock('@hooks/usePersonalPolicy', () => ({__esModule: true, default: () => undefined}));
 jest.mock('@hooks/useSelfDMReport', () => ({__esModule: true, default: () => ({reportID: 'selfDM'})}));
-// Run the selector on an empty collection, so the policy expense chat comes from the mocked getPolicyExpenseChat below
-jest.mock('@hooks/useOnyx', () => ({__esModule: true, default: (_key: string, options?: {selector?: (value: unknown) => unknown}) => [options?.selector?.({})]}));
+jest.mock('@hooks/useOnyx', () => ({__esModule: true, default: () => [undefined]}));
 jest.mock('@libs/shouldUseDefaultExpensePolicy', () => ({__esModule: true, default: () => true}));
 jest.mock('@libs/ReportUtils', () => ({
     getPolicyExpenseChat: () => ({reportID: 'defaultWorkspaceChat', policyID: 'defaultPolicy'}),
@@ -85,7 +84,8 @@ describe('navigateGlobalCreate', () => {
         // When the receipts are captured
         navigateGlobalCreate(['t1', 't2'], false);
 
-        // Then every draft is flagged as global create so the workspace stays editable on the confirmation page
+        // Then every draft is flagged as global create so the workspace stays editable on the confirmation page, once the workspace chat is read
+        await waitForBatchedUpdates();
         expect(setTransactionReport).toHaveBeenCalledWith('t1', {reportID: DEFAULT_WORKSPACE_CHAT_ID, isFromGlobalCreate: true}, true);
         expect(setTransactionReport).toHaveBeenCalledWith('t2', {reportID: DEFAULT_WORKSPACE_CHAT_ID, isFromGlobalCreate: true}, true);
         expect(setMoneyRequestParticipantsFromReport).toHaveBeenCalledTimes(2);
@@ -104,7 +104,8 @@ describe('navigateGlobalCreate', () => {
         // When the receipt is captured again
         navigateGlobalCreate(['t1'], false);
 
-        // Then the chosen workspace is kept and the draft is still flagged as global create so it can be changed again
+        // Then the chosen workspace is kept and the draft is still flagged as global create so it can be changed again, once the workspace chat is read
+        await waitForBatchedUpdates();
         expect(setMoneyRequestParticipants).toHaveBeenCalledWith('t1', participants);
         expect(setTransactionReport).toHaveBeenCalledWith('t1', {isFromGlobalCreate: true}, true);
     });

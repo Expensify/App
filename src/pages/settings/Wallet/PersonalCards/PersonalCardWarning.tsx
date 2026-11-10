@@ -7,7 +7,6 @@ import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import useCardFeedsForActivePolicies from '@hooks/useCardFeedsForActivePolicies';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
@@ -20,6 +19,7 @@ import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 function PersonalCardWarning() {
     const styles = useThemeStyles();
@@ -34,18 +34,21 @@ function PersonalCardWarning() {
     const adminPolicyIdsInCardFeeds = Object.keys(cardFeedsByPolicy).filter((policyID) => adminPolicyIds.has(policyID));
     const adminPoliciesCountInCardFeeds = adminPolicyIdsInCardFeeds.length;
     const isAdmin = adminPoliciesCountInCardFeeds > 0;
-    const nonAdminPolicyID = !isAdmin ? Object.keys(cardFeedsByPolicy).find((key) => !!key) : undefined;
-    const [expenseChatReportID] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => getPolicyExpenseChat(accountID, nonAdminPolicyID, reports ?? {})?.reportID});
 
     const onPrimaryActionPress = () => {
         if (!isAdmin) {
-            if (!nonAdminPolicyID) {
+            const policyID = Object.keys(cardFeedsByPolicy).find((key) => !!key);
+            if (!policyID) {
                 return;
             }
-            if (expenseChatReportID) {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(expenseChatReportID));
-                return;
-            }
+            // The workspace chat is only needed on press, so read it once here instead of subscribing to every report.
+            // A non-admin has no admin card feeds, so without the chat this falls back to the workspaces list.
+            // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces getPolicyExpenseChat's module-level Onyx.connect fallback, which never read a Search snapshot
+            Onyx.get(ONYXKEYS.COLLECTION.REPORT).then((reports) => {
+                const expenseChatReportID = getPolicyExpenseChat(accountID, policyID, reports)?.reportID;
+                Navigation.navigate(expenseChatReportID ? ROUTES.REPORT_WITH_ID.getRoute(expenseChatReportID) : ROUTES.WORKSPACES_LIST.route);
+            });
+            return;
         }
         if (adminPoliciesCountInCardFeeds === 1) {
             const adminPolicyID = adminPolicyIdsInCardFeeds.at(0);

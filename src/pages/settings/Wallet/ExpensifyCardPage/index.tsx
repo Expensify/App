@@ -92,6 +92,7 @@ import type {ValueOf} from 'type-fest';
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 type ExpensifyCardPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD>
@@ -281,15 +282,16 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
         });
     };
 
-    const [cardHolderWorkspaceChatReportID] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        selector: (reports) => getPolicyExpenseChat(currentCard?.accountID, policyIDForCurrentCard, reports ?? {})?.reportID,
-    });
-
     const handleAskToUnfreezePress = () => {
-        if (!cardHolderWorkspaceChatReportID) {
-            return;
-        }
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(cardHolderWorkspaceChatReportID));
+        // The workspace chat is only needed on press, so read it once here instead of subscribing to every report
+        // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces getPolicyExpenseChat's module-level Onyx.connect fallback, which never read a Search snapshot
+        Onyx.get(ONYXKEYS.COLLECTION.REPORT).then((reports) => {
+            const cardHolderWorkspaceChatReportID = getPolicyExpenseChat(currentCard?.accountID, policyIDForCurrentCard, reports)?.reportID;
+            if (!cardHolderWorkspaceChatReportID) {
+                return;
+            }
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(cardHolderWorkspaceChatReportID));
+        });
     };
 
     const navigateToTransactions = () => navigateToCardTransactions(cardID);

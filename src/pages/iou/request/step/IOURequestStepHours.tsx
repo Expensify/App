@@ -33,6 +33,7 @@ import SCREENS from '@src/SCREENS';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
+import Onyx from 'react-native-onyx';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -67,9 +68,6 @@ function IOURequestStepHours({
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {accountID} = useCurrentUserPersonalDetails();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [policyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        selector: (reports) => getPolicyExpenseChat(accountID, isEmbeddedInStartPage ? explicitPolicyID : undefined, reports ?? {}),
-    });
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const defaultPolicyRate = getDefaultTimeTrackingRate(policy);
     const rate = transaction?.comment?.units?.rate ?? defaultPolicyRate;
@@ -142,15 +140,21 @@ function IOURequestStepHours({
 
         if (isEmbeddedInStartPage) {
             if (explicitPolicyID) {
-                if (!policyExpenseChat) {
-                    console.error(`Couldn't find policy expense chat for policyID: ${policyID}`);
-                    return;
-                }
+                // The workspace chat is only needed on submit, so read it once here instead of subscribing to every report
+                // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces getPolicyExpenseChat's module-level Onyx.connect fallback, which never read a Search snapshot
+                Onyx.get(ONYXKEYS.COLLECTION.REPORT).then((reports) => {
+                    const policyExpenseChat = getPolicyExpenseChat(accountID, policyID, reports);
+                    if (!policyExpenseChat) {
+                        console.error(`Couldn't find policy expense chat for policyID: ${policyID}`);
+                        return;
+                    }
 
-                setTransactionReport(transactionID, {reportID: policyExpenseChat.reportID}, isTransactionDraft);
-                setMoneyRequestParticipantsFromReport(transactionID, policyExpenseChat, accountID);
+                    setTransactionReport(transactionID, {reportID: policyExpenseChat.reportID}, isTransactionDraft);
+                    setMoneyRequestParticipantsFromReport(transactionID, policyExpenseChat, accountID);
 
-                return Navigation.setNavigationActionToMicrotaskQueue(() => navigateToConfirmationPage(iouType, transactionID, policyExpenseChat.reportID, backToReport));
+                    Navigation.setNavigationActionToMicrotaskQueue(() => navigateToConfirmationPage(iouType, transactionID, policyExpenseChat.reportID, backToReport));
+                });
+                return;
             }
             setMoneyRequestParticipantsFromReport(transactionID, report, accountID);
         }
