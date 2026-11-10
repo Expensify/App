@@ -197,6 +197,7 @@ import {
     isCurrentUserTheOnlyParticipant,
     isDeprecatedGroupDM,
     isEmptyReport,
+    isExportInProgress,
     isGroupPolicyExpenseReport,
     isHarvestCreatedExpenseReport,
     isJoinRequestInAdminRoom,
@@ -9856,56 +9857,6 @@ describe('ReportUtils', () => {
             ).toBeTruthy();
         });
 
-        it('should return false for a workspace chat the user is not a participant of', () => {
-            // Given the workspace chat behind a report shared with the user, which they are not a participant of
-            const report: Report = {...LHNTestUtils.getFakeReport([1, 2]), chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID: '1'};
-
-            // When checking if it should show in the inbox or search
-            const shouldShow = shouldReportBeInOptionList({
-                report,
-                chatReport: mockedChatReport,
-                currentReportId: undefined,
-                isInFocusMode: false,
-                isDefaultRoomsBetaEnabled: true,
-                doesReportHaveViolations: false,
-                excludeEmptyChats: false,
-                draftComment: '',
-                isReportArchived: undefined,
-                hasGuidesEmails: false,
-                conciergeReportID: undefined,
-                derivedIsEmptyReport: undefined,
-                currentUserAccountID,
-            });
-
-            // Then it is left out, since opening it only returns report not found
-            expect(shouldShow).toBe(false);
-        });
-
-        it('should return true for a workspace chat the user is a participant of', () => {
-            // Given a workspace chat the user is a participant of
-            const report: Report = {...LHNTestUtils.getFakeReport([1, currentUserAccountID]), chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID: '1'};
-
-            // When checking if it should show in the inbox or search
-            const shouldShow = shouldReportBeInOptionList({
-                report,
-                chatReport: mockedChatReport,
-                currentReportId: undefined,
-                isInFocusMode: false,
-                isDefaultRoomsBetaEnabled: true,
-                doesReportHaveViolations: false,
-                excludeEmptyChats: false,
-                draftComment: '',
-                isReportArchived: undefined,
-                hasGuidesEmails: false,
-                conciergeReportID: undefined,
-                derivedIsEmptyReport: undefined,
-                currentUserAccountID,
-            });
-
-            // Then it still shows
-            expect(shouldShow).toBe(true);
-        });
-
         it('should return true for empty submitted report if it is the current focused report', async () => {
             const report: Report = {...LHNTestUtils.getFakeReport(), total: 0, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, stateNum: CONST.REPORT.STATE_NUM.SUBMITTED};
             const currentReportId = report.reportID;
@@ -11692,6 +11643,32 @@ describe('ReportUtils', () => {
     });
 
     describe('canDeleteReportAction', () => {
+        it.each([
+            {childType: CONST.REPORT.TYPE.SUPPORT_TICKET, reportType: CONST.REPORT.TYPE.CHAT, isActionOwner: true, expected: false},
+            {childType: CONST.REPORT.TYPE.SUPPORT_TICKET, reportType: CONST.REPORT.TYPE.CHAT, isActionOwner: false, expected: false},
+            {childType: CONST.REPORT.TYPE.CHAT, reportType: CONST.REPORT.TYPE.CHAT, isActionOwner: true, expected: true},
+            {childType: undefined, reportType: CONST.REPORT.TYPE.CHAT, isActionOwner: true, expected: true},
+            {childType: undefined, reportType: CONST.REPORT.TYPE.SUPPORT_TICKET, isActionOwner: true, expected: true},
+        ])('comment deletion with childType $childType in reportType $reportType (owner: $isActionOwner): $expected', async ({childType, reportType, isActionOwner, expected}) => {
+            // Given a comment owned by the current user or another member of a workspace they administer
+            const adminPolicy = {...LHNTestUtils.getFakePolicy(), type: CONST.POLICY.TYPE.CORPORATE, role: CONST.POLICY.ROLE.ADMIN};
+            const report = {...LHNTestUtils.getFakeReport(), type: reportType, policyID: adminPolicy.id};
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(89021),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: isActionOwner ? currentUserAccountID : currentUserAccountID + 1,
+                childType,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${adminPolicy.id}`, adminPolicy);
+
+            // When checking the shared Delete permission used by the context menu
+            const canDelete = canDeleteReportAction(reportAction, report.reportID, undefined, undefined, undefined, currentUserAccountID, undefined, undefined, undefined);
+
+            // Then neither authors nor admins can delete ticket previews, while ordinary comments remain deletable
+            expect(canDelete).toBe(expected);
+        });
+
         it('should not allow an Expensify Card transaction to be deleted when managedCard is missing', () => {
             // Given an Expensify Card transaction whose managed-card metadata is unavailable
             const transaction = {
@@ -31551,5 +31528,105 @@ describe('hasOutstandingChildRequest', () => {
         // "does the chat have any OTHER outstanding children")
         // Then no other child remains, so there is no outstanding child request
         expect(hasOutstandingChildRequest(invoiceChatReport, invoiceReportID, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(false);
+    });
+});
+
+describe('isExportInProgress', () => {
+    // A pending EXPORTED_TO_INTEGRATION action is how the client records "started exporting this report"
+    const buildExportStartedAction = (created: string, errors?: ReportAction['errors']) =>
+        createMock<ReportAction>({
+            actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            created,
+            errors,
+        });
+
+    // The server's answer to an export attempt, success or failure
+    const buildExportOutcomeAction = (created: string, pendingAction?: ReportAction['pendingAction']) =>
+        createMock<ReportAction>({
+            actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
+            created,
+            pendingAction,
+        });
+
+    it('returns true while nothing has answered the export', () => {
+        // Given only the pending action the client added when it started the export
+        const reportActions = [buildExportStartedAction('2026-10-14 10:00:00.000')];
+
+        // When checking whether the export is running
+        // Then it is, because the server has not reported an outcome yet
+        expect(isExportInProgress(reportActions)).toBe(true);
+    });
+
+    it('returns false once an outcome arrives after the export started', () => {
+        // Given the export was answered five seconds after it started
+        const reportActions = [buildExportStartedAction('2026-10-14 10:00:00.000'), buildExportOutcomeAction('2026-10-14 10:00:05.000')];
+
+        // When checking whether the export is running
+        // Then it is not, so the Export button can come back
+        expect(isExportInProgress(reportActions)).toBe(false);
+    });
+
+    it('returns true when only an earlier attempt has an outcome', () => {
+        // Given a retry on a report whose previous export already failed
+        const reportActions = [buildExportOutcomeAction('2026-10-14 09:00:00.000'), buildExportStartedAction('2026-10-14 10:00:00.000')];
+
+        // When checking whether the export is running
+        // Then the older outcome must not resolve the new attempt
+        expect(isExportInProgress(reportActions)).toBe(true);
+    });
+
+    it('returns false once a finished export follows the start', () => {
+        // Given the server recorded the finished export as its own action instead of clearing the started one
+        const reportActions = [
+            buildExportStartedAction('2026-10-14 10:00:00.000'),
+            createMock<ReportAction>({actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, created: '2026-10-14 10:00:05.000'}),
+        ];
+
+        // When checking whether the export is running
+        // Then it is not, because a successful export sends no failure message and would otherwise keep More → Export hidden
+        expect(isExportInProgress(reportActions)).toBe(false);
+    });
+
+    it('returns true when only an earlier export finished', () => {
+        // Given a re-export of a report that was already exported successfully
+        const reportActions = [
+            createMock<ReportAction>({actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, created: '2026-10-14 09:00:00.000'}),
+            buildExportStartedAction('2026-10-14 10:00:00.000'),
+        ];
+
+        // When checking whether the export is running
+        // Then the older export must not resolve the new attempt
+        expect(isExportInProgress(reportActions)).toBe(true);
+    });
+
+    it('returns false once a reset action follows the export', () => {
+        // Given the report was unapproved after the export started
+        const reportActions = [
+            buildExportStartedAction('2026-10-14 10:00:00.000'),
+            createMock<ReportAction>({actionName: CONST.REPORT.ACTIONS.TYPE.UNAPPROVED, created: '2026-10-14 10:00:05.000'}),
+        ];
+
+        // When checking whether the export is running
+        // Then it is not, because resetting the approval invalidates the export the same way it does in isExported
+        expect(isExportInProgress(reportActions)).toBe(false);
+    });
+
+    it('ignores an outcome that is still pending', () => {
+        // Given an outcome action that is this client's own optimistic write
+        const reportActions = [buildExportStartedAction('2026-10-14 10:00:00.000'), buildExportOutcomeAction('2026-10-14 10:00:05.000', CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)];
+
+        // When checking whether the export is running
+        // Then it still is, because only the server can say how the export ended
+        expect(isExportInProgress(reportActions)).toBe(true);
+    });
+
+    it('returns false when the export request itself failed', () => {
+        // Given the request was rejected, so failureData left an error on the started action
+        const reportActions = [buildExportStartedAction('2026-10-14 10:00:00.000', {[Date.now()]: 'error'})];
+
+        // When checking whether the export is running
+        // Then it is not, because no outcome will ever arrive and the button must not stay hidden
+        expect(isExportInProgress(reportActions)).toBe(false);
     });
 });

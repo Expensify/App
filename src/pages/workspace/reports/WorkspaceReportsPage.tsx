@@ -143,7 +143,10 @@ function WorkspaceReportFieldsPage({
                                 onClose={clearTitleFieldError}
                             >
                                 <View style={styles.mt6}>
-                                    <MenuItemSectionRoot onPress={canWriteReportFields ? () => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID)) : undefined}>
+                                    <MenuItemSectionRoot
+                                        onPress={canWriteReportFields ? () => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID)) : undefined}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORTS.CUSTOM_NAME_TITLE}
+                                    >
                                         <MenuItemField.Row
                                             name={translate('workspace.reports.customNameTitle')}
                                             value={titleField?.defaultValue ? Str.htmlDecode(titleField.defaultValue) : undefined}
@@ -207,6 +210,8 @@ function WorkspaceReportFieldsPage({
                             syncErrorConnectionNames={CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES}
                             titleAccessibilityRole={CONST.ROLE.HEADER}
                             switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.ENABLE_SWITCH}
+                            rowSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.ROW}
+                            addFieldSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.ADD_FIELD}
                         />
                     </ScrollView>
                 )}

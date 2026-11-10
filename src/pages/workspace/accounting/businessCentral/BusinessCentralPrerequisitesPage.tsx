@@ -88,6 +88,7 @@ function BusinessCentralPrerequisitesPage({route}: BusinessCentralPrerequisitesP
                 addBottomSafeAreaPadding
             >
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL.PREREQUISITES_NEXT}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_SETUP.getRoute(policyID))}
                     size={CONST.BUTTON_SIZE.LARGE}
