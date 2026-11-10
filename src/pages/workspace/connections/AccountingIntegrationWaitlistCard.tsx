@@ -32,6 +32,8 @@ import {View} from 'react-native';
 type AccountingIntegrationWaitlistCardProps = {
     connectionName: AccountingIntegrationWaitlistConnectionName;
     title: string;
+
+    /** Local asset, or a remote logo URL */
     icon?: IconAsset | string;
     policyID: string;
 
