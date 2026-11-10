@@ -13,4 +13,4 @@
 - Reason: Chrome and Safari can replace text before the cached selection changes. Reconstructing every `insertText` event from that selection restores the word the browser replaced. Limit reconstruction to Firefox, where it preserves a line break removed while typing after a code fence. Native markdown handling and Firefox behavior are unchanged.
 - Upstream PR/issue: No upstream PR yet; this is a contained web mitigation for the deploy blocker. The original macOS keyboard event sequence still needs verification before an upstream change.
 - E/App issue: https://github.com/Expensify/App/issues/106439
-- PR introducing patch: See the pull request linked to the E/App issue above.
+- PR introducing patch: https://github.com/Expensify/App/pull/106440
