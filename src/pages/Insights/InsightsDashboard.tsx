@@ -415,7 +415,16 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             ) : (
                 (!!tabSelector || !!pageControls) && (
                     <View style={[pageGutter, styles.pb5, styles.insightsPageControlsContainer]}>
-                        <View style={[styles.centeredContentWidthLimiter, styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
+                        <View
+                            style={[
+                                styles.centeredContentWidthLimiter,
+                                styles.flexRow,
+                                styles.flexWrap,
+                                styles.alignItemsCenter,
+                                tabSelector ? styles.justifyContentBetween : styles.justifyContentEnd,
+                                styles.gap2,
+                            ]}
+                        >
                             {tabSelector}
                             {pageControls}
                         </View>
