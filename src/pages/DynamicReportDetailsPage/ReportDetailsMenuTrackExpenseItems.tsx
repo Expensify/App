@@ -110,6 +110,7 @@ function ReportDetailsMenuTrackExpenseItems({reportID, requestData}: ReportDetai
                 nor for a user restricted to one workspace. */}
                 {!isSelfDMExpenseSplit && !isRestrictedToPreferredPolicy && !isPerDiemRequest(iouTransaction) && !isTimeRequest(iouTransaction) && (
                     <MenuItemNavigation
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.TRACK_EXPENSE_SUBMIT_TO_FRIEND}
                         title={translate('actionableMentionTrackExpense.submitToFriend')}
                         icon={expensifyIcons.Send}
                         onPress={() => {
@@ -123,6 +124,7 @@ function ReportDetailsMenuTrackExpenseItems({reportID, requestData}: ReportDetai
                     />
                 )}
                 <MenuItemNavigation
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.TRACK_EXPENSE_SUBMIT_TO_EMPLOYER}
                     title={translate('actionableMentionTrackExpense.submitToEmployer')}
                     icon={expensifyIcons.Send}
                     onPress={() => {
@@ -144,6 +146,7 @@ function ReportDetailsMenuTrackExpenseItems({reportID, requestData}: ReportDetai
             {Permissions.canUseTrackFlows() && (
                 <>
                     <MenuItemNavigation
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.TRACK_EXPENSE_CATEGORIZE}
                         title={translate('actionableMentionTrackExpense.categorize')}
                         icon={expensifyIcons.Folder}
                         onPress={() => {
@@ -168,6 +171,7 @@ function ReportDetailsMenuTrackExpenseItems({reportID, requestData}: ReportDetai
                         }}
                     />
                     <MenuItemNavigation
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.TRACK_EXPENSE_SHARE}
                         title={translate('actionableMentionTrackExpense.share')}
                         icon={expensifyIcons.UserPlus}
                         onPress={() => {
