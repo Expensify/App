@@ -1125,12 +1125,31 @@ function filterReportsForInboxTab(reportIDs: string[], reportsToDisplay: Reports
 }
 
 /**
+ * Check if a report is actually stale and we should show the unread tooltip.
+ */
+function isStaleUnreadReportForInboxTab(report: ReportsToDisplayInLHN[string], staleUnreadTime: string, currentUserAccountID: number): boolean {
+    const lastVisibleActionCreated = report.lastVisibleActionCreatedForInboxTab ?? report.lastVisibleActionCreated;
+    if (!lastVisibleActionCreated) {
+        return false;
+    }
+
+    // Since user can open the report that they're not participant, and our backend sends the lastVisibleActionCreated for that user,
+    // we need to check if the report is muted for the current user before showing the stale unread tooltip.
+    if (getReportNotificationPreference(report, currentUserAccountID) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+        return false;
+    }
+
+    return lastVisibleActionCreated < staleUnreadTime;
+}
+
+/**
  * Summarizes the ordered reports for the Inbox tab row: how many fall into the To-do and Unread tabs (for the count
  * badge shown on each), and whether any unread report's newest message is older than CONST.INBOX_TAB_STALE_UNREAD_MONTHS.
  */
 function getInboxTabSummary(
     reportIDs: string[],
     reportsToDisplay: ReportsToDisplayInLHN,
+    accountID: number,
 ): {counts: Record<typeof CONST.INBOX_TAB.TODO | typeof CONST.INBOX_TAB.UNREAD, number>; hasStaleUnreadReport: boolean} {
     const staleUnreadTime = DateUtils.getDBTime(subMonths(startOfDay(new Date()), CONST.INBOX_TAB_STALE_UNREAD_MONTHS).valueOf());
     let todoCount = 0;
@@ -1147,7 +1166,7 @@ function getInboxTabSummary(
         }
         if (report.isUnreadReport) {
             unreadCount++;
-            hasStaleUnreadReport = hasStaleUnreadReport || (report.lastVisibleActionCreatedForInboxTab ?? report.lastVisibleActionCreated ?? '') < staleUnreadTime;
+            hasStaleUnreadReport = hasStaleUnreadReport || isStaleUnreadReportForInboxTab(report, staleUnreadTime, currentUserAccountID);
         }
     }
 

@@ -401,7 +401,10 @@ function SidebarOrderedReportsContextProvider({
     const filteredReportIDs = useStableArrayReference(computedFilteredReportIDs);
 
     // Derived from the full "All" set (not the currently filtered view).
-    const {counts: inboxTabCounts, hasStaleUnreadReport} = useMemo(() => SidebarUtils.getInboxTabSummary(orderedReportIDs, reportsToDisplayInLHN), [orderedReportIDs, reportsToDisplayInLHN]);
+    const {counts: inboxTabCounts, hasStaleUnreadReport} = useMemo(
+        () => SidebarUtils.getInboxTabSummary(orderedReportIDs, reportsToDisplayInLHN, accountID),
+        [orderedReportIDs, reportsToDisplayInLHN, accountID],
+    );
 
     // Held in a ref so getReportIDsForTab stays referentially stable (keeping the actions context stable) and only
     // filters when a bulk tab action actually asks for a tab's reports, rather than on every LHN update.
