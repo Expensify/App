@@ -80,8 +80,7 @@ const restrictedImportPatterns = [
 const typescriptRestrictedImportPatterns = [
     ...restrictedImportPatterns,
     {
-        group: ['**/ReportNameUtils', '**/libs/ReportNameUtils'],
-        importNames: ['computeReportName'],
+        group: ['**/computeReportName', '**/libs/computeReportName'],
         message: 'Do not import computeReportName. Use getReportName instead, which properly uses derived report attributes.',
     },
     {
@@ -1088,7 +1087,7 @@ export default defineConfig({
             jsPlugins: ['eslint-plugin-you-dont-need-lodash-underscore'],
         },
         {
-            files: ['.github/**/*', 'scripts/**/*', 'server/**/*', 'tests/**/*'],
+            files: ['.github/**/*', 'scripts/**/*', 'server/**/*', 'tests/**/*', '.claude/skills/*/scripts/**/*'],
             rules: {
                 'no-await-in-loop': 'off',
                 'core/no-restricted-syntax': ['error', 'ForInStatement', 'LabeledStatement', 'WithStatement'],

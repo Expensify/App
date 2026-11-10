@@ -13,6 +13,14 @@ if (!isHybrid) {
             android: null,
         },
     };
+
+    // @appduct/react-native links its pod only into an Xcode configuration named `Debug`. Standalone builds use
+    // DebugDevelopment (scripts/run-build.sh), so list every debug configuration in ./ios.
+    config.dependencies['@appduct/react-native'] = {
+        platforms: {
+            ios: {configurations: ['Debug', 'DebugDevelopment', 'DebugAdHoc', 'DebugProduction']},
+        },
+    };
 }
 
 module.exports = config;
