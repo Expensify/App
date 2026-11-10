@@ -80,8 +80,7 @@ const restrictedImportPatterns = [
 const typescriptRestrictedImportPatterns = [
     ...restrictedImportPatterns,
     {
-        group: ['**/ReportNameUtils', '**/libs/ReportNameUtils'],
-        importNames: ['computeReportName'],
+        group: ['**/computeReportName', '**/libs/computeReportName'],
         message: 'Do not import computeReportName. Use getReportName instead, which properly uses derived report attributes.',
     },
     {
@@ -112,7 +111,8 @@ const victoryChartRendererRestrictedImportPatterns = typescriptRestrictedImportP
 /**
  * Pressables and the components that forward their `sentryLabel` prop to one, so the `no-restricted-syntax` rules below can require the label.
  * The lists come from every JSX component whose props accept `sentryLabel`. Inputs (e.g. TextInput) and wrappers that fall back to a default
- * label (e.g. FormProvider, RadioButton) are left out. When you add a component that forwards `sentryLabel` to a pressable, add it here.
+ * label (e.g. FormProvider, RadioButton) are left out. Don't add new components here: give them a required `sentryLabel` prop instead, which
+ * TypeScript checks at every usage. Once a component's usages all have a label, make its prop required and remove it from these lists.
  * Names of compound components are written with dots, e.g. `MenuItem.Root`.
  */
 const SENTRY_LABEL_PRESSABLES = [
@@ -127,9 +127,6 @@ const SENTRY_LABEL_PRESSABLES = [
 
 /** Wrappers that only need a label when they get a press handler, since without one they can render read-only (e.g. a MenuItem without onPress). */
 const SENTRY_LABEL_PRESS_HANDLER_WRAPPERS = [
-    'AnimatedCollapsible',
-    'AnimatedSettlementButton',
-    'AnimatedSubmitButton',
     'AvatarButtonWithIcon',
     'BaseMiniContextMenuItem',
     'Button',
@@ -143,20 +140,10 @@ const SENTRY_LABEL_PRESS_HANDLER_WRAPPERS = [
     'ConfirmationPageButtonBase',
     'ConfirmationPagePrimaryButton',
     'ContextMenuItem',
-    'DistanceRequestRenderItem',
-    'ExpenseFieldDropdown',
-    'ExpenseFieldRow',
-    'FABFocusableMenuItem',
     'FeatureTraining.HelpButton',
-    'FloatingActionButton',
-    'FloatingReceiptButton',
     'FocusableMenuItem',
     'FormAlertWithSubmitButton',
-    'Header.IconButton',
-    'HeaderIconButton',
     'HighlightableMenuItem',
-    'HighlightableMenuItemWithTopDescription',
-    'LinkButton',
     'MenuItem',
     'MenuItem.Root',
     'MenuItemAction',
@@ -171,11 +158,7 @@ const SENTRY_LABEL_PRESS_HANDLER_WRAPPERS = [
     'PopoverMenu.Item',
     'PopoverMenu.RadioItem',
     'RowMenuItem',
-    'SearchFiltersBarButton',
     'SelectionButton',
-    'SettlementButton',
-    'SortableHeaderText',
-    'SubmitDraftButton',
     'Table.Row',
     'TableRow',
     'TabSelectorItem',
@@ -184,18 +167,7 @@ const SENTRY_LABEL_PRESS_HANDLER_WRAPPERS = [
 ];
 
 /** Wrappers that handle the press themselves (e.g. ThreeDotsMenu opens its menu), so they always need a label. */
-const SENTRY_LABEL_SELF_PRESS_WRAPPERS = [
-    'AvatarWithImagePicker',
-    'BookTravelButton',
-    'DropdownButton',
-    'ExportWithDropdownMenu',
-    'FeatureTraining.ConfirmButton',
-    'MerchantFilterContent',
-    'PopoverMenu.Sub.Trigger',
-    'TextInputFilterContent',
-    'ThreeDotsMenu',
-    'WidgetHeaderMenu',
-];
+const SENTRY_LABEL_SELF_PRESS_WRAPPERS = ['AvatarWithImagePicker', 'BookTravelButton', 'FeatureTraining.ConfirmButton', 'PopoverMenu.Sub.Trigger', 'ThreeDotsMenu'];
 
 /** Builds an esquery selector list matching JSX elements named e.g. `Button` or `MenuItem.Root`. */
 function jsxElementNamesSelector(names: string[]): string {
@@ -214,6 +186,51 @@ function jsxElementNamesSelector(names: string[]): string {
         })
         .join(', ');
 }
+
+/** `no-restricted-syntax` entries for all code. */
+const restrictedSyntax = [
+    {selector: 'TSEnumDeclaration', message: "Please don't declare enums, use union types instead."},
+    {
+        selector: 'CallExpression[callee.object.name="React"][callee.property.name="forwardRef"]',
+        message: 'forwardRef is deprecated. Please use ref as a prop instead. See: contributingGuides/STYLE.md#forwarding-refs',
+    },
+    {
+        selector: 'ImportNamespaceSpecifier[parent.source.value=/^@libs/]',
+        message: 'Namespace imports from @libs are not allowed. Use named imports instead. Example: import { method } from "@libs/module"',
+    },
+    {
+        selector: 'ImportNamespaceSpecifier[parent.source.value=/^@userActions/]',
+        message: 'Namespace imports from @userActions are not allowed. Use named imports instead. Example: import { action } from "@userActions/module"',
+    },
+    {
+        selector: 'ImportNamespaceSpecifier[parent.source.value=/^\\.\\./]',
+        message: 'Namespace imports from parent directories are not allowed. Use named imports instead. Example: import { method } from "../libs/module"',
+    },
+    {
+        selector: 'ImportNamespaceSpecifier[parent.source.value=/^\\./]',
+        message: 'Namespace imports from sibling modules are not allowed. Use named imports instead. Example: import { method } from "./libs/module"',
+    },
+    {selector: 'LabeledStatement', message: 'Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand.'},
+    {selector: 'WithStatement', message: '`with` is disallowed in strict mode because it makes code impossible to predict and optimize. It is also deprecated.'},
+];
+
+/** `no-restricted-syntax` entries that require a `sentryLabel` on pressables and pressable wrappers. */
+const sentryLabelRestrictedSyntax = [
+    {
+        selector: `JSXOpeningElement:matches(${jsxElementNamesSelector(SENTRY_LABEL_PRESSABLES)}):not(:has(> JSXAttribute[name.name="sentryLabel"]))`,
+        message: 'Pressable components must have a sentryLabel from CONST.SENTRY_LABEL. See contributingGuides/SENTRY_LABEL.md.',
+    },
+    {
+        // Spread props may carry the label, which a selector can't see, so those are skipped.
+        selector: `JSXOpeningElement:matches(${jsxElementNamesSelector(SENTRY_LABEL_PRESS_HANDLER_WRAPPERS)}):has(> JSXAttribute[name.name=/^on(Press|LongPress|SecondaryInteraction|Select|Submit)$/]):not(:has(> JSXAttribute[name.name="sentryLabel"])):not(:has(> JSXSpreadAttribute))`,
+        message: 'Button, MenuItem and other pressable wrappers that handle a press must have a sentryLabel from CONST.SENTRY_LABEL. See contributingGuides/SENTRY_LABEL.md.',
+    },
+    {
+        // Spread props may carry the label, which a selector can't see, so those are skipped.
+        selector: `JSXOpeningElement:matches(${jsxElementNamesSelector(SENTRY_LABEL_SELF_PRESS_WRAPPERS)}):not(:has(> JSXAttribute[name.name="sentryLabel"])):not(:has(> JSXSpreadAttribute))`,
+        message: 'ThreeDotsMenu, DropdownButton and other wrappers that handle their own press must have a sentryLabel from CONST.SENTRY_LABEL. See contributingGuides/SENTRY_LABEL.md.',
+    },
+];
 
 export default defineConfig({
     plugins: ['typescript', 'import', 'jsx-a11y', 'unicorn', 'react'],
@@ -652,47 +669,7 @@ export default defineConfig({
         'typescript/no-unsafe-call': 'error',
         'typescript/no-unsafe-member-access': 'error',
         'react/jsx-key': 'error',
-        'core/no-restricted-syntax': [
-            'error',
-            {selector: 'TSEnumDeclaration', message: "Please don't declare enums, use union types instead."},
-            {
-                selector: 'CallExpression[callee.object.name="React"][callee.property.name="forwardRef"]',
-                message: 'forwardRef is deprecated. Please use ref as a prop instead. See: contributingGuides/STYLE.md#forwarding-refs',
-            },
-            {
-                selector: 'ImportNamespaceSpecifier[parent.source.value=/^@libs/]',
-                message: 'Namespace imports from @libs are not allowed. Use named imports instead. Example: import { method } from "@libs/module"',
-            },
-            {
-                selector: 'ImportNamespaceSpecifier[parent.source.value=/^@userActions/]',
-                message: 'Namespace imports from @userActions are not allowed. Use named imports instead. Example: import { action } from "@userActions/module"',
-            },
-            {
-                selector: 'ImportNamespaceSpecifier[parent.source.value=/^\\.\\./]',
-                message: 'Namespace imports from parent directories are not allowed. Use named imports instead. Example: import { method } from "../libs/module"',
-            },
-            {
-                selector: 'ImportNamespaceSpecifier[parent.source.value=/^\\./]',
-                message: 'Namespace imports from sibling modules are not allowed. Use named imports instead. Example: import { method } from "./libs/module"',
-            },
-            {
-                selector: `JSXOpeningElement:matches(${jsxElementNamesSelector(SENTRY_LABEL_PRESSABLES)}):not(:has(> JSXAttribute[name.name="sentryLabel"]))`,
-                message: 'Pressable components must have a sentryLabel from CONST.SENTRY_LABEL. See contributingGuides/SENTRY_LABEL.md.',
-            },
-            {
-                // Spread props may carry the label, which a selector can't see, so those are skipped.
-                selector: `JSXOpeningElement:matches(${jsxElementNamesSelector(SENTRY_LABEL_PRESS_HANDLER_WRAPPERS)}):has(> JSXAttribute[name.name=/^on(Press|LongPress|SecondaryInteraction|Select|Submit)$/]):not(:has(> JSXAttribute[name.name="sentryLabel"])):not(:has(> JSXSpreadAttribute))`,
-                message: 'Button, MenuItem and other pressable wrappers that handle a press must have a sentryLabel from CONST.SENTRY_LABEL. See contributingGuides/SENTRY_LABEL.md.',
-            },
-            {
-                // Spread props may carry the label, which a selector can't see, so those are skipped.
-                selector: `JSXOpeningElement:matches(${jsxElementNamesSelector(SENTRY_LABEL_SELF_PRESS_WRAPPERS)}):not(:has(> JSXAttribute[name.name="sentryLabel"])):not(:has(> JSXSpreadAttribute))`,
-                message:
-                    'ThreeDotsMenu, DropdownButton and other wrappers that handle their own press must have a sentryLabel from CONST.SENTRY_LABEL. See contributingGuides/SENTRY_LABEL.md.',
-            },
-            {selector: 'LabeledStatement', message: 'Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand.'},
-            {selector: 'WithStatement', message: '`with` is disallowed in strict mode because it makes code impossible to predict and optimize. It is also deprecated.'},
-        ],
+        'core/no-restricted-syntax': ['error', ...restrictedSyntax, ...sentryLabelRestrictedSyntax],
         // ESLint's own rule, not oxlint's: the React Compiler gate spots the "wrap it in useCallback/useMemo"
         // reports by ESLint's wording, which oxlint's version does not use, and it only works on JS plugin rules.
         'hosted/exhaustive-deps': 'error',
@@ -1110,7 +1087,7 @@ export default defineConfig({
             jsPlugins: ['eslint-plugin-you-dont-need-lodash-underscore'],
         },
         {
-            files: ['.github/**/*', 'scripts/**/*', 'server/**/*', 'tests/**/*'],
+            files: ['.github/**/*', 'scripts/**/*', 'server/**/*', 'tests/**/*', '.claude/skills/*/scripts/**/*'],
             rules: {
                 'no-await-in-loop': 'off',
                 'core/no-restricted-syntax': ['error', 'ForInStatement', 'LabeledStatement', 'WithStatement'],
@@ -1381,6 +1358,8 @@ export default defineConfig({
             rules: {
                 // The storybook preset turns this off for stories.
                 'react/rules-of-hooks': 'off',
+                // Stories never send anything to Sentry, so they don't need a sentryLabel.
+                'core/no-restricted-syntax': ['error', ...restrictedSyntax],
                 'hosted/await-interactions': 'error',
                 'hosted/context-in-play-function': 'error',
                 'hosted/default-exports': 'error',

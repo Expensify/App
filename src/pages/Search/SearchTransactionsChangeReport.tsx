@@ -380,6 +380,9 @@ function SearchTransactionsChangeReport() {
             hasMultipleSubmitters={hasMultipleSubmitters}
             areAllManagedCardsResolvable={areAllManagedCardsResolvable}
             autoReport={autoReport}
+            createReportSentryLabel={CONST.SENTRY_LABEL.SEARCH.CHANGE_REPORT_CREATE_REPORT}
+            autoReportSentryLabel={CONST.SENTRY_LABEL.SEARCH.CHANGE_REPORT_AUTO_REPORT}
+            removeFromReportSentryLabel={CONST.SENTRY_LABEL.SEARCH.CHANGE_REPORT_REMOVE_FROM_REPORT}
         />
     );
 }

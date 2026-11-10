@@ -320,22 +320,17 @@ function IOURequestStepDistanceMap({
         navigateToNextStep();
     };
 
-    const renderItem = ({item, drag, isActive, getIndex}: RenderItemParams<string>) => {
-        const index = getIndex?.();
-        const sentryLabel = index === 0 ? CONST.SENTRY_LABEL.IOU_REQUEST_STEP.WAYPOINT_START_MENU_ITEM : CONST.SENTRY_LABEL.IOU_REQUEST_STEP.WAYPOINT_STOP_MENU_ITEM;
-        return (
-            <DistanceRequestRenderItem
-                waypoints={waypoints}
-                item={getWaypointKey(item)}
-                onSecondaryInteraction={drag}
-                isActive={isActive}
-                getIndex={getIndex}
-                onPress={navigateToWaypointEditPage}
-                disabled={isLoadingRoute}
-                sentryLabel={sentryLabel}
-            />
-        );
-    };
+    const renderItem = ({item, drag, isActive, getIndex}: RenderItemParams<string>) => (
+        <DistanceRequestRenderItem
+            waypoints={waypoints}
+            item={getWaypointKey(item)}
+            onSecondaryInteraction={drag}
+            isActive={isActive}
+            getIndex={getIndex}
+            onPress={navigateToWaypointEditPage}
+            disabled={isLoadingRoute}
+        />
+    );
 
     const errorState = {
         shouldShowAtLeastTwoDifferentWaypointsError,
