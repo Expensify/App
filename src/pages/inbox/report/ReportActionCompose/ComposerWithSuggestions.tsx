@@ -558,6 +558,16 @@ function ComposerWithSuggestions({
         updateComment(insertText(commentRef.current, selection, newText), true);
     };
 
+    const editLastReportAction = async () => {
+        if (!lastReportAction) {
+            return;
+        }
+        // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- Parser used to read these names from a module-level Onyx.connect; the composer never renders inside a Search scope, so this reads the same live reports that connect did
+        const reports = await Onyx.get(ONYXKEYS.COLLECTION.REPORT);
+        const reportIDToName = buildReportIDToNameMap(reports, getMentionedReportIDs(lastReportActionHtml));
+        saveReportActionDraft(reportID, lastReportAction, reportActions, Parser.htmlToMarkdown(lastReportActionHtml, {reportIDToName, accountIDToName}), isOffline);
+    };
+
     const handleKeyPress = (event: TextInputKeyPressEvent) => {
         const webEvent = event as unknown as KeyboardEvent;
         if (!webEvent || canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShown)) {
@@ -578,13 +588,7 @@ function ComposerWithSuggestions({
         const isEmptyComment = !text || !!text.match(CONST.REGEX.EMPTY_COMMENT);
         if (webEvent.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && selection.start <= 0 && isEmptyComment && !includeChronos) {
             webEvent.preventDefault();
-            if (lastReportAction) {
-                // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- Parser used to read these names from a module-level Onyx.connect; the composer never renders inside a Search scope, so this reads the same live reports that connect did
-                Onyx.get(ONYXKEYS.COLLECTION.REPORT).then((reports) => {
-                    const reportIDToName = buildReportIDToNameMap(reports, getMentionedReportIDs(lastReportActionHtml));
-                    saveReportActionDraft(reportID, lastReportAction, reportActions, Parser.htmlToMarkdown(lastReportActionHtml, {reportIDToName, accountIDToName}), isOffline);
-                });
-            }
+            editLastReportAction();
         }
         // Flag emojis like "Wales" have several code points. Default backspace key action does not remove such flag emojis completely.
         // so we need to handle backspace key action differently with grapheme segmentation.
