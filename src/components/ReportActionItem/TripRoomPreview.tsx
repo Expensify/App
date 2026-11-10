@@ -110,6 +110,7 @@ function ReservationView({reservation, onPress, isCancelled}: ReservationViewPro
 
     return (
         <MenuItemWithTopDescription
+            sentryLabel={CONST.SENTRY_LABEL.TRIP_ROOM_PREVIEW.RESERVATION}
             description={displayDescription}
             descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
             titleComponent={titleComponent}
