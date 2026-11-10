@@ -17,7 +17,7 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import getPlatform from '@libs/getPlatform';
+import shouldBreakAccessibilityGrouping from '@libs/shouldBreakAccessibilityGrouping';
 
 import {clearAccountingIntegrationWaitlistError, joinAccountingIntegrationWaitlist} from '@userActions/User';
 
@@ -111,7 +111,7 @@ function AccountingIntegrationWaitlistCard({connectionName, title, icon, policyI
                 <MenuItem.Root
                     accessibilityLabel={accessibilityLabel}
                     // On iOS, disable row grouping so VoiceOver can focus the nested waitlist button.
-                    shouldBeAccessible={getPlatform() !== CONST.PLATFORM.IOS}
+                    shouldBeAccessible={!shouldBreakAccessibilityGrouping()}
                     style={[styles.pv4, styles.ph4]}
                 >
                     <MenuItem.Row>
