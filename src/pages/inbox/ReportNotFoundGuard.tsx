@@ -3,13 +3,15 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {shouldHideBillReport} from '@libs/BillUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {isReportTransactionThread, isValidReportIDFromPath} from '@libs/ReportUtils';
+import {isReportNotFound, isReportTransactionThread, isValidReportIDFromPath} from '@libs/ReportUtils';
 import {getParentReportActionDeletionStatus} from '@libs/TransactionNavigationUtils';
 
 import CONST from '@src/CONST';
@@ -40,6 +42,7 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     const reportIDFromRoute = getNonEmptyStringOnyxID(routeParams?.reportID);
 
     const {isOffline} = useNetwork();
+    const {isBetaEnabled} = usePermissions();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [userLeavingStatus = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`);
@@ -54,7 +57,7 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     const isOptimisticDelete = report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
     const isInvalidReportPath = !!routeParams?.reportID && !isValidReportIDFromPath(routeParams.reportID);
     const isLoading = isLoadingApp !== false || isLoadingReportData || (!isOffline && !!isLoadingInitialReportActions);
-    const reportExists = !!reportID || isOptimisticDelete || userLeavingStatus;
+    const reportExists = !isReportNotFound(report) && (!!reportID || isOptimisticDelete || userLeavingStatus);
     // A pre-mounted destination for a report the submit has not created yet: offline drops the actions-loading
     // term above, so the guard would otherwise flash not-found until the optimistic report row lands. Only
     // SCREENS.REPORT sets and clears this flag, so ignore it on the RHP report screen where it could never expire.
@@ -76,7 +79,8 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     }
 
     const isReportMissingAfterLoad = !isLoading && hasSeenLoadingForCurrentReportID && !reportExists && !isPendingCreation;
-    const shouldShowNotFoundPage = !deleteTransactionNavigateBackUrl && (isInvalidReportPath || isReportMissingAfterLoad);
+    const isBillHidden = shouldHideBillReport(report?.type, isBetaEnabled(CONST.BETAS.NEW_DOT_BILL_PAY));
+    const shouldShowNotFoundPage = isBillHidden || (!deleteTransactionNavigateBackUrl && (isInvalidReportPath || isReportMissingAfterLoad));
 
     useEffect(() => {
         if (!shouldShowNotFoundPage) {
@@ -93,6 +97,7 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
             reportIDFromPath: routeParams?.reportID,
             isPendingCreation,
             deleteTransactionNavigateBackUrl,
+            isBillHidden,
         });
     }, [
         shouldShowNotFoundPage,
@@ -106,6 +111,7 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
         userLeavingStatus,
         routeParams?.reportID,
         deleteTransactionNavigateBackUrl,
+        isBillHidden,
     ]);
 
     if (shouldShowNotFoundPage) {

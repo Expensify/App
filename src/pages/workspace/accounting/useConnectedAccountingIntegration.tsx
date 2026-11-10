@@ -33,7 +33,7 @@ import {
     hasAccountingConnections,
     hasSupportedOnlyOnOldDotIntegration,
     settingsPendingAction,
-    shouldShowQBOReimbursableExportDestinationAccountError,
+    shouldShowReimbursableExportDestinationAccountError,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
 
@@ -99,6 +99,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'DigitsSquare',
         'BusinessCentralSquare',
         'ZohoBooksSquare',
     ]);
@@ -177,7 +178,9 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
     const shouldShowSynchronizationError = !!synchronizationError;
     const shouldShowReinstallConnectorMenuItem = shouldShowSynchronizationError && connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBD;
     const shouldShowCardReconciliationOption = Object.values(allCardSettings ?? {})?.some((cardSetting) => isExpensifyCardFullySetUp(policy, cardSetting));
-    const shouldShowReconnect = hasAuthError && connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.CERTINIA;
+    const isNetSuiteOAuthConnection =
+        connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.NETSUITE && policy?.connections?.netsuite?.config?.authType === CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.OAUTH2;
+    const shouldShowReconnect = hasAuthError && (connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.CERTINIA || isNetSuiteOAuthConnection);
     let credentialsMenuTextKey: Parameters<typeof translate>[0] = 'workspace.accounting.enterCredentials';
     if (shouldShowReconnect || isQBOTokenExpiringSoon) {
         credentialsMenuTextKey = 'workspace.accounting.reconnect';
@@ -488,9 +491,9 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
             connectionMessage = translate('workspace.accounting.lastSync', datetimeToRelative);
         }
 
-        // Zoho Books advanced screens are added in a later release, so hide their entry points until then.
-        const shouldShowAdvancedOptions = connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS;
-        const configurationOptions = canWriteAccounting
+        // Digits import, export, and advanced screens are added in a later release, so hide their entry points until then.
+        const shouldShowConfigurationOptions = canWriteAccounting && connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.DIGITS;
+        const configurationOptions = shouldShowConfigurationOptions
             ? [
                   {
                       icon: icons.Pencil,
@@ -511,7 +514,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
                       onPress: integrationData?.onExportPagePress,
                       brickRoadIndicator:
                           areSettingsInErrorFields(integrationData?.subscribedExportSettings, integrationData?.errorFields) ||
-                          shouldShowQBOReimbursableExportDestinationAccountError(policy) ||
+                          shouldShowReimbursableExportDestinationAccountError(policy) ||
                           integrationData?.externalSubscribedExportSettingsHasErrorFields
                               ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                               : undefined,
@@ -529,21 +532,17 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
                             },
                         ]
                       : []),
-                  ...(shouldShowAdvancedOptions
-                      ? [
-                            {
-                                icon: icons.Gear,
-                                iconRight: icons.ArrowRight,
-                                shouldShowRightIcon: true,
-                                title: translate('workspace.accounting.advanced'),
-                                onPress: integrationData?.onAdvancedPagePress,
-                                brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedAdvancedSettings, integrationData?.errorFields)
-                                    ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                    : undefined,
-                                pendingAction: settingsPendingAction(integrationData?.subscribedAdvancedSettings, integrationData?.pendingFields),
-                            },
-                        ]
-                      : []),
+                  {
+                      icon: icons.Gear,
+                      iconRight: icons.ArrowRight,
+                      shouldShowRightIcon: true,
+                      title: translate('workspace.accounting.advanced'),
+                      onPress: integrationData?.onAdvancedPagePress,
+                      brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedAdvancedSettings, integrationData?.errorFields)
+                          ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                          : undefined,
+                      pendingAction: settingsPendingAction(integrationData?.subscribedAdvancedSettings, integrationData?.pendingFields),
+                  },
               ]
             : [];
 
@@ -560,7 +559,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
 
     let qboTokenExpiryHint;
     if (qboTokenExpiryDate && canWriteAccounting) {
-        const formattedExpiryDate = DateUtils.formatWithUTCTimeZone(qboTokenExpiryDate.toISOString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale);
+        const formattedExpiryDate = DateUtils.formatToLongDateInUTC(qboTokenExpiryDate.toISOString(), dateFnsLocale);
         qboTokenExpiryHint = (
             <>
                 {translate(

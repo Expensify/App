@@ -1,6 +1,7 @@
 import ConnectToBusinessCentralFlow from '@components/ConnectToBusinessCentralFlow';
 import ConnectToCampfireFlow from '@components/ConnectToCampfireFlow';
 import ConnectToCertiniaFlow from '@components/ConnectToCertiniaFlow';
+import ConnectToDigitsFlow from '@components/ConnectToDigitsFlow';
 import ConnectToDualEntryFlow from '@components/ConnectToDualEntry';
 import ConnectToNetSuiteFlow from '@components/ConnectToNetSuiteFlow';
 import ConnectToQuickbooksDesktopFlow from '@components/ConnectToQuickbooksDesktopFlow';
@@ -48,6 +49,7 @@ import {
     shouldHideExportJournalsTo,
     shouldHideExportVendorBillsTo,
     shouldHideJournalPostingPreference,
+    shouldHideNonReimbursableCreditCardAccount,
     shouldHideNonReimbursableJournalPostingAccount,
     shouldHideProvincialTaxPostingAccountSelect,
     shouldHideReimbursableDefaultVendor,
@@ -75,6 +77,7 @@ type AccountingIntegrationIcons = Record<
     | 'RilletSquare'
     | 'DualEntrySquare'
     | 'CampfireSquare'
+    | 'DigitsSquare'
     | 'BusinessCentralSquare'
     | 'ZohoBooksSquare',
     IconAsset
@@ -170,6 +173,14 @@ function getAccountingIntegrationData(
             return ROUTES.POLICY_ACCOUNTING_CAMPFIRE_EXISTING_CONNECTIONS.getRoute(policyID);
         }
         return ROUTES.POLICY_ACCOUNTING_CAMPFIRE_SETUP.getRoute(policyID);
+    };
+    const getBackToAfterWorkspaceUpgradeRouteForDigits = () => {
+        if (integrationToDisconnect) {
+            return ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
+        }
+        // The sign-in only opens in a new tab from a press, so the admin presses Connect again, which also reruns the
+        // currency check and offers the existing connections.
+        return ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID);
     };
 
     switch (connectionName) {
@@ -310,6 +321,7 @@ function getAccountingIntegrationData(
                     ...(!shouldHideJournalPostingPreference(true, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.JOURNAL_POSTING_PREFERENCE] : []),
                     CONST.NETSUITE_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
                     ...(!shouldHideReimbursableDefaultVendor(false, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.DEFAULT_VENDOR] : []),
+                    ...(!shouldHideNonReimbursableCreditCardAccount(false, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.CREDIT_CARD_ACCOUNT] : []),
                     ...(!shouldHideNonReimbursableJournalPostingAccount(false, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.PAYABLE_ACCT] : []),
                     ...(!shouldHideReimbursableJournalPostingAccount(false, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT] : []),
                     ...(!shouldHideJournalPostingPreference(false, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.JOURNAL_POSTING_PREFERENCE] : []),
@@ -527,6 +539,7 @@ function getAccountingIntegrationData(
                     CONST.RILLET_CONFIG.EXPORT_DATE,
                     CONST.RILLET_CONFIG.REIMBURSABLE,
                     CONST.RILLET_CONFIG.NON_REIMBURSABLE,
+                    ...(policy?.connections?.rillet?.config.export?.reimbursable === CONST.RILLET_EXPORT_REIMBURSABLE.REIMBURSEMENT ? [CONST.RILLET_CONFIG.REIMBURSEMENT_ACCOUNT_CODE] : []),
                     CONST.RILLET_CONFIG.DEFAULT_VENDORID,
                     CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE,
                     CONST.RILLET_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS,
@@ -677,6 +690,32 @@ function getAccountingIntegrationData(
                 errorFields: policy?.connections?.campfire?.config?.errorFields,
             };
         }
+        case CONST.POLICY.CONNECTIONS.NAME.DIGITS:
+            return {
+                title: translate('workspace.accounting.digits'),
+                icon: expensifyIcons?.DigitsSquare,
+                setupConnectionFlow: (
+                    <ConnectToDigitsFlow
+                        policyID={policyID}
+                        key={key}
+                    />
+                ),
+                // Import, export, and advanced screens are added in later releases.
+                onImportPagePress: () => null,
+                subscribedImportSettings: [],
+                onExportPagePress: () => null,
+                subscribedExportSettings: [],
+                onAdvancedPagePress: () => null,
+                subscribedAdvancedSettings: [],
+                workspaceUpgradeNavigationDetails: {
+                    integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.digits.alias,
+                    backToAfterWorkspaceUpgradeRoute: getBackToAfterWorkspaceUpgradeRouteForDigits(),
+                },
+                // Digits only connects to USD workspaces, and ConnectToDigitsFlow asks for the currency change before anything else
+                hasUnmetConnectPrerequisite: !!policy && policy.outputCurrency !== CONST.CURRENCY.USD,
+                pendingFields: policy?.connections?.digits?.config?.pendingFields,
+                errorFields: policy?.connections?.digits?.config?.errorFields,
+            };
         case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
             return {
                 title: translate('workspace.accounting.zohoBooks'),
@@ -701,10 +740,31 @@ function getAccountingIntegrationData(
                     CONST.ZOHO_BOOKS_CONFIG.NON_REIMBURSABLE,
                     CONST.ZOHO_BOOKS_CONFIG.DEFAULT_VENDORID,
                     CONST.ZOHO_BOOKS_CONFIG.CREDIT_CARD_ACCOUNT_ID,
+                    CONST.ZOHO_BOOKS_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS,
+                    ...Object.values(cardFeeds ?? {}).map((program) => `${CONST.ZOHO_BOOKS_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${program.feed}`),
                 ],
-                // Advanced screens are added in later releases.
-                onAdvancedPagePress: () => null,
-                subscribedAdvancedSettings: [],
+                externalSubscribedExportSettingsPendingAction: getCardsCustomExportPendingAction(
+                    cardFeeds ?? {},
+                    cardList ?? {},
+                    CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_ZOHO_BOOKS_EXPORT_ACCOUNT,
+                ),
+                externalSubscribedExportSettingsHasErrorFields: areCardsCustomExportInErrorFields(
+                    cardFeeds ?? {},
+                    cardList ?? {},
+                    CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_ZOHO_BOOKS_EXPORT_ACCOUNT,
+                ),
+                onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_ADVANCED.getRoute(policyID)),
+                subscribedAdvancedSettings: [
+                    CONST.ZOHO_BOOKS_CONFIG.AUTO_SYNC,
+                    CONST.ZOHO_BOOKS_CONFIG.ACCOUNTING_METHOD,
+                    CONST.ZOHO_BOOKS_CONFIG.SYNC_REIMBURSED_REPORTS,
+                    CONST.ZOHO_BOOKS_CONFIG.BILL_PAYMENT_ACCOUNT_ID,
+                    CONST.ZOHO_BOOKS_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS,
+                    CONST.ZOHO_BOOKS_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID,
+                    CONST.ZOHO_BOOKS_CONFIG.SYNC_TRAVEL_BILLING_SETTLEMENTS,
+                    CONST.ZOHO_BOOKS_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID,
+                    CONST.ZOHO_BOOKS_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT_ID,
+                ],
                 pendingFields: policy?.connections?.zohoBooks?.config?.pendingFields,
                 errorFields: policy?.connections?.zohoBooks?.config?.errorFields,
             };

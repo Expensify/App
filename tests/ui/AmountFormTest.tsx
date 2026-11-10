@@ -37,7 +37,7 @@ function renderForm(props: AmountFormProps = {}) {
     return render(wrapForm(props));
 }
 
-// AmountForm routes `displayAsTextInput` without a currency button to NumericField; other variants stay on the
+// AmountForm routes `displayAsTextInput` to AmountFormField; other variants stay on the
 // legacy NumberWithSymbolForm. These tests pin that routing and the behavior parity of the migrated path.
 describe('AmountForm', () => {
     beforeAll(() => {
@@ -58,7 +58,7 @@ describe('AmountForm', () => {
         });
     });
 
-    describe('displayAsTextInput without a currency button (NumericField path)', () => {
+    describe('displayAsTextInput without a currency button (AmountFormField path)', () => {
         it('renders the currency symbol, validates with currency decimals, and reports changes', async () => {
             // Given a text-input AmountForm for USD (2 decimal places)
             const onInputChange = jest.fn();
@@ -140,14 +140,14 @@ describe('AmountForm', () => {
         });
     });
 
-    describe('displayAsTextInput with a currency button (legacy path)', () => {
-        it('keeps rendering the legacy form with the currency button', async () => {
+    describe('displayAsTextInput with a currency button (AmountFormField path)', () => {
+        it('renders the composed currency button and forwards button clicks', async () => {
             // Given a text-input AmountForm with the trailing currency button enabled
             const onCurrencyButtonPress = jest.fn();
             renderForm({displayAsTextInput: true, value: '10', currency: 'USD', shouldShowCurrencyButton: true, onCurrencyButtonPress});
             await waitForBatchedUpdatesWithAct();
 
-            // Then the legacy currency button renders
+            // Then the currency button renders inside the input
             const currencyButton = screen.getByText('USD');
             expect(currencyButton).toBeOnTheScreen();
 
@@ -158,10 +158,30 @@ describe('AmountForm', () => {
             // Then the currency callback is invoked
             expect(onCurrencyButtonPress).toHaveBeenCalledTimes(1);
         });
+
+        it('supports custom currencyButtonLabel (such as duration units)', async () => {
+            // Given a text-input AmountForm configured with a custom button label
+            const onCurrencyButtonPress = jest.fn();
+
+            // When the form is rendered
+            renderForm({
+                displayAsTextInput: true,
+                value: '2',
+                currency: 'USD',
+                shouldShowCurrencyButton: true,
+                currencyButtonLabel: 'hours',
+                onCurrencyButtonPress,
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the custom button label renders
+            expect(screen.getByText('hours')).toBeOnTheScreen();
+            expect(screen.queryByText('USD')).toBeNull();
+        });
     });
 
     describe('default variant without displayAsTextInput (legacy path)', () => {
-        it('renders the legacy number pad instead of NumericField', async () => {
+        it('renders the legacy number pad instead of AmountFormField', async () => {
             renderForm({value: '10', currency: 'USD'});
             await waitForBatchedUpdatesWithAct();
 

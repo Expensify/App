@@ -52,18 +52,18 @@ On web:
 
 1. Go to the **navigation tabs on the left** and select **Workspaces**.
 2. Select your Workspace.
-3. Select **Accounting**.
-4. Click the **three-dot icon** to the right of the Xero connection.
-5. Click **Disconnect**.
+3. Select **Connections**, then select **Configure** next to Xero.
+4. Select **More (⋮)**.
+5. Select **Disconnect**.
 6. Confirm the disconnection.
 
 On mobile:
 
 1. Tap the **navigation tabs on the bottom** and select **Workspaces**.
 2. Select your Workspace.
-3. Tap **Accounting**.
-4. Tap the **three-dot icon** next to the Xero connection.
-5. Tap **Disconnect** and confirm.
+3. Select **Connections**, then select **Configure** next to Xero.
+4. Select **More (⋮)**.
+5. Select **Disconnect** and confirm.
 
 Note: Disconnecting clears all imported options from Expensify.
 
@@ -91,7 +91,7 @@ In Xero:
 
 1. Go to the **navigation tabs on the left** and select **Workspaces**.
 2. Select your Workspace.
-3. Select **Accounting**.
+3. Select **Connections**.
 4. Attempt the Xero connection again.
 
 After disconnecting from Xero and reconnecting from Expensify, the integration should complete successfully.
