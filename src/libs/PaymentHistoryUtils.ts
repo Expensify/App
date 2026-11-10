@@ -26,7 +26,7 @@ type PaymentHistoryRow = {
     activeUserCount?: number;
     /** Whether the bill was on Collect 2025 pricing, which counts members instead of active users. */
     countsMembers: boolean;
-    /** An invoice that resolved to the default Paid state. The amount due by invoice may not be settled yet, so the table hides its Paid badge. */
+    /** An invoice bill that resolved to the default Paid state rather than to a settled payment. */
     isUnsettledInvoice: boolean;
 };
 

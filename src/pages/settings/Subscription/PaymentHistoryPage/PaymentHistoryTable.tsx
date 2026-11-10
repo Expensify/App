@@ -77,6 +77,7 @@ type PaymentHistoryTableRowProps = {
 function PaymentHistoryTableRow({row, dateLabel, shouldShowDivider}: PaymentHistoryTableRowProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    // The amount due by invoice may not be settled yet, so hide the Paid badge for a plain invoice bill.
     const shouldShowStateBadge = !row.isUnsettledInvoice;
     const stateLabel = translate(getStateTranslationKey(row.state));
     const amountLabel = convertAmountToDisplayString(row.amount, row.currency);
