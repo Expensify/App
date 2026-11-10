@@ -192,11 +192,9 @@ function collectFunctionCalls(code: string): Map<string, FunctionCalls> | undefi
         if (node.type === 'IfStatement' && context && BabelASTUtils.isASTNode(node.test) && readsCache(node.test, context.cacheName)) {
             context.functionCalls.cacheGuardCount += 1;
             visit(node.test, context, nameHint);
+            // The else branch only reads cached values back from `$`, so it holds no calls to count.
             if (BabelASTUtils.isASTNode(node.consequent)) {
                 visit(node.consequent, {...context, isGuarded: true}, nameHint);
-            }
-            if (BabelASTUtils.isASTNode(node.alternate)) {
-                visit(node.alternate, context, nameHint);
             }
             return;
         }
