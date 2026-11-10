@@ -3,6 +3,7 @@ import type {ReportFieldFilterContentWrapperProps} from '@components/Search/Filt
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import CONST from '@src/CONST';
 import type {PolicyReportField} from '@src/types/onyx';
 
 import React, {useState} from 'react';
@@ -18,6 +19,7 @@ function ReportFieldFilterContentPopupWrapper({values, onChange}: ReportFieldFil
                 values={values}
                 selectedField={selectedField}
                 style={[styles.pv2]}
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.REPORT_FIELD}
                 onFieldSelected={setSelectedField}
                 onChange={onChange}
             />

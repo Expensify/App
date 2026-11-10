@@ -10,6 +10,7 @@ import MenuItemChevron from '@components/MenuItem/leaves/trailing/icons/MenuItem
 
 import useOnyx from '@hooks/useOnyx';
 
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
@@ -24,7 +25,8 @@ import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 type MenuItemAvatarNavigationProps = WithSentryLabel &
-    WithTestID & {
+    WithTestID &
+    ForwardedFSClassProps & {
         /** The title text of the row. Typically the name of whoever the avatar belongs to */
         title: string;
 
@@ -48,7 +50,7 @@ type MenuItemAvatarNavigationProps = WithSentryLabel &
  * The avatar-navigation MenuItem preset — a tappable row led by a person's avatar, with their name as the title
  * and a secondary identifier below, that navigates.
  */
-function MenuItemAvatarNavigation({title, description, accountID, avatarSource, onPress, isDisabled = false, sentryLabel, testID}: MenuItemAvatarNavigationProps) {
+function MenuItemAvatarNavigation({title, description, accountID, avatarSource, onPress, isDisabled = false, sentryLabel, testID, forwardedFSClass}: MenuItemAvatarNavigationProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     return (
         <MenuItemRoot
@@ -66,8 +68,8 @@ function MenuItemAvatarNavigation({title, description, accountID, avatarSource, 
                     />
                 </MenuItemLeading>
                 <MenuItemContent>
-                    <MenuItemTitle>{title}</MenuItemTitle>
-                    <MenuItemDescription>{description}</MenuItemDescription>
+                    <MenuItemTitle forwardedFSClass={forwardedFSClass}>{title}</MenuItemTitle>
+                    <MenuItemDescription forwardedFSClass={forwardedFSClass}>{description}</MenuItemDescription>
                 </MenuItemContent>
                 <MenuItemTrailing>
                     <MenuItemChevron />
