@@ -14,6 +14,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -74,6 +75,7 @@ function BaseDomainVerifiedPage({domainAccountID, redirectTo, confirmDestination
                 </ConfirmationPage.Content>
                 <FixedFooter>
                     <ConfirmationPage.PrimaryButton
+                        sentryLabel={CONST.SENTRY_LABEL.DOMAIN.VERIFIED_CONFIRM}
                         text={translate('common.buttonConfirm')}
                         onPress={() => Navigation.navigate(confirmDestination)}
                     />

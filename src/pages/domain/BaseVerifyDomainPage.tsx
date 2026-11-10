@@ -210,6 +210,7 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo, fallbackTo, shouldDis
                 </ScrollView>
 
                 <FormAlertWithSubmitButton
+                    sentryLabel={CONST.SENTRY_LABEL.DOMAIN.VERIFY_SUBMIT}
                     buttonText={translate('domain.verifyDomain.title')}
                     onSubmit={() => validateDomain(domainAccountID, domainName)}
                     message={getLatestErrorMessage({
