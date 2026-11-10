@@ -18,7 +18,7 @@ import {arePaymentsEnabled, getWorkflowApprovalsUnavailable, isAutoPayApprovedRe
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import {enableAutoApprovalOptions, enablePolicyAutoReimbursementLimit, setPolicyPreventPayoutNonReimbursableReports, setPolicyPreventSelfApproval} from '@userActions/Policy/Policy';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -143,11 +143,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                 >
                     <View style={[styles.mt6, styles.mbn3]}>
                         <MenuItemSectionRoot
-                            onPress={
-                                canWriteApprovals
-                                    ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.RULES_AUTO_APPROVE_REPORTS_UNDER.getRoute(policyID)), false, session)
-                                    : undefined
-                            }
+                            onPress={canWriteApprovals ? callIfAuthenticated(() => Navigation.navigate(ROUTES.RULES_AUTO_APPROVE_REPORTS_UNDER.getRoute(policyID)), session) : undefined}
                         >
                             <MenuItemField.Row
                                 name={translate('workspace.rules.expenseReportRules.autoApproveReportsUnderTitle')}
@@ -169,9 +165,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                 >
                     <View style={[styles.mt6, styles.mbn3]}>
                         <MenuItemSectionRoot
-                            onPress={
-                                canWriteApprovals ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.RULES_RANDOM_REPORT_AUDIT.getRoute(policyID)), false, session) : undefined
-                            }
+                            onPress={canWriteApprovals ? callIfAuthenticated(() => Navigation.navigate(ROUTES.RULES_RANDOM_REPORT_AUDIT.getRoute(policyID)), session) : undefined}
                         >
                             <MenuItemField.Row
                                 name={translate('workspace.rules.expenseReportRules.randomReportAuditTitle')}
@@ -221,11 +215,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                 >
                     <View style={[styles.mt6, styles.mbn3]}>
                         <MenuItemSectionRoot
-                            onPress={
-                                canWritePayments
-                                    ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.RULES_AUTO_PAY_REPORTS_UNDER.getRoute(policyID)), false, session)
-                                    : undefined
-                            }
+                            onPress={canWritePayments ? callIfAuthenticated(() => Navigation.navigate(ROUTES.RULES_AUTO_PAY_REPORTS_UNDER.getRoute(policyID)), session) : undefined}
                         >
                             <MenuItemField.Row
                                 name={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')}

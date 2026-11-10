@@ -3303,6 +3303,7 @@ ${amount} para ${merchant} - ${date}`,
         businessBankAccountCountries: 'Países de contas bancárias empresariais',
         businessBankAccountCountriesDescription:
             'Funcionários nesses países fornecem dados para transferência local. Todos os demais fornecem dados para transferência internacional via wire.',
+        businessBankAccountCountriesError: 'Não foi possível atualizar seus países de reembolso. Tente novamente.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Um fluxo de aprovação personalizado está ativado neste workspace. Para revisar ou alterar esse fluxo de trabalho, entre em contato com o(a) seu(sua) <account-manager-link>Gerente de Conta</account-manager-link> ou com o <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -5402,6 +5403,12 @@ ${amount} para ${merchant} - ${date}`,
             readOnlyActionPrompt: 'Sua função no workspace pode ver essas configurações, mas não pode editá-las.',
             noAccessActionPrompt: 'Sua função no espaço de trabalho não tem acesso a essas configurações. Peça a um administrador se você precisar disso.',
             connections: 'Conexões',
+            newRoles: 'Novos cargos',
+            adminRoles: 'Funções de administrador',
+            otherRoles: 'Outros cargos',
+            roleSelectorDescription: `Atribua uma função para gerenciar as permissões de área de trabalho de um membro. <a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">Compare funções de área de trabalho</a>.`,
+            roleSelectorFeedback: 'Não está vendo a função que você precisa?',
+            roleSelectorFeedbackLink: 'Conte para a gente',
         },
         createdForClient: {
             title: 'Você criou um espaço de trabalho para seu cliente!',
@@ -6759,7 +6766,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                     mastercard: 'Temos integrações globais com a Mastercard, embora a elegibilidade varie de acordo com o banco e o programa do cartão.\n\nPara começar, simplesmente:',
                     vcf: `1. Acesse [este artigo de ajuda](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) para obter instruções detalhadas sobre como configurar seus Visa Commercial Cards.
 
-2. [Entre em contato com o seu banco](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) para verificar se eles oferecem um feed comercial para o seu programa e peça para habilitá-lo.
+2. Entre em contato com o seu banco para verificar se eles oferecem um feed comercial para o seu programa e peça para habilitá-lo.
 
 3. *Assim que o feed estiver habilitado e você tiver os detalhes, continue para a próxima tela.*`,
                     gl1025: `1. Acesse [este artigo de ajuda](${CONST.COMPANY_CARDS_AMEX_COMMERCIAL_CARD_HELP}) para descobrir se a American Express pode ativar um feed comercial para o seu programa.
@@ -6769,7 +6776,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
 3. *Quando tiver as informações do feed, continue para a próxima tela.*`,
                     cdf: `1. Acesse [este artigo de ajuda](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) para obter instruções detalhadas sobre como configurar seus cartões Mastercard Commercial.
 
-2. [Entre em contato com o seu banco](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) para verificar se eles oferecem um feed comercial para o seu programa e peça para habilitá-lo.
+2. Entre em contato com o seu banco para verificar se eles oferecem um feed comercial para o seu programa e peça para habilitá-lo.
 
 3. *Assim que o feed estiver habilitado e você tiver os detalhes, continue para a próxima tela.*`,
                     stripe: `1. Acesse o painel do Stripe e vá para [Configurações](${CONST.COMPANY_CARDS_STRIPE_HELP}).
@@ -7785,6 +7792,10 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             changeOfficeLocation: 'Alterar local do escritório',
             changeWorkArrangement: 'Alterar regime de trabalho',
             changeRole: 'Alterar função',
+            newRolesBanner: {
+                title: 'Novos cargos disponíveis',
+                subtitle: '<label-text>Dê aos membros apenas o acesso de que precisam com os novos papéis <strong>Apenas aprovar</strong> e <strong>Convidado</strong>.</label-text>',
+            },
         },
         card: {
             getStartedIssuing: 'Comece emitindo seu primeiro cartão virtual ou físico.',
@@ -12793,6 +12804,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         deletingTitle: 'Excluindo relatórios...',
         deletingExpensesTitle: 'Excluindo despesas...',
         runningBody: 'Espere alguns minutos ou deixe o Concierge avisar você quando terminar.',
+        changingWorkspaceTitle: 'Movendo relatórios...',
         sendFromConcierge: 'Me avise quando terminar',
         conciergeTitle: 'Pode apostar!',
         conciergeBody: 'O Concierge vai te enviar uma mensagem quando terminar.',
@@ -12828,6 +12840,10 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Despesas excluídas em ${doneCount} de ${count} relatório`,
             other: `Despesas excluídas em ${doneCount} de ${count} relatórios`,
+        }),
+        changedWorkspaceTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Espaço de trabalho alterado em ${doneCount} de ${count} relatório`,
+            other: `Espaço de trabalho alterado em ${doneCount} de ${count} relatórios`,
         }),
         noReportsTitle: 'Nenhum relatório correspondente',
         noReportsBody: 'Nenhum dos relatórios que você selecionou precisava dessa ação.',
@@ -12865,6 +12881,10 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         expensesNotDeletedBody: ({count}: {count: number}) => ({
             one: 'As despesas de 1 relatório não puderam ser excluídas.',
             other: `As despesas de ${count} relatórios não puderam ser excluídas.`,
+        }),
+        notMovedBody: ({count}: {count: number}) => ({
+            one: '1 relatório não pôde ser movido.',
+            other: `${count} relatórios não puderam ser movidos.`,
         }),
     },
     earlyRenewal: {

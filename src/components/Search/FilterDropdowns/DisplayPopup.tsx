@@ -20,7 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringWithResetDisplay, getChangedDisplayOptionsCount} from '@libs/SearchQueryUtils';
 import {canEditSearchColumns, getGroupBySections, getSearchColumnTranslationKey, getValidGroupBy, getViewOptions} from '@libs/SearchUIUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -143,14 +143,10 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                 {shouldShowColumnsButton && (
                     <CompactMenuContext.Provider value>
                         <MenuItem.Root
-                            onPress={callFunctionIfActionIsAllowed(
-                                () => {
-                                    closeOverlay();
-                                    openSearchColumns();
-                                },
-                                false,
-                                session,
-                            )}
+                            onPress={callIfAuthenticated(() => {
+                                closeOverlay();
+                                openSearchColumns();
+                            }, session)}
                             accessibilityLabel={translate('search.editColumns')}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMNS_BUTTON}
                         >

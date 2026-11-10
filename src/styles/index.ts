@@ -561,11 +561,6 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: lineHeightScale.label,
         },
 
-        /** Gives every digit the same advance so a counter doesn't shift sideways as its digits change. */
-        tabularNums: {
-            fontVariant: ['tabular-nums'],
-        },
-
         mutedNormalTextLabel: {
             color: theme.textSupporting,
             fontSize: fontScale.label,
