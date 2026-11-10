@@ -2410,7 +2410,7 @@ describe('Transaction', () => {
             const SOURCE_POLICY_ID = 'sourcePolicy';
             const DESTINATION_POLICY_ID = 'destinationPolicy';
 
-            function createDistancePolicy(policyID: string, rates: Record<string, {rate: number; enabled?: boolean}>): Policy {
+            function createDistancePolicy(policyID: string, rates: Record<string, {rate: number; enabled?: boolean; endDate?: string}>): Policy {
                 return {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                     id: policyID,
@@ -2423,9 +2423,9 @@ describe('Transaction', () => {
                             enabled: true,
                             name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
                             rates: Object.fromEntries(
-                                Object.entries(rates).map(([customUnitRateID, {rate, enabled = true}], index) => [
+                                Object.entries(rates).map(([customUnitRateID, {rate, enabled = true, endDate}], index) => [
                                     customUnitRateID,
-                                    {currency: 'USD', customUnitRateID, enabled, name: customUnitRateID, rate, index},
+                                    {currency: 'USD', customUnitRateID, enabled, name: customUnitRateID, rate, index, endDate},
                                 ]),
                             ),
                         },
@@ -2605,6 +2605,45 @@ describe('Transaction', () => {
                 expect(updatedTransaction?.modifiedMerchant).toBeUndefined();
                 expect(modifiedExpenseActions).toHaveLength(0);
                 expect(readProperty(threadData, 'modifiedExpenseReportActionID')).toBeUndefined();
+            });
+
+            it.each([
+                {endDate: '2026-03-14', shouldReprice: true},
+                {endDate: '2026-03-15', shouldReprice: false},
+            ])('should distinguish an expired fallback from an eligible equivalent rate ending on $endDate', async ({endDate, shouldReprice}) => {
+                // Given a 10-mile expense edited from $8 to $9 and an equivalent destination rate with a date limit
+                const transaction = {
+                    ...createDistanceTransaction(FAKE_OLD_REPORT_ID, 'sourceRate'),
+                    created: '2026-03-15',
+                    modifiedCreated: '',
+                    amount: -800,
+                    modifiedAmount: -900,
+                    merchant: '10.00 mi @ $0.80 / mi',
+                };
+                const policies = {
+                    [SOURCE_POLICY_ID]: createDistancePolicy(SOURCE_POLICY_ID, {sourceRate: {rate: 80}}),
+                    [DESTINATION_POLICY_ID]: createDistancePolicy(DESTINATION_POLICY_ID, {destinationRate: {rate: 80, endDate}}),
+                };
+                await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+                try {
+                    // When it moves offline to a workspace with only that rate, it must be assigned even if it has expired
+                    const {threadData, modifiedExpenseActions, updatedTransaction, violations} = await moveToDestinationReport(transaction, policies, SOURCE_POLICY_ID);
+
+                    // Then only an eligible equivalent rate preserves the edited amount; an expired fallback recalculates it
+                    expect(updatedTransaction?.comment?.customUnit?.customUnitRateID).toBe('destinationRate');
+                    expect(updatedTransaction?.modifiedAmount).toBe(shouldReprice ? -800 : -900);
+                    expect(violations?.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE) ?? false).toBe(shouldReprice);
+                    expect(modifiedExpenseActions).toHaveLength(shouldReprice ? 1 : 0);
+                    const modifiedExpenseAction = modifiedExpenseActions.at(0);
+                    expect(readProperty(threadData, 'modifiedExpenseReportActionID')).toBe(modifiedExpenseAction?.reportActionID);
+                    if (shouldReprice) {
+                        expect(modifiedExpenseAction?.actorAccountID).toBe(CONST.ACCOUNT_ID.CONCIERGE);
+                        expect(getOriginalMessage(modifiedExpenseAction)).toEqual(expect.objectContaining({oldAmount: 900, amount: 800}));
+                    }
+                } finally {
+                    await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: false});
+                    await waitForBatchedUpdates();
+                }
             });
 
             it('should reprice onto the default rate and add a Concierge rate change message when the destination workspace has no equivalent rate', async () => {

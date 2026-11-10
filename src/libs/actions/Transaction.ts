@@ -1322,9 +1322,10 @@ function getChangeTransactionsReportOnyxData({
                           policies,
                       })
                     : undefined;
-            const selectedRate = isSameWorkspace ? undefined : DistanceRequestUtils.getRateForPolicyChange({transaction, policy, currentRate});
+            const rateSelection = isSameWorkspace ? undefined : DistanceRequestUtils.getRateForPolicyChange({transaction, policy, currentRate});
+            const selectedRate = rateSelection?.rate;
             if (selectedRate?.customUnitRateID && selectedRate.customUnitRateID !== currentRateID) {
-                const isMatchingRate = DistanceRequestUtils.isMatchingRateForPolicyChange({transaction, currentRate, rate: selectedRate});
+                const isMatchingRate = rateSelection?.isMatchingRate ?? false;
                 // Build an updated transaction with the new rate so we can derive fields from it
                 const updatedTransaction: typeof transaction = {
                     ...transaction,

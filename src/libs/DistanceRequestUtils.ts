@@ -678,36 +678,33 @@ function getRateToMatchForPolicyChange(transaction: OnyxEntry<Transaction>, curr
 }
 
 /**
- * Whether the rate chosen by `getRateForPolicyChange` is equivalent to the expense's current rate, so the expense keeps its amount and merchant.
- * Otherwise the expense was repriced onto the destination policy's default rate.
- */
-function isMatchingRateForPolicyChange({transaction, currentRate, rate}: {transaction: OnyxEntry<Transaction>; currentRate?: MileageRate; rate: MileageRate}): boolean {
-    const rateToMatch = getRateToMatchForPolicyChange(transaction, currentRate);
-    if (rateToMatch?.rate === undefined || !rateToMatch.currency) {
-        return false;
-    }
-
-    return isEquivalentRate(rate, rateToMatch);
-}
-
-/**
  * Selects the distance rate for an expense moving to a different workspace: an equivalent rate on the destination policy, else its
  * best rate for the expense date, else its default rate, else nothing so the caller keeps the `customUnitOutOfPolicy` violation.
  *
  * `currentRate` resolves against the source policy, which this module cannot look up, so callers pass it in. It is optional because
  * a P2P expense carries its rate on the transaction.
+ * `isMatchingRate` is true only for an eligible equivalent rate, not a fallback with the same value.
  *
  * Let's ensure this logic is consistent with the logic in the backend (Auth), which is authoritative here.
  */
-function getRateForPolicyChange({transaction, policy, currentRate}: {transaction: OnyxEntry<Transaction>; policy: OnyxEntry<Policy>; currentRate?: MileageRate}): MileageRate | undefined {
+function getRateForPolicyChange({
+    transaction,
+    policy,
+    currentRate,
+}: {
+    transaction: OnyxEntry<Transaction>;
+    policy: OnyxEntry<Policy>;
+    currentRate?: MileageRate;
+}): {rate: MileageRate; isMatchingRate: boolean} | undefined {
     const expenseDate = getFormattedCreated(transaction);
     const mileageRates = getMileageRates(policy);
     const rateToMatch = getRateToMatchForPolicyChange(transaction, currentRate);
 
-    const selectedRate = getRateMatchingCurrentRate(mileageRates, rateToMatch, expenseDate) ?? getBestEligibleRateOrPolicyDefault(mileageRates, expenseDate, policy);
+    const matchingRate = getRateMatchingCurrentRate(mileageRates, rateToMatch, expenseDate);
+    const selectedRate = matchingRate ?? getBestEligibleRateOrPolicyDefault(mileageRates, expenseDate, policy);
 
     // getDefaultMileageRate returns a fully shaped rate with an undefined customUnitRateID when the policy has no enabled rates, so normalize that case to undefined.
-    return selectedRate?.customUnitRateID ? selectedRate : undefined;
+    return selectedRate?.customUnitRateID ? {rate: selectedRate, isMatchingRate: !!matchingRate} : undefined;
 }
 
 /**
@@ -1141,7 +1138,6 @@ export default {
     isUnsetDistanceCustomUnitRateID,
     getBestEligibleRate,
     getRateForPolicyChange,
-    isMatchingRateForPolicyChange,
     getRateDateLabel,
     getRateDisplayName,
     getRateNameWithDateSuffix,
