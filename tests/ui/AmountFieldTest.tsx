@@ -6,6 +6,8 @@ import {setMoneyRequestAmount, setMoneyRequestCurrency} from '@libs/actions/IOU/
 
 import CONST from '@src/CONST';
 
+import type * as ReactNavigation from '@react-navigation/native';
+
 import React from 'react';
 
 type ReportUtilsModule = {
@@ -44,7 +46,7 @@ jest.mock('@components/MoneyRequestConfirmationFields/context', () => ({
 }));
 
 jest.mock('@react-navigation/native', () => ({
-    ...jest.requireActual('@react-navigation/native'),
+    ...jest.requireActual<typeof ReactNavigation>('@react-navigation/native'),
     useIsFocused: () => true,
     useNavigation: () => ({addListener: () => jest.fn()}),
 }));
