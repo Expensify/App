@@ -5,7 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -90,7 +90,7 @@ function CurrencyPicker({
         <>
             <MenuItem.Root
                 sentryLabel={CONST.SENTRY_LABEL.CURRENCY_PICKER.OPEN}
-                onPress={callFunctionIfActionIsAllowed(() => setIsPickerVisible(true), false, session)}
+                onPress={callIfAuthenticated(() => setIsPickerVisible(true), session)}
                 isDisabled={disabled}
                 accessibilityLabel={accessibilityLabel ? [accessibilityLabel, value ? `${value} - ${getCurrencySymbol(value)}` : undefined].filter(Boolean).join(', ') : undefined}
             >

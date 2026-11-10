@@ -9,7 +9,7 @@ import getVacationDelegateDisplayName from '@libs/getVacationDelegateDisplayName
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {formatVacationDelegateClearDateTime, getActiveVacationDelegate, getVacationDelegateClearDateTime} from '@libs/VacationDelegateUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -133,7 +133,7 @@ function VacationDelegateMenuItemPreset({vacationDelegate, label, timezone, erro
         >
             {hasVacationDelegate ? (
                 <MenuItem.Root
-                    onPress={callFunctionIfActionIsAllowed(onPress, false, session)}
+                    onPress={callIfAuthenticated(onPress, session)}
                     accessibilityLabel={[rowLabel, delegateDisplayName, untilText].filter(Boolean).join(', ')}
                 >
                     <VacationDelegateMenuItemRow
