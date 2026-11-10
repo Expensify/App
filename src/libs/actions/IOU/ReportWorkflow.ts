@@ -348,15 +348,17 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             | typeof ONYXKEYS.COLLECTION.TRANSACTION
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
         >
-    > = [
-        {
+    > = [];
+
+    if (expenseReport.hasParentAccess !== false) {
+        failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}`,
             value: {
                 hasOutstandingChildRequest: chatReport?.hasOutstandingChildRequest,
             },
-        },
-    ];
+        });
+    }
 
     if (!isDEWPolicy) {
         failureData.push({
