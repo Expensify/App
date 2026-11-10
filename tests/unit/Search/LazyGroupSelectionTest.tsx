@@ -1,26 +1,42 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import {useSearchRowSelectionActions, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchRowSelectionActions, useSearchSelectionActions, useSearchSelectionContext, useSearchShiftRangeGroups} from '@components/Search/SearchContext';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
-import type {TransactionCategoryGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {
+    TransactionCategoryGroupListItemType,
+    TransactionGroupListItemType,
+    TransactionListItemType,
+    TransactionReportGroupListItemType,
+} from '@components/Search/SearchList/ListItem/types';
 import SearchWriteActionsProvider from '@components/Search/SearchWriteActionsProvider';
+import {getGroupCheckboxState, isRowChecked, mapEmptyReportToSelectedEntry, mergeRowsIntoPartlyLoadedGroups, resolveGroupCount} from '@components/Search/selectionBuilders';
+import * as selectionBuilders from '@components/Search/selectionBuilders';
+
+import {getSelectedGroupKeys} from '@hooks/useSearchBulkActions';
 
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import type {SearchGroupKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchResults} from '@src/types/onyx';
+import type {SearchResults, Transaction} from '@src/types/onyx';
+import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 
 import type * as ReactNavigation from '@react-navigation/native';
+import type {OnyxCollection} from 'react-native-onyx';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {buildCategoryGroup, buildReportGroup, buildTransactionRow} from '../../utils/collections/searchListItems';
+import createRandomTransaction from '../../utils/collections/transaction';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
+
+let mockIsFocused = true;
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof ReactNavigation>('@react-navigation/native'),
-    useIsFocused: () => true,
+    useIsFocused: () => mockIsFocused,
     useRoute: jest.fn(() => ({key: 'search-test-route'})),
     useRootNavigationState: jest.fn(() => undefined),
     useNavigation: jest.fn(() => ({
@@ -32,29 +48,171 @@ jest.mock('@react-navigation/native', () => ({
 
 const GROUP_KEY = 'Advertising';
 
+/** The query the rows belong to. Everything scoped to one search is keyed on it. */
+const SEARCH_HASH = 1;
+
+/** A child as it looks once its group has been expanded and the snapshot has loaded, carrying the group the list stamps on it. */
+const buildChild = (index: number, key: string, selectionGroupKey: string) => buildTransactionRow(index, key, {currency: 'USD', amount: -642, report: {reportID: '11'}, selectionGroupKey});
+
 /**
  * A `group-by:category` group. Its children are fetched into a separate snapshot only once the row is expanded,
  * so `transactions` stays empty on the group itself for the whole lifetime of the list.
  */
-// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal fixture: only the fields the selection logic reads are needed
-const categoryGroup = {
-    groupedBy: CONST.SEARCH.GROUP_BY.CATEGORY,
-    category: 'Advertising',
-    formattedCategory: 'Advertising',
-    count: 2,
-    total: -1284,
-    currency: 'USD',
-    transactions: [],
-    transactionsQueryJSON: buildSearchQueryJSON('type:expense category:Advertising'),
-    keyForList: GROUP_KEY,
-} as unknown as TransactionCategoryGroupListItemType;
+const categoryGroup = buildCategoryGroup(GROUP_KEY, [], buildSearchQueryJSON('type:expense category:Advertising'));
 
-/** The children as they look once the group has been expanded and its snapshot has loaded. */
-// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal fixture: only the fields the selection logic reads are needed
-const loadedChildren = [
-    {transactionID: '1', keyForList: '1', currency: 'USD', amount: -642, report: {reportID: '11'}},
-    {transactionID: '2', keyForList: '2', currency: 'USD', amount: -642, report: {reportID: '11'}},
-] as unknown as TransactionListItemType[];
+const loadedChildren = [buildChild(1, '1', GROUP_KEY), buildChild(2, '2', GROUP_KEY)];
+
+/** The same group with a third child, for ranges that leave a row untouched on either side. */
+const threeLoadedChildren = [...loadedChildren, buildChild(5, '5', GROUP_KEY)];
+
+/** The same group as the server sees it: five rows in total, of which only the first page has loaded. */
+const partiallyLoadedGroup = {...categoryGroup, count: 5};
+
+/** The same group with its sub-snapshot cached, so it carries its first page while the rest are unloaded. */
+const cachedPartialGroup = {...categoryGroup, count: 5, transactions: loadedChildren};
+
+/** A search with every page in, which is what lets select-all-matching be turned off. */
+const settledGroupedResults: SearchResults = {
+    ...makeFlatSearchResults(undefined),
+    search: {...makeFlatSearchResults(undefined).search, hasMoreResults: false},
+};
+
+/** The same group, in a search with every page in. */
+function SettledGroupWrapper({children}: {children: React.ReactNode}) {
+    return (
+        <SearchContextProvider>
+            <SearchWriteActionsProvider
+                filteredData={[cachedPartialGroup]}
+                renderedData={[cachedPartialGroup]}
+                totalSelectableItemsCount={loadedChildren.length}
+                searchResults={settledGroupedResults}
+                searchHash={SEARCH_HASH}
+                transactions={undefined}
+                isMobileSelectionModeEnabled={false}
+                type={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                areItemsGrouped
+                isExpenseReportType={false}
+                isSearchResultsEmpty={false}
+            >
+                {children}
+            </SearchWriteActionsProvider>
+        </SearchContextProvider>
+    );
+}
+
+const EARLIER_GROUP_KEY = 'Office';
+
+/** A group rendered above `categoryGroup`. */
+const earlierGroup = buildCategoryGroup(EARLIER_GROUP_KEY, [], buildSearchQueryJSON('type:expense category:Office'));
+
+/** The earlier group's children, expanded and loaded. */
+const earlierChildren = [buildChild(3, '3', EARLIER_GROUP_KEY), buildChild(4, '4', EARLIER_GROUP_KEY)];
+
+/** The same group as the list sees it: empty at first, carrying the loaded rows afterwards. */
+let pagingGroup: TransactionCategoryGroupListItemType = partiallyLoadedGroup;
+
+/** A second group rendered beside the paging one, for a row that moves between them, above it unless `isNeighborGroupBelow` is set. */
+let neighborGroup: TransactionCategoryGroupListItemType | undefined;
+let isNeighborGroupBelow = false;
+
+/** The paging group's search results, for the tests that need excluded rows reconciled. */
+let pagingSearchResults: SearchResults | undefined;
+
+function PagingWrapper({children}: {children: React.ReactNode}) {
+    let groups = [pagingGroup];
+    if (neighborGroup) {
+        groups = isNeighborGroupBelow ? [pagingGroup, neighborGroup] : [neighborGroup, pagingGroup];
+    }
+    return (
+        <SearchContextProvider>
+            <SearchWriteActionsProvider
+                filteredData={groups}
+                renderedData={groups}
+                totalSelectableItemsCount={5}
+                searchResults={pagingSearchResults}
+                searchHash={SEARCH_HASH}
+                transactions={undefined}
+                isMobileSelectionModeEnabled={false}
+                type={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                areItemsGrouped
+                isExpenseReportType={false}
+                isSearchResultsEmpty={false}
+            >
+                {children}
+            </SearchWriteActionsProvider>
+        </SearchContextProvider>
+    );
+}
+
+function TwoGroupWrapper({children}: {children: React.ReactNode}) {
+    return (
+        <SearchContextProvider>
+            <SearchWriteActionsProvider
+                filteredData={[earlierGroup, categoryGroup]}
+                renderedData={[earlierGroup, categoryGroup]}
+                totalSelectableItemsCount={4}
+                searchResults={undefined}
+                searchHash={SEARCH_HASH}
+                transactions={undefined}
+                isMobileSelectionModeEnabled={false}
+                type={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                areItemsGrouped
+                isExpenseReportType={false}
+                isSearchResultsEmpty={false}
+            >
+                {children}
+            </SearchWriteActionsProvider>
+        </SearchContextProvider>
+    );
+}
+
+const makeReportTransaction = (transactionID: string, reportID: string, amount = -500) =>
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal fixture: only fields read by selection builders are required
+    ({
+        transactionID,
+        keyForList: transactionID,
+        currency: 'USD',
+        amount,
+        reportID,
+        report: {reportID},
+        action: CONST.SEARCH.ACTION_TYPES.VIEW,
+    }) as unknown as TransactionListItemType;
+
+const makeExpenseReport = (reportID: string, transactionIDs: string[], transactionAmount = -500) =>
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal fixture: only fields read by report selection are required
+    ({
+        groupedBy: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+        reportID,
+        keyForList: reportID,
+        transactions: transactionIDs.map((transactionID) => makeReportTransaction(transactionID, reportID, transactionAmount)),
+        currency: 'USD',
+        total: transactionAmount * transactionIDs.length,
+        type: CONST.REPORT.TYPE.EXPENSE,
+    }) as unknown as TransactionReportGroupListItemType;
+
+const firstReport = makeExpenseReport('report-1', ['report-1-transaction-1', 'report-1-transaction-2']);
+const secondReport = makeExpenseReport('report-2', ['report-2-transaction-1']);
+const thirdReport = makeExpenseReport('report-3', ['report-3-transaction-1']);
+let reportFilteredData: TransactionReportGroupListItemType[] = [firstReport, secondReport];
+
+function makeReportSearchResults(): SearchResults {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal fixture: only fields read by the selection reconciliation are required
+    return {
+        data: {},
+        search: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+            hash: 2,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            offset: 0,
+            hasMoreResults: true,
+            hasResults: true,
+            isLoading: false,
+        },
+    } as unknown as SearchResults;
+}
+
+let reportSearchResults = makeReportSearchResults();
 
 const FLAT_TRANSACTION_ID = 'flat-1';
 
@@ -91,17 +249,53 @@ function makeFlatSearchResults(expense: TransactionListItemType | undefined): Se
     } as unknown as SearchResults;
 }
 
+/** The rows after the first on a flat search, where every row is its own selectable unit and a range spans them directly. */
+const flatRangeRows = [
+    buildTransactionRow(11, 'flat-2', {currency: 'USD', amount: -642, report: {reportID: '11'}}),
+    buildTransactionRow(12, 'flat-3', {currency: 'USD', amount: -642, report: {reportID: '11'}}),
+    buildTransactionRow(13, 'flat-4', {currency: 'USD', amount: -642, report: {reportID: '11'}}),
+];
+
 let flatExpense = makeFlatExpense(-3000);
-let flatFilteredData: TransactionListItemType[] = [flatExpense];
+let flatFilteredData: TransactionListItemType[] = [flatExpense, ...flatRangeRows];
 let flatSearchResults = makeFlatSearchResults(flatExpense);
+let flatLiveTransactions: OnyxCollection<Transaction>;
+
+let groupedSearchResults: SearchResults | undefined;
+let groupedSearchHash = SEARCH_HASH;
+
+/** The same group under a search that can change identity, for the rows a registry must not carry across searches. */
+function SearchChangeWrapper({children}: {children: React.ReactNode}) {
+    return (
+        <SearchContextProvider>
+            <SearchWriteActionsProvider
+                filteredData={[categoryGroup]}
+                renderedData={[categoryGroup]}
+                totalSelectableItemsCount={2}
+                searchResults={groupedSearchResults}
+                searchHash={groupedSearchHash}
+                transactions={undefined}
+                isMobileSelectionModeEnabled={false}
+                type={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                areItemsGrouped
+                isExpenseReportType={false}
+                isSearchResultsEmpty={false}
+            >
+                {children}
+            </SearchWriteActionsProvider>
+        </SearchContextProvider>
+    );
+}
 
 function Wrapper({children}: {children: React.ReactNode}) {
     return (
         <SearchContextProvider>
             <SearchWriteActionsProvider
                 filteredData={[categoryGroup]}
+                renderedData={[categoryGroup]}
                 totalSelectableItemsCount={2}
                 searchResults={undefined}
+                searchHash={groupedSearchHash}
                 transactions={undefined}
                 isMobileSelectionModeEnabled={false}
                 type={CONST.SEARCH.DATA_TYPES.EXPENSE}
@@ -120,9 +314,11 @@ function FlatWrapper({children}: {children: React.ReactNode}) {
         <SearchContextProvider>
             <SearchWriteActionsProvider
                 filteredData={flatFilteredData}
+                renderedData={flatFilteredData}
                 totalSelectableItemsCount={flatFilteredData.length}
                 searchResults={flatSearchResults}
-                transactions={undefined}
+                searchHash={SEARCH_HASH}
+                transactions={flatLiveTransactions}
                 isMobileSelectionModeEnabled={false}
                 type={CONST.SEARCH.DATA_TYPES.EXPENSE}
                 areItemsGrouped={false}
@@ -135,14 +331,125 @@ function FlatWrapper({children}: {children: React.ReactNode}) {
     );
 }
 
-const renderSelection = () =>
+function ReportsWrapper({children}: {children: React.ReactNode}) {
+    const totalSelectableItemsCount = reportFilteredData.reduce((count, report) => count + report.transactions.length, 0);
+    return (
+        <SearchContextProvider>
+            <SearchWriteActionsProvider
+                filteredData={reportFilteredData}
+                renderedData={reportFilteredData}
+                totalSelectableItemsCount={totalSelectableItemsCount}
+                searchResults={reportSearchResults}
+                searchHash={SEARCH_HASH}
+                transactions={undefined}
+                isMobileSelectionModeEnabled={false}
+                type={CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}
+                areItemsGrouped
+                isExpenseReportType
+                isSearchResultsEmpty={false}
+            >
+                {children}
+            </SearchWriteActionsProvider>
+        </SearchContextProvider>
+    );
+}
+
+/** Expense-report views make the report row the selectable unit, so a range spans reports. */
+const reportGroups = [
+    buildReportGroup(6, 'report-1', [buildChild(6, '6', 'report-1')]),
+    buildReportGroup(7, 'report-2', [buildChild(7, '7', 'report-2')]),
+    buildReportGroup(8, 'report-3', []),
+];
+
+/** Three reports that each carry a row, for a range that has to leave one of them alone. */
+const loadedReportGroups = [
+    buildReportGroup(6, 'report-1', [buildChild(6, '6', 'report-1')]),
+    buildReportGroup(7, 'report-2', [buildChild(7, '7', 'report-2')]),
+    buildReportGroup(8, 'report-3', [buildChild(8, '8', 'report-3')]),
+];
+
+function LoadedReportWrapper({children}: {children: React.ReactNode}) {
+    return (
+        <SearchContextProvider>
+            <SearchWriteActionsProvider
+                filteredData={loadedReportGroups}
+                renderedData={loadedReportGroups}
+                totalSelectableItemsCount={3}
+                searchResults={undefined}
+                searchHash={SEARCH_HASH}
+                transactions={undefined}
+                isMobileSelectionModeEnabled={false}
+                type={CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}
+                areItemsGrouped
+                isExpenseReportType
+                isSearchResultsEmpty={false}
+            >
+                {children}
+            </SearchWriteActionsProvider>
+        </SearchContextProvider>
+    );
+}
+
+/** The same shape, with the middle report holding a single row on its way out. */
+const reportGroupsWithDeletedRow = [
+    buildReportGroup(6, 'report-1', [buildChild(6, '6', 'report-1')]),
+    buildReportGroup(7, 'report-2', [{...buildChild(7, '7', 'report-2'), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}]),
+    buildReportGroup(8, 'report-3', [buildChild(8, '8', 'report-3')]),
+];
+
+function DeletedRowReportWrapper({children}: {children: React.ReactNode}) {
+    return (
+        <SearchContextProvider>
+            <SearchWriteActionsProvider
+                filteredData={reportGroupsWithDeletedRow}
+                renderedData={reportGroupsWithDeletedRow}
+                totalSelectableItemsCount={2}
+                searchResults={undefined}
+                searchHash={SEARCH_HASH}
+                transactions={undefined}
+                isMobileSelectionModeEnabled={false}
+                type={CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}
+                areItemsGrouped
+                isExpenseReportType
+                isSearchResultsEmpty={false}
+            >
+                {children}
+            </SearchWriteActionsProvider>
+        </SearchContextProvider>
+    );
+}
+
+function ExpenseReportWrapper({children}: {children: React.ReactNode}) {
+    return (
+        <SearchContextProvider>
+            <SearchWriteActionsProvider
+                filteredData={reportGroups}
+                renderedData={reportGroups}
+                totalSelectableItemsCount={3}
+                searchResults={undefined}
+                searchHash={SEARCH_HASH}
+                transactions={undefined}
+                isMobileSelectionModeEnabled={false}
+                type={CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}
+                areItemsGrouped
+                isExpenseReportType
+                isSearchResultsEmpty={false}
+            >
+                {children}
+            </SearchWriteActionsProvider>
+        </SearchContextProvider>
+    );
+}
+
+const renderSelection = (wrapper: React.ComponentType<{children: React.ReactNode}> = Wrapper) =>
     renderHook(
         () => ({
             ...useSearchSelectionContext(),
             ...useSearchSelectionActions(),
             ...useSearchRowSelectionActions(),
+            ...useSearchShiftRangeGroups(),
         }),
-        {wrapper: Wrapper},
+        {wrapper},
     );
 
 const renderFlatSelection = () =>
@@ -153,6 +460,37 @@ const renderFlatSelection = () =>
             ...useSearchRowSelectionActions(),
         }),
         {wrapper: FlatWrapper},
+    );
+
+/**
+ * Every fixture that stands for the same group. A group's rows reach a range through the list itself, so making them
+ * arrive means putting them on the group the wrapper under test renders.
+ */
+const groupFixturesByKey: Record<string, TransactionGroupListItemType[]> = {
+    [GROUP_KEY]: [categoryGroup, partiallyLoadedGroup, cachedPartialGroup],
+    [EARLIER_GROUP_KEY]: [earlierGroup],
+};
+
+/** The rows a group carries once its page has arrived. Mutated in place: the provider holds the fixture, not a copy of it. */
+function carryRows(groupKey: string, children: TransactionListItemType[]) {
+    for (const fixture of groupFixturesByKey[groupKey] ?? []) {
+        fixture.transactions = children;
+    }
+}
+
+function expandGroup(result: ReturnType<typeof renderSelection>['result'], groupKey: string, children: TransactionListItemType[]) {
+    carryRows(groupKey, children);
+    result.current.addGroupToRange(groupKey);
+}
+
+const renderReportSelection = () =>
+    renderHook(
+        () => ({
+            ...useSearchSelectionContext(),
+            ...useSearchSelectionActions(),
+            ...useSearchRowSelectionActions(),
+        }),
+        {wrapper: ReportsWrapper},
     );
 
 async function excludeFlatExpense(result: ReturnType<typeof renderFlatSelection>['result']) {
@@ -171,16 +509,50 @@ describe('Lazily loaded group selection', () => {
     beforeAll(() => Onyx.init({keys: ONYXKEYS}));
 
     beforeEach(async () => {
+        mockIsFocused = true;
+        groupedSearchResults = undefined;
+        groupedSearchHash = SEARCH_HASH;
+        // The fixtures are mutated as their pages arrive, so each test starts from the state its name describes.
+        categoryGroup.transactions = [];
+        categoryGroup.count = loadedChildren.length;
+        earlierGroup.transactions = [];
+        partiallyLoadedGroup.transactions = [];
+        cachedPartialGroup.transactions = loadedChildren;
+        pagingGroup = partiallyLoadedGroup;
+        neighborGroup = undefined;
+        isNeighborGroupBelow = false;
+        pagingSearchResults = undefined;
         flatExpense = makeFlatExpense(-3000);
-        flatFilteredData = [flatExpense];
+        flatFilteredData = [flatExpense, ...flatRangeRows];
         flatSearchResults = makeFlatSearchResults(flatExpense);
+        flatLiveTransactions = undefined;
+        reportFilteredData = [firstReport, secondReport];
+        reportSearchResults = makeReportSearchResults();
         await act(async () => {
             await Onyx.clear();
             await waitForBatchedUpdatesWithAct();
         });
     });
 
+    it('keeps the row actions stable when a group opens, so expanding one does not re-render every row', async () => {
+        // Given the actions every row is handed while the list stands collapsed
+        const {result} = renderSelection();
+        const toggleBefore = result.current.toggle;
+        const toggleAllBefore = result.current.toggleAll;
+
+        // When a group opens, which changes the rows a range spans and the parent each belongs to
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the actions every row holds are the same functions, since the write path reads that index at the gesture
+        expect(result.current.toggle).toBe(toggleBefore);
+        expect(result.current.toggleAll).toBe(toggleAllBefore);
+    });
+
     it('stores the selection under the group key while the children are still unknown', async () => {
+        // Given a group that has never been expanded, so the list holds no rows for it
         const {result} = renderSelection();
 
         // When the checkbox is pressed before the group has been expanded, so no children are loaded yet
@@ -214,7 +586,512 @@ describe('Lazily loaded group selection', () => {
         expect(Object.keys(result.current.selectedTransactions)).toHaveLength(0);
     });
 
+    it('narrows a selection held under the group key when shift+click collapses the range onto one child', async () => {
+        const {result} = renderSelection();
+        const [firstChild] = loadedChildren;
+
+        // Given Select All while the group still carries no rows, so the selection lands under its key
+        await act(async () => {
+            result.current.toggleAll();
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[GROUP_KEY]?.isSelected).toBe(true);
+
+        // When its rows arrive and a shift+click collapses the seeded range onto the first child
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the group entry is spelled out into its children, so the rest can be dropped
+        expect(result.current.selectedTransactions[GROUP_KEY]).toBeUndefined();
+        expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']).toBeUndefined();
+    });
+
+    it('narrows a Select All onto one child of a group whose rows arrived afterwards, even once they are stored individually', async () => {
+        const {result, rerender} = renderSelection(PagingWrapper);
+        const [firstChild, secondChild] = loadedChildren;
+
+        // Given Select All while the group carries no rows, so no row is on screen for the block to cover yet
+        await act(async () => {
+            result.current.toggleAll();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When its first page arrives, which writes the selection out into an entry per row
+        pagingGroup = cachedPartialGroup;
+        rerender({});
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[secondChild.keyForList]?.isSelected).toBe(true);
+
+        // And a shift+click lands on the first child
+        await act(async () => {
+            result.current.toggle(firstChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the Select All narrows onto it, rather than those entries reading as hand-picked and resisting the collapse
+        expect(result.current.selectedTransactions[firstChild.keyForList]?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions[secondChild.keyForList]).toBeUndefined();
+    });
+
+    it('deselects a single child of a group that was selected before its children loaded', async () => {
+        const {result} = renderSelection();
+        const [firstChild] = loadedChildren;
+
+        // Given a group selected while it was still collapsed, whose children have since loaded and been registered
+        await act(async () => {
+            result.current.toggle(categoryGroup, []);
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[GROUP_KEY]?.isSelected).toBe(true);
+
+        // When one of those children, which renders as selected through the group, is clicked
+        await act(async () => {
+            result.current.toggle(firstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then only that child is dropped and the rest of the group stays selected
+        expect(result.current.selectedTransactions[GROUP_KEY]).toBeUndefined();
+        expect(result.current.selectedTransactions['1']).toBeUndefined();
+        expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+    });
+
+    it('narrows a group selected before its children loaded once shift+click shrinks the range', async () => {
+        const {result} = renderSelection();
+        const [firstChild, secondChild] = loadedChildren;
+
+        // Given a group selected while it was still collapsed, whose children have since loaded and been registered
+        await act(async () => {
+            result.current.toggle(categoryGroup, []);
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When a shift+click covers both children and a second one shrinks the range back to the first
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the second child drops out, rather than staying selected through the group
+        expect(result.current.selectedTransactions[GROUP_KEY]).toBeUndefined();
+        expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']).toBeUndefined();
+    });
+
+    it('anchors inside the selected group rather than at the top of the list, with an expanded group above it', async () => {
+        const {result} = renderSelection(TwoGroupWrapper);
+        const [, secondChild] = loadedChildren;
+
+        // Given an expanded, unselected group above a group that was selected while it was still collapsed
+        await act(async () => {
+            expandGroup(result, EARLIER_GROUP_KEY, earlierChildren);
+            result.current.toggle(categoryGroup, []);
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When shift+click lands on the second child of the selected group
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the range stays inside that group and never reaches the group above
+        expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['3']).toBeUndefined();
+        expect(result.current.selectedTransactions['4']).toBeUndefined();
+    });
+
+    it('leaves no untouched child behind when a range narrows a group of three', async () => {
+        const {result} = renderSelection();
+        const [firstChild, secondChild] = threeLoadedChildren;
+
+        // Given a group selected while it was still collapsed, whose three children have since loaded and been registered
+        await act(async () => {
+            result.current.toggle(categoryGroup, []);
+            expandGroup(result, GROUP_KEY, threeLoadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When a shift+click covers the first two children and a second one shrinks the range back to the first
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then only the clicked child survives, rather than the third child hanging on because no range ever covered it
+        expect(result.current.selectedTransactions[GROUP_KEY]).toBeUndefined();
+        expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']).toBeUndefined();
+        expect(result.current.selectedTransactions['5']).toBeUndefined();
+    });
+
+    it('drops the group entry when a range covers every child, rather than holding both', async () => {
+        const {result} = renderSelection();
+        const [, secondChild] = loadedChildren;
+
+        // Given a group selected while it was still collapsed, whose children have since loaded and been registered
+        await act(async () => {
+            result.current.toggle(categoryGroup, []);
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When one shift+click covers the whole group, so nothing is deselected
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the selection is the children alone, not the children plus the group they were already selected through
+        expect(result.current.selectedTransactions[GROUP_KEY]).toBeUndefined();
+        expect(Object.keys(result.current.selectedTransactions)).toEqual(['1', '2']);
+    });
+
+    it('keeps a group marked as covering its rows when a range reaches past it without giving any of them back', async () => {
+        const {result} = renderSelection(TwoGroupWrapper);
+        const [earlierFirstChild] = earlierChildren;
+        const [, secondChild] = loadedChildren;
+
+        // Given the lower group selected from its header, so both of its rows are marked as covered by the group
+        await act(async () => {
+            expandGroup(result, EARLIER_GROUP_KEY, earlierChildren);
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(categoryGroup, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[secondChild.keyForList]?.isSelectedViaGroup).toBe(true);
+
+        // When a shift+click reaches up into the group above, re-covering the block's first row and leaving its second on the far side of the anchor
+        await act(async () => {
+            result.current.toggle(earlierFirstChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[secondChild.keyForList]?.isSelected).toBe(true);
+
+        // Then both rows still claim the group, since the range took none of them back and the group is as selected as the header left it
+        for (const child of loadedChildren) {
+            expect(result.current.selectedTransactions[child.keyForList]?.isSelectedViaGroup).toBe(true);
+        }
+    });
+
+    it('marks a group wholly selected when a range covers every row it holds, as picking them one by one does', async () => {
+        const {result} = renderSelection();
+        const [firstChild, secondChild] = loadedChildren;
+
+        // Given an open group of two with its first row picked
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[firstChild.keyForList]?.isEntireGroupSelected).toBe(false);
+
+        // When a shift+click extends the range over the second
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then both rows say the group is wholly selected, which is what delete reads
+        expect(result.current.selectedTransactions[firstChild.keyForList]?.isEntireGroupSelected).toBe(true);
+        expect(result.current.selectedTransactions[secondChild.keyForList]?.isEntireGroupSelected).toBe(true);
+    });
+
+    it('recounts whether a group is wholly selected when a range drops one of its rows, so delete cannot take the rest', async () => {
+        categoryGroup.count = threeLoadedChildren.length;
+        const {result} = renderSelection(TwoGroupWrapper);
+        const [firstChild, secondChild, thirdChild] = threeLoadedChildren;
+
+        // Given both groups selected from their headers, the upper one last, so the next shift+click starts from its first row
+        await act(async () => {
+            expandGroup(result, EARLIER_GROUP_KEY, earlierChildren);
+            expandGroup(result, GROUP_KEY, threeLoadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(categoryGroup, threeLoadedChildren);
+            result.current.toggle(earlierGroup, earlierChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When a range reaches the lower group's second row, which leaves its third untouched and still wholly selected
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[thirdChild.keyForList]?.isEntireGroupSelected).toBe(true);
+
+        // And the range is pulled back to the first row, dropping the second
+        await act(async () => {
+            result.current.toggle(firstChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then no row still claims the whole group, including the one the range never touched, or delete would take the dropped row too
+        expect(result.current.selectedTransactions[secondChild.keyForList]).toBeUndefined();
+        expect(result.current.selectedTransactions[thirdChild.keyForList]?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions[thirdChild.keyForList]?.isEntireGroupSelected).toBe(false);
+        expect(result.current.selectedTransactions[firstChild.keyForList]?.isEntireGroupSelected).toBe(false);
+    });
+
+    it('writes a group out into the rows that arrived when one of them is clicked, rather than refusing the click', async () => {
+        const {result, rerender} = renderSelection(PagingWrapper);
+        const [firstChild, secondChild] = loadedChildren;
+
+        // Given a group of five selected while collapsed, so the selection is held under its key
+        await act(async () => {
+            result.current.toggle(pagingGroup, []);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[GROUP_KEY]?.isSelected).toBe(true);
+
+        // When its first page arrives and one of those rows is clicked
+        pagingGroup = cachedPartialGroup;
+        rerender({});
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the click lands: the rows that arrived carry the selection and the clicked one is out of it
+        expect(result.current.selectedTransactions[GROUP_KEY]).toBeUndefined();
+        expect(result.current.selectedTransactions[firstChild.keyForList]).toBeUndefined();
+        expect(result.current.selectedTransactions[secondChild.keyForList]?.isSelected).toBe(true);
+    });
+
+    it('unchecks a child of a group selected while collapsed, once that group’s first page reaches the list', async () => {
+        pagingGroup = partiallyLoadedGroup;
+        const {result, rerender} = renderSelection(PagingWrapper);
+        const [firstChild] = loadedChildren;
+
+        // Given a group of five selected while collapsed, so the selection is held under its own key
+        await act(async () => {
+            result.current.toggle(pagingGroup, []);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[GROUP_KEY]?.isSelected).toBe(true);
+
+        // When its first page arrives, which is the same commit that makes those rows clickable
+        pagingGroup = cachedPartialGroup;
+        rerender({});
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the group has been written out into the rows that arrived, rather than staying an unnameable block
+        expect(result.current.selectedTransactions[GROUP_KEY]).toBeUndefined();
+        expect(result.current.selectedTransactions[firstChild.keyForList]?.isSelected).toBe(true);
+
+        // And clicking one of them unchecks it, rather than the paging refusal making the checkbox dead
+        await act(async () => {
+            result.current.toggle(firstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[firstChild.keyForList]).toBeUndefined();
+    });
+
+    it('narrows a group that is still paging in down to the rows a range keeps', async () => {
+        const {result, rerender} = renderSelection(PagingWrapper);
+        const [firstChild, secondChild] = loadedChildren;
+
+        // Given a group of five selected while collapsed, whose first page has since arrived
+        await act(async () => {
+            result.current.toggle(pagingGroup, []);
+            await waitForBatchedUpdatesWithAct();
+        });
+        pagingGroup = cachedPartialGroup;
+        rerender({});
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When a range is drawn across the loaded rows and then pulled back onto the first
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the range gives back the row it no longer covers, the same as it would in a group with nothing left to page in
+        expect(result.current.selectedTransactions[firstChild.keyForList]?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions[secondChild.keyForList]).toBeUndefined();
+    });
+
+    it('keeps a header selection whole when a range only covers rows it already holds, so an export still reaches the rows not loaded yet', async () => {
+        const {result, rerender} = renderSelection(PagingWrapper);
+        const [, secondChild] = loadedChildren;
+
+        // Given a group of five selected from its header once its first page of two had loaded
+        pagingGroup = cachedPartialGroup;
+        rerender({});
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(cachedPartialGroup, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[secondChild.keyForList]?.isSelectedViaGroup).toBe(true);
+
+        // When a shift+click lands on the last loaded row, which covers the block without giving any row back
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then both rows still claim the group, which is what makes an export send a group filter rather than two IDs
+        for (const child of loadedChildren) {
+            expect(result.current.selectedTransactions[child.keyForList]?.isSelectedViaGroup).toBe(true);
+        }
+    });
+
+    it('anchors in the group just selected, not at a row selected earlier in another group', async () => {
+        const {result} = renderSelection(TwoGroupWrapper);
+        const [earlierFirstChild] = earlierChildren;
+        const [, secondChild] = loadedChildren;
+
+        // Given a child selected in the group above, then the lower group selected while it was still collapsed
+        await act(async () => {
+            expandGroup(result, EARLIER_GROUP_KEY, earlierChildren);
+            result.current.toggle(earlierFirstChild);
+            result.current.toggle(categoryGroup, []);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When that group's children load and a shift+click lands on its second child
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the range stays inside the group the user just selected, leaving the other group's second child alone
+        expect(result.current.selectedTransactions['4']).toBeUndefined();
+    });
+
+    it('leaves another group’s rows alone when the block seeded for the next shift+click never loaded', async () => {
+        const {result} = renderSelection(TwoGroupWrapper);
+        const [earlierFirstChild] = earlierChildren;
+
+        // Given the group above selected as a block, then the group below selected while it was still collapsed
+        await act(async () => {
+            expandGroup(result, EARLIER_GROUP_KEY, earlierChildren);
+            result.current.toggle(earlierGroup, earlierChildren);
+            result.current.toggle(categoryGroup, []);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions['4']?.isSelected).toBe(true);
+
+        // When a shift+click lands in the group above, with nothing of the seeded block on screen for it to narrow
+        await act(async () => {
+            result.current.toggle(earlierFirstChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then it starts a range at the row it landed on, rather than collapsing a block it was never pointed at
+        expect(result.current.selectedTransactions['4']?.isSelected).toBe(true);
+    });
+
+    it('narrows a group selected while collapsed with a cached snapshot, whose children were stored individually', async () => {
+        const {result} = renderSelection();
+        const [firstChild] = loadedChildren;
+
+        // Given the group selected while collapsed but already cached, so the header passes its children and they are stored one by one
+        await act(async () => {
+            result.current.toggle(categoryGroup, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+
+        // When the group is re-expanded and a shift+click collapses the range onto the first child
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the range narrows it, rather than the header's own rows counting as hand-picked and resisting the collapse
+        expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']).toBeUndefined();
+    });
+
+    it('never records a whole group as excluded when a range narrows under select-all-matching', async () => {
+        const {result} = renderSelection(TwoGroupWrapper);
+        const [firstChild, secondChild] = loadedChildren;
+
+        const [earlierFirstChild] = earlierChildren;
+
+        // Given a range that covers every row, and every matching item selected
+        await act(async () => {
+            expandGroup(result, EARLIER_GROUP_KEY, earlierChildren);
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            result.current.toggle(earlierFirstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+
+        // When a shift+click shrinks that range so the last rows fall out of it
+        await act(async () => {
+            result.current.toggle(firstChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then no group is written off as excluded, which would drop every one of its rows from a bulk action
+        expect(Object.keys(result.current.excludedTransactions)).not.toContain(GROUP_KEY);
+        expect(Object.keys(result.current.excludedTransactions)).not.toContain(EARLIER_GROUP_KEY);
+    });
+
     it('selects every child of a group that was not already selected once its children loaded', async () => {
+        // Given an expanded group, none of whose rows are selected
         const {result} = renderSelection();
 
         // When the checkbox is pressed on an expanded, unselected group whose children have loaded
@@ -227,11 +1104,96 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions[GROUP_KEY]).toBeUndefined();
         expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
         expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['1']?.isSelectedViaGroup).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isSelectedViaGroup).toBe(true);
+        expect(result.current.selectedTransactions['1']?.isEntireGroupSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isEntireGroupSelected).toBe(true);
+    });
+
+    it('marks isEntireGroupSelected when every child is selected individually', async () => {
+        const {result} = renderSelection();
+        const firstChild = loadedChildren.at(0);
+        const secondChild = loadedChildren.at(1);
+        if (!firstChild || !secondChild) {
+            throw new Error('Expected two loaded children');
+        }
+
+        // Given only the first of the group's two rows clicked, which covers part of the group
+        await act(async () => {
+            result.current.toggle(firstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions['1']?.isSelectedViaGroup).toBeFalsy();
+        expect(result.current.selectedTransactions['1']?.isEntireGroupSelected).toBe(false);
+
+        // When the second one is clicked too
+        await act(async () => {
+            result.current.toggle(secondChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then both rows record the group as wholly covered, so a delete can act on the group rather than the rows
+        expect(result.current.selectedTransactions['1']?.isSelectedViaGroup).toBeFalsy();
+        expect(result.current.selectedTransactions['2']?.isSelectedViaGroup).toBeFalsy();
+        expect(result.current.selectedTransactions['1']?.isEntireGroupSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isEntireGroupSelected).toBe(true);
+    });
+
+    it('does not mark isEntireGroupSelected when the group checkbox selects fewer children than the group count', async () => {
+        // Given a group that counts five rows but has only two of them loaded
+        const {result} = renderSelection();
+        const truncatedGroup = {...categoryGroup, count: 5};
+
+        // When its header checkbox is pressed
+        await act(async () => {
+            result.current.toggle(truncatedGroup, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the two are selected without claiming the group is covered, since the three that never loaded are not
+        expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['1']?.isSelectedViaGroup).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isSelectedViaGroup).toBe(true);
+        expect(result.current.selectedTransactions['1']?.isEntireGroupSelected).toBe(false);
+        expect(result.current.selectedTransactions['2']?.isEntireGroupSelected).toBe(false);
+    });
+
+    it('clears isEntireGroupSelected when a new child lands in a fully selected group', async () => {
+        pagingGroup = {...categoryGroup, transactions: loadedChildren};
+        const {result, rerender} = renderSelection(PagingWrapper);
+        const firstChild = loadedChildren.at(0);
+        const secondChild = loadedChildren.at(1);
+        if (!firstChild || !secondChild) {
+            throw new Error('Expected two loaded children');
+        }
+
+        // Given both of the group's rows selected, so it reads as wholly covered
+        await act(async () => {
+            result.current.toggle(firstChild);
+            result.current.toggle(secondChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions['1']?.isEntireGroupSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isEntireGroupSelected).toBe(true);
+
+        // When a third row pages in under it
+        pagingGroup = {...categoryGroup, count: 3, transactions: [...loadedChildren, buildChild(3, '3', GROUP_KEY)]};
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        // Then the claim is withdrawn, or a delete would take the row that arrived unselected
+        expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['3']).toBeUndefined();
+        expect(result.current.selectedTransactions['1']?.isEntireGroupSelected).toBe(false);
+        expect(result.current.selectedTransactions['2']?.isEntireGroupSelected).toBe(false);
     });
 
     it('clears the parent exclusion when an expanded group is reselected', async () => {
         const {result} = renderSelection();
 
+        // Given a group unchecked while collapsed under select-all-matching, which records it as excluded
         await act(async () => {
             result.current.toggleAll();
             result.current.selectAllMatchingItems(true);
@@ -243,43 +1205,2550 @@ describe('Lazily loaded group selection', () => {
         });
         expect(result.current.excludedTransactions[GROUP_KEY]).toBeDefined();
 
+        // When its rows have loaded and the header is pressed again
         await act(async () => {
             result.current.toggle(categoryGroup, loadedChildren);
             await waitForBatchedUpdatesWithAct();
         });
 
+        // Then the exclusion goes with it, rather than the rows reading as checked while the group is still excluded
         expect(result.current.excludedTransactions).toEqual({});
         expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
         expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
         expect(result.current.areAllMatchingItemsSelected).toBe(true);
     });
 
+    it('keeps a child checked on its own inside an excluded group, rather than the refresh dropping it with its parent', async () => {
+        const {result, rerender} = renderSelection(PagingWrapper);
+        const [firstChild] = loadedChildren;
+
+        // Given a group unchecked while collapsed under select-all-matching, whose rows then arrive
+        await act(async () => {
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(pagingGroup, []);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.excludedTransactions[GROUP_KEY]).toBeDefined();
+        pagingGroup = {...categoryGroup, count: 2, transactions: loadedChildren};
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        // Given one of those rows checked on its own, which its checkbox reads from its own entry rather than the group
+        await act(async () => {
+            result.current.toggle(firstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[firstChild.keyForList]?.isSelected).toBe(true);
+
+        // When the data refreshes, which re-derives the selection from the rows on screen
+        pagingGroup = {...categoryGroup, count: 2, transactions: [...loadedChildren]};
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        // Then it is still checked: an entry of its own outranks the exclusion covering the group it sits in
+        expect(result.current.selectedTransactions[firstChild.keyForList]?.isSelected).toBe(true);
+    });
+
     it('refreshes an excluded expense when its live row changes', async () => {
+        // Given an expense taken back out of a select-all-matching selection at its current amount
         const {result, rerender} = renderFlatSelection();
         await excludeFlatExpense(result);
         expect(result.current.excludedTransactions[FLAT_TRANSACTION_ID]?.groupAmount).toBe(-3000);
 
+        // When the row itself changes
         flatExpense = makeFlatExpense(-5000);
         flatFilteredData = [flatExpense];
         flatSearchResults = makeFlatSearchResults(flatExpense);
         rerender({});
         await act(async () => waitForBatchedUpdatesWithAct());
 
+        // Then the exclusion carries the new amount, since the footer total is what it is subtracted from
         expect(result.current.excludedTransactions[FLAT_TRANSACTION_ID]?.groupAmount).toBe(-5000);
         expect(result.current.areAllMatchingItemsSelected).toBe(true);
     });
 
+    it('rebuilds a selected expense from its live transaction rather than the search snapshot, as a click does', async () => {
+        // Given a checked expense that was then split on another device, which reaches the live transaction but not the snapshot
+        const {result, rerender} = renderFlatSelection();
+        await act(async () => {
+            result.current.toggle(flatExpense);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[FLAT_TRANSACTION_ID]?.hasBeenSplit).toBe(false);
+        flatLiveTransactions = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${FLAT_TRANSACTION_ID}`]: {
+                ...createRandomTransaction(0),
+                transactionID: FLAT_TRANSACTION_ID,
+                reportID: '11',
+                comment: {originalTransactionID: 'original-1', source: CONST.IOU.TYPE.SPLIT},
+            },
+        };
+
+        // When the list's rows refresh and the selection is rebuilt from them
+        flatFilteredData = [...flatFilteredData];
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        // Then the expense reads as split, so the bulk menu cannot offer Split on it again
+        expect(result.current.selectedTransactions[FLAT_TRANSACTION_ID]?.hasBeenSplit).toBe(true);
+    });
+
     it('prunes an excluded expense after it leaves the settled search results', async () => {
+        // Given an expense taken back out of a select-all-matching selection
         const {result, rerender} = renderFlatSelection();
         await excludeFlatExpense(result);
         expect(result.current.excludedTransactions[FLAT_TRANSACTION_ID]).toBeDefined();
 
+        // When it stops matching the search
         flatFilteredData = [];
         flatSearchResults = makeFlatSearchResults(undefined);
         rerender({});
         await act(async () => waitForBatchedUpdatesWithAct());
 
+        // Then its exclusion is dropped, rather than a row that is no longer in the results subtracting from the total
         expect(result.current.excludedTransactions).toEqual({});
         expect(result.current.areAllMatchingItemsSelected).toBe(true);
+    });
+
+    it('spans the flat list from the last row clicked, where every row is its own selectable unit', async () => {
+        const {result} = renderFlatSelection();
+        const [firstRow, secondRow, thirdRow] = flatFilteredData;
+
+        // Given the first row clicked plainly, which anchors the range
+        await act(async () => {
+            result.current.toggle(firstRow);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When a shift+click lands two rows down
+        await act(async () => {
+            result.current.toggle(thirdRow, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the rows between the two are selected as well
+        expect(Object.keys(result.current.selectedTransactions).sort()).toEqual([firstRow.keyForList, secondRow.keyForList, thirdRow.keyForList].sort());
+    });
+
+    it('gives back the flat rows a shrinking range no longer covers', async () => {
+        const {result} = renderFlatSelection();
+        const [firstRow, secondRow, , fourthRow] = flatFilteredData;
+
+        // Given a range drawn across the whole flat list
+        await act(async () => {
+            result.current.toggle(firstRow);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(fourthRow, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When the endpoint is pulled back to the second row
+        await act(async () => {
+            result.current.toggle(secondRow, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then only the span it still covers is left selected
+        expect(Object.keys(result.current.selectedTransactions).sort()).toEqual([firstRow.keyForList, secondRow.keyForList].sort());
+    });
+
+    it('keeps the far side when a flat range crosses its anchor', async () => {
+        const {result} = renderFlatSelection();
+        const [firstRow, secondRow, thirdRow, fourthRow] = flatFilteredData;
+
+        // Given a range painted downwards from the second row
+        await act(async () => {
+            result.current.toggle(secondRow);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(fourthRow, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When the next shift+click lands above the anchor
+        await act(async () => {
+            result.current.toggle(firstRow, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the rows below it stay selected, which is what production Table and Gmail do
+        expect(Object.keys(result.current.selectedTransactions).sort()).toEqual([firstRow.keyForList, secondRow.keyForList, thirdRow.keyForList, fourthRow.keyForList].sort());
+    });
+
+    it('collapses a flat Select All onto the span the next shift+click lands in', async () => {
+        const {result} = renderFlatSelection();
+        const [firstRow, secondRow] = flatFilteredData;
+
+        // Given every row selected from the header checkbox
+        await act(async () => {
+            result.current.toggleAll();
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(Object.keys(result.current.selectedTransactions)).toHaveLength(flatFilteredData.length);
+
+        // When a shift+click lands on the second row
+        await act(async () => {
+            result.current.toggle(secondRow, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the selection narrows onto it, which is what makes an overshoot recoverable in one click
+        expect(Object.keys(result.current.selectedTransactions).sort()).toEqual([firstRow.keyForList, secondRow.keyForList].sort());
+    });
+
+    it('forgets a block held for the next shift+click once an ordinary click starts a session of its own', async () => {
+        const {result} = renderSelection(TwoGroupWrapper);
+        const [earlierFirstChild] = earlierChildren;
+        const [, secondChild] = loadedChildren;
+
+        // Given a group clicked while its children were still unknown, which holds the block for the next shift+click
+        await act(async () => {
+            result.current.toggle(categoryGroup, []);
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            expandGroup(result, EARLIER_GROUP_KEY, earlierChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When an ordinary click lands elsewhere first, and only then a shift+click
+        await act(async () => {
+            result.current.toggle(earlierFirstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the range runs from the row just clicked, rather than the stale block resurrecting and collapsing onto it
+        expect(result.current.selectedTransactions['3']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['4']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
+    });
+
+    it('selects every report a range covers in an expense-report view', async () => {
+        const {result} = renderSelection(ExpenseReportWrapper);
+        const [firstRangeReport, secondRangeReport] = reportGroups;
+
+        // Given the first report clicked, which is the anchor the next click ranges from
+        await act(async () => {
+            result.current.toggle(firstRangeReport, firstRangeReport.transactions);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When a shift+click lands on the second report
+        await act(async () => {
+            result.current.toggle(secondRangeReport, secondRangeReport.transactions, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then both reports are selected through their child transactions, which is where a report row keeps its selection
+        expect(result.current.selectedTransactions['6']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['7']?.isSelected).toBe(true);
+        // And each row records the report it came in with, the same way clicking the report row records it
+        expect(result.current.selectedTransactions['7']?.groupKey).toBe(secondRangeReport.keyForList);
+        expect(result.current.selectedTransactions['7']?.isSelectedViaGroup).toBe(true);
+    });
+
+    it('drops a report’s own entry when a range covers the rows that arrived under it', async () => {
+        const {result} = renderSelection(ExpenseReportWrapper);
+        const [firstRangeReport] = reportGroups;
+
+        // Given a report selected while it had no expenses of its own, whose expenses have since arrived
+        await act(async () => {
+            const [reportKey, reportEntry] = mapEmptyReportToSelectedEntry(firstRangeReport);
+            result.current.setSelectedTransactions({[reportKey]: reportEntry});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When a range covers that report row
+        await act(async () => {
+            result.current.toggle(firstRangeReport, firstRangeReport.transactions, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then its rows carry the selection and the report's own entry goes, rather than the two being counted separately
+        expect(result.current.selectedTransactions['6']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions[firstRangeReport.keyForList]).toBeUndefined();
+    });
+
+    it('gives back the reports a range no longer covers in an expense-report view', async () => {
+        const {result} = renderSelection(ExpenseReportWrapper);
+        const [firstRangeReport, secondRangeReport, emptyReport] = reportGroups;
+
+        // Given a range stretched across all three reports
+        await act(async () => {
+            result.current.toggle(firstRangeReport, firstRangeReport.transactions);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(emptyReport, emptyReport.transactions, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions['7']?.isSelected).toBe(true);
+
+        // When a second shift+click pulls the range back to the second report
+        await act(async () => {
+            result.current.toggle(secondRangeReport, secondRangeReport.transactions, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the report that fell out of the range is given back, rather than staying selected behind the range
+        expect(result.current.selectedTransactions['6']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['7']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['report-3']).toBeUndefined();
+    });
+
+    it('keeps the remaining children selected when the data refreshes after a group is written out', async () => {
+        const {result, rerender} = renderSelection();
+        const [firstChild] = loadedChildren;
+
+        // Given a group selected while collapsed, its children since published, and one of them unchecked
+        await act(async () => {
+            result.current.toggle(categoryGroup, []);
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+
+        // When a data push re-runs the reconcile
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        // Then the child that is still selected survives it
+        expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+    });
+
+    it('commits nothing when a shift+click re-covers the rows it already holds', async () => {
+        const {result} = renderSelection();
+        const [firstChild, secondChild] = loadedChildren;
+
+        // Given a range already covering both of a group's rows
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        const selectionAfterRange = result.current.selectedTransactions;
+
+        // When the same endpoint is shift+clicked again, so every row it covers is already selected the same way
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the selection is the same object, so the commit bails and no row re-renders
+        expect(result.current.selectedTransactions).toBe(selectionAfterRange);
+    });
+
+    it('never anchors a cold shift+click on a row the user unchecked', async () => {
+        const {result, rerender} = renderSelection();
+        const [firstChild, , thirdChild] = threeLoadedChildren;
+
+        // Given a group covered by select-all-matching with its first child taken back out
+        await act(async () => {
+            result.current.selectAllMatchingItems(true);
+            expandGroup(result, GROUP_KEY, threeLoadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.excludedTransactions[firstChild.keyForList]).toBeDefined();
+
+        // And no session left to continue, since the query changed after that click
+        groupedSearchHash = SEARCH_HASH + 1;
+        rerender({});
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, threeLoadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When the next gesture is a shift+click, so the anchor has to be resolved from the rows themselves
+        await act(async () => {
+            result.current.toggle(thirdChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the range starts at the first row that reads as checked, rather than sweeping the unchecked row back in
+        expect(result.current.excludedTransactions[firstChild.keyForList]).toBeDefined();
+        expect(result.current.selectedTransactions[firstChild.keyForList]).toBeUndefined();
+    });
+
+    it('unchecks a group in one click when select-all-matching is what checked it', async () => {
+        const {result} = renderSelection();
+        const [firstChild, secondChild] = loadedChildren;
+
+        // Given every matching item selected from the menu, so the group reads checked without a single entry behind it
+        await act(async () => {
+            result.current.selectAllMatchingItems(true);
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When the group's header checkbox is pressed once
+        await act(async () => {
+            result.current.toggle(categoryGroup, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then its rows stop reading as checked, rather than the click reading the group as unselected and selecting it again
+        const isChecked = (rowKey: string) =>
+            isRowChecked({
+                rowKey,
+                parentGroupKey: GROUP_KEY,
+                selectedTransactions: result.current.selectedTransactions,
+                excludedTransactions: result.current.excludedTransactions,
+                areAllMatchingItemsSelected: result.current.areAllMatchingItemsSelected,
+            });
+        expect(isChecked(firstChild.keyForList)).toBe(false);
+        expect(isChecked(secondChild.keyForList)).toBe(false);
+        // And each row is named, since the group carries all of them and nothing is left for its own key to stand for
+        expect(result.current.excludedTransactions[firstChild.keyForList]).toBeDefined();
+        expect(result.current.excludedTransactions[secondChild.keyForList]).toBeDefined();
+    });
+
+    it('checks a group again when its header is pressed after being unchecked under select-all-matching', async () => {
+        const {result} = renderSelection();
+        const [firstChild, secondChild] = loadedChildren;
+
+        // Given every matching item selected, and a loaded group unchecked from its header
+        await act(async () => {
+            result.current.selectAllMatchingItems(true);
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(categoryGroup, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When the header is pressed again
+        await act(async () => {
+            result.current.toggle(categoryGroup, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then its rows read as checked again, rather than select-all-matching covering the group's own key and turning the click into another uncheck
+        const isChecked = (rowKey: string) =>
+            isRowChecked({
+                rowKey,
+                parentGroupKey: GROUP_KEY,
+                selectedTransactions: result.current.selectedTransactions,
+                excludedTransactions: result.current.excludedTransactions,
+                areAllMatchingItemsSelected: result.current.areAllMatchingItemsSelected,
+            });
+        expect(isChecked(firstChild.keyForList)).toBe(true);
+        expect(isChecked(secondChild.keyForList)).toBe(true);
+    });
+
+    it('unchecks a group holding none of its rows, when select-all-matching is what checked it', async () => {
+        const {result} = renderSelection();
+
+        // Given every matching item selected, and a group whose children have never loaded
+        await act(async () => {
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When its header checkbox is pressed once
+        await act(async () => {
+            result.current.toggle(categoryGroup, []);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the group is recorded as excluded, rather than the click reading it as unselected and selecting it outright
+        expect(result.current.excludedTransactions[GROUP_KEY]).toBeDefined();
+        expect(result.current.selectedTransactions[GROUP_KEY]).toBeUndefined();
+    });
+
+    it('leaves the selection untouched when a group has no row it can select', async () => {
+        const {result} = renderSelection();
+        const [firstLoadedChild] = loadedChildren;
+        const deletedChild = {...firstLoadedChild, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+
+        // Given a group whose only row is being deleted, so its checkbox reads unchecked with nothing to check
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, [deletedChild]);
+            await waitForBatchedUpdatesWithAct();
+        });
+        const before = result.current.selectedTransactions;
+
+        // When its header is pressed
+        await act(async () => {
+            result.current.toggle(categoryGroup, [deletedChild]);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the commit is skipped entirely, rather than replacing the map with an equal one and re-rendering every row
+        expect(result.current.selectedTransactions).toBe(before);
+    });
+
+    it('drops a group’s own key once its rows arrive and none of them can be selected, so the footer stops counting it', async () => {
+        const {result} = renderSelection();
+        const [firstLoadedChild] = loadedChildren;
+        const deletedChild = {...firstLoadedChild, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+
+        // Given a group selected while collapsed, whose only row then arrives being deleted
+        await act(async () => {
+            result.current.toggle(categoryGroup, []);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[GROUP_KEY]?.isSelected).toBe(true);
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, [deletedChild]);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When its header is pressed, on a checkbox that reads unchecked because nothing under it can be selected
+        await act(async () => {
+            result.current.toggle(categoryGroup, [deletedChild]);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the key it was held under goes, rather than the press doing nothing while the footer still counts it
+        expect(result.current.selectedTransactions[GROUP_KEY]).toBeUndefined();
+    });
+
+    it('keeps the session when a group being deleted writes nothing, so a press that changes nothing cannot cost the anchor', async () => {
+        const {result} = renderSelection(TwoGroupWrapper);
+        const [firstChild, , thirdChild] = threeLoadedChildren;
+
+        // Given the first row of an expanded group clicked plainly, which is the anchor the next shift+click ranges from
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, threeLoadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When the header of another group is pressed while that group is being deleted, which its own branch refuses to write
+        await act(async () => {
+            result.current.toggle({...earlierGroup, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}, []);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When a shift+click lands two rows further down
+        await act(async () => {
+            result.current.toggle(thirdChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the row between them comes with it: the press wrote nothing, so it had no block to seed and no session to end
+        expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['5']?.isSelected).toBe(true);
+    });
+
+    it('clears the rows a group still holds once none of them can be selected, since no checkbox is left to uncheck them', async () => {
+        const {result} = renderSelection();
+        const [firstLoadedChild] = loadedChildren;
+
+        // Given a row selected while it could be, which is then on its way out
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstLoadedChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[firstLoadedChild.keyForList]?.isSelected).toBe(true);
+        const deletedChild = {...firstLoadedChild, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+
+        // When its group's header is pressed, on a checkbox that reads unchecked because nothing under it can be selected
+        await act(async () => {
+            result.current.toggle(categoryGroup, [deletedChild]);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the entry goes with the press, rather than the footer counting a row the user can no longer reach
+        expect(result.current.selectedTransactions[firstLoadedChild.keyForList]).toBeUndefined();
+    });
+
+    it('turns select-all-matching off once every group has been unchecked', async () => {
+        const {result} = renderSelection(SettledGroupWrapper);
+
+        // Given every matching item selected in a grouped search of one group
+        await act(async () => {
+            result.current.selectAllMatchingItems(true);
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+
+        // When that group is unchecked, so nothing the search can select is left
+        await act(async () => {
+            result.current.toggle(cachedPartialGroup, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the flag goes off, rather than a footer advertising every match over a selection the user emptied
+        expect(result.current.areAllMatchingItemsSelected).toBe(false);
+    });
+
+    it('records what a narrowing dropped, so keeping select-all-matching on cannot silently re-include it', async () => {
+        const {result} = renderSelection();
+        const [firstChild, secondChild] = loadedChildren;
+
+        // Given a range across both children, with every matching item selected
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            result.current.toggle(firstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When a shift+click narrows that range back to the first child
+        await act(async () => {
+            result.current.toggle(firstChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the flag stays on, which is correct only because the dropped row is recorded as excluded
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+        expect(result.current.excludedTransactions['2']).toBeDefined();
+        expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
+    });
+
+    it('treats a shift+click on a group header as an ordinary header click, reaching no group between it and the last one', async () => {
+        const {result} = renderSelection();
+
+        // Given two collapsed groups, where the headers are the only rows carrying a checkbox
+        await act(async () => {
+            result.current.toggle(earlierGroup, []);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[EARLIER_GROUP_KEY]?.isSelected).toBe(true);
+
+        // When the second header is shift+clicked
+        await act(async () => {
+            result.current.toggle(categoryGroup, [], true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then it selects itself and nothing spans between the two, which is what design settled on
+        expect(result.current.selectedTransactions[GROUP_KEY]?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions[EARLIER_GROUP_KEY]?.isSelected).toBe(true);
+        expect(Object.keys(result.current.selectedTransactions).sort()).toEqual([EARLIER_GROUP_KEY, GROUP_KEY].sort());
+    });
+
+    it('leaves a select-all-matching selection alone when a shift+click lands in it, since narrowing it would need exclusions for rows never on screen', async () => {
+        const {result} = renderSelection();
+        const [firstChild, secondChild] = loadedChildren;
+
+        // Given every matching item selected from the menu, which the reconcile pass writes out as an entry per visible row
+        await act(async () => {
+            result.current.selectAllMatchingItems(true);
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When a shift+click lands on the first row
+        await act(async () => {
+            result.current.toggle(firstChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then both rows stay checked: those entries carry no group, so they read as hand-picked and a range may not take them back
+        const isChecked = (rowKey: string) =>
+            isRowChecked({
+                rowKey,
+                parentGroupKey: GROUP_KEY,
+                selectedTransactions: result.current.selectedTransactions,
+                excludedTransactions: result.current.excludedTransactions,
+                areAllMatchingItemsSelected: result.current.areAllMatchingItemsSelected,
+            });
+        expect(isChecked(firstChild.keyForList)).toBe(true);
+        expect(isChecked(secondChild.keyForList)).toBe(true);
+    });
+
+    it('turns select-all-matching off when the header checkbox clears the selection', async () => {
+        const {result} = renderFlatSelection();
+
+        // Given every matching item selected
+        await act(async () => {
+            result.current.toggleAll();
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+
+        // When the header checkbox is pressed again to clear everything
+        await act(async () => {
+            result.current.toggleAll();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then nothing is selected any more, rather than every unloaded match staying selected behind an empty page
+        expect(result.current.areAllMatchingItemsSelected).toBe(false);
+        expect(result.current.excludedTransactions).toEqual({});
+    });
+
+    it('collapses a Select All onto the span the next shift+click lands in', async () => {
+        const {result} = renderSelection(ExpenseReportWrapper);
+        const [firstRangeReport] = reportGroups;
+
+        // Given Select All, which seeds a block covering the whole list
+        await act(async () => {
+            result.current.toggleAll();
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(Object.keys(result.current.selectedTransactions).length).toBeGreaterThan(1);
+
+        // When a shift+click lands on the first report
+        await act(async () => {
+            result.current.toggle(firstRangeReport, firstRangeReport.transactions, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the selection narrows onto it, which is what makes an overshoot recoverable in one click
+        expect(Object.keys(result.current.selectedTransactions)).toEqual(['6']);
+    });
+
+    it('drops a group’s published rows when the search changes, so a range cannot reach the previous results', async () => {
+        groupedSearchResults = makeFlatSearchResults(undefined);
+        const {result, rerender} = renderSelection(SearchChangeWrapper);
+        const [, secondChild] = loadedChildren;
+
+        // Given a group open with its rows published under one search
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When the search changes and the group has not published anything yet under the new one
+        groupedSearchHash = SEARCH_HASH + 1;
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        // Then a shift+click reaches only the row it landed on, rather than sweeping in rows that belonged to the previous search
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['1']).toBeUndefined();
+    });
+
+    it('starts a cold session when the search changes, so an old span cannot collapse rows in the new results', async () => {
+        groupedSearchResults = makeFlatSearchResults(undefined);
+        const {result, rerender} = renderSelection(SearchChangeWrapper);
+        const [firstChild, secondChild] = loadedChildren;
+
+        // Given a range painted across both children under one search
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+
+        // When the query changes and the same rows come back, since a transaction can match both searches
+        groupedSearchHash = SEARCH_HASH + 1;
+        rerender({});
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then a shift+click starts fresh rather than continuing the previous search's span and collapsing the row that fell out of it
+        await act(async () => {
+            result.current.toggle(firstChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+    });
+
+    it('drops a group’s rows from ranges once they are gone, rather than ranging over transactions that no longer exist', async () => {
+        const {result, rerender} = renderSelection();
+        const [firstChild, , thirdChild] = threeLoadedChildren;
+
+        // Given a group carrying its rows, and open
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, threeLoadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When every one of its transactions goes away, so the group carries none
+        carryRows(GROUP_KEY, []);
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        // Then a range reaches none of them, rather than writing selections for rows that are no longer there
+        await act(async () => {
+            result.current.toggle(firstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(thirdChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions['2']).toBeUndefined();
+    });
+
+    it('still ranges a group reopened before its rows were published again', async () => {
+        const {result} = renderSelection();
+        const [firstChild, secondChild] = loadedChildren;
+
+        // Given a group whose children loaded, then collapsed and reopened without the row republishing them
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.removeGroupFromRange(GROUP_KEY);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.addGroupToRange(GROUP_KEY);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When a range runs across its rows
+        await act(async () => {
+            result.current.toggle(firstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then they are still reachable, because closing a group drops only its openness and not the rows it had published
+        expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+    });
+
+    it('starts cold after something outside the list clears the selection, rather than ranging from the last row clicked', async () => {
+        const {result} = renderSelection(ExpenseReportWrapper);
+        const [firstRangeReport, , emptyReport] = reportGroups;
+
+        // Given the last report clicked plainly, which becomes the anchor
+        await act(async () => {
+            result.current.toggle(emptyReport, emptyReport.transactions);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When the selection is cleared from outside the list, as a bulk action does once it finishes
+        await act(async () => {
+            result.current.clearSelectedTransactions();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then a shift+click runs from the top of the list, rather than from the report clicked before the clear
+        await act(async () => {
+            result.current.toggle(firstRangeReport, firstRangeReport.transactions, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(Object.keys(result.current.selectedTransactions)).toEqual(['6']);
+    });
+
+    it('never takes back a report the user picked while it was empty, once its rows have arrived', async () => {
+        const {result} = renderSelection(LoadedReportWrapper);
+        const [firstRangeReport, secondRangeReport, thirdRangeReport] = loadedReportGroups;
+
+        // Given the first and last reports picked while they carried no rows, so each is held under its own key
+        await act(async () => {
+            result.current.applySelection(
+                (selectedTransactions) => ({
+                    ...selectedTransactions,
+                    ...Object.fromEntries([mapEmptyReportToSelectedEntry(firstRangeReport), mapEmptyReportToSelectedEntry(thirdRangeReport)]),
+                }),
+                {},
+            );
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When their rows have arrived and a shift+click ranges over the middle report only
+        await act(async () => {
+            result.current.toggle(secondRangeReport, secondRangeReport.transactions, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the last report is still selected: a row the user picked is protected whether its entry sits on the row or on its group
+        expect(result.current.selectedTransactions['report-3']?.isSelected).toBe(true);
+    });
+
+    it('never anchors on a report whose only selected row is on its way out, since its checkbox reads unchecked', async () => {
+        const {result} = renderSelection(DeletedRowReportWrapper);
+        const [, secondRangeReport, thirdRangeReport] = reportGroupsWithDeletedRow;
+        const [deletedRow] = secondRangeReport.transactions;
+
+        // Given the middle report's only row still in the selection after it started being deleted, which its checkbox stops counting
+        await act(async () => {
+            result.current.applySelection((selectedTransactions) => ({...selectedTransactions, [deletedRow.keyForList]: mapEmptyReportToSelectedEntry(secondRangeReport)[1]}), {});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When the first shift+click of the session lands on the last report
+        await act(async () => {
+            result.current.toggle(thirdRangeReport, thirdRangeReport.transactions, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then it ranges from the top of the list rather than from that report, since the engine and the checkbox read the same rows
+        expect(result.current.selectedTransactions['6']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['8']?.isSelected).toBe(true);
+    });
+
+    it('selects a report with no expenses of its own when a range reaches it', async () => {
+        const {result} = renderSelection(ExpenseReportWrapper);
+        const [firstRangeReport, , emptyReport] = reportGroups;
+
+        // Given the first report clicked
+        await act(async () => {
+            result.current.toggle(firstRangeReport, firstRangeReport.transactions);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When a range stretches from it onto a report that carries no expenses
+        await act(async () => {
+            result.current.toggle(emptyReport, emptyReport.transactions, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then it is selected under its own key, which is the only key an empty report has
+        expect(result.current.selectedTransactions['report-3']?.isSelected).toBe(true);
+    });
+
+    it('clears a multi-page all-matching report selection from the header', async () => {
+        const {result} = renderReportSelection();
+
+        await act(async () => {
+            result.current.toggleAll();
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+
+        await act(async () => {
+            result.current.toggleAll();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(result.current.selectedTransactions).toEqual({});
+        expect(result.current.excludedTransactions).toEqual({});
+        expect(result.current.areAllMatchingItemsSelected).toBe(false);
+        expect(result.current.hasSelectedTransactions).toBe(false);
+    });
+
+    it('keeps an excluded report unchecked while selecting reports loaded by pagination', async () => {
+        const {result, rerender} = renderReportSelection();
+
+        await act(async () => {
+            result.current.toggleAll();
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        await act(async () => {
+            result.current.toggle(firstReport);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+        expect(Object.keys(result.current.selectedTransactions)).toEqual(['report-2-transaction-1']);
+        expect(Object.keys(result.current.excludedTransactions)).toEqual(['report-1-transaction-1', 'report-1-transaction-2']);
+        expect(result.current.selectedReports.map((report) => report.reportID)).toEqual(['report-2']);
+
+        reportFilteredData = [firstReport, secondReport, thirdReport];
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        expect(Object.keys(result.current.selectedTransactions)).toEqual(['report-2-transaction-1', 'report-3-transaction-1']);
+        expect(Object.keys(result.current.excludedTransactions)).toEqual(['report-1-transaction-1', 'report-1-transaction-2']);
+
+        await act(async () => {
+            result.current.toggle(firstReport);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+        expect(Object.keys(result.current.selectedTransactions)).toEqual(['report-2-transaction-1', 'report-3-transaction-1', 'report-1-transaction-1', 'report-1-transaction-2']);
+        expect(result.current.excludedTransactions).toEqual({});
+    });
+
+    it("refreshes an excluded report's expenses when their live amounts change", async () => {
+        const {result, rerender} = renderReportSelection();
+
+        await act(async () => {
+            result.current.toggleAll();
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstReport);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(result.current.excludedTransactions['report-1-transaction-1']?.amount).toBe(-500);
+        expect(result.current.excludedTransactions['report-1-transaction-2']?.amount).toBe(-500);
+
+        const updatedFirstReport = makeExpenseReport('report-1', ['report-1-transaction-1', 'report-1-transaction-2'], -700);
+        reportFilteredData = [updatedFirstReport, secondReport];
+        reportSearchResults = makeReportSearchResults();
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        expect(result.current.excludedTransactions['report-1-transaction-1']?.amount).toBe(-700);
+        expect(result.current.excludedTransactions['report-1-transaction-2']?.amount).toBe(-700);
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+    });
+
+    it('records no count on the expenses of a report checked from its row, including after a refresh', async () => {
+        const {result, rerender} = renderReportSelection();
+
+        // Given a report checked from its row, which selects its expenses through the report
+        await act(async () => {
+            result.current.toggle(firstReport, firstReport.transactions);
+            await waitForBatchedUpdatesWithAct();
+        });
+        const selectedExpense = firstReport.transactions.at(0)?.keyForList ?? '';
+        expect(result.current.selectedTransactions[selectedExpense]?.isSelectedViaGroup).toBe(true);
+        expect(result.current.selectedTransactions[selectedExpense]).not.toHaveProperty('claimedGroupCount');
+
+        // When the list refreshes
+        reportFilteredData = [...reportFilteredData];
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        // Then the key stays left out, since an undefined key reads as a change and would re-render every row
+        expect(result.current.selectedTransactions[selectedExpense]).not.toHaveProperty('claimedGroupCount');
+    });
+
+    it('selects an excluded expense after it moves to a selected report', async () => {
+        const {result, rerender} = renderReportSelection();
+
+        await act(async () => {
+            result.current.toggleAll();
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstReport);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        reportFilteredData = [makeExpenseReport('report-1', ['report-1-transaction-2']), makeExpenseReport('report-2', ['report-2-transaction-1', 'report-1-transaction-1'])];
+        reportSearchResults = makeReportSearchResults();
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        expect(new Set(Object.keys(result.current.selectedTransactions))).toEqual(new Set(['report-2-transaction-1', 'report-1-transaction-1']));
+        expect(Object.keys(result.current.excludedTransactions)).toEqual(['report-1-transaction-2']);
+        expect(result.current.excludedTransactions['report-1-transaction-2']?.reportID).toBe('report-1');
+        expect(result.current.selectedReports.map((report) => report.reportID)).toEqual(['report-2']);
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+    });
+
+    it('selects an excluded expense immediately when it moves while the Reports screen is behind an RHP', async () => {
+        const {result, rerender} = renderReportSelection();
+
+        await act(async () => {
+            result.current.toggleAll();
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstReport);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        mockIsFocused = false;
+        reportFilteredData = [makeExpenseReport('report-1', ['report-1-transaction-2']), makeExpenseReport('report-2', ['report-2-transaction-1', 'report-1-transaction-1'])];
+        reportSearchResults = makeReportSearchResults();
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        expect(new Set(Object.keys(result.current.selectedTransactions))).toEqual(new Set(['report-2-transaction-1', 'report-1-transaction-1']));
+        expect(Object.keys(result.current.excludedTransactions)).toEqual(['report-1-transaction-2']);
+        expect(result.current.selectedReports.map((report) => report.reportID)).toEqual(['report-2']);
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+    });
+
+    it('keeps a moved expense excluded when its destination report is excluded', async () => {
+        const {result, rerender} = renderReportSelection();
+
+        await act(async () => {
+            result.current.toggleAll();
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstReport);
+            result.current.toggle(secondReport);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        reportFilteredData = [makeExpenseReport('report-1', ['report-1-transaction-2']), makeExpenseReport('report-2', ['report-2-transaction-1', 'report-1-transaction-1'])];
+        reportSearchResults = makeReportSearchResults();
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        expect(result.current.selectedTransactions).toEqual({});
+        expect(new Set(Object.keys(result.current.excludedTransactions))).toEqual(new Set(['report-1-transaction-2', 'report-2-transaction-1', 'report-1-transaction-1']));
+        expect(result.current.excludedTransactions['report-1-transaction-1']?.reportID).toBe('report-2');
+        expect(result.current.selectedReports).toEqual([]);
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+    });
+
+    it('keeps an emptied source report excluded when its last expense moves to a selected report', async () => {
+        const sourceReport = makeExpenseReport('source-report', ['moved-transaction']);
+        const destinationReport = makeExpenseReport('destination-report', ['destination-transaction']);
+        reportFilteredData = [sourceReport, destinationReport];
+        const {result, rerender} = renderReportSelection();
+
+        await act(async () => {
+            result.current.toggleAll();
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(sourceReport);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        reportFilteredData = [makeExpenseReport('source-report', []), makeExpenseReport('destination-report', ['destination-transaction', 'moved-transaction'])];
+        reportSearchResults = makeReportSearchResults();
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        expect(new Set(Object.keys(result.current.selectedTransactions))).toEqual(new Set(['destination-transaction', 'moved-transaction']));
+        expect(Object.keys(result.current.excludedTransactions)).toEqual(['source-report']);
+        expect(result.current.excludedTransactions['source-report']?.reportID).toBe('source-report');
+        expect(result.current.selectedReports.map((report) => report.reportID)).toEqual(['destination-report']);
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+    });
+
+    it('keeps a checked expense that moved to another report checked when the report it came from is unchecked', async () => {
+        const {result, rerender} = renderReportSelection();
+
+        // Given the first report checked
+        await act(async () => {
+            result.current.toggle(firstReport);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When one of its expenses moves to the second report, so its entry still names the report it came from
+        const sourceReport = makeExpenseReport('report-1', ['report-1-transaction-2']);
+        reportFilteredData = [sourceReport, makeExpenseReport('report-2', ['report-2-transaction-1', 'report-1-transaction-1'])];
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+        expect(result.current.selectedTransactions['report-1-transaction-1']?.groupKey).toBe('report-1');
+
+        // And the report it came from is unchecked
+        await act(async () => {
+            result.current.toggle(sourceReport);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then only that report's own expense leaves, and the moved one stays checked in its new report
+        expect(result.current.selectedTransactions['report-1-transaction-2']).toBeUndefined();
+        expect(result.current.selectedTransactions['report-1-transaction-1']?.isSelected).toBe(true);
+    });
+
+    it('excludes a selected expense after it moves into an excluded report', async () => {
+        const {result, rerender} = renderReportSelection();
+
+        await act(async () => {
+            result.current.toggleAll();
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(secondReport);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        reportFilteredData = [makeExpenseReport('report-1', ['report-1-transaction-2']), makeExpenseReport('report-2', ['report-2-transaction-1', 'report-1-transaction-1'])];
+        reportSearchResults = makeReportSearchResults();
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        expect(Object.keys(result.current.selectedTransactions)).toEqual(['report-1-transaction-2']);
+        expect(new Set(Object.keys(result.current.excludedTransactions))).toEqual(new Set(['report-1-transaction-1', 'report-2-transaction-1']));
+        expect(result.current.excludedTransactions['report-1-transaction-1']?.reportID).toBe('report-2');
+        expect(result.current.selectedReports.map((report) => report.reportID)).toEqual(['report-1']);
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+    });
+
+    it('keeps a new expense excluded when it is added to an excluded report', async () => {
+        const {result, rerender} = renderReportSelection();
+
+        await act(async () => {
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstReport);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        const updatedFirstReport = makeExpenseReport('report-1', ['report-1-transaction-1', 'report-1-transaction-2', 'report-1-transaction-3']);
+        reportFilteredData = [updatedFirstReport, secondReport];
+        reportSearchResults = makeReportSearchResults();
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        expect(Object.keys(result.current.selectedTransactions)).toEqual(['report-2-transaction-1']);
+        expect(Object.keys(result.current.excludedTransactions)).toEqual(['report-1-transaction-3', 'report-1-transaction-1', 'report-1-transaction-2']);
+        expect(result.current.selectedReports.map((report) => report.reportID)).toEqual(['report-2']);
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+    });
+
+    it('removes a deleted expense from an excluded report', async () => {
+        const {result, rerender} = renderReportSelection();
+
+        await act(async () => {
+            result.current.toggleAll();
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstReport);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        reportFilteredData = [makeExpenseReport('report-1', ['report-1-transaction-1']), secondReport];
+        reportSearchResults = makeReportSearchResults();
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        expect(Object.keys(result.current.selectedTransactions)).toEqual(['report-2-transaction-1']);
+        expect(Object.keys(result.current.excludedTransactions)).toEqual(['report-1-transaction-1']);
+        expect(result.current.selectedReports.map((report) => report.reportID)).toEqual(['report-2']);
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+    });
+
+    it('keeps an excluded report unchecked when its last expense is deleted', async () => {
+        const {result, rerender} = renderReportSelection();
+
+        await act(async () => {
+            result.current.toggleAll();
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstReport);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        reportFilteredData = [makeExpenseReport('report-1', []), secondReport];
+        reportSearchResults = makeReportSearchResults();
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        expect(Object.keys(result.current.selectedTransactions)).toEqual(['report-2-transaction-1']);
+        expect(Object.keys(result.current.excludedTransactions)).toEqual(['report-1']);
+        expect(result.current.excludedTransactions['report-1']?.reportID).toBe('report-1');
+        expect(result.current.selectedReports.map((report) => report.reportID)).toEqual(['report-2']);
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+    });
+
+    it('keeps a report excluded when its first expense is added', async () => {
+        const emptyReport = makeExpenseReport('empty-report', []);
+        reportFilteredData = [emptyReport, secondReport];
+        const {result, rerender} = renderReportSelection();
+
+        await act(async () => {
+            result.current.toggleAll();
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(emptyReport);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(result.current.excludedTransactions['empty-report']).toBeDefined();
+
+        reportFilteredData = [makeExpenseReport('empty-report', ['empty-report-transaction-1']), secondReport];
+        reportSearchResults = makeReportSearchResults();
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        expect(result.current.excludedTransactions['empty-report']).toBeUndefined();
+        expect(Object.keys(result.current.excludedTransactions)).toEqual(['empty-report-transaction-1']);
+        expect(result.current.excludedTransactions['empty-report-transaction-1']?.reportID).toBe('empty-report');
+        expect(result.current.selectedTransactions['empty-report-transaction-1']).toBeUndefined();
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+    });
+
+    describe('selections that rows alone cannot express', () => {
+        async function pressHeader(result: ReturnType<typeof renderSelection>['result'], rows: TransactionListItemType[]) {
+            await act(async () => {
+                result.current.toggle(pagingGroup, rows);
+                await waitForBatchedUpdatesWithAct();
+            });
+        }
+
+        async function pressRow(result: ReturnType<typeof renderSelection>['result'], row: TransactionListItemType) {
+            await act(async () => {
+                result.current.toggle(row);
+                await waitForBatchedUpdatesWithAct();
+            });
+        }
+
+        function readGroupCheckbox(result: ReturnType<typeof renderSelection>['result'], groupKey: string, children: TransactionListItemType[], groupCount: number | undefined) {
+            return getGroupCheckboxState({
+                groupKey,
+                children,
+                selectedTransactions: result.current.selectedTransactions,
+                excludedTransactions: result.current.excludedTransactions,
+                areAllMatchingItemsSelected: result.current.areAllMatchingItemsSelected,
+                groupCount,
+            });
+        }
+
+        it('clears the page exclusions when Select all on this page covers them again', async () => {
+            flatFilteredData = [flatExpense];
+            const {result} = renderFlatSelection();
+
+            // Given Select all, then the only loaded row unchecked
+            await excludeFlatExpense(result);
+            expect(result.current.excludedTransactions[FLAT_TRANSACTION_ID]).toBeDefined();
+            expect(Object.keys(result.current.selectedTransactions)).toEqual([]);
+
+            // When the page is selected again from the header checkbox
+            await act(async () => {
+                result.current.toggleAll();
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // Then the row is not both selected and excluded, which would make a bulk action skip it
+            expect(result.current.selectedTransactions[FLAT_TRANSACTION_ID]?.isSelected).toBe(true);
+            expect(result.current.excludedTransactions[FLAT_TRANSACTION_ID]).toBeUndefined();
+        });
+
+        it('unchecks a child in one click when Select all covers a group whose rows arrived afterwards', async () => {
+            const {result, rerender} = renderSelection(PagingWrapper);
+            const [firstChild] = loadedChildren;
+
+            // Given a group selected while collapsed, then Select all, then the group's first page arriving
+            await act(async () => {
+                result.current.toggle(pagingGroup, []);
+                result.current.selectAllMatchingItems(true);
+                await waitForBatchedUpdatesWithAct();
+            });
+            pagingGroup = cachedPartialGroup;
+            rerender({});
+            await act(async () => {
+                expandGroup(result, GROUP_KEY, loadedChildren);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // When one of its rows, checked by the wider selection, is clicked once
+            await pressRow(result, firstChild);
+
+            // Then that one click unchecks it, rather than adding a second entry for it
+            const isFirstChildChecked = isRowChecked({
+                rowKey: firstChild.keyForList,
+                parentGroupKey: GROUP_KEY,
+                selectedTransactions: result.current.selectedTransactions,
+                excludedTransactions: result.current.excludedTransactions,
+                areAllMatchingItemsSelected: result.current.areAllMatchingItemsSelected,
+            });
+            expect(isFirstChildChecked).toBe(false);
+            expect(result.current.areAllMatchingItemsSelected).toBe(true);
+        });
+
+        it('drops a group exclusion once every row of the group is checked again', async () => {
+            pagingGroup = {...categoryGroup, count: loadedChildren.length, transactions: []};
+            const {result, rerender} = renderSelection(PagingWrapper);
+            const [firstChild, secondChild] = loadedChildren;
+
+            // Given Select all, then a two-row group unchecked from its header while collapsed
+            await act(async () => {
+                result.current.selectAllMatchingItems(true);
+                await waitForBatchedUpdatesWithAct();
+            });
+            await pressHeader(result, []);
+            expect(result.current.excludedTransactions[GROUP_KEY]).toBeDefined();
+
+            // When both of its rows arrive and are checked again one at a time
+            pagingGroup = {...categoryGroup, count: loadedChildren.length, transactions: loadedChildren};
+            rerender({});
+            await act(async () => {
+                expandGroup(result, GROUP_KEY, loadedChildren);
+                await waitForBatchedUpdatesWithAct();
+            });
+            await pressRow(result, firstChild);
+            await pressRow(result, secondChild);
+
+            // Then the group's exclusion is gone, since an export would drop both rows with it
+            expect(result.current.excludedTransactions[GROUP_KEY]).toBeUndefined();
+        });
+
+        it('takes every row of a partly loaded group out of Select all when its header is unchecked, including the ones not loaded', async () => {
+            pagingGroup = {...cachedPartialGroup};
+            const {result} = renderSelection(PagingWrapper);
+
+            // Given every matching item selected, and a group of five whose first page of two has loaded
+            await act(async () => {
+                result.current.selectAllMatchingItems(true);
+                expandGroup(result, GROUP_KEY, loadedChildren);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // When its header is unchecked
+            await pressHeader(result, loadedChildren);
+
+            // Then the group itself is excluded, so the rows not loaded leave too, and no row's own exclusion is counted twice
+            expect(result.current.excludedTransactions[GROUP_KEY]).toBeDefined();
+            for (const child of loadedChildren) {
+                expect(result.current.excludedTransactions[child.keyForList]).toBeUndefined();
+            }
+            expect(result.current.areAllMatchingItemsSelected).toBe(true);
+        });
+
+        describe('a group checked through its header while its rows page in', () => {
+            const groupKey = `${CONST.SEARCH.GROUP_PREFIX}advertising`;
+            const firstPage = [buildChild(1, '1', groupKey), buildChild(2, '2', groupKey)];
+            const laterRow = buildChild(5, '5', groupKey);
+
+            // Every search but Show more reads from the first page.
+            async function refreshRows(rerender: ReturnType<typeof renderSelection>['rerender'], rows: TransactionListItemType[]) {
+                pagingGroup = {...pagingGroup, transactions: rows, transactionsOffset: 0};
+                rerender({});
+                await act(async () => waitForBatchedUpdatesWithAct());
+            }
+
+            async function loadNextPage(rerender: ReturnType<typeof renderSelection>['rerender'], rows: TransactionListItemType[]) {
+                pagingGroup = {...pagingGroup, transactions: rows, transactionsOffset: CONST.SEARCH.RESULTS_PAGE_SIZE};
+                rerender({});
+                await act(async () => waitForBatchedUpdatesWithAct());
+            }
+
+            it('checks the rows that load later in a group checked while collapsed, since an export covers them', async () => {
+                pagingGroup = {...buildCategoryGroup(groupKey), count: 5};
+                const {result, rerender} = renderSelection(PagingWrapper);
+
+                // Given a group of five checked while collapsed, then its first page of two arriving
+                await pressHeader(result, []);
+                await refreshRows(rerender, firstPage);
+
+                // When its next page arrives
+                await loadNextPage(rerender, [...firstPage, laterRow]);
+
+                // Then the row that arrived is checked and claims the group, since the count and an export include it
+                expect(result.current.selectedTransactions[laterRow.keyForList]?.isSelected).toBe(true);
+                expect(result.current.selectedTransactions[laterRow.keyForList]?.isSelectedViaGroup).toBe(true);
+            });
+
+            it('leaves the rows that load later unchecked once one row of the group was unchecked', async () => {
+                pagingGroup = {...buildCategoryGroup(groupKey, firstPage), count: 5};
+                const {result, rerender} = renderSelection(PagingWrapper);
+                const [firstRow, secondRow] = firstPage;
+
+                // Given a group of five with two rows loaded, checked from its header, then one of those rows unchecked
+                await pressHeader(result, firstPage);
+                await pressRow(result, firstRow);
+
+                // When its next page arrives
+                await loadNextPage(rerender, [...firstPage, laterRow]);
+
+                // Then the row that arrived stays unchecked, since the group no longer stands for every row
+                expect(result.current.selectedTransactions[laterRow.keyForList]).toBeUndefined();
+                expect(result.current.selectedTransactions[secondRow.keyForList]?.isSelected).toBe(true);
+            });
+
+            it('leaves a new expense unchecked when it lands in a group checked once every row had loaded', async () => {
+                pagingGroup = {...buildCategoryGroup(groupKey, firstPage), count: 2};
+                const {result, rerender} = renderSelection(PagingWrapper);
+                const [firstRow] = firstPage;
+
+                // Given a group whose two loaded rows are every row it holds, checked from its header
+                await pressHeader(result, firstPage);
+                expect(result.current.selectedTransactions[firstRow.keyForList]?.isEntireGroupSelected).toBe(true);
+
+                // When a new expense lands in it, and the list refreshes once more afterwards
+                pagingGroup = {...pagingGroup, count: 3};
+                await refreshRows(rerender, [...firstPage, laterRow]);
+                await refreshRows(rerender, [...firstPage, laterRow]);
+
+                // Then the new expense stays unchecked and the group turns partial, so neither a delete nor an export takes it
+                expect(result.current.selectedTransactions[laterRow.keyForList]).toBeUndefined();
+                expect(result.current.selectedTransactions[firstRow.keyForList]?.isSelected).toBe(true);
+                expect(result.current.selectedTransactions[firstRow.keyForList]?.isSelectedViaGroup).toBe(false);
+                expect(result.current.selectedTransactions[firstRow.keyForList]?.isEntireGroupSelected).toBe(false);
+            });
+
+            it('ends the claim of a group checked whole when Show more brings a row its count did not include', async () => {
+                pagingGroup = {...buildCategoryGroup(groupKey, firstPage), count: 2};
+                const {result, rerender} = renderSelection(PagingWrapper);
+                const [firstRow] = firstPage;
+
+                // Given a group whose two loaded rows read as every row it holds, checked from its header
+                await pressHeader(result, firstPage);
+
+                // When its next page brings a row, since its count was behind
+                await loadNextPage(rerender, [...firstPage, laterRow]);
+
+                // Then that row stays unchecked and the claim ends, so an export sends no filter that takes it
+                expect(result.current.selectedTransactions[laterRow.keyForList]).toBeUndefined();
+                expect(result.current.selectedTransactions[firstRow.keyForList]?.isSelectedViaGroup).toBe(false);
+            });
+
+            describe('when a new expense raises the count of a group checked while its rows were still loading', () => {
+                const newRow = buildChild(6, '6', groupKey);
+                const [firstRow, secondRow] = firstPage;
+                const allFirstPageRowKeys = [firstRow.keyForList, secondRow.keyForList].sort();
+
+                // The group-by figures once the new expense has raised the count from five to six
+                const searchData: SearchResultDataType = {};
+                searchData[`${CONST.SEARCH.GROUP_PREFIX}advertising`] = {category: groupKey, count: 6, total: 600, currency: CONST.CURRENCY.USD};
+
+                it('leaves it unchecked and leaves the rows that load after it unchecked', async () => {
+                    pagingGroup = {...buildCategoryGroup(groupKey, firstPage), count: 5};
+                    const {result, rerender} = renderSelection(PagingWrapper);
+
+                    // Given a group of five whose first page of two has loaded, checked from its header
+                    await pressHeader(result, firstPage);
+
+                    // When a new expense raises its count, then its next page loads with that expense's row on it
+                    pagingGroup = {...pagingGroup, count: 6};
+                    await refreshRows(rerender, firstPage);
+                    await loadNextPage(rerender, [...firstPage, newRow, laterRow]);
+
+                    // Then neither is checked, since a row still loading looks like one that joined, and the checked rows stay checked
+                    expect(result.current.selectedTransactions[newRow.keyForList]).toBeUndefined();
+                    expect(result.current.selectedTransactions[laterRow.keyForList]).toBeUndefined();
+                    expect(result.current.selectedTransactions[firstRow.keyForList]?.isSelected).toBe(true);
+                    expect(result.current.selectedTransactions[firstRow.keyForList]?.isSelectedViaGroup).toBe(false);
+                    expect(Object.keys(mergeRowsIntoPartlyLoadedGroups(result.current.selectedTransactions, searchData, false)).sort()).toEqual(allFirstPageRowKeys);
+                });
+
+                it('leaves it unchecked when creating it marks the group as fully loaded', async () => {
+                    pagingGroup = {...buildCategoryGroup(groupKey, firstPage), count: 5, hasMoreTransactions: true};
+                    const {result, rerender} = renderSelection(PagingWrapper);
+
+                    // Given a group of five whose own search has more to load, checked from its header
+                    await pressHeader(result, firstPage);
+
+                    // When creating an expense under group-by:from marks the group's own search complete and raises the group-by count
+                    pagingGroup = {...pagingGroup, count: 6, hasMoreTransactions: false};
+                    await refreshRows(rerender, [newRow, ...firstPage]);
+
+                    // Then it stays unchecked, since the rise shows in the group-by count
+                    expect(result.current.selectedTransactions[newRow.keyForList]).toBeUndefined();
+                    expect(result.current.selectedTransactions[firstRow.keyForList]?.isSelectedViaGroup).toBe(false);
+                });
+
+                it('leaves it unchecked when the group was checked through the page checkbox', async () => {
+                    pagingGroup = {...buildCategoryGroup(groupKey, firstPage), count: 5};
+                    const {result, rerender} = renderSelection(PagingWrapper);
+
+                    // Given the group checked through the page checkbox while its rows are still loading
+                    await act(async () => {
+                        result.current.toggleAll();
+                        await waitForBatchedUpdatesWithAct();
+                    });
+
+                    // When a new expense raises its count before its row lands
+                    pagingGroup = {...pagingGroup, count: 6};
+                    await refreshRows(rerender, firstPage);
+
+                    // Then the check ends, as it does for a check from the group's header
+                    expect(result.current.selectedTransactions[firstRow.keyForList]?.isSelectedViaGroup).toBe(false);
+                });
+
+                it('ends the check when the count first fell because an expense left the group', async () => {
+                    pagingGroup = {...buildCategoryGroup(groupKey, firstPage), count: 5};
+                    const {result, rerender} = renderSelection(PagingWrapper);
+
+                    // Given a group of five checked from its header, whose count then falls to four as an expense leaves it
+                    await pressHeader(result, firstPage);
+                    pagingGroup = {...pagingGroup, count: 4};
+                    await refreshRows(rerender, firstPage);
+
+                    // When a new expense brings the count back to five before its row lands
+                    pagingGroup = {...pagingGroup, count: 5};
+                    await refreshRows(rerender, firstPage);
+
+                    // Then the check ends, since the group held four when the new expense joined
+                    expect(result.current.selectedTransactions[firstRow.keyForList]?.isSelectedViaGroup).toBe(false);
+                });
+
+                it('writes out only the rows it finds when the group was checked while collapsed', async () => {
+                    pagingGroup = {...buildCategoryGroup(groupKey), count: 5};
+                    const {result, rerender} = renderSelection(PagingWrapper);
+
+                    // Given a group of five checked before anything loaded, whose count then rises with no rows yet
+                    await pressHeader(result, []);
+                    pagingGroup = {...pagingGroup, count: 6};
+                    await refreshRows(rerender, []);
+
+                    // When its first page arrives, and then its next page
+                    await refreshRows(rerender, firstPage);
+                    await loadNextPage(rerender, [...firstPage, laterRow]);
+
+                    // Then only the first page stays checked, because the rise ended the header check
+                    expect(result.current.selectedTransactions[groupKey]).toBeUndefined();
+                    expect(result.current.selectedTransactions[firstRow.keyForList]?.isSelected).toBe(true);
+                    expect(result.current.selectedTransactions[firstRow.keyForList]?.isSelectedViaGroup).toBe(false);
+                    expect(result.current.selectedTransactions[laterRow.keyForList]).toBeUndefined();
+                });
+
+                it('ends the claim of a group checked whole as soon as its count rises', async () => {
+                    pagingGroup = {...buildCategoryGroup(groupKey, firstPage), count: 2, hasMoreTransactions: false};
+                    const {result, rerender} = renderSelection(PagingWrapper);
+
+                    // Given a fully loaded group of two checked from its header
+                    await pressHeader(result, firstPage);
+                    expect(result.current.selectedTransactions[firstRow.keyForList]?.isSelectedViaGroup).toBe(true);
+
+                    // When a new expense raises the group-by count before its row arrives
+                    pagingGroup = {...pagingGroup, count: 3};
+                    await refreshRows(rerender, firstPage);
+
+                    // Then the claim ends at once, so an export sends the two rows rather than a filter that takes the new expense
+                    expect(result.current.selectedTransactions[firstRow.keyForList]?.isSelected).toBe(true);
+                    expect(result.current.selectedTransactions[firstRow.keyForList]?.isSelectedViaGroup).toBe(false);
+
+                    // When its row arrives with a later refresh
+                    await refreshRows(rerender, [...firstPage, laterRow]);
+
+                    // Then it stays unchecked
+                    expect(result.current.selectedTransactions[laterRow.keyForList]).toBeUndefined();
+                });
+
+                it('keeps writing out the rows that load through Show more when the count has not risen', async () => {
+                    pagingGroup = {...buildCategoryGroup(groupKey, firstPage), count: 5};
+                    const {result, rerender} = renderSelection(PagingWrapper);
+
+                    // Given a group of five whose first page has loaded, checked from its header
+                    await pressHeader(result, firstPage);
+
+                    // When its next page loads at the same count, and a refresh brings back only rows it holds
+                    await loadNextPage(rerender, [...firstPage, laterRow]);
+                    await refreshRows(rerender, [...firstPage, laterRow]);
+
+                    // Then the row that loaded claims the group and keeps the count the header was checked at
+                    expect(result.current.selectedTransactions[laterRow.keyForList]?.isSelectedViaGroup).toBe(true);
+                    expect(result.current.selectedTransactions[laterRow.keyForList]?.claimedGroupCount).toBe(5);
+                });
+            });
+
+            describe('when a new expense lands in a group checked while its rows were still loading, before the group-by count rises', () => {
+                const newRow = buildChild(6, '6', groupKey);
+                const [firstRow, secondRow] = firstPage;
+
+                it('leaves it unchecked, ends the header check and leaves the rows that load after it unchecked', async () => {
+                    pagingGroup = {...buildCategoryGroup(groupKey, firstPage), count: 5};
+                    const {result, rerender} = renderSelection(PagingWrapper);
+
+                    // Given a group of five whose first page of two has loaded, checked from its header
+                    await pressHeader(result, firstPage);
+
+                    // When a refresh of the first page brings back a row the check does not hold, with the count still five
+                    await refreshRows(rerender, [newRow, ...firstPage]);
+
+                    // Then that row is unchecked, since a first page holds no row still loading, and the other rows stop claiming the group
+                    expect(result.current.selectedTransactions[newRow.keyForList]).toBeUndefined();
+                    expect(result.current.selectedTransactions[firstRow.keyForList]?.isSelected).toBe(true);
+                    expect(result.current.selectedTransactions[firstRow.keyForList]?.isSelectedViaGroup).toBe(false);
+
+                    // When the count then catches up and the next page loads
+                    pagingGroup = {...pagingGroup, count: 6};
+                    await loadNextPage(rerender, [newRow, ...firstPage, laterRow]);
+
+                    // Then neither is checked, so a bulk action cannot reach an expense nobody selected
+                    expect(result.current.selectedTransactions[newRow.keyForList]).toBeUndefined();
+                    expect(result.current.selectedTransactions[laterRow.keyForList]).toBeUndefined();
+                    expect(result.current.selectedTransactions[secondRow.keyForList]?.isSelected).toBe(true);
+                });
+
+                it('leaves it unchecked when the refresh that brings it follows a Show more', async () => {
+                    pagingGroup = {...buildCategoryGroup(groupKey, firstPage), count: 5};
+                    const {result, rerender} = renderSelection(PagingWrapper);
+
+                    // Given a group of five checked from its header, whose next page has also loaded
+                    await pressHeader(result, firstPage);
+                    await loadNextPage(rerender, [...firstPage, laterRow]);
+                    expect(result.current.selectedTransactions[laterRow.keyForList]?.isSelectedViaGroup).toBe(true);
+
+                    // When a refresh of the first page brings back a row the check does not hold
+                    await refreshRows(rerender, [newRow, ...firstPage, laterRow]);
+
+                    // Then that row is unchecked and the check ends, since a refresh reads the first page again
+                    expect(result.current.selectedTransactions[newRow.keyForList]).toBeUndefined();
+                    expect(result.current.selectedTransactions[firstRow.keyForList]?.isSelectedViaGroup).toBe(false);
+                });
+
+                it('holds a header check made after the row has landed', async () => {
+                    pagingGroup = {...buildCategoryGroup(groupKey, firstPage), count: 5};
+                    const {result, rerender} = renderSelection(PagingWrapper);
+
+                    // Given a group whose header check ended when a new expense's row landed in it
+                    await pressHeader(result, firstPage);
+                    await refreshRows(rerender, [newRow, ...firstPage]);
+
+                    // When its header is pressed twice, to clear the dash and then check the group, and a refresh and its next page follow
+                    await pressHeader(result, [newRow, ...firstPage]);
+                    expect(result.current.selectedTransactions).toEqual({});
+                    await pressHeader(result, [newRow, ...firstPage]);
+                    await refreshRows(rerender, [newRow, ...firstPage]);
+                    await loadNextPage(rerender, [newRow, ...firstPage, laterRow]);
+
+                    // Then both are checked and claim the group, since the new expense was on screen for this check
+                    expect(result.current.selectedTransactions[newRow.keyForList]?.isSelectedViaGroup).toBe(true);
+                    expect(result.current.selectedTransactions[laterRow.keyForList]?.isSelectedViaGroup).toBe(true);
+                });
+            });
+
+            it('leaves a row being deleted unchecked when the rows of a group checked from its header refresh', async () => {
+                const deletingRow = {...buildChild(3, '3', groupKey), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+                pagingGroup = {...buildCategoryGroup(groupKey, [...firstPage, deletingRow]), count: 5};
+                const {result, rerender} = renderSelection(PagingWrapper);
+
+                // Given a group of five whose first page holds a row being deleted, checked from its header
+                await pressHeader(result, [...firstPage, deletingRow]);
+                expect(result.current.selectedTransactions[deletingRow.keyForList]).toBeUndefined();
+
+                // When the list refreshes
+                await refreshRows(rerender, [...firstPage, deletingRow]);
+
+                // Then that row stays out, and the checked rows still claim the group, since that row did not join it
+                expect(result.current.selectedTransactions[deletingRow.keyForList]).toBeUndefined();
+                for (const row of firstPage) {
+                    expect(result.current.selectedTransactions[row.keyForList]?.isSelectedViaGroup).toBe(true);
+                }
+            });
+
+            it('stops reading a group as wholly selected as soon as one of its expenses is rejected or moved, and keeps that expense out', async () => {
+                pagingGroup = {...buildCategoryGroup(groupKey, firstPage), count: 2};
+                const {result, rerender} = renderSelection(PagingWrapper);
+                const [firstRow, secondRow] = firstPage;
+
+                // Given a group whose two loaded rows are every row it holds, checked from its header
+                await pressHeader(result, firstPage);
+                expect(result.current.selectedTransactions[secondRow.keyForList]?.isEntireGroupSelected).toBe(true);
+
+                // When one of them is rejected or moved, which keeps it in the group but out of the selection
+                await act(async () => {
+                    result.current.removeTransaction(firstRow.transactionID, {isDeleted: false});
+                    await waitForBatchedUpdatesWithAct();
+                });
+
+                // Then, before any refresh, the other row neither claims nor covers the group, so a bulk delete cannot take it
+                expect(result.current.selectedTransactions[secondRow.keyForList]?.isSelectedViaGroup).toBe(false);
+                expect(result.current.selectedTransactions[secondRow.keyForList]?.isEntireGroupSelected).toBe(false);
+                expect(result.current.selectedTransactions[secondRow.keyForList]?.coveredGroupCount).toBeUndefined();
+
+                // When the list refreshes
+                await refreshRows(rerender, firstPage);
+
+                // Then the expense stays out, as it would had its row been unchecked
+                expect(result.current.selectedTransactions[firstRow.keyForList]).toBeUndefined();
+                expect(result.current.selectedTransactions[secondRow.keyForList]?.isSelected).toBe(true);
+            });
+
+            it('keeps a group checked from its header whole when one of its expenses is deleted', async () => {
+                pagingGroup = {...buildCategoryGroup(groupKey, firstPage), count: 5};
+                const {result, rerender} = renderSelection(PagingWrapper);
+                const [firstRow, secondRow] = firstPage;
+
+                // Given a group of five whose first page of two has loaded, checked from its header
+                await pressHeader(result, firstPage);
+
+                // When one of its expenses is deleted from its details, which marks the row and removes it from the selection
+                await act(async () => {
+                    result.current.removeTransaction(firstRow.transactionID, {isDeleted: true});
+                    await waitForBatchedUpdatesWithAct();
+                });
+                await refreshRows(rerender, [{...firstRow, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}, secondRow]);
+
+                // Then the deleted expense stays out and the other row still stands for the group, whose unloaded rows stay selected
+                expect(result.current.selectedTransactions[firstRow.keyForList]).toBeUndefined();
+                expect(result.current.selectedTransactions[secondRow.keyForList]?.isSelectedViaGroup).toBe(true);
+            });
+
+            it('keeps a fully loaded group checked from its header whole once a deleted expense leaves its rows while its count still includes it', async () => {
+                pagingGroup = {...buildCategoryGroup(groupKey, [...firstPage, laterRow]), count: 3};
+                const {result, rerender} = renderSelection(PagingWrapper);
+                const [firstRow, secondRow] = firstPage;
+
+                // Given a group of three whose every row has loaded, checked from its header
+                await pressHeader(result, [...firstPage, laterRow]);
+
+                // When one of its expenses is deleted from its details, so its row leaves while the count stays three until the search runs
+                await act(async () => {
+                    result.current.removeTransaction(firstRow.transactionID, {isDeleted: true});
+                    await waitForBatchedUpdatesWithAct();
+                });
+                await refreshRows(rerender, [{...firstRow, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}, secondRow, laterRow]);
+                await refreshRows(rerender, [secondRow, laterRow]);
+
+                // Then the group stays whole and claimed, so its checkbox keeps its full check
+                expect(result.current.selectedTransactions[secondRow.keyForList]?.isEntireGroupSelected).toBe(true);
+                expect(result.current.selectedTransactions[secondRow.keyForList]?.isSelectedViaGroup).toBe(true);
+                expect(readGroupCheckbox(result, groupKey, [secondRow, laterRow], 3)).toEqual({isSelectAllChecked: true, isIndeterminate: false});
+            });
+
+            it('ends the header claim when a new expense arrives off the page while another of the group is being deleted', async () => {
+                pagingGroup = {...buildCategoryGroup(groupKey, [...firstPage, laterRow]), count: 3};
+                const {result, rerender} = renderSelection(PagingWrapper);
+                const [firstRow, secondRow] = firstPage;
+
+                // Given a group of three whose every row has loaded, checked from its header
+                await pressHeader(result, [...firstPage, laterRow]);
+
+                // When one of its expenses is being deleted while a new expense raises its count to four on a page not loaded
+                await act(async () => {
+                    result.current.removeTransaction(firstRow.transactionID, {isDeleted: true});
+                    await waitForBatchedUpdatesWithAct();
+                });
+                pagingGroup = {...pagingGroup, count: 4};
+                await refreshRows(rerender, [{...firstRow, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}, secondRow, laterRow]);
+
+                // Then the claim ends and the group stops reading as whole, so an export sends no filter that takes the new expense
+                expect(result.current.selectedTransactions[secondRow.keyForList]?.isSelectedViaGroup).toBe(false);
+                expect(result.current.selectedTransactions[secondRow.keyForList]?.isEntireGroupSelected).toBe(false);
+            });
+
+            it('keeps a group checked while collapsed when the first page that arrives holds only rows being deleted', async () => {
+                pagingGroup = {...buildCategoryGroup(groupKey), count: 5};
+                const {result, rerender} = renderSelection(PagingWrapper);
+
+                // Given a group of five checked from its header while collapsed
+                await pressHeader(result, []);
+
+                // When its first page arrives holding only rows being deleted
+                await refreshRows(
+                    rerender,
+                    firstPage.map((row) => ({...row, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})),
+                );
+
+                // Then the group stays selected under its own key, since none of those rows can take the selection
+                expect(result.current.selectedTransactions[groupKey]?.isSelected).toBe(true);
+            });
+
+            it('shows a row checked on a later page that a refresh left out, so pressing the header clears it rather than counting it twice', async () => {
+                pagingGroup = {...buildCategoryGroup(groupKey, [...firstPage, laterRow]), count: 5};
+                const {result, rerender} = renderSelection(PagingWrapper);
+
+                // Given a row on the second page checked on its own, then a refresh that brings back only the first page
+                await pressRow(result, laterRow);
+                await refreshRows(rerender, firstPage);
+
+                // When the header is drawn, and then pressed
+                const selectedBeforePress = result.current.selectedTransactions;
+                const headerBeforePress = readGroupCheckbox(result, groupKey, firstPage, 5);
+                await pressHeader(result, firstPage);
+
+                // Then the row stayed checked and the header reads partly checked, and the press clears it rather than checking around it
+                expect(selectedBeforePress[laterRow.keyForList]?.isSelected).toBe(true);
+                expect(headerBeforePress.isIndeterminate).toBe(true);
+                expect(Object.keys(result.current.selectedTransactions)).toEqual([]);
+            });
+
+            it('keeps a group checked whole reading as whole when one of its rows moves to a group further down the list', async () => {
+                const otherGroupKey = `${CONST.SEARCH.GROUP_PREFIX}travel`;
+                const [firstRow, movedRow] = firstPage;
+                const newRow = buildChild(6, '6', groupKey);
+                pagingGroup = {...buildCategoryGroup(groupKey, [...firstPage, laterRow]), count: 3};
+                const {result, rerender} = renderSelection(PagingWrapper);
+
+                // Given a group of three whose every row has loaded, checked from its header
+                await pressHeader(result, [...firstPage, laterRow]);
+
+                // When one of its rows moves to a group further down, and the group refreshes from its first page with a count of two
+                isNeighborGroupBelow = true;
+                neighborGroup = {...buildCategoryGroup(otherGroupKey, [{...movedRow, selectionGroupKey: otherGroupKey}]), count: 1};
+                pagingGroup = {...pagingGroup, count: 2};
+                await refreshRows(rerender, [firstRow]);
+
+                // Then the group still reads as whole, since the moved row counts where it now sits
+                expect(result.current.selectedTransactions[firstRow.keyForList]?.isEntireGroupSelected).toBe(true);
+
+                // And a new expense landing in it later stays unchecked
+                pagingGroup = {...pagingGroup, count: 3};
+                await refreshRows(rerender, [firstRow, laterRow, newRow]);
+                expect(result.current.selectedTransactions[newRow.keyForList]).toBeUndefined();
+            });
+
+            it('moves a row to the group it now sits in, so unchecking its old group neither brings that group back nor leaves its header half checked', async () => {
+                const otherGroupKey = `${CONST.SEARCH.GROUP_PREFIX}travel`;
+                const [firstRow, movedRow] = firstPage;
+                pagingGroup = {...buildCategoryGroup(groupKey, firstPage), count: 5};
+                const {result, rerender} = renderSelection(PagingWrapper);
+
+                // Given a group of five with two rows loaded, checked from its header, then one of those rows moved to another group
+                await pressHeader(result, firstPage);
+                neighborGroup = {...buildCategoryGroup(otherGroupKey, [{...movedRow, selectionGroupKey: otherGroupKey}]), count: 1};
+                await refreshRows(rerender, [firstRow]);
+                expect(result.current.selectedTransactions[movedRow.keyForList]?.groupKey).toBe(otherGroupKey);
+
+                // When the old group is unchecked from its header, and the list refreshes afterwards
+                await pressHeader(result, [firstRow]);
+                await refreshRows(rerender, [firstRow]);
+
+                // Then the old group and its header read unchecked, while the moved row stays checked in its new group
+                expect(result.current.selectedTransactions[firstRow.keyForList]).toBeUndefined();
+                expect(readGroupCheckbox(result, groupKey, [firstRow], 5)).toEqual({isSelectAllChecked: false, isIndeterminate: false});
+                expect(result.current.selectedTransactions[movedRow.keyForList]?.isSelected).toBe(true);
+            });
+
+            it('leaves a new expense unchecked when a group checked whole refreshes to a page holding only that expense', async () => {
+                pagingGroup = {...buildCategoryGroup(groupKey, [...firstPage, laterRow]), count: 3};
+                const {result, rerender} = renderSelection(PagingWrapper);
+                const newRow = buildChild(6, '6', groupKey);
+
+                // Given a group of three whose every row has loaded, checked from its header
+                await pressHeader(result, [...firstPage, laterRow]);
+
+                // When a new expense lands and a refresh brings back a page holding only it, then a later refresh brings back every row
+                pagingGroup = {...pagingGroup, count: 4};
+                await refreshRows(rerender, [newRow]);
+                await refreshRows(rerender, [newRow, ...firstPage, laterRow]);
+
+                // Then the new expense stays unchecked, while the three rows the header check took stay checked
+                expect(result.current.selectedTransactions[newRow.keyForList]).toBeUndefined();
+                for (const row of [...firstPage, laterRow]) {
+                    expect(result.current.selectedTransactions[row.keyForList]?.isSelected).toBe(true);
+                }
+            });
+
+            it('ends the header check when a refresh brings in rows it does not hold, none of the rows it checked coming back with them', async () => {
+                pagingGroup = {...buildCategoryGroup(groupKey, firstPage), count: 5};
+                const {result, rerender} = renderSelection(PagingWrapper);
+                const otherRows = [buildChild(3, '3', groupKey), buildChild(4, '4', groupKey)];
+
+                // Given a group of five whose first page of two has loaded, checked from its header
+                await pressHeader(result, firstPage);
+
+                // When a refresh brings back two other rows of the group and neither of the first two
+                await refreshRows(rerender, otherRows);
+
+                // Then the rows that came back stay unchecked, since a refresh holds no row still loading, and the first two stay selected
+                for (const row of otherRows) {
+                    expect(result.current.selectedTransactions[row.keyForList]).toBeUndefined();
+                }
+                for (const row of firstPage) {
+                    expect(result.current.selectedTransactions[row.keyForList]?.isSelected).toBe(true);
+                    expect(result.current.selectedTransactions[row.keyForList]?.isSelectedViaGroup).toBe(false);
+                }
+            });
+
+            it('reads a partly loaded group as partly checked once one of its rows is unchecked and checked again after its header was checked', async () => {
+                pagingGroup = {...buildCategoryGroup(groupKey, firstPage), count: 5};
+                const {result} = renderSelection(PagingWrapper);
+                const [firstRow] = firstPage;
+
+                // Given a group of five with two rows loaded, checked from its header, which reads checked
+                await pressHeader(result, firstPage);
+                expect(readGroupCheckbox(result, groupKey, firstPage, 5).isSelectAllChecked).toBe(true);
+
+                // When one of its rows is unchecked and checked again, which leaves only the loaded rows selected
+                await pressRow(result, firstRow);
+                await pressRow(result, firstRow);
+
+                // Then the header reads partly checked, since the check no longer covers all five
+                expect(readGroupCheckbox(result, groupKey, firstPage, 5)).toEqual({isSelectAllChecked: false, isIndeterminate: true});
+            });
+
+            it('keeps a group checked from its header whole when a refresh brings back only its first page', async () => {
+                pagingGroup = {...buildCategoryGroup(groupKey, [...firstPage, laterRow]), count: 3};
+                const {result, rerender} = renderSelection(PagingWrapper);
+                const [firstRow] = firstPage;
+
+                // Given a group of three whose every row has loaded, checked from its header
+                await pressHeader(result, [...firstPage, laterRow]);
+                expect(result.current.selectedTransactions[firstRow.keyForList]?.isEntireGroupSelected).toBe(true);
+
+                // When it is refreshed from its first page, as reopening it does, and only that page comes back
+                await refreshRows(rerender, firstPage);
+
+                // Then its rows still stand for the whole group, and the row left out is marked as kept off the page
+                expect(result.current.selectedTransactions[firstRow.keyForList]?.isSelectedViaGroup).toBe(true);
+                expect(result.current.selectedTransactions[laterRow.keyForList]?.isKeptOffPage).toBe(true);
+
+                // And that row loses the mark once its page returns
+                await refreshRows(rerender, [...firstPage, laterRow]);
+                expect(result.current.selectedTransactions[laterRow.keyForList]?.isSelected).toBe(true);
+                expect(result.current.selectedTransactions[laterRow.keyForList]?.isKeptOffPage).toBeUndefined();
+            });
+
+            it('keeps the rows a refresh left out checked when a new expense lands in a group checked whole', async () => {
+                pagingGroup = {...buildCategoryGroup(groupKey, [...firstPage, laterRow]), count: 3};
+                const {result, rerender} = renderSelection(PagingWrapper);
+                const [firstRow] = firstPage;
+                const newRow = buildChild(6, '6', groupKey);
+
+                // Given a group of three with every row loaded, checked from its header, then refreshed from its first page alone
+                await pressHeader(result, [...firstPage, laterRow]);
+                await refreshRows(rerender, firstPage);
+
+                // Then the row left out stays checked and the group still reads as whole
+                expect(result.current.selectedTransactions[laterRow.keyForList]?.isSelected).toBe(true);
+                expect(result.current.selectedTransactions[laterRow.keyForList]?.isEntireGroupSelected).toBe(true);
+
+                // When a new expense lands in it, on the first page a refetch brings back
+                pagingGroup = {...pagingGroup, count: 4};
+                await refreshRows(rerender, [...firstPage, newRow]);
+
+                // Then the new expense stays unchecked, and the row the refresh left out stays checked without claiming the group
+                expect(result.current.selectedTransactions[newRow.keyForList]).toBeUndefined();
+                expect(result.current.selectedTransactions[firstRow.keyForList]?.isSelectedViaGroup).toBe(false);
+                expect(result.current.selectedTransactions[laterRow.keyForList]?.isSelected).toBe(true);
+                expect(result.current.selectedTransactions[laterRow.keyForList]?.isSelectedViaGroup).toBe(false);
+
+                // And it is still checked after the next refresh, once nothing claims the group any more
+                await refreshRows(rerender, [...firstPage, newRow]);
+                expect(result.current.selectedTransactions[laterRow.keyForList]?.isSelected).toBe(true);
+            });
+
+            it('drops a row that left a group checked whole once the refresh shows every row the group still holds', async () => {
+                pagingGroup = {...buildCategoryGroup(groupKey, [...firstPage, laterRow]), count: 3};
+                const {result, rerender} = renderSelection(PagingWrapper);
+                const [firstRow] = firstPage;
+
+                // Given a group of three whose every row has loaded, checked from its header
+                await pressHeader(result, [...firstPage, laterRow]);
+
+                // When one of its expenses is deleted elsewhere, so the refresh brings back two rows and a count of two
+                pagingGroup = {...pagingGroup, count: 2};
+                await refreshRows(rerender, firstPage);
+
+                // Then the deleted expense leaves the selection, and the group still reads as whole
+                expect(result.current.selectedTransactions[laterRow.keyForList]).toBeUndefined();
+                expect(result.current.selectedTransactions[firstRow.keyForList]?.isEntireGroupSelected).toBe(true);
+            });
+
+            it('keeps a group checked whole when an expense deleted elsewhere leaves it, until its count rises past the count it shrank to', async () => {
+                pagingGroup = {...buildCategoryGroup(groupKey, [...firstPage, laterRow]), count: 3};
+                const {result, rerender} = renderSelection(PagingWrapper);
+                const [firstRow, secondRow] = firstPage;
+                const newRow = buildChild(6, '6', groupKey);
+
+                // Given a group of three whose every row has loaded, checked from its header
+                await pressHeader(result, [...firstPage, laterRow]);
+
+                // When one of its expenses is deleted elsewhere, and the refresh brings back a count of two with only the first row
+                pagingGroup = {...pagingGroup, count: 2};
+                await refreshRows(rerender, [firstRow]);
+
+                // Then the group still reads as whole, since every row it still holds was checked
+                expect(result.current.selectedTransactions[firstRow.keyForList]?.isEntireGroupSelected).toBe(true);
+
+                // When a new expense brings the count back to three on a page that has not loaded
+                pagingGroup = {...pagingGroup, count: 3};
+                await refreshRows(rerender, [firstRow]);
+
+                // Then the group stops reading as whole and its claim ends, so a bulk delete cannot hide the new expense
+                expect(result.current.selectedTransactions[firstRow.keyForList]?.isEntireGroupSelected).toBe(false);
+                expect(result.current.selectedTransactions[secondRow.keyForList]?.isEntireGroupSelected).toBe(false);
+                expect(result.current.selectedTransactions[firstRow.keyForList]?.isSelectedViaGroup).toBe(false);
+
+                // And the new expense stays unchecked once its row lands
+                await refreshRows(rerender, [firstRow, newRow]);
+                expect(result.current.selectedTransactions[newRow.keyForList]).toBeUndefined();
+            });
+
+            it('stops reading a group as whole once its loaded row is unchecked, though the rows kept off the page make up the count', async () => {
+                pagingGroup = {...buildCategoryGroup(groupKey, [...firstPage, laterRow]), count: 3};
+                const {result, rerender} = renderSelection(PagingWrapper);
+                const [firstRow, secondRow] = firstPage;
+
+                // Given a group of three checked from its header, refreshed to a count of two with only its first row on the page
+                await pressHeader(result, [...firstPage, laterRow]);
+                pagingGroup = {...pagingGroup, count: 2};
+                await refreshRows(rerender, [firstRow]);
+
+                // When that loaded row is unchecked
+                await pressRow(result, firstRow);
+
+                // Then the kept rows no longer stand for the whole group, so a bulk delete leaves the unchecked row on screen
+                expect(result.current.selectedTransactions[firstRow.keyForList]).toBeUndefined();
+                expect(result.current.selectedTransactions[secondRow.keyForList]?.isEntireGroupSelected).toBe(false);
+                expect(result.current.selectedTransactions[laterRow.keyForList]?.isEntireGroupSelected).toBe(false);
+            });
+
+            it('takes the rows a refresh left out with the group when its header is unchecked', async () => {
+                pagingGroup = {...buildCategoryGroup(groupKey, [...firstPage, laterRow]), count: 3};
+                const {result, rerender} = renderSelection(PagingWrapper);
+
+                // Given a group of three with every row loaded, checked from its header, then refreshed from its first page alone
+                await pressHeader(result, [...firstPage, laterRow]);
+                await refreshRows(rerender, firstPage);
+                expect(result.current.selectedTransactions[laterRow.keyForList]?.isSelected).toBe(true);
+
+                // When its header is unchecked, and the list refreshes once more afterwards
+                await pressHeader(result, firstPage);
+                await refreshRows(rerender, firstPage);
+
+                // Then nothing of the group stays selected, so no count, total or export holds a row the user can't see
+                expect(Object.keys(result.current.selectedTransactions)).toEqual([]);
+            });
+        });
+
+        it('drops a checked expense that left a group with rows still to load, rather than keeping it as off the page', async () => {
+            const groupKey = `${CONST.SEARCH.GROUP_PREFIX}advertising`;
+            const [keptRow, otherRow, submittedRow] = [buildChild(1, '1', groupKey), buildChild(2, '2', groupKey), buildChild(5, '5', groupKey)];
+            pagingGroup = {...buildCategoryGroup(groupKey, [keptRow, otherRow, submittedRow]), count: 60};
+            const {result, rerender} = renderSelection(PagingWrapper);
+
+            // Given a group of sixty with its first rows loaded, two of them checked on their own
+            await pressRow(result, keptRow);
+            await pressRow(result, submittedRow);
+
+            // When one of them stops matching the search, as an expense submitted under a drafts filter does, so the list hides it
+            pagingGroup = {...pagingGroup, transactions: [keptRow, otherRow], hiddenTransactionIDs: [submittedRow.transactionID]};
+            rerender({});
+            await act(async () => waitForBatchedUpdatesWithAct());
+
+            // Then that expense leaves the selection, while the other stays checked
+            expect(result.current.selectedTransactions[submittedRow.keyForList]).toBeUndefined();
+            expect(result.current.selectedTransactions[keptRow.keyForList]?.isSelected).toBe(true);
+        });
+
+        it('drops the checked expenses of a group once every one of its rows has left it', async () => {
+            const groupKey = `${CONST.SEARCH.GROUP_PREFIX}advertising`;
+            const draftRows = [buildChild(1, '1', groupKey), buildChild(2, '2', groupKey)];
+            pagingGroup = {...buildCategoryGroup(groupKey, draftRows), count: 2};
+            const {result, rerender} = renderSelection(PagingWrapper);
+
+            // Given a group of two, both of its expenses checked from its header
+            await pressHeader(result, draftRows);
+
+            // When the report holding both is submitted under a drafts filter, so the list shows neither
+            pagingGroup = {...pagingGroup, transactions: [], hiddenTransactionIDs: draftRows.map((row) => row.transactionID)};
+            rerender({});
+            await act(async () => waitForBatchedUpdatesWithAct());
+
+            // Then both leave the selection, since nothing on screen could uncheck them
+            for (const row of draftRows) {
+                expect(result.current.selectedTransactions[row.keyForList]).toBeUndefined();
+            }
+        });
+
+        it('reads a group whose every row was checked one by one as checked after a refresh brings back only its first page', async () => {
+            const groupKey = `${CONST.SEARCH.GROUP_PREFIX}advertising`;
+            const firstPage = [buildChild(1, '1', groupKey), buildChild(2, '2', groupKey)];
+            const laterRow = buildChild(5, '5', groupKey);
+            pagingGroup = {...buildCategoryGroup(groupKey, [...firstPage, laterRow]), count: 3};
+            const {result, rerender} = renderSelection(PagingWrapper);
+
+            // Given a group of three with every row loaded and each one checked on its own
+            const [firstRow, secondRow] = firstPage;
+            await pressRow(result, firstRow);
+            await pressRow(result, secondRow);
+            await pressRow(result, laterRow);
+
+            // When it is refreshed from its first page and only that page comes back
+            pagingGroup = {...pagingGroup, transactions: firstPage};
+            rerender({});
+            await act(async () => waitForBatchedUpdatesWithAct());
+
+            // Then its header reads checked, since every row is still selected, the one off the page included
+            expect(result.current.selectedTransactions[laterRow.keyForList]?.isEntireGroupSelected).toBe(true);
+            expect(readGroupCheckbox(result, groupKey, firstPage, 3)).toEqual({isSelectAllChecked: true, isIndeterminate: false});
+        });
+
+        it('stops reading a group checked one by one as whole once an expense off the page is rejected from its details', async () => {
+            const groupKey: SearchGroupKey = `${CONST.SEARCH.GROUP_PREFIX}advertising`;
+            const [firstRow, rejectedRow, laterRow] = [buildChild(1, '1', groupKey), buildChild(2, '2', groupKey), buildChild(5, '5', groupKey)];
+            pagingGroup = {...buildCategoryGroup(groupKey, [firstRow, rejectedRow, laterRow]), count: 3};
+            const searchData: SearchResultDataType = {};
+            searchData[groupKey] = {category: groupKey, count: 3, total: 300, currency: CONST.CURRENCY.USD};
+            const {result, rerender} = renderSelection(PagingWrapper);
+
+            // Given a group of three with each row checked on its own, then refreshed so two rows are kept off the page
+            for (const row of [firstRow, rejectedRow, laterRow]) {
+                await pressRow(result, row);
+            }
+            pagingGroup = {...pagingGroup, transactions: [firstRow]};
+            rerender({});
+            await act(async () => waitForBatchedUpdatesWithAct());
+
+            // When one of the rows off the page is rejected from its details, which keeps it in the group, and the group refreshes
+            await act(async () => {
+                result.current.removeTransaction(rejectedRow.transactionID, {isDeleted: false});
+                await waitForBatchedUpdatesWithAct();
+            });
+            rerender({});
+            await act(async () => waitForBatchedUpdatesWithAct());
+
+            // Then the rest no longer stand for the whole group, so the header reads partly checked and the count is the two checked
+            for (const row of [firstRow, laterRow]) {
+                expect(result.current.selectedTransactions[row.keyForList]?.isEntireGroupSelected).toBe(false);
+            }
+            expect(readGroupCheckbox(result, groupKey, [firstRow], 3)).toEqual({isSelectAllChecked: false, isIndeterminate: true});
+            expect(Object.keys(mergeRowsIntoPartlyLoadedGroups(result.current.selectedTransactions, searchData, false)).sort()).toEqual([firstRow.keyForList, laterRow.keyForList].sort());
+        });
+
+        it('counts the rows left of a wholly selected group after a loaded expense is deleted, rather than the server figures that still include it', async () => {
+            const groupKey: SearchGroupKey = `${CONST.SEARCH.GROUP_PREFIX}advertising`;
+            const [deletedRow, keptRow, laterRow] = [buildChild(1, '1', groupKey), buildChild(2, '2', groupKey), buildChild(5, '5', groupKey)];
+            pagingGroup = {...buildCategoryGroup(groupKey, [deletedRow, keptRow, laterRow]), count: 3};
+            const searchData: SearchResultDataType = {};
+            searchData[groupKey] = {category: groupKey, count: 3, total: 300, currency: CONST.CURRENCY.USD};
+            const {result, rerender} = renderSelection(PagingWrapper);
+
+            // Given a group of three with each row checked on its own, then refreshed so its last row is kept off the page
+            for (const row of [deletedRow, keptRow, laterRow]) {
+                await pressRow(result, row);
+            }
+            pagingGroup = {...pagingGroup, transactions: [deletedRow, keptRow]};
+            rerender({});
+            await act(async () => waitForBatchedUpdatesWithAct());
+
+            // When a loaded expense is deleted from its details, so its row leaves while the count and total still include it
+            await act(async () => {
+                result.current.removeTransaction(deletedRow.transactionID, {isDeleted: true});
+                await waitForBatchedUpdatesWithAct();
+            });
+            pagingGroup = {...pagingGroup, transactions: [{...deletedRow, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}, keptRow]};
+            rerender({});
+            await act(async () => waitForBatchedUpdatesWithAct());
+            pagingGroup = {...pagingGroup, transactions: [keptRow]};
+            rerender({});
+            await act(async () => waitForBatchedUpdatesWithAct());
+
+            // Then the count and total take the two rows still selected
+            expect(Object.keys(mergeRowsIntoPartlyLoadedGroups(result.current.selectedTransactions, searchData, false)).sort()).toEqual([keptRow.keyForList, laterRow.keyForList].sort());
+        });
+
+        it('does not rebuild the selection when a group opens', async () => {
+            const groupKey: SearchGroupKey = `${CONST.SEARCH.GROUP_PREFIX}travel`;
+            const rows = [buildChild(1, '1', groupKey), buildChild(2, '2', groupKey)];
+            pagingGroup = {...buildCategoryGroup(groupKey, rows), count: 3, hasMoreTransactions: false};
+            const {result} = renderSelection(PagingWrapper);
+
+            // Given a group whose own search returned two expenses while its count holds a third, checked while closed
+            await act(async () => {
+                result.current.toggle(pagingGroup, rows);
+                await waitForBatchedUpdatesWithAct();
+            });
+            const buildEntrySpy = jest.spyOn(selectionBuilders, 'mapTransactionItemToSelectedEntry');
+
+            try {
+                // When it opens
+                await act(async () => {
+                    result.current.addGroupToRange(groupKey);
+                    await waitForBatchedUpdatesWithAct();
+                });
+
+                // Then no row's selection is rebuilt, since a group reads the same open or closed.
+                // Scrolling opens and closes groups as the list recycles them, and each rebuild would cover every loaded row.
+                expect(buildEntrySpy).not.toHaveBeenCalled();
+            } finally {
+                buildEntrySpy.mockRestore();
+            }
+        });
+
+        describe('a group whose own search has returned every expense while its count still holds one that left it', () => {
+            const groupKey: SearchGroupKey = `${CONST.SEARCH.GROUP_PREFIX}advertising`;
+            const shownRows = [buildChild(1, '1', groupKey), buildChild(2, '2', groupKey)];
+            const [firstRow, secondRow] = shownRows;
+            const submittedRow = buildChild(5, '5', groupKey);
+
+            // The group-by figures, which still count the submitted expense until that search runs again
+            const searchData: SearchResultDataType = {};
+            searchData[groupKey] = {category: groupKey, count: 3, total: 300, currency: CONST.CURRENCY.USD};
+
+            beforeEach(() => {
+                // The group's own search returned three expenses, and the list hides the one submitted under a drafts filter
+                pagingGroup = {...buildCategoryGroup(groupKey, shownRows), count: 3, hasMoreTransactions: false, hiddenTransactionIDs: [submittedRow.transactionID]};
+            });
+
+            const readHeader = (result: ReturnType<typeof renderSelection>['result']) => readGroupCheckbox(result, groupKey, shownRows, resolveGroupCount(pagingGroup));
+
+            async function openGroup(result: ReturnType<typeof renderSelection>['result']) {
+                await act(async () => {
+                    result.current.addGroupToRange(groupKey);
+                    await waitForBatchedUpdatesWithAct();
+                });
+            }
+
+            it('reads an open group as checked once each expense it shows is checked one by one', async () => {
+                const {result} = renderSelection(PagingWrapper);
+
+                // Given the group open
+                await openGroup(result);
+
+                // When each expense it shows is checked on its own
+                for (const row of shownRows) {
+                    await pressRow(result, row);
+                }
+
+                // Then its header reads checked, since no expense in it is left unchecked
+                expect(result.current.selectedTransactions[secondRow.keyForList]?.isEntireGroupSelected).toBe(true);
+                expect(readHeader(result)).toEqual({isSelectAllChecked: true, isIndeterminate: false});
+            });
+
+            it('keeps an open group checked from its header whole when the list refreshes', async () => {
+                const {result, rerender} = renderSelection(PagingWrapper);
+
+                // Given the group open and checked from its header
+                await openGroup(result);
+                await pressHeader(result, shownRows);
+
+                // When the list refreshes with the same rows, as returning from an expense's details does
+                pagingGroup = {...pagingGroup};
+                rerender({});
+                await act(async () => waitForBatchedUpdatesWithAct());
+
+                // Then the group stays whole and claimed, since the refresh measures it by its rows as the click did
+                expect(result.current.selectedTransactions[firstRow.keyForList]?.isEntireGroupSelected).toBe(true);
+                expect(result.current.selectedTransactions[firstRow.keyForList]?.isSelectedViaGroup).toBe(true);
+                expect(readHeader(result)).toEqual({isSelectAllChecked: true, isIndeterminate: false});
+            });
+
+            it('checks the expenses a group carries from its header as the whole group', async () => {
+                const {result} = renderSelection(PagingWrapper);
+
+                // Given the group carrying the rows its own search returned
+                // When its header is checked
+                await pressHeader(result, shownRows);
+
+                // Then its two expenses are the whole group, so the count is two and the row actions stay offered.
+                // A delete still leaves the group's row, since those two rows fall short of the group-by count.
+                expect(result.current.selectedTransactions[firstRow.keyForList]?.isEntireGroupSelected).toBe(true);
+                expect(result.current.selectedTransactions[firstRow.keyForList]?.coveredGroupCount).toBe(2);
+                expect(Object.keys(mergeRowsIntoPartlyLoadedGroups(result.current.selectedTransactions, searchData, false)).sort()).toEqual(
+                    [firstRow.keyForList, secondRow.keyForList].sort(),
+                );
+                expect(readHeader(result)).toEqual({isSelectAllChecked: true, isIndeterminate: false});
+                expect(getSelectedGroupKeys(result.current.selectedTransactions, searchData)).toEqual([]);
+            });
+
+            it('takes the group itself out of Select all when an open group is unchecked from its header', async () => {
+                const {result} = renderSelection(PagingWrapper);
+
+                // Given every matching item selected and the group open
+                await act(async () => {
+                    result.current.selectAllMatchingItems(true);
+                    await waitForBatchedUpdatesWithAct();
+                });
+                await openGroup(result);
+
+                // When its header is unchecked
+                await pressHeader(result, shownRows);
+
+                // Then the group is excluded whole, so an expense its rows have not caught up with leaves too
+                expect(Object.hasOwn(result.current.excludedTransactions, groupKey)).toBe(true);
+            });
+        });
+
+        describe('a partly loaded group taken out of Select all', () => {
+            const groupKey = `${CONST.SEARCH.GROUP_PREFIX}advertising`;
+            const firstPage = [buildChild(1, '1', groupKey), buildChild(2, '2', groupKey)];
+            const [firstRow, secondRow] = firstPage;
+
+            async function selectAllAndExpand(result: ReturnType<typeof renderSelection>['result']) {
+                await act(async () => {
+                    result.current.selectAllMatchingItems(true);
+                    expandGroup(result, groupKey, firstPage);
+                    await waitForBatchedUpdatesWithAct();
+                });
+            }
+
+            it('reads a group as fully checked again once a row unchecked in it has moved to another group', async () => {
+                pagingSearchResults = makeFlatSearchResults(undefined);
+                const otherGroupKey = `${CONST.SEARCH.GROUP_PREFIX}travel`;
+                pagingGroup = {...buildCategoryGroup(groupKey, firstPage), count: 5};
+                const {result, rerender} = renderSelection(PagingWrapper);
+
+                // Given every matching item selected and one loaded row of a partly loaded group unchecked
+                await selectAllAndExpand(result);
+                await pressRow(result, secondRow);
+
+                // When that row moves to another group, as changing its category does
+                neighborGroup = {...buildCategoryGroup(otherGroupKey, [{...secondRow, selectionGroupKey: otherGroupKey}]), count: 1};
+                pagingGroup = {...pagingGroup, transactions: [firstRow], count: 4};
+                rerender({});
+                await act(async () => waitForBatchedUpdatesWithAct());
+
+                // Then its exclusion follows it, so the group it left reads fully checked
+                expect(result.current.excludedTransactions[secondRow.keyForList]?.groupKey).toBe(otherGroupKey);
+                expect(readGroupCheckbox(result, groupKey, [firstRow], 4).isSelectAllChecked).toBe(true);
+            });
+
+            it('lets a row checked again inside a group excluded whole be unchecked once it has moved to another group', async () => {
+                const otherGroupKey = `${CONST.SEARCH.GROUP_PREFIX}travel`;
+                const secondRowAfterMove = {...secondRow, selectionGroupKey: otherGroupKey};
+                pagingGroup = {...buildCategoryGroup(groupKey, firstPage), count: 5};
+                const {result, rerender} = renderSelection(PagingWrapper);
+
+                // Given Select all, a group of five unchecked from its header, and one of its rows checked again
+                await selectAllAndExpand(result);
+                await pressHeader(result, firstPage);
+                await pressRow(result, secondRow);
+
+                // When that row moves to another group, as changing its category does, and is unchecked there
+                neighborGroup = {...buildCategoryGroup(otherGroupKey, [secondRowAfterMove]), count: 1};
+                pagingGroup = {...pagingGroup, transactions: [firstRow]};
+                rerender({});
+                await act(async () => waitForBatchedUpdatesWithAct());
+                await pressRow(result, secondRowAfterMove);
+
+                // Then it reads unchecked, since its exclusion is recorded against its new group
+                const isMovedRowChecked = isRowChecked({
+                    rowKey: secondRow.keyForList,
+                    parentGroupKey: otherGroupKey,
+                    selectedTransactions: result.current.selectedTransactions,
+                    excludedTransactions: result.current.excludedTransactions,
+                    areAllMatchingItemsSelected: result.current.areAllMatchingItemsSelected,
+                });
+                expect(isMovedRowChecked).toBe(false);
+            });
+
+            it('keeps a row checked again inside a group excluded whole when a refresh leaves it out', async () => {
+                const laterRow = buildChild(5, '5', groupKey);
+                pagingGroup = {...buildCategoryGroup(groupKey, firstPage), count: 5};
+                const {result, rerender} = renderSelection(PagingWrapper);
+
+                // Given Select all, a group of five unchecked from its header, then a later row loaded and checked again
+                await selectAllAndExpand(result);
+                await pressHeader(result, firstPage);
+                pagingGroup = {...pagingGroup, transactions: [...firstPage, laterRow]};
+                rerender({});
+                await act(async () => waitForBatchedUpdatesWithAct());
+                await pressRow(result, laterRow);
+                expect(result.current.selectedTransactions[laterRow.keyForList]?.isSelected).toBe(true);
+
+                // When a refresh brings back only the first page
+                pagingGroup = {...pagingGroup, transactions: firstPage};
+                rerender({});
+                await act(async () => waitForBatchedUpdatesWithAct());
+
+                // Then the row stays checked, since the user checked it by hand and it is still in the group
+                expect(result.current.selectedTransactions[laterRow.keyForList]?.isSelected).toBe(true);
+            });
+
+            it('takes the rows a refresh left out with the group when its header is unchecked, rather than counting them as checked again', async () => {
+                const laterRow = buildChild(5, '5', groupKey);
+                pagingGroup = {...buildCategoryGroup(groupKey, [...firstPage, laterRow]), count: 3};
+                const {result, rerender} = renderSelection(PagingWrapper);
+
+                // Given Select all over a group of three with every row loaded, then a refresh that brings back only its first page
+                await act(async () => {
+                    result.current.selectAllMatchingItems(true);
+                    expandGroup(result, groupKey, [...firstPage, laterRow]);
+                    await waitForBatchedUpdatesWithAct();
+                });
+                pagingGroup = {...pagingGroup, transactions: firstPage};
+                rerender({});
+                await act(async () => waitForBatchedUpdatesWithAct());
+
+                // When its header is unchecked
+                await pressHeader(result, firstPage);
+
+                // Then the group is excluded whole and none of its rows stays selected
+                expect(Object.keys(result.current.excludedTransactions)).toEqual([groupKey]);
+                expect(result.current.selectedTransactions[laterRow.keyForList]).toBeUndefined();
+            });
+
+            it('takes the rows not loaded out with the group when its loaded rows were unchecked one at a time before its header', async () => {
+                pagingGroup = {...buildCategoryGroup(groupKey, firstPage), count: 5};
+                const {result} = renderSelection(PagingWrapper);
+
+                // Given Select all, and a group of five whose first page of two was unchecked row by row
+                await selectAllAndExpand(result);
+                await pressRow(result, firstRow);
+                await pressRow(result, secondRow);
+
+                // When its header, which still holds the three rows not loaded, is pressed
+                await pressHeader(result, firstPage);
+
+                // Then the group itself is excluded, so those three rows leave too, rather than the press rechecking the loaded two
+                expect(result.current.excludedTransactions[groupKey]).toBeDefined();
+                expect(result.current.selectedTransactions[firstRow.keyForList]).toBeUndefined();
+                expect(result.current.selectedTransactions[secondRow.keyForList]).toBeUndefined();
+            });
+
+            it('excludes a row once when it is checked again inside the group excluded whole and then unchecked', async () => {
+                pagingGroup = {...buildCategoryGroup(groupKey, firstPage), count: 5};
+                const {result} = renderSelection(PagingWrapper);
+
+                // Given Select all, a group of five unchecked from its header, and one of its loaded rows checked again
+                await selectAllAndExpand(result);
+                await pressHeader(result, firstPage);
+                await pressRow(result, firstRow);
+                expect(result.current.excludedTransactions[groupKey]).toBeDefined();
+
+                // When that row is unchecked again
+                await pressRow(result, firstRow);
+
+                // Then the group's exclusion is the only one, or the footer would subtract the row twice
+                expect(Object.keys(result.current.excludedTransactions)).toEqual([groupKey]);
+            });
+
+            it('takes a partly loaded group out of Select all from its header when every loaded row is being deleted', async () => {
+                const deletingPage = firstPage.map((row) => ({...row, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}));
+                pagingGroup = {...buildCategoryGroup(groupKey, deletingPage), count: 5};
+                const {result} = renderSelection(PagingWrapper);
+
+                // Given Select all, and a group of five whose two loaded rows are both being deleted
+                await act(async () => {
+                    result.current.selectAllMatchingItems(true);
+                    expandGroup(result, groupKey, deletingPage);
+                    await waitForBatchedUpdatesWithAct();
+                });
+
+                // When its header, which still holds the three rows not loaded, is pressed
+                await pressHeader(result, deletingPage);
+
+                // Then the group itself is excluded, rather than the press doing nothing
+                expect(result.current.excludedTransactions[groupKey]).toBeDefined();
+            });
+        });
+
+        it('drops a group exclusion when its header checks the group again after its rows arrived', async () => {
+            pagingGroup = {...categoryGroup, count: loadedChildren.length, transactions: []};
+            const {result, rerender} = renderSelection(PagingWrapper);
+
+            // Given Select all, then a group unchecked from its header while collapsed, then its rows arriving
+            await act(async () => {
+                result.current.selectAllMatchingItems(true);
+                await waitForBatchedUpdatesWithAct();
+            });
+            await pressHeader(result, []);
+            expect(result.current.excludedTransactions[GROUP_KEY]).toBeDefined();
+            pagingGroup = {...categoryGroup, count: loadedChildren.length, transactions: loadedChildren};
+            rerender({});
+            await act(async () => {
+                expandGroup(result, GROUP_KEY, loadedChildren);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // When its header checks the group again
+            await pressHeader(result, loadedChildren);
+
+            // Then the exclusion goes, or every row would read unchecked under a header that shows checked
+            expect(result.current.excludedTransactions[GROUP_KEY]).toBeUndefined();
+        });
     });
 });

@@ -5,17 +5,19 @@ import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersona
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
+import * as PolicyActions from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 
 import type {SettingsNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
-import WorkspaceWorkflowsPage from '@pages/workspace/workflows/WorkspaceWorkflowsPage';
+import WorkspaceWorkflowsPageRevamp from '@pages/workspace/workflows/WorkspaceWorkflowsPageRevamp';
 import WorkspaceWorkflowsPayerPage from '@pages/workspace/workflows/WorkspaceWorkflowsPayerPage';
 
 import CONST from '@src/CONST';
@@ -71,14 +73,14 @@ const buildPolicy = (overrides: Partial<Policy> = {}): Policy =>
 
 const renderPage = (initialRouteName: keyof TestNavigatorParamList = SCREENS.WORKSPACE.WORKFLOWS) =>
     render(
-        <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrentReportIDContextProvider, PersonalDetailsByLoginProvider]}>
             <PortalProvider>
                 <ModalProvider>
                     <NavigationContainer>
                         <Stack.Navigator initialRouteName={initialRouteName}>
                             <Stack.Screen
                                 name={SCREENS.WORKSPACE.WORKFLOWS}
-                                component={WorkspaceWorkflowsPage}
+                                component={WorkspaceWorkflowsPageRevamp}
                                 // The payer row lives on the Payments tab, so deep-link straight to it.
                                 initialParams={{policyID: POLICY_ID, tab: CONST.TAB.WORKFLOWS.PAYMENTS}}
                             />
@@ -94,7 +96,7 @@ const renderPage = (initialRouteName: keyof TestNavigatorParamList = SCREENS.WOR
         </ComposeProviders>,
     );
 
-describe('WorkspaceWorkflowsPage - Payer row visibility', () => {
+describe('WorkspaceWorkflowsPageRevamp - Payer row visibility', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -118,6 +120,65 @@ describe('WorkspaceWorkflowsPage - Payer row visibility', () => {
         jest.restoreAllMocks();
     });
 
+    it.each(['bank account list', 'policy bank account', 'reimbursement countries'])('warns before disabling payments with %s', async (source) => {
+        // Given payment settings from each supported source, including an account not yet present in policy.achAccount
+        await TestHelper.signInWithTestUser();
+        const setReimbursementSpy = jest.spyOn(PolicyActions, 'setWorkspaceReimbursement').mockImplementation(() => {});
+        const bankAccountID = 123456;
+        await act(async () => {
+            await Onyx.set(
+                `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,
+                buildPolicy({
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    achAccount:
+                        source === 'policy bank account'
+                            ? {
+                                  bankAccountID,
+                                  state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                                  accountNumber: '1234567890',
+                                  routingNumber: '011000015',
+                                  addressName: 'Test Address',
+                                  bankName: 'Test Bank',
+                                  reimburser: 'test@user.com',
+                              }
+                            : undefined,
+                    reimbursement: {countries: source === 'reimbursement countries' ? {US: []} : {}},
+                }),
+            );
+            if (source === 'bank account list') {
+                await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                    [bankAccountID]: {
+                        methodID: bankAccountID,
+                        bankCurrency: CONST.CURRENCY.USD,
+                        bankCountry: 'US',
+                        accountData: {
+                            additionalData: {policyID: POLICY_ID, bankName: CONST.BANK_NAMES.GENERIC_BANK},
+                            state: CONST.BANK_ACCOUNT.STATE.SETUP,
+                        },
+                    },
+                });
+            }
+        });
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the admin disables payments, the confirmation must appear before saving any settings
+        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('workflowsPage.makeOrTrackPaymentsDescription')));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then cancelling preserves settings, while confirming a second attempt saves the disabled choice
+        expect(screen.getByText(TestHelper.translateLocal('workflowsPage.disablePaymentsPrompt'))).toBeOnTheScreen();
+        expect(setReimbursementSpy).not.toHaveBeenCalled();
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.cancel')));
+        await waitForBatchedUpdatesWithAct();
+        expect(setReimbursementSpy).not.toHaveBeenCalled();
+        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('workflowsPage.makeOrTrackPaymentsDescription')));
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.confirm')));
+        await waitForBatchedUpdatesWithAct();
+        expect(setReimbursementSpy).toHaveBeenCalledWith(expect.objectContaining({policyID: POLICY_ID, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO}));
+    });
+
     it('shows the Payer row when reimbursementChoice is REIMBURSEMENT_YES and a bank account exists', async () => {
         await TestHelper.signInWithTestUser();
         await act(async () => {
@@ -133,6 +194,33 @@ describe('WorkspaceWorkflowsPage - Payer row visibility', () => {
                         bankName: 'Test Bank',
                         addressName: 'Test Address',
                         state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                    },
+                }),
+            );
+        });
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText(TestHelper.translateLocal('workflowsPayerPage.payer'))).toBeOnTheScreen();
+    });
+
+    it('keeps the Payer row when reimbursementChoice is REIMBURSEMENT_YES after the bank account is disconnected', async () => {
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            // Disconnecting the bank account clears the bank data (no open state, removed from BANK_ACCOUNT_LIST)
+            // but preserves the reimburser and leaves reimbursementChoice as REIMBURSEMENT_YES.
+            await Onyx.merge(
+                `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,
+                buildPolicy({
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    achAccount: {
+                        reimburser: 'test@user.com',
+                        bankAccountID: 0,
+                        accountNumber: '',
+                        routingNumber: '',
+                        addressName: '',
+                        bankName: '',
                     },
                 }),
             );
@@ -377,5 +465,61 @@ describe('WorkspaceWorkflowsPage - Payer row visibility', () => {
 
         fireEvent.press(screen.getByLabelText(`${TestHelper.translateLocal('workflowsPayerPage.payer')}, ${reimburser}`), {type: 'press'});
         expect(navigateSpy).toHaveBeenCalledWith('workspaces/workflows-payer-test/workflows/payer');
+    });
+
+    it('sets the payer without sharing when the policy has no withdrawal account', async () => {
+        const currentUserLogin = 'test@user.com';
+        const currentUserAccountID = 1;
+        const otherAdminLogin = 'other-admin@test.com';
+        const otherAdminAccountID = 2;
+        const bankAccountID = 123456;
+        const closeRHPFlowSpy = jest.spyOn(Navigation, 'closeRHPFlow').mockImplementation(() => {});
+
+        await TestHelper.signInWithTestUser(currentUserAccountID, currentUserLogin);
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [currentUserAccountID]: TestHelper.buildPersonalDetails(currentUserLogin, currentUserAccountID),
+                [otherAdminAccountID]: TestHelper.buildPersonalDetails(otherAdminLogin, otherAdminAccountID, 'Other'),
+            });
+            await Onyx.merge(
+                `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,
+                buildPolicy({
+                    owner: currentUserLogin,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    employeeList: {
+                        [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
+                        [otherAdminLogin]: {email: otherAdminLogin, role: CONST.POLICY.ROLE.ADMIN},
+                    },
+                }),
+            );
+
+            // This account is linked to the policy. It is not the withdrawal account, because the policy has none.
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                [bankAccountID]: {
+                    methodID: bankAccountID,
+                    bankCurrency: 'USD',
+                    bankCountry: 'US',
+                    accountData: {
+                        bankAccountID,
+                        additionalData: {
+                            policyID: POLICY_ID,
+                            bankName: CONST.BANK_NAMES.GENERIC_BANK,
+                        },
+                        addressName: 'Test Address',
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                    },
+                },
+            });
+        });
+
+        renderPage(SCREENS.WORKSPACE.WORKFLOWS_PAYER);
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByText(otherAdminLogin));
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.save')));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByText(TestHelper.translateLocal('workflowsPayerPage.shareBankAccount.shareTitle'))).not.toBeOnTheScreen();
+        expect(closeRHPFlowSpy).toHaveBeenCalled();
     });
 });

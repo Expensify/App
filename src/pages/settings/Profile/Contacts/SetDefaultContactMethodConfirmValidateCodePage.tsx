@@ -12,22 +12,22 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {expensifyLoginsSelector, getContactMethod} from '@libs/UserUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect} from 'react';
-
-import getDecodedContactMethodFromUriParam from './utils';
 
 type SetDefaultContactMethodConfirmValidateCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_SET_DEFAULT_CONFIRM>;
 
 function SetDefaultContactMethodConfirmValidateCodePage({route}: SetDefaultContactMethodConfirmValidateCodePageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const backTo = route.params?.backTo;
-    const contactMethod = getDecodedContactMethodFromUriParam(route.params.contactMethod);
+    const contactMethod = addSMSDomainIfPhoneNumber(route.params.contactMethod);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
@@ -69,7 +69,8 @@ function SetDefaultContactMethodConfirmValidateCodePage({route}: SetDefaultConta
     return (
         <ValidateCodeActionContent
             title={translate('delegate.makeSureItIsYou')}
-            sendValidateCode={() => requestValidateCodeAction()}
+            sendValidateCode={() => requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.CHANGE_PRIMARY_LOGIN})}
+            validateCodeReasonCode={COMMON_CONST.VALIDATE_CODE_REASONS.CHANGE_PRIMARY_LOGIN}
             descriptionPrimary={translate('contacts.enterSecurityCode', primaryContactMethod)}
             validateCodeActionErrorField="defaultLogin"
             validateError={defaultLoginError}

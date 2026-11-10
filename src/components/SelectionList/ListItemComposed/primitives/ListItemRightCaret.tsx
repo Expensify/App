@@ -1,30 +1,28 @@
 import Icon from '@components/Icon';
-import {useListItemHovered} from '@components/SelectionList/ListItemContext';
+import {useListItemContext, useListItemHovered} from '@components/SelectionList/ListItemContext';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useTheme from '@hooks/useTheme';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import variables from '@styles/variables';
+import getButtonState from '@libs/getButtonState';
 
 import React from 'react';
 import {View} from 'react-native';
 
-/** Right caret icon, semi-transparent until the row is hovered. */
+/** Right caret icon whose fill follows the row's hover/disabled/interactive state from context. */
 function ListItemRightCaret() {
-    const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const isHovered = useListItemHovered();
+    const {isDisabled, isInteractive} = useListItemContext();
 
     return (
-        <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.ml2]}>
+        <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, isDisabled && styles.cursorDisabled]}>
             <Icon
                 src={icons.ArrowRight}
-                fill={theme.icon}
-                additionalStyles={[styles.alignSelfCenter, !isHovered && styles.opacitySemiTransparent]}
-                width={variables.iconSizeNormal}
-                height={variables.iconSizeNormal}
+                fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: isHovered, isDisabled, isInteractive})})}
             />
         </View>
     );

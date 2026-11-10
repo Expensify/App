@@ -8,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Parser from '@libs/Parser';
 
+import NetSuiteTokenAuthenticationLink from '@pages/workspace/accounting/netsuite/NetSuiteTokenInput/NetSuiteTokenAuthenticationLink';
 import type {CustomSubPageTokenInputProps} from '@pages/workspace/accounting/netsuite/types';
 
 import CONST from '@src/CONST';
@@ -16,7 +17,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import React from 'react';
 import {View} from 'react-native';
 
-function NetSuiteTokenSetupContent({onNext, currentPageName}: CustomSubPageTokenInputProps) {
+function NetSuiteTokenSetupContent({onNext, currentPageName, policyID, shouldShowTokenAuthenticationLink}: CustomSubPageTokenInputProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -29,8 +30,14 @@ function NetSuiteTokenSetupContent({onNext, currentPageName}: CustomSubPageToken
     return (
         <View style={styles.flex1}>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate(titleKey)}</Text>
-            <View style={[styles.flex1, styles.mb3, styles.ph5]}>
+            <View style={[styles.mb3, styles.ph5]}>
                 <RenderHTML html={`<comment><muted-text>${Parser.replace(translate(description))}</muted-text></comment>`} />
+                {shouldShowTokenAuthenticationLink && (
+                    <NetSuiteTokenAuthenticationLink
+                        policyID={policyID}
+                        style={styles.mt4}
+                    />
+                )}
             </View>
             <FixedFooter style={[styles.mtAuto]}>
                 <Button

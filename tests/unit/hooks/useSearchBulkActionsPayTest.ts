@@ -1,6 +1,7 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
@@ -23,18 +24,39 @@ let mockBulkPayButtonOptions: Array<Record<string, unknown>> = [{text: 'Pay with
 jest.mock('@libs/actions/IOU/PayMoneyRequest', () => ({
     payMoneyRequest: jest.fn(),
     payInvoice: jest.fn(),
+    getBankAccountToSetUpBeforePaying: jest.fn(),
 }));
 
 // On iOS the offline modal is deferred until the payment popover finishes dismissing (via TransitionTracker),
 // which never fires under Jest. Invoke the callback synchronously so we can assert the modal opens.
+const mockDeferModalPresentation = jest.fn((presentModal: () => void) => presentModal());
 jest.mock('@libs/deferModalPresentationAfterPopoverDismiss', () => ({
     __esModule: true,
-    default: (presentModal: () => void) => presentModal(),
+    default: (presentModal: () => void) => mockDeferModalPresentation(presentModal),
+}));
+
+const mockShowWiseQuoteCarouselModal = jest.fn();
+jest.mock('@hooks/useWiseQuoteConfirmModal', () => ({
+    __esModule: true,
+    default: () => ({showWiseQuoteConfirmModal: jest.fn(), showWiseQuoteCarouselModal: mockShowWiseQuoteCarouselModal}),
+}));
+
+jest.mock('@libs/actions/Wise', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/actions/Wise'),
+    getWiseQuote: jest.fn(),
+}));
+
+let mockShouldConfirmWiseQuote = false;
+jest.mock('@libs/BankAccountUtils', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/BankAccountUtils'),
+    shouldConfirmWiseQuoteBeforePaying: () => mockShouldConfirmWiseQuote,
+    shouldGetWiseQuote: () => mockShouldConfirmWiseQuote,
 }));
 
 jest.mock('@libs/actions/Search', () => {
     const actualSearch = jest.requireActual<typeof SearchActions>('@libs/actions/Search');
     return {
+        openSearchCardFiltersPage: jest.fn(),
         getExportTemplates: jest.fn(() => ({customTemplates: [], defaultTemplates: []})),
         exportSearchItemsToCSV: jest.fn(),
         queueExportSearchItemsToCSV: jest.fn(),
@@ -122,6 +144,12 @@ jest.mock('@hooks/useNetwork', () => ({
     default: () => ({isOffline: mockIsOffline}),
 }));
 
+const mockShowDecisionModal = jest.fn();
+jest.mock('@hooks/useDecisionModal', () => ({
+    __esModule: true,
+    default: () => ({showDecisionModal: mockShowDecisionModal}),
+}));
+
 jest.mock('@hooks/useEnvironment', () => ({
     __esModule: true,
     default: () => ({isProduction: false, isDevelopment: true, environment: 'development'}),
@@ -139,7 +167,7 @@ jest.mock('@hooks/useConfirmModal', () => ({
 
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: () => ({isBetaEnabled: () => false}),
+    default: () => ({isBetaEnabled: () => false, isBetaEnabledOrUnknown: () => false}),
 }));
 
 jest.mock('@hooks/useSelfDMReport', () => ({
@@ -165,15 +193,9 @@ jest.mock('@hooks/usePolicyForMovingExpenses', () => ({
 jest.mock('@hooks/usePaymentContext', () => ({
     __esModule: true,
     default: () => ({
-        introSelected: undefined,
-        betas: undefined,
-        isSelfTourViewed: false,
         activePolicyID: undefined,
         activePolicy: undefined,
         defaultWorkspaceName: undefined,
-        userBillingGracePeriodEnds: undefined,
-        amountOwed: undefined,
-        ownerBillingGracePeriodEnd: undefined,
     }),
     PaymentContextProvider: ({children}: {children: unknown}) => children,
     useReportPaymentContext: () => ({}),
@@ -181,12 +203,14 @@ jest.mock('@hooks/usePaymentContext', () => ({
 
 const mockClearSelectedTransactions = jest.fn();
 let mockSelectedTransactions: SelectedTransactions = {};
+let mockExcludedTransactions: SelectedTransactions = {};
 let mockSelectedReports: SelectedReports[] = [];
 let mockAreAllMatchingItemsSelected = false;
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionContext: () => ({
         selectedTransactions: mockSelectedTransactions,
+        excludedTransactions: mockExcludedTransactions,
         selectedReports: mockSelectedReports,
         areAllMatchingItemsSelected: mockAreAllMatchingItemsSelected,
     }),
@@ -224,6 +248,13 @@ const expenseReportQueryJSON: SearchQueryJSON = {
     sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
     view: CONST.SEARCH.VIEW.TABLE,
     filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: 'type', right: 'expense-report'},
+};
+
+const expenseQueryJSON: SearchQueryJSON = {
+    ...expenseReportQueryJSON,
+    inputQuery: 'type:expense status:all',
+    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+    filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: 'type', right: 'expense'},
 };
 
 function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]> = {}): SelectedTransactions[string] {
@@ -277,6 +308,7 @@ describe('useSearchBulkActions - Pay option', () => {
         mockShouldEnableBulkPayOption = true;
         mockBulkPayButtonOptions = [{text: 'Pay with bank account', key: CONST.IOU.PAYMENT_TYPE.VBBA}];
         mockAreAllMatchingItemsSelected = false;
+        mockExcludedTransactions = {};
         await Onyx.clear();
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
         mockSelectedReports = [];
@@ -296,7 +328,7 @@ describe('useSearchBulkActions - Pay option', () => {
         // Given a payable selected transaction while the user is online (set up in beforeEach)
 
         // When the bulk actions hook computes the header dropdown options
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         // Then the Pay option should be offered because the selection is payable and nothing blocks the payment
         await waitFor(() => {
@@ -309,7 +341,7 @@ describe('useSearchBulkActions - Pay option', () => {
         mockIsOffline = true;
 
         // When the bulk actions hook computes the header dropdown options
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         // Then the Pay option should still be offered because being offline only defers the payment
         await waitFor(() => {
@@ -321,7 +353,7 @@ describe('useSearchBulkActions - Pay option', () => {
         // Given a payable selected transaction while the user is offline
         mockIsOffline = true;
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
@@ -334,7 +366,7 @@ describe('useSearchBulkActions - Pay option', () => {
         });
 
         // Then the offline modal should open and no payment should be triggered because payments must not be queued while offline
-        expect(result.current.isOfflineModalVisible).toBe(true);
+        expect(mockShowDecisionModal).toHaveBeenCalledWith(expect.objectContaining({title: 'common.youAppearToBeOffline', prompt: 'common.offlinePrompt'}));
         expect(payMoneyRequest).not.toHaveBeenCalled();
     });
 
@@ -344,7 +376,7 @@ describe('useSearchBulkActions - Pay option', () => {
         // Mark as paid is the only option offered in this mode
         mockBulkPayButtonOptions = [{text: 'Mark as paid', key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}];
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
@@ -363,6 +395,61 @@ describe('useSearchBulkActions - Pay option', () => {
         expect(mockClearSelectedTransactions).toHaveBeenCalled();
     });
 
+    it('excludes deselected reports from an all-matching bulk payment', async () => {
+        mockAreAllMatchingItemsSelected = true;
+        mockExcludedTransactions = {tx2: makeSelectedTransaction({reportID: 'excluded-report'})};
+        mockBulkPayButtonOptions = [{text: 'Mark as paid', key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}];
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
+        });
+
+        const payOption = getPayOptionFromResult(result.current.headerButtonsOptions);
+        await act(async () => {
+            await payOption?.onSelected?.();
+        });
+
+        const serializedQuery = jest.mocked(queueBulkPayReports).mock.calls.at(0)?.at(0);
+        expect(serializedQuery).toBeDefined();
+        expect(serializedQuery).toContain('-reportID:excluded-report');
+    });
+
+    it('pays every matching report under Select all in an expense search with nothing unchecked', async () => {
+        // Given every matching expense selected on the Expenses search, none of them unchecked
+        mockAreAllMatchingItemsSelected = true;
+        mockBulkPayButtonOptions = [{text: 'Mark as paid', key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}];
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseQueryJSON}), {wrapper: OnyxListItemProvider});
+        await waitFor(() => {
+            expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
+        });
+
+        // When Pay is selected
+        await act(async () => {
+            await getPayOptionFromResult(result.current.headerButtonsOptions)?.onSelected?.();
+        });
+
+        // Then the search itself is sent, since it holds exactly what is selected
+        expect(queueBulkPayReports).toHaveBeenCalledTimes(1);
+    });
+
+    it('hides the Pay option under Select all in an expense search once an expense is unchecked, since paying its report would pay it too', async () => {
+        // Given every matching expense selected on the Expenses search, then one of them unchecked
+        mockAreAllMatchingItemsSelected = true;
+        mockExcludedTransactions = {tx2: makeSelectedTransaction({reportID: 'report-with-unchecked-expense'})};
+        mockBulkPayButtonOptions = [{text: 'Mark as paid', key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}];
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseQueryJSON}), {wrapper: OnyxListItemProvider});
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        // Then Pay is not offered, since a report cannot leave out one of its expenses
+        expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeUndefined();
+    });
+
     it('keeps the Pay option under Select all when getPayOption rejects the loaded page', async () => {
         // Given "Select all" with at least one payable report loaded, but getPayOption rejecting the selection.
         // getPayOption compares getReportType() across the payable subset, which reads live Onyx and returns
@@ -374,7 +461,7 @@ describe('useSearchBulkActions - Pay option', () => {
         mockSelectedReports = [makeSelectedReport({canPay: true}), makeSelectedReport({reportID: '2', canPay: false})];
 
         // When the bulk actions hook computes the header dropdown options
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         // Then Pay is still offered, because eligibility for a select-all is decided server-side from the query
         await waitFor(() => {
@@ -391,7 +478,7 @@ describe('useSearchBulkActions - Pay option', () => {
         mockSelectedReports = [makeSelectedReport({canPay: true})];
 
         // When the bulk actions hook computes the header dropdown options
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         // Then Pay is still offered
         await waitFor(() => {
@@ -407,7 +494,7 @@ describe('useSearchBulkActions - Pay option', () => {
         mockSelectedReports = [makeSelectedReport({canPay: false}), makeSelectedReport({reportID: '2', canPay: false})];
 
         // When the bulk actions hook computes the header dropdown options
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions).toBeDefined();
@@ -422,7 +509,7 @@ describe('useSearchBulkActions - Pay option', () => {
         mockShouldEnableBulkPayOption = false;
 
         // When the bulk actions hook computes the header dropdown options
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions).toBeDefined();
@@ -442,7 +529,7 @@ describe('useSearchBulkActions - Pay option', () => {
         };
 
         // When the bulk actions hook computes the header dropdown options
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         // Then Pay is still offered, because the hold is scoped to the reports that will actually be paid
         await waitFor(() => {
@@ -456,7 +543,7 @@ describe('useSearchBulkActions - Pay option', () => {
         mockSelectedTransactions = {tx1: makeSelectedTransaction({reportID: '1', isHeld: true})};
 
         // When the bulk actions hook computes the header dropdown options
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions).toBeDefined();
@@ -504,7 +591,7 @@ describe('useSearchBulkActions - bulk pay chat report fallback', () => {
     });
 
     async function selectBulkPay() {
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
         await waitFor(() => {
             expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
         });
@@ -627,5 +714,58 @@ describe('useSearchBulkActions - bulk pay chat report fallback', () => {
             expect.objectContaining({reportID: '1', isItemInvoice: false}),
         );
         expect(mockLogInfo).toHaveBeenCalledWith('[BulkPay] Bulk pay finished with skipped reports', false, {paidReportCount: 0, selectedCount: 1});
+    });
+});
+
+describe('useSearchBulkActions - bulk pay Wise quote', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        mockIsOffline = false;
+        mockShouldEnableBulkPayOption = true;
+        mockShouldConfirmWiseQuote = true;
+        mockBulkPayButtonOptions = [{text: 'Pay with bank account', key: CONST.IOU.PAYMENT_TYPE.VBBA}];
+        mockAreAllMatchingItemsSelected = false;
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockSelectedReports = [makeSelectedReport({chatReportID: '2'})];
+        jest.mocked(getLastPolicyPaymentMethod).mockReturnValue(CONST.IOU.PAYMENT_TYPE.VBBA);
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {id: 'policy1', role: CONST.POLICY.ROLE.ADMIN});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, chatReportID: '2', policyID: 'policy1'});
+    });
+
+    afterEach(async () => {
+        mockShouldConfirmWiseQuote = false;
+        await Onyx.clear();
+    });
+
+    it('opens the Wise quote carousel only once the pay popover has dismissed', async () => {
+        // Given a selected report whose expenses need a Wise quote, and a pay popover that is still dismissing
+        let presentAfterPopoverDismiss: (() => void) | undefined;
+        mockDeferModalPresentation.mockImplementationOnce((presentModal) => {
+            presentAfterPopoverDismiss = presentModal;
+        });
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+        await waitFor(() => {
+            expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
+        });
+
+        // When the user picks the business bank account from the pay popover
+        act(() => result.current.confirmPayment(CONST.IOU.PAYMENT_TYPE.VBBA, {bankAccountID: 999}));
+
+        // Then the carousel waits, because iOS can't present a modal while the popover is still on screen, and nothing is paid
+        await waitFor(() => expect(mockDeferModalPresentation).toHaveBeenCalled());
+        expect(mockShowWiseQuoteCarouselModal).not.toHaveBeenCalled();
+        expect(payMoneyRequest).not.toHaveBeenCalled();
+
+        // When the popover finishes dismissing
+        act(() => presentAfterPopoverDismiss?.());
+
+        // Then the carousel opens for the selected report
+        expect(mockShowWiseQuoteCarouselModal).toHaveBeenCalledWith(expect.objectContaining({quotedReportIDs: ['1']}));
     });
 });

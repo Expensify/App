@@ -6,14 +6,13 @@ import {isMobileSafari} from '@libs/Browser';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 
-import variables from '@styles/variables';
-
 import CONFIG from '@src/CONFIG';
 
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 
 import type {EnterAnimation} from './useModalCardStyleInterpolator';
 
+import getSplitNavigatorSidebarWidth from './getSplitNavigatorSidebarWidth';
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
 
@@ -33,11 +32,13 @@ const commonScreenOptions: PlatformStackNavigationOptions = {
     },
 };
 
-const useSplitNavigatorScreenOptions = () => {
+const useSplitNavigatorScreenOptions = (sidebarScreenName?: string) => {
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
+
+    const sidebarWidth = getSplitNavigatorSidebarWidth(sidebarScreenName);
 
     const centralScreenEnter: EnterAnimation = !IS_MOBILE_SAFARI && shouldUseNarrowLayout ? {kind: 'slide-from-width'} : {kind: 'none'};
 
@@ -52,8 +53,8 @@ const useSplitNavigatorScreenOptions = () => {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: {kind: 'slide-from-width'}}),
                 cardStyle: {
                     ...StyleUtils.getNavigationModalCardStyle(),
-                    width: shouldUseNarrowLayout ? NARROW_CARD_SAFE_AREA_WIDTH : variables.sideBarWithLHBWidth,
-                    marginLeft: shouldUseNarrowLayout ? 0 : -variables.sideBarWithLHBWidth,
+                    width: shouldUseNarrowLayout ? NARROW_CARD_SAFE_AREA_WIDTH : sidebarWidth,
+                    marginLeft: shouldUseNarrowLayout ? 0 : -sidebarWidth,
                     ...(shouldUseNarrowLayout ? {} : themeStyles.borderRight),
                 },
             },

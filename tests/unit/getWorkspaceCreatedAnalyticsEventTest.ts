@@ -26,7 +26,7 @@ describe('getWorkspaceCreatedAnalyticsEvent', () => {
     it.each([
         // The "1-4" range is below 5 employees, and the deprecated "1-10" range can include fewer than 5 employees.
         CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL,
-        CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+        CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
     ])('treats company size "%s" (possibly under 5 employees) as not sales eligible', (companySize) => {
         expect(getWorkspaceCreatedAnalyticsEvent(CONST.ONBOARDING_CHOICES.MANAGE_TEAM, companySize, PRIVATE_EMAIL)).toBe(STANDARD);
     });

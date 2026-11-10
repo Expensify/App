@@ -1,7 +1,8 @@
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -21,6 +22,7 @@ import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import {openLink} from '@userActions/Link';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,6 +30,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -52,10 +55,10 @@ function ImportFromFileStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const icons = useMemoizedLazyExpensifyIcons(['Download']);
     const route = useRoute<PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_COMPANY_CARDS_ADD_NEW>>();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
     const companyCardLayoutName = addNewCard?.data?.companyCardLayoutName ?? '';
     const [hasError, setHasError] = useState(false);
     const {policyID} = route.params;
@@ -100,7 +103,7 @@ function ImportFromFileStep() {
                         testID="ImportFromFileStep-TemplateLink"
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('workspace.companyCards.addNewCard.createFileFeedHelpText.templateLink')}
-                        sentryLabel="ImportFromFileStep-TemplateLink"
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.IMPORT_FROM_FILE_TEMPLATE_LINK}
                         onPress={downloadTemplate}
                         style={styles.dInlineFlex}
                     >
@@ -114,7 +117,7 @@ function ImportFromFileStep() {
                         // while onPress preventDefault()s the anchor's default navigation and routes through openLink on every platform.
                         href={CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}
                         accessibilityLabel={translate('workspace.companyCards.addNewCard.createFileFeedHelpText.helpGuideLink')}
-                        sentryLabel="ImportFromFileStep-HelpGuideLink"
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.IMPORT_FROM_FILE_HELP_GUIDE_LINK}
                         onPress={(event) => {
                             event?.preventDefault();
                             openLink(CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL, environmentURL, false, session);
@@ -125,15 +128,21 @@ function ImportFromFileStep() {
                     </PressableWithoutFeedback>
                     <WrappingText text={translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionEnd')} />
                 </View>
-                <MenuItemWithTopDescription
-                    description={translate('workspace.companyCards.addNewCard.companyCardLayoutName')}
-                    title={companyCardLayoutName}
-                    shouldShowRightIcon
-                    interactive
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_LAYOUT_NAME.getRoute(policyID))}
-                    brickRoadIndicator={shouldShowLayoutNameError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    errorText={shouldShowLayoutNameError ? translate('workspace.companyCards.addNewCard.cardLayoutNameRequired') : undefined}
-                />
+                <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_LAYOUT_NAME.getRoute(policyID)), false, session)}>
+                    <MenuItemField.Row
+                        name={translate('workspace.companyCards.addNewCard.companyCardLayoutName')}
+                        value={companyCardLayoutName}
+                    >
+                        {!!shouldShowLayoutNameError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                        <MenuItem.Chevron />
+                    </MenuItemField.Row>
+                    {!!shouldShowLayoutNameError && (
+                        <MenuItem.HelpText
+                            isError
+                            message={translate('workspace.companyCards.addNewCard.cardLayoutNameRequired')}
+                        />
+                    )}
+                </MenuItem.Root>
                 <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd, styles.gap3]}>
                     <Button
                         size={CONST.BUTTON_SIZE.LARGE}

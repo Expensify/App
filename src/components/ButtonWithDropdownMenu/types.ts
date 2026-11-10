@@ -1,14 +1,16 @@
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import type {SwitchProps} from '@components/Switch';
 
 import type {ButtonVariant} from '@styles/utils/types';
 
 import type CONST from '@src/CONST';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -43,6 +45,8 @@ type DropdownOption<TValueType> = WithSentryLabel & {
     titleStyle?: StyleProp<TextStyle>;
     shouldCloseModalOnSelect?: boolean;
     description?: string;
+    /** Whether to show the description above the title (e.g. a gray label on top of a prominent value) */
+    shouldShowDescriptionOnTop?: boolean;
     descriptionTextStyle?: StyleProp<TextStyle>;
     wrapperStyle?: StyleProp<ViewStyle>;
     displayInDefaultIconColor?: boolean;
@@ -55,6 +59,22 @@ type DropdownOption<TValueType> = WithSentryLabel & {
     shouldShowLoadingSpinnerIcon?: boolean;
     /** Whether to render a divider before this option */
     addSeparatorBefore?: boolean;
+
+    /** When set, renders a Switch on the right of the option as an inline toggle row. The menu builds the Switch from this data so no JSX is threaded through the option config. */
+    switchProps?: SwitchProps;
+
+    /** Errors to display under the option (e.g. when an inline toggle's save fails) */
+    errors?: Errors | null;
+
+    /** Callback to dismiss the option's errors */
+    onCloseError?: () => void;
+
+    /** Whether to show the default right chevron icon (e.g. for a row that opens another page) */
+    shouldShowRightIcon?: boolean;
+
+    /** Style for the row that holds the title and the Switch (e.g. to vertically center a toggle against wrapped text) */
+    innerContainerStyle?: StyleProp<ViewStyle>;
+    /** The type of brick road indicator to show */
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     /** Whether selecting this option should bypass the delete confirmation modal */
     shouldSkipDeleteModal?: boolean;
@@ -64,6 +84,9 @@ type DropdownOption<TValueType> = WithSentryLabel & {
 
     /** Whether to ignore compact popover menu styling for this item */
     shouldIgnoreCompactStyle?: boolean;
+
+    /** Text shown above `subMenuItems` once the sub-menu is open */
+    subMenuHeaderText?: string;
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
@@ -114,7 +137,7 @@ type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
     /** Whether the popover menu should flip to the opposite side of the button when it doesn't fit, instead of being clamped to the window edge */
     shouldSwitchPositionIfOverflow?: boolean;
 
-    buttonRef?: RefObject<View | null>;
+    buttonRef?: RefObject<ComponentRef<typeof View> | null>;
 
     /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
     enterKeyEventListenerPriority?: number;

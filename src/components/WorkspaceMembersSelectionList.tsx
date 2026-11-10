@@ -4,13 +4,15 @@ import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
+import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import {getMemberAccountIDsForWorkspace, isExpensifyTeam, shouldFilterExpensifyTeam} from '@libs/PolicyUtils';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+import sortAlphabetically from '@libs/sortAlphabetically';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
@@ -56,11 +58,12 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
     const initialSelectedApprovers = initialSelectedApprover ? [initialSelectedApprover] : [];
     const policyOwner = policy?.owner;
     const policyEmployeeList = policy?.employeeList;
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policyEmployeeList ?? {}));
 
     const approvers: SelectionListApprover[] = [];
 
     if (policyEmployeeList) {
-        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policyEmployeeList);
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policyEmployeeList, employeePersonalDetails);
 
         for (const employee of Object.values(policyEmployeeList)) {
             const email = employee.email;
@@ -125,7 +128,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
             disableMaintainingScrollPosition
             addBottomSafeAreaPadding
             showScrollIndicator
-            isRowMultilineSupported
+            titleNumberOfLines={2}
         />
     );
 }

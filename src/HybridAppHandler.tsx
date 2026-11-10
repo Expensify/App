@@ -1,4 +1,4 @@
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 
 import type HybridAppSettings from './libs/actions/HybridApp/types';
 
@@ -17,15 +17,17 @@ import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 
 function HybridAppHandler() {
     const {setSplashScreenState} = useSplashScreenActions();
+    const hasRequestedHybridAppSettingsRef = useRef(false);
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [credentials, credentialsMetadata] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
     const isLoadingCredentials = isLoadingOnyxValue(credentialsMetadata);
 
     const finalizeTransitionFromOldDot = (hybridAppSettings: HybridAppSettings) => {
         const loggedOutFromOldDot = !!hybridAppSettings.hybridApp.loggedOutFromOldDot;
 
-        setupNewDotAfterTransitionFromOldDot(hybridAppSettings, tryNewDot, credentials).then(() => {
+        setupNewDotAfterTransitionFromOldDot(hybridAppSettings, tryNewDot, credentials, session).then(() => {
             if (loggedOutFromOldDot) {
                 endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP);
                 endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
@@ -38,16 +40,19 @@ function HybridAppHandler() {
     };
 
     useEffect(() => {
-        if (!CONFIG.IS_HYBRID_APP || isLoadingTryNewDot || isLoadingCredentials) {
+        if (!CONFIG.IS_HYBRID_APP || isLoadingTryNewDot || isLoadingCredentials || hasRequestedHybridAppSettingsRef.current) {
             return;
         }
 
+        // Native settings can be consumed only once. Prevent dependency changes from requesting them again in the same JavaScript runtime.
+        hasRequestedHybridAppSettingsRef.current = true;
         addBootsplashBreadcrumb('HybridAppHandler: Requesting settings');
         getHybridAppSettings().then((hybridAppSettings: HybridAppSettings | null) => {
             if (!hybridAppSettings) {
-                // Native method can send non-null value only once per NewDot lifecycle. It prevents issues with multiple initializations during reloads on debug builds.
-                Log.info('[HybridApp] `getHybridAppSettings` called more than once during single NewDot lifecycle. Skipping initialization.');
-                addBootsplashBreadcrumb('HybridAppHandler: null settings, skipping');
+                // A new JavaScript runtime receives null because native does not replay settings after a reload.
+                Log.info('[HybridApp] `getHybridAppSettings` returned null after a JavaScript reload. Restoring the hidden splash state.');
+                addBootsplashBreadcrumb('HybridAppHandler: null settings, restoring hidden state');
+                setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
                 return;
             }
 

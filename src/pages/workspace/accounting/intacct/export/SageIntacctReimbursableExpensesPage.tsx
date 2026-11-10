@@ -1,6 +1,7 @@
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
@@ -51,14 +52,13 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
                 key={item.description}
                 pendingAction={settingsPendingAction(item.subscribedSettings, config?.pendingFields)}
             >
-                <MenuItemWithTopDescription
-                    key={item.title}
-                    title={item.title}
-                    description={item.description}
-                    shouldShowRightIcon
+                <MenuItemField
+                    name={item.description ?? ''}
                     onPress={item?.onPress}
-                    brickRoadIndicator={areSettingsInErrorFields(item.subscribedSettings, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
+                    value={item.title}
+                >
+                    {areSettingsInErrorFields(item.subscribedSettings, config?.errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                </MenuItemField>
             </OfflineWithFeedback>
         );
     };
@@ -83,6 +83,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
             shouldPlaceSubtitleBelowSwitch: true,
             isActive: !!config?.export.reimbursableExpenseReportDefaultVendor,
             switchAccessibilityLabel: translate('workspace.sageIntacct.defaultVendor'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.DEFAULT_VENDOR_SWITCH,
             onToggle: (enabled) => {
                 if (!policyID) {
                     return;
@@ -126,7 +127,9 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
             headerTitle="workspace.accounting.exportOutOfPocket"
             title="workspace.sageIntacct.reimbursableExpenses.description"
             onBackButtonPress={() =>
-                Navigation.goBack(backTo ?? (policyID && createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID))))
+                Navigation.goBack(
+                    backTo ?? (policyID && createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.path, ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))),
+                )
             }
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}

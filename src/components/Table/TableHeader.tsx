@@ -3,9 +3,11 @@ import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -20,6 +22,10 @@ import {StyleSheet, View} from 'react-native';
 
 import type {TableColumn, TableData} from './types';
 
+import {rendersColumnHeaderInListHeader} from './buildTableListData';
+import {useColumnResizeController} from './columnResize/ColumnResizeContext';
+import ColumnResizeHandle from './columnResize/ColumnResizeHandle';
+import {TABLE_ROW_DATA_SET} from './columnResize/columnWidthExpressions';
 import getGridTemplateColumns from './getGridTemplateColumns';
 import {getColumnHeaderAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
 import {useTableContext} from './TableContext';
@@ -67,6 +73,8 @@ type TableHeaderProps = ViewProps & {
 function TableHeader<DataType extends TableData, ColumnKey extends string = string>({style, isStickyListHeader = false, isAccessibilityHidden = false, ...props}: TableHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const {pageGutterMargin} = useLayoutSpacing();
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -81,7 +89,11 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         isMobileSelectionEnabled,
         shouldEnableSelectionInNarrowPaneModal,
         dynamicGridTemplateColumns,
+        scrollWidth,
+        rowWidth,
+        tableListMetadata,
     } = useTableContext<DataType, ColumnKey>();
+    const columnResize = useColumnResizeController();
     // Tables inside a narrow pane modal (RHP) opt into keying the header checkbox off the real screen size, since
     // shouldUseNarrowLayout is always true in an RHP. Other tables keep the original behavior. Visual padding below still uses shouldUseNarrowLayout.
     const selectionUsesNarrowLayout = shouldEnableSelectionInNarrowPaneModal ? isSmallScreenWidth : shouldUseNarrowLayout;
@@ -122,8 +134,12 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
     const header = (
         <View
             style={[
-                styles.pv2,
-                styles.mh5,
+                // With table semantics every heading has a cell of its own, which carries the vertical padding, so each heading
+                // spans the row's full height and hovering anywhere over it shows its resize grip.
+                !isTableSemanticsEnabled && styles.pv2,
+                pageGutterMargin,
+                // Same expression as the rows, so headings stay aligned with their cells.
+                !!rowWidth && StyleUtils.getWidthStyle(rowWidth),
                 styles.highlightBG,
                 styles.borderBottom,
                 styles.tableTopRadius,
@@ -136,8 +152,13 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                 // Use Grid on web when available (will override flex if supported)
                 styles.dGrid,
                 !shouldUseNarrowTableLayout && {gridTemplateColumns: gridTemplateColumns.join(' ')},
+                // Overrides the flex fallback's `justifyContentBetween`, which would spread a narrowed column's leftover room between grid tracks.
+                !!dynamicGridTemplateColumns && !shouldUseNarrowTableLayout && styles.justifyContentStart,
+                // Resize lines hang below the header, so keep them above the rows.
+                !!columnResize && styles.zIndex1,
                 style,
             ]}
+            dataSet={TABLE_ROW_DATA_SET}
             {...getRowAccessibilityProps(isTableSemanticsEnabled, 0, true)}
             {...props}
             {...inertProps}
@@ -146,6 +167,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight, styles.gap3]}>
                     {!!isSelectionCheckboxVisible && (
                         <Checkbox
+                            sentryLabel={CONST.SENTRY_LABEL.TABLE.SELECT_ALL_CHECKBOX}
                             containerStyle={styles.m0}
                             disabled={isAccessibilityHidden || !hasSelectableRows}
                             isChecked={isEverySelectableRowSelected}
@@ -173,8 +195,12 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                         // When semantics apply, this is exposed as the first (non-sortable) column header so the header
                         // column count matches the data rows, which include the selection checkbox cell. The
                         // accessibility props are empty otherwise, leaving the checkbox's layout unchanged.
-                        <View {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, 1)}>
+                        <View
+                            style={isTableSemanticsEnabled && styles.pv2}
+                            {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, 1)}
+                        >
                             <Checkbox
+                                sentryLabel={CONST.SENTRY_LABEL.TABLE.SELECT_ALL_CHECKBOX}
                                 disabled={isAccessibilityHidden || !hasSelectableRows}
                                 isChecked={isEverySelectableRowSelected}
                                 isIndeterminate={isSelectionIndeterminate && !isEverySelectableRowSelected}
@@ -202,6 +228,12 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
             )}
         </View>
     );
+
+    // In the list header rather than FlashList's sticky overlay, so it scrolls sideways with the columns. Resizable tables
+    // size the inner row. The rest need the wrapper at the scroll width, or the background and bottom border fall short of the columns.
+    if (rendersColumnHeaderInListHeader(tableListMetadata)) {
+        return <View style={[styles.appBG, !rowWidth && typeof scrollWidth === 'number' && StyleUtils.getWidthStyle(scrollWidth)]}>{header}</View>;
+    }
 
     if (!isStickyListHeader) {
         return header;
@@ -328,10 +360,18 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
     // announces the header once (via the button's accessibilityLabel) instead of re-reading the cell's contents.
     return (
         <View
-            style={[columnFlexStyle, columnCellSizingStyle]}
+            style={[columnFlexStyle, columnCellSizingStyle, styles.pv2]}
             {...getColumnHeaderAccessibilityProps(true, !!column.sortable, isSortingByColumn, activeSorting.order, columnIndex)}
         >
             {sortButton}
+
+            {/* Skipped in the sticky header's hidden twin to avoid duplicate handles. */}
+            {!isAccessibilityHidden && (
+                <ColumnResizeHandle
+                    columnKey={column.key}
+                    columnLabel={column.label}
+                />
+            )}
         </View>
     );
 }

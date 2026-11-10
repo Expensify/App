@@ -4,19 +4,21 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 import {View} from 'react-native';
 
 type ActionButtonsProps = {
     containerStyle: React.ComponentProps<typeof View>['style'];
-    resetSentryLabel?: string;
-    applySentryLabel?: string;
+    resetSentryLabel?: SentryLabel;
+    applySentryLabel?: SentryLabel;
+    shouldSubmitOnEnter?: boolean;
     onReset?: () => void;
     onApply: () => void;
 };
 
-function ActionButtons({containerStyle, resetSentryLabel, applySentryLabel, onReset, onApply}: ActionButtonsProps) {
+function ActionButtons({containerStyle, resetSentryLabel, applySentryLabel, shouldSubmitOnEnter, onReset, onApply}: ActionButtonsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -39,6 +41,7 @@ function ActionButtons({containerStyle, resetSentryLabel, applySentryLabel, onRe
                 onPress={onApply}
                 sentryLabel={applySentryLabel}
             >
+                {!!shouldSubmitOnEnter && <Button.KeyboardShortcut />}
                 <Button.Text>{translate('common.apply')}</Button.Text>
             </Button>
         </View>

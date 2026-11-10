@@ -214,6 +214,23 @@ describe('API.writeWhenReady', () => {
         expect(mockPush).toHaveBeenCalledTimes(1);
     });
 
+    it('flushes a pending write when the app goes inactive', async () => {
+        // Given a write deferred on a barrier that never settles on its own
+        const barrier = () => new Promise<void>(() => {});
+
+        deferWrite(barrier);
+        await flushMicrotasks();
+        expect(mockPush).not.toHaveBeenCalled();
+
+        // When the app goes inactive, e.g. the user opens the iOS app switcher, which can be the
+        // last AppState event JS sees before the user kills the app from there
+        emitAppState('inactive');
+        await flushMicrotasks(pushHappened);
+
+        // Then the write is flushed rather than waiting for a `background` event that may never arrive
+        expect(mockPush).toHaveBeenCalledTimes(1);
+    });
+
     it('executes immediately when the app is already in the background', async () => {
         // Given the app is already backgrounded before the write is even queued (e.g. a push
         // notification handler runs there) - the AppState change listener only fires on new transitions

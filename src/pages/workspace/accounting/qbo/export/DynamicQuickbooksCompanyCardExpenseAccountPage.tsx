@@ -1,9 +1,12 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import FormHelpMessage from '@components/FormHelpMessage';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getQBONonReimbursableExportAccountType} from '@libs/ConnectionUtils';
@@ -16,12 +19,17 @@ import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/ut
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 function DynamicQuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const styles = useThemeStyles();
@@ -90,46 +98,49 @@ function DynamicQuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConn
                     key={section.title}
                     pendingAction={settingsPendingAction(section.subscribedSettings, qboConfig?.pendingFields)}
                 >
-                    <MenuItemWithTopDescription
-                        title={section.title}
-                        description={section.description}
-                        onPress={section.onPress}
-                        brickRoadIndicator={areSettingsInErrorFields(section.subscribedSettings, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        shouldShowRightIcon
-                        hintText={section.hintText}
-                    />
+                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(section.onPress, false, session)}>
+                        <MenuItemField.Row
+                            name={section.description}
+                            value={section.title}
+                        >
+                            {areSettingsInErrorFields(section.subscribedSettings, qboConfig?.errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                            <MenuItem.Chevron />
+                        </MenuItemField.Row>
+                        {!!section.hintText && <MenuItem.HelpText message={section.hintText} />}
+                    </MenuItem.Root>
                 </OfflineWithFeedback>
             ))}
             {isVendorFeatureAvailable && (
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR], qboConfig?.pendingFields)}>
-                    <MenuItemWithTopDescription
-                        title={nonReimbursableCreditCardDefaultVendorObject?.name}
-                        description={translate('workspace.accounting.defaultVendor')}
-                        // Only the card/debit-card path auto-creates a fallback vendor when nothing auto-matches, so the two-state helper copy is scoped to this branch and deliberately not rendered on the Vendor Bill row below.
-                        helperText={translate('workspace.accounting.defaultVendorHelperText', !!nonReimbursableCreditCardDefaultVendorObject, fallbackVendorName)}
+                    <MenuItemField
+                        name={translate('workspace.accounting.defaultVendor')}
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR_SELECT.getRoute(policyID))}
-                        brickRoadIndicator={
-                            areSettingsInErrorFields([CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR], qboConfig?.errorFields)
-                                ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                : undefined
-                        }
-                        shouldShowRightIcon
+                        value={nonReimbursableCreditCardDefaultVendorObject?.name}
+                    >
+                        {areSettingsInErrorFields([CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR], qboConfig?.errorFields) && (
+                            <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                        )}
+                    </MenuItemField>
+                    {/* Only the card/debit-card path auto-creates a fallback vendor when nothing auto-matches, so the two-state helper copy is scoped to this branch and deliberately not rendered on the Vendor Bill row below. */}
+                    <FormHelpMessage
+                        isError={false}
+                        shouldShowRedDotIndicator={false}
+                        message={translate('workspace.accounting.defaultVendorHelperText', !!nonReimbursableCreditCardDefaultVendorObject, fallbackVendorName)}
+                        style={[styles.mt0, styles.mb0, styles.ph5, styles.pb5]}
                     />
                 </OfflineWithFeedback>
             )}
             {qboNonReimbursableDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL && (
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR], qboConfig?.pendingFields)}>
-                    <MenuItemWithTopDescription
-                        title={nonReimbursableBillDefaultVendorObject?.name}
-                        description={translate('workspace.accounting.defaultVendor')}
+                    <MenuItemField
+                        name={translate('workspace.accounting.defaultVendor')}
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT.getRoute(policyID))}
-                        brickRoadIndicator={
-                            areSettingsInErrorFields([CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR], qboConfig?.errorFields)
-                                ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                : undefined
-                        }
-                        shouldShowRightIcon
-                    />
+                        value={nonReimbursableBillDefaultVendorObject?.name}
+                    >
+                        {areSettingsInErrorFields([CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR], qboConfig?.errorFields) && (
+                            <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                        )}
+                    </MenuItemField>
                 </OfflineWithFeedback>
             )}
         </ConnectionLayout>

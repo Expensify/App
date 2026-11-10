@@ -14,7 +14,7 @@ import type {Merge} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
-import {getCurrentFlushPromise, queueOnyxUpdates} from './QueuedOnyxUpdates';
+import {getCurrentFlushPromise, isEmpty as isQueuedOnyxUpdatesEmpty, queueOnyxUpdates} from './QueuedOnyxUpdates';
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated. If that
 // callback were triggered it would lead to duplicate processing of server updates.
@@ -26,7 +26,13 @@ let lastUpdateIDPendingWriteFlush = 0;
 
 let lastUpdateIDPendingPusherApply = 0;
 
+let highestFailedUpdateID = 0;
+
 function getEffectiveLastUpdateID(): number {
+    if (highestFailedUpdateID) {
+        return lastUpdateIDAppliedToClient ?? 0;
+    }
+
     return Math.max(lastUpdateIDAppliedToClient ?? 0, lastUpdateIDPendingWriteFlush);
 }
 
@@ -45,6 +51,7 @@ Onyx.connectWithoutView({
         if (val === undefined) {
             lastUpdateIDPendingWriteFlush = 0;
             lastUpdateIDPendingPusherApply = 0;
+            highestFailedUpdateID = 0;
         }
     },
 });
@@ -55,11 +62,16 @@ let pusherEventsPromise = Promise.resolve();
 
 let airshipEventsPromise = Promise.resolve();
 
-function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, response: Response<TKey>, lastUpdateID: number) {
+function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(
+    request: Request<TKey>,
+    response: Response<TKey>,
+    lastUpdateID: number,
+    shouldQueueUpdates = request?.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE,
+) {
     Log.info('[OnyxUpdateManager] Applying https update', false, {lastUpdateID});
     // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
     // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
-    const updateHandler: (updates: Array<OnyxUpdate<TKey>>) => Promise<unknown> = request?.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? queueOnyxUpdates : Onyx.update;
+    const updateHandler: (updates: Array<OnyxUpdate<TKey>>) => Promise<unknown> = shouldQueueUpdates ? queueOnyxUpdates : Onyx.update;
 
     // First apply any onyx data updates that are being sent back from the API. We wait for this to complete and then
     // apply successData or failureData. This ensures that we do not update any pending, loading, or other UI states contained
@@ -110,13 +122,15 @@ function applyPusherOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdateE
         Log.info('[OnyxUpdateManager] Applying pusher update', false, {lastUpdateID});
     });
 
-    pusherEventsPromise = updates
+    const applyPromise = updates
         .reduce((promise, update) => promise.then(() => PusherUtils.triggerMultiEventHandler(update.eventType, update.data)), pusherEventsPromise)
         .then(() => {
             Log.info('[OnyxUpdateManager] Done applying Pusher update', false, {lastUpdateID});
         });
 
-    return pusherEventsPromise;
+    pusherEventsPromise = applyPromise.catch(() => {});
+
+    return applyPromise;
 }
 
 function applyAirshipOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdateEvent<TKey>>, lastUpdateID: number) {
@@ -124,13 +138,15 @@ function applyAirshipOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdate
         Log.info('[OnyxUpdateManager] Applying Airship updates', false, {lastUpdateID});
     });
 
-    airshipEventsPromise = updates
+    const applyPromise = updates
         .reduce((promise, update) => promise.then(() => Onyx.update(update.data as Array<OnyxUpdate<TKey>>)), airshipEventsPromise)
         .then(() => {
             Log.info('[OnyxUpdateManager] Done applying Airship updates', false, {lastUpdateID});
         });
 
-    return airshipEventsPromise;
+    airshipEventsPromise = applyPromise.catch(() => {});
+
+    return applyPromise;
 }
 
 /**
@@ -153,7 +169,7 @@ function apply<TKey extends OnyxKey>({
     updates,
 }: Merge<OnyxUpdatesFromServer<TKey>, {request: Request<TKey>; response: Response<TKey>; type: 'https'}>): Promise<Response<TKey>>;
 function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer<TKey>): Promise<Response<TKey>>;
-function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer<TKey>): Promise<void | Response<TKey>> | undefined {
+function apply<TKey extends OnyxKey>({lastUpdateID, previousUpdateID, type, request, response, updates}: OnyxUpdatesFromServer<TKey>): Promise<void | Response<TKey>> | undefined {
     Log.info(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, false, {command: request?.command});
 
     const isCatchUpRequest =
@@ -197,6 +213,27 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
     const advanceLastUpdateIDAfterApply = <T>(promise: Promise<T>): Promise<T> =>
         promise
             .then((result) => {
+                if (highestFailedUpdateID) {
+                    const doesResponseCoverFromWatermark =
+                        isFullReconnectRequest ||
+                        isOpenAppRequest ||
+                        (isCatchUpRequest
+                            ? Number(request?.data?.updateIDFrom ?? 0) <= getPersistedLastUpdateID()
+                            : Number(previousUpdateID) > 0 && Number(previousUpdateID) <= getPersistedLastUpdateID());
+
+                    if (!doesResponseCoverFromWatermark) {
+                        lastUpdateIDPendingPusherApply = 0;
+                        lastUpdateIDPendingWriteFlush = 0;
+
+                        Log.info('[OnyxUpdateManager] Not advancing past an update whose apply failed', false, {lastUpdateID, highestFailedUpdateID});
+                        return result;
+                    }
+
+                    if (Number(lastUpdateID) >= highestFailedUpdateID) {
+                        highestFailedUpdateID = 0;
+                    }
+                }
+
                 // Deferred updates apply concurrently (Promise.all) and can settle out of order, so re-check the
                 // live watermark and only ever move it forward. Otherwise a slower, older update could overwrite a
                 // newer one, moving the watermark backwards and making gap detection refetch already-applied updates.
@@ -220,11 +257,16 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
                 lastUpdateIDPendingPusherApply = 0;
 
                 if (shouldAdvanceLastUpdateID) {
+                    if (Number(lastUpdateID) > getPersistedLastUpdateID()) {
+                        highestFailedUpdateID = Math.max(highestFailedUpdateID, Number(lastUpdateID));
+                    }
+
                     Log.alert('[OnyxUpdateManagerError] Applying the updates failed, not advancing lastUpdateID so the client can recover on the next reconnect', {
                         type,
                         command: request?.command,
                         lastUpdateID,
                         previousLastUpdateIDAppliedToClient,
+                        highestFailedUpdateID,
                         error: error instanceof Error ? error.message : String(error),
                     });
                 }
@@ -232,12 +274,16 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
             });
 
     if (type === CONST.ONYX_UPDATE_TYPES.HTTPS && request && response) {
-        const applyPromise = applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID));
+        // A catch-up response newer than the staged WRITE updates joins them in the queue, so the deferred flush applies
+        // them in server order instead of rewinding keys the catch-up already moved forward.
+        const shouldQueueBehindStagedWrites = isCatchUpRequest && !isQueuedOnyxUpdatesEmpty() && Number(lastUpdateID) >= lastUpdateIDPendingWriteFlush;
+        const shouldQueueUpdates = request.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE || shouldQueueBehindStagedWrites;
+        const applyPromise = applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID), shouldQueueUpdates);
 
         // WRITE requests only stage their updates in memory here — the real Onyx write happens later in
         // QueuedOnyxUpdates.flushQueue(). Gate the watermark on that flush, but detached from the returned promise:
         // SequentialQueue only flushes after this promise settles, so awaiting the flush here would deadlock.
-        if (request.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE) {
+        if (shouldQueueUpdates) {
             if (shouldAdvanceLastUpdateID) {
                 lastUpdateIDPendingWriteFlush = Math.max(lastUpdateIDPendingWriteFlush, Number(lastUpdateID));
             }

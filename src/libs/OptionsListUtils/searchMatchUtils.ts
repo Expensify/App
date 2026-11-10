@@ -1,4 +1,4 @@
-import {translateLocal} from '@libs/Localize';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
 
@@ -22,8 +22,8 @@ type SearchMatchConfig = {
  * @returns Raw (not lowercased) terms: display text, login,
  * login with dots stripped before @, and translated "You"/"Me".
  */
-function getCurrentUserSearchTerms(item: PersonalDetailFilterRankFields) {
-    return [item.text ?? item.displayName ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? '', translateLocal('common.you'), translateLocal('common.me')];
+function getCurrentUserSearchTerms(item: PersonalDetailFilterRankFields, translate: LocalizedTranslate) {
+    return [item.text ?? item.displayName ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? '', translate('common.you'), translate('common.me')];
 }
 
 /**
@@ -33,9 +33,9 @@ function getCurrentUserSearchTerms(item: PersonalDetailFilterRankFields) {
  *
  * @returns Raw (not lowercased) terms the person is searchable by.
  */
-function getPersonalDetailSearchTerms(item: PersonalDetailFilterRankFields, currentUserAccountID: number) {
+function getPersonalDetailSearchTerms(item: PersonalDetailFilterRankFields, currentUserAccountID: number, translate: LocalizedTranslate) {
     if (item.accountID === currentUserAccountID) {
-        return getCurrentUserSearchTerms(item);
+        return getCurrentUserSearchTerms(item, translate);
     }
     return [item.participantsList?.[0]?.displayName ?? item.displayName ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? ''];
 }
@@ -50,9 +50,10 @@ function doesPersonalDetailMatchSearchTerm(
     item: PersonalDetailFilterRankFields,
     currentUserAccountID: number,
     searchTerm: string,
+    translate: LocalizedTranslate,
     {useLocaleLowerCase = false, transformSearchText}: SearchMatchConfig = {},
 ): boolean {
-    const terms = getPersonalDetailSearchTerms(item, currentUserAccountID).join(' ');
+    const terms = getPersonalDetailSearchTerms(item, currentUserAccountID, translate).join(' ');
     let searchText = useLocaleLowerCase ? terms.toLocaleLowerCase() : terms.toLowerCase();
 
     if (transformSearchText) {

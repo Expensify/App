@@ -16,7 +16,11 @@
 //  Regenerate via scripts/generateCertificatePins.sh.
 //
 
+import CFNetwork
+import CommonCrypto
 import Foundation
+import Network
+import Security
 import Sentry
 import TrustKit
 
@@ -25,6 +29,11 @@ enum CertificatePinning {
     /// Flip to true after 1-2 weeks of monitor-only data shows ~0 false positives.
     /// Keep in sync with `enforcePinning` in config/certificatePinning/pins.json and CertificatePinning.kt.
     private static let enforcePinning = false
+
+    /// Identifies the shipped pin set independently of the app version using `_lastGenerated`
+    /// from config/certificatePinning/pins.json. Update it with the hashes.
+    /// Reported as `certificate_pinning_pin_set_version`.
+    private static let pinSetVersion = "2026-09-14"
 
     private static let certificatePinningHostTag = "certificate_pinning_host"
     private static let certificatePinningModeTag = "certificate_pinning_mode"
@@ -35,30 +44,45 @@ enum CertificatePinning {
         #if DEBUG
             return
         #else
-            // Cloudflare-fronted expensify.com hosts (Groups A & B): Cloudflare can rotate the edge
-            // cert between Let's Encrypt, Google Trust Services and SSL.com without notice (the
-            // 2026-07-07 Let's Encrypt -> GTS rotation broke us; www has since reverted to Let's
-            // Encrypt). To survive leaf rotation, intermediate rotation AND a CA switch without an
-            // emergency release, we pin the SPKI of the ROOT of all three CAs plus each live issuing
-            // intermediate. Regenerate via scripts/generateCertificatePins.sh.
+            // Each domain pins ONLY the ROOT CA SPKI hashes of every CA that can issue its
+            // certificate. Roots are the only durable pin target: leaves are re-keyed on every
+            // renewal and every CA in play issues from a rotating pool of intermediates, both of
+            // which have already broken leaf/intermediate pins in production (2026-07-07
+            // Let's Encrypt -> GTS edge rotation, 2026-07 Amazon M01 -> M04 intermediate rotation).
+            // TrustKit evaluates pins against the full validated chain (including the anchor), so
+            // root pins match even though servers never send the root.
+
+            // Groups A-D: Cloudflare-fronted expensify.com hosts. Cloudflare can rotate the edge
+            // cert between Let's Encrypt, Google Trust Services and SSL.com without notice, and its
+            // backup certificates (deployed automatically on a revocation or key compromise) can also
+            // come from Sectigo, so the roots of all four CAs are pinned.
             let cloudflareExpensify = [
-                // Let's Encrypt (live CA for these hosts)
+                // Let's Encrypt
                 "C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=", // ISRG Root X1
                 "diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=", // ISRG Root X2
-                "brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4=", // Let's Encrypt YE1 intermediate
-                // Google Trust Services (backup)
+                // Google Trust Services (R2 stays pinned: device trust stores can still anchor at it, see pins.json)
                 "hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=", // GTS Root R1
                 "Vfd95BwDeSQo+NUYxVEEIlvkOlWY2SalKK1lPhzOx78=", // GTS Root R2
                 "QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g=", // GTS Root R3
                 "mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=", // GTS Root R4
-                "kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=", // Google Trust Services WE1 intermediate
-                // SSL.com (backup)
+                // SSL.com
                 "G/ANXI8TwJTdF+AFBM8IiIUPEv0Gf6H5LA/b9guG4yE=", // SSL.com TLS ECC Root CA 2022
                 "K89VOmb1cJAN3TK6bf4ezAbJGC1mLcG2Dh97dnwr3VQ=", // SSL.com TLS RSA Root CA 2022
+                // Sectigo (Cloudflare backup certificates) - both of its public TLS hierarchies
+                "x4QzPSC810K5/cMjb05Qm4k3Bw5zBn4lTdO/nEW/Td4=", // USERTrust RSA Certification Authority
+                "ICGRfpgmOUXIWcQ/HXPLQTkFPEFPoDyjvH7ohhQpjzs=", // USERTrust ECC Certification Authority
+                "Douxi77vs4G+Ib/BogbTFymEYq0QSFXwSgVCaZcI09Q=", // Sectigo Public Server Authentication Root R46
+                "sLVjNUaFYfW7n6EtgBeEpjOlcnBdNPMrZDRF36iwBdE=", // Sectigo Public Server Authentication Root E46
             ]
-            let groupCIntegrations = ["7D0dEgdEKEMYRTgVwvnhJv19B4apk0QM/GPnRAKRGUs=", "AlSQhgtJirc8ahLyekmtX+Iw+v46yPYRLJt9Cq1GlB0="]
-            let groupDTravel = ["Qb3qmTdRt/xHEN5PVtn+YhKoGqF/lhRX88cSFuSCJqM=", "kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4="]
-            let groupECloudfront = ["P9HBoLji8YncXSnb0AnAm72fJO/vpmxZrsl4fvUBkxc=", "DxH4tt40L+eduF6szpY6TONlxhZhBd+pJ9wbHlQ2fuw="]
+            // Group E: CloudFront CDN. AWS documents the Amazon Trust Services roots as the only
+            // stable pin targets for ACM-issued certificates.
+            let cloudfront = [
+                "++MBgDH5WGvL9Bcn5Be30cRcL0f5O+NyoXuWtQdX1aI=", // Amazon Root CA 1
+                "f0KW/FtqTjs108NpYj42SrGvOB2PpxIVM8nWxjPqJGE=", // Amazon Root CA 2
+                "NqvDJlas/GRcYbcWE8S/IceH9cq77kg0jVhZeAPXq8k=", // Amazon Root CA 3
+                "9+ze1cZgR9KO1kZrVDxA4HQ6voHRCSVNz4RdTCx4U8U=", // Amazon Root CA 4
+                "KwccWaCgrnaw6tsrrSO61FgLacNgG2MMLq8GE6+oP5I=", // Starfield Services Root CA G2
+            ]
 
             func domain(_ hashes: [String]) -> [String: Any] {
                 return [
@@ -75,39 +99,286 @@ enum CertificatePinning {
                     "www.expensify.com": domain(cloudflareExpensify),
                     "secure.expensify.com": domain(cloudflareExpensify),
                     "new.expensify.com": domain(cloudflareExpensify),
-                    "integrations.expensify.com": domain(groupCIntegrations),
-                    "travel.expensify.com": domain(groupDTravel),
-                    "d2k5nsl2zxldvw.cloudfront.net": domain(groupECloudfront),
+                    "integrations.expensify.com": domain(cloudflareExpensify),
+                    "travel.expensify.com": domain(cloudflareExpensify),
+                    "d2k5nsl2zxldvw.cloudfront.net": domain(cloudfront),
                     // Staging (beta/TestFlight release builds hit staging.* with __DEV__ === false)
                     "staging.expensify.com": domain(cloudflareExpensify),
                     "staging-secure.expensify.com": domain(cloudflareExpensify),
                     "staging.new.expensify.com": domain(cloudflareExpensify),
-                    "staging.travel.expensify.com": domain(groupDTravel),
+                    "staging.travel.expensify.com": domain(cloudflareExpensify),
                 ],
             ]
 
             TrustKit.initSharedInstance(withConfiguration: trustKitConfig)
 
+            // Start the interface monitor at launch so reports include the interface type. Its updates
+            // arrive on reportingQueue, so a monitor started during a report could not update that report.
+            _ = pathMonitor
+
+            // Reporting rebuilds the validated chain from TrustKit's PEM array and re-runs a trust
+            // evaluation to classify the anchor, so it runs on its own serial queue rather than
+            // TrustKit's default (main).
+            TrustKit.sharedInstance().pinningValidatorCallbackQueue = reportingQueue
             TrustKit.sharedInstance().pinningValidatorCallback = { result, hostname, _ in
                 guard result.evaluationResult != .success else {
                     return
                 }
-                reportPinningFailure(hostname: hostname, evaluationResult: result.evaluationResult)
+                reportPinningFailure(result: result, hostname: hostname)
             }
         #endif
     }
 
-    private static func reportPinningFailure(hostname: String, evaluationResult: TSKTrustEvaluationResult) {
+    // MARK: - Reporting
+    //
+    // Record TrustKit's certificate chain, a fresh system trust result, and network settings
+    // to help investigate pin failures in Sentry. These fields help distinguish an unpinned
+    // CA from a proxy, but do not establish the cause on their own.
+    // Keep these fields in sync with Mobile-Expensify's iOS/Expensify/CertificatePinningReporter.m
+    // and the field descriptions in config/certificatePinning/README.md.
+    //
+    // In attributes, enum names and counts are strings, flags are Bool, and validation
+    // duration is an integer number of microseconds. Send fields listed in extraKeys as
+    // extras and convert all other values to strings for tags.
+
+    /// Serial queue TrustKit invokes the callback on. Everything below that mutates static state runs here.
+    private static let reportingQueue = DispatchQueue(label: "com.expensify.certificatePinning.reporting", qos: .utility)
+
+    private static var occurrenceCounts: [String: Int] = [:]
+
+    /// Sentry truncates tag values longer than 200 characters, so values that can be longer are sent as extras.
+    private static let extraKeys: Set<String> = [
+        "certificate_pinning_chain_subjects",
+        "certificate_pinning_chain_fingerprints",
+        "certificate_pinning_trust_errors",
+    ]
+    private static var currentInterfaceType = "unknown"
+    private static let pathMonitor: NWPathMonitor = {
+        let monitor = NWPathMonitor()
+        monitor.pathUpdateHandler = { path in
+            if path.usesInterfaceType(.wifi) {
+                currentInterfaceType = "wifi"
+            } else if path.usesInterfaceType(.cellular) {
+                currentInterfaceType = "cellular"
+            } else if path.usesInterfaceType(.wiredEthernet) {
+                currentInterfaceType = "wired"
+            } else if path.usesInterfaceType(.other) {
+                currentInterfaceType = "other" // Virtual or otherwise unknown interface
+            } else {
+                currentInterfaceType = "unknown"
+            }
+        }
+        monitor.start(queue: reportingQueue)
+        return monitor
+    }()
+
+    private static func reportPinningFailure(result: TSKPinningValidatorResult, hostname: String) {
+        let chain = certificates(fromPEMChain: result.certificateChain)
+        let subjects = chain.map(subjectSummary)
+        let fingerprints = chain.map(fingerprint)
+        let anchor = chain.last
+        let anchorFingerprint = fingerprints.last ?? ""
+        let (trustResult, trustErrors) = evaluate(chain, hostname: hostname)
+
+        let resultName = name(of: result.evaluationResult)
+        let dedupKey = "\(hostname)|\(anchorFingerprint)|\(resultName)"
+        let occurrence = (occurrenceCounts[dedupKey] ?? 0) + 1
+        occurrenceCounts[dedupKey] = occurrence
+
+        var attributes: [String: Any] = [
+            certificatePinningHostTag: hostname,
+            certificatePinningModeTag: enforcePinning ? "enforce" : "monitor",
+            // TrustKit's evaluation result and connection decision, plus the system trust result
+            "certificate_pinning_result": resultName,
+            "certificate_pinning_trust_decision": name(of: result.finalTrustDecision),
+            "certificate_pinning_sec_trust_result": name(of: trustResult),
+            // What iOS validated, leaf first
+            "certificate_pinning_chain_length": String(chain.count),
+            "certificate_pinning_chain_subjects": subjects.joined(separator: " > "),
+            "certificate_pinning_chain_fingerprints": fingerprints.joined(separator: ","),
+            "certificate_pinning_anchor_subject": subjects.last ?? "",
+            "certificate_pinning_anchor_fingerprint": anchorFingerprint,
+            "certificate_pinning_anchor_self_signed": anchor.map(isSelfSigned) ?? false,
+            "certificate_pinning_pin_set_version": pinSetVersion,
+            "certificate_pinning_validation_duration_us": Int((result.validationDuration * 1_000_000).rounded()),
+            "certificate_pinning_interface": interfaceType(),
+            "certificate_pinning_occurrence": String(occurrence),
+        ]
+        attributes.merge(networkContext()) { current, _ in current }
+
+        if !trustErrors.isEmpty {
+            attributes["certificate_pinning_trust_errors"] = trustErrors
+        }
+
+        // Capture one error for each failed validation in either mode, with these attributes
+        // attached as tags and extras.
         let error = NSError(
             domain: "CertificatePinning",
-            code: evaluationResult.rawValue,
+            code: result.evaluationResult.rawValue,
             userInfo: [NSLocalizedDescriptionKey: "Certificate pinning validation failed for \(hostname)"]
         )
-
         SentrySDK.capture(error: error) { scope in
-            scope.setTag(value: hostname, key: certificatePinningHostTag)
-            scope.setTag(value: enforcePinning ? "enforce" : "monitor", key: certificatePinningModeTag)
+            for (key, value) in attributes {
+                if extraKeys.contains(key) {
+                    scope.setExtra(value: value, key: key)
+                } else {
+                    scope.setTag(value: String(describing: value), key: key)
+                }
+            }
             scope.setFingerprint(["certificate-pinning", hostname])
         }
+    }
+
+    // MARK: Enum -> string (stable attribute types)
+
+    private static func name(of result: TSKTrustEvaluationResult) -> String {
+        switch result {
+        case .success: return "success"
+        case .failedNoMatchingPin: return "no_matching_pin"
+        case .failedInvalidCertificateChain: return "invalid_certificate_chain"
+        case .errorInvalidParameters: return "invalid_parameters"
+        case .errorCouldNotGenerateSpkiHash: return "could_not_generate_spki_hash"
+        default: return "unknown_\(result.rawValue)"
+        }
+    }
+
+    private static func name(of decision: TSKTrustDecision) -> String {
+        switch decision {
+        case .shouldAllowConnection: return "allow"
+        case .shouldBlockConnection: return "block"
+        case .domainNotPinned: return "domain_not_pinned"
+        default: return "unknown_\(decision.rawValue)"
+        }
+    }
+
+    /// `proceed` indicates a successful evaluation based on a user trust decision;
+    /// `unspecified` indicates success without an explicit user decision.
+    /// Neither result alone identifies a proxy or proves the anchor is a public CA.
+    private static func name(of result: SecTrustResultType) -> String {
+        switch result {
+        case .invalid: return "invalid"
+        case .proceed: return "proceed"
+        case .deny: return "deny"
+        case .unspecified: return "unspecified"
+        case .recoverableTrustFailure: return "recoverable_trust_failure"
+        case .fatalTrustFailure: return "fatal_trust_failure"
+        case .otherError: return "other_error"
+        default: return "unknown_\(result.rawValue)"
+        }
+    }
+
+    // MARK: Certificate helpers
+
+    /// TrustKit builds `certificateChain` from the evaluated SecTrust, so it is leaf-first and includes the
+    /// anchor whenever iOS found one.
+    private static func certificates(fromPEMChain chain: [Any]) -> [SecCertificate] {
+        chain.compactMap { entry in
+            guard let pem = entry as? String else {
+                return nil
+            }
+            let base64 = pem
+                .replacingOccurrences(of: "-----BEGIN CERTIFICATE-----", with: "")
+                .replacingOccurrences(of: "-----END CERTIFICATE-----", with: "")
+            guard let der = Data(base64Encoded: base64, options: .ignoreUnknownCharacters), !der.isEmpty else {
+                return nil
+            }
+            return SecCertificateCreateWithData(nil, der as CFData)
+        }
+    }
+
+    /// SHA-256 of the DER certificate, upper-case hex, no colons. Strip the colons from a ROOT_MANIFEST entry
+    /// in scripts/generateCertificatePins.sh and it is directly comparable.
+    private static func fingerprint(_ certificate: SecCertificate) -> String {
+        let der = SecCertificateCopyData(certificate) as Data
+        var digest = [UInt8](repeating: 0, count: Int(CC_SHA256_DIGEST_LENGTH))
+        der.withUnsafeBytes { buffer in
+            _ = CC_SHA256(buffer.baseAddress, CC_LONG(der.count), &digest)
+        }
+        return digest.map { String(format: "%02X", $0) }.joined()
+    }
+
+    private static func subjectSummary(_ certificate: SecCertificate) -> String {
+        let summary = SecCertificateCopySubjectSummary(certificate) as String?
+        return summary.flatMap { $0.isEmpty ? nil : $0 } ?? "<no subject>"
+    }
+
+    private static func isSelfSigned(_ certificate: SecCertificate) -> Bool {
+        guard let subject = SecCertificateCopyNormalizedSubjectSequence(certificate) as Data?,
+              let issuer = SecCertificateCopyNormalizedIssuerSequence(certificate) as Data? else {
+            return false
+        }
+        return subject == issuer
+    }
+
+    /// Evaluates TrustKit's certificate chain with an SSL policy for hostname.
+    /// Returns the new evaluation's SecTrustResultType and any error messages.
+    /// TrustKit does not expose its original SecTrust in the callback, so this evaluation
+    /// may differ from the original. It runs on reportingQueue because trust evaluation
+    /// can block while fetching certificates or checking revocation.
+    private static func evaluate(_ certificates: [SecCertificate], hostname: String) -> (SecTrustResultType, String) {
+        guard !certificates.isEmpty else {
+            return (.invalid, "")
+        }
+        let policy = SecPolicyCreateSSL(true, hostname as CFString)
+        var createdTrust: SecTrust?
+        guard SecTrustCreateWithCertificates(certificates as CFArray, policy, &createdTrust) == errSecSuccess,
+              let trust = createdTrust else {
+            return (.invalid, "")
+        }
+
+        var errors: [String] = []
+        var evaluationError: CFError?
+        _ = SecTrustEvaluateWithError(trust, &evaluationError)
+        if let evaluationError {
+            let description = (evaluationError as Error).localizedDescription
+            if !description.isEmpty {
+                errors.append(description)
+            }
+        }
+        var trustResult = SecTrustResultType.invalid
+        SecTrustGetTrustResult(trust, &trustResult)
+
+        // On iOS each property is a dictionary such as ["type": "error", "value": <reason>]. The
+        // kSecPropertyKeyType and kSecPropertyKeyValue constants are unavailable on iOS, so the
+        // literal keys are used.
+        if let properties = SecTrustCopyProperties(trust) as? [[String: Any]] {
+            for property in properties where (property["type"] as? String) == (kSecPropertyTypeError as String) {
+                if let message = property["value"] as? String, !message.isEmpty, !errors.contains(message) {
+                    errors.append(message)
+                }
+            }
+        }
+        return (trustResult, errors.joined(separator: " | "))
+    }
+
+    // MARK: Network context
+
+    /// Reports whether an HTTP or HTTPS proxy or PAC setting is enabled, in the top-level settings or
+    /// for any interface under `__SCOPED__`, and whether `__SCOPED__` contains an interface whose name
+    /// starts with utun, tun, tap, ppp, or ipsec. These names suggest a tunnel but do not prove this
+    /// connection uses a VPN. The proxy host and PAC URL are omitted to protect network details.
+    private static func networkContext() -> [String: Any] {
+        let proxy = CFNetworkCopySystemProxySettings()?.takeRetainedValue() as? [String: Any] ?? [:]
+        let scoped = proxy["__SCOPED__"] as? [String: Any] ?? [:]
+        // A proxy configured for one Wi-Fi network or VPN can appear only in that interface's scoped entry.
+        let settings = [proxy] + scoped.values.compactMap { $0 as? [String: Any] }
+        // kCFNetworkProxiesHTTPSEnable is unavailable on iOS, but iOS proxy settings can include the key.
+        let proxyKeys = [kCFNetworkProxiesHTTPEnable as String, "HTTPSEnable"]
+        let httpProxy = settings.contains { entry in proxyKeys.contains { key in (entry[key] as? Bool) == true } }
+        let pac = settings.contains { entry in (entry[kCFNetworkProxiesProxyAutoConfigEnable as String] as? Bool) == true }
+        let tunnelPrefixes = ["utun", "tun", "tap", "ppp", "ipsec"]
+        let tunnel = scoped.keys.contains { interface in tunnelPrefixes.contains { interface.hasPrefix($0) } }
+        return [
+            "certificate_pinning_http_proxy_configured": httpProxy,
+            "certificate_pinning_pac_configured": pac,
+            "certificate_pinning_vpn_interface_present": tunnel,
+        ]
+    }
+
+    /// Interface type cached by `pathMonitor`, which `initialize()` starts at launch. The lookup is
+    /// synchronous and returns "unknown" until the first update. "other" includes virtual networks and
+    /// interfaces of unknown types; it does not prove that a VPN is in use.
+    private static func interfaceType() -> String {
+        return currentInterfaceType
     }
 }

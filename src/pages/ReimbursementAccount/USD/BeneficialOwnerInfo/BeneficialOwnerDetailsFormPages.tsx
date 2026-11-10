@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 import AddressUBO from './subSteps/BeneficialOwnerDetailsFormSubSteps/AddressUBO';
 import ConfirmationUBO from './subSteps/BeneficialOwnerDetailsFormSubSteps/ConfirmationUBO';
@@ -31,7 +31,7 @@ type BeneficialOwnerSubPageProps = SubPageProps & {
 const pages = [
     {pageName: SUB_PAGE_NAMES.LEGAL_NAME, component: LegalNameUBO},
     {pageName: SUB_PAGE_NAMES.DATE_OF_BIRTH, component: DateOfBirthUBO},
-    {pageName: SUB_PAGE_NAMES.SSN, component: SocialSecurityNumberUBO},
+    {pageName: SUB_PAGE_NAMES.SSN_LAST_4, component: SocialSecurityNumberUBO},
     {pageName: SUB_PAGE_NAMES.ADDRESS, component: AddressUBO},
     {pageName: SUB_PAGE_NAMES.CONFIRMATION, component: ConfirmationUBO},
 ];
@@ -65,10 +65,7 @@ function BeneficialOwnerDetailsFormPages({
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const hasExistingBeneficialOwners = (reimbursementAccountDraft?.beneficialOwnerKeys ?? []).length > 0;
 
-    const buildRoute = useCallback(
-        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.BENEFICIAL_OWNERS, subPage: pageName, action, backTo}),
-        [policyID, backTo],
-    );
+    const buildRoute = (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.BENEFICIAL_OWNERS, subPage: pageName, action, backTo});
 
     const {CurrentPage, isEditing, currentPageName, pageIndex, prevPage, nextPage, moveTo, isRedirecting} = useSubPage<BeneficialOwnerSubPageProps>({
         pages,
@@ -77,7 +74,7 @@ function BeneficialOwnerDetailsFormPages({
         buildRoute,
     });
 
-    const handleBackButtonPress = useCallback(() => {
+    const handleBackButtonPress = () => {
         if (isEditing) {
             Navigation.goBack(buildRoute(SUB_PAGE_NAMES.CONFIRMATION));
             return;
@@ -94,7 +91,7 @@ function BeneficialOwnerDetailsFormPages({
         } else {
             prevPage();
         }
-    }, [buildRoute, isEditing, isEditingCreatedBeneficialOwner, pageIndex, prevPage, hasExistingBeneficialOwners]);
+    };
 
     if (isRedirecting) {
         return <FullScreenLoadingIndicator />;

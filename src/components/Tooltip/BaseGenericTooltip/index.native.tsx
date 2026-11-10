@@ -6,6 +6,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {LayoutChangeEvent, View as RNView} from 'react-native';
 
 import {Portal} from '@gorhom/portal';
@@ -55,7 +56,7 @@ function BaseGenericTooltip({
     // The height of tooltip's wrapper.
     const [wrapperMeasuredHeightState, setWrapperMeasuredHeight] = useState<number>();
     const wrapperMeasuredHeightAnimated = useSharedValue<number>(0);
-    const rootWrapper = useRef<RNView>(null);
+    const rootWrapper = useRef<ComponentRef<typeof RNView>>(null);
 
     const StyleUtils = useStyleUtils();
     const {rootWrapperStyle, textStyle, pointerWrapperStyle, pointerStyle} = useMemo(
@@ -150,7 +151,12 @@ function BaseGenericTooltip({
 
     return (
         <Portal hostName={shouldTeleportPortalToModalLayer ? 'modal' : undefined}>
-            {shouldUseOverlay && <TransparentOverlay onPress={onHideTooltip} />}
+            {shouldUseOverlay && (
+                <TransparentOverlay
+                    onPress={onHideTooltip}
+                    sentryLabel={CONST.SENTRY_LABEL.TOOLTIP.OVERLAY}
+                />
+            )}
             {isEducationTooltip ? (
                 <AnimatedPressableWithoutFeedback
                     style={[rootWrapperStyle, animationStyle]}

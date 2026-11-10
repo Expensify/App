@@ -32,6 +32,7 @@ const ABORT_COMMANDS = {
     All: 'All',
     [READ_COMMANDS.SEARCH_FOR_REPORTS]: READ_COMMANDS.SEARCH_FOR_REPORTS,
     [READ_COMMANDS.SEARCH_FOR_USERS]: READ_COMMANDS.SEARCH_FOR_USERS,
+    [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE]: SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE,
 } as const;
 
 type AbortCommand = keyof typeof ABORT_COMMANDS;
@@ -53,6 +54,7 @@ const abortControllerMap = new Map<AbortCommand, AbortController>();
 abortControllerMap.set(ABORT_COMMANDS.All, new AbortController());
 abortControllerMap.set(ABORT_COMMANDS.SearchForReports, new AbortController());
 abortControllerMap.set(ABORT_COMMANDS.SearchForUsers, new AbortController());
+abortControllerMap.set(ABORT_COMMANDS.OpenSearchTagFiltersPage, new AbortController());
 
 /**
  * The API commands that require the skew calculation
@@ -82,12 +84,14 @@ function processHTTPRequest<TKey extends OnyxKey>(
     method: RequestType = 'get',
     body: FormData | null = null,
     abortSignal: AbortSignal | undefined = undefined,
+    shouldSkipPrefetch = false,
 ): Promise<Response<TKey>> {
     const startTime = new Date().valueOf();
 
     const command = url.match(APICommandRegex)?.[1];
 
-    const {prefetchKey, prefetchHeaders} = preparePrefetchRequest(command);
+    const {prefetchKey, prefetchHeaders} = shouldSkipPrefetch ? {prefetchKey: undefined, prefetchHeaders: undefined} : preparePrefetchRequest(command);
+    let isPrefetchedResponse = false;
 
     const fetchParams: NonNullable<Parameters<typeof nitroFetch>[1]> = {
         // We hook requests to the same Controller signal, so we can cancel them all at once
@@ -123,6 +127,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
             }
             if (response.headers) {
                 setLoadTestParameters(response.headers.get('X-Load-Test'));
+                isPrefetchedResponse = response.headers.get('nitroPrefetched') === 'true';
             }
 
             // We are calculating the skew to minimize the delay when posting the messages
@@ -220,6 +225,16 @@ function processHTTPRequest<TKey extends OnyxKey>(
                 });
             }
 
+            // The server sheds writes during instability with an app-level 503, which asks us to try again shortly
+            if (response.jsonCode === CONST.JSON_CODE.SERVICE_UNAVAILABLE) {
+                throw new HttpsError({
+                    message: CONST.ERROR.SERVICE_UNAVAILABLE,
+                    status: CONST.JSON_CODE.SERVICE_UNAVAILABLE.toString(),
+                    title: CONST.ERROR_TITLE.SERVICE_UNAVAILABLE,
+                    requestID: response.requestID,
+                });
+            }
+
             if (response.data && (response.data?.authWriteCommands?.length ?? 0)) {
                 const {phpCommandName, authWriteCommands} = response.data;
                 const message = `The API command ${phpCommandName} is doing too many Auth writes. Count ${authWriteCommands.length}, commands: ${authWriteCommands.join(
@@ -228,6 +243,13 @@ function processHTTPRequest<TKey extends OnyxKey>(
                 alert('Too many auth writes', message);
             }
             if (response.jsonCode === CONST.JSON_CODE.UPDATE_REQUIRED) {
+                // A prefetched response can come from a body saved by the previous build, so it carries that build's appversion.
+                // https://github.com/Expensify/App/pull/103842 leaves appversion out of saved bodies, but bodies saved by older builds still have it.
+                // Retry without the prefetchKey, because nitro-fetch can serve the same cached response again for a few seconds.
+                if (isPrefetchedResponse) {
+                    return processHTTPRequest<TKey>(url, method, body, abortSignal, true);
+                }
+
                 // Trigger a modal and disable the app as the user needs to upgrade to the latest minimum version to continue
                 alertUser();
             }

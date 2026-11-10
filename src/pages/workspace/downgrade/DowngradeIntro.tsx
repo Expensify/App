@@ -18,6 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -33,7 +34,7 @@ function DowngradeIntro({onDowngrade, buttonDisabled, loading, policyID, backTo}
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
 
     const illustrations = useMemoizedLazyIllustrations(['Mailbox']);

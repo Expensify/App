@@ -20,7 +20,7 @@ import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {ListItem, SelectableListItemProps} from './types';
+import type {ListItem, ListItemProps, SelectableListItemProps} from './types';
 
 import SelectableListItem from './SelectableListItem';
 
@@ -33,7 +33,7 @@ type AdditionalCardProps = {
     cardName?: string;
     plaidUrl?: string;
 };
-type CardListItemProps<TItem extends ListItem> = SelectableListItemProps<TItem & AdditionalCardProps>;
+type CardListItemProps<TItem extends ListItem> = SelectableListItemProps<TItem & AdditionalCardProps> & Pick<ListItemProps<TItem>, 'titleNumberOfLines'>;
 
 /**
  * A row with a bank/card icon (or owner avatar with card miniature), card name, and last-four
@@ -49,9 +49,9 @@ function CardListItem<TItem extends ListItem>({
     onSelectRow,
     onSelectionButtonPress,
     onDismissError,
-    rightHandSideComponent,
     onFocus,
     shouldSyncFocus,
+    titleNumberOfLines = 1,
 }: CardListItemProps<TItem>) {
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const styles = useThemeStyles();
@@ -72,13 +72,16 @@ function CardListItem<TItem extends ListItem>({
         `${item.cardName ? ` ${CONST.DOT_SEPARATOR} ${item.cardName}` : ''}` +
         `${item.isVirtual ? ` ${CONST.DOT_SEPARATOR} ${translate('workspace.expensifyCard.virtual')}` : ''}`;
 
+    // The subtitle takes the second line, so the title stays on one
+    const cardTitleNumberOfLines = subtitleText ? 1 : titleNumberOfLines;
+
     // The bold heading style is the primitive's default; non-bold items reset the weight and color.
-    const titleStyle = [item.alternateText ? styles.mb1 : null, item.isBold === false && [styles.fontWeightNormal, styles.textSupporting]];
+    const titleStyle = [cardTitleNumberOfLines > 1 && styles.preWrap, item.alternateText ? styles.mb1 : null, item.isBold === false && [styles.fontWeightNormal, styles.textSupporting]];
 
     return (
         <SelectableListItem
             item={item}
-            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow]}
+            wrapperStyle={styles.listItemRow}
             isFocused={isFocused}
             isFocusVisible={isFocusVisible}
             isDisabled={isDisabled}
@@ -87,7 +90,6 @@ function CardListItem<TItem extends ListItem>({
             onSelectRow={onSelectRow}
             onSelectionButtonPress={onSelectionButtonPress}
             onDismissError={onDismissError}
-            rightHandSideComponent={rightHandSideComponent}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
         >
@@ -148,6 +150,7 @@ function CardListItem<TItem extends ListItem>({
                     <ListItemComposed.Title
                         text={Str.isSMSLogin(item.text ?? '') ? formatPhoneNumber(item.text ?? '') : (item.text ?? '')}
                         style={titleStyle}
+                        numberOfLines={cardTitleNumberOfLines}
                     />
                     {!!subtitleText && <ListItemComposed.Subtitle text={subtitleText} />}
                 </ListItemComposed.TextColumn>

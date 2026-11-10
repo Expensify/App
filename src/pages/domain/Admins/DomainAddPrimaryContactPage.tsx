@@ -7,10 +7,12 @@ import type {ListItem} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
+import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import sortAlphabetically from '@libs/sortAlphabetically';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import Navigation from '@navigation/Navigation';
@@ -29,7 +31,7 @@ import type {PersonalDetailsList} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {adminAccountIDsSelector, adminPendingActionSelector, technicalContactSettingsSelector} from '@selectors/Domain';
-import React, {useCallback} from 'react';
+import React from 'react';
 
 type AdminOption = Omit<ListItem, 'accountID' | 'login'> & {
     accountID: number;
@@ -46,24 +48,19 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
     const [adminPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
         selector: adminPendingActionSelector,
     });
-    const adminsPersonalDetailsSelector = useCallback(
-        (personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
-            if (!personalDetailsList) {
-                return undefined;
-            }
+    const adminsPersonalDetailsSelector = (personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
+        if (!personalDetailsList) {
+            return undefined;
+        }
 
-            const adminsPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
-            for (const accountID of adminAccountIDs ?? []) {
-                adminsPersonalDetails[`${accountID}`] = personalDetailsList[accountID];
-            }
+        const adminsPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
+        for (const accountID of adminAccountIDs ?? []) {
+            adminsPersonalDetails[`${accountID}`] = personalDetailsList[accountID];
+        }
 
-            return adminsPersonalDetails;
-        },
-        [adminAccountIDs],
-    );
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: adminsPersonalDetailsSelector,
-    });
+        return adminsPersonalDetails;
+    };
+    const [personalDetails] = useAllPersonalDetails(adminsPersonalDetailsSelector);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [technicalContactSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {

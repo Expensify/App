@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import type {Followup} from '@libs/ReportActionFollowupUtils';
@@ -30,19 +31,19 @@ import {
 } from '@libs/ReportActionsUtils';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
 import {doesUserHavePaymentCardAdded} from '@libs/SubscriptionUtils';
-import {isSplitChildTransaction} from '@libs/TransactionUtils';
+import {isPerDiemRequest, isSplitChildTransaction, isTimeRequest} from '@libs/TransactionUtils';
 
 import {createDraftTransactionAndNavigateToParticipantSelector} from '@userActions/IOU/StartExpenseFlows';
 import {dismissTrackExpenseActionableWhisper, resolveConciergeCategoryOptions, resolveConciergeDescriptionOptions} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
 
-import {createFilteredPoliciesInfoSelector, createHasWorkspaceToSubmitToSelector} from '@selectors/Policy';
+import {billingRestrictionPolicySelector, createFilteredPoliciesInfoSelector, createHasWorkspaceToSubmitToSelector} from '@selectors/Policy';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React from 'react';
 
@@ -55,9 +56,10 @@ function AddPaymentCardButton() {
     return (
         <ActionableItemButtons layout="horizontal">
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.REPORT.ADD_PAYMENT_CARD_BUTTON}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={() => {
-                    Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path));
                 }}
             >
                 <Button.Text>{translate('subscription.cardSection.addCardButton')}</Button.Text>
@@ -95,6 +97,7 @@ function ConciergeOptionsButtons({action, actionOwnerReport, reportID, options}:
         >
             {options.map((option, index) => (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT.CONCIERGE_OPTION_BUTTON}
                     key={`${action.reportActionID}-conciergeOptions-${option}`}
                     innerStyles={styles.actionableItemButton}
                     onPress={() => {
@@ -147,6 +150,7 @@ function SuggestedFollowupButtons({action, actionOwnerReport, reportID, followup
         >
             {followups.map((followup) => (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT.SUGGESTED_FOLLOWUP_BUTTON}
                     key={`${action.reportActionID}-followup-${followup.text}`}
                     innerStyles={styles.actionableItemButton}
                     onPress={() => {
@@ -198,6 +202,7 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createFilteredPoliciesInfoSelector(personalDetail.email)});
+    const [preferredPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(preferredPolicyID)}`, {selector: billingRestrictionPolicySelector});
     const [trackExpenseTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(getOriginalMessage(action)?.transactionID)}`);
     const [actionOwnerReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(actionOwnerReportID)}`);
     const [hasWorkspaceToSubmitTo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createHasWorkspaceToSubmitToSelector(personalDetail.login)});
@@ -217,7 +222,8 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
         currentUserEmail: personalDetail.email ?? '',
         currentUserLocalCurrency: personalDetail.localCurrencyCode ?? CONST.CURRENCY.USD,
         filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
-        firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
+        firstPolicy: filteredPoliciesInfo?.firstPolicy,
+        restrictedPreferredPolicy: isRestrictedToPreferredPolicy ? preferredPolicy : undefined,
     };
     const isSplitExpense = isSplitChildTransaction(trackExpenseTransaction);
     const shouldShowSubmitButtons = !isSplitExpense || !!hasWorkspaceToSubmitTo;
@@ -225,11 +231,9 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
     const submit = (submitDestination?: ValueOf<typeof CONST.IOU.SUBMIT_DESTINATION>) => {
         createDraftTransactionAndNavigateToParticipantSelector({
             ...baseDraftTransactionParams,
-            isRestrictedToPreferredPolicy,
-            preferredPolicyID,
             actionName: CONST.IOU.ACTION.SUBMIT,
             submitDestination,
-            defaultWorkspaceName: submitDestination && generateDefaultWorkspaceName(personalDetail.email ?? '', lastWorkspaceNumber, translate, personalDetail.displayName),
+            defaultWorkspaceName: submitDestination && generateDefaultWorkspaceName(personalDetail.email ?? '', personalDetail.displayName, lastWorkspaceNumber, translate),
         });
     };
 
@@ -238,12 +242,19 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
             {/* "Submit it to someone" is one button per destination. */}
             {shouldShowSubmitButtons && (
                 <>
-                    {!isSplitExpense && (
-                        <Button onPress={() => submit(CONST.IOU.SUBMIT_DESTINATION.FRIEND)}>
+                    {/* A DM is not a valid destination for per diem and time expenses, nor for a user restricted to one workspace. */}
+                    {!isSplitExpense && !isRestrictedToPreferredPolicy && !isPerDiemRequest(trackExpenseTransaction) && !isTimeRequest(trackExpenseTransaction) && (
+                        <Button
+                            onPress={() => submit(CONST.IOU.SUBMIT_DESTINATION.FRIEND)}
+                            sentryLabel={CONST.SENTRY_LABEL.REPORT.TRACK_EXPENSE_SUBMIT_TO_FRIEND_BUTTON}
+                        >
                             <Button.Text>{translate('actionableMentionTrackExpense.submitToFriend')}</Button.Text>
                         </Button>
                     )}
-                    <Button onPress={() => submit(CONST.IOU.SUBMIT_DESTINATION.EMPLOYER)}>
+                    <Button
+                        onPress={() => submit(CONST.IOU.SUBMIT_DESTINATION.EMPLOYER)}
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT.TRACK_EXPENSE_SUBMIT_TO_EMPLOYER_BUTTON}
+                    >
                         <Button.Text>{translate('actionableMentionTrackExpense.submitToEmployer')}</Button.Text>
                     </Button>
                 </>
@@ -252,6 +263,7 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
             {Permissions.canUseTrackFlows() && (
                 <>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT.TRACK_EXPENSE_CATEGORIZE_BUTTON}
                         onPress={() => {
                             createDraftTransactionAndNavigateToParticipantSelector({...baseDraftTransactionParams, actionName: CONST.IOU.ACTION.CATEGORIZE});
                         }}
@@ -259,6 +271,7 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
                         <Button.Text>{translate('actionableMentionTrackExpense.categorize')}</Button.Text>
                     </Button>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT.TRACK_EXPENSE_SHARE_BUTTON}
                         onPress={() => {
                             createDraftTransactionAndNavigateToParticipantSelector({...baseDraftTransactionParams, actionName: CONST.IOU.ACTION.SHARE});
                         }}
@@ -269,6 +282,7 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
             )}
 
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.REPORT.TRACK_EXPENSE_NOTHING_BUTTON}
                 onPress={() => {
                     dismissTrackExpenseActionableWhisper(actionOwnerReportID, action);
                 }}

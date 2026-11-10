@@ -29,13 +29,15 @@ jest.mock('@hooks/useIsAnonymousUser', () => ({
     default: () => mockIsAnonymousUser,
 }));
 
-// The hook subscribes to `${ONYXKEYS.COLLECTION.REPORT}${reportID}` with a selector that returns
-// `lastReadTime`. The implementation is set in beforeEach so it can use ONYXKEYS freely (a jest.mock
-// factory cannot reference out-of-scope variables).
-const mockUseOnyx = jest.fn<[string], [string]>();
+// The hook subscribes to `${ONYXKEYS.COLLECTION.REPORT}${reportID}` twice with different selectors, so the mock
+// applies the passed selector to a fake report. The implementation is set in beforeEach so it can use ONYXKEYS
+// freely (a jest.mock factory cannot reference out-of-scope variables).
+type FakeReport = Pick<OnyxTypes.Report, 'lastReadTime' | 'manuallyMarkedUnreadReportActionID'>;
+type UseOnyxOptions = {selector?: (value: FakeReport | undefined) => unknown};
+const mockUseOnyx = jest.fn<[unknown], [string, UseOnyxOptions?]>();
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
-    default: (key: string) => mockUseOnyx(key),
+    default: (key: string, options?: UseOnyxOptions) => mockUseOnyx(key, options),
 }));
 
 function makeAction(reportActionID: string, overrides: Partial<OnyxTypes.ReportAction> = {}): OnyxTypes.ReportAction {
@@ -67,9 +69,10 @@ describe('useUnreadMarker', () => {
         mockIsAnonymousUser = false;
         mockLastReadTime = LAST_READ_TIME;
         mockLastReadTimeByReportID = {};
-        mockUseOnyx.mockImplementation((key) => {
+        mockUseOnyx.mockImplementation((key, options) => {
             const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT, '');
-            return [mockLastReadTimeByReportID[reportID] ?? mockLastReadTime];
+            const report: FakeReport = {lastReadTime: mockLastReadTimeByReportID[reportID] ?? mockLastReadTime};
+            return [options?.selector ? options.selector(report) : report];
         });
     });
 
@@ -108,6 +111,43 @@ describe('useUnreadMarker', () => {
             hasOnceLoadedReportActions: true,
         });
 
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+        expect(result.current.unreadMarkerReportActionIndex).toBe(-1);
+    });
+
+    it('does not use the oldestUnread anchor on first open when the current user authored the anchored action', () => {
+        // Given an action from the current user that is newer than the session's lastReadTime
+        const selfAction = makeAction('a', {actorAccountID: CURRENT_USER_ACCOUNT_ID});
+
+        // When the chat opens before the report actions have loaded
+        const {result} = renderUnreadMarker({
+            sortedVisibleReportActions: [selfAction],
+            oldestUnreadReportActionID: 'a',
+            hasOnceLoadedReportActions: false,
+        });
+
+        // Then no marker is shown because the current user authored the anchor action
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+        expect(result.current.unreadMarkerReportActionIndex).toBe(-1);
+    });
+
+    it('does not use the oldestUnread anchor on first open when the current user is the last actor of the anchored report preview', () => {
+        // Given a report preview anchor where actorAccountID belongs to another user
+        // and childLastActorAccountID belongs to the current user
+        const reportPreviewAction = makeAction('a', {
+            actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            actorAccountID: OTHER_USER_ACCOUNT_ID,
+            childLastActorAccountID: CURRENT_USER_ACCOUNT_ID,
+        });
+
+        // When the chat opens before the report actions have loaded
+        const {result} = renderUnreadMarker({
+            sortedVisibleReportActions: [reportPreviewAction],
+            oldestUnreadReportActionID: 'a',
+            hasOnceLoadedReportActions: false,
+        });
+
+        // Then no marker is shown, because report previews are attributed to their child report's last actor
         expect(result.current.unreadMarkerReportActionID).toBeNull();
         expect(result.current.unreadMarkerReportActionIndex).toBe(-1);
     });
@@ -253,5 +293,34 @@ describe('useUnreadMarker', () => {
         const {result: resultB} = renderUnreadMarker({reportID: 'B', sortedVisibleReportActions: [action], sortedReportActions: [action]});
         expect(resultB.current.unreadMarkerReportActionID).toBeNull();
         expect(resultB.current.unreadMarkerReportActionIndex).toBe(-1);
+    });
+
+    it('should scan an oldest-first list from the end when isReversed is set', () => {
+        const readAction = makeAction('read', {created: '2023-01-01 09:00:00.000'});
+        const unreadAction = makeAction('unread', {created: '2023-01-01 11:00:00.000'});
+        const oldestFirstActions = [readAction, unreadAction];
+
+        const {result} = renderUnreadMarker({
+            sortedVisibleReportActions: oldestFirstActions,
+            sortedReportActions: oldestFirstActions,
+            isReversed: true,
+        });
+
+        expect(result.current.unreadMarkerReportActionID).toBe('unread');
+        expect(result.current.unreadMarkerReportActionIndex).toBe(1);
+    });
+
+    it('should find the same action in an oldest-first list as in the equivalent newest-first list', () => {
+        const readAction = makeAction('read', {created: '2023-01-01 09:00:00.000'});
+        const unreadAction = makeAction('unread', {created: '2023-01-01 11:00:00.000'});
+
+        const newestFirst = [unreadAction, readAction];
+        const {result: newestFirstResult} = renderUnreadMarker({sortedVisibleReportActions: newestFirst, sortedReportActions: newestFirst});
+
+        const oldestFirst = [readAction, unreadAction];
+        const {result: oldestFirstResult} = renderUnreadMarker({sortedVisibleReportActions: oldestFirst, sortedReportActions: oldestFirst, isReversed: true});
+
+        expect(newestFirstResult.current.unreadMarkerReportActionID).toBe('unread');
+        expect(oldestFirstResult.current.unreadMarkerReportActionID).toBe('unread');
     });
 });

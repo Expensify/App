@@ -11,7 +11,7 @@ import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
 import mapValues from 'lodash/mapValues';
 
 import DateUtils from './DateUtils';
-import {translate, translateLocal} from './Localize';
+import {translate} from './Localize';
 
 function getAuthenticateErrorMessage<TKey extends OnyxKey>(response: Response<TKey>): TranslationPaths {
     switch (response.jsonCode) {
@@ -47,7 +47,7 @@ function getAuthenticateErrorMessage<TKey extends OnyxKey>(response: Response<TK
  * @param error - The translation key for the error message.
  */
 function getMicroSecondOnyxErrorWithTranslationKey(error: TranslationPaths, errorKey?: number): Errors {
-    return {[errorKey ?? DateUtils.getMicroseconds()]: translateLocal(error)};
+    return {[errorKey ?? DateUtils.getMicroseconds()]: translate(IntlStore.getCurrentLocale(), error)};
 }
 
 /**

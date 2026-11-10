@@ -10,6 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {KeyboardEvent, KeyboardEventHandler, MouseEventHandler} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle} from 'react-native';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 import type {TextProps} from './Text';
@@ -37,10 +38,12 @@ type TextLinkProps = (LinkProps | PressProps) &
         suppressDefaultStyle?: boolean;
     };
 
-function TextLink({href, onPress, children, style, onMouseDown = (event) => event.preventDefault(), suppressDefaultStyle = false, ref, ...rest}: TextLinkProps) {
+const defaultOnMouseDown: MouseEventHandler = (event) => event.preventDefault();
+
+function TextLink({href, onPress, children, style, onMouseDown = defaultOnMouseDown, suppressDefaultStyle = false, ref, ...rest}: TextLinkProps) {
     const {environmentURL} = useEnvironment();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const openLink = (event: GestureResponderEvent | KeyboardEvent) => {
         if (onPress) {

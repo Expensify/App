@@ -1,18 +1,20 @@
 import {canSendInvoice} from '@libs/PolicyUtils';
 import {
     getCategory,
-    getCreated,
     getCurrency,
+    getFormattedCreated,
     getMerchant,
+    getTag,
     getTagForDisplay,
     hasReceipt,
     isAmountMissing,
     isCreatedMissing,
+    isFailedScanAmountPlaceholder,
     isMerchantMissing,
+    isScanning,
     willFieldBeAutomaticallyFilled,
 } from '@libs/TransactionUtils';
 
-import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 
@@ -23,16 +25,29 @@ type Transaction = OnyxTypes.Transaction;
 
 // --- DateField ---
 
-type DateState = {iouCreated: string; isMissing: boolean; hasReceipt: boolean};
+type DateState = {
+    iouCreated: string;
+    isMissing: boolean;
+    hasReceipt: boolean;
+    isCreatedSet: boolean;
+    // The Scan confirmation's amount / merchant / date are all-or-nothing, so the date field reads the other two.
+    iouRequestType: Transaction['iouRequestType'];
+    isAmountSet: boolean;
+    isMerchantSet: boolean;
+};
 
 const dateStateSelector = (t: OnyxEntry<Transaction>): DateState | undefined => {
     if (!t) {
         return undefined;
     }
     return {
-        iouCreated: getCreated(t),
+        iouCreated: getFormattedCreated(t),
         isMissing: isCreatedMissing(t),
         hasReceipt: hasReceipt(t),
+        isCreatedSet: t.isCreatedSet ?? false,
+        iouRequestType: t.iouRequestType,
+        isAmountSet: t.isAmountSet ?? false,
+        isMerchantSet: t.isMerchantSet ?? false,
     };
 };
 
@@ -93,6 +108,9 @@ const createTagDisplaySelector = (tagIndex: number) => (t: OnyxEntry<Transaction
     return getTagForDisplay({tag: t.tag}, tagIndex);
 };
 
+// The whole tag string, every list's tag joined, which the tag list needs to filter and write one list's slot
+const transactionTagSelector = (t: OnyxEntry<Transaction>) => (t ? getTag(t) : undefined);
+
 // --- CategoryField ---
 
 type CategoryState = {category: string; willAutoFill: boolean};
@@ -109,7 +127,16 @@ const categoryStateSelector = (t: OnyxEntry<Transaction>): CategoryState | undef
 
 // --- MerchantField ---
 
-type MerchantState = {merchant: string; isMerchantSet: boolean; isMissing: boolean; hasReceipt: boolean};
+type MerchantState = {
+    merchant: string;
+    isMerchantSet: boolean;
+    isMissing: boolean;
+    hasReceipt: boolean;
+    // The Scan confirmation's amount / merchant / date are all-or-nothing, so the merchant field reads the other two.
+    iouRequestType: Transaction['iouRequestType'];
+    isAmountSet: boolean;
+    isCreatedSet: boolean;
+};
 
 const merchantStateSelector = (t: OnyxEntry<Transaction>): MerchantState | undefined => {
     if (!t) {
@@ -120,6 +147,9 @@ const merchantStateSelector = (t: OnyxEntry<Transaction>): MerchantState | undef
         isMerchantSet: t.isMerchantSet ?? false,
         isMissing: isMerchantMissing(t),
         hasReceipt: hasReceipt(t),
+        iouRequestType: t.iouRequestType,
+        isAmountSet: t.isAmountSet ?? false,
+        isCreatedSet: t.isCreatedSet ?? false,
     };
 };
 
@@ -149,7 +179,12 @@ type AmountSlice = {
     comment: {type: NonNullable<Transaction['comment']>['type']; customUnit: NonNullable<Transaction['comment']>['customUnit']} | undefined;
     isAmountMissing: boolean;
     isAmountSet: Transaction['isAmountSet'];
+    isFailedScanAmountPlaceholder: boolean;
+    isScanning: boolean;
     taxCode: Transaction['taxCode'];
+    // The Scan confirmation's amount / merchant / date are all-or-nothing, so the amount field reads the other two.
+    isMerchantSet: boolean;
+    isCreatedSet: boolean;
 };
 
 const amountSliceSelector = (t: OnyxEntry<Transaction>): AmountSlice | undefined => {
@@ -166,7 +201,11 @@ const amountSliceSelector = (t: OnyxEntry<Transaction>): AmountSlice | undefined
         comment: t.comment ? {type: t.comment.type, customUnit: t.comment.customUnit} : undefined,
         isAmountMissing: isAmountMissing(t),
         isAmountSet: t.isAmountSet,
+        isFailedScanAmountPlaceholder: isFailedScanAmountPlaceholder(t),
+        isScanning: isScanning(t),
         taxCode: t.taxCode,
+        isMerchantSet: t.isMerchantSet ?? false,
+        isCreatedSet: t.isCreatedSet ?? false,
     };
 };
 
@@ -199,7 +238,7 @@ const taxSliceSelector = (t: OnyxEntry<Transaction>): TaxSlice | undefined => {
 
 // --- ConfirmationFieldList: useFooterDerivedFlags ---
 
-type DerivedFlagsSlice = Pick<Transaction, 'modifiedCurrency' | 'currency' | 'iouRequestType' | 'reportID' | 'managedCard'>;
+type DerivedFlagsSlice = Pick<Transaction, 'modifiedCurrency' | 'currency' | 'reportID' | 'managedCard' | 'reimbursable'>;
 
 const derivedFlagsSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<DerivedFlagsSlice> => {
     if (!t) {
@@ -208,9 +247,9 @@ const derivedFlagsSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Derived
     const slice: DerivedFlagsSlice = {
         modifiedCurrency: t.modifiedCurrency,
         currency: t.currency,
-        iouRequestType: t.iouRequestType,
         reportID: t.reportID,
         managedCard: t.managedCard,
+        reimbursable: t.reimbursable,
     };
     return slice;
 };
@@ -328,8 +367,9 @@ const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportF
     };
 };
 
-const createOutstandingReportsForPolicySelector = (policyID: string | undefined) => (derived: OnyxEntry<OnyxTypes.OutstandingReportsByPolicyIDDerivedValue>) =>
-    derived?.[policyID ?? CONST.DEFAULT_NUMBER_ID];
+function shouldReportFieldBeEditable(outstandingReports: Array<OnyxEntry<OnyxTypes.Report>>, currentReportID: string | undefined, isUnreportedOrNew: boolean): boolean {
+    return isUnreportedOrNew ? outstandingReports.length >= 1 : outstandingReports.some((report) => report?.reportID !== currentReportID);
+}
 
 // --- InvoiceSenderField ---
 
@@ -354,8 +394,8 @@ export {
     attendeeSliceSelector,
     categoryStateSelector,
     createCanUpdateSenderWorkspaceSelector,
-    createOutstandingReportsForPolicySelector,
     createTagDisplaySelector,
+    transactionTagSelector,
     dateStateSelector,
     derivedFlagsSliceSelector,
     descriptionStateSelector,
@@ -366,6 +406,7 @@ export {
     perDiemSliceSelector,
     receiptSliceSelector,
     reportFieldTransactionStateSelector,
+    shouldReportFieldBeEditable,
     tagSliceSelector,
     taxSliceSelector,
     timeStateSelector,

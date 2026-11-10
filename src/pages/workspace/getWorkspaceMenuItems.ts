@@ -3,24 +3,23 @@
  */
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
-import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
-import {isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/merge/HRUtils';
+import {isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/merge/HRUtils';
 import {getObjectKeys} from '@libs/ObjectUtils';
 import {
     arePolicyRulesEnabled,
     canMemberRead,
     canPolicyAccessFeature,
-    hasAccountingFeatureConnection,
     hasPolicyCategoriesError,
     hasPolicyRulesError,
     hasVendorFeature,
     isGroupPolicy,
     isMatchingVendorListLoaded,
-    isMCPEnabled,
     isPerDiemEnabled,
     isPolicyAdmin,
+    isQBORefreshTokenExpiringSoonSelector,
     isTimeTrackingEnabled,
     shouldShowEmployeeListError,
+    shouldShowReimbursableExportDestinationAccountError,
     shouldShowSyncError,
     shouldShowTaxRateError,
 } from '@libs/PolicyUtils';
@@ -34,6 +33,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -50,14 +50,12 @@ type WorkspaceMenuIconMap = Record<
     | 'Users'
     | 'Hashtag'
     | 'Document'
-    | 'Sync'
-    | 'Receipt'
+    | 'Connect'
     | 'Briefcase'
     | 'Folder'
     | 'Tag'
     | 'Coins'
     | 'Workflows'
-    | 'Feed'
     | 'Car'
     | 'LuggageWithLines'
     | 'ExpensifyCard'
@@ -81,8 +79,15 @@ type WorkspaceMenuItem = WithSentryLabel & {
     getRoute: () => Route;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     screenName: WorkspaceTopLevelScreens;
+    badgeTranslationKey?: TranslationPaths;
     badgeText?: string;
     highlighted?: boolean;
+
+    /** Other names the Search router also matches this item by */
+    searchAliasKeys?: TranslationPaths[];
+
+    /** Other screens that render this item's page, so the menu treats them as this item */
+    aliasScreenNames?: WorkspaceTopLevelScreens[];
 };
 
 /** Inputs used to build the Workspace menu while preserving its visibility and indicator rules. */
@@ -93,19 +98,27 @@ type GetWorkspaceMenuItemsParams = {
     policyID: string | undefined;
     /** Login used to determine the member's feature access. */
     currentUserLogin?: string;
+    /** Personal details used to determine the member's feature access. */
+    currentUserPersonalDetails?: CurrentUserPersonalDetails;
     /** Lazily loaded icons used by the menu items. */
     icons: WorkspaceMenuIconMap;
     /** Whether an accounting connection is currently syncing. */
     isConnectionInProgress?: boolean;
     /** Categories used to determine category-related errors. */
     policyCategories?: OnyxTypes.PolicyCategories;
+    /** Whether any of the workspace agents has errors. */
+    hasAgentErrors?: boolean;
+    /** Whether any of the policy's merchant rules failed to save, used to surface a red dot on the Rules row. */
+    hasMerchantRuleErrors?: boolean;
     /** Previous pending fields used to identify the most recently enabled feature. */
     previousPendingFields?: OnyxTypes.Policy['pendingFields'];
     /** Whether receipt partner credentials require attention. */
     shouldShowEnterCredentialsError?: boolean;
     /** Whether the company cards row should show an error indicator. */
     shouldShowRBR?: boolean;
-    isRulesRevampBetaEnabled?: boolean;
+    /** Whether a workflow the user can fix has an approver who is no longer a workspace member, which shows an error on the Workflows row. */
+    hasApprovalWorkflowWithNonMemberApprover?: boolean;
+    /** Whether the vendor matching beta is enabled. */
     isVendorMatchingBetaEnabled?: boolean;
     /** Formats the invoice account balance for its menu badge. */
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
@@ -115,16 +128,20 @@ function getWorkspaceMenuItems({
     policy,
     policyID,
     currentUserLogin,
+    currentUserPersonalDetails,
     icons,
     isConnectionInProgress = false,
     policyCategories,
+    hasAgentErrors,
+    hasMerchantRuleErrors,
     previousPendingFields,
     shouldShowEnterCredentialsError = false,
     shouldShowRBR = false,
-    isRulesRevampBetaEnabled = false,
+    hasApprovalWorkflowWithNonMemberApprover = false,
     isVendorMatchingBetaEnabled = false,
     convertToDisplayString,
 }: GetWorkspaceMenuItemsParams): WorkspaceMenuItem[] {
+    const isAgentAccount = currentUserPersonalDetails?.isCustomAgent;
     const canReadPolicyFeature = (policyFeature: PolicyFeature) => canMemberRead(policy, currentUserLogin ?? '', policyFeature);
     const canReadMoreFeatures = canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const shouldShowProtectedItems = [
@@ -145,11 +162,14 @@ function getWorkspaceMenuItems({
     const accountingConnectionNames = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
     const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress, accountingConnectionNames);
     const hasHRError = shouldShowHRConnectionError(policy, isConnectionInProgress, isPolicyAdmin(policy));
-    const getHRBrickRoadIndicator = () => {
-        if (hasHRError) {
+    const hasConnectionFeatureError =
+        !isEmptyObject(policy?.errorFields?.[CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED] ?? {}) ||
+        !isEmptyObject(policy?.errorFields?.[CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED] ?? {});
+    const getConnectionsBrickRoadIndicator = () => {
+        if (hasSyncError || shouldShowReimbursableExportDestinationAccountError(policy) || hasHRError || shouldShowEnterCredentialsError || hasConnectionFeatureError) {
             return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
         }
-        if (isMergeHRCompleteSetupNeeded(policy)) {
+        if (isMergeHRCompleteSetupNeeded(policy) || isQBORefreshTokenExpiringSoonSelector(policy)) {
             return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
         }
     };
@@ -168,21 +188,17 @@ function getWorkspaceMenuItems({
         [CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED]: policy?.areTagsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED]: policy?.tax?.trackingEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED]: policy?.areCompanyCardsEnabled,
-        [CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]: !!policy?.areConnectionsEnabled || hasAccountingFeatureConnection(policy),
-        [CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED]: (policy?.isHREnabled === true || isAnyHRConnected(policy)) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED),
         [CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]: policy?.areExpensifyCardsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]: policy?.areReportFieldsEnabled,
-        [CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]: arePolicyRulesEnabled(policy, policyCategories, isRulesRevampBetaEnabled),
+        [CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]: arePolicyRulesEnabled(policy, policyCategories),
         [CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]: policy?.areInvoicesEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]: isPerDiemEnabled(policy) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED),
-        [CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED]: policy?.receiptPartners?.enabled ?? false,
-        [CONST.POLICY.MORE_FEATURES.IS_MCP_ENABLED]: isMCPEnabled(policy),
         [CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED]: policy?.isTravelEnabled,
         [CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED]: isTimeTrackingEnabled(policy),
     };
     const highlightedPolicyFeature = getObjectKeys(policyFeatureStates).find((key) => policyFeatureStates[key] && !previousPendingFields?.[key] && policy?.pendingFields?.[key]);
 
-    const items: WorkspaceMenuItem[] = [
+    const defaultItems: WorkspaceMenuItem[] = [
         {
             translationKey: 'workspace.common.profile',
             icon: icons.Building,
@@ -207,6 +223,28 @@ function getWorkspaceMenuItems({
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.ROOMS,
         },
     ];
+    const items = defaultItems.filter((item) => {
+        if (item.screenName !== SCREENS.WORKSPACE.MEMBERS) {
+            return true;
+        }
+        if (!policy) {
+            return true;
+        }
+        return canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.MEMBERS);
+    });
+
+    if (isGroupPolicy(policy) && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.AGENTS) && !isAgentAccount) {
+        const membersItemIndex = items.findIndex((item) => item.screenName === SCREENS.WORKSPACE.MEMBERS);
+        items.splice(membersItemIndex + 1, 0, {
+            translationKey: 'agentsPage.title',
+            icon: icons.Bot,
+            getRoute: () => ROUTES.WORKSPACE_AGENTS.getRoute(policyID),
+            screenName: SCREENS.WORKSPACE.AGENTS,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.AGENTS,
+            badgeTranslationKey: 'common.beta',
+            brickRoadIndicator: hasAgentErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+        });
+    }
 
     if (isGroupPolicy(policy) && shouldShowProtectedItems) {
         if (canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS)) {
@@ -219,50 +257,16 @@ function getWorkspaceMenuItems({
             });
         }
 
-        if (policyFeatureStates[CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED] && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.ACCOUNTING)) {
+        if (canReadMoreFeatures) {
             items.push({
-                translationKey: 'workspace.common.accounting',
-                icon: icons.Sync,
-                getRoute: () => ROUTES.POLICY_ACCOUNTING.getRoute(policyID),
-                brickRoadIndicator: hasSyncError || shouldShowQBOReimbursableExportDestinationAccountError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                screenName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
-                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.ACCOUNTING,
-                highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
-            });
-        }
-
-        if (policyFeatureStates[CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED] && canReadMoreFeatures) {
-            items.push({
-                translationKey: 'workspace.common.hr',
-                icon: icons.Users,
-                getRoute: () => ROUTES.WORKSPACE_HR.getRoute(policyID),
-                brickRoadIndicator: getHRBrickRoadIndicator(),
-                screenName: SCREENS.WORKSPACE.HR,
-                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.HR,
-                highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
-            });
-        }
-
-        if (policyFeatureStates[CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED] && canReadMoreFeatures) {
-            items.push({
-                translationKey: 'workspace.common.receiptPartners',
-                icon: icons.Receipt,
-                getRoute: () => ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID),
-                brickRoadIndicator: shouldShowEnterCredentialsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                screenName: SCREENS.WORKSPACE.RECEIPT_PARTNERS,
-                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.RECEIPT_PARTNERS,
-                highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED,
-            });
-        }
-
-        if (policyFeatureStates[CONST.POLICY.MORE_FEATURES.IS_MCP_ENABLED] && canReadMoreFeatures) {
-            items.push({
-                translationKey: 'workspace.common.mcp',
-                icon: icons.Bot,
-                getRoute: () => ROUTES.WORKSPACE_MCP.getRoute(policyID),
-                screenName: SCREENS.WORKSPACE.MCP,
-                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.MCP,
-                highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.IS_MCP_ENABLED,
+                translationKey: 'workspace.common.connections',
+                searchAliasKeys: ['workspace.common.accounting', 'workspace.common.hr', 'workspace.common.recruiting', 'workspace.common.receiptPartners', 'workspace.common.mcp'],
+                aliasScreenNames: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.HR, SCREENS.WORKSPACE.RECRUITING, SCREENS.WORKSPACE.RECEIPT_PARTNERS, SCREENS.WORKSPACE.MCP],
+                icon: icons.Connect,
+                getRoute: () => ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID),
+                brickRoadIndicator: getConnectionsBrickRoadIndicator(),
+                screenName: SCREENS.WORKSPACE.CONNECTIONS,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.CONNECTIONS,
             });
         }
 
@@ -275,16 +279,6 @@ function getWorkspaceMenuItems({
                 screenName: SCREENS.WORKSPACE.CATEGORIES,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.CATEGORIES,
                 highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED,
-            });
-        }
-
-        if (canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.VENDORS) && hasVendorFeature(policy, isVendorMatchingBetaEnabled) && isMatchingVendorListLoaded(policy)) {
-            items.push({
-                translationKey: 'workspace.common.vendors',
-                icon: icons.Briefcase,
-                getRoute: () => ROUTES.WORKSPACE_VENDORS.getRoute(policyID),
-                screenName: SCREENS.WORKSPACE.VENDORS,
-                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.VENDORS,
             });
         }
 
@@ -311,12 +305,22 @@ function getWorkspaceMenuItems({
             });
         }
 
+        if (canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.VENDORS) && hasVendorFeature(policy, isVendorMatchingBetaEnabled) && isMatchingVendorListLoaded(policy)) {
+            items.push({
+                translationKey: 'workspace.common.vendors',
+                icon: icons.Briefcase,
+                getRoute: () => ROUTES.WORKSPACE_VENDORS.getRoute(policyID),
+                screenName: SCREENS.WORKSPACE.VENDORS,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.VENDORS,
+            });
+        }
+
         if (policyFeatureStates[CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED] && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.WORKFLOWS)) {
             items.push({
                 translationKey: 'workspace.common.workflows',
                 icon: icons.Workflows,
                 getRoute: () => ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID),
-                brickRoadIndicator: !isEmptyObject(policy?.errorFields?.reimburser ?? {}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: !isEmptyObject(policy?.errorFields?.reimburser ?? {}) || hasApprovalWorkflowWithNonMemberApprover ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 screenName: SCREENS.WORKSPACE.WORKFLOWS,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.WORKFLOWS,
                 highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED,
@@ -326,9 +330,9 @@ function getWorkspaceMenuItems({
         if (policyFeatureStates[CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED] && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.RULES)) {
             items.push({
                 translationKey: 'workspace.common.rules',
-                icon: isRulesRevampBetaEnabled ? icons.Bolt : icons.Feed,
+                icon: icons.Bolt,
                 getRoute: () => ROUTES.WORKSPACE_RULES.getRoute(policyID),
-                brickRoadIndicator: hasPolicyRulesError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: hasPolicyRulesError(policy, hasMerchantRuleErrors ?? false) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 screenName: SCREENS.WORKSPACE.RULES,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.RULES,
                 highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,

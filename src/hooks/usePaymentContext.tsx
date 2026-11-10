@@ -1,39 +1,45 @@
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {delegateEmailSelector} from '@src/selectors/Account';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
-import type {Beta, BillingGraceEndPeriod, IntroSelected, Policy, Report} from '@src/types/onyx';
+import type {BankAccountList, IntroSelected, Policy, Report} from '@src/types/onyx';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {createContext, useContext} from 'react';
+import Onyx from 'react-native-onyx';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
 import useLastWorkspaceNumber from './useLastWorkspaceNumber';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
 import usePolicy from './usePolicy';
+
+type SearchActionInputs = {
+    conciergeChat: OnyxEntry<Report>;
+    introSelected: OnyxEntry<IntroSelected>;
+    isSelfTourViewed: boolean;
+    amountOwed: OnyxEntry<number>;
+    bankAccountList: OnyxEntry<BankAccountList>;
+};
 
 type PaymentContextValue = {
     currentUserAccountID: number;
     currentUserLogin: string | undefined;
     email: string | undefined;
     localCurrencyCode: string | undefined;
-    introSelected: OnyxEntry<IntroSelected>;
-    betas: OnyxEntry<Beta[]>;
-    isSelfTourViewed: boolean;
-    userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
-    amountOwed: OnyxEntry<number>;
-    ownerBillingGracePeriodEnd: OnyxEntry<number>;
+    isASAPSubmitBetaEnabled: boolean;
+    isWiseReimbursementsBetaEnabled: boolean;
     activePolicyID: string | undefined;
     activePolicy: OnyxEntry<Policy>;
-    conciergeReportID: string | undefined;
-    conciergeChat: OnyxEntry<Report>;
     defaultWorkspaceName: string;
     delegateEmail: string | undefined;
     delegateAccountID: number | undefined;
+    readSearchActionInputs: () => Promise<SearchActionInputs>;
 };
 
 type ReportPaymentContextValue = PaymentContextValue & {
@@ -52,41 +58,41 @@ const PaymentContext = createContext<PaymentContextValue | undefined>(undefined)
  */
 function usePaymentContextValues(): PaymentContextValue {
     const {translate} = useLocalize();
-    const {login: currentUserLogin, accountID: currentUserAccountID, email, localCurrencyCode} = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin, accountID: currentUserAccountID, email, displayName, localCurrencyCode} = useCurrentUserPersonalDetails();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const {isBetaEnabled} = usePermissions();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const delegateAccountID = useDelegateAccountID();
     const activePolicy = usePolicy(activePolicyID);
 
-    const defaultWorkspaceName = generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate);
+    const defaultWorkspaceName = generateDefaultWorkspaceName(email ?? '', displayName, lastWorkspaceNumber, translate);
+
+    const readSearchActionInputs = async (): Promise<SearchActionInputs> => {
+        const [conciergeReportID, introSelected, onboarding, amountOwed, bankAccountList] = await Onyx.multiGet([
+            ONYXKEYS.CONCIERGE_REPORT_ID,
+            ONYXKEYS.NVP_INTRO_SELECTED,
+            ONYXKEYS.NVP_ONBOARDING,
+            ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
+            ONYXKEYS.BANK_ACCOUNT_LIST,
+        ]);
+        const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+        return {conciergeChat, introSelected, isSelfTourViewed: hasSeenTourSelector(onboarding), amountOwed, bankAccountList};
+    };
 
     return {
         currentUserAccountID,
         currentUserLogin,
         email,
         localCurrencyCode,
-        introSelected,
-        betas,
-        isSelfTourViewed,
-        userBillingGracePeriodEnds,
-        amountOwed,
-        ownerBillingGracePeriodEnd,
+        isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+        isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
         activePolicyID,
         activePolicy,
-        conciergeReportID,
-        conciergeChat,
         defaultWorkspaceName,
         delegateEmail,
         delegateAccountID,
+        readSearchActionInputs,
     };
 }
 
@@ -116,3 +122,4 @@ function useReportPaymentContext({chatReportPolicyID}: UseReportPaymentContextPa
 
 export default usePaymentContext;
 export {PaymentContextProvider, useReportPaymentContext};
+export type {PaymentContextValue, SearchActionInputs};

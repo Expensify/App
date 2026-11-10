@@ -19,6 +19,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {ValueOf} from 'type-fest';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect} from 'react';
 
 type ConfirmDelegateValidateCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM_VALIDATE_CODE>;
@@ -57,7 +58,8 @@ function ConfirmDelegateValidateCodePage({route}: ConfirmDelegateValidateCodePag
             onClose={() => Navigation.goBack(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(login, role))}
             validateError={validateLoginError}
             title={translate('delegate.makeSureItIsYou')}
-            sendValidateCode={() => requestValidateCodeAction()}
+            sendValidateCode={() => requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.ADD_DELEGATE, reasonTargetEmail: login})}
+            validateCodeReasonCode={COMMON_CONST.VALIDATE_CODE_REASONS.ADD_DELEGATE}
             handleSubmitForm={(validateCode) => addDelegate({email: login, role, validateCode, delegatedAccess: account?.delegatedAccess})}
             descriptionPrimary={translate('delegate.enterSecurityCode', account?.primaryLogin ?? session?.email ?? '')}
         />

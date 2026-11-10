@@ -14,7 +14,7 @@ import {View} from 'react-native';
 
 function StaticSearchActionsBar() {
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter', 'Bookmark', 'Gear']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter', 'Gear']);
     const theme = useTheme();
 
     return (
@@ -22,12 +22,6 @@ function StaticSearchActionsBar() {
             <Icon
                 additionalStyles={[styles.touchableButtonImage]}
                 src={expensifyIcons.Filter}
-                fill={theme.icon}
-                size={CONST.ICON_SIZE.SMALL}
-            />
-            <Icon
-                additionalStyles={[styles.touchableButtonImage]}
-                src={expensifyIcons.Bookmark}
                 fill={theme.icon}
                 size={CONST.ICON_SIZE.SMALL}
             />

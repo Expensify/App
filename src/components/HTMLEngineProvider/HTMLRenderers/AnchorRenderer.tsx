@@ -1,27 +1,27 @@
 import AnchorForAttachmentsOnly from '@components/AnchorForAttachmentsOnly';
 import AnchorForCommentsOnly from '@components/AnchorForCommentsOnly';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
+import {useSession} from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
 import useEnvironment from '@hooks/useEnvironment';
 import useHover from '@hooks/useHover';
-import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getInternalExpensifyPath, getInternalNewExpensifyPath, openLink} from '@libs/actions/Link';
+import {isAttachmentAnchor} from '@libs/AttachmentAnchorUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {StyleProp, TextStyle} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 
 import {Str} from 'expensify-common';
-import React, {useContext, useMemo} from 'react';
+import React, {useContext} from 'react';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 
 import TableLinkColumnContext from './TableLinkColumnContext';
@@ -37,18 +37,22 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     const StyleUtils = useStyleUtils();
     const htmlAttribs = tnode.attributes;
     const {environmentURL} = useEnvironment();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const session = useSession();
     const {hovered, bind} = useHover();
-    // An auth token is needed to download Expensify chat attachments
-    const isAttachment = !!htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
-    const tNodeChild = tnode?.domNode?.children?.at(0);
-    const displayName = tNodeChild && 'data' in tNodeChild && typeof tNodeChild.data === 'string' ? tNodeChild.data : '';
+    // An auth token is needed to download Expensify chat attachments. An edited comment comes back without the source
+    // attribute, so the comment fragment restores the ID before this runs.
+    const isAttachment = isAttachmentAnchor(htmlAttribs.href, htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE], htmlAttribs[CONST.ATTACHMENT_ID_ATTRIBUTE]);
+    // An edited label such as `my_file.csv` can come back wrapped in `<em>`, so the name is gathered from every text node.
+    const displayName = getTextContent(tnode);
     const attrHref = htmlAttribs.href || htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] || '';
     const parentStyle = tnode.parent?.styles?.nativeTextRet ?? {};
     const internalNewExpensifyPath = getInternalNewExpensifyPath(attrHref);
     const internalExpensifyPath = getInternalExpensifyPath(attrHref);
     const isVideo = attrHref && Str.isVideo(attrHref);
     const linkHasImage = tnode.tagName === 'a' && tnode.children.some((child) => child.tagName === 'img');
+    // A file card is drawn from the anchor's own label, so an anchor wrapping a picture or a clip has no name to show
+    // and renders the media itself. An edit keeps the attachment ID on the anchor even when its label becomes an image.
+    const holdsMedia = tnode.children.some((child) => child.tagName === 'img' || child.tagName === 'video');
 
     const isDeleted = HTMLEngineUtils.isDeletedNode(tnode);
     const isChildOfTaskTitle = HTMLEngineUtils.isChildOfTaskTitle(tnode);
@@ -60,13 +64,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     // The `styles.link` used by the non-comment link path above already handles this, but AnchorForCommentsOnly does not use it.
     const highContrastUnderlineStyle = theme.isHighContrast ? styles.underline : {};
 
-    const onLinkPress = useMemo(() => {
-        if (internalNewExpensifyPath || internalExpensifyPath) {
-            return () => openLink(attrHref, environmentURL, isAttachment, session);
-        }
-
-        return undefined;
-    }, [internalNewExpensifyPath, internalExpensifyPath, attrHref, environmentURL, isAttachment, session]);
+    const onLinkPress = internalNewExpensifyPath || internalExpensifyPath ? () => openLink(attrHref, environmentURL, isAttachment, session) : undefined;
 
     // The table row already navigates to this link's destination, so the cell shows the link text as plain content
     // rather than a second target styled as a link.
@@ -133,7 +131,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         );
     }
 
-    if (isAttachment && !isVideo) {
+    if (isAttachment && !isVideo && !holdsMedia) {
         return (
             <AnchorForAttachmentsOnly
                 source={tryResolveUrlFromApiRoot(attrHref)}

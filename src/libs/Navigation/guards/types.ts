@@ -22,6 +22,9 @@ type GuardContext = {
 
     /** Whether the current session is a supportal (support-logged-in) session */
     isSupportalSession: boolean;
+
+    /** Whether the current session is a delegate (copilot) session */
+    isDelegateSession: boolean;
 };
 
 /**

@@ -1,6 +1,9 @@
 import {resolveOpenAppDuplicationConflictAction, resolveReconnectDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
+import type {WriteCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import Log from '@libs/Log';
+import {SUPPORTAL_DENIAL_MESSAGE} from '@libs/Network/isUnauthorizedSupportalResponse';
 import * as NetworkState from '@libs/NetworkState';
 
 import {clear as clearPersistedRequests, getAll, getLength, getOngoingRequest, updateOngoingRequest} from '@userActions/PersistedRequests';
@@ -27,6 +30,7 @@ jest.mock('@libs/ActiveClientManager', () => ({
     isClientTheLeader: jest.fn(() => true),
     isReady: jest.fn(() => Promise.resolve()),
     init: jest.fn(),
+    getLogTab: jest.fn(),
 }));
 const mockedIsClientTheLeader = jest.mocked(isClientTheLeader);
 
@@ -348,7 +352,7 @@ describe('SequentialQueue', () => {
                     return;
                 }
 
-                Onyx.disconnect(connectionId);
+                connectionId.unsubscribe();
                 expect(ongoingRequest).toEqual(persistedRequest);
                 expect(ongoingRequest).toEqual(getOngoingRequest());
                 expect(getAll().length).toBe(0);
@@ -418,6 +422,45 @@ describe('SequentialQueue', () => {
         }
     });
 
+    it('should log a [Receipt] gaveUp line when a receipt-bearing request is abandoned after exhausting its retries', async () => {
+        await Onyx.set(ONYXKEYS.NETWORK, {shouldFailAllRequests: false, shouldForceOffline: false});
+        await clearPersistedRequests();
+        await waitForBatchedUpdates();
+
+        const offlineSpy = jest.spyOn(NetworkState, 'getIsOffline').mockReturnValue(false);
+        const sleepSpy = jest.spyOn(SequentialQueue.sequentialQueueRequestThrottle, 'sleep').mockRejectedValue(undefined);
+        const processSpy = jest.spyOn(RequestModule, 'processWithMiddleware').mockRejectedValue(new Error(CONST.ERROR.FAILED_TO_FETCH));
+        const logAlertSpy = jest.spyOn(Log, 'alert').mockImplementation(() => {});
+
+        try {
+            const receiptRequest: Request<never> = {
+                command: WRITE_COMMANDS.REQUEST_MONEY,
+                data: {transactionID: '5678', receipt: {source: 'file:///Receipts-Upload/receipt.jpg', receiptTraceId: 'trace-abandoned'}},
+            };
+            SequentialQueue.push(receiptRequest);
+            await waitForBatchedUpdates();
+
+            expect(logAlertSpy).toHaveBeenCalledWith(
+                expect.stringContaining('gaveUp'),
+                expect.objectContaining({
+                    event: 'gaveUp',
+                    receiptTraceId: 'trace-abandoned',
+                    transactionID: '5678',
+                    command: WRITE_COMMANDS.REQUEST_MONEY,
+                }),
+            );
+
+            expect(sleepSpy).toHaveBeenCalled();
+
+            expect(getAll().length).toBe(0);
+        } finally {
+            offlineSpy.mockRestore();
+            sleepSpy.mockRestore();
+            processSpy.mockRestore();
+            logAlertSpy.mockRestore();
+        }
+    });
+
     it('should reset the shared throttle when the queue stops because the app went offline', async () => {
         const offlineSpy = jest.spyOn(NetworkState, 'getIsOffline').mockReturnValue(false);
         mockFetch.mockRejectedValue(new Error(CONST.ERROR.FAILED_TO_FETCH));
@@ -440,6 +483,38 @@ describe('SequentialQueue', () => {
             expect(SequentialQueue.sequentialQueueRequestThrottle.getLastRequestWaitTime()).toBe(0);
         } finally {
             offlineSpy.mockRestore();
+        }
+    });
+
+    it('keeps and sends a write the leader queued when a follower tab writes back a stale copy of the queue', async () => {
+        // Given a leader with a paused queue holding two requests and a newer approval
+        const processSpy = jest.spyOn(RequestModule, 'processWithMiddleware').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
+        const readNewestAction: AnyRequest = {command: WRITE_COMMANDS.READ_NEWEST_ACTION, requestIndex: 1};
+        const openReport: AnyRequest = {command: WRITE_COMMANDS.OPEN_REPORT, requestIndex: 2};
+        const approveMoneyRequest: AnyRequest = {command: WRITE_COMMANDS.APPROVE_MONEY_REQUEST, requestIndex: 3};
+
+        try {
+            SequentialQueue.pause();
+            await SequentialQueue.push(readNewestAction);
+            await SequentialQueue.push(openReport);
+            await SequentialQueue.push(approveMoneyRequest);
+            await waitForBatchedUpdates();
+
+            // When a follower tab's copy of the queue, saved before the approval, lands in shared storage
+            await Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, [readNewestAction, openReport]);
+            await waitForBatchedUpdates();
+
+            // Then the leader still sends the approval once the queue resumes
+            SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+            expect(processSpy.mock.calls.map(([sentRequest]) => sentRequest.command)).toEqual([
+                WRITE_COMMANDS.READ_NEWEST_ACTION,
+                WRITE_COMMANDS.OPEN_REPORT,
+                WRITE_COMMANDS.APPROVE_MONEY_REQUEST,
+            ]);
+        } finally {
+            processSpy.mockRestore();
         }
     });
 });
@@ -556,7 +631,7 @@ describe('SequentialQueue - reconnect coverage collapse', () => {
             // The in-flight cycle owns the shared flag; its finallyData clears the spinner even under the drop.
             expect(isLoadingReportData).toBe(false);
         } finally {
-            Onyx.disconnect(connectionID);
+            connectionID.unsubscribe();
         }
     });
 
@@ -695,7 +770,7 @@ describe('SequentialQueue - offline read reconciliation', () => {
                 const connectionID = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connectionID);
+                        connectionID.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -869,6 +944,33 @@ describe('SequentialQueue - offline read reconciliation', () => {
 });
 
 describe('SequentialQueue - QueueFlushedData', () => {
+    beforeEach(async () => {
+        await Onyx.set(ONYXKEYS.NETWORK, {shouldFailAllRequests: false, shouldForceOffline: false});
+        await Onyx.set(ONYXKEYS.HAS_LOADED_APP, false);
+        await Onyx.set(ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN, false);
+        await clearPersistedRequests();
+        await waitForBatchedUpdates();
+    });
+
+    afterEach(async () => {
+        jest.restoreAllMocks();
+        await Onyx.set(ONYXKEYS.SESSION, {});
+    });
+
+    // A failed-but-resolved OpenApp must not stage HAS_LOADED_APP, or the next boot runs ReconnectApp only and can't self-heal.
+    async function expectAppLeftUnloaded() {
+        expect(SequentialQueue.getQueueFlushedData()).toEqual([]);
+        expect(await getOnyxValue(ONYXKEYS.HAS_LOADED_APP)).toBe(false);
+    }
+
+    async function pushRequestResolvingWith(response: Response<OnyxKey> | undefined, command: WriteCommand = WRITE_COMMANDS.OPEN_APP) {
+        const flushedUpdate: OnyxUpdate<typeof ONYXKEYS.HAS_LOADED_APP> = {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.HAS_LOADED_APP, value: true};
+        jest.spyOn(RequestModule, 'processWithMiddleware').mockResolvedValue(response);
+        SequentialQueue.push({command, queueFlushedData: [flushedUpdate]});
+        await SequentialQueue.waitForIdle();
+        await waitForBatchedUpdates();
+    }
+
     it('should add to queueFlushedData', async () => {
         const updates: Array<OnyxUpdate<typeof ONYXKEYS.USER_METADATA>> = [{key: 'userMetadata', onyxMethod: 'set', value: {accountID: 1234}}];
         await SequentialQueue.saveQueueFlushedData(...updates);
@@ -881,35 +983,55 @@ describe('SequentialQueue - QueueFlushedData', () => {
         expect(SequentialQueue.getQueueFlushedData()).toEqual([]);
     });
 
-    afterEach(() => {
-        jest.restoreAllMocks();
-    });
-
-    // Pushes an OpenApp request carrying queueFlushedData, with processWithMiddleware mocked to resolve with the given jsonCode.
-    async function pushOpenAppAndWaitForIdle(jsonCode: number) {
-        await Onyx.set(ONYXKEYS.NETWORK, {shouldFailAllRequests: false, shouldForceOffline: false});
-        await clearPersistedRequests();
-        await waitForBatchedUpdates();
-
-        const flushedUpdate: OnyxUpdate<typeof ONYXKEYS.HAS_LOADED_APP> = {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.HAS_LOADED_APP, value: true};
-        jest.spyOn(RequestModule, 'processWithMiddleware').mockResolvedValue({jsonCode});
-        SequentialQueue.push({command: 'OpenApp', queueFlushedData: [flushedUpdate]});
-        await SequentialQueue.waitForIdle();
-        await waitForBatchedUpdates();
-    }
-
-    it('does not commit queueFlushedData when the resolved response is not a 200', async () => {
-        await pushOpenAppAndWaitForIdle(CONST.JSON_CODE.BAD_REQUEST);
-
-        // A failed-but-resolved OpenApp must not stage HAS_LOADED_APP, or the next boot runs ReconnectApp only and can't self-heal.
-        expect(SequentialQueue.getQueueFlushedData()).toEqual([]);
-        expect(await getOnyxValue(ONYXKEYS.HAS_LOADED_APP)).toBeFalsy();
-    });
-
     it('commits queueFlushedData when the resolved response is a 200', async () => {
-        await pushOpenAppAndWaitForIdle(CONST.JSON_CODE.SUCCESS);
+        await pushRequestResolvingWith({jsonCode: CONST.JSON_CODE.SUCCESS});
 
         expect(await getOnyxValue(ONYXKEYS.HAS_LOADED_APP)).toBe(true);
+        expect(await getOnyxValue(ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN)).toBe(false);
+    });
+
+    it('withholds queueFlushedData and shows the failure modal when the resolved response is not a 200', async () => {
+        await pushRequestResolvingWith({jsonCode: CONST.JSON_CODE.BAD_REQUEST});
+
+        await expectAppLeftUnloaded();
+        expect(await getOnyxValue(ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN)).toBe(true);
+    });
+
+    it.each<[string, Response<OnyxKey> | undefined]>([
+        ['UPDATE_REQUIRED', {jsonCode: CONST.JSON_CODE.UPDATE_REQUIRED}],
+        ['no response at all', undefined],
+    ])('withholds queueFlushedData but leaves the failure modal closed when OpenApp resolves with %s', async (_label, response) => {
+        await pushRequestResolvingWith(response);
+
+        await expectAppLeftUnloaded();
+        expect(await getOnyxValue(ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN)).toBe(false);
+    });
+
+    it('leaves the failure modal closed for the supportal denial SupportalPermission already prompts on', async () => {
+        await Onyx.set(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
+        await pushRequestResolvingWith({jsonCode: CONST.JSON_CODE.SUPPORT_NOT_AUTHORIZED, message: SUPPORTAL_DENIAL_MESSAGE});
+
+        await expectAppLeftUnloaded();
+        expect(await getOnyxValue(ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN)).toBe(false);
+    });
+
+    it('shows the failure modal when a normal session takes SUPPORT_NOT_AUTHORIZED, which SupportalPermission ignores', async () => {
+        await pushRequestResolvingWith({jsonCode: CONST.JSON_CODE.SUPPORT_NOT_AUTHORIZED, message: SUPPORTAL_DENIAL_MESSAGE});
+
+        expect(await getOnyxValue(ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN)).toBe(true);
+    });
+
+    it('leaves the failure modal closed when OpenApp fails on an account switch, where the app is already loaded', async () => {
+        await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
+        await pushRequestResolvingWith({jsonCode: CONST.JSON_CODE.BAD_REQUEST});
+
+        expect(await getOnyxValue(ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN)).toBe(false);
+    });
+
+    it('leaves the failure modal closed when a command other than OpenApp resolves with an app-level error', async () => {
+        await pushRequestResolvingWith({jsonCode: CONST.JSON_CODE.BAD_REQUEST}, WRITE_COMMANDS.RECONNECT_APP);
+
+        expect(await getOnyxValue(ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN)).toBe(false);
     });
 });
 

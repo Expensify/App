@@ -1,21 +1,24 @@
-import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
 import Button from '@components/Button';
 import ScrollView from '@components/ScrollView';
+import AmountFilterInput from '@components/Search/FilterComponents/AmountFilterInput';
 import type {SearchAmountFilterKeys, SearchAmountValues} from '@components/Search/types';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
+import useAmountFilterCurrency from '@hooks/useAmountFilterCurrency';
 import useLocalize from '@hooks/useLocalize';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+import {formatAmountFilterValue, getAmountFilterInputValue} from '@libs/SearchAmountFilterUtils';
 import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -25,12 +28,13 @@ import {View} from 'react-native';
 
 const BETWEEN_MODIFIER = 'Between';
 
-type AmountFilterContentProps = {
+type AmountFilterContentProps = WithRequiredSentryLabel & {
     baseFilterKey: SearchAmountFilterKeys;
     value: SearchAmountValues;
     buttonSize?: Exclude<ValueOf<typeof CONST.BUTTON_SIZE>, typeof CONST.BUTTON_SIZE.SMALL>;
     autoFocus?: boolean;
     style?: StyleProp<ViewStyle>;
+    buttonText?: string;
     onChange: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
@@ -48,24 +52,18 @@ type AmountInputProps = {
     autoFocus?: boolean;
 };
 
-function getBackendAmount(amount: string) {
-    return amount ? convertToBackendAmount(Number(amount)).toString() : '';
-}
-
-function getFrontendAmount(amount: string | undefined) {
-    return amount ? convertToFrontendAmountAsString(Number(amount), CONST.DEFAULT_CURRENCY_DECIMALS) : '';
-}
-
 function AmountInput({ref, baseFilterKey, modifier, value, label, autoFocus}: AmountInputProps) {
     const styles = useThemeStyles();
-    const [amount, setAmount] = useState(value);
+    const initialValue = getAmountFilterInputValue(value);
+    const [amount, setAmount] = useState(initialValue.amount);
+    const {currency, setCurrency} = useAmountFilterCurrency(baseFilterKey, value);
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const inputRef = useRef<BaseTextInputRef>(null);
 
     useImperativeHandle(ref, () => ({
         getValue: () => {
             const key = `${baseFilterKey}${modifier}`;
-            return {[key]: getBackendAmount(amount)};
+            return {[key]: formatAmountFilterValue(amount, currency)};
         },
     }));
 
@@ -77,16 +75,15 @@ function AmountInput({ref, baseFilterKey, modifier, value, label, autoFocus}: Am
     }, [didScreenTransitionEnd, autoFocus]);
 
     return (
-        <AmountWithoutCurrencyInput
+        <AmountFilterInput
             ref={inputRef}
+            baseFilterKey={baseFilterKey}
             containerStyles={[styles.ph4, styles.mv2]}
-            defaultValue={value}
-            onInputChange={setAmount}
+            amount={amount}
+            currency={currency}
+            onAmountChange={setAmount}
+            onCurrencyChange={setCurrency}
             label={label}
-            accessibilityLabel={label}
-            role={CONST.ROLE.PRESENTATION}
-            inputMode={CONST.INPUT_MODE.DECIMAL}
-            shouldAllowNegative
         />
     );
 }
@@ -102,8 +99,12 @@ type AmountBetweenInputProps = {
 function AmountBetweenInput({ref, baseFilterKey, greaterThanValue, lessThanValue, autoFocus}: AmountBetweenInputProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [greaterThanAmount, setGreaterThanAmount] = useState(greaterThanValue);
-    const [lessThanAmount, setLessThanAmount] = useState(lessThanValue);
+    const initialGreaterThan = getAmountFilterInputValue(greaterThanValue);
+    const initialLessThan = getAmountFilterInputValue(lessThanValue);
+    const [greaterThanAmount, setGreaterThanAmount] = useState(initialGreaterThan.amount);
+    const [lessThanAmount, setLessThanAmount] = useState(initialLessThan.amount);
+    const {currency: greaterThanCurrency, setCurrency: setGreaterThanCurrency} = useAmountFilterCurrency(baseFilterKey, greaterThanValue);
+    const {currency: lessThanCurrency, setCurrency: setLessThanCurrency} = useAmountFilterCurrency(baseFilterKey, lessThanValue);
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const inputRef = useRef<BaseTextInputRef>(null);
 
@@ -111,7 +112,10 @@ function AmountBetweenInput({ref, baseFilterKey, greaterThanValue, lessThanValue
         getValue: () => {
             const greaterThanKey = `${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`;
             const lessThanKey = `${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`;
-            return {[greaterThanKey]: getBackendAmount(greaterThanAmount), [lessThanKey]: getBackendAmount(lessThanAmount)};
+            return {
+                [greaterThanKey]: formatAmountFilterValue(greaterThanAmount, greaterThanCurrency),
+                [lessThanKey]: formatAmountFilterValue(lessThanAmount, lessThanCurrency),
+            };
         },
     }));
 
@@ -126,36 +130,33 @@ function AmountBetweenInput({ref, baseFilterKey, greaterThanValue, lessThanValue
     const lessThanLabel = translate('search.filters.amount.lessThan');
 
     return (
-        <View style={[styles.flexRow, styles.gap1, styles.ph4, styles.mv2]}>
-            <AmountWithoutCurrencyInput
+        <View style={[styles.flexColumn, styles.gap1, styles.ph4, styles.mv2]}>
+            <AmountFilterInput
                 ref={inputRef}
-                containerStyles={styles.flex1}
-                defaultValue={greaterThanValue}
-                onInputChange={setGreaterThanAmount}
+                baseFilterKey={baseFilterKey}
+                amount={greaterThanAmount}
+                currency={greaterThanCurrency}
+                onAmountChange={setGreaterThanAmount}
+                onCurrencyChange={setGreaterThanCurrency}
                 label={greaterThanLabel}
-                accessibilityLabel={greaterThanLabel}
-                role={CONST.ROLE.PRESENTATION}
-                inputMode={CONST.INPUT_MODE.DECIMAL}
-                shouldAllowNegative
             />
-            <AmountWithoutCurrencyInput
-                containerStyles={styles.flex1}
-                defaultValue={lessThanValue}
-                onInputChange={setLessThanAmount}
+            <AmountFilterInput
+                baseFilterKey={baseFilterKey}
+                amount={lessThanAmount}
+                currency={lessThanCurrency}
+                onAmountChange={setLessThanAmount}
+                onCurrencyChange={setLessThanCurrency}
                 label={lessThanLabel}
-                accessibilityLabel={lessThanLabel}
-                role={CONST.ROLE.PRESENTATION}
-                inputMode={CONST.INPUT_MODE.DECIMAL}
-                shouldAllowNegative
             />
         </View>
     );
 }
 
-function AmountFilterContent({baseFilterKey, value, autoFocus, buttonSize, style, onChange}: AmountFilterContentProps) {
+function AmountFilterContent({baseFilterKey, value, autoFocus, buttonSize, style, buttonText, sentryLabel, onChange}: AmountFilterContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const shouldButtonBeInScrollView = useShouldFooterBeInsideList();
 
     const getInitialSelectedAmountModifier = () => {
         const hasLessThan = !!value?.[CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN];
@@ -205,6 +206,19 @@ function AmountFilterContent({baseFilterKey, value, autoFocus, buttonSize, style
     ];
     const label = translate(FILTER_VIEW_MAP[baseFilterKey].labelKey);
 
+    const button = (
+        <Button
+            sentryLabel={sentryLabel}
+            style={[styles.ph5, styles.pb5]}
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={buttonSize}
+            onPress={updateAmountFilter}
+        >
+            <Button.KeyboardShortcut />
+            <Button.Text>{buttonText ?? translate('common.confirm')}</Button.Text>
+        </Button>
+    );
+
     return (
         <View style={[styles.flex1, styles.justifyContentBetween, style]}>
             <ScrollView
@@ -226,8 +240,8 @@ function AmountFilterContent({baseFilterKey, value, autoFocus, buttonSize, style
                                 <AmountBetweenInput
                                     ref={inputRef}
                                     baseFilterKey={baseFilterKey}
-                                    greaterThanValue={getFrontendAmount(value?.[CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN])}
-                                    lessThanValue={getFrontendAmount(value?.[CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN])}
+                                    greaterThanValue={value?.[CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN] ?? ''}
+                                    lessThanValue={value?.[CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN] ?? ''}
                                     autoFocus={autoFocus}
                                 />
                             ) : (
@@ -235,23 +249,16 @@ function AmountFilterContent({baseFilterKey, value, autoFocus, buttonSize, style
                                     ref={inputRef}
                                     baseFilterKey={baseFilterKey}
                                     modifier={config.keyForList}
-                                    value={getFrontendAmount(value?.[config.keyForList])}
+                                    value={value?.[config.keyForList] ?? ''}
                                     label={label}
                                     autoFocus={autoFocus}
                                 />
                             ))}
                     </Fragment>
                 ))}
+                {shouldButtonBeInScrollView && button}
             </ScrollView>
-            <Button
-                style={[styles.ph5, styles.pb5]}
-                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                size={buttonSize}
-                onPress={updateAmountFilter}
-            >
-                <Button.KeyboardShortcut />
-                <Button.Text>{translate('common.confirm')}</Button.Text>
-            </Button>
+            {!shouldButtonBeInScrollView && button}
         </View>
     );
 }

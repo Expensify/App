@@ -10,6 +10,12 @@ type StartSplitBillParams = {
     category: string;
     tag: string;
     currency: string;
+
+    /** The amount, merchant and date the user typed in on the Scan confirmation. Left out, SmartScan fills them in from the receipt. */
+    amount?: number;
+    merchant?: string;
+    created?: string;
+
     isFromGroupDM: boolean;
     createdReportActionID?: string;
     billable: boolean;

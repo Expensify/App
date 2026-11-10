@@ -257,10 +257,16 @@ Navigation.dismissModalWithReport({
 
 When dismissing an RHP reveals a **different** fullscreen destination (not the screen already behind it - see [Dismissing modals with opening a report](#dismissing-modals-with-opening-a-report) for that case), the destination needs to be mounted before the dismissal reveals it. Otherwise there's a visible gap on narrow layout, or a flash of the previous page on wide layout, while React mounts the destination tree.
 
-`usePreMountDestination` (`src/hooks/usePreMountDestination`) centralizes this lifecycle. It has two layout-specific strategies:
+`usePreMountDestination` (`src/hooks/usePreMountDestination`) centralizes this lifecycle. It has two strategies, set with `destinationStrategy`:
 
--   **Narrow layout (default, `narrowDestinationStrategy: CONST.NARROW_DESTINATION_STRATEGY.PRE_INSERT`):** on mount, waits for the RHP's open transition, then pre-inserts the destination route underneath the RHP at idle priority (`preInsertFullscreenUnderRHP`). By the time the user dismisses, the destination is already mounted, so dismissal just reveals it.
--   **Narrow layout with `narrowDestinationStrategy: CONST.NARROW_DESTINATION_STRATEGY.REVEAL`, or wide layout (always), or narrow layout where the pre-insert hasn't finished yet:** `reveal()` calls `Navigation.revealRouteBeforeDismissingModal` instead - it swaps in the destination and dismisses in one step, at reveal time rather than eagerly. Correctness is the same either way; only the narrow pre-insert path has the mount-ahead-of-time perf win.
+-   **`CONST.DESTINATION_STRATEGY.PRE_INSERT` (default):** on mount, waits for the RHP's open transition, then pre-mounts the destination at idle priority (`preInsertFullscreenUnderRHP`). If it finishes before the user dismisses, dismissal just reveals the already mounted destination. Where it goes depends on the layout:
+    -   **Narrow layout:** the destination route is inserted underneath the RHP.
+    -   **Wide layout:** the destination is visible next to the RHP, so it can't go under it. Its screen is mounted hidden inside the current `TAB_NAVIGATOR` instead:
+        -   **Destination in the focused tab:** directly under the current screen.
+        -   **Destination in another tab:** on top of that tab's stack. That tab is marked preloaded, so it keeps rendering in the background.
+        -   **On reveal:** `reveal()` runs the regular replace and reuses that screen, so the stack, tab history and back navigation are the same as without the pre-mount, and visited tabs keep their state.
+        -   **Skipped** when another fullscreen covers the `TAB_NAVIGATOR`, the destination is the screen already shown, or it is inside the focused Search tab (the mounted Search just navigates, which is cheaper than mounting a second one under it). `reveal()` then falls back to the reveal-time path below.
+-   **`CONST.DESTINATION_STRATEGY.REVEAL`, or `PRE_INSERT` where the pre-mount hasn't finished or was skipped:** `reveal()` calls `Navigation.revealRouteBeforeDismissingModal` instead. It swaps in the destination and dismisses in one step, at reveal time rather than eagerly. Correctness is the same either way. Only the pre-mount path has the mount-ahead-of-time perf win.
 
 ```tsx
 const destinationRoute = buildDestinationRoute(itemID);
@@ -279,18 +285,18 @@ const handleBackOut = () => {
 
 See `IOURequestStepConfirmation.tsx` for a reference implementation.
 
--   `reveal(afterTransition?)`: dismisses the RHP over the pre-inserted destination if the hook owns one, otherwise falls back to `revealRouteBeforeDismissingModal` (see above).
+-   `reveal(afterTransition?)`: dismisses the RHP over the pre-inserted destination if the hook owns one (on wide layout, it first shows the pre-mounted screen through the regular replace), otherwise falls back to `revealRouteBeforeDismissingModal` (see above).
 -   `cleanupPreMount()`: removes the owned pre-insert, if any. Call it unconditionally on every back-out path (header back, hardware back) that closes the RHP without calling `reveal()` - it's a no-op when this instance never actually pre-inserted anything.
--   `shouldPreservePreInsertedRouteOnUnmount`: pass when the component unmounts before `reveal()` runs but the pre-insert should survive (e.g. the caller dismisses separately after a submit).
+-   `shouldPreservePreInsertedRouteOnUnmount`: pass when the component unmounts before `reveal()` runs but the pre-insert should survive (e.g. the caller dismisses separately after a submit). It has no effect on a wide-layout pre-mount, which is always removed on unmount unless it was revealed, because only a reveal can show it.
 
 > [!NOTE]
 > Only one component may own a pre-inserted route at a time. `reveal()` logs an alert if it runs while a *different* flow's pre-insert flag is still set - that's a sign the previous owner didn't clean up.
 
 > [!NOTE]
-> When the destination resolves to one of the app's root tabs (Home, Inbox, Search, Settings, or Workspaces), pre-insert switches to that tab instead of pushing (`[Tab(A), RHP] -> [Tab(B), RHP]`), with the original tab saved for restore-on-cancel. For any other destination, it pushes a new route between the origin and the RHP instead (`[origin, RHP] -> [origin, destination, RHP]`). Which one happens is determined by the destination route, not by anything the caller configures.
+> On narrow layout, when the destination resolves to one of the app's root tabs (Home, Inbox, Search, Settings, or Workspaces), pre-insert switches to that tab instead of pushing (`[Tab(A), RHP] -> [Tab(B), RHP]`), with the original tab saved for restore-on-cancel. For any other destination, it pushes a new route between the origin and the RHP instead (`[origin, RHP] -> [origin, destination, RHP]`). Which one happens is determined by the destination route, not by anything the caller configures. On wide layout, the destination screen is pre-mounted hidden inside the existing `TAB_NAVIGATOR` instead, so the other tabs keep their state.
 
 > [!NOTE]
-> See [PERF-18](../.claude/skills/coding-standards/rules/perf-18-use-pre-mount-destination.md) for the AI-review checklist covering this hook.
+> See [PERF-18](../.claude/skills/app-coding-standards/rules/perf-18-use-pre-mount-destination.md) for the AI-review checklist covering this hook.
 
 #### What pre-inserting actually costs
 
@@ -372,7 +378,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
 };
 ```
 
-3. Define types for a new screen in `src/libs/Navigation/types.ts`.
+3. Define types for a new screen in `src/libs/Navigation/types.ts`. Screens of the Settings right-hand panel (`SettingsNavigatorParamList`) are defined in `src/libs/Navigation/paramLists/` instead: `AccountSettingsParamList.ts`, `WorkspaceSettingsParamList.ts` or `DomainSettingsParamList.ts`.
 
 ```ts
 type SettingsSplitNavigatorParamList = {
@@ -1736,8 +1742,10 @@ The purpose of the `adaptStateIfNecessary` function is to ensure that a given `S
 
 When is this function used:
 
--   This function is called when the application starts. If we open the application on the central screen, this function will push the sidebar screen.
+-   This function is called when the application starts. If we open the application on the central screen, this function will push the sidebar screen unless the navigation explicitly opts out on a narrow layout. Wide layouts always keep the sidebar.
 -   When we are on the sidebar on a small screen and we expand it to a wide layout, we have to push the central screen to fill the space on the screen.
+
+The initial-route condition can also apply during in-app navigation while `TAB_NAVIGATOR` is the only route in the root stack. A caller can use `shouldSkipInitialSplitNavigatorSidebar` to prevent a directly opened split destination from adding the sidebar as an intermediate Back destination on a narrow layout.
 
 > [!NOTE] 
 > `adaptStateIfNecessary` is called in the `getInitialState` and `getRehydratedState` methods in `src/libs/Navigation/AppNavigator/createSplitNavigator/SplitRouter.ts`.

@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -18,9 +19,15 @@ type CameraPermissionPromptProps = {
 
     /** Callback fired when the continue button is pressed */
     onPress: () => void;
+
+    /** Explanation shown under the title. Defaults to the generic receipt camera access copy */
+    subtitle?: string;
+
+    /** Sentry label for the continue button */
+    sentryLabel?: SentryLabel;
 };
 
-function CameraPermissionPrompt({isInLandscapeMode, onPress}: CameraPermissionPromptProps) {
+function CameraPermissionPrompt({isInLandscapeMode, onPress, subtitle, sentryLabel = CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_CAMERA_PERMISSION_PROMPT_BUTTON}: CameraPermissionPromptProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const lazyIllustrations = useMemoizedLazyIllustrations(['Hand']);
@@ -36,13 +43,13 @@ function CameraPermissionPrompt({isInLandscapeMode, onPress}: CameraPermissionPr
                     style={styles.pb5}
                 />
                 <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
-                <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
+                <Text style={[styles.subTextFileUpload]}>{subtitle ?? translate('receipt.cameraAccess')}</Text>
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     accessibilityLabel={translate('common.continue')}
                     style={[styles.p9, styles.pt5]}
                     onPress={onPress}
-                    sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_CAMERA_PERMISSION_PROMPT_BUTTON}
+                    sentryLabel={sentryLabel}
                 >
                     <Button.Text>{translate('common.continue')}</Button.Text>
                 </Button>

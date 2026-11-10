@@ -18,6 +18,7 @@ import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsForm} from '@src/types/form';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect, useRef} from 'react';
 
 function PrivatePersonalDetailsConfirmValidateCodePage() {
@@ -73,7 +74,8 @@ function PrivatePersonalDetailsConfirmValidateCodePage() {
         <ValidateCodeActionContent
             title={translate('delegate.makeSureItIsYou')}
             descriptionPrimary={translate('contacts.enterSecurityCode', primaryLogin ?? '')}
-            sendValidateCode={() => requestValidateCodeAction()}
+            sendValidateCode={() => requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.UPDATE_PERSONAL_DETAILS})}
+            validateCodeReasonCode={COMMON_CONST.VALIDATE_CODE_REASONS.UPDATE_PERSONAL_DETAILS}
             validateCodeActionErrorField="personalDetails"
             handleSubmitForm={handleSubmitForm}
             validateError={submitError}

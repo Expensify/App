@@ -1,4 +1,5 @@
 import Button from '@components/Button';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -8,12 +9,15 @@ import SelectionListWithSections from '@components/SelectionList/SelectionListWi
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import type {ListItem, SelectionListWithSectionsHandle} from '@components/SelectionList/types';
 
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useIsSupportalSession from '@hooks/useIsSupportalSession';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -26,6 +30,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
 import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import type {OptionWithKey} from '@libs/OptionsListUtils/types';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import type {OptionData} from '@libs/ReportUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
@@ -46,6 +51,7 @@ import reject from 'lodash/reject';
 import React, {startTransition, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 
+import AddToGroupButton from './AddToGroupButton';
 import useGroupChatDraftParticipantSync from './useGroupChatDraftParticipantSync';
 
 const excludedGroupEmails = new Set<string>(CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE));
@@ -76,18 +82,20 @@ function NewChatPage({ref}: NewChatPageProps) {
     const currentUserAccountID = personalData.accountID;
     const currentUserEmail = personalData.email ?? '';
     const {top} = useSafeAreaInsets();
+    const {contentHeaderHeight} = useContentHeaderHeight();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const selectionListRef = useRef<SelectionListWithSectionsHandle | null>(null);
     const allPersonalDetails = usePersonalDetails();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {singleExecution} = useSingleExecution();
     const isSupportalSession = useIsSupportalSession();
+    const icons = useMemoizedLazyExpensifyIcons(['UserPlus']);
 
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
@@ -122,7 +130,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         setGroupDraft({participants});
     };
 
-    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, setSelectedOptions, areOptionsInitialized, onListEndReached} = useSearchSelector({
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, setSelectedOptions, areOptionsInitialized, onListEndReached, contactState} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
         includeUserToInvite: true,
@@ -167,11 +175,12 @@ function NewChatPage({ref}: NewChatPageProps) {
 
     const cleanSearchTerm = debouncedSearchTerm.trim().toLowerCase();
     const headerMessage = getHeaderMessage(
+        translate,
         personalDetails.length + recentReports.length !== 0,
         !!userToInvite,
         debouncedSearchTerm.trim(),
         countryCode,
-        selectedOptions.some((participant) => doesPersonalDetailMatchSearchTerm(participant, currentUserAccountID, cleanSearchTerm)),
+        selectedOptions.some((participant) => doesPersonalDetailMatchSearchTerm(participant, currentUserAccountID, cleanSearchTerm, translate)),
     );
 
     // Selected rows are marked in place by the hook (isSelected), so the checkmark stays with the row instead of jumping to the top.
@@ -186,7 +195,9 @@ function NewChatPage({ref}: NewChatPageProps) {
     // to keep them visible and easy to deselect. The one already shown as the current invite row is excluded to avoid a duplicate.
     const selectedSection = selectedOptions.filter(
         (option) =>
-            !!option.isOptimisticAccount && !(userToInvite && option.login === userToInvite.login) && doesPersonalDetailMatchSearchTerm(option, currentUserAccountID, cleanSearchTerm),
+            !!option.isOptimisticAccount &&
+            !(userToInvite && option.login === userToInvite.login) &&
+            doesPersonalDetailMatchSearchTerm(option, currentUserAccountID, cleanSearchTerm, translate),
     );
 
     if (selectedSection.length) {
@@ -258,6 +269,10 @@ function NewChatPage({ref}: NewChatPageProps) {
     const selectOption = (option?: OptionWithKey) => {
         const latestSelectedOptions = latestSelectedOptionsRef.current;
 
+        // Picking a destination hands composer focus to the main pane. A chat that is already open there mounts no composer to
+        // release the Side Panel's claim, so without this the Side Panel wins the refocus that follows the dismiss.
+        ReportActionComposeFocusManager.sidePanelComposerRef.current = null;
+
         if (option?.isSelfDM) {
             // Keep the self DM inert while a group selection is pending.
             if (latestSelectedOptions.length > 0) {
@@ -289,13 +304,13 @@ function NewChatPage({ref}: NewChatPageProps) {
             return;
         }
 
-        let login = '';
-
+        let participant: OptionWithKey | undefined;
         if (option?.login) {
-            login = option.login;
+            participant = option;
         } else if (latestSelectedOptions.length === 1) {
-            login = latestSelectedOptions.at(0)?.login ?? '';
+            participant = latestSelectedOptions.at(0);
         }
+        const login = participant?.login;
         if (!login) {
             Log.warn('Tried to create chat with empty login');
             return;
@@ -303,13 +318,13 @@ function NewChatPage({ref}: NewChatPageProps) {
         KeyboardUtils.dismiss().then(() => {
             singleExecution(() =>
                 navigateToAndOpenReport({
-                    userLogins: [login],
+                    login,
+                    personalDetailsByLogin: getPersonalDetailsByLogin(),
                     personalDetails: allPersonalDetails,
                     currentUserAccountID,
                     introSelected,
                     isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
                     hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                    betas,
                     conciergeChat,
                     isSupportalSession,
                 }),
@@ -317,9 +332,9 @@ function NewChatPage({ref}: NewChatPageProps) {
         });
     };
 
-    const itemRightSideComponent = (item: OptionWithKey, isFocused?: boolean) => {
+    const getRowActionElement = (item: OptionWithKey) => {
         if (item.isSelfDM) {
-            return null;
+            return undefined;
         }
 
         if (item.isSelected) {
@@ -338,22 +353,21 @@ function NewChatPage({ref}: NewChatPageProps) {
 
         // "Add to group" only makes sense for eligible (login-bearing, non-excluded) users
         if (!item.login || excludedGroupEmails.has(item.login)) {
-            return null;
+            return undefined;
         }
 
-        const buttonInnerStyles = isFocused ? styles.buttonDefaultHovered : {};
         return (
-            <Button
-                onPress={() => toggleOption(item)}
-                style={[styles.pl2]}
-                accessibilityLabel={item.text ? translate('newChatPage.addUserToGroup', item.text) : ''}
-                innerStyles={buttonInnerStyles}
-                size={CONST.BUTTON_SIZE.SMALL}
-            >
-                <Button.Text>{translate('newChatPage.addToGroup')}</Button.Text>
-            </Button>
+            <AddToGroupButton
+                item={item}
+                onPress={toggleOption}
+            />
         );
     };
+
+    const sectionsWithRowActions = sections.map((section) => ({
+        ...section,
+        data: section.data.map((option) => ({...option, actionElement: getRowActionElement(option)})),
+    }));
 
     const createGroup = () => {
         const latestSelectedOptions = latestSelectedOptionsRef.current;
@@ -379,6 +393,7 @@ function NewChatPage({ref}: NewChatPageProps) {
 
             {!!selectedOptions.length && (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.NEW_CHAT.NEXT_BUTTON}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={createGroup}
@@ -389,6 +404,16 @@ function NewChatPage({ref}: NewChatPageProps) {
             )}
         </>
     );
+
+    // Device contacts can't be imported in bulk on Android, so let the user pick one with the system picker
+    const importContactsButton = contactState?.pickContact ? (
+        <MenuItemNavigation
+            title={translate('contact.importContacts')}
+            icon={icons.UserPlus}
+            onPress={contactState.pickContact}
+            sentryLabel={CONST.SENTRY_LABEL.NEW_CHAT.IMPORT_CONTACTS_ITEM}
+        />
+    ) : null;
 
     const textInputOptions = {
         label: translate('selectionList.nameEmailOrPhoneNumber'),
@@ -407,7 +432,7 @@ function NewChatPage({ref}: NewChatPageProps) {
             shouldEnablePickerAvoiding={false}
             disableOfflineIndicatorSafeAreaPadding
             shouldShowOfflineIndicator={false}
-            keyboardVerticalOffset={variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
+            keyboardVerticalOffset={contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
             // Disable the focus trap of this page to activate the parent focus trap in `NewChatSelectorPage`.
             focusTrapSettings={{active: false}}
             testID="NewChatPage"
@@ -415,20 +440,21 @@ function NewChatPage({ref}: NewChatPageProps) {
             <SelectionListWithSections<OptionWithKey>
                 ref={selectionListRef}
                 ListItem={BareUserListItem}
-                sections={areOptionsInitialized ? sections : getEmptyArray<Section<OptionWithKey>>()}
+                sections={areOptionsInitialized ? sectionsWithRowActions : getEmptyArray<Section<OptionWithKey>>()}
                 onSelectRow={selectOption}
                 shouldShowTextInput
                 textInputOptions={textInputOptions}
+                customListHeaderContent={importContactsButton}
                 canSelectMultiple
                 shouldPreventAutoScrollOnSelect
                 shouldClearInputOnSelect={false}
                 shouldUpdateFocusedIndex
                 shouldSingleExecuteRowSelect
                 confirmButtonOptions={{
-                    onConfirm: (e, option) => (latestSelectedOptionsRef.current.length > 0 ? createGroup() : selectOption(option)),
+                    onConfirm: () => (latestSelectedOptionsRef.current.length > 0 ? createGroup() : selectOption()),
+                    onConfirmFocusedOption: (option) => (latestSelectedOptionsRef.current.length > 0 ? createGroup() : selectOption(option)),
                     isFooterConfirmEnabled: selectedOptions.length > 0,
                 }}
-                rightHandSideComponent={itemRightSideComponent}
                 footerContent={footerContent}
                 shouldShowLoadingPlaceholder={!areOptionsInitialized}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}

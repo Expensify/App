@@ -13,7 +13,8 @@ import {updateNetSuiteCustomLists, updateNetSuiteCustomSegments} from '@libs/act
 import {clearNetSuiteErrorField, clearNetSuitePendingField, removeNetSuiteCustomFieldByIndex} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getNameFromNetSuiteCustomField, isNetSuiteCustomFieldPropertyEditable, isNetSuiteCustomSegmentRecord, settingsPendingAction} from '@libs/PolicyUtils';
+import {getNameFromNetSuiteCustomField, isNetSuiteCustomFieldPropertyEditable, isNetSuiteCustomSegmentRecord} from '@libs/NetSuiteUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -26,7 +27,7 @@ import type {NetSuiteCustomList, NetSuiteCustomSegment} from '@src/types/onyx/Po
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 type CustomField = NetSuiteCustomList | NetSuiteCustomSegment;
 type ImportCustomFieldsKeys = ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;
@@ -54,14 +55,14 @@ function NetSuiteImportCustomFieldView({
     const {showConfirmModal} = useConfirmModal();
 
     const config = policy?.connections?.netsuite?.options?.config;
-    const allRecords = useMemo(() => config?.syncOptions?.[importCustomField] ?? [], [config?.syncOptions, importCustomField]);
+    const allRecords = config?.syncOptions?.[importCustomField] ?? [];
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
 
     const customField: CustomField | undefined = allRecords[valueIndex];
     const fieldList =
         customField && isNetSuiteCustomSegmentRecord(customField) ? CONST.NETSUITE_CONFIG.CUSTOM_SEGMENT_FIELDS : [INPUT_IDS.LIST_NAME, INPUT_IDS.TRANSACTION_FIELD_ID, INPUT_IDS.MAPPING];
 
-    const removeRecord = useCallback(() => {
+    const removeRecord = () => {
         if (!policyID) {
             return;
         }
@@ -88,7 +89,7 @@ function NetSuiteImportCustomFieldView({
             }
         }
         Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, importCustomField));
-    }, [allRecords, customField, importCustomField, policyID, valueIndex]);
+    };
 
     return (
         <ConnectionLayout

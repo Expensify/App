@@ -54,7 +54,7 @@ jest.mock('@libs/actions/Travel', () => {
     return {
         ...actual,
         cleanupTravelProvisioningSession: jest.fn(),
-        requestTravelAccess: jest.fn(),
+        requestTravelAccess: jest.fn(() => Promise.resolve(false)),
         setTravelProvisioningNextStep: jest.fn(),
     };
 });
@@ -221,6 +221,41 @@ describe('BookTravelButton', () => {
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
+        it('sends an admin who can skip verification straight to enabling travel', async () => {
+            // Given an unprovisioned workspace and a validated admin whose account can skip the guide review
+            jest.mocked(requestTravelAccess).mockResolvedValueOnce(true);
+            await seedOnyx(true, unprovisionedPolicy);
+            renderBookTravelButton();
+            await waitForBatchedUpdatesWithAct();
+
+            // When the admin presses the book travel button
+            fireEvent.press(screen.getByText('Book a trip'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then they go to the enablement stepper instead of being told their request is under review
+            expect(requestTravelAccess).toHaveBeenCalled();
+            expect(cleanupTravelProvisioningSession).toHaveBeenCalled();
+            expect(Navigation.navigate).toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        });
+
+        it('shows an error instead of the verify-company modal when the request fails', async () => {
+            // Given an unprovisioned workspace and a validated admin whose request cannot reach the server
+            jest.mocked(requestTravelAccess).mockRejectedValueOnce(new Error('Failed to fetch'));
+            await seedOnyx(true, unprovisionedPolicy);
+            renderBookTravelButton();
+            await waitForBatchedUpdatesWithAct();
+
+            // When the admin presses the book travel button
+            fireEvent.press(screen.getByText('Book a trip'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then they see the generic error and are neither told their request is under review nor sent to enable travel
+            expect(screen.getByText(/something went wrong/)).toBeTruthy();
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
         it('routes an unvalidated admin to verify their account, then resumes the request and shows the verify-company modal', async () => {
             // Given an unprovisioned workspace and an admin who has not validated their account
             await seedOnyx(false, unprovisionedPolicy);
@@ -325,6 +360,52 @@ describe('BookTravelButton', () => {
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('when account.primaryLogin is absent from Onyx (e.g. a session restored from storage after a reload)', () => {
+        it('falls back to the session email instead of blocking the user with the contact-method error', async () => {
+            // Given a validated admin whose work email is only known from the session, not from account.primaryLogin
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, provisionedPolicy);
+                await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true});
+                await Onyx.merge(ONYXKEYS.SESSION, {email: USER_LOGIN});
+                await Onyx.merge(ONYXKEYS.NVP_TRAVEL_SETTINGS, {hasAcceptedTerms: false});
+                await Onyx.merge(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {legalFirstName: 'Test', legalLastName: 'User'});
+                await waitForBatchedUpdatesWithAct();
+            });
+            renderBookTravelButton();
+            await waitForBatchedUpdatesWithAct();
+
+            // When the admin presses the book travel button
+            fireEvent.press(screen.getByText('Book a trip'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then travel enablement proceeds rather than surfacing the "add a work email" error
+            expect(Navigation.navigate).toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
+            expect(screen.queryByText(/add a work email as your primary login/)).toBeNull();
+        });
+
+        it('falls back to the session email when primaryLogin is stored as an empty string', async () => {
+            // Given a validated admin whose account.primaryLogin is present but empty, a state the app writes in practice
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, provisionedPolicy);
+                await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, primaryLogin: ''});
+                await Onyx.merge(ONYXKEYS.SESSION, {email: USER_LOGIN});
+                await Onyx.merge(ONYXKEYS.NVP_TRAVEL_SETTINGS, {hasAcceptedTerms: false});
+                await Onyx.merge(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {legalFirstName: 'Test', legalLastName: 'User'});
+                await waitForBatchedUpdatesWithAct();
+            });
+            renderBookTravelButton();
+            await waitForBatchedUpdatesWithAct();
+
+            // When the admin presses the book travel button
+            fireEvent.press(screen.getByText('Book a trip'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then travel enablement proceeds rather than surfacing the "add a work email" error
+            expect(Navigation.navigate).toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
+            expect(screen.queryByText(/add a work email as your primary login/)).toBeNull();
         });
     });
 

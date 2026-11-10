@@ -15,8 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 type MockUseCreateReportParams = {
-    onCreateReport: (shouldDismissEmptyReportsConfirmation?: boolean) => void;
-    groupPoliciesWithChatEnabled: unknown[] | readonly never[];
+    onCreateReport: (policy: unknown, shouldDismissEmptyReportsConfirmation?: boolean) => void;
     onNavigateToWorkspaceSelection: () => void;
     shouldHandleNavigationBack: boolean;
     shouldSkipEmptyReportConfirmation?: boolean;
@@ -37,8 +36,6 @@ const mockUseOnyx = jest.fn<unknown[], [key: string, options?: MockOnyxOptions]>
 const isBetaEnabledByDefault = (beta: string) => beta !== CONST.BETAS.PREVENT_SPOTNANA_TRAVEL;
 const mockIsBetaEnabled = jest.fn(isBetaEnabledByDefault);
 const mockCanSendInvoice = jest.fn<boolean, unknown[]>(() => false);
-const mockGetDefaultChatEnabledPolicy = jest.fn((policies: unknown[]) => (policies.length === 1 ? policies.at(0) : undefined));
-const mockGetGroupPoliciesWhereReportCanBeCreated = jest.fn<unknown[], [policies: unknown, currentUserLogin?: string]>();
 const mockShouldShowPolicy = jest.fn<boolean, unknown[]>(() => true);
 const mockHasAcceptedTravelTerms = jest.fn(() => false);
 const mockIsPaidGroupPolicy = jest.fn(() => false);
@@ -62,39 +59,40 @@ jest.mock('@hooks/useCurrencyList', () => ({
     useCurrencyListActions: () => ({getCurrencyDecimals: mockGetCurrencyDecimals}),
 }));
 
+// Stable references across renders, like the real hooks.
+const mockIcons = {
+    Document: mockIcon,
+    Location: mockIcon,
+    ChatBubble: mockIcon,
+    InvoiceGeneric: mockIcon,
+    Suitcase: mockIcon,
+    NewWorkspace: mockIcon,
+};
+const mockTranslations = new Map([
+    ['homePage.gettingStartedSection.createExpense', 'Create an expense'],
+    ['homePage.gettingStartedSection.createWorkspace', 'Create a workspace'],
+    ['common.chat', 'Chat'],
+    ['common.new', 'New'],
+    ['iou.addExpense', 'Add expense'],
+    ['iou.createExpense', 'Create expense'],
+    ['iou.trackDistance', 'Track distance'],
+    ['onboarding.workspace.createWorkspace', 'Create workspace'],
+    ['report.newReport.createReport', 'Create report'],
+    ['sidebarScreen.fabNewChat', 'Start chat'],
+    ['travel.bookTravel', 'Book travel'],
+    ['workspace.invoices.sendInvoice', 'Send invoice'],
+    ['workspace.new.newWorkspace', 'New workspace'],
+]);
+const mockLocalize = {translate: (key: string) => mockTranslations.get(key) ?? key};
+const mockPermissions = {isBetaEnabled: mockIsBetaEnabled, isBetaEnabledOrUnknown: mockIsBetaEnabled};
+
 jest.mock('@hooks/useLazyAsset', () => ({
-    useMemoizedLazyExpensifyIcons: () => ({
-        Document: mockIcon,
-        Location: mockIcon,
-        ChatBubble: mockIcon,
-        InvoiceGeneric: mockIcon,
-        Suitcase: mockIcon,
-        NewWorkspace: mockIcon,
-    }),
+    useMemoizedLazyExpensifyIcons: () => mockIcons,
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
-    default: () => ({
-        translate: (key: string) => {
-            const translations = new Map([
-                ['homePage.gettingStartedSection.createExpense', 'Create an expense'],
-                ['homePage.gettingStartedSection.createWorkspace', 'Create a workspace'],
-                ['common.chat', 'Chat'],
-                ['common.new', 'New'],
-                ['iou.addExpense', 'Add expense'],
-                ['iou.createExpense', 'Create expense'],
-                ['iou.trackDistance', 'Track distance'],
-                ['onboarding.workspace.createWorkspace', 'Create workspace'],
-                ['report.newReport.createReport', 'Create report'],
-                ['sidebarScreen.fabNewChat', 'Start chat'],
-                ['travel.bookTravel', 'Book travel'],
-                ['workspace.invoices.sendInvoice', 'Send invoice'],
-                ['workspace.new.newWorkspace', 'New workspace'],
-            ]);
-            return translations.get(key) ?? key;
-        },
-    }),
+    default: () => mockLocalize,
 }));
 
 jest.mock('@hooks/useNetwork', () => ({
@@ -109,7 +107,7 @@ jest.mock('@hooks/useOnyx', () => ({
 
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: () => ({isBetaEnabled: mockIsBetaEnabled}),
+    default: () => mockPermissions,
 }));
 
 jest.mock('@hooks/usePreferredPolicy', () => ({
@@ -165,8 +163,6 @@ jest.mock('@libs/openTravelDotLink', () => ({
 
 jest.mock('@libs/PolicyUtils', () => ({
     canSendInvoice: (...args: unknown[]) => mockCanSendInvoice(...args),
-    getDefaultChatEnabledPolicy: (policies: unknown[]) => mockGetDefaultChatEnabledPolicy(policies),
-    getGroupPoliciesWhereReportCanBeCreated: (policies: unknown, currentUserLogin?: string) => mockGetGroupPoliciesWhereReportCanBeCreated(policies, currentUserLogin),
     hasAcceptedTravelTerms: () => mockHasAcceptedTravelTerms(),
     isPaidGroupPolicy: () => mockIsPaidGroupPolicy(),
     shouldShowPolicy: (...args: unknown[]) => mockShouldShowPolicy(...args),
@@ -205,9 +201,25 @@ function setupUseOnyx() {
         [ONYXKEYS.IS_LOADING_APP, false],
     ]);
 
+    // Like Onyx, reuse the selected value while the stored value is unchanged.
+    const selectedValues = new Map<MockOnyxOptions['selector'], Map<string, {value: unknown; selected: unknown}>>();
     mockUseOnyx.mockImplementation((key, options) => {
         const value = mockOnyxValues.get(key);
-        return [options?.selector ? options.selector(value) : value, {status: 'loaded'}];
+        const selector = options?.selector;
+        if (!selector) {
+            return [value, {status: 'loaded'}];
+        }
+
+        const selectedByKey = selectedValues.get(selector) ?? new Map<string, {value: unknown; selected: unknown}>();
+        selectedValues.set(selector, selectedByKey);
+        const previous = selectedByKey.get(key);
+        if (previous && previous.value === value) {
+            return [previous.selected, {status: 'loaded'}];
+        }
+
+        const selected = selector(value);
+        selectedByKey.set(key, {value, selected});
+        return [selected, {status: 'loaded'}];
     });
 }
 
@@ -220,25 +232,45 @@ describe('useCreateNavigationSuggestions', () => {
         mockHasAcceptedTravelTerms.mockReturnValue(false);
         mockIsPaidGroupPolicy.mockReturnValue(false);
         mockIsBetaEnabled.mockImplementation(isBetaEnabledByDefault);
-        mockGetGroupPoliciesWhereReportCanBeCreated.mockReturnValue([]);
         mockIsOnSearchMoneyRequestReportPage.mockReturnValue(false);
         mockIsRestrictedPolicyCreation = false;
         mockCreateReportIsVisible = true;
         jest.mocked(Navigation.isTopmostRouteModalScreen).mockReturnValue(false);
     });
 
-    it('uses shared report policy eligibility and renders only available Create actions', () => {
+    it('renders only available Create actions', () => {
+        // Given useCreateReport reports "Create report" as not visible (e.g. policies or the domain lock still loading)
         mockCreateReportIsVisible = false;
+
+        // When the Search router builds its Create suggestions
         const {result} = renderHook(() => useCreateNavigationSuggestions());
 
-        expect(mockGetGroupPoliciesWhereReportCanBeCreated).toHaveBeenCalledWith(policies, session.email);
-        expect(mockUseCreateReport).toHaveBeenCalledWith(
-            expect.objectContaining({
-                groupPoliciesWithChatEnabled: [],
-                shouldHandleNavigationBack: false,
-            }),
-        );
+        // Then "Create report" is left out and the remaining actions keep their order
+        expect(mockUseCreateReport).toHaveBeenCalledWith(expect.objectContaining({shouldHandleNavigationBack: false}));
         expect(result.current.map((item) => item.keyForList)).toEqual(['create_expense', 'create_trackDistance', 'create_chat']);
+    });
+
+    it('returns the same items when re-rendered with unchanged inputs', () => {
+        // Given the Create suggestions built once
+        const {result, rerender} = renderHook(() => useCreateNavigationSuggestions('create'));
+        const firstItems = result.current;
+
+        // When the Search Router re-renders without any of the hook's inputs changing
+        rerender(undefined);
+
+        // Then the same array is returned, so the navigation suggestions built from it are not rebuilt
+        expect(result.current).toBe(firstItems);
+    });
+
+    it('builds no Create items and skips the policy scans when they are not needed', () => {
+        // Given the Search Router has a query that can't match any navigation suggestion
+        // When it asks for the Create suggestions without building them
+        const {result} = renderHook(() => useCreateNavigationSuggestions('', false));
+
+        // Then no items are returned and the policies are not scanned
+        expect(result.current).toEqual([]);
+        expect(mockCanSendInvoice).not.toHaveBeenCalled();
+        expect(mockShouldShowPolicy).not.toHaveBeenCalled();
     });
 
     it('uses localized aliases for Create action matching', () => {
@@ -279,11 +311,14 @@ describe('useCreateNavigationSuggestions', () => {
     });
 
     it('does not create a report without a default policy', () => {
+        // Given the Search router has handed its create callback to useCreateReport
         renderHook(() => useCreateNavigationSuggestions());
-
         const onCreateReport = mockUseCreateReport.mock.calls.at(0)?.at(0)?.onCreateReport;
-        act(() => onCreateReport?.());
 
+        // When the hook resolves no workspace and calls back with undefined
+        act(() => onCreateReport?.(undefined));
+
+        // Then no report is created and nothing navigates, rather than creating a report with no workspace
         expect(createNewReport).not.toHaveBeenCalled();
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
@@ -377,15 +412,15 @@ describe('useCreateNavigationSuggestions', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TRAVEL_MY_TRIPS.getRoute(submitPolicy.id));
     });
 
-    it('passes Submit eligibility and exposes permission-gated actions', () => {
-        mockGetGroupPoliciesWhereReportCanBeCreated.mockReturnValue([submitPolicy]);
+    it('exposes permission-gated actions', () => {
+        // Given a user who can send invoices and has no workspace of their own yet
         mockCanSendInvoice.mockReturnValue(true);
         mockShouldShowPolicy.mockReturnValue(false);
 
+        // When the Search router builds its Create suggestions and the invoice and workspace actions are run
         const {result} = renderHook(() => useCreateNavigationSuggestions());
 
-        expect(mockGetGroupPoliciesWhereReportCanBeCreated).toHaveBeenCalledWith(policies, session.email);
-        expect(mockUseCreateReport).toHaveBeenCalledWith(expect.objectContaining({groupPoliciesWithChatEnabled: [submitPolicy]}));
+        // Then both gated actions are listed alongside the always-available ones and start their own flows
         expect(result.current.map((item) => item.keyForList)).toEqual(['create_expense', 'create_report', 'create_trackDistance', 'create_chat', 'create_invoice', 'create_workspace']);
 
         act(() => result.current.find((item) => item.keyForList === 'create_invoice')?.action?.());
@@ -417,29 +452,32 @@ describe('useCreateNavigationSuggestions', () => {
     });
 
     it('creates a report and navigates through the Reports root', () => {
-        mockGetGroupPoliciesWhereReportCanBeCreated.mockReturnValue([submitPolicy]);
+        // Given the Search router has handed its create callback to useCreateReport
         renderHook(() => useCreateNavigationSuggestions());
-
         const onCreateReport = mockUseCreateReport.mock.calls.at(0)?.at(0)?.onCreateReport;
-        act(() => onCreateReport?.(true));
 
-        expect(createNewReport).toHaveBeenCalledWith(expect.anything(), false, true, submitPolicy, [], false, mockGetCurrencyDecimals, undefined, false, true);
+        // When the hook resolves a workspace and calls back with it
+        act(() => onCreateReport?.(submitPolicy, true));
+
+        // Then the report is created on that workspace, and the Reports root is pushed first so back returns to the list
+        expect(createNewReport).toHaveBeenCalledWith(expect.anything(), false, true, submitPolicy, false, mockGetCurrencyDecimals, undefined, false, true);
         expect(clearLastSearchParams).not.toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenNthCalledWith(1, 'reports', {forceReplace: false});
         expect(Navigation.navigate).toHaveBeenNthCalledWith(2, 'report/created-report', {forceReplace: false});
     });
 
     it('reads the underlying search report route when Create report actions run', () => {
-        mockGetGroupPoliciesWhereReportCanBeCreated.mockReturnValue([submitPolicy]);
+        // Given the router rendered without checking the route, and the user is now on a Search report page
         renderHook(() => useCreateNavigationSuggestions());
-
         expect(mockIsOnSearchMoneyRequestReportPage).not.toHaveBeenCalled();
         mockIsOnSearchMoneyRequestReportPage.mockReturnValue(true);
 
+        // When the create and workspace-selector callbacks run
         const createReportParams = mockUseCreateReport.mock.calls.at(0)?.at(0);
-        act(() => createReportParams?.onCreateReport());
+        act(() => createReportParams?.onCreateReport(submitPolicy));
         act(() => createReportParams?.onNavigateToWorkspaceSelection());
 
+        // Then the route is read at action time, so both replace the Search report page instead of stacking on it
         expect(clearLastSearchParams).toHaveBeenCalledTimes(1);
         expect(Navigation.navigate).toHaveBeenNthCalledWith(1, 'reports', {forceReplace: true});
         expect(Navigation.navigate).toHaveBeenNthCalledWith(2, 'report/created-report', {forceReplace: true});

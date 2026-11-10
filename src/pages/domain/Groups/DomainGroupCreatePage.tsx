@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useIsDomainUsingCard from '@hooks/useIsDomainUsingCard';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -61,14 +62,17 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
         selector: defaultSecurityGroupIDSelector,
     });
     const [adminPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createAdminPoliciesSelector()});
-    const [domainCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`);
-    const isDomainUsingExpensifyCard = !!domainCardSettings;
+    const {isDomainUsingCard, isLoading: isCardEligibilityLoading} = useIsDomainUsingCard(domainAccountID);
 
     const firstAdminPolicy = Object.values(adminPolicies ?? {})
         .sort((a, b) => localeCompare(a?.created ?? '', b?.created ?? ''))
         .at(0);
     const hasAdminPolicies = !!firstAdminPolicy;
     const preferredWorkspaceName = preferredPolicyName ?? firstAdminPolicy?.name;
+
+    // A toggle's dependency can disappear while this page is open, so we keep its value and flag it on Create (see onSubmit).
+    const canEnablePreferredWorkspace = hasAdminPolicies;
+    const canEnableCardPreferredWorkspace = preferredWorkspace && isDomainUsingCard;
 
     useEffect(() => {
         return () => {
@@ -103,6 +107,26 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                         return errors;
                     }}
                     onSubmit={(values: FormOnyxValues<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_GROUP_FORM>) => {
+                        // A dependency may have been removed from another device after the person enabled a toggle. Rather
+                        // than silently turning the toggle off, surface it here so it's clear why the choice can't be applied.
+                        if (preferredWorkspace && !hasAdminPolicies) {
+                            showConfirmModal({
+                                title: translate('workspace.distanceRates.oopsNotSoFast'),
+                                prompt: translate('domain.groups.noWorkspacesMessage'),
+                                confirmText: translate('common.buttonConfirm'),
+                                shouldShowCancelButton: false,
+                            });
+                            return;
+                        }
+                        if (expensifyCardPreferredWorkspace && !isDomainUsingCard) {
+                            showConfirmModal({
+                                title: translate('workspace.distanceRates.oopsNotSoFast'),
+                                prompt: translate('domain.groups.expensifyCardPreferredWorkspaceDisabledMessage'),
+                                confirmText: translate('common.buttonConfirm'),
+                                shouldShowCancelButton: false,
+                            });
+                            return;
+                        }
                         createDomainSecurityGroup(
                             domainAccountID,
                             {
@@ -142,6 +166,7 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                     <ToggleSettingOptionRow
                         title={translate('domain.groups.defaultGroup')}
                         switchAccessibilityLabel={translate('domain.groups.defaultGroup')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.CREATE_DEFAULT_GROUP_SWITCH}
                         isActive={defaultGroupForNewMembers}
                         onToggle={setDefaultGroupForNewMembers}
                         wrapperStyle={[styles.ph5, styles.mv3]}
@@ -152,6 +177,7 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                         title={translate('domain.groups.strictlyEnforceWorkspaceRules')}
                         subtitle={translate('domain.groups.strictlyEnforceWorkspaceRulesDescription')}
                         switchAccessibilityLabel={translate('domain.groups.strictlyEnforceWorkspaceRules')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.CREATE_STRICTLY_ENFORCE_WORKSPACE_RULES_SWITCH}
                         isActive={strictlyEnforceWorkspaceRules}
                         onToggle={setStrictlyEnforceWorkspaceRules}
                         wrapperStyle={[styles.ph5, styles.mv3]}
@@ -161,6 +187,7 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                         title={translate('domain.groups.restrictDefaultLoginSelection')}
                         subtitle={translate('domain.groups.restrictDefaultLoginSelectionDescription')}
                         switchAccessibilityLabel={translate('domain.groups.restrictDefaultLoginSelection')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.CREATE_RESTRICT_DEFAULT_LOGIN_SELECTION_SWITCH}
                         isActive={restrictDefaultLoginSelection}
                         onToggle={setRestrictDefaultLoginSelection}
                         wrapperStyle={[styles.ph5, styles.mv3]}
@@ -170,6 +197,7 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                         title={translate('domain.groups.restrictExpenseWorkspaceCreation')}
                         subtitle={translate('domain.groups.restrictExpenseWorkspaceCreationDescription')}
                         switchAccessibilityLabel={translate('domain.groups.restrictExpenseWorkspaceCreation')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.CREATE_RESTRICT_EXPENSE_WORKSPACE_CREATION_SWITCH}
                         isActive={restrictExpenseWorkspaceCreation}
                         onToggle={setRestrictExpenseWorkspaceCreation}
                         wrapperStyle={[styles.ph5, styles.mv3]}
@@ -179,8 +207,9 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                         title={translate('domain.groups.preferredWorkspace')}
                         subtitle={translate('domain.groups.preferredWorkspaceDescription', preferredWorkspace)}
                         switchAccessibilityLabel={translate('domain.groups.preferredWorkspace')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.CREATE_PREFERRED_WORKSPACE_SWITCH}
                         isActive={preferredWorkspace}
-                        disabled={!hasAdminPolicies}
+                        disabled={!canEnablePreferredWorkspace && !preferredWorkspace}
                         disabledAction={() => {
                             showConfirmModal({
                                 title: translate('workspace.distanceRates.oopsNotSoFast'),
@@ -215,9 +244,14 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                         title={translate('domain.groups.expensifyCardPreferredWorkspace')}
                         subtitle={translate('domain.groups.expensifyCardPreferredWorkspaceDescription')}
                         switchAccessibilityLabel={translate('domain.groups.expensifyCardPreferredWorkspace')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.CREATE_EXPENSIFY_CARD_PREFERRED_WORKSPACE_SWITCH}
                         isActive={expensifyCardPreferredWorkspace}
-                        disabled={!preferredWorkspace || !isDomainUsingExpensifyCard}
+                        disabled={!canEnableCardPreferredWorkspace && !expensifyCardPreferredWorkspace}
                         disabledAction={() => {
+                            // While card eligibility is still loading we keep the toggle disabled but skip the error, otherwise a domain that does have a feed would show the "no card feed" message on a cold load.
+                            if (isCardEligibilityLoading) {
+                                return;
+                            }
                             showConfirmModal({
                                 title: translate('workspace.distanceRates.oopsNotSoFast'),
                                 prompt: translate('domain.groups.expensifyCardPreferredWorkspaceDisabledMessage'),

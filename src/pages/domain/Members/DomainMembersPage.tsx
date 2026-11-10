@@ -1,8 +1,6 @@
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DomainMemberBulkActionType, DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import DecisionModal from '@components/DecisionModal';
-import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -14,6 +12,7 @@ import type {DomainMemberRowData} from '@components/Tables/DomainMembersTable';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useClearSelectedDomainMembersOnMoveComplete from '@hooks/useClearSelectedDomainMembersOnMoveComplete';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useDecisionModal from '@hooks/useDecisionModal';
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
 import useDomainGroupFilter from '@hooks/useDomainGroupFilter';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -21,6 +20,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
@@ -46,7 +46,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import {defaultSecurityGroupIDSelector, domainNameSelector, memberAccountIDsSelector, memberPendingActionSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
+import {domainNameSelector, memberAccountIDsSelector, memberPendingActionSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -72,38 +72,18 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
 
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
     const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {selector: memberPendingActionSelector});
-    const [defaultSecurityGroupID] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: defaultSecurityGroupIDSelector});
-    const [isModalVisible, setIsModalVisible] = useState(false);
-    const [shouldForceCloseAccount, setShouldForceCloseAccount] = useState<boolean>();
     const {showConfirmModal} = useConfirmModal();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const {showDecisionModal} = useDecisionModal();
+    const [personalDetails] = useAllPersonalDetails();
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
     useDomainDocumentTitle(domainName, 'domain.domainMembers');
-    // We need to use isSmallScreenWidth here because the DecisionModal is opening from RHP and ShouldUseNarrowLayout layout will not work in this place.
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const [memberIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: memberAccountIDsSelector,
     });
 
     const {filterConfig, isItemInFilter, shouldShowGroupFilter, shouldShowGroupColumn, groups} = useDomainGroupFilter(domainAccountID);
-
-    const membersFeatureListItems: FeatureListItem[] = [
-        {
-            icon: illustrations.BuildingCross,
-            translationKey: 'domain.members.membersFeatureList.controlPolicyCreation',
-        },
-        {
-            icon: illustrations.LockClosed,
-            translationKey: 'domain.members.membersFeatureList.enableSamlSso',
-        },
-        {
-            icon: illustrations.Encryption,
-            translationKey: 'domain.members.membersFeatureList.enforce2FA',
-        },
-    ];
 
     const members: DomainMemberRowData[] = (memberIDs ?? [])
         .filter((accountID) => {
@@ -128,12 +108,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 pendingAction: customProps?.pendingAction,
                 disabled: isPendingActionDelete || !!details?.isOptimisticPersonalDetail,
                 action: () => Navigation.navigate(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, accountID)),
-                dismissError: () => {
-                    if (!defaultSecurityGroupID) {
-                        return;
-                    }
-                    clearDomainMemberError(domainAccountID, accountID, login, defaultSecurityGroupID, customProps?.pendingAction);
-                },
+                dismissError: () => clearDomainMemberError(domainAccountID, accountID, login, group?.id, !!details?.isOptimisticPersonalDetail),
             };
         });
 
@@ -145,21 +120,22 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         onNavigationCallBack: () => Navigation.goBack(),
     });
 
-    const handleForceCloseAccount = () => {
-        setShouldForceCloseAccount(true);
-        setIsModalVisible(false);
-    };
+    const showCloseAccountModal = async () => {
+        const decision = await showDecisionModal({
+            title: translate('domain.members.closeAccount', {count: selectedMembers.length}),
+            prompt: translate('domain.members.closeAccountInfo', {count: selectedMembers.length}),
+            secondOptionText: translate('domain.members.safeCloseAccount', {count: selectedMembers.length}),
+            firstOptionText: translate('domain.members.forceCloseAccount', {count: selectedMembers.length}),
+            isFirstOptionDanger: true,
+            isSecondOptionSuccess: true,
+            shouldReportDismiss: true,
+        });
 
-    const handleSafeCloseAccount = () => {
-        setShouldForceCloseAccount(false);
-        setIsModalVisible(false);
-    };
-
-    const handleCloseAccount = async () => {
-        if (shouldForceCloseAccount === undefined) {
+        if (decision.action === ModalActions.DISMISS) {
             return;
         }
 
+        const shouldForceCloseAccount = decision.action === ModalActions.CONFIRM;
         const result = await showConfirmModal({
             title: translate('domain.members.closeAccount', {count: selectedMembers.length}),
             prompt: translate('domain.members.closeAccountPrompt'),
@@ -170,8 +146,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         });
 
         if (result.action !== ModalActions.CONFIRM) {
-            setIsModalVisible(true);
-            setShouldForceCloseAccount(undefined);
+            showCloseAccountModal();
             return;
         }
 
@@ -182,12 +157,10 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 continue;
             }
             const securityGroupData = selectSecurityGroupForAccount(accountID)(domain);
-            closeUserAccount(domainAccountID, domainName, memberLogin, securityGroupData, shouldForceCloseAccount);
+            closeUserAccount(domainAccountID, domainName, memberLogin, accountID, securityGroupData, shouldForceCloseAccount);
         }
 
-        setShouldForceCloseAccount(undefined);
         clearSelectedMembers();
-        setIsModalVisible(false);
     };
 
     const getBulkActionsButtonOptions: () => Array<DropdownOption<DomainMemberBulkActionType>> = () => [
@@ -196,7 +169,9 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             value: CONST.DOMAIN.MEMBERS.BULK_ACTION_TYPES.CLOSE_ACCOUNT,
             icon: icons.RemoveMembers,
             shouldSkipFocusRestore: true,
-            onSelected: () => setIsModalVisible(true),
+            onSelected: () => {
+                showCloseAccountModal();
+            },
         },
         {
             text: translate('domain.members.moveToGroup'),
@@ -312,7 +287,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                     >
                         <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
                             <FeatureList
-                                menuItems={membersFeatureListItems}
                                 title={translate('domain.domainMembers')}
                                 renderSubtitle={() => (
                                     <SectionSubtitleHTML
@@ -330,7 +304,11 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                                 illustrationStyle={styles.emptyStateSamlIllustration}
                                 illustrationContainerStyle={[styles.cardSectionIllustrationContainer, styles.justifyContentCenter, styles.pv5]}
                                 titleStyles={styles.textHeadlineH1}
-                            />
+                            >
+                                <FeatureList.Item icon={illustrations.BuildingCross}>{translate('domain.members.membersFeatureList.controlPolicyCreation')}</FeatureList.Item>
+                                <FeatureList.Item icon={illustrations.LockClosed}>{translate('domain.members.membersFeatureList.enableSamlSso')}</FeatureList.Item>
+                                <FeatureList.Item icon={illustrations.Encryption}>{translate('domain.members.membersFeatureList.enforce2FA')}</FeatureList.Item>
+                            </FeatureList>
                         </View>
                     </ScrollView>
                 </ScreenWrapper>
@@ -339,45 +317,27 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     }
 
     return (
-        <>
-            <BaseDomainMembersPage
-                domainAccountID={domainAccountID}
-                members={members}
-                headerTitle={translate('domain.members.title')}
-                headerContent={getHeaderButtons()}
-                selectedMembers={selectedMembers}
-                setSelectedMembers={setSelectedMembers}
-                useSelectionModeHeader={selectionModeHeader}
-                filterConfig={filterConfig}
-                isItemInFilter={isItemInFilter}
-                shouldShowGroupFilter={shouldShowGroupFilter}
-                shouldShowGroupColumn={shouldShowGroupColumn}
-                onBackButtonPress={() => {
-                    if (isMobileSelectionModeEnabled) {
-                        clearSelectedMembers();
-                        turnOffMobileSelectionMode();
-                        return;
-                    }
-                    Navigation.popToSidebar();
-                }}
-            />
-            <DecisionModal
-                title={translate('domain.members.closeAccount', {count: selectedMembers.length})}
-                prompt={translate('domain.members.closeAccountInfo', {count: selectedMembers.length})}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onFirstOptionSubmit={handleForceCloseAccount}
-                onSecondOptionSubmit={handleSafeCloseAccount}
-                secondOptionText={translate('domain.members.safeCloseAccount', {count: selectedMembers.length})}
-                firstOptionText={translate('domain.members.forceCloseAccount', {count: selectedMembers.length})}
-                isVisible={isModalVisible}
-                onClose={() => setIsModalVisible(false)}
-                onModalHide={() => {
-                    handleCloseAccount();
-                }}
-                isFirstOptionDanger
-                isSecondOptionSuccess
-            />
-        </>
+        <BaseDomainMembersPage
+            domainAccountID={domainAccountID}
+            members={members}
+            headerTitle={translate('domain.members.title')}
+            headerContent={getHeaderButtons()}
+            selectedMembers={selectedMembers}
+            setSelectedMembers={setSelectedMembers}
+            useSelectionModeHeader={selectionModeHeader}
+            filterConfig={filterConfig}
+            isItemInFilter={isItemInFilter}
+            shouldShowGroupFilter={shouldShowGroupFilter}
+            shouldShowGroupColumn={shouldShowGroupColumn}
+            onBackButtonPress={() => {
+                if (isMobileSelectionModeEnabled) {
+                    clearSelectedMembers();
+                    turnOffMobileSelectionMode();
+                    return;
+                }
+                Navigation.popToSidebar();
+            }}
+        />
     );
 }
 

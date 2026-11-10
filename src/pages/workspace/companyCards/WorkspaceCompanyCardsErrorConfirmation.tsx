@@ -1,4 +1,5 @@
 import ConfirmationPage from '@components/ConfirmationPage';
+import FixedFooter from '@components/FixedFooter';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
@@ -13,7 +14,7 @@ import {getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID} from
 
 import Navigation from '@navigation/Navigation';
 
-import {deleteWorkspaceCompanyCardFeed, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
+import {clearAddNewCompanyCardErrors, deleteWorkspaceCompanyCardFeed, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import {enableExpensifyCard} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
@@ -25,9 +26,10 @@ import React from 'react';
 type WorkspaceCompanyCardsErrorConfirmationProps = {
     policyID?: string;
     newFeed?: CompanyCardFeedWithDomainID;
+    errorMessage?: string;
 };
 
-function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed}: WorkspaceCompanyCardsErrorConfirmationProps) {
+function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed, errorMessage}: WorkspaceCompanyCardsErrorConfirmationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['BrokenCompanyCardBankConnection']);
@@ -61,6 +63,7 @@ function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed}: WorkspaceCo
         if (!policyID) {
             return;
         }
+        clearAddNewCompanyCardErrors();
         setAddNewCompanyCardStepAndData({
             step: CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION,
             data: {
@@ -85,33 +88,40 @@ function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed}: WorkspaceCo
     };
 
     return (
-        <ConfirmationPage
-            heading={translate('workspace.moreFeatures.companyCards.bankConnectionError')}
-            description={
-                <Text style={[styles.textSupporting, styles.textAlignCenter]}>
-                    {translate('workspace.moreFeatures.companyCards.bankConnectionDescription')}{' '}
-                    <TextLink
-                        style={[styles.link]}
-                        onPress={openPlaidLink}
-                    >
-                        {translate('workspace.moreFeatures.companyCards.connectWithPlaid')}
-                    </TextLink>{' '}
-                    <Text style={styles.textSupporting}>{translate('common.or')}</Text>{' '}
-                    <TextLink
-                        style={[styles.link]}
-                        onPress={openExpensifyCardLink}
-                    >
-                        {translate('workspace.moreFeatures.companyCards.connectWithExpensifyCard')}
-                    </TextLink>
-                </Text>
-            }
-            illustration={illustrations.BrokenCompanyCardBankConnection}
-            shouldShowButton
-            illustrationStyle={styles.errorStateCardIllustration}
-            onButtonPress={onButtonPress}
-            buttonText={translate('common.buttonConfirm')}
-            containerStyle={styles.h100}
-        />
+        <ConfirmationPage>
+            <ConfirmationPage.Content>
+                <ConfirmationPage.Illustration
+                    illustration={illustrations.BrokenCompanyCardBankConnection}
+                    illustrationStyle={styles.errorStateCardIllustration}
+                />
+                <ConfirmationPage.Heading>{translate('workspace.moreFeatures.companyCards.bankConnectionError')}</ConfirmationPage.Heading>
+                <ConfirmationPage.Description>
+                    <Text style={[styles.textSupporting, styles.textAlignCenter]}>
+                        {!!errorMessage && `${errorMessage} `}
+                        {translate('workspace.moreFeatures.companyCards.bankConnectionDescription')}{' '}
+                        <TextLink
+                            style={[styles.link]}
+                            onPress={openPlaidLink}
+                        >
+                            {translate('workspace.moreFeatures.companyCards.connectWithPlaid')}
+                        </TextLink>{' '}
+                        <Text style={styles.textSupporting}>{translate('common.or')}</Text>{' '}
+                        <TextLink
+                            style={[styles.link]}
+                            onPress={openExpensifyCardLink}
+                        >
+                            {translate('workspace.moreFeatures.companyCards.connectWithExpensifyCard')}
+                        </TextLink>
+                    </Text>
+                </ConfirmationPage.Description>
+            </ConfirmationPage.Content>
+            <FixedFooter>
+                <ConfirmationPage.PrimaryButton
+                    text={translate('common.buttonConfirm')}
+                    onPress={onButtonPress}
+                />
+            </FixedFooter>
+        </ConfirmationPage>
     );
 }
 

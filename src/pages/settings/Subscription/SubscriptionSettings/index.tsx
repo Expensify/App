@@ -2,7 +2,9 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import OptionsPicker from '@components/OptionsPicker';
 import type {OptionsPickerItem} from '@components/OptionsPicker';
@@ -14,11 +16,13 @@ import Text from '@components/Text';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useEnvironment from '@hooks/useEnvironment';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
@@ -52,8 +56,9 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {StyleProp, TextStyle} from 'react-native';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useMemo} from 'react';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {authTokenTypeSelector} from '@selectors/Session';
+import React from 'react';
 import {View} from 'react-native';
 
 function SubscriptionSettings() {
@@ -63,7 +68,7 @@ function SubscriptionSettings() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {environmentURL} = useEnvironment();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const privateSubscription = usePrivateSubscription();
     const [privatePromoCode] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_CODE);
@@ -84,11 +89,13 @@ function SubscriptionSettings() {
     const [privateTaxExempt] = useOnyx(ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT);
     const [freebieCredits] = useOnyx(ONYXKEYS.NVP_PRIVATE_FREEBIE_CREDITS);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
-    const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard), [fundList]);
+    const defaultCard = Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
 
     const {isSecretPromoCode, promoDiscountValue} = getPrivatePromoDiscountInfo(privatePromoDiscount, isAnnual);
 
@@ -137,6 +144,7 @@ function SubscriptionSettings() {
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_EXPENSIFY_CODE);
     };
     const illustrations = useMemoizedLazyIllustrations(['SubscriptionAnnual', 'SubscriptionPPU']);
+    const delegateAccountID = useDelegateAccountID();
 
     const options: Array<OptionsPickerItem<SubscriptionType>> = [
         {
@@ -162,14 +170,16 @@ function SubscriptionSettings() {
                         clearUpdateSubscriptionSizeError();
                     }}
                 >
-                    <MenuItemWithTopDescription
-                        description={translate('subscription.details.subscriptionSize')}
-                        shouldShowRightIcon
-                        onPress={onSubscriptionSizePress}
-                        wrapperStyle={styles.sectionMenuItemTopDescription}
-                        style={styles.mt5}
-                        title={`${privateSubscription?.userCount ?? ''}`}
-                    />
+                    <View style={styles.mt5}>
+                        <MenuItemSectionRoot onPress={onSubscriptionSizePress}>
+                            <MenuItemField.Row
+                                name={translate('subscription.details.subscriptionSize')}
+                                value={privateSubscription?.userCount ? String(privateSubscription.userCount) : undefined}
+                            >
+                                <MenuItem.Chevron />
+                            </MenuItemField.Row>
+                        </MenuItemSectionRoot>
+                    </View>
                 </OfflineWithFeedback>
                 {!privateSubscription?.userCount && <Text style={[styles.mt2, styles.textLabelSupporting, styles.textLineHeightNormal]}>{translate('subscription.details.headsUp')}</Text>}
             </>
@@ -303,6 +313,7 @@ function SubscriptionSettings() {
                                         <ToggleSettingOptionRow
                                             title={translate('subscription.subscriptionSettings.autoRenew')}
                                             switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
+                                            switchSentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.AUTO_RENEW_SWITCH}
                                             onToggle={handleAutoRenewToggle}
                                             isActive={privateSubscription?.autoRenew}
                                         />
@@ -315,7 +326,8 @@ function SubscriptionSettings() {
                                     <View style={styles.mt3}>
                                         <ToggleSettingOptionRow
                                             customTitle={customTitle}
-                                            switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
+                                            switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoIncrease')}
+                                            switchSentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.AUTO_INCREASE_SWITCH}
                                             onToggle={handleAutoIncreaseToggle}
                                             isActive={privateSubscription?.addNewUsersAutomatically ?? false}
                                         />
@@ -326,41 +338,65 @@ function SubscriptionSettings() {
                         ) : null}
                     </>
                 )}
-                <MenuItemWithTopDescription
-                    description={translate('subscription.expensifyCode.title')}
-                    shouldShowRightIcon={!isExpensifyCodeApplied}
-                    onPress={onExpensifyCodePress}
-                    interactive={!isExpensifyCodeApplied}
-                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                    style={styles.mt5}
-                    title={isSecretPromoCode ? '' : privatePromoCode}
-                    hintText={
-                        shouldShowExpensifyCodeHintText
-                            ? translate('subscription.expensifyCode.discountMessage', `${promoDiscountValue ?? ''}`, `${privatePromoCodeValidBillingCycles ?? ''}`)
-                            : undefined
-                    }
-                />
+                <View style={styles.mt5}>
+                    <MenuItemSectionRoot onPress={isExpensifyCodeApplied ? undefined : onExpensifyCodePress}>
+                        <MenuItemField.Row
+                            name={translate('subscription.expensifyCode.title')}
+                            value={isSecretPromoCode ? undefined : privatePromoCode}
+                        >
+                            {!isExpensifyCodeApplied && <MenuItem.Chevron />}
+                        </MenuItemField.Row>
+                        {shouldShowExpensifyCodeHintText && (
+                            <MenuItem.HelpText
+                                message={translate('subscription.expensifyCode.discountMessage', `${promoDiscountValue ?? ''}`, `${privatePromoCodeValidBillingCycles ?? ''}`)}
+                            />
+                        )}
+                    </MenuItemSectionRoot>
+                </View>
                 {!!freebieCredits && freebieCredits > 0 && (
-                    <MenuItemWithTopDescription
-                        description={translate('subscription.details.creditBalance')}
-                        title={convertToDisplayString(freebieCredits, defaultCard?.accountData?.currency ?? CONST.CURRENCY.USD)}
-                        interactive={false}
-                        wrapperStyle={styles.sectionMenuItemTopDescription}
-                    />
+                    <MenuItemSectionRoot>
+                        <MenuItemField.Row
+                            name={translate('subscription.details.creditBalance')}
+                            value={convertToDisplayString(freebieCredits, defaultCard?.accountData?.currency ?? CONST.CURRENCY.USD)}
+                        />
+                    </MenuItemSectionRoot>
                 )}
-                <MenuItemWithTopDescription
-                    description={privateTaxExempt ? translate('subscription.details.taxExemptStatus') : undefined}
-                    shouldShowRightIcon
-                    onPress={() => {
-                        requestTaxExempt();
-                        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
-                    }}
-                    icon={icons.Coins}
-                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                    style={styles.mb5}
-                    titleStyle={privateTaxExempt ? undefined : styles.textBold}
-                    title={privateTaxExempt ? translate('subscription.details.taxExemptEnabled') : translate('subscription.details.taxExempt')}
-                />
+                <View style={styles.mb5}>
+                    <MenuItemSectionRoot
+                        onPress={() => {
+                            requestTaxExempt();
+                            navigateToConciergeChat({
+                                conciergeReportID,
+                                introSelected,
+                                currentUserAccountID,
+                                isSelfTourViewed,
+                                hasCompletedGuidedSetupFlow,
+                                conciergePersonalDetails,
+                                shouldDismissModal: false,
+                                delegateAccountID,
+                            });
+                        }}
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <MenuItem.Icon src={icons.Coins} />
+                            </MenuItem.Leading>
+                            <MenuItem.Content>
+                                {privateTaxExempt ? (
+                                    <>
+                                        <MenuItem.FieldName>{translate('subscription.details.taxExemptStatus')}</MenuItem.FieldName>
+                                        <MenuItem.FieldValue>{translate('subscription.details.taxExemptEnabled')}</MenuItem.FieldValue>
+                                    </>
+                                ) : (
+                                    <MenuItem.Title>{translate('subscription.details.taxExempt')}</MenuItem.Title>
+                                )}
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItemSectionRoot>
+                </View>
             </ScrollView>
         </ScreenWrapper>
     );

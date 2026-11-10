@@ -76,7 +76,7 @@ function clearStaleExportDownloads() {
     const connectionID = Onyx.connectWithoutView({
         key: ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD,
         callback: (exportDownloads) => {
-            Onyx.disconnect(connectionID);
+            connectionID.unsubscribe();
             if (!exportDownloads) {
                 return;
             }
@@ -102,7 +102,7 @@ function clearStaleExportDownloads() {
     });
 }
 
-function exportReportsToPDF(reportIDs: string[]): string {
+function exportReportsToPDF(reportIDs: string[], jsonQuery?: string): string {
     const exportID = rand64();
     const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
 
@@ -124,7 +124,7 @@ function exportReportsToPDF(reportIDs: string[]): string {
 
     markExportInitiatedLocally(exportID);
 
-    write(WRITE_COMMANDS.EXPORT_REPORTS_TO_PDF, {reportIDs: JSON.stringify(reportIDs), exportID}, {optimisticData, failureData});
+    write(WRITE_COMMANDS.EXPORT_REPORTS_TO_PDF, {reportIDs: JSON.stringify(reportIDs), exportID, ...(jsonQuery ? {jsonQuery} : {})}, {optimisticData, failureData});
 
     return exportID;
 }

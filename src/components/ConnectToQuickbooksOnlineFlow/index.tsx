@@ -7,13 +7,15 @@ import {openLink} from '@userActions/Link';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import {authTokenTypeSelector} from '@selectors/Session';
+
 import type {ConnectToQuickbooksOnlineFlowProps} from './types';
 
 import BaseConnectToQuickbooksOnlineFlow from './BaseConnectToQuickbooksOnlineFlow';
 
 function ConnectToQuickbooksOnlineFlow({policyID, isIntuitEnterpriseSuite}: ConnectToQuickbooksOnlineFlowProps) {
     const {environmentURL} = useEnvironment();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
     return (
         <BaseConnectToQuickbooksOnlineFlow

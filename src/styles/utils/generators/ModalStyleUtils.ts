@@ -1,6 +1,8 @@
 import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
 
 import {isMobile} from '@libs/Browser';
+import RHP_FLOATING_CARD_INSET from '@libs/Navigation/helpers/rhpFloatingCardInset';
+import {getSingleRHPWidthStyleValue} from '@libs/Navigation/helpers/singleRHPWidth';
 
 import type {ThemeStyles} from '@styles/index';
 import variables from '@styles/variables';
@@ -54,6 +56,10 @@ type GetModalStylesOptions = {
     };
     enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
     shouldDisplayBelowModals?: boolean;
+    isStackedOnRHP?: boolean;
+
+    /** Saved width of the resizable single RHP this right docked modal is stacked on. Its card covers the RHP's card, so it follows a drag live. */
+    stackedResizableRHPWidth?: number;
 };
 
 type GetModalStylesStyleUtil = {
@@ -71,6 +77,8 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
         safeAreaOptions = {modalOverlapsWithTopSafeArea: false, shouldDisableBottomSafeAreaPadding: false},
         enableEdgeToEdgeBottomSafeAreaPadding = false,
         shouldDisplayBelowModals = false,
+        isStackedOnRHP = false,
+        stackedResizableRHPWidth,
     }): GetModalStyles => {
         const {windowWidth, isSmallScreenWidth} = windowDimensions;
 
@@ -285,21 +293,48 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 animationIn = 'fadeIn';
                 animationOut = 'fadeOut';
                 break;
-            case CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED:
+            case CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED: {
+                // Border-box card inset on every side. Both terms must match RightModalNavigator's frame or the two cards sit 2px apart and their borders read as one doubled line.
+                // The box spans the card plus its margin on both sides.
+                const rightDockedBoxExtraWidth = RHP_FLOATING_CARD_INSET + variables.rhpFloatingCardMargin;
+                let rightDockedBoxStyle: ViewStyle;
+                if (isSmallScreenWidth) {
+                    rightDockedBoxStyle = {marginLeft: 0, width: '100%'};
+                } else if (stackedResizableRHPWidth === undefined) {
+                    const rightDockedBoxWidth = variables.rhpWidth + rightDockedBoxExtraWidth;
+                    rightDockedBoxStyle = {marginLeft: windowWidth - rightDockedBoxWidth, width: rightDockedBoxWidth};
+                } else {
+                    // A fixed marginLeft would go stale while the width changes mid-drag, so the auto margin keeps the box flush right.
+                    rightDockedBoxStyle = {marginLeft: 'auto', width: getSingleRHPWidthStyleValue(stackedResizableRHPWidth, rightDockedBoxExtraWidth)};
+                }
                 modalStyle = {
                     ...modalStyle,
-                    marginLeft: isSmallScreenWidth ? 0 : windowWidth - variables.sideBarWidth,
-                    width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+                    ...rightDockedBoxStyle,
                     flexDirection: 'row',
                     justifyContent: 'flex-end',
                     height: '100%',
                     zIndex: variables.modalRightDockedZIndex,
                 };
-                modalContainerStyle = {
-                    width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
-                    height: '100%',
-                    overflow: 'hidden',
-                };
+                modalContainerStyle = isSmallScreenWidth
+                    ? {
+                          width: '100%',
+                          height: '100%',
+                          overflow: 'hidden',
+                      }
+                    : {
+                          flex: 1,
+                          // Per-edge insets on purpose. getModalPaddingStyles reads and rewrites marginTop/marginBottom, so a `margin` shorthand leaves both undefined and the card gets 0 top/bottom margin.
+                          marginTop: variables.rhpFloatingCardMargin,
+                          marginBottom: variables.rhpFloatingCardMargin,
+                          marginLeft: variables.rhpFloatingCardMargin,
+                          marginRight: variables.rhpFloatingCardMargin,
+                          borderRadius: variables.componentBorderRadiusLarge,
+                          borderWidth: variables.rhpFloatingCardBorderWidth,
+                          borderColor: theme.border,
+                          // The RHP frame under a stacked modal already casts the shadow.
+                          boxShadow: isStackedOnRHP ? undefined : theme.shadow,
+                          overflow: 'hidden',
+                      };
 
                 animationIn = 'slideInRight';
                 animationOut = 'slideOutRight';
@@ -308,6 +343,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 shouldAddBottomSafeAreaPadding = !enableEdgeToEdgeBottomSafeAreaPadding;
                 shouldAddTopSafeAreaPadding = true;
                 break;
+            }
             default:
                 modalStyle = {height: '100%'};
                 modalContainerStyle = {};

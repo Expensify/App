@@ -4,7 +4,7 @@ import type {Policy, Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 
-import type {ForwardedRef, RefObject} from 'react';
+import type {ComponentRef, ForwardedRef, RefObject} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -68,10 +68,10 @@ type KYCWallProps = {
     shouldShowPersonalBankAccountOption?: boolean;
 
     /** Callback for the end of the onContinue trigger on option selection */
-    onSuccessfulKYC: (iouPaymentType?: PaymentMethodType, currentSource?: Source) => void;
+    onSuccessfulKYC: (iouPaymentType?: PaymentMethodType, currentSource?: Source) => void | Promise<void>;
 
     /** Children to build the KYC */
-    children: (continueAction: (params?: ContinueActionParams) => void, anchorRef: RefObject<View | null>) => void;
+    children: (continueAction: (params?: ContinueActionParams) => void, anchorRef: RefObject<ComponentRef<typeof View> | null>) => void;
 
     /** Reference to the KYCWall component */
     ref: ForwardedRef<KYCWallRef>;

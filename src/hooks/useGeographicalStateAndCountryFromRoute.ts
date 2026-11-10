@@ -1,3 +1,5 @@
+import {isRecord} from '@libs/ObjectUtils';
+
 import CONST from '@src/CONST';
 
 import {useRoute} from '@react-navigation/native';
@@ -7,22 +9,35 @@ type State = keyof typeof COMMON_CONST.STATES;
 type Country = keyof typeof CONST.ALL_COUNTRIES;
 type StateAndCountry = {state?: State; country?: Country};
 
+// Own keys exclude prototype properties such as `constructor` and `toString`, which are not valid state or country codes.
+function isState(value: unknown): value is State {
+    return typeof value === 'string' && Object.hasOwn(COMMON_CONST.STATES, value);
+}
+
+function isCountry(value: unknown): value is Country {
+    return typeof value === 'string' && Object.hasOwn(CONST.ALL_COUNTRIES, value);
+}
+
 /**
  * Extracts the 'state' and 'country' query parameters from the route/ url and validates it against COMMON_CONST.STATES and CONST.ALL_COUNTRIES.
  * Example 1: Url: https://new.expensify.com/settings/profile/address?state=MO Returns: state=MO
  * Example 2: Url: https://new.expensify.com/settings/profile/address?state=ASDF Returns: state=undefined
  * Example 3: Url: https://new.expensify.com/settings/profile/address Returns: state=undefined
- * Example 4: Url: https://new.expensify.com/settings/profile/address?state=MO-hash-a12341 Returns: state=MO
+ * Example 4: Url: https://new.expensify.com/settings/profile/address?state=MO-hash-a12341 Returns: state=undefined
  * Similarly for country parameter.
  */
 export default function useGeographicalStateAndCountryFromRoute(stateParamName = 'state', countryParamName = 'country'): StateAndCountry {
-    const routeParams = useRoute().params as Record<string, string>;
+    const routeParams = useRoute().params;
 
-    const stateFromUrlTemp = routeParams?.[stateParamName] as string | undefined;
-    const countryFromUrlTemp = routeParams?.[countryParamName] as string | undefined;
+    if (!isRecord(routeParams)) {
+        return {state: undefined, country: undefined};
+    }
+
+    const stateFromUrl = routeParams[stateParamName];
+    const countryFromUrl = routeParams[countryParamName];
 
     return {
-        state: COMMON_CONST.STATES[stateFromUrlTemp as State]?.stateISO,
-        country: Object.keys(CONST.ALL_COUNTRIES).find((country) => country === countryFromUrlTemp) as Country,
+        state: isState(stateFromUrl) ? COMMON_CONST.STATES[stateFromUrl].stateISO : undefined,
+        country: isCountry(countryFromUrl) ? countryFromUrl : undefined,
     };
 }

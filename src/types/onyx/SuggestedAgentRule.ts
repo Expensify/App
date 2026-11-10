@@ -11,6 +11,9 @@ type SuggestedAgentRule = {
 
     /** Prompt text written into the add-rule form when selected */
     prompt: string;
+
+    /** Section header shown above the suggestion in the Suggestions tab */
+    category?: string;
 };
 
 export default SuggestedAgentRule;

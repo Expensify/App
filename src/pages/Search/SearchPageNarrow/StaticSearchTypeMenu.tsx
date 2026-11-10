@@ -11,7 +11,8 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
-import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
+import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import {getSavedSearchIconName, getSuggestedSearches, SAVED_SEARCH_ICON_NAMES} from '@libs/SearchUIUtils';
 
 import {SearchTypeMenuNarrowContent} from '@pages/Search/SearchTypeMenuNarrow';

@@ -7,6 +7,7 @@ import {openLink} from '@userActions/Link';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import {useEffect} from 'react';
 
 type IntuitEnterpriseSuiteOAuthFlowProps = {
@@ -19,7 +20,7 @@ type IntuitEnterpriseSuiteOAuthFlowProps = {
 
 function IntuitEnterpriseSuiteOAuthFlow({policyID, isSandbox}: IntuitEnterpriseSuiteOAuthFlowProps) {
     const {environmentURL} = useEnvironment();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
     useEffect(() => {
         openLink(getQuickbooksOnlineSetupLink(policyID, true, isSandbox), environmentURL, false, session);

@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 import MERGE_HR_PROVIDERS from '@src/CONST/MERGE_HR_PROVIDERS';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
 import type {Policy} from '@src/types/onyx';
+import type {MergeApprovalMode} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
@@ -45,6 +46,52 @@ function isMergeHRCompleteSetupNeeded(policy?: OnyxEntry<Policy>): boolean {
     const hasGroups = (mergeHR.data?.groups?.length ?? 0) > 0;
     const setupComplete = !!mergeHR.config?.groups;
     return syncDone && hasGroups && !setupComplete;
+}
+
+/**
+ * True when a selected group ID is missing from the cached group list, meaning it no longer exists upstream.
+ * Returns false if the cache has never synced, since there's nothing to compare against.
+ */
+function hasStaleMergeHRGroups(policy?: OnyxEntry<Policy>): boolean {
+    const mergeHR = policy?.connections?.merge_hris;
+    const selectedGroupIDs = mergeHR?.config?.groups;
+    // allGroupIDs (not the display-filtered groups) is what the backend prunes against, so a group
+    // missing a name/type isn't wrongly flagged as deleted here.
+    const availableGroupIDs = mergeHR?.data?.allGroupIDs;
+    // allGroupIDs is explicitly [] once a sync has actually run and found zero groups, so only
+    // undefined (never synced) means there's nothing to compare against yet.
+    if (!selectedGroupIDs?.length || !availableGroupIDs) {
+        return false;
+    }
+    return selectedGroupIDs.some((groupID) => !availableGroupIDs.includes(groupID));
+}
+
+/**
+ * The admin's group selection, minus any group that no longer exists anywhere in the HR system. Compares
+ * against allGroupIDs (the same source hasStaleMergeHRGroups uses), falling back to data.groups when
+ * allGroupIDs hasn't synced yet. A cache that has never synced is left untouched.
+ */
+function getValidMergeHRGroupIDs(policy?: OnyxEntry<Policy>): string[] {
+    const mergeHR = policy?.connections?.merge_hris;
+    const selectedGroupIDs = mergeHR?.config?.groups ?? [];
+    const availableGroupIDs = mergeHR?.data?.allGroupIDs ?? mergeHR?.data?.groups?.map((group) => group.id);
+    if (!availableGroupIDs) {
+        return [...selectedGroupIDs];
+    }
+    return selectedGroupIDs.filter((groupID) => availableGroupIDs.includes(groupID));
+}
+
+/**
+ * The subset of getValidMergeHRGroupIDs with no renderable row — a group the HR system still has, but that
+ * Merge sent back without a name or type. The selector shows these with a fallback label so the admin can
+ * still see and deselect them, instead of silently dropping or silently preserving them on save.
+ */
+function getNonRenderableMergeHRGroupIDs(policy?: OnyxEntry<Policy>): string[] {
+    const availableGroups = policy?.connections?.merge_hris?.data?.groups;
+    if (!availableGroups) {
+        return [];
+    }
+    return getValidMergeHRGroupIDs(policy).filter((groupID) => !availableGroups.some((group) => group.id === groupID));
 }
 
 /** Returns display info for the HR provider currently connected to the policy (Gusto, Zenefits, or Merge HR), or null if none are connected. */
@@ -100,7 +147,7 @@ function isAnyHRReadOnlyWorkflowMode(policy?: OnyxEntry<Policy>): boolean {
 function getHRApprovalMode(
     policy?: OnyxEntry<Policy>,
     connectionName?: HRConnectionName,
-): ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE> | ValueOf<typeof CONST.MERGE.APPROVAL_MODE> | null {
+): ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE> | MergeApprovalMode | null {
     if (!connectionName || !policy?.connections) {
         return null;
     }
@@ -140,7 +187,7 @@ function getHRAdvancedModeFinalApprover(policy?: OnyxEntry<Policy>): string | nu
 }
 
 /** Returns the finalApprover from whichever HR provider (Gusto, Zenefits, or Merge HR) is configured in basic or advanced (manager) approval mode, or null if none are. */
-function getHRFinalApprover(policy?: OnyxEntry<Policy>): string | null {
+function getHRFinalApprover(policy?: OnyxEntry<Policy>): string | undefined {
     const gustoMode = policy?.connections?.gusto?.config?.approvalMode;
     if ((gustoMode === CONST.GUSTO.APPROVAL_MODE.BASIC || gustoMode === CONST.GUSTO.APPROVAL_MODE.MANAGER) && policy?.connections?.gusto?.config?.finalApprover) {
         return policy.connections.gusto.config.finalApprover;
@@ -166,7 +213,7 @@ function shouldShowHRConnectionError(policy: OnyxEntry<Policy>, isSyncInProgress
         return true;
     }
     if (connectedProvider.connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR) {
-        return hasMergeSyncError(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR);
+        return hasMergeSyncError(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR) || hasStaleMergeHRGroups(policy);
     }
     return hasSynchronizationErrorMessage(policy, connectedProvider.connectionName, isSyncInProgress);
 }
@@ -176,6 +223,9 @@ export {
     getHRApprovalMode,
     getHRAdvancedModeFinalApprover,
     getHRFinalApprover,
+    getNonRenderableMergeHRGroupIDs,
+    getValidMergeHRGroupIDs,
+    hasStaleMergeHRGroups,
     isAnyHRConnected,
     isAnyHRReadOnlyWorkflowMode,
     isGustoConnected,

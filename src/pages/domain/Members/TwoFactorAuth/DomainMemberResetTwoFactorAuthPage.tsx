@@ -1,4 +1,4 @@
-import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -8,11 +8,9 @@ import BaseDomainRequireTwoFactorAuthPage from '@pages/domain/BaseDomainRequireT
 
 import {resetDomainMemberTwoFactorAuth} from '@userActions/Domain';
 
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import {personalDetailsSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 
 type DomainMemberTwoFactorAuthPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.MEMBER_RESET_TWO_FACTOR_AUTH>;
@@ -20,9 +18,7 @@ type DomainMemberTwoFactorAuthPageProps = PlatformStackScreenProps<SettingsNavig
 function DomainMemberResetTwoFactorAuthPage({route}: DomainMemberTwoFactorAuthPageProps) {
     const {domainAccountID, accountID} = route.params;
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: personalDetailsSelector(accountID),
-    });
+    const [personalDetails] = usePersonalDetail(accountID);
 
     return (
         <BaseDomainRequireTwoFactorAuthPage

@@ -13,6 +13,7 @@ import {hideContextMenu, showContextMenu} from '@pages/inbox/report/ContextMenu/
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Text as RNText} from 'react-native';
 
@@ -42,7 +43,7 @@ function BaseAnchorForCommentsOnly({
 }: BaseAnchorForCommentsOnlyProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const linkRef = useRef<RNText>(null);
+    const linkRef = useRef<ComponentRef<typeof RNText>>(null);
     const flattenStyle = StyleSheet.flatten(style);
     const isScreenReaderActive = Accessibility.useScreenReaderStatus();
 
@@ -68,6 +69,7 @@ function BaseAnchorForCommentsOnly({
 
     return (
         <PressableWithSecondaryInteraction
+            sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.LINK}
             inline
             suppressHighlighting
             style={[styles.cursorDefault, !!flattenStyle.fontSize && StyleUtils.getFontSizeStyle(flattenStyle.fontSize)]}

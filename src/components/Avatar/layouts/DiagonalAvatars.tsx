@@ -1,4 +1,5 @@
 import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
+import AvatarPressSlot from '@components/Avatar/pressable/AvatarPressSlot';
 import AvatarNamesTooltip from '@components/Avatar/tooltips/AvatarNamesTooltip';
 import AvatarTooltip from '@components/Avatar/tooltips/AvatarTooltip';
 import Text from '@components/Text';
@@ -9,8 +10,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
-
-import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -24,23 +23,24 @@ import getDiagonalAvatarSizing from './getDiagonalAvatarSizing';
 const EMPTY_USER_ICON: Icon = {source: '', type: CONST.ICON_TYPE_AVATAR};
 
 type DiagonalAvatarsProps = MultipleAvatarsProps & {
-    secondaryAvatarContainerStyle?: StyleProp<ViewStyle>;
     isHovered?: boolean;
 };
 
 /** `DiagonalAvatars` renders two avatars stacked diagonally — the primary in the top-left and the secondary in the bottom-right.
  * When more than two `icons` are passed, the secondary slot shows a "+N" overflow count instead of the second avatar.
  */
-function DiagonalAvatars({size, icons, isInReportAction, secondaryAvatarContainerStyle, isHovered = false, fallbackDisplayName}: DiagonalAvatarsProps) {
+function DiagonalAvatars({size, icons, isInReportAction, backdropColor, isHovered = false, fallbackDisplayName}: DiagonalAvatarsProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
     const primaryIcon = icons.at(0);
     const secondaryIcon = icons.at(1);
+    const primaryAvatar = primaryIcon ?? EMPTY_USER_ICON;
+    const secondaryAvatar = secondaryIcon ?? EMPTY_USER_ICON;
 
     const {avatarSize, singleAvatarStyleKey} = getDiagonalAvatarSizing(size);
-    const secondaryAvatarContainerStyles = secondaryAvatarContainerStyle ?? [StyleUtils.getBackgroundAndBorderStyle(isHovered ? theme.activeComponentBG : theme.componentBG)];
+    const secondaryAvatarContainerStyles = StyleUtils.getBackgroundAndBorderStyle(backdropColor ?? (isHovered ? theme.activeComponentBG : theme.componentBG));
 
     return (
         <DiagonalAvatarsFrame
@@ -57,12 +57,14 @@ function DiagonalAvatars({size, icons, isInReportAction, secondaryAvatarContaine
                     avatar={primaryIcon}
                     fallbackDisplayName={fallbackDisplayName}
                 >
-                    <AvatarFromIcon
-                        icon={primaryIcon ?? EMPTY_USER_ICON}
-                        size={avatarSize}
-                        imageStyles={styles[singleAvatarStyleKey]}
-                        testID="ReportActionAvatars-MultipleAvatars-MainAvatar"
-                    />
+                    <AvatarPressSlot avatar={primaryAvatar}>
+                        <AvatarFromIcon
+                            icon={primaryAvatar}
+                            size={avatarSize}
+                            imageStyles={styles[singleAvatarStyleKey]}
+                            testID="ReportActionAvatars-MultipleAvatars-MainAvatar"
+                        />
+                    </AvatarPressSlot>
                 </AvatarTooltip>
             }
             secondary={
@@ -71,12 +73,14 @@ function DiagonalAvatars({size, icons, isInReportAction, secondaryAvatarContaine
                         avatar={secondaryIcon}
                         fallbackDisplayName={fallbackDisplayName}
                     >
-                        <AvatarFromIcon
-                            icon={secondaryIcon ?? EMPTY_USER_ICON}
-                            size={avatarSize}
-                            imageStyles={styles[singleAvatarStyleKey]}
-                            testID="ReportActionAvatars-MultipleAvatars-SecondaryAvatar"
-                        />
+                        <AvatarPressSlot avatar={secondaryAvatar}>
+                            <AvatarFromIcon
+                                icon={secondaryAvatar}
+                                size={avatarSize}
+                                imageStyles={styles[singleAvatarStyleKey]}
+                                testID="ReportActionAvatars-MultipleAvatars-SecondaryAvatar"
+                            />
+                        </AvatarPressSlot>
                     </AvatarTooltip>
                 ) : (
                     <AvatarNamesTooltip avatars={icons.slice(1)}>

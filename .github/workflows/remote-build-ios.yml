@@ -6,10 +6,12 @@ on:
     inputs:
       app_pull_request_url:
         description: 'The Expensify/App pull request URL. Its description is scanned for a MOBILE-EXPENSIFY entry.'
+        type: string
         required: false
         default: ''
       mobile_expensify_pull_request_url:
         description: 'The Expensify/Mobile-Expensify pull request URL to check out the submodule. Overrides MOBILE-EXPENSIFY set in the App PR description.'
+        type: string
         required: false
         default: ''
       reviewed_code:
@@ -45,7 +47,9 @@ jobs:
 
   build:
     needs: [prep, resolveRefs]
-    runs-on: ${{ github.repository_owner == 'Expensify' && 'blacksmith-12vcpu-macos-latest' || 'macos-latest' }}
+    # Preserve the default token scopes while adding OIDC access
+    permissions: write-all
+    runs-on: ${{ github.repository_owner == 'Expensify' && 'blacksmith-12vcpu-macos-27' || 'xcode-27' }}
     strategy:
       fail-fast: false
       matrix:
@@ -77,6 +81,14 @@ jobs:
       - name: Set up Xcode version
         uses: ./.github/actions/composite/getXcodeVersion
 
+      # Temporary Blacksmith macOS 27 image workaround: the image lacks the Apple WWDR G3 intermediate (no valid signing identity)
+      # and the iOS 27.1 simulator runtime. Safe to remove once Blacksmith ships the patched image.
+      - name: Install missing Apple WWDR G3 certificate and iOS simulator runtime
+        run: |
+          curl -fsSLO https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer
+          sudo security import AppleWWDRCAG3.cer -k /Library/Keychains/System.keychain 2>/dev/null || true
+          xcodebuild -downloadPlatform iOS
+
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
         with:
@@ -92,8 +104,10 @@ jobs:
         # v6
         uses: aws-actions/configure-aws-credentials@99214aa6889fcddfa57764031d71add364327e59
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::949552126497:role/app-rock-cache-gh-actions
+          role-session-name: gh-${{ github.run_id }}-${{ github.run_attempt }}
+          # Match the 6h job timeout because Rock does not refresh credentials before uploading
+          role-duration-seconds: 21600
           aws-region: us-east-1
 
       - name: Rock Remote Build - iOS

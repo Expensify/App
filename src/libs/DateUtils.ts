@@ -33,7 +33,9 @@ import {
     isSameYear,
     isThisYear,
     isValid,
+    isWithinInterval,
     parse,
+    parseISO,
     set,
     startOfDay,
     startOfWeek,
@@ -42,7 +44,7 @@ import {
     subMinutes,
 } from 'date-fns';
 import {formatInTimeZone, fromZonedTime, toDate, toZonedTime, format as tzFormat} from 'date-fns-tz';
-import {enGB} from 'date-fns/locale/en-GB';
+import {enUS} from 'date-fns/locale/en-US';
 import throttle from 'lodash/throttle';
 
 import {setCurrentDate} from './actions/CurrentDate';
@@ -64,6 +66,21 @@ const TIMEZONE_UPDATE_THROTTLE_MINUTES = 5;
 
 function isDate(arg: unknown): arg is Date {
     return Object.prototype.toString.call(arg) === '[object Date]';
+}
+
+/**
+ * Copies a date's wall-clock fields in the device's timezone onto the same fields in UTC.
+ *
+ * An `Intl.DateTimeFormat` created without a `timeZone` keeps the device's timezone from when it was created, so a
+ * cached one would keep showing the old day after the device moves to another timezone. Cached formatters are created
+ * with `timeZone: 'UTC'` instead and given the result of this function, which reads the device's timezone on every call.
+ */
+function toUTCWallClockDate(date: Date): Date {
+    const utcDate = new Date(0);
+    // `setUTCFullYear` rather than `Date.UTC`, which treats the years 0 to 99 as 1900 to 1999
+    utcDate.setUTCFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+    utcDate.setUTCHours(date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds());
+    return utcDate;
 }
 
 /**
@@ -185,7 +202,6 @@ function datetimeToCalendarTime(locale: Locale | undefined, datetime: string, cu
     let tomorrowAt = translateLocalize(locale, 'common.tomorrowAt');
     let yesterdayAt = translateLocalize(locale, 'common.yesterdayAt');
     const at = translateLocalize(locale, 'common.conjunctionAt');
-    const translate: LocalizedTranslate = (path, ...params) => translateLocalize(locale, path, ...params);
     const weekStartsOn = getWeekStartsOn();
 
     const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn});
@@ -198,18 +214,18 @@ function datetimeToCalendarTime(locale: Locale | undefined, datetime: string, cu
     }
 
     if (isToday(date, currentSelectedTimezone)) {
-        return `${todayAt} ${formatTimeWithPeriod(translate, date)}${tz}`;
+        return `${todayAt} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}${tz}`;
     }
     if (isTomorrow(date, currentSelectedTimezone)) {
-        return `${tomorrowAt} ${formatTimeWithPeriod(translate, date)}${tz}`;
+        return `${tomorrowAt} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}${tz}`;
     }
     if (isYesterday(date, currentSelectedTimezone)) {
-        return `${yesterdayAt} ${formatTimeWithPeriod(translate, date)}${tz}`;
+        return `${yesterdayAt} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}${tz}`;
     }
     if (date >= startOfCurrentWeek && date <= endOfCurrentWeek) {
-        return `${format(date, CONST.DATE.MONTH_DAY_ABBR_FORMAT, {locale: dateFnsLocale})} ${at} ${formatTimeWithPeriod(translate, date)}${tz}`;
+        return `${format(date, CONST.DATE.MONTH_DAY_ABBR_FORMAT, {locale: dateFnsLocale})} ${at} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}${tz}`;
     }
-    return `${format(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, {locale: dateFnsLocale})} ${at} ${formatTimeWithPeriod(translate, date)}${tz}`;
+    return `${format(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, {locale: dateFnsLocale})} ${at} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}${tz}`;
 }
 
 /**
@@ -242,23 +258,52 @@ function datetimeToRelative(locale: Locale | undefined, datetime: string, curren
  *
  * @param datetime
  * @param selectedTimezone
+ * @param dateFnsLocale - language the zone is named in
  * @returns
  */
-function getZoneAbbreviation(datetime: string | Date, selectedTimezone: SelectedTimezone): string {
-    const abbreviation = formatInTimeZone(datetime, selectedTimezone, 'zzz');
+function getZoneAbbreviation(datetime: string | Date, selectedTimezone: SelectedTimezone, dateFnsLocale: DateFnsLocale | undefined): string {
+    // The zone name comes from `Intl`, so passing the language gives its own name for the zone, such as the German
+    // abbreviation for Central European Summer Time, instead of always the English one.
+    const abbreviation = formatInTimeZone(datetime, selectedTimezone, 'zzz', {locale: dateFnsLocale});
     if (abbreviation === 'GMT') {
-        return formatInTimeZone(datetime, selectedTimezone, 'O');
+        return formatInTimeZone(datetime, selectedTimezone, 'O', {locale: dateFnsLocale});
     }
     return abbreviation;
 }
 
 /**
+ * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language. They
+ * format in UTC, so pass dates through `toUTCWallClockDate` to show them in the device's current timezone.
+ */
+const memoizedCreateLongDateWithWeekdayFormatter = memoize(
+    (localeCode: string, shouldIncludeYear: boolean) =>
+        new Intl.DateTimeFormat(localeCode, {weekday: 'long', year: shouldIncludeYear ? 'numeric' : undefined, month: 'long', day: 'numeric', timeZone: 'UTC'}),
+);
+
+/**
+ * Formats a full date with a weekday, with or without the year, for the two public helpers below.
+ */
+function formatLongDateWithWeekday(datetime: string | Date, dateFnsLocale: DateFnsLocale | undefined, shouldIncludeYear: boolean): string {
+    const date = new Date(datetime);
+    if (!isValid(date)) {
+        return '';
+    }
+    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
+    return memoizedCreateLongDateWithWeekdayFormatter(dateFnsLocale?.code ?? 'en-US', shouldIncludeYear).format(toUTCWallClockDate(date));
+}
+
+/**
  * Format date to a long date format with weekday
+ *
+ * A hand-written date-fns pattern fixes the US component order, so every language rendered its own month name in an
+ * English shape. Japanese and Chinese put the weekday last with no comma, Spanish and Portuguese need a `de` between
+ * the day and the month, and German needs the period its ordinal day takes. date-fns' own full date (`PPPP`) would get
+ * the order right but adds an ordinal day in English, so `Intl` is used to keep the English output unchanged.
  *
  * @returns Sunday, July 9, 2023
  */
 function formatToLongDateWithWeekday(datetime: string | Date, dateFnsLocale: DateFnsLocale | undefined): string {
-    return format(new Date(datetime), CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY, {locale: dateFnsLocale});
+    return formatLongDateWithWeekday(datetime, dateFnsLocale, true);
 }
 
 /**
@@ -267,7 +312,7 @@ function formatToLongDateWithWeekday(datetime: string | Date, dateFnsLocale: Dat
  * @returns Sunday, July 9
  */
 function formatToLongDateWithWeekdayWithoutYear(datetime: string | Date, dateFnsLocale: DateFnsLocale | undefined): string {
-    return format(new Date(datetime), CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY_WITHOUT_YEAR, {locale: dateFnsLocale});
+    return formatLongDateWithWeekday(datetime, dateFnsLocale, false);
 }
 
 /**
@@ -299,8 +344,8 @@ function formatToDayOfWeek(datetime: Date, dateFnsLocale: DateFnsLocale | undefi
  *
  * @returns 2:30 PM
  */
-function formatToLocalTime(translate: LocalizedTranslate, datetime: string | Date): string {
-    return formatTimeWithPeriod(translate, new Date(datetime));
+function formatToLocalTime(datetime: string | Date, dateFnsLocale: DateFnsLocale | undefined): string {
+    return format(new Date(datetime), CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale});
 }
 
 const THREE_HOURS = 1000 * 60 * 60 * 3;
@@ -324,11 +369,34 @@ function startCurrentDateUpdater() {
 }
 
 function getCurrentTimezone(timezone: Timezone): Required<Timezone> {
-    const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (timezone.automatic && timezone.selected !== currentTimezone) {
-        return {...timezone, selected: currentTimezone as SelectedTimezone, automatic: timezone.automatic ?? false};
+    const automatic = timezone.automatic ?? false;
+    const currentTimezone = automatic ? formatToSupportedTimezone({selected: Intl.DateTimeFormat().resolvedOptions().timeZone as SelectedTimezone}).selected : undefined;
+    return {selected: currentTimezone ?? timezone.selected ?? (CONST.DEFAULT_TIME_ZONE.selected as SelectedTimezone), automatic};
+}
+
+/**
+ * Parses a stored `yyyy-MM-dd` date at local midnight, with leading zeros optional as in ValidationUtils.isValidDate.
+ * Other values, such as a date with a time, are read as ISO. Returns undefined for an empty value or one neither format can read.
+ */
+function parseCalendarDate(value?: string): Date | undefined {
+    if (!value) {
+        return undefined;
     }
-    return {selected: timezone.selected ?? (CONST.DEFAULT_TIME_ZONE.selected as SelectedTimezone), automatic: timezone.automatic ?? false};
+    const date = parse(value, CONST.DATE.FNS_FORMAT_STRING, new Date());
+    if (isValid(date)) {
+        return date;
+    }
+    const dateTime = parseISO(value);
+    return isValid(dateTime) ? dateTime : undefined;
+}
+
+const CALENDAR_PICKER_RANGE = {start: startOfDay(CONST.CALENDAR_PICKER.MIN_DATE), end: endOfDay(CONST.CALENDAR_PICKER.MAX_DATE)};
+
+/**
+ * Whether a day falls between CONST.CALENDAR_PICKER.MIN_DATE and MAX_DATE, both days included.
+ */
+function isWithinCalendarPickerRange(date: Date): boolean {
+    return isWithinInterval(date, CALENDAR_PICKER_RANGE);
 }
 
 /**
@@ -342,18 +410,6 @@ function getMonthNames(dateFnsLocale: DateFnsLocale | undefined): string[] {
     });
 
     return monthsArray.map((monthDate) => format(monthDate, CONST.DATE.MONTH_FORMAT, {locale: dateFnsLocale}));
-}
-
-/**
- * Returns month list items for SelectionList.
- */
-function getFilteredMonthItems(monthNames: string[], currentMonth: number) {
-    return monthNames.map((month, index) => ({
-        text: month.charAt(0).toUpperCase() + month.slice(1),
-        value: index,
-        keyForList: index.toString(),
-        isSelected: index === currentMonth,
-    }));
 }
 
 /**
@@ -492,49 +548,48 @@ function extractTime12Hour(dateTimeString: string, isFullFormat = false): string
         return '';
     }
     const date = new Date(dateTimeString);
-    // get12HourTimeObjectFromDate parses this back with the same default locale, so the format and the parse stay
-    // in step in every language.
-    // eslint-disable-next-line rulesdir/require-locale-for-localized-date-format -- see above
-    return format(date, isFullFormat ? 'hh:mm:ss.SSS a' : 'hh:mm a');
+    // Pinned to English, not the active language. This value is the TimePicker's wire format: it is parsed back by
+    // `get12HourTimeObjectFromDate`, and the period it yields is compared against the English `CONST.TIME_PERIOD` that
+    // the AM/PM buttons write and `combineDateAndTime` parses. Both ends of that round trip have to agree on one
+    // language, and English is the one the rest of the protocol already uses. Relying on the active locale instead
+    // worked only because the parse omitted a locale too, so the pair silently depended on a mutable global.
+    return format(date, isFullFormat ? 'hh:mm:ss.SSS a' : 'hh:mm a', {locale: enUS});
 }
 
 /**
- * param {number} hours - 0-23, in the timezone the time is shown in
- * returns {string} example: PM
+ * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language and
+ * whether the year is shown.
+ * They format in UTC, so pass dates through `toUTCWallClockDate` to show them in the device's current timezone.
  */
-function getTimePeriodLabel(translate: LocalizedTranslate, hours: number): string {
-    return translate(hours >= 12 ? 'common.pm' : 'common.am');
-}
+const memoizedCreateNumericDateFormatter = memoize(
+    (localeCode: string, shouldIncludeYear: boolean) =>
+        new Intl.DateTimeFormat(localeCode, {year: shouldIncludeYear ? 'numeric' : undefined, month: '2-digit', day: '2-digit', timeZone: 'UTC'}),
+);
 
 /**
- * param {string} timeFormat - a date-fns pattern with no meridiem token
- * returns {string} example: 11:10 PM
+ * Formats a date's local calendar fields as a short numeric date, e.g. 06/20 or 06/20/2026.
+ *
+ * The custom status used the machine formats `MM-dd` and `yyyy-MM-dd` for display, which no language writes that way.
+ * `Intl` gives each language its own order and separators, such as `20.06.2026` in German.
  */
-function formatTimeWithPeriod(translate: LocalizedTranslate, date: Date, timeFormat: string = CONST.DATE.LOCAL_TIME_FORMAT_WITHOUT_PERIOD): string {
-    return `${format(date, timeFormat)} ${getTimePeriodLabel(translate, date.getHours())}`;
-}
-
-/**
- * param {string} dateTimeString
- * returns {string} example: 11:10 PM
- */
-function getTime12HourWithTranslatedPeriod(translate: LocalizedTranslate, dateTimeString: string): string {
-    if (!dateTimeString || dateTimeString === 'never') {
-        return '';
-    }
-    return formatTimeWithPeriod(translate, new Date(dateTimeString), CONST.DATE.TIME_FORMAT_WITHOUT_PERIOD);
+function formatToNumericDate(date: Date, dateFnsLocale: DateFnsLocale | undefined, shouldIncludeYear: boolean): string {
+    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
+    return memoizedCreateNumericDateFormatter(dateFnsLocale?.code ?? 'en-US', shouldIncludeYear).format(toUTCWallClockDate(date));
 }
 
 /**
  * param {string} dateTimeString
- * returns {string} example: 2023-05-16 11:10 PM
+ * returns {string} example: 05/16/2023 11:10 PM
  */
-function formatDateTimeTo12Hour(translate: LocalizedTranslate, dateTimeString: string): string {
+function formatDateTimeTo12Hour(dateTimeString: string, dateFnsLocale: DateFnsLocale | undefined): string {
     if (!dateTimeString) {
         return '';
     }
     const date = new Date(dateTimeString);
-    return `${format(date, CONST.DATE.FNS_FORMAT_STRING)} ${formatTimeWithPeriod(translate, date, CONST.DATE.TIME_FORMAT_WITHOUT_PERIOD)}`;
+    if (!isValid(date)) {
+        return '';
+    }
+    return `${formatToNumericDate(date, dateFnsLocale, true)} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}`;
 }
 
 /**
@@ -560,7 +615,7 @@ function getDateFromStatusType(type: CustomStatusTypes): string {
 
 /**
  * param {string} data - either a value from CONST.CUSTOM_STATUS_TYPES or a dateTime string in the format YYYY-MM-DD HH:mm
- * returns {string} example: 2023-05-16 11:10 PM or 'Today'
+ * returns {string} example: 05/16/2023 11:10 PM or 'Today'
  */
 function getLocalizedTimePeriodDescription(translate: LocalizedTranslate, dateFnsLocale: DateFnsLocale | undefined, data: string): string {
     switch (data) {
@@ -570,7 +625,7 @@ function getLocalizedTimePeriodDescription(translate: LocalizedTranslate, dateFn
         case '':
             return translate('statusPage.timePeriods.never');
         default:
-            return formatDateTimeTo12Hour(translate, data);
+            return formatDateTimeTo12Hour(data, dateFnsLocale);
     }
 }
 
@@ -579,7 +634,7 @@ function getLocalizedTimePeriodDescription(translate: LocalizedTranslate, dateFn
  * param {string} inputDate - Date string in 'YYYY-MM-DD HH:mm:ss' format representing the source time.
  * param {SelectedTimezone} inputDateTimeZone - Timezone in which the inputDate is provided.
  * param {SelectedTimezone} currentSelectedTimezone - Current user's timezone to display the result in.
- * returns {string} - A localized string such as 'Until 05:34 PM', 'Until tomorrow', or 'Until Jul 01 05:34 PM'.
+ * returns {string} - A localized string such as 'Until 05:34 PM', 'Until tomorrow', or 'Until 07/01 05:34 PM'.
  */
 function getStatusUntilDate(
     translate: LocalizedTranslate,
@@ -604,16 +659,16 @@ function getStatusUntilDate(
 
     // If it's a time on the same date
     if (isSameDay(input, now)) {
-        return translate('statusPage.untilTime', formatTimeWithPeriod(translate, input));
+        return translate('statusPage.untilTime', format(input, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale}));
     }
 
     // If it's further in the future than tomorrow but within the same year
     if (isAfter(input, now) && isSameYear(input, now)) {
-        return translate('statusPage.untilTime', `${format(input, CONST.DATE.SHORT_DATE_FORMAT)} ${formatTimeWithPeriod(translate, input)}`);
+        return translate('statusPage.untilTime', `${formatToNumericDate(input, dateFnsLocale, false)} ${format(input, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}`);
     }
 
     // If it's in another year
-    return translate('statusPage.untilTime', `${format(input, CONST.DATE.FNS_FORMAT_STRING)} ${formatTimeWithPeriod(translate, input)}`);
+    return translate('statusPage.untilTime', `${formatToNumericDate(input, dateFnsLocale, true)} ${format(input, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}`);
 }
 
 /**
@@ -638,7 +693,7 @@ const combineDateAndTime = (updatedTime: string, inputDateTime: string): string 
     } else if (updatedTime.includes(':')) {
         // it's in "hh:mm a" format
         // The picker always submits English AM/PM markers, which the app's active date-fns locale may not parse.
-        const tempTime = parse(updatedTime, 'hh:mm a', new Date(), {locale: enGB});
+        const tempTime = parse(updatedTime, 'hh:mm a', new Date(), {locale: enUS});
         if (isValid(tempTime)) {
             parsedTime = tempTime;
         }
@@ -690,7 +745,10 @@ function get12HourTimeObjectFromDate(dateTime: string, isFullFormat = false): {h
             period: 'PM',
         };
     }
-    const parsedTime = parse(dateTime, isFullFormat ? 'hh:mm:ss.SSS a' : 'hh:mm a', new Date());
+    // The counterpart to `extractTime12Hour`'s format: same pattern, same pinned locale. Passing a locale to only one
+    // of the two would make this parse return an invalid date, and `getHours()` would then be NaN — so `period` would
+    // quietly come back as AM for every time of day.
+    const parsedTime = parse(dateTime, isFullFormat ? 'hh:mm:ss.SSS a' : 'hh:mm a', new Date(), {locale: enUS});
     return {
         hour: format(parsedTime, 'hh'),
         minute: format(parsedTime, 'mm'),
@@ -892,6 +950,9 @@ function getFormattedDateRange(translate: LocalizedTranslate, dateFnsLocale: Dat
  * 4. When the dates are from different years or from a year which is not current: Wednesday, Mar 17, 2023 to Saturday, Jan 20, 2024
  */
 function getFormattedReservationRangeDate(translate: LocalizedTranslate, dateFnsLocale: DateFnsLocale | undefined, date1: Date, date2: Date): string {
+    if (!isValid(date1) || !isValid(date2)) {
+        return '';
+    }
     if (isSameDay(date1, date2) && isThisYear(date1)) {
         // Dates are from the same day
         return format(date1, 'EEEE, MMM d', {locale: dateFnsLocale});
@@ -915,11 +976,13 @@ function getFormattedReservationRangeDate(translate: LocalizedTranslate, dateFns
  * 2. When the date refers not to the current year: Departs on Wednesday, Mar 17, 2023 at 8:00.
  */
 function getFormattedTransportDate(translate: LocalizedTranslate, dateFnsLocale: DateFnsLocale | undefined, date: Date): string {
-    const time = formatTimeWithPeriod(translate, date, CONST.DATE.TIME_FORMAT_WITHOUT_PERIOD);
-    if (isThisYear(date)) {
-        return `${translate('travel.departs')} ${format(date, 'EEEE, MMM d', {locale: dateFnsLocale})} ${translate('common.conjunctionAt')} ${time}`;
+    if (!isValid(date)) {
+        return '';
     }
-    return `${translate('travel.departs')} ${format(date, 'EEEE, MMM d, yyyy', {locale: dateFnsLocale})} ${translate('common.conjunctionAt')} ${time}`;
+    if (isThisYear(date)) {
+        return `${translate('travel.departs')} ${format(date, 'EEEE, MMM d', {locale: dateFnsLocale})} ${translate('common.conjunctionAt')} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}`;
+    }
+    return `${translate('travel.departs')} ${format(date, 'EEEE, MMM d, yyyy', {locale: dateFnsLocale})} ${translate('common.conjunctionAt')} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}`;
 }
 
 /**
@@ -928,17 +991,19 @@ function getFormattedTransportDate(translate: LocalizedTranslate, dateFnsLocale:
  * 1. When the date refers to the current year: Wednesday, Mar 17 8:00 AM
  * 2. When the date refers not to the current year: Wednesday, Mar 17, 2023 8:00 AM
  */
-function getFormattedTransportDateAndHour(translate: LocalizedTranslate, dateFnsLocale: DateFnsLocale | undefined, date: Date): {date: string; hour: string} {
-    const hour = formatTimeWithPeriod(translate, date);
+function getFormattedTransportDateAndHour(date: Date, dateFnsLocale: DateFnsLocale | undefined): {date: string; hour: string} {
+    if (!isValid(date)) {
+        return {date: '', hour: ''};
+    }
     if (isThisYear(date)) {
         return {
             date: format(date, 'EEEE, MMM d', {locale: dateFnsLocale}),
-            hour,
+            hour: format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale}),
         };
     }
     return {
         date: format(date, 'EEEE, MMM d, yyyy', {locale: dateFnsLocale}),
-        hour,
+        hour: format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale}),
     };
 }
 
@@ -960,30 +1025,54 @@ function getCancellationDateTimezoneLabel(venueTimezone: string): string {
 }
 
 /**
+ * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language and
+ * whether the year is shown.
+ * They format in UTC, so move the date to the venue's wall-clock time with `toZonedTime` and pass it through
+ * `toUTCWallClockDate`.
+ */
+const memoizedCreateCancellationDateFormatter = memoize(
+    (localeCode: string, shouldIncludeYear: boolean) =>
+        new Intl.DateTimeFormat(localeCode, {weekday: 'long', year: shouldIncludeYear ? 'numeric' : undefined, month: 'short', day: 'numeric', timeZone: 'UTC'}),
+);
+
+/**
  * Returns a formatted cancellation date, preserving the venue's timezone from the ISO string offset.
  * Dates are formatted as follows:
  * 1. When the date refers to the current year: Wednesday, Mar 17 8:00 AM, GMT+7
  * 2. When the date refers not to the current year: Wednesday, Mar 17, 2023 8:00 AM, GMT+7
+ * When the string has no offset, `localTimeLabel` (e.g. "hotel's local time") is appended instead of a timezone label, if passed.
  */
-function getFormattedCancellationDate(translate: LocalizedTranslate, dateFnsLocale: DateFnsLocale | undefined, isoDateString: string): string {
+function getFormattedCancellationDate(isoDateString: string, dateFnsLocale: DateFnsLocale | undefined, localTimeLabel?: string): string {
     if (!isoDateString) {
         return '';
     }
-    const offsetMatch = isoDateString.match(/([+-]\d{2}:\d{2})$/);
+    const offsetMatch = isoDateString.match(CONST.REGEX.ISO_8601_UTC_OFFSET_SUFFIX);
     const venueTimezone = offsetMatch ? offsetMatch[1] : 'UTC';
-    const date = new Date(isoDateString);
-    const datePattern = isThisYear(date) ? 'EEEE, MMM d' : 'EEEE, MMM d, yyyy';
-    // The marker follows the venue's own hour, not the reader's.
-    const time = `${formatInTimeZone(date, venueTimezone, CONST.DATE.LOCAL_TIME_FORMAT_WITHOUT_PERIOD)} ${getTimePeriodLabel(translate, Number(formatInTimeZone(date, venueTimezone, 'H')))}`;
+    // A string with no offset and no `Z` is the venue's wall-clock time in an unknown timezone. `new Date` would read it
+    // in the device's timezone, so read it as-is and leave out the timezone label instead of guessing one.
+    const isWallClockTime = !offsetMatch && !isoDateString.endsWith('Z');
+    const date = isWallClockTime ? fromZonedTime(isoDateString, venueTimezone) : new Date(isoDateString);
+    // A hand-written `EEEE, MMM d` fixed the US order, so `Intl` builds the date part in the language's own order. Not
+    // every engine accepts a raw offset like `+07:00` as an `Intl` timeZone, so the venue's wall-clock fields are moved
+    // into a local Date first and formatted without one.
+    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
+    const datePart = memoizedCreateCancellationDateFormatter(dateFnsLocale?.code ?? 'en-US', !isThisYear(date)).format(toUTCWallClockDate(toZonedTime(date, venueTimezone)));
+    const formattedDate = `${datePart} ${formatInTimeZone(date, venueTimezone, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}`;
+    if (isWallClockTime) {
+        return localTimeLabel ? `${formattedDate}, ${localTimeLabel}` : formattedDate;
+    }
     // `formatInTimeZone`'s `zzz` token relies on `Intl.DateTimeFormat`, which rejects raw offset strings like
     // `+07:00`, so the timezone label is derived from the offset and appended manually.
-    return `${formatInTimeZone(date, venueTimezone, datePattern, {locale: dateFnsLocale})} ${time}, ${getCancellationDateTimezoneLabel(venueTimezone)}`;
+    return `${formattedDate}, ${getCancellationDateTimezoneLabel(venueTimezone)}`;
 }
 
 /**
  * Returns a formatted layover duration in format "2h 30m".
  */
 function getFormattedDurationBetweenDates(translateParam: LocaleContextProps['translate'], start: Date, end: Date): string | undefined {
+    if (!isValid(start) || !isValid(end)) {
+        return;
+    }
     const {days, hours, minutes} = intervalToDuration({start, end});
 
     if (days && days > 0) {
@@ -1054,19 +1143,37 @@ function getFormattedDateRangeForPerDiem(date1: Date, date2: Date, dateFnsLocale
 }
 
 /**
- * Returns a formatted date range with the number of days in the range.
- * Format: "YYYY-MM-DD to YYYY-MM-DD (X days)"
+ * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language.
  */
-function getFormattedSplitDateRange(translateParam: LocaleContextProps['translate'], startDate: string | undefined, endDate: string | undefined): string {
+const memoizedCreateSplitDateFormatter = memoize((localeCode: string) => new Intl.DateTimeFormat(localeCode, {year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC'}));
+
+/**
+ * Returns a formatted date range with the number of days in the range.
+ * Format: "Jan 10, 2024 to Jan 15, 2024 (6 days)"
+ *
+ * The dates used to be shown as the raw `yyyy-MM-dd` values, which no language writes that way. They are formatted in
+ * UTC because a `yyyy-MM-dd` string is read as UTC midnight, so the shown day matches the picked day in every timezone.
+ */
+function getFormattedSplitDateRange(
+    translateParam: LocaleContextProps['translate'],
+    startDate: string | undefined,
+    endDate: string | undefined,
+    dateFnsLocale: DateFnsLocale | undefined,
+): string {
     if (!startDate || !endDate) {
         return '';
     }
 
     const start = new Date(startDate);
     const end = new Date(endDate);
+    if (!isValid(start) || !isValid(end)) {
+        return '';
+    }
     const daysCount = differenceInDays(end, start) + 1;
+    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
+    const formatter = memoizedCreateSplitDateFormatter(dateFnsLocale?.code ?? 'en-US');
 
-    return translateParam('iou.splitDateRange', startDate, endDate, daysCount);
+    return translateParam('iou.splitDateRange', formatter.format(start), formatter.format(end), daysCount);
 }
 
 /**
@@ -1088,17 +1195,51 @@ const formatInTimeZoneWithFallback: typeof formatInTimeZone = (date, timeZone, f
 };
 
 /**
- * param {SelectedTimezone} timeZone - also decides the marker
- * returns {string} example: 11:10 PM
+ * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language,
+ * timezone and whether the weekday is shown.
  */
-function formatTimeInTimeZoneWithPeriod(
-    translate: LocalizedTranslate,
-    date: string | Date,
-    timeZone: SelectedTimezone,
-    timeFormat: string = CONST.DATE.LOCAL_TIME_FORMAT_WITHOUT_PERIOD,
-): string {
-    const hours = Number(formatInTimeZoneWithFallback(date, timeZone, 'H'));
-    return `${formatInTimeZoneWithFallback(date, timeZone, timeFormat)} ${getTimePeriodLabel(translate, hours)}`;
+const memoizedCreateLongDateInTimeZoneFormatter = memoize(
+    (localeCode: string, timeZone: string, shouldIncludeWeekday: boolean) =>
+        new Intl.DateTimeFormat(localeCode, {weekday: shouldIncludeWeekday ? 'long' : undefined, year: 'numeric', month: 'long', day: 'numeric', timeZone}),
+);
+
+/**
+ * Formats a date as a long date in the given timezone.
+ *
+ * A hand-written `MMMM d, yyyy` fixes the US component order, so German showed its month name before the day and
+ * Spanish lost the `de` it writes between the parts of a date. `Intl` orders the date the way each language does, and
+ * its English output matches the old pattern.
+ *
+ * @returns June 20, 2026, or Saturday, June 20, 2026 with the weekday
+ */
+function formatToLongDateInTimeZone(date: string | Date, timeZone: SelectedTimezone, dateFnsLocale: DateFnsLocale | undefined, shouldIncludeWeekday = false): string {
+    // A date-only string, such as the day picked for a call, is already a calendar day in the user's timezone, so it is
+    // shown exactly as stored by reading and formatting it in UTC. Reading it as midnight in the user's timezone would
+    // show the day before where that midnight does not exist, such as when daylight saving time starts in Santiago.
+    const isDateOnly = typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date);
+    // Some native platforms only know older timezone names, and `Intl` throws on a name it does not know.
+    const supportedTimeZone = isDateOnly ? 'UTC' : fallbackToSupportedTimezone(timeZone);
+    const parsedDate = toDate(date, {timeZone: supportedTimeZone});
+    if (!isValid(parsedDate)) {
+        return '';
+    }
+    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
+    return memoizedCreateLongDateInTimeZoneFormatter(dateFnsLocale?.code ?? 'en-US', supportedTimeZone, shouldIncludeWeekday).format(parsedDate);
+}
+
+/**
+ * Formats a UTC datetime or calendar date as a long date without moving the day to the device's timezone, the way
+ * `formatToLongDateInTimeZone` does for a given timezone.
+ *
+ * @returns June 20, 2026
+ */
+function formatToLongDateInUTC(datetime: string, dateFnsLocale: DateFnsLocale | undefined): string {
+    const date = toDate(datetime, {timeZone: 'UTC'});
+    if (!isValid(date)) {
+        return '';
+    }
+    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
+    return memoizedCreateLongDateInTimeZoneFormatter(dateFnsLocale?.code ?? 'en-US', 'UTC', false).format(date);
 }
 
 /**
@@ -1107,7 +1248,7 @@ function formatTimeInTimeZoneWithPeriod(
  * @param timeZone - Target timezone to display the date in
  * @returns Date string in yyyy-MM-dd format, or empty string if invalid
  */
-function formatUTCDateTimeToDateInTimezone(utcDateTime: string, timeZone: SelectedTimezone | undefined, formatStr = CONST.DATE.FNS_FORMAT_STRING): string {
+function formatUTCDateTimeToDateInTimezone(utcDateTime: string, timeZone: SelectedTimezone | undefined, formatStr: string = CONST.DATE.FNS_FORMAT_STRING): string {
     if (!utcDateTime || !timeZone) {
         return '';
     }
@@ -1121,7 +1262,8 @@ function formatUTCDateTimeToDateInTimezone(utcDateTime: string, timeZone: Select
 }
 
 /**
- * Formats the violation snapshot start date for display in the user's timezone.
+ * Formats the violation snapshot start date for display: a date-only value as its calendar day, and a UTC datetime in the
+ * user's timezone.
  */
 function formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt: string, timeZone: SelectedTimezone | undefined, dateFnsLocale: DateFnsLocale | undefined): string {
     if (!violationSnapshotStartedAt || !timeZone) {
@@ -1129,7 +1271,12 @@ function formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt: string
     }
 
     try {
-        const date = violationSnapshotStartedAt.includes(' ') ? toDate(violationSnapshotStartedAt, {timeZone: 'UTC'}) : parse(violationSnapshotStartedAt, 'yyyy-MM-dd', new Date());
+        if (!violationSnapshotStartedAt.includes(' ')) {
+            // A date-only snapshot is a calendar boundary, not an instant. Shifting it into the user's timezone would
+            // read the device's local midnight as an instant and could show the previous day.
+            return format(parse(violationSnapshotStartedAt, CONST.DATE.FNS_FORMAT_STRING, new Date()), CONST.DATE.MONTH_DAY_YEAR_ORDINAL_FORMAT, {locale: dateFnsLocale});
+        }
+        const date = toDate(violationSnapshotStartedAt, {timeZone: 'UTC'});
         return formatInTimeZoneWithFallback(date, timeZone, CONST.DATE.MONTH_DAY_YEAR_ORDINAL_FORMAT, {locale: dateFnsLocale});
     } catch (error) {
         Log.warn('[DateUtils] Failed to format violation snapshot started at date', {violationSnapshotStartedAt, timeZone, error});
@@ -1208,14 +1355,19 @@ function isDateStringInMonth(dateString: string, year: number, month: number): b
     return datePart >= monthStart && datePart <= monthEnd;
 }
 
+/** Returns a compact date label, e.g. "Sep 15, ’26", or "Sep 15" when the year is left out. */
+function getShortFormattedDayForSearch(day: string, dateFnsLocale: DateFnsLocale | undefined, shouldShowYear = true): string {
+    return format(parse(day, 'yyyy-MM-dd', new Date()), shouldShowYear ? 'MMM d, ’yy' : 'MMM d', {locale: dateFnsLocale});
+}
+
 /** Returns a month label, e.g. "September 2025". */
 function getFormattedMonthForSearch(year: number, month: number, dateFnsLocale: DateFnsLocale | undefined): string {
     return format(new Date(year, month - 1, 1), 'LLLL yyyy', {locale: dateFnsLocale});
 }
 
 /** Returns a compact month label, e.g. "Sep ’25". */
-function getShortFormattedMonthForSearch(year: number, month: number, dateFnsLocale: DateFnsLocale | undefined): string {
-    return format(new Date(year, month - 1, 1), 'LLL ’yy', {locale: dateFnsLocale});
+function getShortFormattedMonthForSearch(year: number, month: number, dateFnsLocale: DateFnsLocale | undefined, shouldShowYear = true): string {
+    return format(new Date(year, month - 1, 1), shouldShowYear ? 'LLL ’yy' : 'LLL', {locale: dateFnsLocale});
 }
 
 /**
@@ -1234,13 +1386,14 @@ function getFormattedDateRangeForSearch(startDate: string, endDate: string, date
 }
 
 /** Returns a compact date range, e.g. "Sep 1 - 7, ’25". */
-function getShortFormattedDateRangeForSearch(startDate: string, endDate: string, dateFnsLocale: DateFnsLocale | undefined): string {
+function getShortFormattedDateRangeForSearch(startDate: string, endDate: string, dateFnsLocale: DateFnsLocale | undefined, shouldShowYear = true): string {
     const start = parse(startDate, 'yyyy-MM-dd', new Date());
     const end = parse(endDate, 'yyyy-MM-dd', new Date());
     if (!isSameYear(start, end)) {
         return `${format(start, 'MMM d, ’yy', {locale: dateFnsLocale})} - ${format(end, 'MMM d, ’yy', {locale: dateFnsLocale})}`;
     }
-    const formattedEnd = isSameMonth(start, end) ? format(end, 'd, ’yy', {locale: dateFnsLocale}) : format(end, 'MMM d, ’yy', {locale: dateFnsLocale});
+    const yearSuffix = shouldShowYear ? ', ’yy' : '';
+    const formattedEnd = format(end, isSameMonth(start, end) ? `d${yearSuffix}` : `MMM d${yearSuffix}`, {locale: dateFnsLocale});
     return `${format(start, 'MMM d', {locale: dateFnsLocale})} - ${formattedEnd}`;
 }
 
@@ -1271,14 +1424,22 @@ function getFormattedQuarterForSearch(year: number, quarter: number, dateFnsLoca
     // This ensures the dates are created in the current/local timezone, not UTC
     const quarterStart = set(new Date(), {year, month: startMonth - 1, date: 1, hours: 0, minutes: 0, seconds: 0, milliseconds: 0});
     const quarterEnd = set(new Date(), {year, month: endMonth, date: 0, hours: 0, minutes: 0, seconds: 0, milliseconds: 0});
-    return `Q${quarter} ${year} (${format(quarterStart, 'MMM d', {locale: dateFnsLocale})} - ${format(quarterEnd, 'MMM d', {locale: dateFnsLocale})})`;
+    // `QQQ` is the locale's own abbreviated quarter, such as `Q1` in English, `T1` in Spanish, `K1` in Dutch,
+    // `I kw.` in Polish and `第一季` in Chinese. `Intl.DateTimeFormat` has no quarter option at all, so date-fns is
+    // the only way to localize this. The quarter still comes before the year by hand, because neither library has
+    // a canned pattern pairing the two.
+    return `${format(quarterStart, 'QQQ yyyy', {locale: dateFnsLocale})} (${format(quarterStart, 'MMM d', {locale: dateFnsLocale})} - ${format(quarterEnd, 'MMM d', {locale: dateFnsLocale})})`;
 }
 
 /**
  * Returns a compact quarter label, e.g. "Q3 ’25".
  */
-function getShortFormattedQuarterForSearch(year: number, quarter: number): string {
-    return `Q${quarter} ${format(new Date(year, 0, 1), '’yy')}`;
+function getShortFormattedQuarterForSearch(year: number, quarter: number, dateFnsLocale: DateFnsLocale | undefined, shouldShowYear = true): string {
+    // Same reasoning as `getFormattedQuarterForSearch`. The quarter label has to come from `QQQ` rather than a
+    // hand-built `Q${quarter}`, because every locale names quarters differently and `Intl.DateTimeFormat` has no
+    // quarter option to fall back on.
+    const quarterStart = set(new Date(), {year, month: (quarter - 1) * 3, date: 1, hours: 0, minutes: 0, seconds: 0, milliseconds: 0});
+    return format(quarterStart, shouldShowYear ? 'QQQ ’yy' : 'QQQ', {locale: dateFnsLocale});
 }
 
 function getNextNthOfMonth(nth: number) {
@@ -1324,10 +1485,6 @@ const DateUtils = {
     extractDate,
     getStatusUntilDate,
     extractTime12Hour,
-    getTime12HourWithTranslatedPeriod,
-    getTimePeriodLabel,
-    formatTimeWithPeriod,
-    formatTimeInTimeZoneWithPeriod,
     formatDateTimeTo12Hour,
     get12HourTimeObjectFromDate,
     getLocalizedTimePeriodDescription,
@@ -1337,10 +1494,12 @@ const DateUtils = {
     isToday,
     isTomorrow,
     isYesterday,
+    parseCalendarDate,
+    isWithinCalendarPickerRange,
     getMonthNames,
-    getFilteredMonthItems,
     getDaysOfWeek,
     formatWithUTCTimeZone,
+    formatToLongDateInUTC,
     formatMachineDateWithUTCTimeZone,
     getWeekEndsOn,
     isTimeAtLeastOneMinuteInFuture,
@@ -1364,13 +1523,16 @@ const DateUtils = {
     getFormattedDateRangeForPerDiem,
     getFormattedSplitDateRange,
     formatInTimeZoneWithFallback,
+    formatToLongDateInTimeZone,
     formatUTCDateTimeToDateInTimezone,
     formatViolationSnapshotStartedAtDate,
     normalizeDateToStartOfDay,
     normalizeDateToEndOfDay,
+    formatDBTimeWithoutMilliseconds,
     getMonthDateRange,
     getWeekDateRange,
     isDateStringInMonth,
+    getShortFormattedDayForSearch,
     getFormattedMonthForSearch,
     getShortFormattedMonthForSearch,
     getFormattedDateRangeForSearch,

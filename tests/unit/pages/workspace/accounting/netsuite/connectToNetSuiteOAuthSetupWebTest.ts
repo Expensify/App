@@ -5,9 +5,7 @@ import type connectToNetSuiteOAuthSetupType from '@pages/workspace/accounting/ne
 
 import {openLink} from '@userActions/Link';
 
-import type Session from '@src/types/onyx/Session';
-
-import type {OnyxEntry} from 'react-native-onyx';
+import CONST from '@src/CONST';
 
 // Jest (jest-expo) resolves the `.native` variant by default, so we require the web entry point
 // explicitly (with its `.ts` extension) to exercise the web implementation.
@@ -22,7 +20,6 @@ const POLICY_ID = '123';
 const ACCOUNT_ID = 'TSTDRV1234567';
 const ENVIRONMENT_URL = 'https://new.expensify.com';
 const SETUP_LINK = 'https://netsuite-setup.example/123';
-const TEST_SESSION: OnyxEntry<Session> = {accountID: 1, email: 'test@test.com'};
 
 jest.mock('@libs/actions/connections/NetSuiteCommands', () => ({
     getNetSuiteSetupLink: jest.fn(),
@@ -47,21 +44,41 @@ describe('connectToNetSuiteOAuthSetup (web)', () => {
     });
 
     it('opens the NetSuite setup link built from the policy and account ID', () => {
-        connectToNetSuiteOAuthSetup(POLICY_ID, ACCOUNT_ID, ENVIRONMENT_URL, TEST_SESSION);
+        connectToNetSuiteOAuthSetup(POLICY_ID, ACCOUNT_ID, ENVIRONMENT_URL, undefined, undefined);
 
-        expect(mockedGetNetSuiteSetupLink).toHaveBeenCalledWith(POLICY_ID, ACCOUNT_ID);
-        expect(mockedOpenLink).toHaveBeenCalledWith(SETUP_LINK, ENVIRONMENT_URL, false, TEST_SESSION);
+        expect(mockedGetNetSuiteSetupLink).toHaveBeenCalledWith(POLICY_ID, ACCOUNT_ID, undefined);
+        expect(mockedOpenLink).toHaveBeenCalledWith(SETUP_LINK, ENVIRONMENT_URL, false, undefined);
     });
 
     it('dismisses the RHP, which the OAuth tab cannot do from its own browsing context', () => {
-        connectToNetSuiteOAuthSetup(POLICY_ID, ACCOUNT_ID, ENVIRONMENT_URL, TEST_SESSION);
+        connectToNetSuiteOAuthSetup(POLICY_ID, ACCOUNT_ID, ENVIRONMENT_URL, undefined, undefined);
 
         expect(mockedDismissModal).toHaveBeenCalled();
     });
 
     it('does not navigate to the in-app setup screen', () => {
-        connectToNetSuiteOAuthSetup(POLICY_ID, ACCOUNT_ID, ENVIRONMENT_URL, TEST_SESSION);
+        connectToNetSuiteOAuthSetup(POLICY_ID, ACCOUNT_ID, ENVIRONMENT_URL, undefined, undefined);
 
         expect(mockedNavigate).not.toHaveBeenCalled();
+    });
+
+    it('passes isMigration flag to getNetSuiteSetupLink when migrating a TBA connection to OAuth', () => {
+        // Given a TBA → OAuth migration
+        // When the OAuth setup is triggered with isMigration: true
+        connectToNetSuiteOAuthSetup(POLICY_ID, ACCOUNT_ID, ENVIRONMENT_URL, true, undefined);
+
+        // Then the setup link is built with the migration flag so the backend knows to migrate
+        expect(mockedGetNetSuiteSetupLink).toHaveBeenCalledWith(POLICY_ID, ACCOUNT_ID, true);
+    });
+
+    it('passes the session to openLink', () => {
+        // Given an anonymous session, which openLink uses to decide whether to redirect to sign in
+        const session = {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS};
+
+        // When the OAuth setup is triggered
+        connectToNetSuiteOAuthSetup(POLICY_ID, ACCOUNT_ID, ENVIRONMENT_URL, undefined, session);
+
+        // Then the setup link is opened with the passed session
+        expect(mockedOpenLink).toHaveBeenCalledWith(SETUP_LINK, ENVIRONMENT_URL, false, session);
     });
 });

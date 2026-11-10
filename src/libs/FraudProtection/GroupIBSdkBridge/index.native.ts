@@ -1,6 +1,7 @@
 import {getApiRoot} from '@libs/ApiUtils';
 import {getOldDotEnvironmentURL} from '@libs/Environment/Environment';
 import getEnvironment from '@libs/Environment/getEnvironment';
+import type Environment from '@libs/Environment/getEnvironment/types';
 import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
@@ -10,16 +11,18 @@ import {FP, FPAttributeFormat} from 'group-ib-fp';
 import enableCapabilities from './enableCapabilities/index';
 
 // The GroupIB SDK requires us to set both iOS and Android customer IDs when initializing the SDK, instead of just one that the App is running on.
-const cidIOSMap: Record<string, string> = {
+const cidIOSMap: Record<Environment, string> = {
     [CONST.ENVIRONMENT.PRODUCTION]: 'gib-i-expensify',
     [CONST.ENVIRONMENT.STAGING]: 'gib-i-expensify-stg',
     [CONST.ENVIRONMENT.DEV]: 'gib-i-expensify-uat',
+    [CONST.ENVIRONMENT.QA]: 'gib-i-expensify-stg',
     [CONST.ENVIRONMENT.ADHOC]: 'gib-i-expensify-stg',
 };
-const cidAndroidMap: Record<string, string> = {
+const cidAndroidMap: Record<Environment, string> = {
     [CONST.ENVIRONMENT.PRODUCTION]: 'gib-a-expensify',
     [CONST.ENVIRONMENT.STAGING]: 'gib-a-expensify-stg',
     [CONST.ENVIRONMENT.DEV]: 'gib-a-expensify-uat',
+    [CONST.ENVIRONMENT.QA]: 'gib-a-expensify-stg',
     [CONST.ENVIRONMENT.ADHOC]: 'gib-a-expensify-stg',
 };
 

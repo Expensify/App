@@ -12,7 +12,8 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getNetSuitePayableAccountOptions, settingsPendingAction} from '@libs/PolicyUtils';
+import {getNetSuitePayableAccountOptions} from '@libs/NetSuiteUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -26,7 +27,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 function DynamicNetSuiteExportExpensesPayableAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -43,40 +44,34 @@ function DynamicNetSuiteExportExpensesPayableAccountSelectPage({policy}: WithPol
     const config = policy?.connections?.netsuite?.options.config;
     const currentSettingName = isReimbursable ? CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT : CONST.NETSUITE_CONFIG.PAYABLE_ACCT;
     const currentPayableAccountID = config?.[currentSettingName] ?? CONST.NETSUITE_PAYABLE_ACCOUNT_DEFAULT_VALUE;
-    const netsuitePayableAccountOptions = useMemo<SelectorType[]>(() => getNetSuitePayableAccountOptions(policy ?? undefined, currentPayableAccountID), [currentPayableAccountID, policy]);
+    const netsuitePayableAccountOptions: SelectorType[] = getNetSuitePayableAccountOptions(policy ?? undefined, currentPayableAccountID);
 
-    const initiallyFocusedOptionKey = useMemo(() => netsuitePayableAccountOptions?.find((mode) => mode.isSelected)?.keyForList, [netsuitePayableAccountOptions]);
+    const initiallyFocusedOptionKey = netsuitePayableAccountOptions?.find((mode) => mode.isSelected)?.keyForList;
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
-    const updatePayableAccount = useCallback(
-        ({value}: SelectorType) => {
-            if (currentPayableAccountID !== value && policyID) {
-                if (isReimbursable) {
-                    updateNetSuiteReimbursablePayableAccount(policyID, value, currentPayableAccountID);
-                } else {
-                    updateNetSuitePayableAcct(policyID, value, currentPayableAccountID);
-                }
+    const updatePayableAccount = ({value}: SelectorType) => {
+        if (currentPayableAccountID !== value && policyID) {
+            if (isReimbursable) {
+                updateNetSuiteReimbursablePayableAccount(policyID, value, currentPayableAccountID);
+            } else {
+                updateNetSuitePayableAcct(policyID, value, currentPayableAccountID);
             }
-            goBack();
-        },
-        [currentPayableAccountID, policyID, goBack, isReimbursable],
-    );
+        }
+        goBack();
+    };
 
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.netsuite.noAccountsFound')}
-                subtitle={translate('workspace.netsuite.noAccountsFoundDescription')}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [translate, styles.pb10, illustrations.Telescope],
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.netsuite.noAccountsFound')}
+            subtitle={translate('workspace.netsuite.noAccountsFoundDescription')}
+            containerStyle={styles.pb10}
+        />
     );
 
     return (

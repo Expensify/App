@@ -15,6 +15,7 @@ import useIsSupportalSession from '@hooks/useIsSupportalSession';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
@@ -97,6 +98,7 @@ function AvatarAndGroupNameSection({setAvatarFile, optimisticReportID}: AvatarAn
         <>
             <View style={styles.avatarSectionWrapper}>
                 <AvatarWithImagePicker
+                    sentryLabel={CONST.SENTRY_LABEL.NEW_CHAT.GROUP_AVATAR}
                     isUsingDefaultAvatar={!stashedLocalAvatarImage}
                     source={groupAvatarSource}
                     avatar={groupAvatar}
@@ -114,6 +116,7 @@ function AvatarAndGroupNameSection({setAvatarFile, optimisticReportID}: AvatarAn
                 />
             </View>
             <MenuItemWithTopDescription
+                sentryLabel={CONST.SENTRY_LABEL.NEW_CHAT.GROUP_NAME_FIELD}
                 title={groupName}
                 onPress={navigateToEditChatName}
                 shouldShowRightIcon
@@ -132,7 +135,7 @@ function NewChatConfirmPage() {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [allPersonalDetails] = useAllPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
@@ -147,11 +150,14 @@ function NewChatConfirmPage() {
     );
 
     const selectedParticipants: ListItem[] = selectedOptions
-        .map((selectedOption: Participant) => {
+        .map((selectedOption: Participant, index) => {
             const accountID = selectedOption.accountID;
             const isAdmin = personalData.accountID === accountID;
             const section: ListItem = {
-                login: selectedOption?.login ?? '',
+                // Keep the draft's login so unselectOption can match the participant. Once a login created offline syncs,
+                // getParticipantsOption resolves it to the real account, whose login can differ (for example, a phone
+                // number saved without the SMS domain).
+                login: participants.at(index)?.login ?? '',
                 text: selectedOption?.text ?? '',
                 keyForList: selectedOption?.keyForList ?? '',
                 isSelected: !isAdmin,

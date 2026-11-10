@@ -1,6 +1,8 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
+import Icon from '@components/Icon';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -9,9 +11,9 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
@@ -26,6 +28,8 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import variables from '@styles/variables';
 
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -33,6 +37,7 @@ import type {MerchantTypeRuleForm} from '@src/types/form/MerchantTypeRuleForm';
 import INPUT_IDS from '@src/types/form/MerchantTypeRuleForm';
 
 import {useFocusEffect} from '@react-navigation/native';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -51,14 +56,14 @@ function getValidationError(form: MerchantTypeRuleForm | null | undefined, trans
 }
 
 function MerchantTypeRulePageBase({policyID, groupID, testID}: MerchantTypeRulePageBaseProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
+    const theme = useTheme();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Folder', 'Lock']);
     const policyData = usePolicyData(policyID);
     const {policy} = policyData;
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
-    const {isBetaEnabled} = usePermissions();
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_TYPE_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -85,12 +90,12 @@ function MerchantTypeRulePageBase({policyID, groupID, testID}: MerchantTypeRuleP
         setDraftMerchantTypeRule(getMerchantTypeRuleFormFromMccGroup(groupID, currentCategory));
     }, [currentCategory, groupID]);
 
-    const fetchPolicyData = useCallback(() => {
+    const fetchPolicyData = () => {
         if (!policy?.areCategoriesEnabled || policyCategories) {
             return;
         }
         openPolicyCategoriesPage(policyID);
-    }, [policyID, policy?.areCategoriesEnabled, policyCategories]);
+    };
 
     useNetwork({onReconnect: fetchPolicyData});
 
@@ -144,10 +149,13 @@ function MerchantTypeRulePageBase({policyID, groupID, testID}: MerchantTypeRuleP
             isAlertVisible={shouldShowError && !!errorMessage}
             message={errorMessage}
             onSubmit={handleSubmit}
+            shouldShowLoadingImmediatelyOnPress={false}
             enabledWhenOffline
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_TYPE_RULE_SAVE}
         />
     ) : null;
+
+    const categoryError = canWriteRules && shouldShowError && !form?.[INPUT_IDS.CATEGORY] ? translate('common.error.fieldRequired') : '';
 
     return (
         <AccessOrNotFoundWrapper
@@ -155,41 +163,59 @@ function MerchantTypeRulePageBase({policyID, groupID, testID}: MerchantTypeRuleP
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
-            shouldBeBlocked={!isRulesRevampEnabled}
         >
             <ScreenWrapper
                 testID={testID}
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
             >
-                <HeaderWithBackButton title={translate('workspace.rules.merchantRules.expenseDefaultsTitle')} />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.merchantRules.expenseDefaultsTitle')} />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <View style={[styles.ph5, styles.pv3, styles.gap6]}>
                         <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.merchantRules.expenseDefaultsSubtitle')}</Text>
                         <Text style={[styles.textLabel, styles.textStrong, styles.lh16]}>{translate('workspace.rules.merchantRules.ifAnyExpenseMatches')}</Text>
                     </View>
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.rules.merchantTypeRule.merchantType')}
-                        title={merchantTypeDisplayName}
-                        shouldShowRightIcon
-                        iconRight={icons.Lock}
-                        interactive={false}
-                    />
+                    <MenuItemField
+                        name={translate('workspace.rules.merchantTypeRule.merchantType')}
+                        value={merchantTypeDisplayName}
+                    >
+                        <Icon
+                            src={icons.Lock}
+                            fill={theme.icon}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                        />
+                    </MenuItemField>
                     <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
                     <Text style={[styles.textLabel, styles.textStrong, styles.lh16, styles.ph5, styles.pv3]}>{translate('workspace.rules.merchantRules.thenApplyFollowingDefaults')}</Text>
-                    <MenuItemWithTopDescription
-                        description={translate('common.category')}
-                        title={categoryDisplayName}
-                        errorText={canWriteRules && shouldShowError && !form?.[INPUT_IDS.CATEGORY] ? translate('common.error.fieldRequired') : ''}
-                        onPress={canWriteRules ? () => Navigation.navigate(ROUTES.RULES_MERCHANT_TYPE_CATEGORY.getRoute(policyID, groupID)) : undefined}
-                        shouldShowRightIcon={canWriteRules}
-                        interactive={canWriteRules}
-                        icon={icons.Folder}
-                        iconWidth={variables.iconSizeNormal}
-                        iconHeight={variables.iconSizeNormal}
-                        shouldIconUseAutoWidthStyle
+                    <MenuItem.Root
+                        onPress={
+                            canWriteRules
+                                ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.RULES_MERCHANT_TYPE_CATEGORY.getRoute(policyID, groupID)), false, session)
+                                : undefined
+                        }
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_TYPE_RULE_CATEGORY}
-                    />
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <MenuItem.IconNarrow src={icons.Folder} />
+                            </MenuItem.Leading>
+                            <MenuItemField.Content name={translate('common.category')}>
+                                {!!categoryDisplayName && <MenuItem.FieldValue>{categoryDisplayName}</MenuItem.FieldValue>}
+                            </MenuItemField.Content>
+                            {canWriteRules && (
+                                <MenuItem.Trailing>
+                                    <MenuItem.Chevron />
+                                </MenuItem.Trailing>
+                            )}
+                        </MenuItem.Row>
+                        {!!categoryError && (
+                            <MenuItem.HelpText
+                                isError
+                                message={categoryError}
+                            />
+                        )}
+                    </MenuItem.Root>
                 </ScrollView>
                 {footer}
             </ScreenWrapper>

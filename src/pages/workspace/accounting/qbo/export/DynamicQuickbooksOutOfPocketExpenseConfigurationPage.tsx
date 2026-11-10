@@ -1,14 +1,15 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, settingsPendingAction, shouldShowReimbursableExportDestinationAccountError} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -16,13 +17,17 @@ import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/ut
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useMemo} from 'react';
+import {authTokenTypeSelector} from '@selectors/Session';
+import React from 'react';
 
 type QBOSectionType = {
     title?: string;
@@ -40,6 +45,7 @@ const account = [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT];
 const accountOrExportDestination = [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT];
 
 function DynamicQuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConnectionsProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const styles = useThemeStyles();
@@ -49,29 +55,26 @@ function DynamicQuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPoli
     const isLocationEnabled = !!(qboConfig?.syncLocations && qboConfig?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isTaxesEnabled = !!qboConfig?.syncTax;
 
-    const [exportHintText, accountDescription] = useMemo(() => {
-        let hintText: string | undefined;
-        let description: string | undefined;
-        switch (qboConfig?.reimbursableExpensesExportDestination) {
-            case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
-                hintText = isLocationEnabled ? undefined : translate('workspace.qbo.exportCheckDescription');
-                description = translate('workspace.qbo.bankAccount');
-                break;
-            case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY:
-                hintText = isTaxesEnabled ? undefined : translate('workspace.qbo.exportJournalEntryDescription');
-                description = translate('workspace.qbo.account');
-                break;
-            case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
-                hintText = isLocationEnabled ? undefined : translate('workspace.qbo.exportVendorBillDescription');
-                description = translate('workspace.qbo.accountsPayable');
-                break;
-            default:
-                description = translate('workspace.qbo.account');
-                break;
-        }
-
-        return [hintText, description];
-    }, [translate, qboConfig?.reimbursableExpensesExportDestination, isLocationEnabled, isTaxesEnabled]);
+    let hintText: string | undefined;
+    let description: string | undefined;
+    switch (qboConfig?.reimbursableExpensesExportDestination) {
+        case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
+            hintText = isLocationEnabled ? undefined : translate('workspace.qbo.exportCheckDescription');
+            description = translate('workspace.qbo.bankAccount');
+            break;
+        case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY:
+            hintText = isTaxesEnabled ? undefined : translate('workspace.qbo.exportJournalEntryDescription');
+            description = translate('workspace.qbo.account');
+            break;
+        case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
+            hintText = isLocationEnabled ? undefined : translate('workspace.qbo.exportVendorBillDescription');
+            description = translate('workspace.qbo.accountsPayable');
+            break;
+        default:
+            description = translate('workspace.qbo.account');
+            break;
+    }
+    const [exportHintText, accountDescription] = [hintText, description];
 
     const sections: QBOSectionType[] = [
         {
@@ -101,7 +104,7 @@ function DynamicQuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPoli
             pendingAction: settingsPendingAction(account, qboConfig?.pendingFields),
             brickRoadIndicator: areSettingsInErrorFields(account, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             errors:
-                shouldShowQBOReimbursableExportDestinationAccountError(policy) && qboConfig?.reimbursableExpensesExportDestination
+                shouldShowReimbursableExportDestinationAccountError(policy, [CONST.POLICY.CONNECTIONS.NAME.QBO]) && qboConfig?.reimbursableExpensesExportDestination
                     ? {
                           [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: translate(
                               `workspace.qbo.exportDestinationAccountsMisconfigurationError.${qboConfig.reimbursableExpensesExportDestination}`,
@@ -133,14 +136,16 @@ function DynamicQuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPoli
                     errors={section.errors}
                     errorRowStyles={[styles.ph5]}
                 >
-                    <MenuItemWithTopDescription
-                        title={section.title}
-                        description={section.description}
-                        onPress={section.onPress}
-                        shouldShowRightIcon
-                        brickRoadIndicator={section.brickRoadIndicator}
-                        hintText={section.hintText}
-                    />
+                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(section.onPress, false, session)}>
+                        <MenuItemField.Row
+                            name={section.description ?? ''}
+                            value={section.title}
+                        >
+                            {!!section.brickRoadIndicator && <MenuItem.BrickRoadIndicator status={section.brickRoadIndicator} />}
+                            <MenuItem.Chevron />
+                        </MenuItemField.Row>
+                        {!!section.hintText && <MenuItem.HelpText message={section.hintText} />}
+                    </MenuItem.Root>
                 </OfflineWithFeedback>
             ))}
         </ConnectionLayout>

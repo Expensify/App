@@ -1,9 +1,10 @@
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 
 type ScrollToTabProps = {
     animated?: boolean;
-    containerRef: React.RefObject<RNScrollView | null>;
+    containerRef: React.RefObject<ComponentRef<typeof RNScrollView> | null>;
     containerX: number;
     containerWidth: number;
     tabX: number;

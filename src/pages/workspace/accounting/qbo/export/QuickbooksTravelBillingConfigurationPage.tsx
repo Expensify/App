@@ -1,6 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useLocalize from '@hooks/useLocalize';
@@ -35,9 +35,9 @@ function QuickbooksTravelBillingConfigurationPage({policy}: WithPolicyConnection
     return (
         <ConnectionLayout
             displayName="QuickbooksTravelBillingConfigurationPage"
-            headerTitle="workspace.common.travelInvoicing"
-            title="workspace.qbo.travelInvoicingDescription"
-            titleAlreadyTranslated={translate('workspace.qbo.travelInvoicingDescription', integrationName)}
+            headerTitle="workspace.common.travelBilling"
+            title="workspace.qbo.travelBillingDescription"
+            titleAlreadyTranslated={translate('workspace.qbo.travelBillingDescription', integrationName)}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -54,18 +54,18 @@ function QuickbooksTravelBillingConfigurationPage({policy}: WithPolicyConnection
                 pendingAction={settingsPendingAction(payableAccount, qboConfig?.pendingFields)}
                 errorRowStyles={[styles.ph5]}
             >
-                <MenuItemWithTopDescription
-                    title={travelPayableAccount?.name}
-                    description={translate('workspace.qbo.creditCardAccount')}
+                <MenuItemField
+                    name={translate('workspace.qbo.creditCardAccount')}
                     onPress={() => {
                         if (!policyID) {
                             return;
                         }
                         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT.getRoute(policyID));
                     }}
-                    shouldShowRightIcon
-                    brickRoadIndicator={areSettingsInErrorFields(payableAccount, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
+                    value={travelPayableAccount?.name}
+                >
+                    {areSettingsInErrorFields(payableAccount, qboConfig?.errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                </MenuItemField>
             </OfflineWithFeedback>
             <TravelBillingContinuousReconciliationSection
                 policy={policy}

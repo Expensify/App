@@ -51,7 +51,6 @@ const buildTag = (name: string, enabled: boolean): WorkspaceTagTableRowData => (
     enabled,
     isLocked: false,
     showEnabledSwitch: true,
-    showRequiredSwitch: false,
     action: jest.fn(),
     onClose: jest.fn(),
 });

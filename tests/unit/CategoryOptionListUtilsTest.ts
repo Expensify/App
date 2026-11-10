@@ -1342,6 +1342,37 @@ describe('CategoryOptionListUtils', () => {
         ]);
     });
 
+    it('sortCategories skips categories without a name', () => {
+        // Given a categories map with a partial entry that has no name, as left behind by an Onyx merge keyed by a renamed or deleted category
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only: the malformed entry is the point of the test
+        const categories = {
+            Ghost: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            Taxi: {enabled: true, name: 'Taxi'},
+        } as unknown as Record<string, Category>;
+
+        // When the categories are sorted
+        const sorted = sortCategories(categories, localeCompare);
+
+        // Then the nameless entry is dropped instead of crashing, and valid categories are kept
+        expect(sorted).toEqual([{name: 'Taxi', enabled: true, pendingAction: undefined}]);
+    });
+
+    it('getCategoryListSections does not crash when a category has no name', () => {
+        // Given policy categories with a partial entry that has no name
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only: the malformed entry is the point of the test
+        const categories = {
+            Ghost: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            Taxi: {enabled: true, name: 'Taxi'},
+        } as unknown as PolicyCategories;
+
+        // When the category picker sections are built
+        const sections = getCategoryListSections({categories, localeCompare, translate: translateLocal});
+
+        // Then only the valid category is listed
+        const rows = sections.flatMap((section) => section.data);
+        expect(rows.map((row) => row.searchText)).toEqual(['Taxi']);
+    });
+
     it('shows the GL code only on the subcategory row when searching for a subcategory', () => {
         const categories: PolicyCategories = {
             Lunch: makeCategory('Lunch', '4100'),
@@ -1457,5 +1488,22 @@ describe('CategoryOptionListUtils', () => {
         const rows = sections.flatMap((section) => section.data);
 
         expect(rows.every((row) => row.alternateText === undefined)).toBe(true);
+    });
+
+    it('groups categories into Recent and All sections once the count reaches a custom searchInputThreshold', () => {
+        // Given fewer enabled categories than the default limit, but as many as the custom threshold
+        const categories: PolicyCategories = {
+            Food: makeCategory('Food', '5000'),
+            Travel: makeCategory('Travel', '6000'),
+            Lodging: makeCategory('Lodging', '7000'),
+        };
+
+        // When building sections with the default threshold and with a threshold matching the category count
+        const defaultSections = getCategoryListSections({categories, recentlyUsedCategories: ['Food'], localeCompare, translate: translateLocal});
+        const customSections = getCategoryListSections({categories, recentlyUsedCategories: ['Food'], localeCompare, translate: translateLocal, searchInputThreshold: 3});
+
+        // Then the default keeps a single untitled list, while the custom threshold splits it so the list matches the visible search input
+        expect(defaultSections.map((section) => section.title)).toEqual(['']);
+        expect(customSections.map((section) => section.title)).toEqual([translateLocal('common.recent'), translateLocal('common.all')]);
     });
 });

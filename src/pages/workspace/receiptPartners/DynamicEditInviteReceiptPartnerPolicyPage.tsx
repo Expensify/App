@@ -23,9 +23,10 @@ import {clearUberEmployeeError, inviteWorkspaceEmployeesToUber} from '@libs/acti
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {formatMemberForList, getHeaderMessage, sortAlphabetically} from '@libs/OptionsListUtils';
+import {formatMemberForList, getHeaderMessage} from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
 import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+import sortAlphabetically from '@libs/sortAlphabetically';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -42,7 +43,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 type DynamicEditInviteReceiptPartnerPolicyPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_RECEIPT_PARTNERS_INVITE_EDIT>;
 
@@ -62,231 +63,193 @@ function DynamicEditInviteReceiptPartnerPolicyPage({route}: DynamicEditInviteRec
     const policy = usePolicy(policyID);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
 
-    const inviteOrResend = useCallback(
-        (email: string) => {
-            if (!policyID) {
-                return;
-            }
-            inviteWorkspaceEmployeesToUber(policyID, [email]);
-        },
-        [policyID],
-    );
+    const inviteOrResend = (email: string) => {
+        if (!policyID) {
+            return;
+        }
+        inviteWorkspaceEmployeesToUber(policyID, [email]);
+    };
 
-    const dismissError = useCallback(
-        (item: MemberForList) => {
-            if (!policyID || !item.login) {
-                return;
-            }
-            clearUberEmployeeError(policyID, item.login);
-        },
-        [policyID],
-    );
+    const dismissError = (item: MemberForList) => {
+        if (!policyID || !item.login) {
+            return;
+        }
+        clearUberEmployeeError(policyID, item.login);
+    };
 
     // Maintain independent search state per tab to avoid carryover across tabs
     const [allSearchTerm, allDebouncedSearchTerm, setAllSearchTerm] = useDebouncedState('');
     const [linkedSearchTerm, linkedDebouncedSearchTerm, setLinkedSearchTerm] = useDebouncedState('');
     const [outstandingSearchTerm, outstandingDebouncedSearchTerm, setOutstandingSearchTerm] = useDebouncedState('');
 
-    const getSearchStateForTab = useCallback(
-        (tab: ReceiptPartnersTab) => {
-            if (tab === CONST.TAB.RECEIPT_PARTNERS.ALL) {
-                return {searchTerm: allSearchTerm, debouncedSearchTerm: allDebouncedSearchTerm, setSearchTerm: setAllSearchTerm};
-            }
-            if (tab === CONST.TAB.RECEIPT_PARTNERS.LINKED) {
-                return {searchTerm: linkedSearchTerm, debouncedSearchTerm: linkedDebouncedSearchTerm, setSearchTerm: setLinkedSearchTerm};
-            }
-            return {searchTerm: outstandingSearchTerm, debouncedSearchTerm: outstandingDebouncedSearchTerm, setSearchTerm: setOutstandingSearchTerm};
-        },
-        [
-            allSearchTerm,
-            allDebouncedSearchTerm,
-            linkedSearchTerm,
-            linkedDebouncedSearchTerm,
-            outstandingSearchTerm,
-            outstandingDebouncedSearchTerm,
-            setAllSearchTerm,
-            setLinkedSearchTerm,
-            setOutstandingSearchTerm,
-        ],
-    );
+    const getSearchStateForTab = (tab: ReceiptPartnersTab) => {
+        if (tab === CONST.TAB.RECEIPT_PARTNERS.ALL) {
+            return {searchTerm: allSearchTerm, debouncedSearchTerm: allDebouncedSearchTerm, setSearchTerm: setAllSearchTerm};
+        }
+        if (tab === CONST.TAB.RECEIPT_PARTNERS.LINKED) {
+            return {searchTerm: linkedSearchTerm, debouncedSearchTerm: linkedDebouncedSearchTerm, setSearchTerm: setLinkedSearchTerm};
+        }
+        return {searchTerm: outstandingSearchTerm, debouncedSearchTerm: outstandingDebouncedSearchTerm, setSearchTerm: setOutstandingSearchTerm};
+    };
 
-    const uberEmployeesByEmail = useMemo<Record<string, {status?: string; pendingAction?: PendingAction; errors?: Record<string, string | null>}>>(() => {
-        const policyWithEmployees = policy as typeof policy & {
-            receiptPartners?: {
-                uber?: {
-                    employees?: Record<string, {status?: string; pendingAction?: PendingAction; errors?: Record<string, string | null>}>;
-                };
+    const policyWithEmployees = policy as typeof policy & {
+        receiptPartners?: {
+            uber?: {
+                employees?: Record<
+                    string,
+                    {
+                        status?: string;
+                        pendingAction?: PendingAction;
+                        errors?: Record<string, string | null>;
+                    }
+                >;
             };
         };
-        return policyWithEmployees?.receiptPartners?.uber?.employees ?? {};
-    }, [policy]);
-
-    const deriveStatus = useCallback(
-        (email: string): UberEmployeeStatus => {
-            const status = uberEmployeesByEmail[email]?.status as UberEmployeeStatus;
-
-            return status ?? CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.NONE;
-        },
-        [uberEmployeesByEmail],
-    );
-
-    const members = useMemo<Array<MemberForList & ListItem>>(() => {
-        const list: Array<MemberForList & ListItem> = [];
-        const employees = policy?.employeeList ?? {};
-
-        const buttonStyles = [
-            styles.button,
-            StyleUtils.getButtonStyleWithIcon(styles, CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL, true, false),
-            styles.ml3,
-            {minWidth: variables.uberEmployeeInviteButtonWidth},
-        ];
-        const buttonTextStyles = [styles.buttonText, styles.buttonSmallText];
-
-        for (const [email, policyEmployee] of Object.entries(employees)) {
-            // Skip deleted policy employees
-            if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
-                continue;
-            }
-            const personalDetail = employeePersonalDetails[email ?? ''];
-            const status = deriveStatus(email);
-
-            let rightElement;
-            const isResend = status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.CREATED || status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.INVITED;
-            const isInvite = status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.DELETED || status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.NONE;
-            if (isResend || isInvite) {
-                const text = isResend ? translate('workspace.receiptPartners.uber.status.resend') : translate('workspace.receiptPartners.uber.status.invite');
-                const textChecked = translate('workspace.receiptPartners.uber.status.resend');
-                rightElement = (
-                    <PressableWithDelayToggle
-                        text={text}
-                        textChecked={textChecked}
-                        tooltipText=""
-                        tooltipTextChecked=""
-                        onPress={() => inviteOrResend(email)}
-                        styles={[...buttonStyles, isInvite ? styles.buttonSuccess : undefined]}
-                        textStyles={[...buttonTextStyles, isInvite ? styles.buttonSuccessText : undefined]}
-                        iconChecked={icons.Checkmark}
-                        inline={false}
-                        sentryLabel={CONST.SENTRY_LABEL.RECEIPT_PARTNERS.INVITE_RESEND_BUTTON}
-                        accessible={false}
-                    />
-                );
-            } else {
-                const badgeText = translate(`workspace.receiptPartners.uber.status.${status}`);
-                const isSuccess = status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED;
-                rightElement = (
-                    <Badge
-                        text={badgeText}
-                        success={isSuccess}
-                        badgeStyles={styles.ml3}
-                    />
-                );
-            }
-
-            const option = formatMemberForList({
-                text: personalDetail?.displayName ?? email,
-                alternateText: email,
-                login: email,
-                accountID: personalDetail?.accountID,
-                icons: [
-                    {
-                        source: personalDetail?.avatar ?? icons.FallbackAvatar,
-                        name: formatPhoneNumber(email),
-                        type: CONST.ICON_TYPE_AVATAR,
-                        id: personalDetail?.accountID,
-                    },
-                ],
-                keyForList: email,
-                reportID: '',
-                isDisabled: true,
-                pendingAction: uberEmployeesByEmail[email]?.pendingAction,
-            });
-
-            const optionWithErrorsAndRightElement = {
-                ...option,
-                rightElement,
-                errors: uberEmployeesByEmail[email]?.errors,
-            };
-
-            list.push(optionWithErrorsAndRightElement as MemberForList & ListItem);
+    };
+    const uberEmployeesByEmail: Record<
+        string,
+        {
+            status?: string;
+            pendingAction?: PendingAction;
+            errors?: Record<string, string | null>;
         }
-        return sortAlphabetically(list, 'text', localeCompare);
-    }, [
-        policy?.employeeList,
-        styles,
-        StyleUtils,
-        localeCompare,
-        isOffline,
-        deriveStatus,
-        uberEmployeesByEmail,
-        translate,
-        inviteOrResend,
-        icons.Checkmark,
-        icons.FallbackAvatar,
-        formatPhoneNumber,
-        employeePersonalDetails,
-    ]);
+    > = policyWithEmployees?.receiptPartners?.uber?.employees ?? {};
 
-    const applyTabStatusFilter = useCallback(
-        (tab: ReceiptPartnersTab, data: MemberForList[]) => {
-            if (tab === CONST.TAB.RECEIPT_PARTNERS.ALL) {
-                return data;
-            }
-            if (tab === CONST.TAB.RECEIPT_PARTNERS.LINKED) {
-                return data.filter((m) => {
-                    const status = deriveStatus(m.login ?? '');
-                    return (
-                        status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED ||
-                        status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL ||
-                        status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED
-                    );
-                });
-            }
-            // OUTSTANDING
+    const deriveStatus = (email: string): UberEmployeeStatus => {
+        const status = uberEmployeesByEmail[email]?.status as UberEmployeeStatus;
+
+        return status ?? CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.NONE;
+    };
+
+    const list: Array<MemberForList & ListItem> = [];
+    const employees = policy?.employeeList ?? {};
+    const buttonStyles = [
+        styles.button,
+        StyleUtils.getButtonStyleWithIcon(styles, CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL, true, false),
+        styles.ml3,
+        {
+            minWidth: variables.uberEmployeeInviteButtonWidth,
+        },
+    ];
+    const buttonTextStyles = [styles.buttonText, styles.buttonSmallText];
+    for (const [email, policyEmployee] of Object.entries(employees)) {
+        // Skip deleted policy employees
+        if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
+            continue;
+        }
+        const personalDetail = employeePersonalDetails[email ?? ''];
+        const status = deriveStatus(email);
+        let rightElement;
+        const isResend = status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.CREATED || status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.INVITED;
+        const isInvite = status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.DELETED || status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.NONE;
+        if (isResend || isInvite) {
+            const text = isResend ? translate('workspace.receiptPartners.uber.status.resend') : translate('workspace.receiptPartners.uber.status.invite');
+            const textChecked = translate('workspace.receiptPartners.uber.status.resend');
+            rightElement = (
+                <PressableWithDelayToggle
+                    text={text}
+                    textChecked={textChecked}
+                    tooltipText=""
+                    tooltipTextChecked=""
+                    onPress={() => inviteOrResend(email)}
+                    styles={[...buttonStyles, isInvite ? styles.buttonSuccess : undefined]}
+                    textStyles={[...buttonTextStyles, isInvite ? styles.buttonSuccessText : undefined]}
+                    iconChecked={icons.Checkmark}
+                    inline={false}
+                    sentryLabel={CONST.SENTRY_LABEL.RECEIPT_PARTNERS.INVITE_RESEND_BUTTON}
+                    accessible={false}
+                />
+            );
+        } else {
+            const badgeText = translate(`workspace.receiptPartners.uber.status.${status}`);
+            const isSuccess = status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED;
+            rightElement = (
+                <Badge
+                    text={badgeText}
+                    success={isSuccess}
+                    badgeStyles={styles.ml3}
+                />
+            );
+        }
+        const option = formatMemberForList({
+            text: personalDetail?.displayName ?? email,
+            alternateText: email,
+            login: email,
+            accountID: personalDetail?.accountID,
+            icons: [
+                {
+                    source: personalDetail?.avatar ?? icons.FallbackAvatar,
+                    name: formatPhoneNumber(email),
+                    type: CONST.ICON_TYPE_AVATAR,
+                    id: personalDetail?.accountID,
+                },
+            ],
+            keyForList: email,
+            reportID: '',
+            isDisabled: true,
+            pendingAction: uberEmployeesByEmail[email]?.pendingAction,
+        });
+        const optionWithErrorsAndRightElement = {
+            ...option,
+            rightElement,
+            errors: uberEmployeesByEmail[email]?.errors,
+            itemStyle: styles.cursorDefault,
+        };
+        list.push(optionWithErrorsAndRightElement as MemberForList & ListItem);
+    }
+    const members: Array<MemberForList & ListItem> = sortAlphabetically(list, 'text', localeCompare);
+
+    const applyTabStatusFilter = (tab: ReceiptPartnersTab, data: MemberForList[]) => {
+        if (tab === CONST.TAB.RECEIPT_PARTNERS.ALL) {
+            return data;
+        }
+        if (tab === CONST.TAB.RECEIPT_PARTNERS.LINKED) {
             return data.filter((m) => {
-                const email = m.login ?? '';
-                const status = deriveStatus(email);
+                const status = deriveStatus(m.login ?? '');
                 return (
-                    status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.CREATED ||
-                    status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.INVITED ||
-                    status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.DELETED ||
-                    status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.NONE
+                    status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED ||
+                    status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL ||
+                    status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED
                 );
             });
-        },
-        [deriveStatus],
-    );
+        }
+        // OUTSTANDING
+        return data.filter((m) => {
+            const email = m.login ?? '';
+            const status = deriveStatus(email);
+            return (
+                status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.CREATED ||
+                status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.INVITED ||
+                status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.DELETED ||
+                status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.NONE
+            );
+        });
+    };
 
-    const getMembersForTabWithoutSearch = useCallback((tab: ReceiptPartnersTab) => applyTabStatusFilter(tab, members), [applyTabStatusFilter, members]);
+    const getMembersForTabWithoutSearch = (tab: ReceiptPartnersTab) => applyTabStatusFilter(tab, members);
 
-    const filterMembers = useCallback(
-        (tab: ReceiptPartnersTab) => {
-            const {debouncedSearchTerm} = getSearchStateForTab(tab);
-            const search = debouncedSearchTerm.trim().toLowerCase();
-            let data = members;
-            if (search) {
-                data = tokenizedSearch(members, search, (m) => [m.text ?? '', m.alternateText ?? '']);
-            }
-            return applyTabStatusFilter(tab, data);
-        },
-        [applyTabStatusFilter, getSearchStateForTab, members],
-    );
+    const filterMembers = (tab: ReceiptPartnersTab) => {
+        const {debouncedSearchTerm} = getSearchStateForTab(tab);
+        const search = debouncedSearchTerm.trim().toLowerCase();
+        let data = members;
+        if (search) {
+            data = tokenizedSearch(members, search, (m) => [m.text ?? '', m.alternateText ?? '']);
+        }
+        return applyTabStatusFilter(tab, data);
+    };
 
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.SewerDino}
-                iconWidth={variables.uberEmptyListIconWidth}
-                iconHeight={variables.uberEmptyListIconHeight}
-                title={translate('workspace.receiptPartners.uber.emptyContent.title')}
-                subtitle={translate('workspace.receiptPartners.uber.emptyContent.subtitle')}
-                subtitleStyle={styles.textSupporting}
-                titleStyles={styles.mb2}
-                containerStyle={[styles.pb5, styles.ph5]}
-                contentFitImage="contain"
-            />
-        ),
-        [translate, styles.textSupporting, styles.mb2, styles.pb5, styles.ph5, illustrations.SewerDino],
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.SewerDino}
+            iconWidth={variables.uberEmptyListIconWidth}
+            iconHeight={variables.uberEmptyListIconHeight}
+            title={translate('workspace.receiptPartners.uber.emptyContent.title')}
+            subtitle={translate('workspace.receiptPartners.uber.emptyContent.subtitle')}
+            subtitleStyle={styles.textSupporting}
+            titleStyles={styles.mb2}
+            containerStyle={[styles.pb5, styles.ph5]}
+            contentFitImage="contain"
+        />
     );
 
     return (
@@ -322,7 +285,7 @@ function DynamicEditInviteReceiptPartnerPolicyPage({route}: DynamicEditInviteRec
 
                                 // Determine header message for search results
                                 const searchValue = debouncedSearchTerm.trim().toLowerCase();
-                                let currentHeaderMessage = getHeaderMessage(members.length !== 0, false, searchValue, countryCode, false);
+                                let currentHeaderMessage = getHeaderMessage(translate, members.length !== 0, false, searchValue, countryCode, false);
 
                                 if (filteredMembers.length === 0 && searchValue) {
                                     currentHeaderMessage = translate('common.noResultsFound');
@@ -335,7 +298,7 @@ function DynamicEditInviteReceiptPartnerPolicyPage({route}: DynamicEditInviteRec
                                             ListItem={BareUserListItem}
                                             onSelectRow={() => {}}
                                             onDismissError={dismissError}
-                                            style={{listItemWrapperStyle: styles.cursorDefault, listStyle: styles.mt3}}
+                                            style={{listStyle: styles.mt3}}
                                             addBottomSafeAreaPadding
                                             shouldShowTextInput={shouldShowTextInput}
                                             textInputOptions={{

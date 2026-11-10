@@ -18,9 +18,9 @@ function useIndicatorStatus(): IndicatorStatusResult {
     const theme = useTheme();
 
     const {accountStatus, infoStatus: accountInfoStatus} = useAccountIndicatorChecks();
-    const {policyErrorStatus, policyInfoStatus, domainStatus, indicatorPolicyID} = usePolicyIndicatorChecks();
+    const {policyErrorStatus, policyInfoStatus, domainErrorStatus, indicatorPolicyID} = usePolicyIndicatorChecks();
 
-    const errorStatus = accountStatus ?? policyErrorStatus ?? domainStatus;
+    const errorStatus = accountStatus ?? policyErrorStatus ?? domainErrorStatus;
     const status = errorStatus ?? accountInfoStatus ?? policyInfoStatus;
     const indicatorColor = errorStatus ? theme.danger : theme.success;
 

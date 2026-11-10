@@ -1,5 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -7,9 +8,9 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import useTravelBillingFundID from '@hooks/useTravelBillingFundID';
 
-import {updateNetSuiteAllowForeignCurrency, updateNetSuiteExportToNextOpenPeriod} from '@libs/actions/connections/NetSuiteCommands';
+import {updateNetSuiteAllowForeignCurrency, updateNetSuiteExportToNextOpenPeriod, updateNetSuiteSplitExportsByPostingPeriod} from '@libs/actions/connections/NetSuiteCommands';
 import {getCardSettings} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -19,12 +20,13 @@ import {getIsTravelBillingEnabled, getTravelBillingCardSettingsKey} from '@libs/
 
 import goBackFromExportConnection from '@navigation/helpers/goBackFromExportConnection';
 
-import type {DividerLineItem, MenuItem, ToggleItem} from '@pages/workspace/accounting/netsuite/types';
+import type {DividerLineItem, MenuItem as MenuItemProps, ToggleItem} from '@pages/workspace/accounting/netsuite/types';
 import {
     shouldHideExportForeignCurrencyAmount,
     shouldHideJournalPostingPreference,
     shouldHideNonReimbursableJournalPostingAccount,
     shouldHideProvincialTaxPostingAccountSelect,
+    shouldHideNonReimbursableCreditCardAccount,
     shouldHideReimbursableDefaultVendor,
     shouldHideReimbursableJournalPostingAccount,
     shouldHideTaxPostingAccountSelect,
@@ -42,7 +44,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import React from 'react';
 import {View} from 'react-native';
 
-type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide'> & {subscribedSettings?: string[]};
+type MenuItemWithSubscribedSettings = Pick<MenuItemProps, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide'> & {subscribedSettings?: string[]};
 
 function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -66,8 +68,8 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const selectedReceivable = receivableList?.find((account) => account.id === config?.receivableAccount);
     const selectedItem = items?.find((item) => item.id === config?.invoiceItem);
 
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(workspaceAccountID));
+    const travelBillingFundID = useTravelBillingFundID(policyID);
+    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(travelBillingFundID));
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
     const isTravelBillingEnabled = getIsTravelBillingEnabled(travelSettings);
 
@@ -136,6 +138,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             subscribedSettings: [
                 CONST.NETSUITE_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
                 ...(!shouldHideReimbursableDefaultVendor(false, config) ? [CONST.NETSUITE_CONFIG.DEFAULT_VENDOR] : []),
+                ...(!shouldHideNonReimbursableCreditCardAccount(false, config) ? [CONST.NETSUITE_CONFIG.CREDIT_CARD_ACCOUNT] : []),
                 ...(!shouldHideNonReimbursableJournalPostingAccount(false, config) ? [CONST.NETSUITE_CONFIG.PAYABLE_ACCT] : []),
                 ...(!shouldHideReimbursableJournalPostingAccount(false, config) ? [CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT] : []),
                 ...(!shouldHideJournalPostingPreference(false, config) ? [CONST.NETSUITE_CONFIG.JOURNAL_POSTING_PREFERENCE] : []),
@@ -144,7 +147,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         {
             type: 'menuitem',
             title: translate(`workspace.netsuite.exportDestination.values.${CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY}.label`),
-            description: translate('workspace.common.travelInvoicing'),
+            description: translate('workspace.common.travelBilling'),
             onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TRAVEL_BILLING_CONFIGURATION.getRoute(policyID)),
             subscribedSettings: [CONST.NETSUITE_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT, CONST.NETSUITE_CONFIG.TRAVEL_BILLING_JOURNAL_POSTING_PREFERENCE],
             shouldHide: !isTravelBillingEnabled,
@@ -192,6 +195,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             title: translate('workspace.netsuite.foreignCurrencyAmount'),
             isActive: !!config?.allowForeignCurrency,
             switchAccessibilityLabel: translate('workspace.netsuite.foreignCurrencyAmount'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.FOREIGN_CURRENCY_AMOUNT_SWITCH,
             onToggle: () => (!policyID ? null : updateNetSuiteAllowForeignCurrency(policyID, !config?.allowForeignCurrency, config?.allowForeignCurrency)),
             onCloseError: !policyID ? undefined : () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.ALLOW_FOREIGN_CURRENCY),
             pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.ALLOW_FOREIGN_CURRENCY], config?.pendingFields),
@@ -203,10 +207,30 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             title: translate('workspace.netsuite.exportToNextOpenPeriod'),
             isActive: !!config?.exportToNextOpenPeriod,
             switchAccessibilityLabel: translate('workspace.netsuite.exportToNextOpenPeriod'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.EXPORT_TO_NEXT_OPEN_PERIOD_SWITCH,
             onCloseError: !policyID ? undefined : () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD),
             onToggle: () => (!policyID ? null : updateNetSuiteExportToNextOpenPeriod(policyID, !config?.exportToNextOpenPeriod, config?.exportToNextOpenPeriod ?? false)),
             pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD], config?.pendingFields),
             errors: getLatestErrorField(config, CONST.NETSUITE_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD),
+            // Split exports need the next-open-period fallback for closed periods, so this stays locked while split is on
+            disabled: !!config?.splitExportsByPostingPeriod,
+            showLockIcon: !!config?.splitExportsByPostingPeriod,
+            subtitle: config?.splitExportsByPostingPeriod ? translate('workspace.netsuite.exportToNextOpenPeriodLockedSubtitle') : undefined,
+        },
+        {
+            type: 'toggle',
+            title: translate('workspace.netsuite.splitExportsByPostingPeriod'),
+            isActive: !!config?.splitExportsByPostingPeriod,
+            switchAccessibilityLabel: translate('workspace.netsuite.splitExportsByPostingPeriod'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.SPLIT_EXPORTS_BY_POSTING_PERIOD_SWITCH,
+            subtitle: !config?.exportToNextOpenPeriod && !config?.splitExportsByPostingPeriod ? translate('workspace.netsuite.splitExportsByPostingPeriodSubtitle') : undefined,
+            onCloseError: !policyID ? undefined : () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SPLIT_EXPORTS_BY_POSTING_PERIOD),
+            onToggle: () => (!policyID ? null : updateNetSuiteSplitExportsByPostingPeriod(policyID, !config?.splitExportsByPostingPeriod, config?.splitExportsByPostingPeriod ?? false)),
+            pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.SPLIT_EXPORTS_BY_POSTING_PERIOD], config?.pendingFields),
+            errors: getLatestErrorField(config, CONST.NETSUITE_CONFIG.SPLIT_EXPORTS_BY_POSTING_PERIOD),
+            // Splitting moves expenses to earlier dates which can land in closed periods, so it needs the next-open-period fallback. An active split stays editable so a bad config state can always be undone.
+            disabled: !config?.exportToNextOpenPeriod && !config?.splitExportsByPostingPeriod,
+            showLockIcon: !config?.exportToNextOpenPeriod && !config?.splitExportsByPostingPeriod,
         },
     ];
 
@@ -251,13 +275,15 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
                                     key={item.description}
                                     pendingAction={settingsPendingAction(item.subscribedSettings, config?.pendingFields)}
                                 >
-                                    <MenuItemWithTopDescription
-                                        title={item.title}
-                                        description={item.description}
-                                        shouldShowRightIcon
+                                    <MenuItemField
+                                        name={item.description ?? ''}
                                         onPress={item?.onPress}
-                                        brickRoadIndicator={areSettingsInErrorFields(item.subscribedSettings, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                    />
+                                        value={item.title}
+                                    >
+                                        {areSettingsInErrorFields(item.subscribedSettings, config?.errorFields) && (
+                                            <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                                        )}
+                                    </MenuItemField>
                                 </OfflineWithFeedback>
                             );
                     }

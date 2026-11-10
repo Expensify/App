@@ -12,7 +12,7 @@
 - [ ] **[Contributor]** If it was decided to create a regression test for the bug, please propose the [regression test](https://github.com/Expensify/App/blob/main/contributingGuides/REGRESSION_TEST_BEST_PRACTICES.md) steps using the template below to ensure the same bug will not reach production again.
 
 <details>
-<summary>Regression Test Proposal Template</summary>
+<summary>Regression Test Proposal Template. Needed for all bugs AND new features</summary>
 <!-- AFTER FILLING THIS OUT, be sure to remove the <details> and <summary> tags from this part of the checklist!!!!! -->
 
 ## Regression Test Proposal

@@ -37,7 +37,7 @@ type SidePanelStateContextProps = {
 };
 
 type SidePanelActionsContextProps = {
-    openSidePanel: (options?: {forceConcierge?: boolean}) => void;
+    openSidePanel: (options?: {forceConcierge?: boolean; reportID?: string}) => void;
     closeSidePanel: (options?: {afterTransition?: () => void}) => void;
 };
 
@@ -91,7 +91,9 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
     const isPolicyActive = shouldShowPolicy(activePolicy, false, sessionEmail ?? '');
     const adminsChatReportID = activePolicy?.chatReportIDAdmins?.toString();
 
-    const reportID = !sidePanelNVP?.forceConcierge && (isRHPAdminsRoom || isRHPHomePage) && isUserAdmin && isPolicyActive && adminsChatReportID ? adminsChatReportID : conciergeReportID;
+    const defaultReportID =
+        !sidePanelNVP?.forceConcierge && (isRHPAdminsRoom || isRHPHomePage) && isUserAdmin && isPolicyActive && adminsChatReportID ? adminsChatReportID : conciergeReportID;
+    const reportID = sidePanelNVP?.reportID ?? defaultReportID;
 
     const onCloseCompleteRef = useRef<(() => void) | undefined>(undefined);
     const [sessionStartTime, setSessionStartTime] = useState<string | null>(null);
@@ -99,9 +101,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
 
     if (prevShouldHideSidePanel !== shouldHideSidePanel) {
         setPrevShouldHideSidePanel(shouldHideSidePanel);
-        if (shouldHideSidePanel) {
-            setSessionStartTime(null);
-        } else if (!sessionStartTime) {
+        if (!shouldHideSidePanel && !sessionStartTime) {
             setSessionStartTime(getServerAnchoredDBTime());
         }
     }
@@ -127,8 +127,13 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
                 duration: CONST.SIDE_PANEL_ANIMATED_TRANSITION,
                 useNativeDriver: true,
             }),
-        ]).start(() => {
+        ]).start(({finished}) => {
             setIsSidePanelTransitionEnded(true);
+            // Clear the session after the slide-out, not when it starts: the panel stays mounted for the animation and
+            // a null session empties its message list. `finished` is false on an interrupted close, sparing the new session.
+            if (finished && shouldHideSidePanel) {
+                setSessionStartTime(null);
+            }
             onCloseCompleteRef.current?.();
             onCloseCompleteRef.current = undefined;
         });
@@ -148,9 +153,9 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         focusComposerWithDelay(ReportActionComposeFocusManager.composerRef.current, CONST.SIDE_PANEL_ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);
     };
 
-    const openSidePanel = (options?: {forceConcierge?: boolean}) => {
+    const openSidePanel = (options?: {forceConcierge?: boolean; reportID?: string}) => {
         setSessionStartTime(getServerAnchoredDBTime());
-        SidePanelActions.openSidePanel(!isExtraLargeScreenWidth, options?.forceConcierge);
+        SidePanelActions.openSidePanel(!isExtraLargeScreenWidth, options?.forceConcierge, options?.reportID);
     };
 
     // Because of the React Compiler we don't need to memoize it manually

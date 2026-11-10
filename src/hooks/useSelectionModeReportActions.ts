@@ -1,21 +1,19 @@
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 
-import {canIOUBePaid as canIOUBePaidAction} from '@libs/actions/IOU/ReportWorkflow';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import getHoldMenuAmounts from '@libs/HoldMenuUtils';
+import {getTotalAmountForIOUReportPreviewButton, isEveryReportTransactionSelected} from '@libs/MoneyRequestReportUtils';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
-import {getNonHeldAndFullAmount, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils, hasUpdatedTotal, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {canIOUBePaid as canIOUBePaidAction, hasUpdatedTotal, shouldShowMarkAsDone} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {createMoveExpenseReportNVPSelector} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -23,15 +21,19 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {useState} from 'react';
+import {loginSelector} from '@selectors/PersonalDetails';
+
+import type {ActionHandledType} from './useHoldMenuSubmit';
 
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useHoldMenuModal from './useHoldMenuModal';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLifecycleActions from './useLifecycleActions';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import {usePersonalDetail} from './usePersonalDetails';
 import useReportIsArchived from './useReportIsArchived';
 import useSelectionModePayment from './useSelectionModePayment';
 
@@ -69,22 +71,61 @@ function useSelectionModeReportActions({
     const [moveExpenseReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
         selector: createMoveExpenseReportNVPSelector(outstandingReportsByPolicyID, report?.reportID),
     });
-    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)});
+    const [submitterLogin] = usePersonalDetail(report?.ownerAccountID, loginSelector);
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
     );
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'ThumbsUp', 'Cash', 'ArrowRight'] as const);
 
-    // Hold menu state (managed locally on mobile; desktop uses modals context)
-    const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
-    const [paymentType, setPaymentType] = useState<PaymentMethodType>();
-    const [requestType, setRequestType] = useState<ActionHandledType>();
-    const [selectedVBBAToPayFromHoldMenu, setSelectedVBBAToPayFromHoldMenu] = useState<number | undefined>(undefined);
+    const {showHoldMenu} = useHoldMenuModal();
+
+    // Payment flow
+    const nonPendingDeleteTransactions = transactions.filter((t): t is OnyxTypes.Transaction => !!t && (isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE));
+
+    const getCanIOUBePaid = (onlyShowPayElsewhere = false) =>
+        canIOUBePaidAction(
+            report,
+            chatReport,
+            policy,
+            bankAccountList,
+            currentUserLogin ?? '',
+            currentUserAccountID,
+            transactions,
+            onlyShowPayElsewhere,
+            isChatReportArchived,
+            invoiceReceiverPolicy,
+        );
+    const canIOUBePaid = getCanIOUBePaid();
+    const onlyShowPayElsewhere = !canIOUBePaid && getCanIOUBePaid(true);
+    const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
+    const canAllowSettlement = hasUpdatedTotal(report, policy);
+
+    const totalAmount = getTotalAmountForIOUReportPreviewButton(report, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions, convertToDisplayString);
+
+    const openHoldMenu = (requestType: ActionHandledType, paymentType?: PaymentMethodType, methodID?: number, onConfirm?: () => void) => {
+        // Wait one frame so the current touch animation finishes before the modal opens
+        requestAnimationFrame(() => {
+            showHoldMenu({
+                reportID: report?.reportID,
+                chatReportID: chatReport?.reportID,
+                requestType,
+                paymentType,
+                methodID: paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                ...getHoldMenuAmounts(report, shouldShowPayButton, transactions, convertToDisplayString),
+                onConfirm: () => {
+                    onConfirm?.();
+                    clearSelectedTransactions(true);
+                    turnOffMobileSelectionMode();
+                },
+            });
+        });
+    };
 
     // Submit/approve via shared useLifecycleActions (no animations on mobile, skipAnimation=true)
     const {
@@ -100,13 +141,7 @@ function useSelectionModeReportActions({
         startApprovedAnimation: () => {},
         startAnimation: () => {},
         startSubmittingAnimation: () => {},
-        onHoldMenuOpen: (rt, _onConfirm, pt) => {
-            setRequestType(rt);
-            if (pt) {
-                setPaymentType(pt);
-            }
-            setIsHoldMenuVisible(true);
-        },
+        onHoldMenuOpen: (requestType, onConfirm, paymentType) => openHoldMenu(requestType, paymentType, undefined, onConfirm),
         onCleanup: turnOffMobileSelectionMode,
     });
 
@@ -117,19 +152,6 @@ function useSelectionModeReportActions({
     const confirmApproval = () => {
         lifecycleConfirmApproval(true);
     };
-
-    // Payment flow
-    const nonPendingDeleteTransactions = transactions.filter((t): t is OnyxTypes.Transaction => !!t && (isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE));
-
-    const getCanIOUBePaid = (onlyShowPayElsewhere = false) =>
-        canIOUBePaidAction(report, chatReport, policy, bankAccountList, currentUserLogin ?? '', currentUserAccountID, transactions, onlyShowPayElsewhere, undefined, invoiceReceiverPolicy);
-    const canIOUBePaid = getCanIOUBePaid();
-    const onlyShowPayElsewhere = !canIOUBePaid && getCanIOUBePaid(true);
-    const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
-    const canAllowSettlement = hasUpdatedTotal(report, policy);
-
-    const totalAmount = getTotalAmountForIOUReportPreviewButton(report, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions, convertToDisplayString);
-    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, shouldShowPayButton, transactions, convertToDisplayString);
 
     // Primary/secondary action detection
     const currentUserEmail = currentUserLogin ?? '';
@@ -176,6 +198,7 @@ function useSelectionModeReportActions({
             isChatReportArchived,
             isOffline,
             rules,
+            cardList,
         });
     })();
 
@@ -183,7 +206,7 @@ function useSelectionModeReportActions({
     const hasApproveAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.APPROVE || secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE);
     const hasPayAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.PAY || secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.PAY);
 
-    const allExpensesSelected = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactions.length;
+    const allExpensesSelected = isEveryReportTransactionSelected(transactions, selectedTransactionIDs);
 
     const selectedTransactions = transactions.filter((transaction) => selectedTransactionIDs.includes(transaction.transactionID));
     const hasSelectedTransactionsOnSubmitPolicy = isSubmitPolicy(policy) && selectedTransactions.length > 0;
@@ -210,12 +233,7 @@ function useSelectionModeReportActions({
         onlyShowPayElsewhere,
         hasPayAction,
         allExpensesSelected,
-        onHoldMenuOpen: ({requestType: rt, paymentType: pt, methodID}) => {
-            setRequestType(rt);
-            setPaymentType(pt);
-            setSelectedVBBAToPayFromHoldMenu(methodID);
-            setIsHoldMenuVisible(true);
-        },
+        onHoldMenuOpen: ({requestType, paymentType, methodID}) => openHoldMenu(requestType, paymentType, methodID),
         onPaymentComplete: () => {
             clearSelectedTransactions(true);
             turnOffMobileSelectionMode();
@@ -236,7 +254,7 @@ function useSelectionModeReportActions({
 
     // Build report-level action menu
     const selectionModeReportLevelActions = (() => {
-        const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuItems' | 'subMenuHeaderText'>> = [];
+        const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'rightIcon'>> = [];
         let idx = 0;
         if (hasSubmitAction && !effectiveShouldBlockSubmit) {
             actions[idx++] = {
@@ -273,29 +291,11 @@ function useSelectionModeReportActions({
         return actions;
     })();
 
-    const handleHoldMenuClose = () => {
-        setSelectedVBBAToPayFromHoldMenu(undefined);
-        setIsHoldMenuVisible(false);
-    };
-
-    const handleHoldMenuConfirm = () => {
-        clearSelectedTransactions(true);
-        turnOffMobileSelectionMode();
-    };
-
     return {
         selectionModeReportLevelActions,
         allExpensesSelected,
         shouldBlockSubmit: effectiveShouldBlockSubmit,
         isBlockSubmitDueToPreventSelfApproval,
-
-        // Hold menu state
-        isHoldMenuVisible,
-        requestType,
-        paymentType,
-        selectedVBBAToPayFromHoldMenu,
-        handleHoldMenuClose,
-        handleHoldMenuConfirm,
         confirmPayment,
         confirmApproval,
 
@@ -309,10 +309,6 @@ function useSelectionModeReportActions({
         canAllowSettlement,
         isAnyTransactionOnHold,
         isInvoiceReport,
-        hasOnlyHeldExpenses: hasOnlyHeldExpensesReportUtils(transactions),
-        nonHeldAmount,
-        fullAmount,
-        hasValidNonHeldAmount,
 
         // KYC dropdown integration
         onSelectionModePaymentSelect,

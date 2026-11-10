@@ -15,30 +15,32 @@ import {canActionTask, completeTask, reopenTask} from '@userActions/Task';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 
 import Button from './Button';
 
 type TaskHeaderActionButtonProps = {
-    report: OnyxTypes.Report;
+    reportID: string;
 };
 
-function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
+function TaskHeaderActionButton({reportID}: TaskHeaderActionButtonProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const parentReport = useParentReport(report.reportID);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const parentReport = useParentReport(reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const hasOutstandingChildTask = useHasOutstandingChildTask(report);
     const parentReportAction = useParentReportAction(report);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const isTaskActionable = canActionTask(report, parentReportAction, currentUserPersonalDetails?.accountID, parentReport, isParentReportArchived);
 
-    if (!canWriteInReport(report)) {
+    if (!report || !canWriteInReport(report)) {
         return null;
     }
 
@@ -47,17 +49,21 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
             <Button
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 isDisabled={!isTaskActionable}
-                onPress={callFunctionIfActionIsAllowed(() => {
-                    // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
-                    if (isActiveTaskEditRoute(report.reportID)) {
-                        return;
-                    }
-                    if (isCompletedTaskReport(report)) {
-                        reopenTask(report, parentReport, currentUserPersonalDetails.accountID, delegateEmail);
-                    } else {
-                        completeTask(report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail);
-                    }
-                })}
+                onPress={callFunctionIfActionIsAllowed(
+                    () => {
+                        // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
+                        if (isActiveTaskEditRoute(reportID)) {
+                            return;
+                        }
+                        if (isCompletedTaskReport(report)) {
+                            reopenTask(report, parentReport, currentUserPersonalDetails.accountID, delegateEmail);
+                        } else {
+                            completeTask(report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail);
+                        }
+                    },
+                    false,
+                    session,
+                )}
                 style={styles.flex1}
                 sentryLabel={CONST.SENTRY_LABEL.TASK.HEADER_ACTION_BUTTON}
             >

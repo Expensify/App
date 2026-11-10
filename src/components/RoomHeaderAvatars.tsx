@@ -5,6 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAvatarErrors, updatePolicyRoomAvatar} from '@libs/actions/Report';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {hasReadOnlyAllReportsAccess, isPolicyGuest} from '@libs/PolicyUtils';
 import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {getAccountIDFromAvatarID, isDefaultAvatar} from '@libs/UserAvatarUtils';
 
@@ -17,7 +18,7 @@ import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {memo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import AvatarFromIcon from './Avatar/AvatarFromIcon';
@@ -50,7 +51,7 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'FallbackAvatar', 'ImageCropSquareMask']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const canEditRoomAvatar = isUserCreatedPolicyRoom(report) && participants.includes(currentUserAccountID) && !!policy && policy.role !== CONST.POLICY.ROLE.AUDITOR;
+    const canEditRoomAvatar = isUserCreatedPolicyRoom(report) && participants.includes(currentUserAccountID) && !!policy && !hasReadOnlyAllReportsAccess(policy) && !isPolicyGuest(policy);
 
     if (!icons.length) {
         return null;
@@ -178,4 +179,4 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
     );
 }
 
-export default memo(RoomHeaderAvatars);
+export default RoomHeaderAvatars;

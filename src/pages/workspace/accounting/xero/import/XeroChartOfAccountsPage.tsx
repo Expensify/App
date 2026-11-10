@@ -1,5 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 
@@ -47,23 +48,25 @@ function XeroChartOfAccountsPage({policy}: WithPolicyProps) {
                 <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
                     <Switch
                         accessibilityLabel={translate('workspace.accounting.accounts')}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.CHART_OF_ACCOUNTS_SWITCH}
                         isOn
                         disabled
                         onToggle={() => {}}
                     />
                 </View>
             </View>
-            <MenuItemWithTopDescription
-                interactive={false}
-                title={translate('workspace.common.categories')}
-                description={translate('workspace.common.displayedAs')}
-                wrapperStyle={styles.sectionMenuItemTopDescription}
-            />
+            <MenuItemSectionRoot>
+                <MenuItemField.Row
+                    name={translate('workspace.common.displayedAs')}
+                    value={translate('workspace.common.categories')}
+                />
+            </MenuItemSectionRoot>
             <Text style={styles.pv5}>{translate('workspace.xero.accountsSwitchTitle')}</Text>
             <ToggleSettingOptionRow
                 title={translate('workspace.common.enabled')}
                 subtitle={translate('workspace.xero.accountsSwitchDescription')}
                 switchAccessibilityLabel={translate('workspace.xero.accountsSwitchDescription')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.ENABLE_NEW_CATEGORIES_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 isActive={!!xeroConfig?.enableNewCategories}
                 onToggle={() => updateXeroEnableNewCategories(policyID, !xeroConfig?.enableNewCategories, xeroConfig?.enableNewCategories)}

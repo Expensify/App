@@ -9,11 +9,12 @@ type CreateWorkspaceApprovalParams = {
      * }>
      */
     employees: string;
-};
 
-type UpdateWorkspaceApprovalParams = CreateWorkspaceApprovalParams & {
+    /** Email of the approver to make the policy's default approver */
     defaultApprover?: string;
 };
+
+type UpdateWorkspaceApprovalParams = CreateWorkspaceApprovalParams;
 
 type RemoveWorkspaceApprovalParams = CreateWorkspaceApprovalParams;
 

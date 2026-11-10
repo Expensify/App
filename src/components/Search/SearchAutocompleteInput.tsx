@@ -1,5 +1,4 @@
 import FormHelpMessage from '@components/FormHelpMessage';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
@@ -10,15 +9,13 @@ import useFocusAfterNav from '@hooks/useFocusAfterNav';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setSearchContext} from '@libs/actions/Search';
-import scheduleOnLiveMarkdownRuntime from '@libs/scheduleOnLiveMarkdownRuntime';
 import {getAutocompleteCategories, getAutocompleteTags, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
-
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,7 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ForwardedRef} from 'react';
 import type {StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
 
-import React, {useEffect, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import Animated, {interpolateColor, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 
@@ -36,12 +33,12 @@ type SearchAutocompleteInputProps = {
     /** Value of TextInput */
     value: string;
 
-    onSearchQueryChange: (searchTerm: string) => void;
+    /** Called with the new text and, for typed edits, the input event's timestamp (same clock as `performance.now()`) */
+    onSearchQueryChange: (searchTerm: string, autoScrollToRight?: boolean, inputEventTimeStamp?: number) => void;
 
     /** Callback invoked when the user submits the input */
     onSubmit?: () => void;
 
-    isFullWidth: boolean;
     disabled?: boolean;
     shouldShowOfflineMessage?: boolean;
 
@@ -77,7 +74,6 @@ function SearchAutocompleteInput({
     value,
     onSearchQueryChange,
     onSubmit = () => {},
-    isFullWidth,
     disabled = false,
     shouldDelayFocus = false,
     autoFocus = true,
@@ -103,26 +99,25 @@ function SearchAutocompleteInput({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const inputRef = useRef<AnimatedTextInputRef>(null);
+    const {isBetaEnabled} = usePermissions();
+    const isTravelApprovalBetaEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_APPROVAL);
+    const inputRef = useRef<BaseTextInputRef>(null);
+    const inputEventTimeStampRef = useRef<number | undefined>(undefined);
     const autoFocusAfterNav = useFocusAfterNav(inputRef, shouldDelayFocus);
     const {currencyList} = useCurrencyListState();
-    const currencyAutocompleteList = Object.keys(currencyList).filter((currencyCode) => !currencyList[currencyCode]?.retired);
-    const currencySharedValue = useSharedValue(currencyAutocompleteList);
+    const currencies = new Set(Object.keys(currencyList).filter((currencyCode) => !currencyList[currencyCode]?.retired));
 
-    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-    const categoryAutocompleteList = getAutocompleteCategories(allPolicyCategories);
-    const categorySharedValue = useSharedValue(categoryAutocompleteList);
+    const [categoryNames] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: getAutocompleteCategories});
+    const categories = new Set(categoryNames);
 
-    const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const tagAutocompleteList = getAutocompleteTags(allPoliciesTags);
-    const tagSharedValue = useSharedValue(tagAutocompleteList);
+    const [tagNames] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: getAutocompleteTags});
+    const tags = new Set(tagNames);
 
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
-    const emailList = Object.keys(loginList ?? {});
-    const emailListSharedValue = useSharedValue(emailList);
+    const userLogins = new Set(Object.keys(loginList ?? {}));
 
     const {exportedToFilterOptions} = useExportedToFilterOptions();
-    const exportedToSharedValue = useSharedValue(exportedToFilterOptions);
+    const exportedTo = new Set(exportedToFilterOptions);
 
     const offlineMessage: string = isOffline && shouldShowOfflineMessage ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
@@ -136,56 +131,19 @@ function SearchAutocompleteInput({
         return focusedSharedValue.get() ? restWrapperFocusedStyle : (restWrapperStyle ?? {});
     });
     const wrapperBorderColorAnimatedStyle = useAnimatedStyle(() => {
+        const borderColors = [wrapperBorderColor, focusedBorderColor].map((color) => (typeof color === 'string' ? color : defaultBorderColor));
         return {
-            borderColor: interpolateColor(focusedSharedValue.get() ? 1 : 0, [0, 1], [wrapperBorderColor as string, focusedBorderColor as string], 'RGB'),
+            borderColor: interpolateColor(focusedSharedValue.get() ? 1 : 0, [0, 1], borderColors, 'RGB'),
         };
     });
 
-    useEffect(() => {
-        scheduleOnLiveMarkdownRuntime(() => {
-            'worklet';
-
-            emailListSharedValue.set(emailList);
-        });
-    }, [emailList, emailListSharedValue]);
-
-    useEffect(() => {
-        scheduleOnLiveMarkdownRuntime(() => {
-            'worklet';
-
-            currencySharedValue.set(currencyAutocompleteList);
-        });
-    }, [currencyAutocompleteList, currencySharedValue]);
-
-    useEffect(() => {
-        scheduleOnLiveMarkdownRuntime(() => {
-            'worklet';
-
-            categorySharedValue.set(categoryAutocompleteList);
-        });
-    }, [categorySharedValue, categoryAutocompleteList]);
-
-    useEffect(() => {
-        scheduleOnLiveMarkdownRuntime(() => {
-            'worklet';
-
-            tagSharedValue.set(tagAutocompleteList);
-        });
-    }, [tagSharedValue, tagAutocompleteList]);
-
-    useEffect(() => {
-        scheduleOnLiveMarkdownRuntime(() => {
-            'worklet';
-
-            exportedToSharedValue.set(exportedToFilterOptions);
-        });
-    }, [exportedToSharedValue, exportedToFilterOptions]);
-
     const currentUserDisplayName = currentUserPersonalDetails.displayName ?? '';
+
+    // The parser runs on the locked Live Markdown runtime, so reading a SharedValue here can deadlock the app.
     const parser = (input: string) => {
         'worklet';
 
-        return parseForLiveMarkdown(input, currentUserDisplayName, substitutionMap, emailListSharedValue, currencySharedValue, categorySharedValue, tagSharedValue, exportedToSharedValue);
+        return parseForLiveMarkdown(input, currentUserDisplayName, substitutionMap, {userLogins, currencies, categories, tags, exportedTo}, isTravelApprovalBetaEnabled);
     };
 
     const clearInput = () => {
@@ -193,15 +151,23 @@ function SearchAutocompleteInput({
         setSearchContext(false);
     };
 
-    const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
-
     return (
         <View style={[outerWrapperStyle]}>
             <Animated.View style={[wrapperStyle ?? styles.searchRouterTextInputContainer, wrapperAnimatedStyle, wrapperBorderColorAnimatedStyle]}>
                 <TextInput
                     testID="search-autocomplete-text-input"
                     value={value}
-                    onChangeText={onSearchQueryChange}
+                    onChange={(event) => {
+                        // `onChange` fires right before `onChangeText` for the same edit, so the ref holds this edit's timestamp.
+                        // On web during IME composition (e.g. Android Chrome virtual keyboards), MarkdownTextInput only fires `onChangeText`,
+                        // so the ref remains undefined and onSearchQueryChange safely falls back to performance.now().
+                        inputEventTimeStampRef.current = event.timeStamp;
+                    }}
+                    onChangeText={(text) => {
+                        const inputEventTimeStamp = inputEventTimeStampRef.current;
+                        inputEventTimeStampRef.current = undefined;
+                        onSearchQueryChange(text, false, inputEventTimeStamp);
+                    }}
                     autoFocus={shouldDelayFocus ? autoFocusAfterNav : autoFocus}
                     caretHidden={caretHidden}
                     role={CONST.ROLE.SEARCHBOX}
@@ -216,7 +182,7 @@ function SearchAutocompleteInput({
                     onSubmitEditing={onSubmit}
                     shouldUseDisabledStyles={false}
                     textInputContainerStyles={[styles.borderNone, styles.pb0, styles.ph3, inputContainerStyle]}
-                    inputStyle={[inputWidth, styles.lineHeightUndefined, inputStyle]}
+                    inputStyle={[styles.w100, styles.lineHeightUndefined, inputStyle]}
                     touchableInputWrapperStyle={touchableInputWrapperStyle}
                     clearButtonStyle={clearButtonStyle}
                     placeholderTextColor={theme.textSupporting}
@@ -236,7 +202,7 @@ function SearchAutocompleteInput({
                             return;
                         }
 
-                        inputRef.current = element as AnimatedTextInputRef;
+                        inputRef.current = element;
 
                         if (typeof ref === 'function') {
                             ref(element);
@@ -253,6 +219,7 @@ function SearchAutocompleteInput({
                     shouldShowClearButton={!!value && !isSearchingForReports}
                     shouldHideClearButton={false}
                     onClearInput={clearInput}
+                    clearButtonSentryLabel={CONST.SENTRY_LABEL.SEARCH.AUTOCOMPLETE_INPUT_CLEAR_BUTTON}
                 />
             </Animated.View>
             <FormHelpMessage

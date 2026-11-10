@@ -10,7 +10,8 @@ import {updateNetSuiteProvincialTaxPostingAccount} from '@libs/actions/connectio
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {canUseProvincialTaxNetSuite, getNetSuiteTaxAccountOptions, settingsPendingAction} from '@libs/PolicyUtils';
+import {canUseProvincialTaxNetSuite, getNetSuiteTaxAccountOptions} from '@libs/NetSuiteUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -22,7 +23,7 @@ import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 function NetSuiteProvincialTaxPostingAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -30,46 +31,34 @@ function NetSuiteProvincialTaxPostingAccountSelectPage({policy}: WithPolicyConne
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const policyID = policy?.id;
-    const netSuiteExportBackPath = useMemo(() => {
-        if (!policyID) {
-            return ROUTES.HOME;
-        }
-        return createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.path, ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID));
-    }, [policyID]);
+    const netSuiteExportBackPath = policyID
+        ? createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.path, ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))
+        : ROUTES.HOME;
 
     const config = policy?.connections?.netsuite?.options.config;
     const {subsidiaryList} = policy?.connections?.netsuite?.options?.data ?? {};
-    const selectedSubsidiary = useMemo(() => (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID), [subsidiaryList, config?.subsidiaryID]);
+    const selectedSubsidiary = (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID);
 
-    const netsuiteTaxAccountOptions = useMemo<SelectorType[]>(
-        () => getNetSuiteTaxAccountOptions(policy ?? undefined, selectedSubsidiary?.country, config?.provincialTaxPostingAccount),
-        [config?.provincialTaxPostingAccount, policy, selectedSubsidiary?.country],
-    );
+    const netsuiteTaxAccountOptions: SelectorType[] = getNetSuiteTaxAccountOptions(policy ?? undefined, selectedSubsidiary?.country, config?.provincialTaxPostingAccount);
 
-    const initiallyFocusedOptionKey = useMemo(() => netsuiteTaxAccountOptions?.find((mode) => mode.isSelected)?.keyForList, [netsuiteTaxAccountOptions]);
+    const initiallyFocusedOptionKey = netsuiteTaxAccountOptions?.find((mode) => mode.isSelected)?.keyForList;
 
-    const updateTaxAccount = useCallback(
-        ({value}: SelectorType) => {
-            if (config?.provincialTaxPostingAccount !== value && policyID) {
-                updateNetSuiteProvincialTaxPostingAccount(policyID, value, config?.provincialTaxPostingAccount);
-            }
-            Navigation.goBack(netSuiteExportBackPath);
-        },
-        [netSuiteExportBackPath, policyID, config?.provincialTaxPostingAccount],
-    );
+    const updateTaxAccount = ({value}: SelectorType) => {
+        if (config?.provincialTaxPostingAccount !== value && policyID) {
+            updateNetSuiteProvincialTaxPostingAccount(policyID, value, config?.provincialTaxPostingAccount);
+        }
+        Navigation.goBack(netSuiteExportBackPath);
+    };
 
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.netsuite.noAccountsFound')}
-                subtitle={translate('workspace.netsuite.noAccountsFoundDescription')}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [illustrations.Telescope, translate, styles.pb10],
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.netsuite.noAccountsFound')}
+            subtitle={translate('workspace.netsuite.noAccountsFoundDescription')}
+            containerStyle={styles.pb10}
+        />
     );
 
     return (

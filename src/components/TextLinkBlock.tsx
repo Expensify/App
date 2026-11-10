@@ -9,11 +9,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {StyleProp, TextStyle} from 'react-native';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 /**
  * TextLinkBlock component splits a given text into individual words and displays
  * each word within a TextLink component so the link text wraps naturally.
  */
-import React, {memo, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import type {LinkProps, PressProps} from './TextLink';
@@ -34,11 +35,11 @@ type TextLinkBlockProps = (LinkProps | PressProps) & {
 };
 
 function TextLinkBlock({text, style, prefixIcon, ...rest}: TextLinkBlockProps) {
-    const words = useMemo(() => text.match(/(\S+\s*)/g) ?? [], [text]);
+    const words = text.match(/(\S+\s*)/g) ?? [];
 
     const {environmentURL} = useEnvironment();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const openLink = () => {
         if (!rest.href) {
@@ -75,4 +76,4 @@ function TextLinkBlock({text, style, prefixIcon, ...rest}: TextLinkBlockProps) {
     );
 }
 
-export default memo(TextLinkBlock);
+export default TextLinkBlock;

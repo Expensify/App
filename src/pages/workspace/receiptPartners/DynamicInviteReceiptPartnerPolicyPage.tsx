@@ -1,4 +1,4 @@
-import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -18,9 +18,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearErrors, inviteWorkspaceEmployeesToUber} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {formatMemberForList, getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
+import {formatMemberForList, getHeaderMessage, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
 import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+import sortAlphabetically from '@libs/sortAlphabetically';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -153,7 +154,7 @@ function DynamicInviteReceiptPartnerPolicyPage({route}: DynamicInviteReceiptPart
     };
 
     const searchValue = debouncedSearchTerm.trim().toLowerCase();
-    const headerMessage = getHeaderMessage(allMembersWithState.length !== 0, false, searchValue, countryCode, false);
+    const headerMessage = getHeaderMessage(translate, allMembersWithState.length !== 0, false, searchValue, countryCode, false);
 
     const handleConfirm = () => {
         if (selectedOptions.length === 0) {
@@ -191,12 +192,11 @@ function DynamicInviteReceiptPartnerPolicyPage({route}: DynamicInviteReceiptPart
                     title={translate('workspace.receiptPartners.uber.allSet')}
                     onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
-                <ConfirmationPage
+                <ConfirmationPageDefault
                     illustration={illustrations.ToddInCar}
                     illustrationStyle={styles.toddInCarIllustrationContainer}
                     heading={translate('workspace.receiptPartners.uber.readyToRoll')}
                     description={translate('workspace.receiptPartners.uber.takeBusinessRideMessage')}
-                    shouldShowButton
                     buttonText={translate('common.buttonConfirm')}
                     onButtonPress={() => Navigation.goBack(backPath)}
                     descriptionStyle={styles.colorMuted}
@@ -211,7 +211,10 @@ function DynamicInviteReceiptPartnerPolicyPage({route}: DynamicInviteReceiptPart
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED}
         >
-            <ScreenWrapper testID="DynamicInviteReceiptPartnerPolicyPage">
+            <ScreenWrapper
+                testID="DynamicInviteReceiptPartnerPolicyPage"
+                enableEdgeToEdgeBottomSafeAreaPadding
+            >
                 <HeaderWithBackButton
                     title={translate('workspace.receiptPartners.uber.sendInvites')}
                     onBackButtonPress={() => Navigation.goBack(backPath)}

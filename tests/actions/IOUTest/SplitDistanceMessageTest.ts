@@ -37,16 +37,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@react-navigation/native');
 
-jest.mock('@src/libs/actions/Report', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
-
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
 const RORY_EMAIL = 'rory@expensifail.com';
@@ -149,6 +139,7 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
         await setupSelfDMTransaction();
 
         const {onyxData} = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: selfDMTransaction.transactionID,
@@ -182,6 +173,7 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
         await setupSelfDMTransaction();
 
         const {onyxData} = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: selfDMTransaction.transactionID,
@@ -222,6 +214,7 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
         await setupSelfDMTransaction();
 
         const {onyxData} = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: selfDMTransaction.transactionID,
@@ -252,6 +245,7 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
         await setupSelfDMTransaction();
 
         const {onyxData} = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: selfDMTransaction.transactionID,
@@ -280,6 +274,7 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
     it('does NOT add selfDM-specific transaction optimistic merge when transaction does not exist in Onyx', async () => {
         // Don't seed Onyx - transaction is absent
         const {onyxData} = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: 'nonexistentTransactionID',
@@ -319,6 +314,7 @@ describe('split distance system message', () => {
         await setupDistanceTransaction();
 
         const {params} = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
@@ -355,6 +351,7 @@ describe('split distance system message', () => {
         await setupDistanceTransaction();
 
         const {params, onyxData} = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
@@ -397,6 +394,7 @@ describe('split distance system message', () => {
         await setupDistanceTransaction();
 
         const {params} = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
@@ -432,6 +430,7 @@ describe('split distance system message', () => {
         await setupDistanceTransaction();
 
         const {params} = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled: false,
             rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,

@@ -19,13 +19,13 @@ type TransactionHistoryLinkRendererProps = CustomRendererProps<TText | TPhrasing
 
 // This component is rendered whenever a locale string uses the <transaction-history-link> custom tag.
 // Used on outcome screens (e.g. AlreadyReviewedFailureScreen). Navigating to search may re-trigger
-// useNavigateTo3DSAuthorizationChallenge if a pending challenge exists; that behavior is acceptable
+// useNavigateToForcedTransactionReview if a pending challenge exists; that behavior is acceptable
 // as the user is leaving the flow and the next challenge (if any) would be shown from the stack.
 function TransactionHistoryLinkRenderer({tnode, style}: TransactionHistoryLinkRendererProps) {
     const styles = useThemeStyles();
 
     const navigateToTransactionHistory = () => {
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery(), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     };
 
     const handleKeyDown = useEnterKeyHandler(navigateToTransactionHistory);

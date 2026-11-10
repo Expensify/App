@@ -3,12 +3,15 @@ import {act, renderHook, waitFor} from '@testing-library/react-native';
 
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+import type {HoldMenuModalWrapperProps} from '@components/Modal/Global/HoldMenuModalWrapper';
 
 import useLifecycleActions from '@hooks/useLifecycleActions';
 import type {ReportSubmitToPopoverOpenOptions} from '@hooks/useReportSubmitToPopover';
+import useSelectionModePayment from '@hooks/useSelectionModePayment';
 import useSelectionModeReportActions from '@hooks/useSelectionModeReportActions';
 
 import {submitReport} from '@libs/actions/IOU/ReportWorkflow';
+import type * as MoneyRequestReportUtils from '@libs/MoneyRequestReportUtils';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {
     getNextApproverAccountID,
@@ -77,6 +80,7 @@ jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
     default: jest.fn(() => ({
         isBetaEnabled: (beta: string) => beta === 'bulkSubmitApprovePay',
+        isBetaEnabledOrUnknown: (beta: string) => beta === 'bulkSubmitApprovePay',
     })),
 }));
 
@@ -88,11 +92,6 @@ jest.mock('@hooks/useStrictPolicyRules', () => ({
 jest.mock('@hooks/useConfirmModal', () => ({
     __esModule: true,
     default: jest.fn(() => ({showConfirmModal: jest.fn()})),
-}));
-
-jest.mock('@hooks/useConfirmPendingRTERAndProceed', () => ({
-    __esModule: true,
-    default: jest.fn(() => (onProceed: () => void) => onProceed()),
 }));
 
 jest.mock('@hooks/useReportIsArchived', () => ({
@@ -169,6 +168,19 @@ jest.mock('@hooks/useSelectionModePayment', () => ({
     })),
 }));
 
+const mockShowHoldMenu = jest.fn<void, [Partial<HoldMenuModalWrapperProps>]>();
+
+jest.mock('@hooks/useHoldMenuModal', () => ({
+    __esModule: true,
+    default: jest.fn(() => ({showHoldMenu: mockShowHoldMenu})),
+}));
+
+// The hold menu waits one animation frame before opening; run the frame right away so it opens synchronously.
+jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+    callback(0);
+    return 0;
+});
+
 jest.mock('@hooks/useLazyAsset', () => ({
     __esModule: true,
     useMemoizedLazyExpensifyIcons: jest.fn(() => ({
@@ -237,6 +249,8 @@ jest.mock('@libs/ReportUtils', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actual,
+        canApproveIOU: jest.fn(() => false),
+        canIOUBePaid: jest.fn(() => false),
         hasHeldExpensesFromTransactions: jest.fn(() => false),
         hasOnlyHeldExpenses: jest.fn(() => false),
         hasUpdatedTotal: jest.fn(() => true),
@@ -254,8 +268,6 @@ jest.mock('@libs/actions/IOU/ReportWorkflow', () => ({
     __esModule: true,
     submitReport: jest.fn(),
     approveMoneyRequest: jest.fn(),
-    canApproveIOU: jest.fn(() => false),
-    canIOUBePaid: jest.fn(() => false),
 }));
 
 jest.mock('@libs/actions/IOU/PayMoneyRequest', () => ({
@@ -291,6 +303,7 @@ jest.mock('@libs/ReportActionsUtils', () => ({
 }));
 
 jest.mock('@libs/MoneyRequestReportUtils', () => ({
+    ...jest.requireActual<typeof MoneyRequestReportUtils>('@libs/MoneyRequestReportUtils'),
     __esModule: true,
     getTotalAmountForIOUReportPreviewButton: jest.fn(() => '$100.00'),
 }));
@@ -302,17 +315,12 @@ jest.mock('@libs/PaymentUtils', () => ({
 
 jest.mock('@libs/TransactionUtils', () => ({
     __esModule: true,
-    hasAnyPendingRTERViolation: jest.fn(() => false),
     hasOnlyPendingCardTransactions: jest.fn(() => false),
     showPendingCardTransactionsBlockModal: jest.fn(),
     isExpensifyCardTransaction: jest.fn(() => false),
     isPending: jest.fn(() => false),
     getReimbursable: jest.fn(() => true),
-}));
-
-jest.mock('@userActions/Transaction', () => ({
-    __esModule: true,
-    markPendingRTERTransactionsAsCash: jest.fn(),
+    isTransactionPendingDelete: jest.fn(() => false),
 }));
 
 const mockOpenReportSubmitToPopover = jest.fn<void, [ReportSubmitToPopoverOpenOptions | undefined]>();
@@ -443,6 +451,20 @@ describe('useSelectionModeReportActions', () => {
             expect(result.current.allExpensesSelected).toBe(false);
         });
 
+        it('returns true when Select All has written every row it can, leaving only an expense the backend refused to reject', () => {
+            // Given a report whose third expense carries a refused reject, which keeps it on the report until the user dismisses it
+            const transactions = [buildTransaction(1), buildTransaction(2), buildTransaction(3, {errorFields: {reject: {1700000000000: 'iou.rejectReport.couldNotRejectExpense'}}})];
+
+            // When Select All writes the two rows a checkbox can reach
+            const {result} = renderSelectionModeHook({
+                transactions,
+                selectedTransactionIDs: ['1', '2'],
+            });
+
+            // Then the report counts as covered, or Submit, Approve and Pay stay hidden for as long as that error stands
+            expect(result.current.allExpensesSelected).toBe(true);
+        });
+
         it('returns false when no transactions are selected', () => {
             const {result} = renderSelectionModeHook({
                 selectedTransactionIDs: [],
@@ -518,19 +540,65 @@ describe('useSelectionModeReportActions', () => {
         });
     });
 
-    describe('hold menu state', () => {
-        it('initializes hold menu as not visible', () => {
-            const {result} = renderSelectionModeHook();
+    describe('hold menu', () => {
+        it('opens the global hold menu with the selected bank account when paying a report with held expenses', () => {
+            // Given selection mode on a report
+            renderSelectionModeHook();
+            const {onHoldMenuOpen} = jest.mocked(useSelectionModePayment).mock.calls.at(-1)?.[0] ?? {};
 
-            expect(result.current.isHoldMenuVisible).toBe(false);
+            // When paying with a business bank account while some expenses are on hold
+            act(() => {
+                onHoldMenuOpen?.({requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.VBBA, methodID: 42});
+            });
+
+            // Then the global hold menu opens for the report with the amounts and chosen account
+            expect(mockShowHoldMenu).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    reportID: TEST_REPORT_ID,
+                    chatReportID: TEST_CHAT_REPORT_ID,
+                    requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                    methodID: 42,
+                    nonHeldAmount: '$100.00',
+                    fullAmount: '$100.00',
+                    hasNonHeldExpenses: true,
+                    transactionCount: 2,
+                }),
+            );
         });
 
-        it('returns hold menu amounts from getNonHeldAndFullAmount', () => {
-            const {result} = renderSelectionModeHook();
+        it('does not forward a bank account for non-VBBA payments', () => {
+            // Given selection mode on a report
+            renderSelectionModeHook();
+            const {onHoldMenuOpen} = jest.mocked(useSelectionModePayment).mock.calls.at(-1)?.[0] ?? {};
 
-            expect(result.current.nonHeldAmount).toBe('$100.00');
-            expect(result.current.fullAmount).toBe('$100.00');
-            expect(result.current.hasValidNonHeldAmount).toBe(true);
+            // When paying elsewhere while some expenses are on hold
+            act(() => {
+                onHoldMenuOpen?.({requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, methodID: 42});
+            });
+
+            // Then the hold menu does not receive a bank account, since only VBBA payments use one
+            expect(mockShowHoldMenu).toHaveBeenCalledWith(expect.objectContaining({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, methodID: undefined}));
+        });
+
+        it('runs the lifecycle confirm callback and clears the selection when the hold menu is confirmed', () => {
+            // Given selection mode on a report, and a lifecycle action (mark as paid) that opens the hold menu with its own confirm callback
+            renderSelectionModeHook();
+            const {onHoldMenuOpen} = jest.mocked(useLifecycleActions).mock.calls.at(-1)?.[0] ?? {};
+            const lifecycleOnConfirm = jest.fn();
+            act(() => {
+                onHoldMenuOpen?.(CONST.IOU.REPORT_ACTION_TYPE.PAY, lifecycleOnConfirm, CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
+            });
+
+            // When the user confirms the hold menu
+            const {onConfirm} = mockShowHoldMenu.mock.calls.at(-1)?.[0] ?? {};
+            act(() => {
+                onConfirm?.(true);
+            });
+
+            // Then the lifecycle callback is no longer dropped, and the selection is cleared like before
+            expect(lifecycleOnConfirm).toHaveBeenCalled();
+            expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
         });
     });
 
@@ -693,29 +761,6 @@ describe('useSelectionModeReportActions', () => {
             });
 
             expect(mockLifecycleConfirmApproval).toHaveBeenCalledWith(true);
-        });
-    });
-
-    describe('handleHoldMenuClose', () => {
-        it('resets hold menu state', () => {
-            const {result} = renderSelectionModeHook();
-
-            expect(result.current.isHoldMenuVisible).toBe(false);
-
-            act(() => {
-                result.current.handleHoldMenuClose();
-            });
-            expect(result.current.isHoldMenuVisible).toBe(false);
-        });
-    });
-
-    describe('handleHoldMenuConfirm', () => {
-        it('clears selected transactions', () => {
-            const {result} = renderSelectionModeHook();
-
-            result.current.handleHoldMenuConfirm();
-
-            expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
         });
     });
 

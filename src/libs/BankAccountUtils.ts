@@ -1,8 +1,13 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
+import type useConfirmModal from '@hooks/useConfirmModal';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type AccountData from '@src/types/onyx/AccountData';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {ACHData} from '@src/types/onyx/ReimbursementAccount';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -16,9 +21,11 @@ type KYBVerificationResponses = NonNullable<ACHData['verifications']>['externalA
 type BankAccountConnectionStatus = {
     labelKey: TranslationPaths;
     tone: 'default' | 'success' | 'danger';
+    badgeTone?: 'default' | 'success' | 'danger';
     messageKey?: TranslationPaths;
     actionKey?: TranslationPaths;
     requiresUnlockHandler?: boolean;
+    requiresPlaidHandler?: boolean;
     tooltipKey?: TranslationPaths;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 };
@@ -65,6 +72,50 @@ function hasBankAccountAllowDebit(accountData: AccountData | undefined): boolean
     return !!accountData.allowDebit;
 }
 
+function isConnectedViaPlaid(accountData: AccountData | undefined): boolean {
+    if (!accountData) {
+        return false;
+    }
+
+    return !!accountData.plaidAccountID || !!accountData.additionalData?.plaidAccountID;
+}
+
+function hasBrokenPlaidConnection(accountData: AccountData | undefined): boolean {
+    if (!accountData) {
+        return false;
+    }
+
+    return !!accountData.additionalData?.verifications?.externalApiResponses?.plaidAssets?.needsFixing;
+}
+
+/**
+ * Whether the bank account can be connected via Plaid:
+ * - Provisioned as the Expensify Card settlement account; or
+ * - Linked policy is on Expensify Card waitlist (NVP_EXPENSIFY_ON_CARD_WAITLIST)
+ */
+function canLinkPlaid(bankAccount: {isExpensifyCardSettlementAccount?: boolean; accountData?: AccountData} | null | undefined, cardOnWaitlistPolicyIDs: Set<string> | undefined): boolean {
+    if (!bankAccount) {
+        return false;
+    }
+
+    if (bankAccount.isExpensifyCardSettlementAccount || bankAccount.accountData?.isExpensifyCardSettlementAccount) {
+        return true;
+    }
+
+    const policyID = bankAccount.accountData?.additionalData?.policyID;
+    if (policyID && cardOnWaitlistPolicyIDs?.has(policyID)) {
+        return true;
+    }
+
+    for (const id of bankAccount.accountData?.policyIDs ?? []) {
+        if (cardOnWaitlistPolicyIDs?.has(id)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 function getIncompleteBankAccountStatus(): BankAccountConnectionStatus {
     return {
         labelKey: 'walletPage.bankAccountStatus.incomplete',
@@ -84,7 +135,36 @@ function getIncompleteBankAccountStatus(): BankAccountConnectionStatus {
  * ReimbursementAccountPage, which routes a PENDING account to the validation (test transaction) step only when the
  * currency is USD. An absent currency is treated as USD, matching BankAccount.getCurrency().
  */
-function getBankAccountConnectionStatus(state: string | undefined, currency?: string): BankAccountConnectionStatus | undefined {
+function getBankAccountConnectionStatus(accountData: AccountData | undefined, currency?: string, canBankAccountLinkPlaid = false): BankAccountConnectionStatus | undefined {
+    if (!accountData) {
+        return undefined;
+    }
+
+    const {state, type, additionalData: {country = CONST.COUNTRY.US} = {}} = accountData;
+    if (canBankAccountLinkPlaid && country === CONST.COUNTRY.US && state === CONST.BANK_ACCOUNT.STATE.OPEN && type === CONST.BANK_ACCOUNT.TYPE.BUSINESS) {
+        if (hasBrokenPlaidConnection(accountData)) {
+            return {
+                requiresPlaidHandler: true,
+                labelKey: 'walletPage.bankAccountStatus.active',
+                messageKey: 'walletPage.bankAccountStatus.plaidBrokenReconnect',
+                actionKey: 'common.actionBadge.fix',
+                tone: 'danger',
+                badgeTone: 'success',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            };
+        }
+        if (!isConnectedViaPlaid(accountData)) {
+            return {
+                requiresPlaidHandler: true,
+                labelKey: 'walletPage.bankAccountStatus.active',
+                messageKey: 'walletPage.bankAccountStatus.plaidConnectForLimit',
+                actionKey: 'walletPage.bankAccountStatus.connect',
+                tone: 'success',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.INFO,
+            };
+        }
+    }
+
     if (state === CONST.BANK_ACCOUNT.STATE.PENDING && !!currency && currency !== CONST.CURRENCY.USD) {
         return getIncompleteBankAccountStatus();
     }
@@ -124,12 +204,179 @@ function getBankAccountConnectionStatus(state: string | undefined, currency?: st
             return undefined;
     }
 }
+
 /**
  * A BUSINESS account in a state that has actually been usable for paying expenses (anything other than SETUP / VERIFYING / PENDING).
  * Used by the search picker, the autocomplete suggestions, and the advanced-filter visibility gate so all three surfaces accept and count the same set of accounts.
  */
 function isFilterableBankAccount(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
     return bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && !isBankAccountPartiallySetup(bankAccount?.accountData?.state);
+}
+
+/**
+ * A verified (OPEN) USD business bank account that is not already set up for global reimbursements can start the Wise flow.
+ * Pass the record's top-level `bankCurrency` when available, since the nested `additionalData.currency` is optional.
+ */
+function isBankAccountEligibleForGlobalReimbursements(accountData: AccountData | undefined, bankCurrency?: string): boolean {
+    return (
+        // `||` not `??`: bankCurrency can be an empty string, which should fall through to additionalData.
+        (bankCurrency || accountData?.additionalData?.currency) === CONST.CURRENCY.USD &&
+        accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+        // Corpay accounts are marked by their verification, Wise accounts by the flag the backend sets once Wise approves the business
+        !accountData.additionalData?.verifications?.corpay &&
+        accountData.additionalData?.isGlobalReimbursementEnabled !== true &&
+        accountData.state === CONST.BANK_ACCOUNT.STATE.OPEN
+    );
+}
+
+/**
+ * Whether a payment from this account would be rejected until global reimbursements are set up, so the onboarding should open instead of paying.
+ * Only an explicit `false` counts, so an account without the flag still goes to the backend, which makes the final call.
+ */
+function shouldSetUpGlobalReimbursementsBeforePaying(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
+    return (
+        bankAccount?.accountData?.additionalData?.isGlobalReimbursementEnabled === false && isBankAccountEligibleForGlobalReimbursements(bankAccount.accountData, bankAccount.bankCurrency)
+    );
+}
+
+/**
+ * Whether the bank account row shows that global reimbursements are enabled. Only an explicit `true` counts, the same flag the backend checks before paying.
+ */
+function isGlobalReimbursementsEnabled(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
+    return bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && bankAccount?.accountData?.additionalData?.isGlobalReimbursementEnabled === true;
+}
+
+type WiseQuotePaymentParams = {
+    paymentType: PaymentMethodType;
+    methodID?: number;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
+    isWiseReimbursementsBetaEnabled: boolean;
+    iouReport?: Pick<OnyxTypes.Report, 'currency' | 'nextStep'>;
+    policy?: Pick<OnyxTypes.Policy, 'achAccount'>;
+    wiseQuoteID?: string;
+};
+
+/** The Wise account a business bank account payment debits. Without a chosen account the backend pays from the workspace account */
+function getWiseBankAccountForPayment({paymentType, methodID, bankAccountList, isWiseReimbursementsBetaEnabled, policy}: WiseQuotePaymentParams): OnyxTypes.BankAccount | undefined {
+    const bankAccountID = methodID ?? policy?.achAccount?.bankAccountID;
+    if (!isWiseReimbursementsBetaEnabled || paymentType !== CONST.IOU.PAYMENT_TYPE.VBBA || !bankAccountID) {
+        return undefined;
+    }
+    const bankAccount = bankAccountList?.[bankAccountID];
+    const isWiseAccount = isGlobalReimbursementsEnabled(bankAccount) && bankAccount?.accountData?.additionalData?.globalReimbursementProvider === CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE;
+    return isWiseAccount ? bankAccount : undefined;
+}
+
+/** Whether Wise sends this report to the employee through a global provider, which it prices with a quote */
+function shouldGetWiseQuote(params: WiseQuotePaymentParams): boolean {
+    return !!params.iouReport?.nextStep?.requiresGlobalReimbursement && !!getWiseBankAccountForPayment(params);
+}
+
+/** Whether the admin confirms the Wise quote before paying, which happens when the submitter is paid in another currency than the bank account */
+function shouldConfirmWiseQuoteBeforePaying(params: WiseQuotePaymentParams): boolean {
+    const bankAccount = getWiseBankAccountForPayment(params);
+    if (params.wiseQuoteID || !params.iouReport?.nextStep?.requiresGlobalReimbursement || !bankAccount) {
+        return false;
+    }
+    // `||` not `??`: bankCurrency can be an empty string, which falls through to additionalData
+    const bankCurrency = bankAccount.bankCurrency || bankAccount.accountData?.additionalData?.currency;
+    return params.iouReport.nextStep.depositCurrency !== bankCurrency;
+}
+
+/**
+ * Whether the business was already submitted to Wise. Wise has a status for the business only once it was submitted.
+ */
+function isWiseOnboardingSubmitted(accountData: AccountData | undefined): boolean {
+    return !!accountData?.additionalData?.wise?.status;
+}
+
+/**
+ * Picks the bank account the Wallet global reimbursements banner points to: the most recently added eligible account.
+ */
+function getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): number | undefined {
+    const newest = Object.values(bankAccountList ?? {}).reduce<AccountData | undefined>((latest, bankAccount) => {
+        // Accounts deleted offline stay in the list until the request syncs
+        if (bankAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return latest;
+        }
+
+        const accountData = bankAccount.accountData;
+        if (!accountData?.bankAccountID || !isBankAccountEligibleForGlobalReimbursements(accountData, bankAccount.bankCurrency)) {
+            return latest;
+        }
+
+        if (!latest) {
+            return accountData;
+        }
+
+        // `created` is a DB timestamp, so string comparison orders accounts chronologically. When two accounts share the same second, the higher bank account ID wins.
+        const created = accountData.created ?? '';
+        const latestCreated = latest.created ?? '';
+        const isNewer = created > latestCreated || (created === latestCreated && accountData.bankAccountID > (latest.bankAccountID ?? CONST.DEFAULT_NUMBER_ID));
+
+        return isNewer ? accountData : latest;
+    }, undefined);
+
+    return newest?.bankAccountID;
+}
+
+/**
+ * Picks the bank account the Workspace Workflows global reimbursements banner points to: the workspace's connected account, when it is eligible.
+ */
+function getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(policy: OnyxEntry<OnyxTypes.Policy>, bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): number | undefined {
+    // Only "Reimburse via Expensify" pays out of the connected account, so the other choices have nothing to enable
+    if (policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
+        return undefined;
+    }
+
+    const bankAccountID = policy.achAccount?.bankAccountID;
+    if (!bankAccountID) {
+        return undefined;
+    }
+
+    // Admins without a copy of the account can't see its currency, type or verifications, so the banner stays hidden for them
+    const bankAccount = bankAccountList?.[bankAccountID];
+    if (bankAccount?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData, bankAccount?.bankCurrency)) {
+        return undefined;
+    }
+
+    return bankAccountID;
+}
+
+/**
+ * Whether the admin saved part of the account's Wise onboarding and has not submitted it yet. The server sets Wise as the provider on the first saved page,
+ * and the onboarding opens only for an eligible account.
+ */
+function isWiseOnboardingPendingSubmit(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
+    const additionalData = bankAccount?.accountData?.additionalData;
+    return (
+        bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+        additionalData?.globalReimbursementProvider === CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE &&
+        !additionalData.wise?.status &&
+        isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData, bankAccount?.bankCurrency)
+    );
+}
+
+/** Whether the account's Wise onboarding is submitted and Wise is reviewing it, with nothing for the admin to do */
+function isWiseOnboardingAwaitingDecision(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
+    return bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && bankAccount?.accountData?.additionalData?.wise?.status === CONST.WISE.ONBOARDING_STATUS.IN_REVIEW;
+}
+
+/** Whether Wise needs more info from the admin on its own form before it can decide on the submitted business */
+function isWiseOnboardingMoreInfoNeeded(bankAccount: OnyxEntry<Pick<OnyxTypes.BankAccount, 'accountData' | 'pendingAction'>>): boolean {
+    return (
+        bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && bankAccount?.accountData?.additionalData?.wise?.status === CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED
+    );
+}
+
+/** Whether the account pays cross-border reports through Wise, or will once its Wise onboarding finishes */
+function isWiseEnabledOrOnboarding(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
+    const additionalData = bankAccount?.accountData?.additionalData;
+    return (
+        bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+        additionalData?.globalReimbursementProvider === CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE &&
+        additionalData.wise?.status !== CONST.WISE.ONBOARDING_STATUS.NOT_APPROVED
+    );
 }
 
 function doesPolicyHavePartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>, policyID: string) {
@@ -145,6 +392,10 @@ function doesPolicyHavePartiallySetupBankAccount(bankAccountList: OnyxEntry<Onyx
 
 function hasPartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): boolean {
     return Object.values(bankAccountList ?? {}).some((bankAccount) => isBankAccountPartiallySetup(bankAccount?.accountData?.state));
+}
+
+function hasBrokenPlaidConnectionBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): boolean {
+    return Object.values(bankAccountList ?? {}).some((bankAccount) => hasBrokenPlaidConnection(bankAccount?.accountData));
 }
 
 const PERSONAL_INFO_STEP = {
@@ -284,16 +535,41 @@ function getRequiredKYBDocuments(externalApiResponses: KYBVerificationResponses)
     return requiredDocuments;
 }
 
+function showUnlockAlreadyRequestedModal(showConfirmModal: ReturnType<typeof useConfirmModal>['showConfirmModal'], translate: LocaleContextProps['translate']) {
+    showConfirmModal({
+        title: translate('bankAccount.unlockAlreadyRequestedTitle'),
+        prompt: translate('bankAccount.unlockAlreadyRequestedDescription'),
+        confirmText: translate('common.buttonConfirm'),
+        shouldShowCancelButton: false,
+    });
+}
+
 export {
     getBankAccountSearchLabel,
     isFilterableBankAccount,
+    isBankAccountEligibleForGlobalReimbursements,
+    shouldConfirmWiseQuoteBeforePaying,
+    shouldGetWiseQuote,
+    shouldSetUpGlobalReimbursementsBeforePaying,
+    isGlobalReimbursementsEnabled,
+    isWiseOnboardingSubmitted,
+    getWiseGlobalReimbursementsBannerBankAccountID,
+    getWorkspaceWiseGlobalReimbursementsBannerBankAccountID,
+    isWiseOnboardingPendingSubmit,
+    isWiseOnboardingAwaitingDecision,
+    isWiseOnboardingMoreInfoNeeded,
+    isWiseEnabledOrOnboarding,
     getDefaultCompanyWebsite,
     getBankAccountState,
     hasBankAccountAllowDebit,
+    isConnectedViaPlaid,
+    hasBrokenPlaidConnection,
+    canLinkPlaid,
     getBankAccountConnectionStatus,
     getRequiredKYBDocuments,
     getLastFourDigits,
     hasPartiallySetupBankAccount,
+    hasBrokenPlaidConnectionBankAccount,
     hasPersonalBankAccountMissingInfo,
     isBankAccountPartiallySetup,
     isUserAddressVerificationRequired,
@@ -301,6 +577,7 @@ export {
     doesPolicyHavePartiallySetupBankAccount,
     isPersonalBankAccountMissingInfo,
     getCompletedStepsForBankAccount,
+    showUnlockAlreadyRequestedModal,
     PERSONAL_INFO_STEP,
 };
 export type {BankAccountConnectionStatus, KYBVerificationResponses};

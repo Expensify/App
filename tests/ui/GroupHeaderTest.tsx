@@ -1,4 +1,4 @@
-import {act, render} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
@@ -21,6 +21,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import {buildCategoryGroup, buildTransactionRow} from '../utils/collections/searchListItems';
+import {makeSettlementGroup} from '../utils/ExpensifyCardStatementTestUtils';
 import MockSearchContextProvider from '../utils/MockSearchContextProvider';
 
 jest.mock('@components/ConfirmedRoute.tsx');
@@ -40,6 +41,11 @@ jest.mock('@components/Search/SearchList/ListItem/CategoryListItemHeader', () =>
     },
 }));
 
+jest.mock('@components/Search/SearchList/ListItem/WithdrawalIDListItemHeader', () => ({
+    __esModule: true,
+    default: () => null,
+}));
+
 const checkboxState = () => ({isSelectAllChecked: capturedSubHeader.current?.isSelectAllChecked, isIndeterminate: capturedSubHeader.current?.isIndeterminate});
 
 const GROUP_KEY = 'Advertising';
@@ -49,8 +55,19 @@ const children: TransactionListItemType[] = [buildTransactionRow(1, '1'), buildT
 /** A selection entry per key. Only `isSelected` is read here, so any real entry shape will do. */
 const select = (...keys: string[]): SelectedTransactions => Object.fromEntries(keys.map((key) => [key, mapEmptyReportToSelectedEntry(buildCategoryGroup(key))[1]]));
 
-const buildHeaderItem = (rows: TransactionListItemType[]): GroupHeaderItemType => ({
+type GroupState = {
+    isExpanded: boolean;
+
+    /** The group-by search's count, which can still hold an expense that left the group */
+    count: number;
+
+    /** Whether the group's own search has more expenses to load */
+    hasMoreTransactions: boolean | undefined;
+};
+
+const buildHeaderItem = (rows: TransactionListItemType[], groupState?: GroupState): GroupHeaderItemType => ({
     ...buildCategoryGroup(GROUP_KEY, rows),
+    ...(groupState ? {count: groupState.count, hasMoreTransactions: groupState.hasMoreTransactions} : {}),
     listItemType: GROUP_ITEM_TYPES.GROUP_HEADER,
     keyForList: `header_${GROUP_KEY}`,
     groupKeyForList: GROUP_KEY,
@@ -86,6 +103,9 @@ const baseActions = {
     setLastSearchType: jest.fn(),
     setCurrentSelectedTransactionReportID: jest.fn(),
     setSelectedTransactions: jest.fn(),
+    getSelectedTransactions: jest.fn(() => ({})),
+    getExcludedTransactions: () => ({}),
+    getAreAllMatchingItemsSelected: () => false,
     applySelection: jest.fn(),
     setSelectedReports: jest.fn(),
     removeTransaction: jest.fn(),
@@ -94,11 +114,13 @@ const baseActions = {
     selectAllMatchingItems: jest.fn(),
     setShouldResetSearchQuery: jest.fn(),
     setSortedReportIDs: jest.fn(),
-    setCurrentSearchKey: jest.fn(),
-    resetSearchKey: jest.fn(),
+    getSearchKeyForQuery: jest.fn(),
 } satisfies SearchActionsContextValue;
 
-function renderGroupHeader(rows: TransactionListItemType[], selection: SelectedTransactions, onCheckboxPress = jest.fn()) {
+/** Wide enough that the sub-header's column widths never exceed it, so no horizontal scroller is involved here. */
+const WINDOW_WIDTH = 1500;
+
+function renderGroupHeader(rows: TransactionListItemType[], selection: SelectedTransactions, onCheckboxPress = jest.fn(), groupState?: GroupState) {
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
             <ScreenWrapperStatusContext value={{didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: false, isSafeAreaBottomPaddingApplied: false}}>
@@ -107,16 +129,17 @@ function renderGroupHeader(rows: TransactionListItemType[], selection: SelectedT
                     actions={baseActions}
                 >
                     <GroupHeader
-                        item={buildHeaderItem(rows)}
+                        item={buildHeaderItem(rows, groupState)}
                         groupBy={CONST.SEARCH.GROUP_BY.CATEGORY}
                         searchType={CONST.SEARCH.DATA_TYPES.EXPENSE}
                         canSelectMultiple
-                        isExpanded={false}
+                        isExpanded={groupState?.isExpanded ?? false}
                         onToggle={jest.fn()}
                         onSelectRow={jest.fn()}
                         onCheckboxPress={onCheckboxPress}
                         isFirstItem
                         isLastItem={false}
+                        windowWidth={WINDOW_WIDTH}
                     />
                 </MockSearchContextProvider>
             </ScreenWrapperStatusContext>
@@ -167,6 +190,27 @@ describe('GroupHeader', () => {
         expect(checkboxState()).toEqual({isSelectAllChecked: false, isIndeterminate: false});
     });
 
+    it.each([{isExpanded: true}, {isExpanded: false}])(
+        'reads checked once every row it shows is checked, though its count still holds an expense that left it, with isExpanded $isExpanded',
+        ({isExpanded}) => {
+            // Given a group whose own search returned all its rows, each one checked, while the group-by count reads one more
+            renderGroupHeader(children, select('1', '2', '3'), jest.fn(), {isExpanded, count: 4, hasMoreTransactions: false});
+
+            // When its checkbox is drawn
+            // Then it reads checked, since those rows are the whole group, so closing a group never changes its checkbox
+            expect(checkboxState()).toEqual({isSelectAllChecked: true, isIndeterminate: false});
+        },
+    );
+
+    it('reads partly checked while its own search has more to load, since its count is then the whole group', () => {
+        // Given a group with the same rows checked whose own search has more expenses to load
+        renderGroupHeader(children, select('1', '2', '3'), jest.fn(), {isExpanded: true, count: 4, hasMoreTransactions: true});
+
+        // When its checkbox is drawn
+        // Then it reads partly checked, since the expense it has not loaded is not selected
+        expect(checkboxState()).toEqual({isSelectAllChecked: false, isIndeterminate: true});
+    });
+
     it('answers from its own key while it carries no rows, since there is nothing else to ask', () => {
         renderGroupHeader([], select(GROUP_KEY));
         expect(checkboxState()).toEqual({isSelectAllChecked: true, isIndeterminate: false});
@@ -182,5 +226,73 @@ describe('GroupHeader', () => {
         const onCheckboxPress = renderGroupHeader([], select(GROUP_KEY));
         act(() => capturedSubHeader.current?.onCheckboxPress());
         expect(onCheckboxPress).toHaveBeenCalledWith(expect.objectContaining({keyForList: GROUP_KEY}), []);
+    });
+
+    describe('withdrawal rows', () => {
+        const renderWithdrawalRow = (isCashBack: boolean) => {
+            const onToggle = jest.fn();
+            const groupKey = isCashBack ? 'group_cashBack' : 'group_settlement';
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
+                    <ScreenWrapperStatusContext value={{didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: false, isSafeAreaBottomPaddingApplied: false}}>
+                        <MockSearchContextProvider
+                            state={baseState}
+                            actions={baseActions}
+                        >
+                            <GroupHeader
+                                item={{
+                                    ...makeSettlementGroup(isCashBack ? {count: 0, total: -2500, isCashBack: true} : {}),
+                                    groupedBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+                                    transactions: [],
+                                    transactionsQueryJSON: undefined,
+                                    formattedWithdrawalID: '123',
+                                    text: groupKey,
+                                    listItemType: GROUP_ITEM_TYPES.GROUP_HEADER,
+                                    keyForList: `header_${groupKey}`,
+                                    groupKeyForList: groupKey,
+                                }}
+                                groupBy={CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID}
+                                searchType={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                                canSelectMultiple
+                                isExpanded={false}
+                                onToggle={onToggle}
+                                onSelectRow={jest.fn()}
+                                onCheckboxPress={jest.fn()}
+                                isFirstItem
+                                isLastItem={false}
+                                windowWidth={WINDOW_WIDTH}
+                            />
+                        </MockSearchContextProvider>
+                    </ScreenWrapperStatusContext>
+                </ComposeProviders>,
+            );
+            return {onToggle, groupKey};
+        };
+
+        it('expands a settlement row when it is pressed', () => {
+            // Given a settlement row, which holds expenses to drill into
+            const {onToggle, groupKey} = renderWithdrawalRow(false);
+
+            // When the row is pressed
+            fireEvent.press(screen.getByLabelText(groupKey));
+
+            // Then it expands, and is exposed as a focusable button because pressing it does something
+            expect(onToggle).toHaveBeenCalledTimes(1);
+            expect(screen.getByRole(CONST.ROLE.BUTTON, {name: groupKey})).toBeTruthy();
+            expect(screen.getByLabelText(groupKey)).toHaveProp('focusable', true);
+        });
+
+        it('does not expand, announce or tab to a cash back row', () => {
+            // Given a cash back row, which holds no expenses
+            const {onToggle, groupKey} = renderWithdrawalRow(true);
+
+            // When the row is pressed
+            fireEvent.press(screen.getByLabelText(groupKey));
+
+            // Then nothing opens, and neither screen readers nor the Tab key treat it as a control that does something
+            expect(onToggle).not.toHaveBeenCalled();
+            expect(screen.queryByRole(CONST.ROLE.BUTTON, {name: groupKey})).toBeNull();
+            expect(screen.getByLabelText(groupKey)).toHaveProp('focusable', false);
+        });
     });
 });

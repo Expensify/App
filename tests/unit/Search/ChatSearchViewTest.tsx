@@ -104,6 +104,7 @@ const mockSelectedTransactions: {current: Record<string, {isSelected: boolean}>}
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchRowSelectionActions: () => ({toggle: mockToggle, toggleAll: mockToggleAll}),
     useSearchSelectionContext: () => ({selectedTransactions: mockSelectedTransactions.current}),
+    useSearchQueryContext: () => ({currentSearchKey: undefined}),
 }));
 
 function selectKeys(...keys: string[]): Record<string, {isSelected: boolean}> {
@@ -180,6 +181,7 @@ function renderView(overrides: RenderOverrides = {}) {
                 columns={columns}
                 canSelectMultiple={overrides.canSelectMultiple ?? false}
                 isActionColumnWide={false}
+                columnSizeOptions={{}}
                 isMobileSelectionModeEnabled={overrides.isMobileSelectionModeEnabled ?? false}
                 tableHeaderVisible={overrides.tableHeaderVisible ?? false}
                 hasLoadedAllTransactions={overrides.hasLoadedAllTransactions ?? true}

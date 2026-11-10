@@ -27,6 +27,7 @@ import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {findFocusedRoute} from '@react-navigation/native';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 import SuccessPageBase from './SuccessPageBase';
@@ -35,6 +36,7 @@ type DynamicSuccessPageProps = PlatformStackScreenProps<TwoFactorAuthNavigatorPa
 
 function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
     const {environmentURL} = useEnvironment();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_SUCCESS.path);
     const dynamicForwardPath = useDynamicForwardPath(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_SUCCESS.path);
 
@@ -42,8 +44,10 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
     const focusedRoute = baseState ? findFocusedRoute(baseState) : undefined;
     const isUSDBankAccountFlow = focusedRoute?.name === SCREENS.REIMBURSEMENT_ACCOUNT;
     const isSecuritySettingsFlow = focusedRoute?.name === SCREENS.SETTINGS.SECURITY;
+    // The require-2FA overlay opens setup on settings/security?forceSetup=true. The base route's query params are merged
+    // into this screen's params and survive the Onyx clear in validateTwoFactorAuth, unlike account flags.
+    const isForcedSetupFlow = isSecuritySettingsFlow && route.params?.forceSetup === 'true';
 
-    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
@@ -63,12 +67,22 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
         AccountUtils.isForced2FAOnboardingSetup(account, !!hasCompletedGuidedSetupFlow) || (!!account?.requiresTwoFactorAuth && isIncompleteOnboarding && hasSavedOnboardingPath);
     const shouldReturnToOnboardingAfter2FA = isSecuritySettingsFlow && isForcedOnboardingHandoff;
 
+    const is2FAEnabled = !!account?.requiresTwoFactorAuth;
+
     const completeForcedOnboarding2FAHandoff = () => {
-        clearTwoFactorAuthData(true);
+        clearTwoFactorAuthData(is2FAEnabled, true);
         const onboardingFlowParams = buildOnboardingFlowParams(account, onboardingValues, onboardingCompanySize, onboardingPurposeSelected, onboardingInitialPath);
         Navigation.revealRouteBeforeDismissingModal(ROUTES.HOME, {
             afterTransition: () => {
                 resumeOnboardingAfterRequired2FASetup(onboardingFlowParams);
+            },
+        });
+    };
+
+    const sendForcedSetupUserHome = () => {
+        Navigation.revealRouteBeforeDismissingModal(ROUTES.HOME, {
+            afterTransition: () => {
+                clearTwoFactorAuthData(is2FAEnabled, true);
             },
         });
     };
@@ -78,10 +92,14 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
             completeForcedOnboarding2FAHandoff();
             return;
         }
+        if (isForcedSetupFlow) {
+            sendForcedSetupUserHome();
+            return;
+        }
         if (isUSDBankAccountFlow) {
             Navigation.goBack(dynamicBackPath, {
                 afterTransition: () => {
-                    clearTwoFactorAuthData();
+                    clearTwoFactorAuthData(is2FAEnabled);
                     // Re-fetch bank account data so ReimbursementAccountPage reflects the latest state after 2FA setup.
                     openReimbursementAccountPage({
                         policyID: route.params?.policyID,
@@ -91,7 +109,7 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
             });
             return;
         }
-        quitAndNavigateBack(dynamicBackPath);
+        quitAndNavigateBack(is2FAEnabled, dynamicBackPath);
     };
 
     const onButtonPress = () => {
@@ -103,6 +121,10 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
             completeForcedOnboarding2FAHandoff();
             return;
         }
+        if (isForcedSetupFlow) {
+            sendForcedSetupUserHome();
+            return;
+        }
         // For the Settings > Security entry, keep the 2FA RHP open on the Enabled page instead of dismissing it
         // back to the Security screen. The USD bank account and Xero flows fall through to goBack() so they still
         // return to their own entry points.
@@ -111,7 +133,7 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
             // Pass clearProgress=true to also reset twoFactorAuthSetupInProgress. Replacing the success screen with the
             // Enabled page keeps the TWO_FACTOR_AUTH modal mounted, so RightModalNavigator's beforeRemove cleanup never
             // runs here; without this the require-2FA overlay would persist for users who haven't finished guided setup.
-            clearTwoFactorAuthData(true);
+            clearTwoFactorAuthData(is2FAEnabled, true);
             return;
         }
         goBack();

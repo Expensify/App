@@ -4,7 +4,6 @@ import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisable
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -14,7 +13,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -28,6 +27,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {canMemberAssignElevatedRole, canMemberAssignRole, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+import {filterRulesForPolicy} from '@libs/RuleUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
@@ -35,10 +35,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {Rule} from '@src/types/onyx';
 
+import type {OnyxCollection} from 'react-native-onyx';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type ImportedMembersConfirmationPageProps = PlatformStackScreenProps<
@@ -54,14 +56,13 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
 
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
+    const policyRulesSelector = useCallback((rulesCollection: OnyxCollection<Rule>) => filterRulesForPolicy(rulesCollection, policyID), [policyID]);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: policyRulesSelector});
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const canAssignElevatedRoles = canMemberAssignElevatedRole(policy, currentUserLogin);
     const role = canMemberAssignRole(policy, currentUserLogin, roleFromOnyx) ? roleFromOnyx : CONST.POLICY.ROLE.USER;
     const [isImporting, setIsImporting] = useState(false);
-    const {isBetaEnabled} = usePermissions();
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
-    const personalDetails = usePersonalDetails();
     const {setIsClosing} = useCloseImportPage();
     const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
 
@@ -83,18 +84,8 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         newMembersRef.current = computedNewMembers;
     }
     const newMembers = newMembersRef.current;
-    const invitedEmailsToAccountIDsDraft = useMemo(() => {
-        const memberEmails = newMembers.map((member) => member.email);
-        return memberEmails.reduce(
-            (acc, email) => {
-                acc[email] = getAccountIDsByLogins([email])?.at(0) ?? 0;
-                return acc;
-            },
-            {} as Record<string, number>,
-        );
-        // getAccountIDsByLogins function uses the personalDetails data from the connection, so we need to re-run this logic when the personal detail is changed.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [newMembers, personalDetails]);
+    const newMemberEmails = newMembers.map((member) => member.email);
+    const newMembersPersonalDetails = usePersonalDetailsByLogins(newMemberEmails);
 
     /** Opens privacy url as an external link */
     const openPrivacyURL = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
@@ -112,7 +103,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         setIsClosing(true);
         setIsImporting(false);
         closeImportPage();
-        if (isWorkflowsImport && isRulesRevampEnabled) {
+        if (isWorkflowsImport) {
             Tab.setSelectedTab(CONST.TAB.WORKFLOWS_TAB_TYPE, CONST.TAB.WORKFLOWS.APPROVALS);
         }
         Navigation.goBack(isWorkflowsImport ? ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID) : ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
@@ -124,7 +115,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         }
         setIsImporting(true);
         const membersWithRole = (importedSpreadsheetMemberData ?? []).map((member) => ({...member, role: member.role || role}));
-        const importFinalModal = await importPolicyMembers(policy, membersWithRole, spreadsheet?.shouldShowMemberRolePermissionWarning);
+        const importFinalModal = await importPolicyMembers(policy, membersWithRole, spreadsheet?.shouldShowMemberRolePermissionWarning, rules);
         const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {shouldHandleNavigationBack: false});
         if (!didShowImportFinalModal) {
             setIsImporting(false);
@@ -157,7 +148,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                 <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
                     <MultiAccountAvatar
                         size={CONST.AVATAR_SIZE.XXX_LARGE}
-                        accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {})}
+                        accountIDs={getAccountIDsByLogins(newMemberEmails, newMembersPersonalDetails)}
                         horizontalOptions={{
                             maxRows: 2,
                         }}

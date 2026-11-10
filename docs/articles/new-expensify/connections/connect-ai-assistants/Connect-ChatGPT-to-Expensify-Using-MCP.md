@@ -16,7 +16,7 @@ Learn more about supported AI clients, permissions, and security in [Use the Exp
 
 ## Who can connect ChatGPT to Expensify using MCP
 
-Any member with an Expensify account and access to ChatGPT can connect using the Expensify connector in the ChatGPT connector directory.
+Any member with an Expensify account and access to ChatGPT can connect using the Expensify plugin in the ChatGPT plugin directory.
 
 Requirements:
 
@@ -29,22 +29,19 @@ Requirements:
 ## How to connect Expensify in ChatGPT
 
 1. Open ChatGPT.
-2. Go to **Settings**.
-3. Select **Plugins**.
-4. Select **Expensify** from the list.
-5. Click **Connect**.
-6. Complete the OAuth sign-in and approval flow in your browser.
-7. Click **Allow**.
+2. Click **Plugins**.
+3. Search **Expensify**.
+4. Click the **+** to connect.
+5. Click **Allow**.
 
 ---
 
-## How to use the Expensify connector in ChatGPT conversations
+## How to use the Expensify plugin in ChatGPT conversations
 
 1. Open a new chat in ChatGPT.
 2. Click the **+** button near the message composer.
-3. Select **More**.
-4. Select the Expensify connector.
-5. Ask a question about your Expensify data.
+3. Select the **Expensify** plugin.
+4. Ask a question about your Expensify data.
 
 ---
 
@@ -76,9 +73,9 @@ Make sure you completed the OAuth approval flow in your browser.
 
 If ChatGPT still cannot access your data:
 
-- Go to **Settings** > **Plugins** in ChatGPT and confirm that **Expensify** appears under **Enabled Plugins**.
-- Open the **Expensify** connector in ChatGPT, select the three dots **(⋮)**, and click **Reconnect**.
-- Remove the Expensify connector and add it again by following the setup instructions in this article.
+- Go to **Plugins** in ChatGPT and confirm that **Expensify** appears under **Installed**.
+- Open the **Expensify** plugin in ChatGPT, select the three dots **(⋮)**, and click **Reconnect**.
+- Remove the Expensify plugin and add it again by following the setup instructions in this article.
 
 ## Can ChatGPT edit expenses or approve reports?
 

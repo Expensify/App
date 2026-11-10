@@ -1,3 +1,5 @@
+import ColumnResizeHandle from '@components/Table/columnResize/ColumnResizeHandle';
+
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,6 +15,7 @@ import {View} from 'react-native';
 
 import type {SearchColumnType, SearchSortBy, SortOrder, TableColumnSize} from './types';
 
+import {useSearchColumnStyles} from './SearchColumnWidthsContext';
 import SortableHeaderText from './SortableHeaderText';
 
 type ColumnConfig = {
@@ -35,6 +38,7 @@ type SearchTableHeaderProps = {
     approvedColumnSize?: TableColumnSize;
     postedColumnSize?: TableColumnSize;
     exportedColumnSize?: TableColumnSize;
+    paidColumnSize?: TableColumnSize;
     withdrawnColumnSize?: TableColumnSize;
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;
@@ -43,6 +47,7 @@ type SearchTableHeaderProps = {
     onSortPress: (column: SearchSortBy, order: SortOrder) => void;
     shouldRemoveTotalColumnFlex?: boolean;
     isActionColumnWide?: boolean;
+    isDateColumnCreated?: boolean;
 };
 
 function SortableTableHeader({
@@ -51,10 +56,12 @@ function SortableTableHeader({
     sortOrder,
     shouldShowColumn,
     dateColumnSize,
+    isDateColumnCreated,
     submittedColumnSize,
     approvedColumnSize,
     postedColumnSize,
     exportedColumnSize,
+    paidColumnSize,
     withdrawnColumnSize,
     containerStyles,
     shouldShowSorting,
@@ -66,10 +73,11 @@ function SortableTableHeader({
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const getSearchColumnStyles = useSearchColumnStyles();
     const {translate} = useLocalize();
 
     return (
-        <View style={[styles.flex1]}>
+        <View style={[styles.flex1, styles.alignSelfStretch]}>
             <View style={[styles.flex1, styles.flexRow, styles.gap3, containerStyles]}>
                 {columns.map(({columnName, translationKey, icon, isColumnSortable, sortColumnName, canEdit}) => {
                     if (!shouldShowColumn(columnName)) {
@@ -79,7 +87,11 @@ function SortableTableHeader({
                     const isSortable = shouldShowSorting && isColumnSortable;
                     const sortByColumnName = sortColumnName ?? columnName;
                     const isActive = sortBy === sortByColumnName;
-                    const isReimbursableOrBillableColumn = columnName === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE || columnName === CONST.SEARCH.TABLE_COLUMNS.BILLABLE;
+                    const isYesNoColumn =
+                        columnName === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE ||
+                        columnName === CONST.SEARCH.TABLE_COLUMNS.BILLABLE ||
+                        columnName === CONST.SEARCH.TABLE_COLUMNS.HELD ||
+                        columnName === CONST.SEARCH.TABLE_COLUMNS.DECLINED;
                     const isConversionAmountColumn =
                         columnName === CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED ||
                         columnName === CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED ||
@@ -87,13 +99,15 @@ function SortableTableHeader({
                         columnName === CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED;
                     const textStyle = [
                         columnName === CONST.SEARCH.TABLE_COLUMNS.RECEIPT ? StyleUtils.getTextOverflowStyle('clip') : null,
-                        isReimbursableOrBillableColumn || isConversionAmountColumn ? styles.flexShrink1 : null,
+                        isYesNoColumn || isConversionAmountColumn ? styles.flexShrink1 : null,
                     ];
+
+                    const columnLabel = translationKey ? translate(translationKey) : '';
 
                     return (
                         <SortableHeaderText
                             key={columnName}
-                            text={translationKey ? translate(translationKey) : ''}
+                            text={columnLabel}
                             icon={icon}
                             textStyle={textStyle}
                             sortOrder={sortOrder ?? CONST.SEARCH.SORT_ORDER.ASC}
@@ -101,22 +115,30 @@ function SortableTableHeader({
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.SORTABLE_HEADER}
                             innerContainerStyle={canEdit && styles.editableCellHeader}
                             containerStyle={[
-                                StyleUtils.getReportTableColumnStyles(columnName, {
+                                getSearchColumnStyles(columnName, {
                                     isDateColumnWide: dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    isDateColumnCreated,
                                     isSubmittedColumnWide: submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     isApprovedColumnWide: approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     isPostedColumnWide: postedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     isExportedColumnWide: exportedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    isPaidColumnWide: paidColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     isTaxAmountColumnWide: taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     isAmountColumnWide: amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     shouldRemoveTotalColumnFlex,
                                     isWithdrawnColumnWide: withdrawnColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     isActionColumnWide,
                                 }),
+                                styles.justifyContentCenter,
                             ]}
                             isSortable={isSortable}
                             onPress={(order: SortOrder) => onSortPress(sortByColumnName, order)}
-                        />
+                        >
+                            <ColumnResizeHandle
+                                columnKey={columnName}
+                                columnLabel={columnLabel}
+                            />
+                        </SortableHeaderText>
                     );
                 })}
             </View>

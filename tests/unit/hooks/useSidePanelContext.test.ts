@@ -5,6 +5,8 @@ import useSidePanelContext from '@pages/inbox/report/ReportActionCompose/useSide
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type * as ReactNavigationNative from '@react-navigation/native';
+
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -28,14 +30,27 @@ let mockSearchState: {
     selectedTransactions: {},
     selectedReports: [],
 };
+let mockRouteParams: {sourceReportID?: string; sourcePolicyID?: string} = {};
+let mockFocusedWorkspacePolicyID: string | undefined;
 
 jest.mock('@hooks/useIsInSidePanel', () => ({
     __esModule: true,
     default: () => mockIsInSidePanel,
 }));
 
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native'),
+    useRoute: () => ({params: mockRouteParams}),
+}));
+
+jest.mock('@hooks/useRootNavigationState', () => ({
+    __esModule: true,
+    default: () => mockFocusedWorkspacePolicyID,
+}));
+
 jest.mock('@hooks/useCurrentReportID', () => ({
-    useCurrentReportIDState: () => mockCurrentReportIDState,
+    useCurrentReportIDState: () => ({currentReportID: mockCurrentReportIDState.currentReportID}),
+    useCurrentRHPReportID: () => mockCurrentReportIDState.currentRHPReportID,
 }));
 
 jest.mock('@components/Search/SearchContext', () => ({
@@ -56,6 +71,8 @@ function resetMocks() {
         selectedTransactions: {},
         selectedReports: [],
     };
+    mockRouteParams = {};
+    mockFocusedWorkspacePolicyID = undefined;
 }
 
 describe('useSidePanelContext', () => {
@@ -75,8 +92,37 @@ describe('useSidePanelContext', () => {
         return renderHook(() => useSidePanelContext(reportID));
     }
 
-    it('returns undefined when not in the side panel', async () => {
+    it('returns undefined when not in the side panel and no source report is on the route', async () => {
         mockIsInSidePanel = false;
+        const {result} = await renderWithConciergeReport();
+        await waitForBatchedUpdates();
+        expect(result.current).toBeUndefined();
+    });
+
+    it('returns the route source report when not in the side panel (native Concierge Anywhere)', async () => {
+        mockIsInSidePanel = false;
+        mockRouteParams = {sourceReportID: 'source_report'};
+        const {result} = await renderWithConciergeReport();
+        await waitForBatchedUpdates();
+        expect(result.current).toEqual({reportID: 'source_report'});
+    });
+
+    it('returns the route source workspace when not in the side panel (native Concierge Anywhere)', async () => {
+        // Given Concierge opened from a workspace page on native
+        mockIsInSidePanel = false;
+        mockRouteParams = {sourcePolicyID: 'policy_123'};
+
+        // When the side panel context is built
+        const {result} = await renderWithConciergeReport();
+        await waitForBatchedUpdates();
+
+        // Then only the workspace is sent
+        expect(result.current).toEqual({policyID: 'policy_123'});
+    });
+
+    it('drops a self-referencing source report when not in the side panel', async () => {
+        mockIsInSidePanel = false;
+        mockRouteParams = {sourceReportID: REPORT_ID};
         const {result} = await renderWithConciergeReport();
         await waitForBatchedUpdates();
         expect(result.current).toBeUndefined();
@@ -178,6 +224,38 @@ describe('useSidePanelContext', () => {
             const {result} = await renderWithConciergeReport();
             await waitForBatchedUpdates();
             expect(result.current).toMatchObject({reportID: 'main_report'});
+        });
+    });
+
+    describe('workspace pages', () => {
+        beforeEach(() => {
+            mockIsInSidePanel = true;
+        });
+
+        it('sends only the workspace when a workspace page is focused, ignoring the last report the user left', async () => {
+            // Given a focused workspace page while currentReportID still holds the report the user left
+            mockFocusedWorkspacePolicyID = 'policy_123';
+            mockCurrentReportIDState = {currentRHPReportID: undefined, currentReportID: 'main_report'};
+
+            // When the side panel context is built
+            const {result} = await renderWithConciergeReport();
+            await waitForBatchedUpdates();
+
+            // Then only the workspace is sent
+            expect(result.current).toEqual({policyID: 'policy_123'});
+        });
+
+        it('sends the report when no workspace page is focused', async () => {
+            // Given a report on screen and no focused workspace page
+            mockCurrentReportIDState = {currentRHPReportID: 'rhp_report', currentReportID: 'main_report'};
+
+            // When the side panel context is built
+            const {result} = await renderWithConciergeReport();
+            await waitForBatchedUpdates();
+
+            // Then the report is sent without a workspace
+            expect(result.current).toMatchObject({reportID: 'rhp_report'});
+            expect(result.current?.policyID).toBeUndefined();
         });
     });
 

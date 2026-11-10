@@ -16,13 +16,9 @@ jest.mock('@libs/Log', () => ({
     warn: jest.fn(),
 }));
 
-jest.mock('@libs/Navigation/linkingConfig', () => ({
-    linkingConfig: {
-        config: {},
-    },
-}));
-
 jest.mock('@libs/Navigation/linkingConfig/config', () => ({
+    config: {},
+    normalizedConfigs: {},
     screensWithOnyxTabNavigator: new Set(),
     dynamicTabPatternToTabPaths: new Map(),
 }));

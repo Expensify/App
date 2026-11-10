@@ -1,4 +1,5 @@
 import useConfirmModal from '@hooks/useConfirmModal';
+import useIsDomainUsingCard from '@hooks/useIsDomainUsingCard';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -7,6 +8,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 
 import {clearDomainSecurityGroupSettingError, updateDomainSecurityGroup} from '@userActions/Domain';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {domainSecurityGroupSettingErrorsSelector, domainSecurityGroupSettingPendingActionSelector, selectGroupByID} from '@selectors/Domain';
@@ -39,11 +41,10 @@ function ExpensifyCardPreferredWorkspaceToggle({domainAccountID, groupID}: Expen
     const preferredPolicyID = group?.restrictedPrimaryPolicyID;
     const isPreferredPolicyEnabled = !!group?.enableRestrictedPrimaryPolicy && !!preferredPolicyID;
 
-    const [domainCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`);
-    const isDomainUsingExpensifyCard = !!domainCardSettings;
+    const {isDomainUsingCard, isLoading: isCardEligibilityLoading} = useIsDomainUsingCard(domainAccountID);
 
     const isActive = !!group?.overridePreferredPolicyWithCardPolicy;
-    const isDisabled = (!isPreferredPolicyEnabled || !isDomainUsingExpensifyCard) && !isActive;
+    const isDisabled = (!isPreferredPolicyEnabled || !isDomainUsingCard) && !isActive;
 
     return (
         <View style={styles.mv3}>
@@ -51,9 +52,14 @@ function ExpensifyCardPreferredWorkspaceToggle({domainAccountID, groupID}: Expen
                 title={translate('domain.groups.expensifyCardPreferredWorkspace')}
                 subtitle={translate('domain.groups.expensifyCardPreferredWorkspaceDescription')}
                 switchAccessibilityLabel={translate('domain.groups.expensifyCardPreferredWorkspace')}
+                switchSentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.EXPENSIFY_CARD_PREFERRED_WORKSPACE_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 disabled={isDisabled}
                 disabledAction={() => {
+                    // While card eligibility is still loading we keep the toggle disabled but skip the error, otherwise a domain that does have a feed would show the "no card feed" message on a cold load.
+                    if (isCardEligibilityLoading) {
+                        return;
+                    }
                     showConfirmModal({
                         title: translate('workspace.distanceRates.oopsNotSoFast'),
                         prompt: translate('domain.groups.expensifyCardPreferredWorkspaceDisabledMessage'),

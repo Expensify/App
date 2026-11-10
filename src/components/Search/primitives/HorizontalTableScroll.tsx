@@ -1,6 +1,8 @@
 import ScrollView from '@components/ScrollView';
 import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
+import {TABLE_COLUMN_SCROLLER_DATA_SET} from '@components/Table/columnResize/columnWidthExpressions';
 
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -8,10 +10,11 @@ import {getTableMinWidth} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
 
-import React, {useCallback, useLayoutEffect, useRef} from 'react';
+import React, {useLayoutEffect, useRef} from 'react';
 
 // Keep a ref to the horizontal scroll offset so we can restore it if users change the search query
 let savedHorizontalScrollOffset = 0;
@@ -34,6 +37,29 @@ type HorizontalTableScrollProps = {
 
     /** Re-restores the saved horizontal offset whenever this value changes (typically the list data). */
     dataKey: unknown;
+
+    /** Known minimums for the columns that have one, replacing the estimates `getTableMinWidth` assumes for them. */
+    columnMinWidths?: Partial<Record<SearchColumnType, number>>;
+
+    /**
+     * What each column wants rather than the least it can take. Used to size the scrolled content, so that once the
+     * table scrolls its columns are laid out from what they hold instead of staying squeezed to the widths that only a
+     * table short of room would have needed.
+     */
+    columnContentWidths?: Partial<Record<SearchColumnType, number>>;
+
+    /**
+     * Measured width of the area the table lays out into. The page is inset from the window, so the window is wider and
+     * comparing against it would leave the table overflowing its container without ever scrolling. Falls back to the
+     * window width until the first layout.
+     */
+    availableWidth?: number;
+
+    /**
+     * CSS width expression used while the columns are resizable, so a drag past the edge starts scrolling without a render.
+     * When set the scroller stays mounted, since mounting it mid-drag would remount the rows under the pointer.
+     */
+    resizableScrollWidth?: string;
 };
 
 /**
@@ -41,17 +67,38 @@ type HorizontalTableScrollProps = {
  * the saved horizontal offset across query changes (before paint, to avoid a visible shift). Extracted
  * from SearchList so ExpenseFlatSearchView can reuse it.
  */
-function HorizontalTableScroll({children, columns, type, isActionColumnWide, isHeaderVisible, dataKey}: HorizontalTableScrollProps) {
+function HorizontalTableScroll({
+    children,
+    columns,
+    type,
+    isActionColumnWide,
+    isHeaderVisible,
+    dataKey,
+    columnMinWidths,
+    columnContentWidths,
+    availableWidth,
+    resizableScrollWidth,
+}: HorizontalTableScrollProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {windowWidth} = useWindowDimensions();
-    const minTableWidth = getTableMinWidth(columns, type, isActionColumnWide);
-    const shouldScrollHorizontally = isHeaderVisible && minTableWidth > windowWidth;
+    // The row chrome is counted only alongside real column widths, which is the same thing as saying only for a table
+    // whose columns were sized. Left off, this is the arithmetic every view had before any of them were sized.
+    const isSizingColumns = !!columnMinWidths;
+    const minTableWidth = getTableMinWidth(columns, type, isActionColumnWide, columnMinWidths, isSizingColumns);
+    const tableWidth = availableWidth && availableWidth > 0 ? availableWidth : windowWidth;
 
-    const horizontalScrollViewRef = useRef<RNScrollView>(null);
+    // Whether to scroll is decided on the minimums, so the table only gives up on fitting once it truly cannot. The
+    // scrolled content is then laid out from what the columns want, since there is no longer any room to save by
+    // squeezing them, and never narrower than the space already available.
+    const shouldScrollHorizontally = !!resizableScrollWidth || (isHeaderVisible && minTableWidth > tableWidth);
+    const contentTableWidth = Math.max(getTableMinWidth(columns, type, isActionColumnWide, columnContentWidths, isSizingColumns), minTableWidth, tableWidth);
 
-    const handleHorizontalScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const horizontalScrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
+
+    const handleHorizontalScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         savedHorizontalScrollOffset = event.nativeEvent.contentOffset.x;
-    }, []);
+    };
 
     // Restore horizontal scroll position synchronously before paint using useLayoutEffect to avoid a visible shift on the table
     useLayoutEffect(() => {
@@ -71,10 +118,12 @@ function HorizontalTableScroll({children, columns, type, isActionColumnWide, isH
             horizontal
             showsHorizontalScrollIndicator
             style={styles.flex1}
-            contentContainerStyle={{width: minTableWidth}}
+            contentContainerStyle={resizableScrollWidth ? StyleUtils.getWidthStyle(resizableScrollWidth) : {width: contentTableWidth}}
             contentOffset={{x: savedHorizontalScrollOffset, y: 0}}
             onScroll={handleHorizontalScroll}
             scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
+            // Marks the scroller whose position a drag pins, so shrinking a column doesn't pull it sideways.
+            dataSet={resizableScrollWidth ? TABLE_COLUMN_SCROLLER_DATA_SET : undefined}
         >
             {children}
         </ScrollView>

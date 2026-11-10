@@ -1,0 +1,85 @@
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
+import type IconAsset from '@src/types/utils/IconAsset';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import FeatureTraining from './FeatureTraining';
+import Icon from './Icon';
+import Text from './Text';
+
+type SectionMenuItem = {
+    /** The icon supplied with the section */
+    icon: IconAsset;
+
+    titleTranslationKey: TranslationPaths;
+};
+
+/** The content of the "Should you hold or reject?" educational modal, rendered inside a FeatureTrainingModal */
+function HoldOrRejectEducationalModalContent() {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['Stopwatch', 'Rules', 'RealtimeReport', 'ThumbsDown', 'ModalHoldOrReject']);
+
+    const menuSections: SectionMenuItem[] = [
+        {
+            icon: illustrations.Stopwatch,
+            titleTranslationKey: 'iou.reject.holdExpenseTitle',
+        },
+        {
+            icon: illustrations.Rules,
+            titleTranslationKey: 'iou.reject.approveExpenseTitle',
+        },
+        {
+            icon: illustrations.RealtimeReport,
+            titleTranslationKey: 'iou.reject.heldExpenseLeftBehindTitle',
+        },
+        {
+            icon: illustrations.ThumbsDown,
+            titleTranslationKey: 'iou.reject.rejectExpenseTitle',
+        },
+    ];
+
+    return (
+        <>
+            <FeatureTraining.Illustration
+                image={illustrations.ModalHoldOrReject}
+                contentFitImage="cover"
+                aspectRatio={CONST.ILLUSTRATION_ASPECT_RATIO}
+                outerContainerStyle={styles.p0}
+            />
+            <FeatureTraining.Body>
+                <FeatureTraining.BodyText style={styles.mb5}>
+                    <FeatureTraining.Title>{translate('iou.reject.educationalTitle')}</FeatureTraining.Title>
+                    <FeatureTraining.Description>{translate('iou.reject.educationalText')}</FeatureTraining.Description>
+                    {menuSections.map((section) => (
+                        <View
+                            key={section.titleTranslationKey}
+                            style={[styles.flexRow, styles.alignItemsStart, styles.mt5]}
+                        >
+                            <Icon
+                                width={variables.menuIconSize}
+                                height={variables.menuIconSize}
+                                src={section.icon}
+                                additionalStyles={[styles.mr4]}
+                            />
+                            <View style={[styles.mb1, styles.flex1]}>
+                                <Text style={[styles.textStrong]}>{translate(section.titleTranslationKey)}</Text>
+                            </View>
+                        </View>
+                    ))}
+                </FeatureTraining.BodyText>
+                <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
+            </FeatureTraining.Body>
+        </>
+    );
+}
+
+export default HoldOrRejectEducationalModalContent;

@@ -1,11 +1,7 @@
 import {useCardList, useWorkspaceCardList} from '@components/OnyxListItemProvider';
 
-import {isPolicyAdmin} from '@libs/PolicyUtils';
-import {getOriginalMessage, isCardIssuedAction} from '@libs/ReportActionsUtils';
-import {getTravelBillingFeedID} from '@libs/TravelBillingUtils';
+import {getExpensifyCardFromReportAction} from '@libs/ReportAlternateTextUtils';
 
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, ReportAction} from '@src/types/onyx';
 
 import usePolicy from './usePolicy';
@@ -14,21 +10,8 @@ function useGetExpensifyCardFromReportAction({reportAction, policyID}: {reportAc
     const allUserCards = useCardList();
     const allExpensifyCards = useWorkspaceCardList();
     const policy = usePolicy(policyID);
-    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    const cardIssuedActionOriginalMessage = isCardIssuedAction(reportAction) ? getOriginalMessage(reportAction) : undefined;
-    const cardID = cardIssuedActionOriginalMessage?.cardID ?? CONST.DEFAULT_NUMBER_ID;
-    if (!isPolicyAdmin(policy)) {
-        return allUserCards?.[cardID];
-    }
-
-    // Issued Expensify Cards live on one of two Onyx keys: regular cards on the 2-segment key,
-    // Travel Billing cards on the `_TRAVEL_US` variant. Check both.
-    return (
-        allExpensifyCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`]?.[cardID] ??
-        allExpensifyCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${getTravelBillingFeedID(workspaceAccountID)}`]?.[cardID] ??
-        allUserCards?.[cardID]
-    );
+    return getExpensifyCardFromReportAction({reportAction, policy, cardList: allUserCards, workspaceCardList: allExpensifyCards});
 }
 
 export default useGetExpensifyCardFromReportAction;

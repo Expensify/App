@@ -4,11 +4,11 @@ on:
   workflow_call:
   pull_request:
     types: [opened, synchronize]
-    branches-ignore: [staging, production]
     paths:
       - 'server/**'
       - 'src/**'
       - 'tests/tooling/**'
+      - '.claude/skills/**'
       - 'tests/utils/**'
       - '.github/actions/javascript/**'
       - '.github/libs/**'
@@ -19,10 +19,9 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/bunTests.yml'
-      # tests/tooling asserts the Jest transform cache key stays in sync across these three workflows.
+      # tests/tooling asserts the Jest transform cache key stays in sync across these two workflows.
       - '.github/workflows/reassurePerformanceTests.yml'
       - '.github/workflows/seedJestPerfCache.yml'
-      - '.github/workflows/seedCache.yml'
 
 concurrency:
   group: ${{ github.ref == 'refs/heads/main' && format('{0}-{1}', github.ref, github.sha) || github.ref }}-bun-tests
@@ -31,6 +30,7 @@ concurrency:
 jobs:
   test:
     name: Bun tests
+    if: ${{ github.event_name != 'pull_request' || github.actor != 'os-botify[bot]' }}
     runs-on: blacksmith-8vcpu-ubuntu-2404
     steps:
       - name: Checkout

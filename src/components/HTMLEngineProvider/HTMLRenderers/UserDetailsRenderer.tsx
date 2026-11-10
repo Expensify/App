@@ -1,19 +1,18 @@
 import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 
-import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 
-import {isOptimisticPersonalDetailSelector} from '@selectors/PersonalDetails';
+import {isPersonalDetailOptimistic} from '@selectors/PersonalDetails';
 import React from 'react';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 
@@ -22,7 +21,7 @@ type UserDetailsRendererProps = CustomRendererProps<TText | TPhrasing>;
 function UserDetailsRenderer({tnode, ...defaultRendererProps}: UserDetailsRendererProps) {
     const styles = useThemeStyles();
     const accountID = tnode.attributes.accountid ? parseInt(tnode.attributes.accountid, 10) : CONST.DEFAULT_NUMBER_ID;
-    const [isOptimistic] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: isOptimisticPersonalDetailSelector(accountID)});
+    const [isOptimistic] = usePersonalDetail(accountID, isPersonalDetailOptimistic);
 
     if (!accountID) {
         // Fallback: render without tooltip if no accountID

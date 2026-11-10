@@ -1,6 +1,6 @@
 import {platformAndroid} from '@rock-js/platform-android';
 import {platformIOS} from '@rock-js/platform-ios';
-import {pluginMetro} from '@rock-js/plugin-metro';
+import {pluginRepack} from '@rock-js/plugin-repack';
 import {providerS3} from '@rock-js/provider-s3';
 
 const isHybrid = process.env.IS_HYBRID_APP === 'true';
@@ -17,11 +17,10 @@ export default {
         bucket: 'ad-hoc-expensify-cash',
         region: 'us-east-1',
         acl: 'public-read',
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+        // Credentials come from the AWS SDK default chain so AWS_SESSION_TOKEN from OIDC sessions is used
         publicAccess: isPublicAccess,
     }),
-    bundler: pluginMetro(),
+    bundler: pluginRepack(),
     platforms: {
         ios: platformIOS({sourceDir: isHybrid ? './Mobile-Expensify/iOS' : './ios'}),
         android: platformAndroid({sourceDir: isHybrid ? './Mobile-Expensify/Android' : './android'}),

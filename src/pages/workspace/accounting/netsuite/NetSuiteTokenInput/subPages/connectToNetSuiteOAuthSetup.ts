@@ -3,7 +3,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import {openLink} from '@userActions/Link';
 
-import type Session from '@src/types/onyx/Session';
+import type {Session} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -14,8 +14,8 @@ import type {OnyxEntry} from 'react-native-onyx';
  * The OAuth tab is a separate browsing context, so this tab never hears back from it. Dismiss the RHP here rather
  * than waiting for the connection to land in Onyx.
  */
-function connectToNetSuiteOAuthSetup(policyID: string, accountID: string, environmentURL: string, session: OnyxEntry<Session>) {
-    openLink(getNetSuiteSetupLink(policyID, accountID), environmentURL, false, session);
+function connectToNetSuiteOAuthSetup(policyID: string, accountID: string, environmentURL: string, isMigration: boolean | undefined, session: OnyxEntry<Session>) {
+    openLink(getNetSuiteSetupLink(policyID, accountID, isMigration), environmentURL, false, session);
     Navigation.dismissModal();
 }
 

@@ -23,6 +23,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActionReactions} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {ComponentRef} from 'react';
+
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -43,10 +46,11 @@ type MiniQuickEmojiReactionsProps = BaseQuickEmojiReactionsProps & {
  * a message.
  */
 function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected, onPressOpenPicker = () => {}, onEmojiPickerClosed = () => {}}: MiniQuickEmojiReactionsProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const icons = useMemoizedLazyExpensifyIcons(['AddReaction']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const ref = useRef<View>(null);
+    const ref = useRef<ComponentRef<typeof View>>(null);
     const {translate, preferredLocale} = useLocalize();
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
     const [emojiReactions = getEmptyObject<ReportActionReactions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
@@ -77,7 +81,7 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
                     key={emoji.name}
                     isDelayButtonStateComplete={false}
                     tooltipText={`:${getLocalizedEmojiName(emoji.name, preferredLocale)}:`}
-                    onPress={callFunctionIfActionIsAllowed(() => onEmojiSelected(emoji, emojiReactions, preferredSkinTone))}
+                    onPress={callFunctionIfActionIsAllowed(() => onEmojiSelected(emoji, emojiReactions, preferredSkinTone), false, session)}
                     sentryLabel={CONST.SENTRY_LABEL.MINI_CONTEXT_MENU.QUICK_REACTION}
                 >
                     <Text
@@ -90,13 +94,17 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
             ))}
             <BaseMiniContextMenuItem
                 ref={ref}
-                onPress={callFunctionIfActionIsAllowed(() => {
-                    if (!emojiPickerRef.current?.isEmojiPickerVisible) {
-                        openEmojiPicker();
-                    } else {
-                        emojiPickerRef.current?.hideEmojiPicker();
-                    }
-                })}
+                onPress={callFunctionIfActionIsAllowed(
+                    () => {
+                        if (!emojiPickerRef.current?.isEmojiPickerVisible) {
+                            openEmojiPicker();
+                        } else {
+                            emojiPickerRef.current?.hideEmojiPicker();
+                        }
+                    },
+                    false,
+                    session,
+                )}
                 isDelayButtonStateComplete={false}
                 tooltipText={translate('emojiReactions.addReactionTooltip')}
                 sentryLabel={CONST.SENTRY_LABEL.MINI_CONTEXT_MENU.EMOJI_PICKER_BUTTON}

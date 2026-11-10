@@ -45,8 +45,10 @@ function TransactionItemRow({
     isSelected,
     shouldShowTooltip,
     dateColumnSize,
+    isDateColumnCreated,
     submittedColumnSize,
     approvedColumnSize,
+    paidColumnSize,
     postedColumnSize,
     exportedColumnSize,
     amountColumnSize,
@@ -56,6 +58,7 @@ function TransactionItemRow({
     columns,
     onButtonPress = () => {},
     style,
+    dataSet,
     isReportItemChild = false,
     isActionLoading,
     isInSingleTransactionReport = false,
@@ -65,6 +68,7 @@ function TransactionItemRow({
     radioButtonContainerStyle,
     radioButtonWrapperStyle,
     shouldShowErrors = true,
+    shouldShowCategoryOnNarrowLayout = true,
     shouldHighlightItemWhenSelected = true,
     isDisabled = false,
     shouldDisableActionPointerEvents = false,
@@ -142,7 +146,7 @@ function TransactionItemRow({
     if (shouldUseNarrowLayout) {
         const description = getDescription(transactionItem);
         const merchantOrDescription = merchant || description;
-        const categoryForDisplay = isCategoryMissing(transactionItem?.category) ? '' : getDecodedCategoryName(transactionItem?.category ?? '');
+        const categoryForDisplay = !shouldShowCategoryOnNarrowLayout || isCategoryMissing(transactionItem?.category) ? '' : getDecodedCategoryName(transactionItem?.category ?? '');
         const shouldRenderChatBubbleCell = columns?.includes(CONST.SEARCH.TABLE_COLUMNS.COMMENTS) ?? false;
 
         // TransactionItemRowNarrow intentionally omits column sizing, hover, action button, and related table-only props that only the wide layout consumes.
@@ -155,6 +159,7 @@ function TransactionItemRow({
             onCheckboxPress,
             shouldShowCheckbox,
             style,
+            dataSet,
             isInSingleTransactionReport,
             shouldShowRadioButton,
             onRadioButtonPress,
@@ -196,8 +201,10 @@ function TransactionItemRow({
         isSelected,
         shouldShowTooltip,
         dateColumnSize,
+        isDateColumnCreated,
         submittedColumnSize,
         approvedColumnSize,
+        paidColumnSize,
         postedColumnSize,
         exportedColumnSize,
         amountColumnSize,
@@ -206,6 +213,7 @@ function TransactionItemRow({
         columns,
         onButtonPress,
         style,
+        dataSet,
         isReportItemChild,
         isActionLoading,
         isInSingleTransactionReport,

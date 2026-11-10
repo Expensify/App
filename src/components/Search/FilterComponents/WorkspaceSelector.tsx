@@ -16,9 +16,11 @@ import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import filterPolicies from '@libs/filterPolicies';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -27,7 +29,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -44,7 +45,10 @@ type WorkspaceFilterItem = ListItem & {
 
 type WorkspaceOption = MultiSelectItem<string> & {isArchived: boolean};
 
-type WorkspaceSelectorProps = SearchFilterCommonProps<string[] | undefined>;
+type WorkspaceSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
+    /** Limits the list to the workspaces that pass this, or lists every workspace when absent */
+    isPolicyAvailable?: (policy: Policy) => boolean;
+};
 
 const SECTION_HEADER_HEIGHT = 60;
 
@@ -91,6 +95,7 @@ function SectionHeader({
             >
                 <Text style={[styles.textStrong]}>{selectAllLabel}</Text>
                 <Checkbox
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.WORKSPACE_SELECTOR_SELECT_ALL}
                     isChecked={isAllSelected}
                     isIndeterminate={isIndeterminate}
                     onPress={toggleSection}
@@ -101,17 +106,18 @@ function SectionHeader({
     );
 }
 
-function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: WorkspaceSelectorProps) {
+function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange, isPolicyAvailable}: WorkspaceSelectorProps) {
     const {isOffline} = useNetwork();
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const isAppLoadPending = useIsAppLoadPending();
-    const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>(), policiesResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: advancedSearchPoliciesSelector});
+    const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: advancedSearchPoliciesSelector});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     // Fetch the full (unfiltered) workspace list and apply the search filter locally, so pinning is decided from the
     // full list length rather than the filtered result count (see reordering below).
-    const {workspaces, shouldShowWorkspaceSearchInput} = useAdvancedSearchFiltersWorkspaces(policies);
+    const {workspaces, shouldShowWorkspaceSearchInput} = useAdvancedSearchFiltersWorkspaces(filterPolicies(policies, isPolicyAvailable));
     const workspaceOptions: WorkspaceOption[] = workspaces
         .flatMap((section) => section.data)
         .filter((workspace): workspace is typeof workspace & {policyID: string; icons: Icon[]} => !!workspace.policyID && !!workspace.icons)
@@ -218,10 +224,11 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
                 <SelectionListWithSections<WorkspaceFilterItem>
                     sections={sections}
                     ListItem={MultiSelectListItem}
+                    titleNumberOfLines={2}
                     onSelectRow={updateSelectedItems}
                     shouldPreventDefaultFocusOnSelectRow={false}
                     shouldShowTextInput={shouldShowWorkspaceSearchInput}
-                    shouldShowLoadingPlaceholder={isLoadingOnyxValue(policiesResult) || !ready}
+                    shouldShowLoadingPlaceholder={!ready}
                     textInputOptions={textInputOptions}
                     shouldStopPropagation
                     canSelectMultiple
@@ -231,6 +238,7 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
                     shouldPreventAutoScrollOnSelect
                     style={selectionListStyle}
                     footerContent={footer}
+                    shouldFooterBeInsideList={shouldFooterBeInsideList}
                 />
             )}
         </ListFilterView>

@@ -47,6 +47,15 @@ const ReportActionEditMessageContext = createContext<ReportActionEditMessageCont
     currentEditMessageSelection: null,
 });
 
+/**
+ * The report action currently being edited, if any.
+ *
+ * Deliberately its own context holding a bare ID rather than being read off the edit-state value above: that value is a
+ * fresh object on every keystroke and selection change, so a list subscribing to it would rebuild its props for the
+ * whole history while the user types. A primitive value only notifies consumers when the edited action itself changes.
+ */
+const ReportActionEditingReportActionIDContext = createContext<string | null>(null);
+
 const ReportActionEditMessageActionsContext = createContext<ReportActionEditMessageContextActions>({
     setEditingMessage: noop,
     setCurrentEditMessageSelection: noop,
@@ -151,7 +160,9 @@ function ReportActionEditMessageContextProvider({reportID, effectiveTransactionT
 
     return (
         <ReportActionEditMessageContext.Provider value={reportActionEditMessageContextValue}>
-            <ReportActionEditMessageActionsContext.Provider value={actions}>{children}</ReportActionEditMessageActionsContext.Provider>
+            <ReportActionEditMessageActionsContext.Provider value={actions}>
+                <ReportActionEditingReportActionIDContext.Provider value={editingReportActionID}>{children}</ReportActionEditingReportActionIDContext.Provider>
+            </ReportActionEditMessageActionsContext.Provider>
         </ReportActionEditMessageContext.Provider>
     );
 }
@@ -182,5 +193,10 @@ function useReportActionActiveEditActions() {
     return useContext(ReportActionEditMessageActionsContext);
 }
 
-export {ReportActionEditMessageContextProvider, ReportScreenEditMessageProviderWithTransactionThread, useReportActionActiveEdit, useReportActionActiveEditActions};
+/** Subscribes to which action is being edited only, so the subscribing list is left alone while the user types in the editor. */
+function useEditingReportActionID() {
+    return useContext(ReportActionEditingReportActionIDContext);
+}
+
+export {ReportActionEditMessageContextProvider, ReportScreenEditMessageProviderWithTransactionThread, useReportActionActiveEdit, useReportActionActiveEditActions, useEditingReportActionID};
 export type {ReportActionEditMessageState};

@@ -13,6 +13,7 @@ import {openLink} from '@userActions/Link';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect, useState} from 'react';
 
 import type {ConnectToXeroFlowProps} from './types';
@@ -20,7 +21,7 @@ import type {ConnectToXeroFlowProps} from './types';
 function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
     const {is2FAEnabled, getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
 

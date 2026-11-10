@@ -9,11 +9,13 @@ import type {OnyxValue} from 'react-native-onyx';
 /**
  * Selector to get the value of hasCompletedGuidedSetupFlow from the Onyx store
  *
- * `undefined` means the value is not loaded yet
  * `true` means the user has completed the NewDot onboarding flow
  * `false` means the user has not completed the NewDot onboarding flow
+ *
+ * An unloaded NVP answers `true`, so `false` is the only value a caller can trust, because "not loaded yet"
+ * and "onboarded" are indistinguishable.
  */
-function hasCompletedGuidedSetupFlowSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): boolean | undefined {
+function hasCompletedGuidedSetupFlowSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): boolean {
     // Onboarding is an empty object for old accounts and accounts migrated from OldDot
     if (isEmptyObject(onboarding)) {
         return true;
@@ -48,11 +50,10 @@ function tryNewDotOnyxSelector(tryNewDotData: OnyxValue<typeof ONYXKEYS.NVP_TRY_
 /**
  * Selector to get the value of selfTourViewed from the Onyx store
  *
- * `undefined` means the value is not loaded yet
  * `true` means the user has completed the NewDot onboarding flow
  * `false` means the user has not completed the NewDot onboarding flow
  */
-function hasSeenTourSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): boolean | undefined {
+function hasSeenTourSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): boolean {
     if (isEmptyObject(onboarding)) {
         return false;
     }
@@ -76,7 +77,7 @@ function wasInvitedToNewDotSelector(introSelected: OnyxValue<typeof ONYXKEYS.NVP
  * completion flag from a single NVP_ONBOARDING read, avoiding two subscriptions
  * to the same key from callers that need both.
  */
-function guidedSetupAndTourStatusSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): {isSelfTourViewed: boolean | undefined; hasCompletedGuidedSetupFlow: boolean | undefined} {
+function guidedSetupAndTourStatusSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): {isSelfTourViewed: boolean; hasCompletedGuidedSetupFlow: boolean} {
     return {
         isSelfTourViewed: hasSeenTourSelector(onboarding),
         hasCompletedGuidedSetupFlow: hasCompletedGuidedSetupFlowSelector(onboarding),

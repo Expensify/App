@@ -4,11 +4,13 @@ import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactio
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 
+import {changeMoneyRequestHoldStatus} from '@libs/actions/IOU/Hold';
 import {markRejectViolationAsResolved} from '@libs/actions/IOU/RejectMoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -17,7 +19,6 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
-import {changeMoneyRequestHoldStatus} from '@libs/ReportUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
 import {removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
 
@@ -30,7 +31,7 @@ import type SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
+import {loginSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -67,7 +68,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
     // Per-key Onyx subscriptions
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
-    const [parentOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const [parentOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`);
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
@@ -76,6 +77,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
         : CONST.DEFAULT_NUMBER_ID;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDFromAction}`);
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
+    const [parentReportActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReportAction?.childReportID)}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(transactionReport?.policyID)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(transactionReport?.policyID)}`);
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
@@ -99,17 +101,20 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
                             showDelegateNoAccessModal();
                             return;
                         }
-                        changeMoneyRequestHoldStatus(
-                            parentReportAction,
-                            transaction,
+                        changeMoneyRequestHoldStatus({
+                            reportAction: parentReportAction,
+                            iouTransaction: transaction,
+                            iouTransactionReport: transactionReport,
+                            reportActionChildReport: parentReportActionChildReport,
+                            policy,
                             isOffline,
-                            currentUserLogin ?? '',
-                            accountID,
-                            rawTransactionViolations,
+                            currentUserLogin: currentUserLogin ?? '',
+                            currentUserAccountID: accountID,
+                            transactionViolations: rawTransactionViolations,
                             isTrackIntentUser,
                             delegateAccountID,
                             rules,
-                        );
+                        });
                     }}
                 >
                     <Button.Text>{translate('iou.unhold')}</Button.Text>
@@ -125,7 +130,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
                         if (!transaction?.transactionID) {
                             return;
                         }
-                        markRejectViolationAsResolved(transaction.transactionID, isOffline, rawTransactionViolations, reportID);
+                        markRejectViolationAsResolved(transaction.transactionID, isOffline, rawTransactionViolations, reportID, parentReportActions);
                     }}
                 >
                     <Button.Text>{translate('iou.reject.markAsResolved')}</Button.Text>

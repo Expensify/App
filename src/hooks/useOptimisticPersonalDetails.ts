@@ -1,8 +1,6 @@
-import ONYXKEYS from '@src/ONYXKEYS';
-
 import {optimisticPersonalDetailsSelector} from '@selectors/PersonalDetails';
 
-import useOnyx from './useOnyx';
+import {useAllPersonalDetails} from './usePersonalDetails';
 
 /**
  * Subscribes to the personal details that were created optimistically only.
@@ -11,7 +9,7 @@ import useOnyx from './useOnyx';
  * instead of on every change of the whole personal details list.
  */
 function useOptimisticPersonalDetails() {
-    const [optimisticPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: optimisticPersonalDetailsSelector});
+    const [optimisticPersonalDetails] = useAllPersonalDetails(optimisticPersonalDetailsSelector);
     return optimisticPersonalDetails;
 }
 

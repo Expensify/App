@@ -10,7 +10,6 @@ import navigationRef from '@libs/Navigation/navigationRef';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 
 import type {ValueOf} from 'type-fest';
 
@@ -28,6 +27,7 @@ type MockConfirmModalOptions = {
 
 type MockConfirmModalResult = {action: ValueOf<typeof ModalActions>};
 
+const MEMBER_EMAIL = 'member@expensify.com';
 const mockShowConfirmModal = jest.fn<Promise<MockConfirmModalResult>, [MockConfirmModalOptions]>();
 const mockRootState: ReturnType<typeof navigationRef.getRootState> = {
     key: 'root',
@@ -251,7 +251,78 @@ describe('useBlockDistanceRequest', () => {
         expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'iou.homeAddressRequired.title'}));
     });
 
-    it('opens private personal details on top of the profile page when the home address prompt is confirmed', async () => {
+    it('allows a distance request when the workspace default is remote or mobile', async () => {
+        // Given a workspace on the home and office method whose members have no regular office
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy_home_and_office`, {
+            id: 'policy_home_and_office',
+            name: 'Home and office workspace',
+            commuterExclusions: {method: 'homeAndOffice', isOfficeWorkArrangement: false},
+        });
+        await waitForBatchedUpdates();
+
+        // When a member with no home address starts a mapped distance request
+        const {result} = renderHook(() =>
+            useBlockDistanceRequest({
+                policyID: 'policy_home_and_office',
+                isDistanceRequest: true,
+            }),
+        );
+
+        // Then nothing is measured against their home, so the blocker stays away
+        expect(result.current()).toBe(false);
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+    });
+
+    it("allows a distance request when the member's own arrangement overrides an office-based default", async () => {
+        // Given an office-based workspace where this member was given their own remote arrangement
+        await Onyx.merge(ONYXKEYS.SESSION, {email: MEMBER_EMAIL});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy_home_and_office`, {
+            id: 'policy_home_and_office',
+            name: 'Home and office workspace',
+            commuterExclusions: {method: 'homeAndOffice', isOfficeWorkArrangement: true},
+            employeeList: {[MEMBER_EMAIL]: {email: MEMBER_EMAIL, hasOfficeWorkArrangement: false}},
+        });
+        await waitForBatchedUpdates();
+
+        // When they start a mapped distance request without a home address
+        const {result} = renderHook(() =>
+            useBlockDistanceRequest({
+                policyID: 'policy_home_and_office',
+                isDistanceRequest: true,
+            }),
+        );
+
+        // Then their own arrangement wins and the request goes through, the way the server treats it
+        expect(result.current()).toBe(false);
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+    });
+
+    it("blocks a distance request when the member's own arrangement overrides a remote default", async () => {
+        // Given a remote workspace where this member was given their own office-based arrangement
+        await Onyx.merge(ONYXKEYS.SESSION, {email: MEMBER_EMAIL});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy_home_and_office`, {
+            id: 'policy_home_and_office',
+            name: 'Home and office workspace',
+            commuterExclusions: {method: 'homeAndOffice', isOfficeWorkArrangement: false},
+            employeeList: {[MEMBER_EMAIL]: {email: MEMBER_EMAIL, hasOfficeWorkArrangement: true}},
+        });
+        await waitForBatchedUpdates();
+
+        // When they start a mapped distance request without a home address
+        const {result} = renderHook(() =>
+            useBlockDistanceRequest({
+                policyID: 'policy_home_and_office',
+                isDistanceRequest: true,
+            }),
+        );
+
+        // Then the blocker appears, because the server would reject the expense without an address
+        expect(result.current()).toBe(true);
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'iou.homeAddressRequired.title'}));
+    });
+
+    it('opens the address-only home address page on top of the preferences page when the home address prompt is confirmed', async () => {
+        // Given a workspace that measures commutes from the member's home, and a member who will confirm the prompt
         mockShowConfirmModal.mockResolvedValue({action: ModalActions.CONFIRM});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy_home_and_office`, {
             id: 'policy_home_and_office',
@@ -262,19 +333,22 @@ describe('useBlockDistanceRequest', () => {
         });
         await waitForBatchedUpdates();
 
+        // When they start a distance request without a home address and confirm the prompt
         const {result} = renderHook(() =>
             useBlockDistanceRequest({
                 policyID: 'policy_home_and_office',
                 isDistanceRequest: true,
             }),
         );
-
         await act(async () => {
             expect(result.current()).toBe(true);
             await Promise.resolve();
         });
-        await waitFor(() => expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1)));
-        expect(swapBackgroundTabForRHPTarget).toHaveBeenCalledWith(mockRootState, ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1));
+
+        // Then the address-only page opens over the preferences page, because the commute only needs the address and
+        // the member should not have to enter a legal name, date of birth, phone number or magic code to add it
+        await waitFor(() => expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_HOME_ADDRESS));
+        expect(swapBackgroundTabForRHPTarget).toHaveBeenCalledWith(mockRootState, ROUTES.SETTINGS_HOME_ADDRESS);
     });
 
     it('allows a distance request when the current home address is present', async () => {

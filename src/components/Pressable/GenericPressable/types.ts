@@ -1,12 +1,13 @@
+import type {AccessibilityFocusTarget} from '@libs/Accessibility/moveAccessibilityFocus/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {Shortcut} from '@libs/KeyboardShortcut';
 
 import type CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-import type {ComponentRef, ForwardedRef, RefObject} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, HostComponent, PressableStateCallbackType, PressableProps as RNPressableProps, Text as RNText, StyleProp, View, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, PressableStateCallbackType, PressableProps as RNPressableProps, Text as RNText, StyleProp, View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 type StylePropWithFunction = StyleProp<ViewStyle> | ((state: PressableStateCallbackType) => StyleProp<ViewStyle>);
@@ -117,7 +118,7 @@ type PressableProps = RNPressableProps &
         /**
          * Specifies which component should be focused after interacting with this component
          */
-        nextFocusRef?: ComponentRef<HostComponent<unknown>> & RefObject<HTMLOrSVGElement>;
+        nextFocusRef?: AccessibilityFocusTarget;
 
         /**
          * Specifies the accessibility label for the component
@@ -157,10 +158,18 @@ type PressableProps = RNPressableProps &
          */
         isNested?: boolean;
 
+        /**
+         * Keeps the pressable's content text-selectable and copyable even when it has a button role.
+         * Chat message rows need this: the row is pressable, but its content is user-selectable text
+         * that must survive `SelectionScraper`.
+         * @default false
+         */
+        shouldAllowTextSelection?: boolean;
+
         ref?: PressableRef;
     };
 
-type PressableRef = ForwardedRef<HTMLDivElement | View | RNText | undefined>;
+type PressableRef = ForwardedRef<HTMLDivElement | ComponentRef<typeof View> | ComponentRef<typeof RNText> | undefined>;
 
 export default PressableProps;
 export type {PressableRef};

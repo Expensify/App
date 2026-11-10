@@ -82,6 +82,7 @@ type BaseTextInputWithSymbolProps = {
     BaseTextInputProps,
     | 'autoFocus'
     | 'autoGrow'
+    | 'containerStyles'
     | 'autoGrowExtraSpace'
     | 'autoGrowMarginSide'
     | 'contentWidth'

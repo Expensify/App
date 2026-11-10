@@ -92,5 +92,18 @@ describe('MultifactorAuthentication shared helpers', () => {
             expect(result.httpStatusCode).toBe(401);
             expect(result.reason).toBe(VALUES.REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED);
         });
+
+        it('should resolve the real backend invalid validate code message to a continuable reason', () => {
+            // Given the exact message the backend returns when a user submits a wrong magic code
+            const responseMap = VALUES.API_RESPONSE_MAP.REQUEST_AUTHENTICATION_CHALLENGE;
+
+            // When the response is parsed
+            const result = parseHttpResponse(401, responseMap, '401 Not authorized - Invalid validateCode');
+
+            // Then it must resolve to INVALID_VALIDATE_CODE, which keeps the user on the magic code screen.
+            // Falling back to UNRECOGNIZED here is treated as a fatal error and dead-ends the flow on the failure screen.
+            expect(result.httpStatusCode).toBe(401);
+            expect(result.reason).toBe(VALUES.REASON.CLIENT_ERRORS.INVALID_VALIDATE_CODE);
+        });
     });
 });

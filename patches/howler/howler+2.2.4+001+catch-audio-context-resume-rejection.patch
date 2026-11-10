@@ -1,0 +1,25 @@
+diff --git a/node_modules/howler/dist/howler.js b/node_modules/howler/dist/howler.js
+--- a/node_modules/howler/dist/howler.js
++++ b/node_modules/howler/dist/howler.js
+@@ -382,7 +382,9 @@
+
+         // Calling resume() on a stack initiated by user gesture is what actually unlocks the audio on Android Chrome >= 55.
+         if (typeof self.ctx.resume === 'function') {
+-          self.ctx.resume();
++          // The browser can refuse to start the audio device (for example, iOS Safari while another app holds the audio session).
++          // Swallow the rejection so it doesn't surface as an unhandled promise rejection.
++          self.ctx.resume().catch(function() {});
+         }
+
+         // Setup a timeout to check that we are unlocked on the next event loop.
+@@ -529,7 +531,9 @@
+           for (var i=0; i<self._howls.length; i++) {
+             self._howls[i]._emit('resume');
+           }
+-        });
++        }).catch(function() {
++          // The browser refused to start the audio device. Keep the state as suspended so the next play() tries to resume again.
++        });
+
+         if (self._suspendTimer) {
+           clearTimeout(self._suspendTimer);

@@ -19,6 +19,7 @@ function getReportActionsToDisplay(
     transactionThreadReport: OnyxTypes.Report | undefined,
     shouldAddCreatedAction: boolean,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    delegateAccountID: number | undefined,
 ) {
     const actions = [...(allReportActions ?? [])];
 
@@ -57,8 +58,7 @@ function getReportActionsToDisplay(
             transactionID: rand64(),
             iouReportID: report?.reportID,
             created: DateUtils.subtractMillisecondsFromDateTime(actions.at(-1)?.created ?? '', 1),
-            // delegateAccountIDParam: will be threaded in PR 15; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
-            delegateAccountIDParam: undefined,
+            delegateAccountIDParam: delegateAccountID,
             getCurrencyDecimals,
         }) as OnyxTypes.ReportAction;
         moneyRequestActions.push(optimisticIOUAction);

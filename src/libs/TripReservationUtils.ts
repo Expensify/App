@@ -8,8 +8,6 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ArrayValues} from 'type-fest';
 
-import {format, subSeconds} from 'date-fns';
-import {fromZonedTime, toZonedTime} from 'date-fns-tz';
 import {SafeString} from 'expensify-common';
 
 import {getMoneyRequestSpendBreakdown} from './ReportUtils';
@@ -160,9 +158,10 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem
     const airports = pnr.data.additionalMetadata?.airportInfo ?? [];
 
     for (const travelerInfo of pnrData.travelerInfos) {
-        const ticketSource = travelerInfo.tickets.some((t) => t.flightCoupons.length > 0) ? travelerInfo.tickets : (travelerInfo.lastConfirmedTickets ?? travelerInfo.tickets);
+        const tickets = travelerInfo.tickets ?? [];
+        const ticketSource = tickets.some((t) => (t.flightCoupons?.length ?? 0) > 0) ? tickets : (travelerInfo.lastConfirmedTickets ?? tickets);
         for (const ticket of ticketSource) {
-            const flightCoupons = ticket.flightCoupons;
+            const flightCoupons = ticket.flightCoupons ?? [];
             for (const [index, flightDetails] of flightCoupons.sort((a, b) => a.legIdx - b.legIdx).entries()) {
                 const legIdx = flightDetails.legIdx;
                 const flightIdx = flightDetails.flightIdx;
@@ -212,7 +211,7 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem
                         value: flightObject?.vendorConfirmationNumber ?? '',
                     },
                 ];
-                const traveler = findTravelerInfo(travelers, travelerInfo.userId.id);
+                const traveler = findTravelerInfo(travelers, travelerInfo.userId?.id);
                 const reservationObject: Reservation = {
                     company,
                     start,
@@ -223,7 +222,7 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem
                     arrivalGate: flightObject?.arrivalGate,
                     seatNumber: getSeatByLegAndFlight(travelerInfo, legIdx, flightIdx),
                     type: CONST.RESERVATION_TYPE.FLIGHT,
-                    duration: parseDurationToSeconds(flightObject?.duration.iso8601 ?? ''),
+                    duration: parseDurationToSeconds(flightObject?.duration?.iso8601 ?? ''),
                     reservationID: pnr.pnrId,
                     travelerPersonalInfo: {
                         name: getTravelerName(traveler),
@@ -240,35 +239,21 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem
 }
 
 function getCancellationDeadline(pnrData: HotelPnr): string | undefined {
-    const deadlineUtc = pnrData.room.cancellationPolicy?.deadlineUtc?.iso8601;
-    const duration = pnrData.room.cancellationPolicy?.durationBeforeArrivalDeadline?.iso8601;
-    const checkIn = pnrData.checkInDateTime?.iso8601;
-    if (deadlineUtc && duration && checkIn) {
-        // 1. Extract the target UTC offset from deadlineUtc (e.g. "-04:00")
-        const match = deadlineUtc.match(/(Z|[+-]\d{2}:\d{2})$/);
-        if (!match) {
-            return pnrData.room.cancellationPolicy?.deadlineUtc?.iso8601;
-        }
-        const utcOffset = match[1] === 'Z' ? '+00:00' : match[1];
-
-        // 2. Convert the check-in wall-clock time to an absolute UTC instant,
-        //    treating it as being expressed in the target offset timezone.
-        const checkInUtc = fromZonedTime(checkIn, utcOffset);
-
-        // 3. Subtract the duration in UTC-space (preserves wall-clock intent for
-        //    day/hour units; DST transitions are irrelevant for fixed offsets).
-        const deadlineUtcInstant = subSeconds(checkInUtc, parseDurationToSeconds(duration));
-
-        // 4. Convert back to the target offset's wall-clock representation.
-        const deadlineZoned = toZonedTime(deadlineUtcInstant, utcOffset);
-
-        // 5. Format as ISO-8601 with the explicit offset suffix.
-        //    `format` with "yyyy-MM-dd'T'HH:mm:ss" gives the bare local datetime;
-        //    we then append the offset so the result is a proper fixed-offset string.
-        const localPart = format(deadlineZoned, "yyyy-MM-dd'T'HH:mm:ss");
-        return `${localPart}${utcOffset}`;
+    // A deadline would show "Free cancellation until …", which is wrong for a non-refundable room.
+    if (pnrData.room.cancellationPolicy?.policy === CONST.CANCELLATION_POLICY.NON_REFUNDABLE) {
+        return undefined;
     }
-    return pnrData.room.cancellationPolicy?.deadlineUtc?.iso8601;
+    const deadlineUtc = pnrData.room.cancellationPolicy?.deadlineUtc?.iso8601;
+    // `deadlineUtc` with an offset is the exact deadline Spotnana shows, in the hotel's timezone.
+    if (deadlineUtc && CONST.REGEX.ISO_8601_UTC_OFFSET_SUFFIX.test(deadlineUtc)) {
+        return deadlineUtc;
+    }
+    // `deadline` is usually the hotel's wall-clock time with no offset.
+    const deadline = pnrData.room.cancellationPolicy?.deadline?.iso8601;
+    if (deadline) {
+        return deadline;
+    }
+    return deadlineUtc;
 }
 
 function getHotelReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem[] {
@@ -286,22 +271,22 @@ function getHotelReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationIt
             value: pnrData.vendorConfirmationNumber,
         },
     ];
-    const travelerInfo = pnrData.travelerInfos.at(0);
-    const traveler = findTravelerInfo(travelers, travelerInfo?.userId.id);
+    const travelerInfo = pnrData.travelerInfos?.at(0);
+    const traveler = findTravelerInfo(travelers, travelerInfo?.userId?.id);
 
     reservationList.push({
         reservationIndex: 0,
         reservation: {
             reservationID: pnr.pnrId,
             start: {
-                date: pnrData.checkInDateTime?.iso8601,
+                date: pnrData.checkInDateTime?.iso8601 ?? '',
                 address: getAddressFromLocation(pnrData.hotelInfo.address),
                 longName: pnrData.hotelInfo.name,
                 shortName: pnrData.hotelInfo.chainCode,
                 cityName: pnrData.hotelInfo.address.locality,
             },
             end: {
-                date: pnrData.checkOutDateTime?.iso8601,
+                date: pnrData.checkOutDateTime?.iso8601 ?? '',
                 address: getAddressFromLocation(pnrData.hotelInfo.address),
                 longName: pnrData.hotelInfo.name,
                 shortName: pnrData.hotelInfo.chainCode,
@@ -349,12 +334,12 @@ function getCarReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem
         reservation: {
             reservationID: pnr.pnrId,
             start: {
-                date: pnrData.pickupDateTime?.iso8601,
+                date: pnrData.pickupDateTime?.iso8601 ?? '',
                 location: getAddressFromLocation(pickupLocation, CONST.RESERVATION_TYPE.CAR),
                 cityName: pickupLocation.locality,
             },
             end: {
-                date: pnrData.dropOffDateTime?.iso8601,
+                date: pnrData.dropOffDateTime?.iso8601 ?? '',
                 location: getAddressFromLocation(dropLocation, CONST.RESERVATION_TYPE.CAR),
                 cityName: dropLocation.locality,
             },
@@ -363,7 +348,7 @@ function getCarReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem
             vendor: pnrData.carInfo.vendor.name,
             carInfo: {name: pnrData.carInfo.carSpec.displayName, engine: pnrData.carInfo.carSpec.engineType},
             cancellationPolicy: pnrData.cancellationPolicy?.policy ?? null,
-            cancellationDeadline: pnrData.cancellationPolicy?.deadline.iso8601 ?? null,
+            cancellationDeadline: pnrData.cancellationPolicy?.deadline?.iso8601 ?? null,
             duration: 0,
             travelerPersonalInfo: {
                 name: getTravelerName(traveler),
@@ -386,15 +371,16 @@ function getRailReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationIte
     }
     const pnrData: RailPnr = pnr.data.railPnr;
 
-    for (const ticket of pnrData.tickets) {
+    for (const ticket of pnrData.tickets ?? []) {
         for (const [legIndex, legIdx] of ticket.legs.entries()) {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            const leg = pnrData.legInfos.at(legIdx)!;
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            const travelerIdx = ticket.passengerRefs.at(legIndex)!;
-            const travelerInfo = pnrData.passengerInfos.at(travelerIdx);
+            const leg = pnrData.legInfos.at(legIdx);
+            if (!leg) {
+                continue;
+            }
+            const travelerIdx = ticket.passengerRefs.at(legIndex);
+            const travelerInfo = travelerIdx === undefined ? undefined : pnrData.passengerInfos?.at(travelerIdx);
 
-            const traveler = findTravelerInfo(travelers, travelerInfo?.userOrgId.userId.id);
+            const traveler = findTravelerInfo(travelers, travelerInfo?.userOrgId?.userId?.id);
 
             reservationList.push({
                 reservationIndex: legIndex,
@@ -402,23 +388,23 @@ function getRailReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationIte
                     legId: legIdx,
                     reservationID: pnr.pnrId,
                     start: {
-                        date: leg.departAt.iso8601,
-                        longName: leg.originInfo.name,
-                        shortName: getRailStationShortName(leg.originInfo.code),
-                        cityName: leg.originInfo.cityName,
+                        date: leg.departAt?.iso8601 ?? '',
+                        longName: leg.originInfo?.name,
+                        shortName: getRailStationShortName(leg.originInfo?.code),
+                        cityName: leg.originInfo?.cityName,
                     },
                     end: {
-                        date: leg.arriveAt.iso8601,
-                        longName: leg.destinationInfo.name,
-                        shortName: getRailStationShortName(leg.destinationInfo.code),
-                        cityName: leg.destinationInfo.cityName,
+                        date: leg.arriveAt?.iso8601 ?? '',
+                        longName: leg.destinationInfo?.name,
+                        shortName: getRailStationShortName(leg.destinationInfo?.code),
+                        cityName: leg.destinationInfo?.cityName,
                     },
                     route: {
                         name: `${leg.vehicle.carrierName} ${leg.vehicle.timetableId}`,
                         airlineCode: leg.vehicle.carrierName,
                         number: leg.vehicle.timetableId,
                     },
-                    duration: parseDurationToSeconds(leg.duration.iso8601),
+                    duration: parseDurationToSeconds(leg.duration?.iso8601 ?? ''),
                     type: CONST.RESERVATION_TYPE.TRAIN,
                     confirmations: [
                         {
@@ -494,7 +480,7 @@ function getReservationsFromSpotnanaPayload(reportID: string, tripData?: TripDat
                 transactionID: '0',
                 sequenceIndex: 0,
                 reservationIndex: reservationData.reservationIndex,
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- using || intentionally: pnrCancelled is boolean, ?? would not fall through on false
+                // using || intentionally: pnrCancelled is boolean, ?? would not fall through on false
                 isCancelled: pnrCancelled || reservationData.isCancelled || undefined,
             }));
         })

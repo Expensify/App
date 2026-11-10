@@ -1,0 +1,15 @@
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt
+index 2372cac..8bfaace 100644
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt
+@@ -286,6 +286,10 @@ class ScreenStack(
+                     // dismissed screens are already removed above & preloaded ones must stay detached
+                     .filter { !dismissedWrappers.contains(it) && it.screen.activityState !== Screen.ActivityState.INACTIVE }
+                     .forEach { wrapper ->
++                        // Remove and re-add attached fragments so they're re-appended in stack order and the translucent top stays on top.
++                        if (wrapper.fragment.isAdded) {
++                            transaction.remove(wrapper.fragment)
++                        }
+                         // TODO: It should be enough to dispatch this on commit action once.
+                         transaction.add(id, wrapper.fragment).runOnCommit {
+                             top?.screen?.bringToFront()

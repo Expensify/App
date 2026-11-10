@@ -84,11 +84,11 @@ const getItemizedTooLowError = (receiptAmountInCents: number) =>
 /** The single message shown below both amounts when they break their shared constraint. */
 const getSharedAmountError = () => TestHelper.translateLocal('workspace.rules.requireReceipts.receiptAmountGreaterThanItemizedError');
 
-/** The page is gated behind the rulesRevamp beta, and its wrapper needs an admin on a Control workspace with Rules on. */
+/** The page wrapper needs an admin on a Control workspace with Rules on. */
 const setupPolicy = async (policyOverrides: Partial<Policy>) => {
     await TestHelper.signInWithTestUser();
     await act(async () => {
-        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.RULES_REVAMP]);
+        await Onyx.set(ONYXKEYS.BETAS, []);
     });
     const policy = {
         ...LHNTestUtils.getFakePolicy(),
@@ -178,7 +178,7 @@ describe('RulesRequireReceiptsPage save order', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the itemized amount goes first, so the receipt amount is never checked against the old lower limit
-        expect(mockSetItemized).toHaveBeenCalledWith(policy.id, '100.00', 5000);
+        expect(mockSetItemized).toHaveBeenCalledWith(policy.id, '100.00', 5000, {});
         expect(mockSetReceipt).toHaveBeenCalledWith(policy.id, '100.00', 5000, {});
         expect(wasItemizedSentFirst()).toBe(true);
 
@@ -200,7 +200,7 @@ describe('RulesRequireReceiptsPage save order', () => {
 
         // Then the receipt amount goes first, so the itemized amount is never dropped below the old receipt limit
         expect(mockSetReceipt).toHaveBeenCalledWith(policy.id, '50.00', 10000, {});
-        expect(mockSetItemized).toHaveBeenCalledWith(policy.id, '50.00', 10000);
+        expect(mockSetItemized).toHaveBeenCalledWith(policy.id, '50.00', 10000, {});
         expect(wasItemizedSentFirst()).toBe(false);
 
         unmount();
@@ -220,7 +220,7 @@ describe('RulesRequireReceiptsPage save order', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then clearing the itemized limit goes first, which leaves no limit for the raised receipt amount to exceed
-        expect(mockSetItemized).toHaveBeenCalledWith(policy.id, '', 8000);
+        expect(mockSetItemized).toHaveBeenCalledWith(policy.id, '', 8000, {});
         expect(mockSetReceipt).toHaveBeenCalledWith(policy.id, '60.00', 5000, {});
         expect(wasItemizedSentFirst()).toBe(true);
 
@@ -242,7 +242,7 @@ describe('RulesRequireReceiptsPage save order', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the itemized amount is raised first, so the new receipt amount lands under it
-        expect(mockSetItemized).toHaveBeenCalledWith(policy.id, '100.00', 5000);
+        expect(mockSetItemized).toHaveBeenCalledWith(policy.id, '100.00', 5000, {});
         expect(mockSetReceipt).toHaveBeenCalledWith(policy.id, '80.00', CONST.DISABLED_MAX_EXPENSE_VALUE, {});
         expect(wasItemizedSentFirst()).toBe(true);
 
@@ -265,7 +265,7 @@ describe('RulesRequireReceiptsPage save order', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the itemized amount is set first, and neither request claims a previous amount to roll back to
-        expect(mockSetItemized).toHaveBeenCalledWith(policy.id, '20.00', undefined);
+        expect(mockSetItemized).toHaveBeenCalledWith(policy.id, '20.00', undefined, {});
         expect(mockSetReceipt).toHaveBeenCalledWith(policy.id, '10.00', undefined, {});
         expect(wasItemizedSentFirst()).toBe(true);
 
@@ -305,7 +305,7 @@ describe('RulesRequireReceiptsPage save order', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the receipt amount is left alone
-        expect(mockSetItemized).toHaveBeenCalledWith(policy.id, '120.00', 10000);
+        expect(mockSetItemized).toHaveBeenCalledWith(policy.id, '120.00', 10000, {});
         expect(mockSetItemized).toHaveBeenCalledTimes(1);
         expect(mockSetReceipt).not.toHaveBeenCalled();
 
@@ -421,7 +421,7 @@ describe('RulesRequireReceiptsPage validation errors', () => {
 
         // Then both amounts are sent and no message is left behind
         expect(screen.queryByText(getSharedAmountError())).not.toBeOnTheScreen();
-        expect(mockSetItemized).toHaveBeenCalledWith(policy.id, '50.00', 3100);
+        expect(mockSetItemized).toHaveBeenCalledWith(policy.id, '50.00', 3100, {});
         expect(mockSetReceipt).toHaveBeenCalledWith(policy.id, '45.00', 3000, {});
 
         unmount();

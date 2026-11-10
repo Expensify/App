@@ -28,11 +28,12 @@ type PolicyAvatarProps = {
     /** Container styles for the avatar. Replaces the size-derived default container styles when provided. Only applies to the single-avatar layout. */
     containerStyle?: StyleProp<ViewStyle>;
 
-    subscriptAvatarBorderColor?: ColorValue;
+    /** Color of the row surface behind the avatar. Affects secondary avatar so it blends into the row. */
+    backdropColor?: ColorValue;
 };
 
 /** Renders a workspace avatar, resolving it from the policy's `avatarURL` and `name` alone. Pass an `accountID` to render that account as the subscript. */
-function PolicyAvatar({policyID, accountID, size = CONST.AVATAR_SIZE.DEFAULT, fallbackDisplayName, containerStyle, subscriptAvatarBorderColor}: PolicyAvatarProps) {
+function PolicyAvatar({policyID, accountID, size = CONST.AVATAR_SIZE.DEFAULT, fallbackDisplayName, containerStyle, backdropColor}: PolicyAvatarProps) {
     const StyleUtils = useStyleUtils();
     const icons = usePolicyIcons(policyID, accountID, fallbackDisplayName);
 
@@ -49,7 +50,7 @@ function PolicyAvatar({policyID, accountID, size = CONST.AVATAR_SIZE.DEFAULT, fa
                 primaryAvatar={primaryIcon}
                 secondaryAvatar={secondaryIcon}
                 size={size}
-                subscriptAvatarBorderColor={subscriptAvatarBorderColor}
+                backdropColor={backdropColor}
                 fallbackDisplayName={fallbackDisplayName}
             />
         );

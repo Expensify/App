@@ -1,7 +1,7 @@
 import CONST from '@src/CONST';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {View} from 'react-native';
 
 import type {AccountingActionsContextType, AccountingStateContextType} from './types';
@@ -11,7 +11,7 @@ const popoverAnchorRefsInitialValue = [...CONST.POLICY.CONNECTIONS.ACCOUNTING_CO
         acc[key] = {current: null};
         return acc;
     },
-    {} as Record<ConnectionName | typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE, RefObject<View | null>>,
+    {} as Record<ConnectionName | typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE, RefObject<ComponentRef<typeof View> | null>>,
 );
 
 const defaultAccountingStateContextValue: AccountingStateContextType = {

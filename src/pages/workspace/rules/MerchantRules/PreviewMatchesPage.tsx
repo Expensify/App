@@ -1,7 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -98,7 +98,7 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('workspace.rules.merchantRules.previewMatches')}
                 onBackButtonPress={goBack}
             />

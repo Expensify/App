@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {AvatarSizeName} from '@styles/utils';
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
@@ -80,6 +81,8 @@ function UserInfoCellsWithArrow({
                         <Text
                             testID="UserInfoToIndicator"
                             style={[styles.mutedNormalTextLabel]}
+                            selectable={false}
+                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
                             {translate('common.conjunctionTo')}
                         </Text>

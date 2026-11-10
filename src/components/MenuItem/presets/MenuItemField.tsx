@@ -8,47 +8,130 @@ import MenuItemFieldNamePlaceholder from '@components/MenuItem/leaves/content/Me
 import MenuItemFieldValue from '@components/MenuItem/leaves/content/MenuItemFieldValue';
 import MenuItemChevron from '@components/MenuItem/leaves/trailing/icons/MenuItemChevron';
 
+import useOnyx from '@hooks/useOnyx';
+
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import hasRenderableChildren from '@libs/hasRenderableChildren';
+
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {PropsWithChildren, ReactNode} from 'react';
+
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
-type MenuItemFieldProps = Omit<MenuItemRootProps, 'accessibilityLabel'> & {
+type MenuItemFieldRowProps = PropsWithChildren<
+    ForwardedFSClassProps & {
+        /** Name of the field */
+        name: string;
+
+        /** Value the field holds. Omit it, or pass an empty string, for a field not filled in yet */
+        value?: string;
+
+        /** How many lines the value may take. Defaults to 1, and `0` lets it grow unbounded */
+        numberOfLinesValue?: number;
+
+        /** Whether the field value can start native browser text selection */
+        isValueSelectable?: boolean;
+    }
+>;
+
+type MenuItemFieldProps = Omit<MenuItemRootProps, 'accessibilityLabel'> & Omit<MenuItemFieldRowProps, 'children'>;
+
+type MenuItemFieldContentProps = {
     /** Name of the field */
     name: string;
 
-    /** Value the field holds. Omit it, or pass an empty string, for a field not filled in yet */
-    value?: string;
+    /** The value leaf, e.g. `MenuItem.FieldValue` or `MenuItem.FieldValueHTML`. Leave it out for a field not filled in yet */
+    children?: ReactNode;
 };
 
-/** Field preset: a field name plus its value. With no `value` the name takes over the row */
-function MenuItemField({name, value, children, onPress, isDisabled = false, sentryLabel, testID}: MenuItemFieldProps) {
+/**
+ * The content cell of a field: its name over its value, or the name alone standing in for a missing value.
+ * Reach for it when the value needs a leaf other than `MenuItem.FieldValue`.
+ */
+function MenuItemFieldContent({name, children}: MenuItemFieldContentProps) {
+    return (
+        <MenuItemContent>
+            {hasRenderableChildren(children) ? (
+                <>
+                    <MenuItemFieldName>{name}</MenuItemFieldName>
+                    {children}
+                </>
+            ) : (
+                <MenuItemFieldNamePlaceholder>{name}</MenuItemFieldNamePlaceholder>
+            )}
+        </MenuItemContent>
+    );
+}
+
+/**
+ * The line a field preset draws, without a `MenuItem.Root` of its own. Reach for it over the
+ * `MenuItemField` preset when the row needs siblings inside the same `Root` (an error or a hint
+ * line under the row).
+ */
+function MenuItemFieldRow({name, value, numberOfLinesValue, isValueSelectable = false, forwardedFSClass, children}: MenuItemFieldRowProps) {
+    return (
+        <MenuItemRow>
+            <MenuItemFieldContent name={name}>
+                {!!value && (
+                    <MenuItemFieldValue
+                        numberOfLines={numberOfLinesValue}
+                        isSelectable={isValueSelectable}
+                        forwardedFSClass={forwardedFSClass}
+                    >
+                        {value}
+                    </MenuItemFieldValue>
+                )}
+            </MenuItemFieldContent>
+            {hasRenderableChildren(children) && <MenuItemTrailing>{children}</MenuItemTrailing>}
+        </MenuItemRow>
+    );
+}
+
+/**
+ * Field preset: a field name plus its value. With no `value` the name takes over the row.
+ * `children` land in the trailing cell, next to the chevron.
+ */
+function MenuItemFieldPreset({
+    name,
+    value,
+    numberOfLinesValue,
+    isValueSelectable = false,
+    children,
+    onPress,
+    isDisabled = false,
+    sentryLabel,
+    testID,
+    shouldAllowTextSelection = isValueSelectable,
+    forwardedFSClass,
+}: MenuItemFieldProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     return (
         <MenuItemRoot
-            onPress={onPress ? callFunctionIfActionIsAllowed(onPress) : undefined}
+            onPress={onPress ? callFunctionIfActionIsAllowed(onPress, false, session) : undefined}
             isDisabled={isDisabled}
             sentryLabel={sentryLabel}
             testID={testID}
+            accessibilityLabel={[name, value].filter(Boolean).join(', ')}
+            shouldAllowTextSelection={shouldAllowTextSelection}
         >
-            <MenuItemRow>
-                <MenuItemContent>
-                    {value ? (
-                        <>
-                            <MenuItemFieldName>{name}</MenuItemFieldName>
-                            <MenuItemFieldValue>{value}</MenuItemFieldValue>
-                        </>
-                    ) : (
-                        <MenuItemFieldNamePlaceholder>{name}</MenuItemFieldNamePlaceholder>
-                    )}
-                </MenuItemContent>
-                {(!!children || !!onPress) && (
-                    <MenuItemTrailing>
-                        {children}
-                        {!!onPress && <MenuItemChevron />}
-                    </MenuItemTrailing>
-                )}
-            </MenuItemRow>
+            <MenuItemFieldRow
+                name={name}
+                value={value}
+                numberOfLinesValue={numberOfLinesValue}
+                isValueSelectable={isValueSelectable}
+                forwardedFSClass={forwardedFSClass}
+            >
+                {children}
+                {!!onPress && <MenuItemChevron />}
+            </MenuItemFieldRow>
         </MenuItemRoot>
     );
 }
+
+const MenuItemField = Object.assign(MenuItemFieldPreset, {Row: MenuItemFieldRow, Content: MenuItemFieldContent});
 
 export default MenuItemField;

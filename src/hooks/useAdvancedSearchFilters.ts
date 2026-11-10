@@ -1,12 +1,9 @@
-import type {Filter} from '@components/Search/types';
-
 import {isFilterableBankAccount} from '@libs/BankAccountUtils';
-import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
-import {getAllPolicyValues} from '@libs/SearchQueryUtils';
+import {hasVendorFeatureOnAnyPolicy, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardList, Policy, PolicyTagLists} from '@src/types/onyx';
+import type {CardList, Policy} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -17,6 +14,8 @@ import {emailSelector} from '@selectors/Session';
 
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
+import useShouldReturnTripRooms from './useShouldReturnTripRooms';
 import useWorkspaceList from './useWorkspaceList';
 
 /**
@@ -31,48 +30,52 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
         ],
         [
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE,
+        ],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED, CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS, CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED],
+        [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTER_USER_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTER_PAYROLL_ID,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.ORDER_DEAL_NUMBERS,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
         ],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
         ],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED, CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.ORDER_DEAL_NUMBERS,
         ],
     ],
     [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: [
@@ -82,30 +85,37 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
         ],
         [
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE,
+        ],
+        [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTER_USER_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTER_PAYROLL_ID,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.ORDER_DEAL_NUMBERS,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
         ],
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED, CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED, CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED, CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID],
+        [
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS,
+        ],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED, CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.ORDER_DEAL_NUMBERS,
         ],
     ],
     [CONST.SEARCH.DATA_TYPES.INVOICE]: [
@@ -115,33 +125,26 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
         ],
         [
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
         ],
-        [
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
-        ],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED, CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED, CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED, CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID, CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
@@ -156,34 +159,26 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
         ],
         [
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
         ],
-        [
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
-        ],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED, CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED, CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED, CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID, CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED, CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO],
         [CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID, CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE, CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN],
     ],
     [CONST.SEARCH.DATA_TYPES.CHAT]: [
@@ -207,6 +202,12 @@ const typeFiltersKeys = {
         [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION, CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE, CONST.SEARCH.SYNTAX_FILTER_KEYS.IN],
     ],
 };
+
+/** A trip search that returns trip rooms only filters by what a trip row has */
+const tripRoomFiltersKeys: (typeof typeFiltersKeys)[typeof CONST.SEARCH.DATA_TYPES.TRIP] = [
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID],
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE],
+];
 
 function shouldDisplayFilter(numberOfFilters: number, isFeatureEnabled: boolean, singlePolicyCondition = false): boolean {
     return (numberOfFilters !== 0 || singlePolicyCondition) && isFeatureEnabled;
@@ -292,14 +293,6 @@ function advancedSearchPoliciesSelector(policies: OnyxCollection<Policy>): OnyxC
  * Checks whether a single policy's tag lists contain at least one tag.
  * Short-circuits on the first tag found.
  */
-const policyTagListHasTags = (policyTagList: PolicyTagLists | undefined) => Object.values(policyTagList ?? {}).some((tagList) => Object.keys(tagList.tags ?? {}).length > 0);
-
-/**
- * Selector that checks if any tags exist across all policy tag lists.
- * Returns a boolean with early exit on first tag found.
- */
-const hasTagsSelector = (allPolicyTagLists: OnyxCollection<PolicyTagLists>) => Object.values(allPolicyTagLists ?? {}).some(policyTagListHasTags);
-
 function useAdvancedSearchFiltersWorkspaces(policies: OnyxCollection<Policy>, searchTerm?: string) {
     const {localeCompare} = useLocalize();
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
@@ -321,24 +314,25 @@ function shouldDisplayCardFilterSelector(cardList: OnyxEntry<CardList>) {
     return shouldDisplayFilter(Object.keys(filterCardsHiddenFromSearch(cardList)).length, true);
 }
 
-function useAdvancedSearchFilters(type: SearchDataTypes | undefined, policyID: Filter | undefined) {
+function useAdvancedSearchFilters(type: SearchDataTypes | undefined) {
     const [shouldDisplayCardFilter] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: shouldDisplayCardFilterSelector});
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: advancedSearchPoliciesSelector});
     const [policyDerived] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policyDerivedSelector});
-    const [allPolicyTagLists = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const selectedPolicyTagLists = policyID?.value?.length ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_TAGS, allPolicyTagLists) : [];
-    const [hasTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: hasTagsSelector});
+    const {isBetaEnabled} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
+    const isVendorFilterAvailableSelector = (allPolicies: OnyxCollection<Policy>) => hasVendorFeatureOnAnyPolicy(allPolicies, isVendorMatchingBetaEnabled);
+    const [isVendorFilterAvailable = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: isVendorFilterAvailableSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const {workspaces} = useAdvancedSearchFiltersWorkspaces(policies);
 
-    const hasSelectedPolicyTags = selectedPolicyTagLists.some(policyTagListHasTags);
-    const shouldDisplayTagFilter = shouldDisplayFilter(hasTags ? 1 : 0, policyDerived?.areTagsEnabled ?? false, hasSelectedPolicyTags);
+    const shouldDisplayTagFilter = !!policyDerived?.areTagsEnabled;
     // Count business accounts that aren't partially set up, mirroring BankAccountSelector so the row never shows above an empty picker.
     const hasFilterableBankAccount = Object.values(bankAccountList ?? {}).some(isFilterableBankAccount);
     const shouldDisplayBankAccountFilter = shouldDisplayFilter(hasFilterableBankAccount ? 1 : 0, true);
     const shouldDisplayTaxFilter = shouldDisplayFilter(policyDerived?.hasAnyTaxRates ? 1 : 0, policyDerived?.areTaxEnabled ?? false);
     const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length > 1);
+    const shouldReturnTripRooms = useShouldReturnTripRooms(type);
 
     let currentType = type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
@@ -346,15 +340,21 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined, policyID: F
         currentType = CONST.SEARCH.DATA_TYPES.EXPENSE;
     }
 
-    return typeFiltersKeys[currentType]
+    return (shouldReturnTripRooms ? tripRoomFiltersKeys : typeFiltersKeys[currentType])
         .map((section) =>
             section
                 .map((key) => {
                     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG && !shouldDisplayTagFilter) {
                         return;
                     }
+                    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR && !isVendorFilterAvailable) {
+                        return;
+                    }
                     if (
-                        (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) &&
+                        (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID ||
+                            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED ||
+                            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED ||
+                            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS) &&
                         !shouldDisplayCardFilter
                     ) {
                         return;

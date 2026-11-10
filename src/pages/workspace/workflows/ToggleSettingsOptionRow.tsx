@@ -18,11 +18,12 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ReactNode} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type ToggleSettingOptionRowProps = {
@@ -36,6 +37,9 @@ type ToggleSettingOptionRowProps = {
     customTitle?: React.ReactNode;
     subtitle?: string | ReactNode;
     switchAccessibilityLabel: string;
+
+    /** Label for Sentry tracking of the switch, from `CONST.SENTRY_LABEL`. Each feature passes its own so their interactions aren't grouped together. */
+    switchSentryLabel: SentryLabel;
 
     /** subtitle should show below switch and title */
     shouldPlaceSubtitleBelowSwitch?: boolean;
@@ -57,12 +61,18 @@ type ToggleSettingOptionRowProps = {
     /** Used to apply styles to the outermost container */
     wrapperStyle?: StyleProp<ViewStyle>;
 
+    /** Used to apply styles to the row holding the title and the switch, leaving the sub menu items below it untouched */
+    toggleContainerStyles?: StyleProp<ViewStyle>;
+
     titleStyle?: StyleProp<TextStyle>;
 
     /** Optional accessibility role for the title. Only set when the title is a section heading (e.g. CONST.ROLE.HEADER); omit for regular rows. */
     titleAccessibilityRole?: typeof CONST.ROLE.HEADER;
 
     subtitleStyle?: StyleProp<TextStyle>;
+
+    /** Style for the container of a parsed (HTML) subtitle. Use it to match the spacing `subtitleStyle` gives a plain-text subtitle. */
+    parsedSubtitleContainerStyle?: StyleProp<ViewStyle>;
     accordionStyle?: StyleProp<ViewStyle>;
     isActive: boolean;
 
@@ -104,14 +114,17 @@ function ToggleSettingOptionRow({
     customTitle,
     subtitle,
     subtitleStyle,
+    parsedSubtitleContainerStyle,
     accordionStyle,
     switchAccessibilityLabel,
+    switchSentryLabel,
     shouldPlaceSubtitleBelowSwitch,
     shouldUseCompactSubtitleSpacing = false,
     shouldAnchorSwitchToTop = false,
     shouldEscapeText = undefined,
     shouldParseSubtitle = false,
     wrapperStyle,
+    toggleContainerStyles,
     titleStyle,
     titleAccessibilityRole,
     onToggle,
@@ -137,22 +150,18 @@ function ToggleSettingOptionRow({
         isAccordionExpanded.set(isActive);
     }, [isAccordionExpanded, isActive]);
 
-    const subtitleHtml = useMemo(() => {
-        if (!subtitle || !shouldParseSubtitle || typeof subtitle !== 'string') {
-            return '';
-        }
-        return Parser.replace(subtitle, {shouldEscapeText});
-    }, [subtitle, shouldParseSubtitle, shouldEscapeText]);
+    const subtitleHtml =
+        !subtitle || !shouldParseSubtitle || typeof subtitle !== 'string'
+            ? ''
+            : Parser.replace(subtitle, {
+                  shouldEscapeText,
+              });
 
-    const processedSubtitle = useMemo(() => {
-        let textToWrap = '';
-
-        if (shouldParseSubtitle) {
-            textToWrap = subtitleHtml;
-        }
-
-        return textToWrap ? `<comment><muted-text-label>${textToWrap}</muted-text-label></comment>` : '';
-    }, [shouldParseSubtitle, subtitleHtml]);
+    let textToWrap = '';
+    if (shouldParseSubtitle) {
+        textToWrap = subtitleHtml;
+    }
+    const processedSubtitle = textToWrap ? `<comment><muted-text-label>${textToWrap}</muted-text-label></comment>` : '';
 
     const subtitleSpacingStyle = (() => {
         if (!shouldPlaceSubtitleBelowSwitch) {
@@ -162,20 +171,20 @@ function ToggleSettingOptionRow({
         return shouldUseCompactSubtitleSpacing ? styles.mt1 : styles.mt3;
     })();
 
-    const subTitleView = useMemo(() => {
-        if (typeof subtitle === 'string') {
-            if (!!subtitle && shouldParseSubtitle) {
-                return (
-                    <View style={[styles.flexRow, styles.renderHTML, styles.textAlignLeft, subtitleSpacingStyle]}>
-                        <RenderHTML html={processedSubtitle} />
-                    </View>
-                );
-            }
+    let subTitleView;
+    if (typeof subtitle === 'string') {
+        if (!!subtitle && shouldParseSubtitle) {
+            subTitleView = (
+                <View style={[styles.flexRow, styles.renderHTML, styles.textAlignLeft, subtitleSpacingStyle, parsedSubtitleContainerStyle]}>
+                    <RenderHTML html={processedSubtitle} />
+                </View>
+            );
+        } else {
             /**
              * We hide the subtitle from screen readers to avoid double announcements
              * 'aria-hidden' is used for compatibility with iOS mWeb, while 'accessible={false}' works on iOS native.
              */
-            return (
+            subTitleView = (
                 <Text
                     accessible={!areSubtitleAndSwitchAccessibilityLabelEqual}
                     aria-hidden={areSubtitleAndSwitchAccessibilityLabelEqual}
@@ -185,20 +194,9 @@ function ToggleSettingOptionRow({
                 </Text>
             );
         }
-
-        return subtitle;
-    }, [
-        subtitle,
-        shouldParseSubtitle,
-        styles.mutedNormalTextLabel,
-        styles.flexRow,
-        styles.renderHTML,
-        styles.textAlignLeft,
-        subtitleSpacingStyle,
-        subtitleStyle,
-        processedSubtitle,
-        areSubtitleAndSwitchAccessibilityLabelEqual,
-    ]);
+    } else {
+        subTitleView = subtitle;
+    }
 
     const contentArea = (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
@@ -213,7 +211,7 @@ function ToggleSettingOptionRow({
             {customTitle ?? (
                 <View style={[styles.flexColumn, styles.flex1, styles.mr6]}>
                     <Text
-                        style={[styles.textNormal, styles.lh20, titleStyle]}
+                        style={[styles.textNormal, styles.lh20, styles.textAlignVerticalCenter, titleStyle]}
                         accessibilityRole={titleAccessibilityRole}
                     >
                         {title}
@@ -236,6 +234,7 @@ function ToggleSettingOptionRow({
             accessibilityLabel={
                 typeof subtitle === 'string' && subtitle && !areSubtitleAndSwitchAccessibilityLabelEqual ? `${switchAccessibilityLabel}, ${subtitle}` : switchAccessibilityLabel
             }
+            sentryLabel={switchSentryLabel}
             onToggle={(isOn) => {
                 shouldAnimateAccordionSection.set(true);
                 onToggle(isOn);
@@ -270,7 +269,8 @@ function ToggleSettingOptionRow({
                             styles.flexRow,
                             shouldAnchorSwitchToTop ? styles.alignItemsStart : styles.alignItemsCenter,
                             styles.justifyContentBetween,
-                            shouldPlaceSubtitleBelowSwitch && !shouldUseCompactSubtitleSpacing && styles.h10,
+                            shouldPlaceSubtitleBelowSwitch && !shouldUseCompactSubtitleSpacing && styles.mnh40,
+                            toggleContainerStyles,
                         ]}
                     >
                         <PressableWithoutFeedback

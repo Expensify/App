@@ -12,6 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {shouldShowPolicy} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getPolicyExpenseChat, getReportOrDraftReport, getTransactionCommentObject, getTransactionDetails} from '@libs/ReportUtils';
+import type {BillingRestrictionPolicy} from '@libs/SubscriptionUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isInvalidMerchantValue} from '@libs/ValidationUtils';
 
@@ -26,6 +27,7 @@ import type {BillingGraceEndPeriod, IntroSelected, Policy, Transaction} from '@s
 import type {CreatableWorkspaceType} from '@src/types/onyx/Policy';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -33,15 +35,44 @@ import type {ValueOf} from 'type-fest';
 import {createDraftTransaction, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport, setMoneyRequestReportID, startDistanceRequest, startMoneyRequest} from './MoneyRequest';
 
 /**
+ * Sends the user to the restricted action screen when the workspace's required payment is overdue, so every billable
+ * entry point gates on the same check instead of repeating it. Returns whether it navigated, so the caller can bail out.
+ *
+ * Takes the resolved policy rather than an ID on purpose: callers pass the snapshot they already hold, instead of a
+ * separately-timed `allPolicies` cache, which can lag a caller's own snapshot and let the gate fail open.
+ */
+function navigateToRestrictedActionIfNeeded(
+    policy: OnyxEntry<BillingRestrictionPolicy>,
+    ownerBillingGracePeriodEnd: OnyxEntry<number>,
+    userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>,
+    amountOwed: OnyxEntry<number>,
+    currentUserAccountID: number,
+): boolean {
+    if (!policy || !shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
+        return false;
+    }
+    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+    return true;
+}
+
+type AddExpenseDropdownSentryLabels = {
+    createExpense: SentryLabel;
+    trackDistance: SentryLabel;
+    addExistingExpense: SentryLabel;
+};
+
+/**
  * Returns the dropdown options for the add expense button
  * @param iouReport - The IOU report to add an expense to
  * @param policy - The policy of the IOU report
  * @param backToReport - The report to return to after adding an expense
+ * @param sentryLabels - The Sentry labels of the options, which differ per menu that shows them
  * @returns The dropdown options for the add expense button
  */
 type GetAddExpenseDropdownOptionsParams = {
     translate: LocalizedTranslate;
     icons: Record<'Location' | 'ReceiptPlus' | 'Plus', IconAsset>;
+    sentryLabels: AddExpenseDropdownSentryLabels;
     iouReportID: string | undefined;
     policy: OnyxEntry<Policy>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
@@ -58,6 +89,7 @@ type GetAddExpenseDropdownOptionsParams = {
 function getAddExpenseDropdownOptions({
     translate,
     icons,
+    sentryLabels,
     iouReportID,
     policy,
     userBillingGracePeriodEnds,
@@ -70,7 +102,7 @@ function getAddExpenseDropdownOptions({
     currentUserAccountID,
     blockDistanceRequestIfNeeded,
 }: GetAddExpenseDropdownOptionsParams): Array<DropdownOption<ValueOf<typeof CONST.REPORT.ADD_EXPENSE_OPTIONS>>> {
-    const isReportTeachersUnite = isTeachersUnitePolicyID(getReportOrDraftReport(iouReportID)?.policyID ?? policy?.id);
+    const isReportTeachersUnite = isTeachersUnitePolicyID(getReportOrDraftReport({reportID: iouReportID})?.policyID ?? policy?.id);
 
     return [
         // Teachers Unite only supports expenses via split expense
@@ -81,7 +113,7 @@ function getAddExpenseDropdownOptions({
                       value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
                       text: translate('iou.createExpense'),
                       icon: icons.Plus,
-                      sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE,
+                      sentryLabel: sentryLabels.createExpense,
                       onSelected: () => {
                           if (!iouReportID) {
                               return;
@@ -89,9 +121,8 @@ function getAddExpenseDropdownOptions({
                           if (
                               policy &&
                               policy.type !== CONST.POLICY.TYPE.PERSONAL &&
-                              shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)
+                              navigateToRestrictedActionIfNeeded(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)
                           ) {
-                              Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                               return;
                           }
                           startMoneyRequest(CONST.IOU.TYPE.SUBMIT, iouReportID, draftTransactionIDs, undefined, false, iouRequestBackToReport);
@@ -101,13 +132,12 @@ function getAddExpenseDropdownOptions({
                       value: CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE,
                       text: translate('iou.trackDistance'),
                       icon: icons.Location,
-                      sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE,
+                      sentryLabel: sentryLabels.trackDistance,
                       onSelected: () => {
                           if (!iouReportID) {
                               return;
                           }
-                          if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
-                              Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                          if (navigateToRestrictedActionIfNeeded(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
                               return;
                           }
                           if (blockDistanceRequestIfNeeded?.()) {
@@ -121,10 +151,9 @@ function getAddExpenseDropdownOptions({
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_EXISTING_EXPENSE,
             text: translate('iou.addExistingExpense'),
             icon: icons.ReceiptPlus,
-            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_EXISTING,
+            sentryLabel: sentryLabels.addExistingExpense,
             onSelected: () => {
-                if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
-                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                if (navigateToRestrictedActionIfNeeded(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
                     return;
                 }
                 openUnreportedExpense(iouReportID, unreportedExpenseBackToReport);
@@ -164,17 +193,22 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(
         },
     ]);
     setMoneyRequestReportID(transactionID, expenseChatReportID);
-    if (isCategorizing) {
-        Navigation.navigate(
-            createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action: actionName, iouType: CONST.IOU.TYPE.SUBMIT, transactionID, reportID: expenseChatReportID})),
-        );
-    } else {
+    // The participants and reportID above are written with Onyx.merge, which lands a microtask after this press handler.
+    // Navigating synchronously would render the confirmation screen before the merge, so it would see no participants and
+    // auto-open the Choose recipient picker. Defer navigation by a microtask plus an animation frame so the merge is applied first.
+    Navigation.setNavigationActionToMicrotaskQueue(() => {
+        if (isCategorizing) {
+            Navigation.navigate(
+                createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action: actionName, iouType: CONST.IOU.TYPE.SUBMIT, transactionID, reportID: expenseChatReportID})),
+            );
+            return;
+        }
         // The confirmation route needs a `:reportID`, so it points at the (draft) workspace expense chat to resolve the
         // draft policy/destination. That report only lives in REPORT_DRAFT. Send back to the origin report (e.g. the
         // self-DM the track expense came from) so navigateBack returns there instead of the draft report's start step.
         const backTo = backToReportID ? ROUTES.REPORT_WITH_ID.getRoute(backToReportID) : undefined;
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID, undefined, true, backTo));
-    }
+    });
 }
 
 type CreateDraftTransactionParams = {
@@ -188,8 +222,12 @@ type CreateDraftTransactionParams = {
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
-    isRestrictedToPreferredPolicy?: boolean;
-    preferredPolicyID?: string;
+    /**
+     * The preferred workspace, set only when the user is restricted to submitting there. Kept as one value
+     * (not a separate flag + ID) so the fast path that skips the participant picker — where the billing gate
+     * normally runs — can't be taken with the gate accidentally left off.
+     */
+    restrictedPreferredPolicy?: BillingRestrictionPolicy;
     transaction: OnyxEntry<Transaction>;
     currentUserAccountID: number;
     currentUserEmail: string;
@@ -203,7 +241,12 @@ type CreateDraftTransactionParams = {
     /** Localized default name for a workspace created on the fly (e.g. "Submit to my employer" with no existing workspace). */
     defaultWorkspaceName?: string;
     filteredPoliciesCount: number;
-    firstPolicyID: string | undefined;
+    /**
+     * The single accessible workspace, from the same caller snapshot that produced the count above. This is the only
+     * handle on that workspace — there is deliberately no parallel `firstPolicyID`, so "I have a workspace to submit
+     * to" and "I have the policy to gate on" are the same fact and cannot come apart.
+     */
+    firstPolicy: BillingRestrictionPolicy | undefined;
 };
 
 function createDraftTransactionAndNavigateToParticipantSelector({
@@ -217,8 +260,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     userBillingGracePeriodEnds,
     amountOwed,
     ownerBillingGracePeriodEnd,
-    isRestrictedToPreferredPolicy = false,
-    preferredPolicyID,
+    restrictedPreferredPolicy,
     transaction,
     currentUserAccountID,
     currentUserEmail,
@@ -226,7 +268,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     submitDestination = CONST.IOU.SUBMIT_DESTINATION.FRIEND,
     defaultWorkspaceName = '',
     filteredPoliciesCount,
-    firstPolicyID,
+    firstPolicy,
 }: CreateDraftTransactionParams): void {
     const transactionID = transaction?.transactionID;
     if (!transactionID || !reportID) {
@@ -272,8 +314,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     } as Transaction);
 
     if (actionName === CONST.IOU.ACTION.CATEGORIZE) {
-        if (activePolicy && shouldRestrictUserBillableActions(activePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(activePolicy.id));
+        if (navigateToRestrictedActionIfNeeded(activePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
             return;
         }
 
@@ -318,14 +359,14 @@ function createDraftTransactionAndNavigateToParticipantSelector({
             return;
         }
 
-        const policyExpenseReportID = getPolicyExpenseChat(currentUserAccountID, firstPolicyID)?.reportID;
+        const policyExpenseReportID = getPolicyExpenseChat(currentUserAccountID, firstPolicy?.id)?.reportID;
         setMoneyRequestParticipants(transactionID, [
             {
                 selected: true,
                 accountID: 0,
                 isPolicyExpenseChat: true,
                 reportID: policyExpenseReportID,
-                policyID: firstPolicyID,
+                policyID: firstPolicy?.id,
                 searchText: activePolicy?.name,
             },
         ]);
@@ -351,7 +392,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
 
     // "Submit to my employer" routes the expense into a workspace the user can submit to, based on how many they belong to.
     // Per issue #92704 the count spans every paid workspace the user is a member of (Collect/Control/Submit), so we reuse the
-    // shared shouldShowPolicy-based count (filteredPoliciesCount/firstPolicyID) that also backs the workspaces-only picker.
+    // shared shouldShowPolicy-based count (filteredPoliciesCount/firstPolicy) that also backs the workspaces-only picker.
     if (actionName === CONST.IOU.ACTION.SUBMIT && submitDestination === CONST.IOU.SUBMIT_DESTINATION.EMPLOYER) {
         // No accessible workspace: spin up a new Submit (submit2026) workspace and drop the expense into its draft report.
         if (filteredPoliciesCount === 0) {
@@ -375,8 +416,13 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         }
 
         // Exactly one accessible workspace: skip the destination picker and submit straight to that workspace.
-        if (filteredPoliciesCount === 1 && firstPolicyID) {
-            const policyExpenseReport = getPolicyExpenseChat(currentUserAccountID, firstPolicyID);
+        if (filteredPoliciesCount === 1 && firstPolicy) {
+            // The destination picker we skip here is where the billing restriction is normally enforced, so gate it here too.
+            if (navigateToRestrictedActionIfNeeded(firstPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
+                return;
+            }
+
+            const policyExpenseReport = getPolicyExpenseChat(currentUserAccountID, firstPolicy.id);
             if (policyExpenseReport) {
                 // The draft inherits the source expense's unreported ID from the self DM. The picker we skip here is what
                 // normally rebinds it to the destination chat, so without this the confirmation page still reads the draft
@@ -408,8 +454,13 @@ function createDraftTransactionAndNavigateToParticipantSelector({
 
     if (actionName === CONST.IOU.ACTION.SUBMIT || filteredPoliciesCount > 0) {
         // Check if user is restricted to preferred workspace for submit tracked expenses
-        if (isRestrictedToPreferredPolicy && preferredPolicyID) {
-            const policyExpenseReport = getPolicyExpenseChat(currentUserAccountID, preferredPolicyID);
+        if (restrictedPreferredPolicy) {
+            // This branch skips the participant picker as well, so it needs the same billing-restriction gate.
+            if (navigateToRestrictedActionIfNeeded(restrictedPreferredPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
+                return;
+            }
+
+            const policyExpenseReport = getPolicyExpenseChat(currentUserAccountID, restrictedPreferredPolicy.id);
 
             if (policyExpenseReport) {
                 // Same picker-skip as the single-workspace branch above, so the draft needs the same rebinding.
@@ -421,9 +472,16 @@ function createDraftTransactionAndNavigateToParticipantSelector({
             }
         }
 
+        const isSubmittingToFriend = actionName === CONST.IOU.ACTION.SUBMIT && submitDestination === CONST.IOU.SUBMIT_DESTINATION.FRIEND;
         Navigation.navigate(
             createDynamicRoute(
-                DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({action: actionName, iouType: CONST.IOU.TYPE.SUBMIT, transactionID, reportID}),
+                DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({
+                    action: actionName,
+                    iouType: CONST.IOU.TYPE.SUBMIT,
+                    transactionID,
+                    reportID,
+                    shouldExcludeWorkspaces: isSubmittingToFriend,
+                }),
                 ROUTES.REPORT_WITH_ID.getRoute(reportID),
             ),
         );

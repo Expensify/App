@@ -9,7 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import {applySavedColumnMappings} from '@libs/actions/ImportSpreadsheet';
-import importTransactionsFromCSV, {getExistingCardImportSettings} from '@libs/actions/ImportTransactions';
+import importTransactionsFromCSV, {getExistingCardImportSettings, hasTagExceedingMaxLength} from '@libs/actions/ImportTransactions';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -29,7 +29,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {cardByIdSelector} from '@selectors/Card';
 import {accountIDSelector} from '@selectors/Session';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 type TransactionsImportedPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.TRANSACTIONS_IMPORTED>;
 
@@ -39,7 +39,7 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [savedColumnLayouts] = useOnyx(ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST);
     const [accountID = CONST.DEFAULT_NUMBER_ID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
-    const cardSelector = useCallback((cardList: OnyxEntry<CardList>) => (existingCardID ? cardByIdSelector(String(existingCardID))(cardList) : undefined), [existingCardID]);
+    const cardSelector = (cardList: OnyxEntry<CardList>) => (existingCardID ? cardByIdSelector(String(existingCardID))(cardList) : undefined);
     const [existingCard] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardSelector});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [isImporting, setIsImporting] = useState(false);
@@ -76,20 +76,18 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
         applySavedColumnMappings(spreadsheet.data, savedLayout);
     }, [existingCardID, spreadsheet?.data, savedColumnLayouts]);
 
-    const columnRoles: ColumnRole[] = useMemo(
-        () => [
-            {text: translate('common.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
-            {text: translate('common.date'), value: CONST.CSV_IMPORT_COLUMNS.DATE, isRequired: true},
-            {text: translate('common.merchant'), value: CONST.CSV_IMPORT_COLUMNS.MERCHANT, isRequired: true},
-            {text: translate('common.category'), value: CONST.CSV_IMPORT_COLUMNS.CATEGORY},
-            {text: translate('iou.amount'), value: CONST.CSV_IMPORT_COLUMNS.AMOUNT, isRequired: true},
-        ],
-        [translate],
-    );
+    const columnRoles: ColumnRole[] = [
+        {text: translate('common.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
+        {text: translate('common.date'), value: CONST.CSV_IMPORT_COLUMNS.DATE, isRequired: true},
+        {text: translate('common.merchant'), value: CONST.CSV_IMPORT_COLUMNS.MERCHANT, isRequired: true},
+        {text: translate('common.category'), value: CONST.CSV_IMPORT_COLUMNS.CATEGORY},
+        {text: translate('common.tag'), value: CONST.CSV_IMPORT_COLUMNS.TAG},
+        {text: translate('iou.amount'), value: CONST.CSV_IMPORT_COLUMNS.AMOUNT, isRequired: true},
+    ];
 
-    const requiredColumns = useMemo(() => columnRoles.filter((role) => role.isRequired), [columnRoles]);
+    const requiredColumns = columnRoles.filter((role) => role.isRequired);
 
-    const validate = useCallback(() => {
+    const validate = () => {
         const columns = Object.values(spreadsheet?.columns ?? {});
         let errors: Errors = {};
 
@@ -102,12 +100,14 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
 
             if (duplicateColumn) {
                 errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicateColumn.text);
+            } else if (hasTagExceedingMaxLength(spreadsheet)) {
+                errors.tagTooLong = translate('spreadsheet.fieldValueTooLong', translate('common.tag'), CONST.API_TRANSACTION_TAG_MAX_LENGTH);
             } else {
                 errors = {};
             }
         }
         return errors;
-    }, [spreadsheet?.columns, requiredColumns, translate, columnRoles]);
+    };
 
     const closeImportPageAndModal = () => {
         setIsClosing(true);

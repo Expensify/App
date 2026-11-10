@@ -20,10 +20,11 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 
-import React, {useEffect, useImperativeHandle, useMemo, useRef} from 'react';
+import React, {useEffect, useImperativeHandle, useRef} from 'react';
 import {View} from 'react-native';
 
 import type {SignInPageLayoutProps} from './types';
@@ -49,17 +50,14 @@ function SignInPageLayout({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {top: topInsets, bottom: bottomInsets} = useSafeAreaInsets();
-    const scrollViewRef = useRef<RNScrollView>(null);
+    const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout, isMediumScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
 
-    const {containerStyles, contentContainerStyles} = useMemo(
-        () => ({
-            containerStyles: shouldUseNarrowLayout ? [styles.flex1] : [styles.flex1, styles.signInPageInner],
-            contentContainerStyles: [styles.flex1, shouldUseNarrowLayout ? styles.flexColumn : styles.flexRow],
-        }),
-        [shouldUseNarrowLayout, styles],
-    );
+    const {containerStyles, contentContainerStyles} = {
+        containerStyles: shouldUseNarrowLayout ? [styles.flex1] : [styles.flex1, styles.signInPageInner],
+        contentContainerStyles: [styles.flex1, shouldUseNarrowLayout ? styles.flexColumn : styles.flexRow],
+    };
 
     // To scroll on both mobile and web, we need to set the container height manually
     const containerHeight = windowHeight - topInsets - bottomInsets;
@@ -75,7 +73,7 @@ function SignInPageLayout({
         scrollPageToTop,
     }));
 
-    const scrollViewStyles = useMemo(() => scrollViewContentContainerStyles(styles), [styles]);
+    const scrollViewStyles = scrollViewContentContainerStyles(styles);
 
     const backgroundImageHeight = Math.max(variables.signInContentMinHeight, containerHeight);
 

@@ -69,4 +69,23 @@ describe('getDomainMenuItems', () => {
 
         expect(items.find((item) => item.translationKey === 'domain.saml')?.brickRoadIndicator).toBeUndefined();
     });
+
+    it('shows an INFO indicator on the Admins item when there are pending adminship requests', () => {
+        const items = getDomainMenuItems({domainAccountID, hasPendingAdminRequests: true, icons});
+
+        expect(items.find((item) => item.translationKey === 'domain.domainAdmins')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.INFO);
+    });
+
+    it('shows an ERROR indicator on the Admins item when there are both admin errors and pending adminship requests', () => {
+        const domainErrors: DomainErrors = {errors: {}, adminErrors: {[adminAccountID]: {errors: {adminError: 'Admin error'}}}};
+        const items = getDomainMenuItems({domainAccountID, domainErrors, hasPendingAdminRequests: true, icons});
+
+        expect(items.find((item) => item.translationKey === 'domain.domainAdmins')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+    });
+
+    it('shows no indicator on the Admins item when hasPendingAdminRequests is omitted', () => {
+        const items = getDomainMenuItems({domainAccountID, icons});
+
+        expect(items.find((item) => item.translationKey === 'domain.domainAdmins')?.brickRoadIndicator).toBeUndefined();
+    });
 });

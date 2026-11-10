@@ -22,7 +22,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import React, {useCallback, useRef, useState} from 'react';
+import {authTokenTypeSelector} from '@selectors/Session';
+import React, {useRef, useState} from 'react';
 
 type DocusignFullStepProps<TFormID extends keyof OnyxFormValuesMapping> = {
     /** Default value for file upload input */
@@ -58,18 +59,15 @@ function DocusignFullStepImpl({defaultValue, formID, inputID, isLoading, onBackB
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
     const formRef = useRef<FormRef | null>(null);
 
     const [uploadedFiles, setUploadedFiles] = useState<FileObject[]>(defaultValue);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<keyof OnyxFormValuesMapping>): FormInputErrors<keyof OnyxFormValuesMapping> => {
-            return getFieldRequiredErrors(values, [inputID], translate);
-        },
-        [inputID, translate],
-    );
+    const validate = (values: FormOnyxValues<keyof OnyxFormValuesMapping>): FormInputErrors<keyof OnyxFormValuesMapping> => {
+        return getFieldRequiredErrors(values, [inputID], translate);
+    };
 
     const handleSelectFile = (files: FileObject[]) => {
         setDraftValues(formID, {[inputID]: [...uploadedFiles, ...files]});

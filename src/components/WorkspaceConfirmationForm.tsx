@@ -24,12 +24,12 @@ import {accountIDSelector, displayNameSelector} from '@src/selectors/PersonalDet
 import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import type {PolicyType} from '@src/types/form/WorkspaceConfirmationForm';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports -- Type import needed for ref typing; no wrapper available
 import type {ScrollView as RNScrollView} from 'react-native';
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {FormInputErrors, FormOnyxValues} from './Form/types';
@@ -85,45 +85,42 @@ function WorkspaceConfirmationForm({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
-    const scrollViewRef = useRef<RNScrollView>(null);
+    const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const isApprovedAccountant = !!account?.isApprovedAccountant;
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM> = {};
-            const name = values.name.trim();
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM> = {};
+        const name = values.name.trim();
 
-            if (!isRequiredFulfilled(name)) {
-                errors.name = translate('workspace.editor.nameIsRequiredError');
-            } else if ([...name].length > CONST.TITLE_CHARACTER_LIMIT) {
-                // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
-                // code units.
-                addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', [...name].length, CONST.TITLE_CHARACTER_LIMIT));
+        if (!isRequiredFulfilled(name)) {
+            errors.name = translate('workspace.editor.nameIsRequiredError');
+        } else if ([...name].length > CONST.TITLE_CHARACTER_LIMIT) {
+            // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
+            // code units.
+            addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', [...name].length, CONST.TITLE_CHARACTER_LIMIT));
+        }
+
+        if (!isRequiredFulfilled(values[INPUT_IDS.CURRENCY])) {
+            errors[INPUT_IDS.CURRENCY] = translate('common.error.fieldRequired');
+        }
+
+        // Only validate plan type and owner for approved accountants
+        if (isApprovedAccountant) {
+            if (!isRequiredFulfilled(values[INPUT_IDS.PLAN_TYPE])) {
+                errors[INPUT_IDS.PLAN_TYPE] = translate('common.error.fieldRequired');
             }
 
-            if (!isRequiredFulfilled(values[INPUT_IDS.CURRENCY])) {
-                errors[INPUT_IDS.CURRENCY] = translate('common.error.fieldRequired');
+            if (!isRequiredFulfilled(values[INPUT_IDS.OWNER])) {
+                errors[INPUT_IDS.OWNER] = translate('common.error.fieldRequired');
             }
+        }
 
-            // Only validate plan type and owner for approved accountants
-            if (isApprovedAccountant) {
-                if (!isRequiredFulfilled(values[INPUT_IDS.PLAN_TYPE])) {
-                    errors[INPUT_IDS.PLAN_TYPE] = translate('common.error.fieldRequired');
-                }
+        return errors;
+    };
 
-                if (!isRequiredFulfilled(values[INPUT_IDS.OWNER])) {
-                    errors[INPUT_IDS.OWNER] = translate('common.error.fieldRequired');
-                }
-            }
-
-            return errors;
-        },
-        [translate, isApprovedAccountant],
-    );
-
-    const policyID = useMemo(() => generatePolicyID(), []);
-    const [session, metadata] = useOnyx(ONYXKEYS.SESSION);
+    const policyID = generatePolicyID();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -131,8 +128,8 @@ function WorkspaceConfirmationForm({
 
     const email = policyOwnerEmail || (session?.email ?? '');
     const userDisplayName = usePersonalDetailByLogin(email, displayNameSelector);
-    const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, email, userDisplayName);
-    const defaultWorkspaceName = generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate, userDisplayName);
+    const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, email, userDisplayName, translate);
+    const defaultWorkspaceName = generateDefaultWorkspaceName(email, userDisplayName, lastWorkspaceNumber, translate);
     const [workspaceNameFirstCharacter, setWorkspaceNameFirstCharacter] = useState(defaultWorkspaceName ?? '');
 
     const userCurrency = draftValues?.currency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
@@ -232,24 +229,22 @@ function WorkspaceConfirmationForm({
                     shouldScrollToEnd={isApprovedAccountant}
                 >
                     <View style={styles.mb4}>
-                        {!isLoadingOnyxValue(metadata) && (
-                            <InputWrapper
-                                InputComponent={TextInput}
-                                role={CONST.ROLE.PRESENTATION}
-                                inputID={INPUT_IDS.NAME}
-                                label={translate('workspace.common.workspaceName')}
-                                accessibilityLabel={translate('workspace.common.workspaceName')}
-                                spellCheck={false}
-                                defaultValue={defaultWorkspaceName}
-                                onChangeText={(str) => {
-                                    if (getFirstAlphaNumericCharacter(str) === getFirstAlphaNumericCharacter(workspaceNameFirstCharacter)) {
-                                        return;
-                                    }
-                                    setWorkspaceNameFirstCharacter(str);
-                                }}
-                                ref={inputCallbackRef}
-                            />
-                        )}
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            role={CONST.ROLE.PRESENTATION}
+                            inputID={INPUT_IDS.NAME}
+                            label={translate('workspace.common.workspaceName')}
+                            accessibilityLabel={translate('workspace.common.workspaceName')}
+                            spellCheck={false}
+                            defaultValue={defaultWorkspaceName}
+                            onChangeText={(str) => {
+                                if (getFirstAlphaNumericCharacter(str) === getFirstAlphaNumericCharacter(workspaceNameFirstCharacter)) {
+                                    return;
+                                }
+                                setWorkspaceNameFirstCharacter(str);
+                            }}
+                            ref={inputCallbackRef}
+                        />
 
                         <View style={[styles.mhn5, styles.mt4]}>
                             <InputWrapper
@@ -301,6 +296,7 @@ function WorkspaceConfirmationForm({
                                             </View>
                                             <Switch
                                                 accessibilityLabel={translate('workspace.common.keepMeAsAdmin')}
+                                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONFIRMATION_FORM_KEEP_ME_AS_ADMIN_SWITCH}
                                                 isOn={makeMeAdmin}
                                                 onToggle={setMakeMeAdmin}
                                             />

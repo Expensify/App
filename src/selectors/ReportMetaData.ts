@@ -1,8 +1,9 @@
 import {getPendingDeleteMemberAccountIDs} from '@libs/ReportUtils';
 
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportLoadingState, ReportMetadata} from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 const isActionLoadingSelector = (loadingState: OnyxEntry<ReportLoadingState>) => loadingState?.isActionLoading ?? false;
 
@@ -27,10 +28,39 @@ const reportActionsListLoadingStateSelector = (
 
 const isLoadingInitialReportActionsSelector = (loadingState: OnyxEntry<ReportLoadingState>) => loadingState?.isLoadingInitialReportActions;
 
+const isLoadingReportStatusSelector = (loadingState: OnyxEntry<ReportLoadingState>) => loadingState?.isLoadingReportStatus;
+
 const pendingChatMembersSelector = (reportMetadata: OnyxEntry<ReportMetadata>): OnyxEntry<ReportMetadata> =>
     reportMetadata ? {pendingChatMembers: reportMetadata.pendingChatMembers} : undefined;
 
 const pendingDeleteMemberAccountIDsSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => getPendingDeleteMemberAccountIDs(reportMetadata?.pendingChatMembers);
+
+const pendingDeleteMemberAccountIDsByReportIDSelector = (reportMetadata: OnyxCollection<ReportMetadata>): Record<string, string[]> => {
+    const result: Record<string, string[]> = {};
+
+    for (const [key, metadata] of Object.entries(reportMetadata ?? {})) {
+        // Reports with no pending members at all are the overwhelming majority, so skip them before doing any work.
+        if (!metadata?.pendingChatMembers?.length) {
+            continue;
+        }
+
+        const pendingDeleteMemberAccountIDs = getPendingDeleteMemberAccountIDs(metadata.pendingChatMembers);
+        if (pendingDeleteMemberAccountIDs.length === 0) {
+            continue;
+        }
+
+        result[key.replace(ONYXKEYS.COLLECTION.REPORT_METADATA, '')] = pendingDeleteMemberAccountIDs;
+    }
+
+    return result;
+};
+
+const pendingExpenseActionSelector = (reportMetadata: OnyxEntry<ReportMetadata>): OnyxEntry<ReportMetadata> =>
+    reportMetadata ? {pendingExpenseAction: reportMetadata.pendingExpenseAction} : undefined;
+
+/** The metadata fields an LHN row's option data reads: members pending removal and a pending DEW submit or approve. */
+const optionRowReportMetadataSelector = (reportMetadata: OnyxEntry<ReportMetadata>): OnyxEntry<ReportMetadata> =>
+    reportMetadata ? {pendingChatMembers: reportMetadata.pendingChatMembers, pendingExpenseAction: reportMetadata.pendingExpenseAction} : undefined;
 
 const pendingNewTransactionIDsSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.pendingNewTransactionIDs;
 
@@ -42,8 +72,12 @@ export {
     reportActionsLoadingStateSelector,
     reportActionsListLoadingStateSelector,
     isLoadingInitialReportActionsSelector,
+    isLoadingReportStatusSelector,
     isOptimisticReportSelector,
     pendingNewTransactionIDsSelector,
     pendingChatMembersSelector,
+    pendingExpenseActionSelector,
+    optionRowReportMetadataSelector,
     pendingDeleteMemberAccountIDsSelector,
+    pendingDeleteMemberAccountIDsByReportIDSelector,
 };

@@ -5,19 +5,31 @@ import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddi
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useScrollEnabled from '@hooks/useScrollEnabled';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ListRenderItemInfo, ViewToken} from '@shopify/flash-list';
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 
 import {FlashList} from '@shopify/flash-list';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import type {TableData} from '.';
 import type {TableListMetadata} from './buildTableListData';
 
-import {buildTableListData, getAdjustedStickyHeaderIndices, getDataIndex, getListIndex, getSyntheticRowKind} from './buildTableListData';
+import {
+    buildTableListData,
+    getAdjustedStickyHeaderIndices,
+    getDataIndex,
+    getListIndex,
+    getSyntheticRowKind,
+    rendersColumnHeader,
+    rendersColumnHeaderAsStickyRow,
+    rendersColumnHeaderInListHeader,
+} from './buildTableListData';
+import {TABLE_COLUMN_SCROLLER_DATA_SET} from './columnResize/columnWidthExpressions';
+import dismissKeyboardOnDrag from './dismissKeyboardOnDrag';
 import {getRowGroupAccessibilityProps, getTableContainerAccessibilityProps, getVirtualizedRowSemanticID, shouldUseTableSemantics} from './tableAccessibility';
 import {TableRowSemanticIDContext, useTableContext} from './TableContext';
 
@@ -33,6 +45,37 @@ type TableBodyListProps = TableBodyProps & {
     /** Message shown when the filtered table is empty. */
     emptyMessage: string;
 };
+
+type ColumnScrollOverrideProps = Record<string, unknown> & {
+    dataSet?: Record<string, unknown>;
+    style?: StyleProp<ViewStyle>;
+};
+
+/**
+ * Hands the horizontal axis to the list's scroller and marks it for the page-header hover rule in `web/index.html`,
+ * keeping whatever `overrideProps` the consumer passed.
+ */
+function getColumnScrollOverrideProps(overflowXAutoStyle: ViewStyle, overrideProps: ColumnScrollOverrideProps = {}) {
+    return {
+        ...overrideProps,
+        dataSet: {...overrideProps.dataSet, ...TABLE_COLUMN_SCROLLER_DATA_SET},
+        style: [overrideProps.style, overflowXAutoStyle],
+    };
+}
+
+/**
+ * Pins the page header to the scroller's left edge so it stays put while the columns move under it. Held at the
+ * measured table width: a box spanning the scroll range has nothing to pin within, and a percentage resolves to it.
+ */
+const columnScrollPageHeaderStyle = {position: 'sticky', left: 0} as ViewStyle;
+
+/**
+ * Sticks the shared list-header box at minus the page header's height, so exactly that much scrolls off and leaves the
+ * column header flush against the scroller. `zIndex` lifts it above the rows, which paint later in tree order.
+ */
+function getColumnScrollListHeaderStyle(pageHeaderHeight: number): ViewStyle {
+    return {position: 'sticky', top: -pageHeaderHeight, zIndex: 1} as ViewStyle;
+}
 
 type ViewabilityInfo = {
     viewableItems: Array<ViewToken<TableData>>;
@@ -97,14 +140,18 @@ function doesBodyRenderWhenEmpty(listProps: {ListEmptyComponent?: unknown; ListH
  */
 function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ...props}: TableBodyListProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const scrollEnabled = useScrollEnabled();
     const [isListLoaded, setIsListLoaded] = useState(false);
     const [hasActivatedStickyHeader, setHasActivatedStickyHeader] = useState(false);
     const [activeStickyHeaderIndex, setActiveStickyHeaderIndex] = useState(-1);
+    // The page header is consumer content, so its height is only known after layout. `0` keeps the list header unstuck.
+    const [pageHeaderHeight, setPageHeaderHeight] = useState(0);
     const {
         processedData: filteredAndSortedData,
         listProps,
         listRef,
+        measureScrollbarRef,
         listContainerRef,
         trackScrollOffset,
         title,
@@ -117,6 +164,10 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         noResultsStateElement,
         tableListMetadata,
         isEmptyResult,
+        isBulkActionBarVisible,
+        isDefaultViewEmpty,
+        scrollWidth,
+        tableWidth,
     } = useTableContext<TableData>();
     const {
         ListEmptyComponent,
@@ -124,6 +175,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         ListFooterComponent,
         ListFooterComponentStyle,
         ListHeaderComponent,
+        ListHeaderComponentStyle,
         contentContainerStyle: listContentContainerStyle,
         getItemType,
         initialScrollIndex,
@@ -132,14 +184,22 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         onLoad,
         onChangeStickyIndex,
         onScroll,
+        onScrollBeginDrag,
         onStartReached,
         onViewableItemsChanged,
         overrideItemLayout,
+        overrideProps,
         renderItem,
         stickyHeaderIndices,
         viewabilityConfigCallbackPairs,
         ...restListProps
     } = listProps ?? {};
+
+    const handleScrollBeginDrag: NonNullable<typeof onScrollBeginDrag> = (event) => {
+        // Match native SelectionList behavior so a focused search cannot be dragged offscreen with the keyboard open.
+        dismissKeyboardOnDrag();
+        onScrollBeginDrag?.(event);
+    };
 
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
@@ -153,21 +213,27 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const contentMinHeight = flattenedContentContainerStyle?.minHeight;
     const {paddingBottom: tableBodyBottomPadding} = StyleSheet.flatten(tableBodyContentContainerStyle) ?? {};
 
-    const shouldRenderStickyHeader = tableListMetadata.shouldRenderStickyHeader;
+    const shouldRenderColumnHeaderAsStickyRow = rendersColumnHeaderAsStickyRow(tableListMetadata);
+    const shouldRenderColumnHeaderInListHeader = rendersColumnHeaderInListHeader(tableListMetadata);
     const hasRows = filteredAndSortedData.length > 0;
     const shouldRenderFlashList = hasRows || (tableListMetadata.hasPageHeader && isEmptyResult);
+
+    // Columns wider than the table, so this list's scroller takes the horizontal axis (see `getColumnScrollOverrideProps`).
+    // Only tables keeping their filter bar in the list scroll here. The rest are scrolled by an ancestor (see
+    // `TableSemanticContainer`). Web-only: native can't measure text, so it never content-sizes columns.
+    const isColumnScrollEnabled = !!scrollWidth && tableListMetadata.hasPageHeader && hasRows;
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
     const shouldApplyPageHeaderTable = isTableSemanticsEnabled && tableListMetadata.hasPageHeader && hasRows;
     const shouldApplyBodyRowGroup = isTableSemanticsEnabled && !tableListMetadata.hasPageHeader;
-    const semanticTableHasHeader = !tableListMetadata.hasPageHeader || tableListMetadata.shouldRenderStickyHeader;
+    const semanticTableHasHeader = rendersColumnHeader(tableListMetadata);
     const semanticColumnCount = columns.length + (selectionEnabled ? 1 : 0);
     const tableBodyAccessibilityProps = tableListMetadata.hasPageHeader
         ? getTableContainerAccessibilityProps(shouldApplyPageHeaderTable, title, filteredAndSortedData.length, semanticColumnCount, semanticTableHasHeader)
         : getRowGroupAccessibilityProps(shouldApplyBodyRowGroup);
-    const currentListState = {shouldRenderFlashList, shouldRenderStickyHeader};
+    const currentListState = {shouldRenderFlashList, shouldRenderColumnHeaderAsStickyRow};
     const [previousListState, setPreviousListState] = useState(currentListState);
     const shouldResetListLoad = previousListState.shouldRenderFlashList !== shouldRenderFlashList;
-    const shouldResetStickyHeader = previousListState.shouldRenderStickyHeader !== shouldRenderStickyHeader;
+    const shouldResetStickyHeader = previousListState.shouldRenderColumnHeaderAsStickyRow !== shouldRenderColumnHeaderAsStickyRow;
 
     if (shouldResetListLoad || shouldResetStickyHeader) {
         setPreviousListState(currentListState);
@@ -183,46 +249,33 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     }
 
     useEffect(() => {
-        if (!hasRows || !tableListMetadata.shouldRenderStickyHeader || !isListLoaded || hasActivatedStickyHeader) {
+        if (!hasRows || !shouldRenderColumnHeaderAsStickyRow || !isListLoaded || hasActivatedStickyHeader) {
             return;
         }
 
         const frame = requestAnimationFrame(() => setHasActivatedStickyHeader(true));
         return () => cancelAnimationFrame(frame);
-    }, [hasActivatedStickyHeader, hasRows, isListLoaded, tableListMetadata.shouldRenderStickyHeader]);
+    }, [hasActivatedStickyHeader, hasRows, isListLoaded, shouldRenderColumnHeaderAsStickyRow]);
 
-    const handleChangeStickyIndex: NonNullable<typeof onChangeStickyIndex> = useCallback(
-        (current, previous) => {
-            setActiveStickyHeaderIndex((activeIndex) => (activeIndex === current ? activeIndex : current));
-            onChangeStickyIndex?.(current, previous);
-        },
-        [onChangeStickyIndex],
-    );
+    const handleChangeStickyIndex: NonNullable<typeof onChangeStickyIndex> = (current, previous) => {
+        setActiveStickyHeaderIndex((activeIndex) => (activeIndex === current ? activeIndex : current));
+        onChangeStickyIndex?.(current, previous);
+    };
 
-    const handleViewableItemsChanged: NonNullable<typeof onViewableItemsChanged> = useCallback(
-        (info) => onViewableItemsChanged?.(getDataViewabilityInfo(info, tableListMetadata)),
-        [onViewableItemsChanged, tableListMetadata],
-    );
+    const handleViewableItemsChanged: NonNullable<typeof onViewableItemsChanged> = (info) => onViewableItemsChanged?.(getDataViewabilityInfo(info, tableListMetadata));
 
-    const viewabilityConfigCallbackPairsForList = useMemo(
-        () =>
-            viewabilityConfigCallbackPairs?.map((pair) => ({
-                ...pair,
-                onViewableItemsChanged: pair.onViewableItemsChanged ? (info: ViewabilityInfo) => pair.onViewableItemsChanged?.(getDataViewabilityInfo(info, tableListMetadata)) : null,
-            })),
-        [tableListMetadata, viewabilityConfigCallbackPairs],
-    );
+    const viewabilityConfigCallbackPairsForList = viewabilityConfigCallbackPairs?.map((pair) => ({
+        ...pair,
+        onViewableItemsChanged: pair.onViewableItemsChanged ? (info: ViewabilityInfo) => pair.onViewableItemsChanged?.(getDataViewabilityInfo(info, tableListMetadata)) : null,
+    }));
 
-    const overrideItemLayoutForList: NonNullable<typeof overrideItemLayout> = useCallback(
-        (layout, item, index, maxColumns, extraData) => {
-            if (getSyntheticRowKind(index, tableListMetadata) !== 'data') {
-                return;
-            }
+    const overrideItemLayoutForList: NonNullable<typeof overrideItemLayout> = (layout, item, index, maxColumns, extraData) => {
+        if (getSyntheticRowKind(index, tableListMetadata) !== 'data') {
+            return;
+        }
 
-            overrideItemLayout?.(layout, item, getDataIndex(index, tableListMetadata), maxColumns, extraData);
-        },
-        [overrideItemLayout, tableListMetadata],
-    );
+        overrideItemLayout?.(layout, item, getDataIndex(index, tableListMetadata), maxColumns, extraData);
+    };
 
     const initialScrollIndexForList = initialScrollIndex == null ? initialScrollIndex : getListIndex(initialScrollIndex, tableListMetadata);
 
@@ -239,11 +292,29 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     };
 
     const pageHeaderElement = tableListMetadata.hasPageHeader ? (
-        <View>
+        <View
+            style={isColumnScrollEnabled && [columnScrollPageHeaderStyle, tableWidth > 0 && StyleUtils.getWidthStyle(tableWidth)]}
+            // Measured unconditionally, so the height is known by the time the columns overflow and need it.
+            onLayout={(event) => setPageHeaderHeight(event.nativeEvent.layout.height)}
+            // Pairs with the scroller's marker so a stylesheet rule can suspend the columns on hover (see `web/index.html`).
+            dataSet={{tablePageHeader: true}}
+        >
             {renderListComponent(ListHeaderComponent)}
             {listHeaderElement}
         </View>
     ) : null;
+
+    // The column header sits here rather than in FlashList's sticky-row overlay so that the scroller holds it, which keeps
+    // it clear of the scrollbar and carries it sideways. Also one copy instead of the overlay's two, so no duplicate to
+    // hide from readers.
+    const listHeaderContent = shouldRenderColumnHeaderInListHeader ? (
+        <>
+            {pageHeaderElement}
+            {tableHeaderElement}
+        </>
+    ) : (
+        pageHeaderElement
+    );
 
     const EmptyResultComponent = (
         <View style={[styles.ph5, styles.pt3, styles.pb5]}>
@@ -256,8 +327,10 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         </View>
     );
 
-    const emptyStateContent =
-        tableListMetadata.hasPageHeader && isEmptyResult ? (noResultsStateElement ?? EmptyResultComponent) : (emptyStateElement ?? renderListComponent(ListEmptyComponent));
+    // When the default view hides every row (e.g. all workspaces are archived), no search or filter is active,
+    // so show the empty state rather than "No results".
+    const shouldShowNoResultsState = tableListMetadata.hasPageHeader && isEmptyResult && !isDefaultViewEmpty;
+    const emptyStateContent = shouldShowNoResultsState ? (noResultsStateElement ?? EmptyResultComponent) : (emptyStateElement ?? renderListComponent(ListEmptyComponent));
     const footerElement = renderListComponent(ListFooterComponent);
     // Consumer footer flex growth is useful below normal rows, but inside the combined empty-state
     // footer it can expand over the page header. Preserve the remaining style while disabling growth.
@@ -293,7 +366,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                         style={[styles.flex1, styles.mnh0]}
                         contentContainerStyle={[styles.flexGrow1, tableBodyContentContainerStyle]}
                         keyboardShouldPersistTaps="handled"
-                        showsVerticalScrollIndicator={false}
+                        onScrollBeginDrag={handleScrollBeginDrag}
                     >
                         <View style={[styles.flexGrow1, styles.justifyContentCenter]}>{emptyStateContent}</View>
                         {!!footerElement && <View style={emptyStateFooterStyle}>{footerElement}</View>}
@@ -310,7 +383,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     // A truly empty table still uses the standalone centered layout above.
     const listData = buildTableListData<TableData>(filteredAndSortedData, tableListMetadata);
     const adjustedStickyHeaderIndices = getAdjustedStickyHeaderIndices(tableListMetadata, stickyHeaderIndices);
-    const canRenderStickyHeader = !tableListMetadata.shouldRenderStickyHeader || (isListLoaded && hasActivatedStickyHeader);
+    const canRenderStickyHeader = !shouldRenderColumnHeaderAsStickyRow || (isListLoaded && hasActivatedStickyHeader);
     const isTableHeaderSticky = activeStickyHeaderIndex === tableListMetadata.stickyTableHeaderIndex;
     const shouldRenderEmptyStateInList = !hasRows && tableListMetadata.hasPageHeader;
 
@@ -330,12 +403,14 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
 
                 const isAccessibleTableHeader = info.target === (isTableHeaderSticky ? 'StickyHeader' : 'Cell');
                 const isAccessibilityHidden = isTableSemanticsEnabled && !isAccessibleTableHeader;
-                return React.cloneElement(tableHeaderElement, {
+                const headerElement = React.cloneElement(tableHeaderElement, {
                     isStickyListHeader: true,
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     'aria-hidden': isAccessibilityHidden ? true : undefined,
                     isAccessibilityHidden,
                 });
+
+                return headerElement;
             }
             case 'data':
             default: {
@@ -382,12 +457,19 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
             {...props}
         >
             <FlashList<TableData>
-                ref={listRef}
+                ref={(instance) => {
+                    listRef.current = instance;
+                    measureScrollbarRef(instance);
+                }}
                 data={listData}
-                style={[styles.flex1, styles.mnh0]}
-                showsVerticalScrollIndicator={false}
+                style={[styles.flex1, styles.mnh0, isBulkActionBarVisible && styles.bulkActionBarScrollPadding]}
                 maintainVisibleContentPosition={{disabled: true}}
-                ListHeaderComponent={pageHeaderElement}
+                ListHeaderComponent={listHeaderContent}
+                ListHeaderComponentStyle={[
+                    ListHeaderComponentStyle,
+                    // An unmeasured page header leaves nothing to offset the stack by, and 0 would pin it instead.
+                    pageHeaderHeight > 0 && shouldRenderColumnHeaderInListHeader && getColumnScrollListHeaderStyle(pageHeaderHeight),
+                ]}
                 ListEmptyComponent={shouldRenderEmptyStateInList ? emptyStateContent : ListEmptyComponent}
                 ListEmptyComponentStyle={[ListEmptyComponentStyle, shouldRenderEmptyStateInList && styles.flexGrow1, shouldRenderEmptyStateInList && styles.justifyContentCenter]}
                 ListFooterComponent={ListFooterComponent}
@@ -399,6 +481,9 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                     listContentContainerStyle,
                     tableBodyContentContainerStyle,
                     contentContainerStyle,
+                    isBulkActionBarVisible && styles.bulkActionBarListSpacing,
+                    // Absolutely positioned rows don't widen the scroller's content, so hold the scroll extent open.
+                    isColumnScrollEnabled && StyleUtils.getMinimumWidth(scrollWidth),
                     shouldRenderEmptyStateInList && styles.flexGrow1,
                     shouldUseNarrowTableLayout &&
                         typeof contentMinHeight === 'number' &&
@@ -407,6 +492,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                         },
                 ]}
                 keyboardShouldPersistTaps="handled"
+                onScrollBeginDrag={handleScrollBeginDrag}
                 renderItem={renderListItem}
                 keyExtractor={keyExtractorForList}
                 getItemType={getItemTypeForList}
@@ -422,6 +508,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                 }}
                 {...restListProps}
                 scrollEnabled={scrollEnabled}
+                overrideProps={isColumnScrollEnabled ? getColumnScrollOverrideProps(styles.overflowXAuto, overrideProps) : overrideProps}
             />
         </View>
     );

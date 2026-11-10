@@ -5,7 +5,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {FooterColumnRow} from '@pages/signin/SignInPageLayout/types';
+import type {FooterLink} from '@pages/signin/SignInPageLayout/types';
 
 import {openLink as openLinkUtil} from '@userActions/Link';
 
@@ -14,24 +14,25 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {GestureResponderEvent, StyleProp, TextStyle} from 'react-native';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
-type FooterRowProps = FooterColumnRow & {
+type FooterRowProps = FooterLink & {
     text: string;
     style: StyleProp<TextStyle>;
 };
 
-function FooterRow({href, onPress, translationPath, text, style}: FooterRowProps) {
+function FooterRow({href, onPress, sentryLabel, text, style}: FooterRowProps) {
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
     return (
         <PressableWithoutFeedback
             accessible
             accessibilityRole={CONST.ROLE.LINK}
             accessibilityLabel={text}
-            sentryLabel={translationPath}
+            sentryLabel={sentryLabel}
             onPress={() => {
                 if (onPress) {
                     onPress({} as GestureResponderEvent);

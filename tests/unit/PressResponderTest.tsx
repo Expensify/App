@@ -7,7 +7,9 @@ import usePressResponderProps from '@components/Pressable/PressResponder/usePres
 import useResponderRef from '@components/Pressable/PressResponder/useResponderRef';
 import Text from '@components/Text';
 
-import type {ReactNode, Ref} from 'react';
+import CONST from '@src/CONST';
+
+import type {ComponentRef, ReactNode, Ref} from 'react';
 import type {GestureResponderEvent, View as RNViewType} from 'react-native';
 
 import React, {useImperativeHandle} from 'react';
@@ -40,7 +42,7 @@ function Probe({consumerOnPress, consumerNativeID, consumerAccessibilityState, c
             nativeID={merged.nativeID}
             accessibilityState={merged.accessibilityState}
             accessibilityLabel="probe"
-            sentryLabel="probe"
+            sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
         >
             <Text>probe</Text>
         </PressableWithFeedback>
@@ -73,7 +75,7 @@ describe('PressResponder', () => {
 
         it('useResponderRef returns the consumer ref unchanged', () => {
             const probeRef = React.createRef<ProbeHandle>();
-            const consumerRef = React.createRef<RNViewType>();
+            const consumerRef = React.createRef<ComponentRef<typeof RNViewType>>();
             render(
                 <Probe
                     consumerRef={consumerRef as PressableProps['ref']}
@@ -181,8 +183,8 @@ describe('PressResponder', () => {
     describe('ref handling', () => {
         it('merges the consumer ref with the responder ref', () => {
             const probeRef = React.createRef<ProbeHandle>();
-            const responderRef = React.createRef<RNViewType>();
-            const consumerRef = React.createRef<RNViewType>();
+            const responderRef = React.createRef<ComponentRef<typeof RNViewType>>();
+            const consumerRef = React.createRef<ComponentRef<typeof RNViewType>>();
             render(
                 <PressResponder
                     ref={responderRef as PressableProps['ref']}
@@ -200,7 +202,7 @@ describe('PressResponder', () => {
 
         it('returns the consumer ref unchanged when responder has no ref', () => {
             const probeRef = React.createRef<ProbeHandle>();
-            const consumerRef = React.createRef<RNViewType>();
+            const consumerRef = React.createRef<ComponentRef<typeof RNViewType>>();
             render(
                 <PressResponder
                     ref={undefined}
