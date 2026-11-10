@@ -23,15 +23,15 @@ function getReportIDToNameMapForRoomsInMarkdown(reportIDToName: ReportIDToNameMa
     return map;
 }
 
-// Same reportID capture as ExpensiMark's reportMentions rule, which accepts the ID with or without quotes
-const MENTION_REPORT_ID_REGEX = /<mention-report reportID="?(\d+)"?/g;
+// Same reportID capture and flags as ExpensiMark's reportMentions rule, which accepts the ID with or without quotes and in any case
+const MENTION_REPORT_ID_REGEX = /<mention-report reportID="?(\d+)"?/gi;
 
 // Any non-empty room name works as a placeholder, because every room name starts with #
 const MENTIONED_ROOM_PLACEHOLDER = '#room';
 
 /** Returns the unique reportIDs of the `<mention-report reportID="...">` tags in the given HTML. */
 function getMentionedReportIDs(html: string | undefined): string[] {
-    if (!html?.includes('<mention-report reportID')) {
+    if (!html || !/<mention-report reportID/i.test(html)) {
         return [];
     }
     return [...new Set(Array.from(html.matchAll(MENTION_REPORT_ID_REGEX), (match) => match[1]))];

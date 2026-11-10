@@ -155,6 +155,17 @@ describe('getMentionedReportIDs', () => {
         expect(reportIDs).toEqual(['1', '2', '3']);
     });
 
+    it('returns the reportID when the attribute name is lowercase', () => {
+        // Given HTML that went through a DOM serializer, which lowercases attribute names, and that ExpensiMark still accepts
+        const html = 'hello <mention-report reportid="123"></mention-report>';
+
+        // When reading the mentioned reportIDs
+        const reportIDs = getMentionedReportIDs(html);
+
+        // Then the room is still found, so ExpensiMark gets its name instead of logging a missing report name
+        expect(reportIDs).toEqual(['123']);
+    });
+
     it('returns each reportID once when a room is mentioned several times', () => {
         // Given HTML that mentions the same room twice
         const html = '<mention-report reportID="1"></mention-report> and again <mention-report reportID="1"></mention-report>';
