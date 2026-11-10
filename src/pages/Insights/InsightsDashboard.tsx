@@ -246,7 +246,7 @@ function InsightsDashboardContent({
                         snapshot={headlineChart.snapshot}
                         previousPeriodQueryJSON={headlineChart.previousPeriodQueryJSON}
                         previousPeriodSnapshot={headlineChart.previousPeriodSnapshot}
-                        averageTotal={headlineChart.averageTotal}
+                        average={headlineChart.average}
                         isDashboardLoaded={headlineChart.isDashboardLoaded}
                         filters={filters}
                         insightsScope={insightsScope}
@@ -260,7 +260,7 @@ function InsightsDashboardContent({
                                 key={columnIndex}
                                 style={[styles.flex1, styles.insightsChartColumn(shouldUseNarrowLayout)]}
                             >
-                                {columnCharts.map(({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageTotal, isDashboardLoaded}) => (
+                                {columnCharts.map(({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, average, isDashboardLoaded}) => (
                                     <InsightsChartWidget
                                         key={chart.graphKey}
                                         dashboardID={dashboardID}
@@ -269,7 +269,7 @@ function InsightsDashboardContent({
                                         snapshot={snapshot}
                                         previousPeriodQueryJSON={previousPeriodQueryJSON}
                                         previousPeriodSnapshot={previousPeriodSnapshot}
-                                        averageTotal={averageTotal}
+                                        average={average}
                                         isDashboardLoaded={isDashboardLoaded}
                                         filters={filters}
                                         insightsScope={insightsScope}
@@ -301,7 +301,12 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     const isFocused = useIsFocused();
     const {login} = useCurrentUserPersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const {filters, defaultFilters, isResolved, setFilters} = useInsightsFilters(dashboardID);
+    const arePoliciesLoaded = policies !== undefined;
+    // Checked against the next filters, because a workspace change can turn the upsell on or off
+    const {filters, defaultFilters, isResolved, setFilters} = useInsightsFilters(
+        dashboardID,
+        (next) => arePoliciesLoaded && shouldUpsellControlPlan(dashboardID, getPoliciesInScope(policies, next.policyIDs), next.policyIDs, login),
+    );
     const {headerRef, controlsRef, contentRef, isExporting, isLoading: isChartLoading, exportDashboard, captureContext} = useInsightsExport(dashboardID, filters);
     const updateFilters = (update: Partial<InsightsFilters>) => {
         if (isExporting) {
@@ -309,11 +314,10 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         }
         setFilters(update);
     };
-    const {headlineChart: headlineSpec, supportingCharts: supportingSpecs} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
+    const {headlineChart: headlineSpec, supportingCharts: supportingSpecs, isPolicyEligible: isDashboardPolicyEligible} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
     const policiesInScope = getPoliciesInScope(policies, filters.policyIDs);
-    const eligibleCharts = getVisibleCharts(supportingSpecs, policiesInScope, login);
+    const eligibleCharts = getVisibleCharts(supportingSpecs, policiesInScope, login, isDashboardPolicyEligible);
     const eligibleGraphKeys = eligibleCharts.map(({graphKey}) => graphKey).join(',');
-    const arePoliciesLoaded = policies !== undefined;
     // Settled from the policies already in Onyx, so the charts are never requested for a dashboard the upsell stands in for
     const shouldUpsell = arePoliciesLoaded && shouldUpsellControlPlan(dashboardID, policiesInScope, filters.policyIDs, login);
     const upgradeablePolicyIDs = shouldUpsell ? getUpgradeablePolicyIDsInScope(policiesInScope, login) : [];
@@ -354,13 +358,16 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             [queryJSON, previousPeriodQueryJSON].flatMap((chartQueryJSON) => (chartQueryJSON ? [String(chartQueryJSON.hash)] : [])),
         ),
     );
-    const charts: InsightsDashboardChart[] = visibleChartQueries.map((chartQuery) => ({
-        ...chartQuery,
-        snapshot: chartQuery.queryJSON ? snapshots[chartQuery.queryJSON.hash] : undefined,
-        previousPeriodSnapshot: chartQuery.previousPeriodQueryJSON ? snapshots[chartQuery.previousPeriodQueryJSON.hash] : undefined,
-        averageTotal: dashboard?.graphs?.[chartQuery.chart.graphKey]?.average,
-        isDashboardLoaded: hasDashboardResponse(dashboard),
-    }));
+    const charts = visibleChartQueries.map((chartQuery): InsightsDashboardChart => {
+        const graph = dashboard?.graphs?.[chartQuery.chart.graphKey];
+        return {
+            ...chartQuery,
+            snapshot: chartQuery.queryJSON ? snapshots[chartQuery.queryJSON.hash] : undefined,
+            previousPeriodSnapshot: chartQuery.previousPeriodQueryJSON ? snapshots[chartQuery.previousPeriodQueryJSON.hash] : undefined,
+            average: {[CONST.SEARCH.CHART_METRIC.AMOUNT]: graph?.averageAmount, [CONST.SEARCH.CHART_METRIC.COUNT]: graph?.averageCount},
+            isDashboardLoaded: hasDashboardResponse(dashboard),
+        };
+    });
     const [headlineChart, ...supportingCharts] = charts;
     const state = getDashboardState(dashboard, isOffline, charts, shouldUpsell, hasLoadedBefore);
 
@@ -378,6 +385,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                 filters={filters}
                 defaultFilters={defaultFilters}
                 onChange={updateFilters}
+                isPolicyAvailable={isDashboardPolicyEligible ? (policy) => isDashboardPolicyEligible(policy, login) : undefined}
                 captureRef={controlsRef}
                 onExport={exportDashboard}
                 isExporting={isExporting}

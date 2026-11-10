@@ -1,3 +1,5 @@
+import type {ChartAverage} from '@components/Search/buildChartSeries';
+
 import {hasGroupWithExpenses} from '@libs/resolveInsightsChartData';
 import {isGroupEntry, isSearchDataLoaded} from '@libs/SearchUIUtils';
 
@@ -27,7 +29,7 @@ type InsightsDashboardState = ValueOf<typeof INSIGHTS_DASHBOARD_STATE>;
 type InsightsDashboardChart = InsightsChartQuery & {
     snapshot: OnyxEntry<SearchResults>;
     previousPeriodSnapshot?: OnyxEntry<SearchResults>;
-    averageTotal?: number;
+    average?: ChartAverage;
     isDashboardLoaded?: boolean;
 };
 

@@ -42,8 +42,23 @@ import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 
 const MIN_MEMBERS_FOR_ACCOUNTANT_INVITED = 2;
 
+type GettingStartedItemKey =
+    | 'createWorkspace'
+    | 'createExpense'
+    | 'customizeExpenseCategories'
+    | 'customizeSpendCategories'
+    | 'customizeCategories'
+    | 'linkPersonalCard'
+    | 'linkCompanyCards'
+    | 'issueExpensifyCards'
+    | 'setupTravel'
+    | 'inviteAccountant'
+    | 'connectAccounting'
+    | 'configureApprovals'
+    | 'setupRules';
+
 type GettingStartedItem = {
-    key: string;
+    key: GettingStartedItemKey;
     label: string;
     subText: string;
     isComplete: boolean;
@@ -370,4 +385,4 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
 }
 
 export default useGettingStartedItems;
-export type {GettingStartedItem};
+export type {GettingStartedItem, GettingStartedItemKey};

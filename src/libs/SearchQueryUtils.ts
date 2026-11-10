@@ -209,6 +209,14 @@ function isFooterTotal(value: string): value is SearchFooterTotal {
 }
 
 const VALID_GROUP_BYS = new Set<string>(Object.values(CONST.SEARCH.GROUP_BY));
+
+/** Group-bys only Insights queries use. The Search command doesn't return data for them yet (see https://github.com/Expensify/App/issues/105303) */
+const INSIGHTS_ONLY_GROUP_BYS = new Set<string>([CONST.SEARCH.GROUP_BY.VIOLATION]);
+
+function isGroupBySupportedBySearch(groupBy: string | undefined): boolean {
+    return !groupBy || !INSIGHTS_ONLY_GROUP_BYS.has(groupBy);
+}
+
 // Create reverse lookup maps for O(1) performance
 const createKeyToUserFriendlyMap = () => {
     const map = new Map<string, string>();
@@ -3179,6 +3187,34 @@ function buildFilterQueryWithSortDefaults(
 }
 
 /**
+ * Restores sorting omitted from readable search input unless the user specifies sorting
+ * or changes the search type, grouping, or view in a way that requires new defaults.
+ * rawQuery must be the submitted input before normalization adds default sort fields.
+ */
+function getQueryWithPreservedSort(query: SearchQueryString, previousQuery: Readonly<SearchQueryJSON>, rawQuery: SearchQueryString): SearchQueryString {
+    // Clearing the input starts a fresh search rather than editing the saved filters.
+    if (!rawQuery.trim()) {
+        return query;
+    }
+
+    const queryJSON = buildSearchQueryJSON(query, rawQuery);
+    if (!queryJSON || queryJSON.type !== previousQuery.type) {
+        return query;
+    }
+
+    const hasExplicitSort = queryJSON.rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY || filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER);
+    if (
+        hasExplicitSort ||
+        shouldResetSort({newGroupBy: queryJSON.groupBy, oldGroupBy: previousQuery.groupBy}) ||
+        shouldResetSortForViewChange({newView: queryJSON.view, oldView: previousQuery.view, groupBy: queryJSON.groupBy})
+    ) {
+        return query;
+    }
+
+    return buildSearchQueryString({...queryJSON, sortBy: previousQuery.sortBy, sortOrder: previousQuery.sortOrder});
+}
+
+/**
  * Builds an optimistic Snapshot update to ensure offline data for Tasks and Chat messages appears in Search.
  */
 function buildOptimisticSnapshotData(type: SearchDataTypes, data: NullishDeep<SearchResultDataType>): OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT> | undefined {
@@ -3390,6 +3426,7 @@ export {
     getFooterSelectionFromQuery,
     getQueryWithFooterSelection,
     getQueryWithoutGroupBy,
+    isGroupBySupportedBySearch,
     hasFiltersChangedFromDefault,
     isSearchQuerySavable,
     getChangedDisplayOptionsCount,
@@ -3416,6 +3453,7 @@ export {
     sanitizeSearchValue,
     getKeywordQueryForSearchInput,
     getQueryWithUpdatedValues,
+    getQueryWithPreservedSort,
     getKeywordQueryWithCurrentSearchContext,
     getCurrentSearchQueryJSON,
     getSearchRootParamsFromRootState,

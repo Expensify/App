@@ -846,6 +846,13 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/export/ZohoBooksDefaultCompanyCardVendorPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_COMPANY_CARD_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/export/ZohoBooksCompanyCardAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_CARD_PROGRAM_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/export/ZohoBooksCardProgramAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_CARD_PROGRAM_ACCOUNT_SELECTOR]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/export/ZohoBooksCardProgramAccountSelectorPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_CARD_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/export/ZohoBooksCardAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_CARD_ACCOUNT_CARD_LIST]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/export/ZohoBooksCardAccountCardListPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_EXISTING_CONNECTIONS]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/ZohoBooksExistingConnectionsPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_ORGANIZATION_SELECTOR]: () =>
@@ -1075,6 +1082,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_SETUP]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/CampfireSetupPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_EXISTING_CONNECTIONS]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/CampfireExistingConnectionsPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_OAUTH]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/digits/DigitsOAuthPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_EXISTING_CONNECTIONS]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/digits/DigitsExistingConnectionsPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_SUBSIDIARY_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/CampfireSubsidiarySelector').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/import/CampfireImportPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_EXPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/export/CampfireExportPage').default,
