@@ -30,12 +30,14 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {
     clearCreateDistanceRateItemAndError,
     clearDeleteDistanceRateError,
+    clearPolicyDistanceRateErrorFields,
     deletePolicyDistanceRates,
     openPolicyDistanceRatesPage,
     setPolicyDistanceRatesEnabled,
 } from '@libs/actions/Policy/DistanceRate';
 import {renameDistanceRateInline, updateDistanceRateValueInline, updateDistanceTaxClaimableValueInline} from '@libs/actions/Policy/InlineEdit';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
+import {getLatestErrorFieldForAnyField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getTaxReclaimableAmount} from '@libs/PolicyDistanceRatesUtils';
@@ -262,6 +264,11 @@ function PolicyDistanceRatesPage({
             clearDeleteDistanceRateError(policyID, customUnitID, rateID);
             return;
         }
+        const errorFields = customUnitRates[rateID]?.errorFields;
+        if (errorFields && Object.keys(errorFields).length > 0) {
+            clearPolicyDistanceRateErrorFields(policyID, customUnitID, rateID, Object.fromEntries(Object.keys(errorFields).map((field) => [field, null])));
+            return;
+        }
         clearCreateDistanceRateItemAndError(policyID, customUnitID, rateID);
     };
 
@@ -298,7 +305,7 @@ function PolicyDistanceRatesPage({
             taxReclaimableAmount,
             formattedTaxReclaimable: taxReclaimableAmount !== undefined ? convertAmountToDisplayString(taxReclaimableAmount, rateCurrency) : '',
             pendingAction: resolvedPendingAction ?? undefined,
-            errors: rate.errors ?? undefined,
+            errors: rate.errors ?? getLatestErrorFieldForAnyField(rate),
             canEditName: canWriteDistanceRates && !isDeleting && !isSelectionModeActive,
             canEditRate: canWriteDistanceRates && !isDeleting && !isSelectionModeActive,
             canEditTaxReclaimable: canWriteDistanceRates && !isDeleting && !isSelectionModeActive && (hasTaxRate || !!rate.attributes?.taxClaimablePercentage),

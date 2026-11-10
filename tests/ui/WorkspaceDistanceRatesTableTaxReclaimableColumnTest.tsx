@@ -393,20 +393,16 @@ describe('PolicyDistanceRatesPage tax reclaimable column', () => {
         accessSpy.mockRestore();
     });
 
-    it('restores the amount after a failed tax save without removing the rate', async () => {
-        // Given an existing amount and the canonical action data for a new percentage
+    it.each(['name', 'rate', 'taxClaimablePercentage'] as const)('shows a failed %s save and dismisses its error without removing the rate', async (field) => {
+        // Given an existing rate and canonical update data, all inline fields must report failures consistently
         const rate = buildRate('cars', {attributes: {taxClaimablePercentage: 0.5, taxRateExternalID: TAX_RATE_ID}});
         const customUnit = buildPolicy([rate], true, true).customUnits?.[CUSTOM_UNIT_ID];
         if (!customUnit) {
             throw new Error('Expected the distance custom unit');
         }
         await renderPage([rate]);
-        const {optimisticData, failureData} = buildOnyxDataForPolicyDistanceRateUpdates(
-            POLICY_ID,
-            customUnit,
-            [{...rate, attributes: {...rate.attributes, taxClaimablePercentage: 0.2}}],
-            'taxClaimablePercentage',
-        );
+        const updatedRate = {...rate, name: 'Updated name', rate: 2000, attributes: {...rate.attributes, taxClaimablePercentage: 0.2}};
+        const {optimisticData, failureData} = buildOnyxDataForPolicyDistanceRateUpdates(POLICY_ID, customUnit, [updatedRate], field);
 
         // When the backend rejects the update, the canonical failure data restores the amount and attaches a field error
         await act(async () => {
@@ -415,11 +411,71 @@ describe('PolicyDistanceRatesPage tax reclaimable column', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        // Then the amount is restored and the rate remains, matching Name and Rate field-error handling
-        expect(screen.queryByText(TestHelper.translateLocal('common.genericErrorMessage'))).toBeNull();
+        // Then the original values return and the server failure is visible instead of silently reverting
+        expect(screen.getByText(TestHelper.translateLocal('common.genericErrorMessage'))).toBeTruthy();
         expect(capturedData.at(0)?.rateID).toBe('cars');
         expect(screen.getByText('$5.00')).toBeTruthy();
-        expect(capturedData.at(0)?.errors).toBeUndefined();
-        expect(capturedData.at(0)?.rate.errorFields?.taxClaimablePercentage).toBeDefined();
+        expect(capturedData.at(0)?.rate).toMatchObject({name: rate.name, rate: rate.rate, attributes: rate.attributes});
+        expect(capturedData.at(0)?.pendingAction).toBeUndefined();
+        expect(capturedData.at(0)?.rate.errorFields?.[field]).toBeDefined();
+
+        // When the user dismisses the failed edit, it must not take the failed-create removal path
+        await act(async () => capturedData.at(0)?.dismissError());
+        await waitForBatchedUpdatesWithAct();
+
+        // Then only the error is cleared and the restored rate remains in both Onyx and the table
+        expect(screen.queryByText(TestHelper.translateLocal('common.genericErrorMessage'))).toBeNull();
+        expect(capturedData.at(0)?.rateID).toBe('cars');
+        expect(capturedData.at(0)?.rate.errorFields?.[field]).toBeFalsy();
+        expect(capturedData.at(0)?.rate).toMatchObject({name: rate.name, rate: rate.rate, attributes: rate.attributes});
+    });
+
+    it('dismisses simultaneous field errors without changing either rate', async () => {
+        // Given multiple failed edits and already-cleared fields, every displayed field error must be dismissible
+        const rate = buildRate('cars', {
+            attributes: {taxClaimablePercentage: 0.5, taxRateExternalID: TAX_RATE_ID},
+            errorFields: {name: {nameError: 'Name save failed'}, rate: {rateError: 'Rate save failed'}, taxClaimablePercentage: {taxError: 'Tax save failed'}, enabled: null, currency: {}},
+        });
+        const otherRate = buildRate('bikes');
+        await renderPage([rate, otherRate]);
+        expect(capturedData.find((row) => row.rateID === 'cars')?.errors).toEqual({nameError: 'Name save failed', rateError: 'Rate save failed', taxError: 'Tax save failed'});
+
+        // When the user dismisses the row feedback once
+        await act(async () => capturedData.find((row) => row.rateID === 'cars')?.dismissError());
+        await waitForBatchedUpdatesWithAct();
+
+        // Then all aggregated errors clear without deleting a rate or changing its saved attributes
+        expect(capturedData.find((row) => row.rateID === 'cars')?.errors).toEqual({});
+        expect(capturedData.find((row) => row.rateID === 'cars')?.rate).toMatchObject({
+            name: rate.name,
+            rate: rate.rate,
+            currency: rate.currency,
+            enabled: rate.enabled,
+            attributes: rate.attributes,
+        });
+        expect(capturedData.find((row) => row.rateID === 'bikes')?.rate).toEqual(otherRate);
+        expect(screen.queryByText('Tax save failed')).toBeNull();
+    });
+
+    it('keeps row errors ahead of field errors and dismisses both without removing the rate', async () => {
+        // Given a restored row-level failure alongside a failed inline edit, existing row-error handling takes precedence
+        await renderPage([buildRate('cars', {errors: {deleteError: 'Delete failed'}, errorFields: {name: {nameError: 'Name save failed'}}})]);
+        expect(capturedData.at(0)?.errors).toEqual({deleteError: 'Delete failed'});
+
+        // When the row-level error is dismissed, the field error must remain available
+        await act(async () => capturedData.at(0)?.dismissError());
+        await waitForBatchedUpdatesWithAct();
+        expect(capturedData.at(0)?.rateID).toBe('cars');
+        expect(capturedData.at(0)?.errors).toEqual({nameError: 'Name save failed'});
+
+        // When the remaining field error is dismissed
+        await act(async () => capturedData.at(0)?.dismissError());
+        await waitForBatchedUpdatesWithAct();
+
+        // Then both errors are gone and the restored row was never removed
+        expect(capturedData.at(0)?.rateID).toBe('cars');
+        expect(capturedData.at(0)?.errors).toEqual({});
+        expect(screen.queryByText('Delete failed')).toBeNull();
+        expect(screen.queryByText('Name save failed')).toBeNull();
     });
 });
