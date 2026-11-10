@@ -55,9 +55,8 @@ type CardFeedForDisplay = {
     linkedPolicyIDs?: string[];
 
     /**
-     * Supporting text shown beneath the feed name in the Spend page feed filter so feeds of the same
-     * type can be told apart: the origin workspace name (workspace-level feeds) or the domain
-     * (domain-level feeds).
+     * Supporting text in the Spend page feed filter and Add cards "From other workspaces" list so feeds
+     * of the same type can be told apart: the preferred workspace name or the domain backing the feed.
      */
     subtitle?: string;
 };
@@ -198,7 +197,7 @@ function getExpensifyCardFeedsForDisplay(
 }
 
 /**
- * Resolves the domain/workspace supporting text for a company card feed shown in the Spend page feed filter.
+ * Resolves the domain/workspace supporting text for company card feed filters and selectors.
  *
  * Workspace-level feeds show the origin workspace name via `preferredPolicy`. That is the workspace where the feed
  * was originally configured, even when it is shared to several workspaces. Domain-level feeds (no
@@ -506,6 +505,7 @@ function getVisibleCompanyCardFeedsForSelector(
                 fundID,
                 linkedPolicyIDs,
                 name: getCustomOrFormattedFeedName(translate, feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
+                subtitle: getCompanyFeedSubtitle(feedData, fundID, policies, domains),
             });
         }
     }

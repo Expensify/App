@@ -42,7 +42,6 @@ const mockUseThemeStyles = jest.fn<MockUseThemeStylesReturn, []>();
 const mockGetCardFeedIcon = jest.fn<string, []>();
 const mockGetCardFeedWithDomainID = jest.fn<string, [feed: string, fundID: number]>();
 const mockGetCustomOrFormattedFeedName = jest.fn<string, [translate: MockUseLocalizeReturn['translate'], feedName: string, customName?: string]>();
-const mockGetDomainByFundID = jest.fn<{email?: string} | undefined, [allDomains: Record<string, {email?: string}> | undefined, fundID: number]>();
 const mockGetPlaidInstitutionIconUrl = jest.fn<string | undefined, [feedName: string]>();
 
 jest.mock('@hooks/useOnyx', () => ({
@@ -61,7 +60,6 @@ jest.mock('@libs/CardUtils', () => ({
     getCardFeedWithDomainID: (feed: string, fundID: number): string => mockGetCardFeedWithDomainID(feed, fundID),
     getCustomOrFormattedFeedName: (translate: MockUseLocalizeReturn['translate'], feedName: string, customName?: string): string =>
         mockGetCustomOrFormattedFeedName(translate, feedName, customName),
-    getDomainByFundID: (allDomains: Record<string, {email?: string}> | undefined, fundID: number): {email?: string} | undefined => mockGetDomainByFundID(allDomains, fundID),
     getPlaidInstitutionIconUrl: (feedName: string): string | undefined => mockGetPlaidInstitutionIconUrl(feedName),
 }));
 
@@ -146,7 +144,6 @@ describe('useOtherFeedsForFeedSelector', () => {
         mockGetCardFeedIcon.mockReturnValue('mock-icon');
         mockGetCardFeedWithDomainID.mockImplementation((feed: string, fundID: number) => `${feed}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${fundID}`);
         mockGetCustomOrFormattedFeedName.mockImplementation((translate: MockUseLocalizeReturn['translate'], feedName: string, customName?: string) => customName ?? translate(feedName));
-        mockGetDomainByFundID.mockImplementation((allDomains: Record<string, {email?: string}> | undefined, fundID: number) => allDomains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${fundID}`]);
         mockGetPlaidInstitutionIconUrl.mockReturnValue(undefined);
         mockVisibleFeeds([]);
     });
@@ -286,23 +283,32 @@ describe('useOtherFeedsForFeedSelector', () => {
         });
     });
 
-    it('should use domain email domain for alternateText when domain data exists', () => {
+    it.each(['Preferred workspace', 'acme.corp'])('should use the resolved subtitle %s before the linked workspace name', (subtitle) => {
+        // Given a resolved workspace or domain subtitle and a different linked workspace name
         mockVisibleFeeds([
             {
                 id: '999_visa',
                 feed: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
                 fundID: '999',
                 name: 'Visa feed',
-                linkedPolicyIDs: ['policy_unrelated'],
+                subtitle,
+                linkedPolicyIDs: [otherPolicyID],
             },
         ]);
 
+        // When the hook builds the selectable row
         const {result} = renderHook(() => useOtherFeedsForFeedSelector(currentPolicyID));
 
-        expect(result.current.at(0)?.alternateText).toBe('acme.corp');
+        // Then the subtitle is displayed without changing the feed's selection identifiers
+        expect(result.current.at(0)).toMatchObject({
+            alternateText: subtitle,
+            value: '999_visa',
+            selectionValue: `${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}999`,
+        });
     });
 
-    it('should use linked policy name for alternateText when domain email is missing', () => {
+    it('should use linked policy name for alternateText when the subtitle is unavailable', () => {
+        // Given a feed without a resolved subtitle but with a loaded linked workspace
         mockUseOnyx.mockImplementation((key: string) => {
             if (key === ONYXKEYS.COLLECTION.DOMAIN) {
                 return [{}, {status: 'loaded'}];
@@ -323,8 +329,33 @@ describe('useOtherFeedsForFeedSelector', () => {
             },
         ]);
 
+        // When the hook builds the selectable row
         const {result} = renderHook(() => useOtherFeedsForFeedSelector(currentPolicyID));
 
+        // Then the linked workspace name remains the fallback
         expect(result.current.at(0)?.alternateText).toBe('Other workspace');
+    });
+
+    it.each([
+        {linkedPolicyIDs: ['missing_policy'], expectedSubtitle: 'missing_policy'},
+        {linkedPolicyIDs: undefined, expectedSubtitle: undefined},
+    ])('preserves the final fallback for linkedPolicyIDs=$linkedPolicyIDs', ({linkedPolicyIDs, expectedSubtitle}) => {
+        // Given no resolved subtitle and no loaded linked workspace name
+        mockVisibleFeeds([
+            {
+                id: '999_cdf',
+                feed: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
+                fundID: '999',
+                name: 'Mastercard',
+                linkedPolicyIDs,
+            },
+        ]);
+
+        // When the hook builds the selectable row
+        const {result} = renderHook(() => useOtherFeedsForFeedSelector(currentPolicyID));
+
+        // Then it retains the linked ID fallback or leaves the subtitle blank when no identifying data exists
+        expect(result.current).toHaveLength(1);
+        expect(result.current.at(0)?.alternateText).toBe(expectedSubtitle);
     });
 });

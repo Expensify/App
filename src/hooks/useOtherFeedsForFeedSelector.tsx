@@ -3,7 +3,7 @@ import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import type {ListItem} from '@components/SelectionList/types';
 
 import {getVisibleCompanyCardFeedsForSelector} from '@libs/CardFeedUtils';
-import {getCardFeedIcon, getCardFeedWithDomainID, getCustomOrFormattedFeedName, getDomainByFundID, getPlaidInstitutionIconUrl} from '@libs/CardUtils';
+import {getCardFeedIcon, getCardFeedWithDomainID, getCustomOrFormattedFeedName, getPlaidInstitutionIconUrl} from '@libs/CardUtils';
 
 import variables from '@styles/variables';
 
@@ -11,7 +11,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
-import {Str} from 'expensify-common';
 import React from 'react';
 
 import useCardFeedErrors from './useCardFeedErrors';
@@ -75,13 +74,9 @@ function useOtherFeedsForFeedSelector(policyID: string): CardFeedListItem[] {
                 continue;
             }
             const plaidUrl = getPlaidInstitutionIconUrl(feedName);
-            // Use the same fundID-aware domain lookup as the visibility logic (`getVisibleCompanyCardFeedsForSelector`)
-            // so the domain email resolves even when the domains collection isn't keyed by fundID.
-            const domain = getDomainByFundID(allDomains, Number(feed.fundID));
             const firstLinkedPolicyID = feed?.linkedPolicyIDs?.at(0);
             // POLICY collection entries are keyed by uppercase policy IDs, so we uppercase before indexing (matches the Expensify-card path).
             const linkedPolicy = firstLinkedPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstLinkedPolicyID.toUpperCase()}`] : undefined;
-            const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
             const shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feed.id];
 
             otherPolicyFeeds.push({
@@ -90,7 +85,7 @@ function useOtherFeedsForFeedSelector(policyID: string): CardFeedListItem[] {
                 feed: feedName,
                 fundID,
                 country: feed?.country,
-                alternateText: domainName ?? linkedPolicy?.name ?? firstLinkedPolicyID,
+                alternateText: feed.subtitle ?? linkedPolicy?.name ?? firstLinkedPolicyID,
                 text: getCustomOrFormattedFeedName(translate, feedName, feed.name),
                 keyForList: feed.id,
                 isSelected: feed.id === selectedFeedName,
