@@ -2,8 +2,8 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useNextStep from '@hooks/useNextStep';
 import useOnyx from '@hooks/useOnyx';
-import useOptimisticNextStep from '@hooks/useOptimisticNextStep';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {buildNextStepMessage} from '@libs/NextStepUtils';
@@ -29,22 +29,22 @@ type MoneyReportHeaderNextStepProps = {
 function MoneyReportHeaderNextStep({reportID}: MoneyReportHeaderNextStepProps) {
     const {isOffline} = useNetwork();
     const isLoadingInitialReportActions = useIsReportLoadPending(reportID);
-    const optimisticNextStep = useOptimisticNextStep(reportID);
+    const nextStep = useNextStep(reportID);
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [reportType] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: getReportType});
 
-    const showNextStepBar = !!optimisticNextStep && 'messageKey' in optimisticNextStep;
-    const showNextStepSkeleton = !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline;
+    const showNextStepBar = !!nextStep;
+    const showNextStepSkeleton = !nextStep && !!isLoadingInitialReportActions && !isOffline;
 
     if (showNextStepBar) {
         return (
             <MoneyReportHeaderHistoryButton
-                message={Parser.htmlToText(buildNextStepMessage(optimisticNextStep, translate, dateFnsLocale, currentUserPersonalDetails.accountID, formatPhoneNumber, reportType))}
+                message={Parser.htmlToText(buildNextStepMessage(nextStep, translate, dateFnsLocale, currentUserPersonalDetails.accountID, formatPhoneNumber, reportType))}
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_NEXT_STEP}
             >
                 <MoneyReportHeaderStatusBar
-                    nextStep={optimisticNextStep}
+                    nextStep={nextStep}
                     reportType={reportType}
                 />
             </MoneyReportHeaderHistoryButton>
