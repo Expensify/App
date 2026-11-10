@@ -11,8 +11,21 @@ on:
         description: 'The full URL of the E/App pull request'
         required: true
         type: string
+      REVIEWED_CODE:
+        description: I reviewed this pull request and verified that it does not contain any malicious code.
+        type: boolean
+        required: true
+        default: false
 
 jobs:
+  # Validates the actor and that they reviewed the PR before any token is used or untrusted code is checked out.
+  prep:
+    uses: ./.github/workflows/validateBuildRequest.yml
+    with:
+      REVIEWED_CODE: ${{ inputs.REVIEWED_CODE }}
+    secrets:
+      OS_BOTIFY_COMMIT_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
+
   generateTranslations:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.pull_request.head.repo.fork }}
