@@ -290,7 +290,9 @@ function WorkspaceInviteMessageComponent({
 
     const invitingMemberEmail = Object.keys(invitedEmailsToAccountIDsDraft ?? {}).at(0) ?? '';
     const invitingMemberDetails = usePersonalDetailByLogin(invitingMemberEmail);
-    const invitingMemberName = Str.removeSMSDomain(invitingMemberDetails?.displayName ?? '');
+    const invitingMemberName = Str.isSMSLogin(invitingMemberDetails?.displayName ?? '')
+        ? formatPhoneNumber(invitingMemberDetails?.displayName ?? '')
+        : (invitingMemberDetails?.displayName ?? '');
     const invitingMemberTitle = invitingMemberName && invitingMemberName !== invitingMemberEmail ? invitingMemberName : invitingMemberEmail;
     const approverName = temporaryGetDisplayNameOrDefault({
         passedPersonalDetails: approverDetails,

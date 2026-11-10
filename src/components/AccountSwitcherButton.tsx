@@ -31,7 +31,6 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {ComponentRef} from 'react';
 
 import {canSwitchAccountsSelector} from '@selectors/Account';
-import {Str} from 'expensify-common';
 import React, {useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -164,7 +163,7 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
         const error = Object.values(errors ?? {}).at(0) ?? '';
         return {
             text: formatPhoneNumber(personalDetails?.displayName ?? personalDetails?.login ?? ''),
-            description: Str.removeSMSDomain(personalDetails?.login ?? ''),
+            description: formatPhoneNumber(personalDetails?.login ?? ''),
             avatarID: personalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             icon: personalDetails?.avatar ?? '',
             iconType: CONST.ICON_TYPE_AVATAR,
