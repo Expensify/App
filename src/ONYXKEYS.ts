@@ -831,7 +831,7 @@ const ONYXKEYS = {
     CORPAY_FIELDS: 'corpayFields',
 
     /** The employee bank-account form for one country and currency, as Wise defines it */
-    WISE_BANK_ACCOUNT_FIELDS: 'wiseBankAccountFields',
+    RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS: 'wiseBankAccountFields',
 
     /** A fresh link to Wise's embedded KYC page */
     RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK: 'wiseKYCReviewEmbeddedLink',
@@ -853,6 +853,9 @@ const ONYXKEYS = {
 
     /** Signals the UI to show the Enable Global Reimbursements modal when a pay attempt fails because the workspace USD VBBA is not set up on Corpay */
     RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL: 'enableGlobalReimbursementsModal',
+
+    /** Signals the UI to show the "Cannot disable category" modal when the backend rejects disabling categories some members can't do without */
+    RAM_ONLY_MEMBERS_NEED_CATEGORY_MODAL: 'membersNeedCategoryModal',
 
     /** Answers to sensitive DynamicForm fields, such as SSNs, carried between the pages of one visit to the form instead of saved to its draft */
     RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS: 'dynamicFormSensitiveAnswers',
@@ -2021,7 +2024,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHARE_TEMP_FILE]: OnyxTypes.ShareTempFile;
     [ONYXKEYS.VALIDATED_FILE_OBJECT]: OnyxTypes.FileObject | undefined;
     [ONYXKEYS.CORPAY_FIELDS]: OnyxTypes.CorpayFields;
-    [ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS]: OnyxTypes.WiseBankAccountFields;
+    [ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS]: OnyxTypes.WiseBankAccountFields;
     [ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK]: OnyxTypes.WiseKYCReviewEmbeddedLink;
     [ONYXKEYS.PRESERVED_USER_SESSION]: OnyxTypes.Session;
     [ONYXKEYS.PRESERVED_ACCOUNT]: OnyxTypes.Account;
@@ -2032,6 +2035,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: string;
     [ONYXKEYS.TRAVEL_PROVISIONING]: OnyxTypes.TravelProvisioning;
     [ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL]: OnyxTypes.EnableGlobalReimbursementsModal;
+    [ONYXKEYS.RAM_ONLY_MEMBERS_NEED_CATEGORY_MODAL]: OnyxTypes.MembersNeedCategoryModal;
     [ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS]: OnyxTypes.DynamicFormSensitiveAnswers;
     [ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE]: boolean | undefined;
     [ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING]: boolean | undefined;

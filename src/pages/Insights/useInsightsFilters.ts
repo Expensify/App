@@ -30,7 +30,10 @@ type UseInsightsFiltersResult = {
     setFilters: (update: Partial<InsightsFilters>) => void;
 };
 
-function useInsightsFilters(dashboard: InsightsDashboardID): UseInsightsFiltersResult {
+/**
+ * @param shouldSkipFetch - Whether the page won't call GetInsights for these filters, so a change to them has to be saved on its own
+ */
+function useInsightsFilters(dashboard: InsightsDashboardID, shouldSkipFetch?: (next: InsightsFilters) => boolean): UseInsightsFiltersResult {
     const {searchKey} = INSIGHTS_DASHBOARD_SPECS[dashboard];
     const [activePolicyID, activePolicyIDMetadata] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy, activePolicyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDOrDefault(activePolicyID)}`);
@@ -49,8 +52,8 @@ function useInsightsFilters(dashboard: InsightsDashboardID): UseInsightsFiltersR
     const setFilters = (update: Partial<InsightsFilters>) => {
         const next = {...filters, ...update};
         const query = buildInsightsQueryString(next);
-        // GetInsights persists the filters as a side effect, so a change it won't fetch for (Compare mode, or a Running total toggle that keeps the same bucket) is saved on its own instead.
-        if (fetchedQuery(next) === fetchedQuery(filters)) {
+        // GetInsights persists the filters as a side effect, so a change it won't fetch for (Compare mode, a Running total toggle that keeps the same bucket, or any change the page skips fetching for) is saved on its own instead.
+        if (fetchedQuery(next) === fetchedQuery(filters) || shouldSkipFetch?.(next)) {
             saveInsightsFilters(searchKey, query);
             return;
         }

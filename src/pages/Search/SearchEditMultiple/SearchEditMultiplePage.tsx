@@ -35,6 +35,7 @@ import {getCleanedTagName, getTagLists, hasDependentTags as hasDependentTagsPoli
 import {canEditFieldOfMoneyRequest, isInvoiceReport, isIOUReport, isReportApproved, isSettled} from '@libs/ReportUtils';
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 import {getDependentTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
+import startOpenCategoryPickerSpan from '@libs/telemetry/startOpenCategoryPickerSpan';
 import {
     getAttendeesListDisplayString,
     getTagArrayFromName,
@@ -472,6 +473,7 @@ function SearchEditMultiplePage() {
                             autoGrowHeight
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                             type="markdown"
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.DESCRIPTION_FIELD}
                         />
                     </View>
                     {hasPartiallyEditableMerchantTransaction ? (
@@ -492,6 +494,7 @@ function SearchEditMultiplePage() {
                                 label={translate('common.merchant')}
                                 accessibilityLabel={translate('common.merchant')}
                                 errorText={merchantErrorText}
+                                sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.MERCHANT_FIELD}
                             />
                         </View>
                     )}
@@ -520,7 +523,10 @@ function SearchEditMultiplePage() {
                             name={translate('common.category')}
                             value={draftTransaction?.category ?? ''}
                             numberOfLinesValue={2}
-                            onPress={() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_CATEGORY_RHP)}
+                            onPress={() => {
+                                startOpenCategoryPickerSpan();
+                                Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_CATEGORY_RHP);
+                            }}
                             shouldOpenInDropdown={canOpenListInDropdown}
                             renderDropdown={(dropdownProps) => (
                                 <SearchEditMultipleCategoryDropdown
@@ -578,14 +584,14 @@ function SearchEditMultiplePage() {
                                 />
                             )}
                             isInteractive={!isTaxDisabled}
-                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.TAX_RATE_FIELD}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.TAX_FIELD}
                         />
                     )}
                     {areSelectedTransactionsReimbursable && (
                         <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}>
                             <ToggleSettingOptionRow
                                 switchAccessibilityLabel={translate('common.reimbursable')}
-                                switchSentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.REIMBURSABLE_SWITCH}
+                                switchSentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.REIMBURSABLE_FIELD}
                                 title={translate('common.reimbursable')}
                                 onToggle={saveDraftReimbursable}
                                 isActive={draftTransaction?.reimbursable ?? false}
@@ -598,7 +604,7 @@ function SearchEditMultiplePage() {
                         <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}>
                             <ToggleSettingOptionRow
                                 switchAccessibilityLabel={translate('common.billable')}
-                                switchSentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.BILLABLE_SWITCH}
+                                switchSentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.BILLABLE_FIELD}
                                 title={translate('common.billable')}
                                 onToggle={saveDraftBillable}
                                 isActive={draftTransaction?.billable ?? false}
@@ -627,6 +633,7 @@ function SearchEditMultiplePage() {
                     )}
                 </ScrollView>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.SAVE_BUTTON}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={save}
