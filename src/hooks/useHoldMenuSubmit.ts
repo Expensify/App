@@ -4,7 +4,6 @@ import type {PaymentMethod} from '@components/KYCWall/types';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 
-import {payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
 import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 
 import CONST from '@src/CONST';
@@ -25,6 +24,7 @@ import useDelegateAccountID from './useDelegateAccountID';
 import useOnyx from './useOnyx';
 import usePayChatReportActions from './usePayChatReportActions';
 import usePayViaABA from './usePayViaABA';
+import usePayWithWiseQuote from './usePayWithWiseQuote';
 import usePermissions from './usePermissions';
 import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
 import {usePersonalDetail} from './usePersonalDetails';
@@ -62,6 +62,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [ownerLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
     const {isBetaEnabled} = usePermissions();
+    const {payWithWiseQuote} = usePayWithWiseQuote();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
@@ -119,7 +120,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 payReportsViaABA([currentMoneyRequestReport.reportID], policy, full);
             }
         } else if (currentChatReport && paymentType) {
-            payMoneyRequest({
+            payWithWiseQuote({
                 bankAccountList,
                 isASAPSubmitBetaEnabled,
                 getCurrencyDecimals,

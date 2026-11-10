@@ -14,6 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePayChatReportActions from '@hooks/usePayChatReportActions';
 import usePayViaABA from '@hooks/usePayViaABA';
+import usePayWithWiseQuote from '@hooks/usePayWithWiseQuote';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 
@@ -24,7 +25,7 @@ import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {getReportOrDraftReport, hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasUpdatedTotal, isInvoiceReport as isInvoiceReportUtils} from '@libs/ReportUtils';
 
-import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
+import {payInvoice} from '@userActions/IOU/PayMoneyRequest';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,6 +41,7 @@ import useReportPreviewActionButtonData from './useReportPreviewActionButtonData
 
 function PayActionButton() {
     const {isBetaEnabled} = usePermissions();
+    const {payWithWiseQuote} = usePayWithWiseQuote();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -143,7 +145,7 @@ function PayActionButton() {
             } else if (paymentMethod === CONST.PAYMENT_METHODS.ABA) {
                 payReportsViaABA([iouReport.reportID], policy);
             } else {
-                payMoneyRequest({
+                payWithWiseQuote({
                     bankAccountList,
                     isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                     getCurrencyDecimals,

@@ -18,6 +18,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 
 import {clearToggleTwoFactorAuthRequiredForDomainError, clearValidateDomainTwoFactorCodeError, toggleTwoFactorAuthRequiredForDomain} from '@userActions/Domain';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -51,6 +52,7 @@ function DomainMembersSettingsPage({route}: DomainMembersSettingsPageProps) {
             <ToggleSettingOptionRow
                 wrapperStyle={[styles.ph5]}
                 switchAccessibilityLabel={translate('domain.common.forceTwoFactorAuth')}
+                switchSentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.FORCE_TWO_FACTOR_AUTH_SWITCH}
                 isActive={!!domainSettings?.twoFactorAuthRequired}
                 disabled={!!domainSettings?.samlEnabled || isOffline}
                 onToggle={(value) => {

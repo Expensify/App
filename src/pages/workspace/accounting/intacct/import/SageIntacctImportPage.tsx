@@ -83,6 +83,9 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                 title={translate(isExpenseType ? 'workspace.intacct.expenseTypes' : 'workspace.accounting.accounts')}
                 subtitle={translate(isExpenseType ? 'workspace.intacct.expenseTypesDescription' : 'workspace.intacct.accountTypesDescription')}
                 switchAccessibilityLabel={translate(isExpenseType ? 'workspace.intacct.expenseTypesDescription' : 'workspace.intacct.accountTypesDescription')}
+                switchSentryLabel={
+                    isExpenseType ? CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.EXPENSE_TYPES_SWITCH : CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.ACCOUNTS_SWITCH
+                }
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive
@@ -92,6 +95,7 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
             <ToggleSettingOptionRow
                 title={translate('common.billable')}
                 switchAccessibilityLabel={translate('common.billable')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.BILLABLE_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive={sageIntacctConfig?.mappings?.syncItems ?? false}

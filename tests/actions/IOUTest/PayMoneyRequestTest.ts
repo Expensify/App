@@ -190,7 +190,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
                                 callback: (allReports) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
 
                                     expect(Object.values(allReports ?? {}).length).toBe(3);
 
@@ -222,7 +222,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                                 callback: (allReportActions) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
 
                                     const reportActionsForIOUReport = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.iouReportID}`];
 
@@ -243,7 +243,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.TRANSACTION,
                                 callback: (allTransactions) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
                                     expect(Object.values(allTransactions ?? {}).length).toBe(1);
                                     transaction = Object.values(allTransactions ?? {}).find((t) => t);
                                     expect(transaction).toBeTruthy();
@@ -291,7 +291,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
                                 callback: (allReports) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
 
                                     expect(Object.values(allReports ?? {}).length).toBe(3);
 
@@ -314,7 +314,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                                 callback: (allReportActions) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
 
                                     const reportActionsForIOUReport = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`];
                                     expect(Object.values(reportActionsForIOUReport ?? {}).length).toBe(3);
@@ -337,7 +337,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
                                 callback: (allReports) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
 
                                     expect(Object.values(allReports ?? {}).length).toBe(3);
 
@@ -360,7 +360,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                                 callback: (allReportActions) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
 
                                     const reportActionsForIOUReport = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`];
                                     expect(Object.values(reportActionsForIOUReport ?? {}).length).toBe(3);
@@ -422,7 +422,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
                                 callback: (allReports) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
                                     chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
 
                                     resolve();
@@ -477,7 +477,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
                                 callback: (allReports) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
                                     expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.IOU);
 
                                     resolve();
@@ -520,7 +520,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
                                 callback: (allActions) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
                                     expect(Object.values(allActions ?? {})).toEqual(
                                         expect.arrayContaining([
                                             expect.objectContaining({
@@ -549,7 +549,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
                                 callback: (allReports) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
                                     const updatedIOUReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.IOU);
                                     const updatedChatReport = Object.values(allReports ?? {}).find((report) => report?.reportID === expenseReport?.chatReportID);
                                     expect(updatedIOUReport).toEqual(
@@ -606,7 +606,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
                                 callback: (allReports) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
                                     chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
 
                                     resolve();
@@ -661,7 +661,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
                                 callback: (allReports) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
                                     expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.IOU);
 
                                     resolve();
@@ -705,7 +705,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
                                 callback: (allActions) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
                                     const erroredAction = Object.values(allActions ?? {}).find((action) => !isEmptyObject(action?.errors));
                                     expect(Object.values(erroredAction?.errors ?? {}).at(0)).toEqual(translateLocal('iou.error.other'));
                                     resolve();
@@ -766,7 +766,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
                     callback: (reportActions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(Object.values(reportActions ?? {}).pop());
                     },
                 });
@@ -776,7 +776,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report?.lastVisibleActionCreated).toBe(chatReport.lastVisibleActionCreated);
                         expect(report?.hasOutstandingChildRequest).toBe(false);
                         expect(report?.iouReportID).toBeUndefined();
@@ -792,7 +792,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report?.hasOutstandingChildRequest).toBe(false);
                         expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
                         expect(report?.lastVisibleActionCreated).toBe(payReportAction?.created);
@@ -917,7 +917,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     const connection = Onyx.connect({
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
                         callback: (reportActions) => {
-                            Onyx.disconnect(connection);
+                            connection.unsubscribe();
                             resolve(Object.values(reportActions ?? {}).pop());
                         },
                     });
@@ -975,7 +975,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     const connection = Onyx.connect({
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
                         callback: (reportActions) => {
-                            Onyx.disconnect(connection);
+                            connection.unsubscribe();
                             resolve(Object.values(reportActions ?? {}).pop());
                         },
                     });
@@ -1402,7 +1402,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report?.hasOutstandingChildRequest).toBe(false);
                         expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
                         resolve();
@@ -1460,7 +1460,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report?.hasOutstandingChildRequest).toBe(false);
                         expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
                         resolve();
@@ -1558,7 +1558,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -1828,7 +1828,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report?.hasOutstandingChildRequest).toBe(false);
                         expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
                         resolve();

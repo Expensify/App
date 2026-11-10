@@ -30,6 +30,7 @@ import type {
     ReportAction,
     SageIntacctMappingName,
     ViolationDataType,
+    ReportNextStepMessageParams,
 } from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 
@@ -43,6 +44,12 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 
 const translations = {
+    billPay: {
+        billCreated: ({sender}: {sender: string}) => `created this bill on behalf of ${sender}`,
+        billSubmitted: ({receiver}: {receiver: string}) => `sent this bill to ${receiver}`,
+        invoiceCreated: ({sender}: {sender: string}) => `created this invoice on behalf of ${sender}`,
+        invoiceSubmitted: ({receiver}: {receiver: string}) => `sent this invoice to ${receiver}`,
+    },
     bulkActionBar: {
         label: 'Bulk actions',
         clearSelection: 'Clear selection',
@@ -176,6 +183,7 @@ const translations = {
             pay: 'Pay',
             fix: 'Fix',
             task: 'Task',
+            add: 'Add',
         },
         // @context Used in confirmation or result messages indicating that an action completed successfully, not the abstract noun “success.”
         success: 'Success',
@@ -246,6 +254,7 @@ const translations = {
         dob: 'Date of birth',
         currentYear: 'Current year',
         currentMonth: 'Current month',
+        todayDateLabel: (date: string) => `${date}, today`,
         ssnLast4: 'Last 4 digits of SSN',
         ssnFull9: 'Full 9 digits of SSN',
         addressLine: (lineNumber: number) => `Address line ${lineNumber}`,
@@ -1200,6 +1209,10 @@ const translations = {
                 title: 'Signer info needed',
                 subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bank account ${bankAccountLastFour}`,
             },
+            verifyWiseBankAccount: {
+                title: 'Verify bank account',
+                subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bank account ending ${bankAccountLastFour}`,
+            },
             upgradeNetSuiteConnection: {
                 title: 'Upgrade your NetSuite connection',
             },
@@ -1347,7 +1360,17 @@ const translations = {
     },
     insightsPage: {
         viewOnSpend: 'View on Spend',
+        explain: 'Explain',
+        explainChartPrompt: (chartTitle: string) => `Explain the data in ${chartTitle}.`,
+        viewDetails: 'View details',
+        viewAll: 'View all',
+        topExpenses: 'Top expenses',
+        noExpensesInRange: 'No expenses in this range',
         compliance: 'Compliance',
+        violationsOverTime: 'Violations over time',
+        topViolations: 'Top violations',
+        violationsBySubmitter: 'Violations by submitter',
+        violationsByApprover: 'Violations by approver',
         runningTotal: 'Running total',
         compare: {
             label: 'Compare',
@@ -1377,6 +1400,11 @@ const translations = {
         noExpensesState: {
             title: 'See where your money goes',
             subtitle: 'Once you have expenses, you’ll find spending trends, top merchants, and more.',
+        },
+        upsellState: {
+            title: 'Upgrade to Control for more insights',
+            subtitle: 'Track expense policy compliance trends and flag repeat offenders.',
+            button: 'Upgrade to Control',
         },
     },
     allSettingsScreen: {
@@ -1951,6 +1979,23 @@ const translations = {
         confirmApprovalWithHeldAmount: 'Report contains held expenses. Approve only compliant expenses, or approve the entire report?',
         confirmApprovalAllHoldAmount: 'All expenses are on hold. Approve anyway?',
         confirmPay: 'Confirm payment amount',
+        wisePaymentSummary: {
+            confirmPayment: 'Confirm payment',
+            reportTotal: 'Report total',
+            unheldAmountBeingPaid: 'Unheld amount being paid',
+            debitAmount: 'Debit amount',
+            employeeWillReceive: 'Employee will receive',
+            totalFees: 'Total fees',
+            fxRate: 'FX rate',
+            paymentDetails: 'Payment details',
+            debitedAmount: 'Debited amount',
+            employeeReceived: 'Employee received',
+            payAll: 'Pay all',
+            reportCount: ({count}: {count: number}) => ({
+                one: '1 report',
+                other: `${count} reports`,
+            }),
+        },
         confirmPayAmount: "Pay what's not on hold, or pay the entire report.",
         confirmPayAllHoldAmount: () => ({
             one: 'This expense is on hold. Do you want to pay anyway?',
@@ -2217,229 +2262,167 @@ const translations = {
         backdropLabel: 'Modal Backdrop',
     },
     nextStep: {
-        /* eslint-disable @typescript-eslint/no-unused-vars */
         message: {
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for <strong>you</strong> to add expenses.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Waiting for <strong>${actor}</strong> to add expenses.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Waiting for an admin to add expenses.`;
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: ({actor, actorType}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Waiting for <strong>you</strong> to add expenses.`;
                 }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for <strong>you</strong> to submit expenses.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Waiting for <strong>${actor}</strong> to submit expenses.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Waiting for an admin to submit expenses.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Waiting for <strong>${actor}</strong> to add expenses.`;
                 }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                // eslint-disable-next-line default-case
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for <strong>you</strong> to mark this as done.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Waiting for <strong>${actor}</strong> to mark this as done.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Waiting for an admin to mark this as done.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Waiting for an admin to add expenses.`;
                 }
+                return '';
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
-                _actor: string,
-                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => `No further action required!`,
-            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (
-                _actor: string,
-                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => `Change the report's workspace for further actions.`,
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-                requiredDepositCurrency?: string,
-            ) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: ({actor, actorType}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Waiting for <strong>you</strong> to submit expenses.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Waiting for <strong>${actor}</strong> to submit expenses.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Waiting for an admin to submit expenses.`;
+                }
+                return '';
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: ({actor, actorType}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Waiting for <strong>you</strong> to mark this as done.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Waiting for <strong>${actor}</strong> to mark this as done.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Waiting for an admin to mark this as done.`;
+                }
+                return '';
+            },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (params: ReportNextStepMessageParams) => `No further action required!`,
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (params: ReportNextStepMessageParams) => `Change the report's workspace for further actions.`,
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: (params: ReportNextStepMessageParams) =>
+                `You can only approve in this workspace. Move this report to another one to submit.`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType, requiredDepositCurrency}: ReportNextStepMessageParams) => {
                 const account = requiredDepositCurrency ? `${requiredDepositCurrency} bank account` : 'bank account';
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for <strong>you</strong> to add a ${account}.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Waiting for <strong>${actor}</strong> to add a ${account}.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Waiting for an admin to add a ${account}.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Waiting for <strong>you</strong> to add a ${account}.`;
                 }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Waiting for <strong>${actor}</strong> to add a ${account}.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Waiting for an admin to add a ${account}.`;
+                }
+                return '';
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                eta?: string,
-                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}: ReportNextStepMessageParams) => {
                 let formattedETA = '';
                 if (eta) {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` on the ${eta} of each month` : ` ${eta}`;
                 }
-
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for your expenses to automatically submit${formattedETA}.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Waiting for <strong>${actor}'s</strong> expenses to automatically submit${formattedETA}.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Waiting for an admin's expenses to automatically submit${formattedETA}.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Waiting for your expenses to automatically submit${formattedETA}.`;
                 }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for <strong>you</strong> to fix the issues.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Waiting for <strong>${actor}</strong> to fix the issues.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Waiting for an admin to fix the issues.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Waiting for <strong>${actor}'s</strong> expenses to automatically submit${formattedETA}.`;
                 }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for <strong>you</strong> to approve expenses.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Waiting for <strong>${actor}</strong> to approve expenses.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Waiting for an admin to approve expenses.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Waiting for an admin's expenses to automatically submit${formattedETA}.`;
                 }
+                return '';
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for <strong>you</strong> to export this report.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Waiting for <strong>${actor}</strong> to export this report.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Waiting for an admin to export this report.`;
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Waiting for <strong>you</strong> to fix the issues.`;
                 }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for <strong>you</strong> to pay expenses.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Waiting for <strong>${actor}</strong> to pay expenses.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Waiting for an admin to pay expenses.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Waiting for <strong>${actor}</strong> to fix the issues.`;
                 }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Waiting for an admin to fix the issues.`;
+                }
+                return '';
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
-                _actor: string,
-                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                eta?: string,
-                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType, isBill}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return isBill ? `Waiting for <strong>you</strong> to approve the bill.` : `Waiting for <strong>you</strong> to approve expenses.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return isBill ? `Waiting for <strong>${actor}</strong> to approve the bill.` : `Waiting for <strong>${actor}</strong> to approve expenses.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return isBill ? `Waiting for an admin to approve the bill.` : `Waiting for an admin to approve expenses.`;
+                }
+                return '';
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Waiting for <strong>you</strong> to export this report.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Waiting for <strong>${actor}</strong> to export this report.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Waiting for an admin to export this report.`;
+                }
+                return '';
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType, isBill}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return isBill ? `Waiting for <strong>you</strong> to pay this bill.` : `Waiting for <strong>you</strong> to pay expenses.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return isBill ? `Waiting for <strong>${actor}</strong> to pay this bill.` : `Waiting for <strong>${actor}</strong> to pay expenses.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return isBill ? `Waiting for an admin to pay this bill.` : `Waiting for an admin to pay expenses.`;
+                }
+                return '';
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: ReportNextStepMessageParams) => {
                 let formattedETA = '';
                 if (eta) {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` by ${eta}` : ` ${eta}`;
                 }
-
                 return `Waiting for payment to complete${formattedETA}.`;
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: (
-                _actor: string,
-                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                eta?: string,
-                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: ({eta, etaType}: ReportNextStepMessageParams) => {
                 let formattedETA = '';
                 if (eta) {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` by ${eta}` : ` ${eta}`;
                 }
-
                 return `Waiting for the cancelled payment to finish processing${formattedETA}.`;
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
-                _actor: string,
-                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) =>
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `Oops! Looks like you're submitting to <strong>yourself</strong>. Approving your own reports is <strong>forbidden</strong> by your workspace. Please submit this report to someone else or contact your admin to change the person you submit to.`,
-            [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                // All ACTOR_TYPE enum values are explicitly handled
-                // eslint-disable-next-line default-case
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `This report was rejected. Waiting on <strong>you</strong> to fix the issues and manually resubmit.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `This report was rejected. Waiting on <strong>${actor}</strong> to fix the issues and manually resubmit.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `This report was rejected. Waiting on an admin to fix the issues and manually resubmit.`;
+            [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `This report was rejected. Waiting on <strong>you</strong> to fix the issues and manually resubmit.`;
                 }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `This report was rejected. Waiting on <strong>${actor}</strong> to fix the issues and manually resubmit.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `This report was rejected. Waiting on an admin to fix the issues and manually resubmit.`;
+                }
+                return '';
             },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.STRICT_POLICY_RULE_VIOLATIONS]: (params: ReportNextStepMessageParams) =>
+                `Waiting for you to fix the issues. Your admins have restricted submission of expenses with violations.`,
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.DYNAMIC_EXTERNAL_WORKFLOW_SUBMIT_ERROR]: (params: ReportNextStepMessageParams) =>
+                `<alert-text>This report can't be submitted. Please review the comments to resolve.</alert-text>`,
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.DYNAMIC_EXTERNAL_WORKFLOW_APPROVE_ERROR]: (params: ReportNextStepMessageParams) =>
+                `<alert-text>This report can't be approved. Please review the comments to resolve.</alert-text>`,
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.DYNAMIC_EXTERNAL_WORKFLOW_OFFLINE]: (params: ReportNextStepMessageParams) => `Waiting for you to come back online to determine next steps.`,
         },
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'shortly',
@@ -2997,6 +2980,7 @@ const translations = {
     },
     walletPage: {
         balance: 'Balance',
+        wiseMoreInfoNeeded: 'More information needed to enable global reimbursements',
         paymentMethodsTitle: 'Payment methods',
         setDefaultConfirmation: 'Make default payment method',
         setDefaultSuccess: 'Default payment method set!',
@@ -3204,14 +3188,30 @@ const translations = {
                 wiseTerms: `I agree to the Wise <a href="${CONST.WISE.TERMS_URL}">terms and conditions</a> and <a href="${CONST.WISE.PRIVACY_URL}">privacy policy</a>.`,
                 wiseTermsAccessibilityLabel: 'I agree to the Wise terms and conditions and privacy policy.',
                 error: 'Please accept all of the terms to continue.',
-                alreadySubmitted: 'This business is already submitted to Wise for review.',
             },
             moreInfoNeeded: {
                 headerTitle: 'More info needed',
                 title: 'Verify additional info',
                 subtitle: 'Our payments partner needs more info directly. This should only take a couple of minutes.',
             },
+            inReview: {
+                title: 'In review',
+                heading: "We got what we need.\nYou'll hear from us!",
+                description: "Most reviews take one to two days. We'll message you with an update.",
+                chatWithConcierge: 'Chat with Concierge',
+            },
+            approved: {
+                title: 'Account approved',
+                heading: 'Approved to pay worldwide',
+                description: 'Pay members wherever they are.',
+            },
+            rejected: {
+                title: 'Bank account rejected',
+                heading: 'Our partner rejected your bank account',
+                description: 'Chat with Concierge for more information.',
+            },
         },
+        wiseSetupInProgress: {message: 'Global reimbursements setup in progress.', continue: 'Continue.'},
         wiseGlobalReimbursementsIntro: {
             headerTitle: 'Global reimbursements',
             title: 'Set up global reimbursements?',
@@ -3522,8 +3522,10 @@ const translations = {
         manager: 'Manager',
         makeOrTrackPaymentsTitle: 'Payments',
         makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify or track payments made elsewhere.',
-        collectEmployeeBankDetails: 'Collect employee bank details',
-        collectEmployeeBankDetailsDescription: 'Gather bank account details from employees, so you can reimburse them outside of Expensify.',
+        collectEmployeeBankDetails: 'Collect bank account details',
+        collectEmployeeBankDetailsDescription: 'Gather bank details from workspace members, so you can reimburse them outside of Expensify.',
+        disablePaymentsTitle: 'Disable payments?',
+        disablePaymentsPrompt: 'This will remove all of your payment settings.',
         businessBankAccountCountries: 'Business bank account countries',
         businessBankAccountCountriesDescription: 'Employees in these countries provide local transfer details. Everyone else provides international wire details.',
         customApprovalWorkflowEnabled:
@@ -3839,6 +3841,9 @@ const translations = {
         appSection: {
             title: 'App preferences',
         },
+        distanceSection: {
+            title: 'Distance preferences',
+        },
         testSection: {
             title: 'Test preferences',
             subtitle: 'Settings to help debug and test the app on staging.',
@@ -3885,6 +3890,30 @@ const translations = {
         roomDescription: 'Room description',
         roomDescriptionOptional: 'Room description (optional)',
         explainerText: 'Set a custom description for the room.',
+    },
+    reportHistoryPage: {
+        title: 'Report history',
+        offlineMessage: "You're offline. Report history may be outdated.",
+        created: 'created report',
+        submitted: 'submitted',
+        approved: 'approved',
+        paid: 'paid',
+        toSubmit: 'to submit',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'to automatically submit';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `to automatically submit on the ${eta} of each month` : `to automatically submit ${eta}`;
+        },
+        toMarkAsDone: 'to mark as done',
+        toApprove: 'to approve',
+        toPay: 'to pay',
+        minutesAgo: (count: number) => `${count}m ago`,
+        hoursAgo: (count: number) => `${count}h ago`,
+        daysAgo: () => ({
+            one: '1d ago',
+            other: (count: number) => `${count}d ago`,
+        }),
     },
     groupChat: {
         lastMemberTitle: 'Heads up!',
@@ -4572,7 +4601,7 @@ const translations = {
         bankAccountPurposeTitle: 'What do you want to do with your bank account?',
         getReimbursed: 'Get reimbursed',
         getReimbursedDescription: 'By employer or others',
-        makePayments: 'Make payments',
+        makePayments: 'Make business payments',
         makePaymentsDescription: 'Pay expenses or issue Expensify Cards',
         hasPhoneLoginError: (contactMethodRoute: string) =>
             `To connect a bank account, please <a href="${contactMethodRoute}">add an email as your primary login</a> and try again. You can add your phone number as a secondary login.`,
@@ -4662,6 +4691,8 @@ const translations = {
         accountTypeStepHeader: 'What type of account is this?',
         bankInformationStepHeader: 'What are your bank details?',
         accountHolderInformationStepHeader: 'What are the account holder details?',
+        bankDetails: 'Bank details',
+        accountHolderDetails: 'Account holder details',
         howDoWeProtectYourData: 'How do we protect your data?',
         currencyHeader: "What's your bank account's currency?",
         confirmationStepHeader: 'Check your info.',
@@ -4679,6 +4710,8 @@ const translations = {
         chooseAccountLabel: 'Account',
         successTitle: 'Personal bank account added!',
         successMessage: 'Congrats, your bank account is set up and ready to receive reimbursements.',
+        bankAccountAddedTitle: 'Bank account added!',
+        bankAccountAddedMessage: 'Congrats, your personal bank account is set up and ready to receive reimbursements.',
     },
     attachmentView: {
         unknownFilename: 'Unknown filename',
@@ -5232,6 +5265,18 @@ const translations = {
         bookDemo: 'Book demo',
         bookADemo: 'Book a demo',
         toLearnMore: ' to learn more.',
+        approval: {
+            status: {
+                outstanding: 'Outstanding',
+                approved: 'Approved',
+                rejected: 'Rejected',
+                canceled: 'Canceled',
+            },
+            deadline: {
+                softApproval: (time: string) => `Auto-approves in ${time}. Free cancellation until then.`,
+                hardApproval: (time: string) => `Auto-cancels in ${time} if not approved.`,
+            },
+        },
         termsAndConditions: {
             header: 'Before we continue...',
             title: 'Review terms & conditions',
@@ -6431,7 +6476,11 @@ const translations = {
             noSubsidiariesFoundDescription: 'Please add a subsidiary in NetSuite and sync the connection again',
             tokenInput: {
                 title: 'NetSuite setup',
-                connectWithTokenAuthentication: 'Connect with token-based authentication (SOAP) instead',
+                tokenAuthenticationPrompt: {
+                    beforeLink: 'Or connect with',
+                    link: 'token-based authentication',
+                    afterLink: '(SOAP) instead.',
+                },
                 formSteps: {
                     installBundle: {
                         title: 'Install the Expensify bundle',
@@ -7077,10 +7126,71 @@ const translations = {
                 label: 'Company card account',
                 description: 'Choose where to export company card transactions.',
             },
+            exportToMultipleAccounts: 'Configure exporting to multiple accounts',
+            cardProgramAccount: {
+                label: 'Card program account',
+                description: 'Override the workspace account for these card programs.',
+                descriptionLevel2: 'Override the workspace account for this card program.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'All programs use default account';
+                    }
+                    return {
+                        one: `${count} program with custom account`,
+                        other: `${count} programs with custom accounts`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'Per-card account',
+                description: 'Override the program account for individual cards.',
+                descriptionLevel2: 'Override the program account for these cards.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'All cards use program accounts';
+                    }
+                    return {
+                        one: `${count} card with custom account`,
+                        other: `${count} cards with custom accounts`,
+                    };
+                },
+            },
             noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Please add vendors in Zoho Books and sync the connection again',
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add accounts in Zoho Books and sync the connection again',
+            autoSyncDescription: 'Sync Zoho Books and Expensify automatically, every day. Reports sync in realtime.',
+            accountingMethods: {
+                label: 'Export method',
+                description: 'Choose when to export expenses.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Cash',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Out-of-pocket expenses will export when final approved',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
+                },
+            },
+            syncReimbursedReports: 'Sync reimbursed reports',
+            syncReimbursedReportsDescription: 'When a report is paid via ACH, a bill payment will be generated in this account.',
+            billPaymentAccount: {
+                label: 'Bill payment account',
+                description: 'Choose the clearing account Zoho Books credits when Expensify marks a bill paid.',
+            },
+            syncExpensifyCardSettlements: 'Sync Expensify Card settlements',
+            settlementAccount: {
+                label: 'Expensify Card settlement account',
+                description: "Choose your settlement account and we'll create the payment in Zoho Books.",
+            },
+            syncTravelBillingSettlements: 'Sync Consolidated Travel Billing settlements',
+            travelBillingSettlementAccount: {
+                label: 'Consolidated Travel Billing settlement account',
+                description: "Choose your settlement account and we'll create the payment in Zoho Books.",
+            },
+            travelBillingPayableAccount: {
+                label: 'Consolidated Travel Billing payable account',
+            },
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central setup',
@@ -7560,6 +7670,15 @@ const translations = {
                 title: 'Cannot delete or disable all categories',
                 description: `At least one category must remain enabled because your workspace requires categories.`,
             },
+            cannotDisableCategoryForMembers: {
+                title: ({categoryName}: {categoryName: string}) => `Can’t disable ${categoryName}`,
+                bulkTitle: 'Can’t disable these categories',
+                description: ({count}: {count: number}) => ({
+                    one: '1 member would be left with no categories to choose from. Update their category visibility, then try again:',
+                    other: `${count} members would be left with no categories to choose from. Update their category visibility, then try again:`,
+                }),
+                andMore: ({count}: {count: number}) => `and ${count} more`,
+            },
         },
         moreFeatures: {
             subtitle: 'Use the toggles below to enable more features as you grow. Each feature will appear in the navigation menu for further customization.',
@@ -7736,12 +7855,15 @@ const translations = {
                 unassignCard: 'Unassign card',
                 unassignCards: 'Unassign cards',
                 unassign: 'Unassign',
-                unassignCardDescription: 'Unassigning this card will delete all unsubmitted transactions.',
-                unassignCardsDescription: 'Unassigning will delete all unsubmitted transactions from the selected cards.',
+                unassignCardDescription: (transactionsUrl: string) =>
+                    `Unassigning this card will permanently delete all its <a href="${transactionsUrl}">unsubmitted transactions</a>, including unreported transactions and those on draft reports. This can’t be undone.`,
+                unassignCardsDescription: (transactionsUrl: string) =>
+                    `Unassigning will permanently delete all <a href="${transactionsUrl}">unsubmitted transactions</a> from the selected cards, including unreported transactions and those on draft reports. This can’t be undone.`,
                 assignCard: 'Assign card',
                 removeCard: 'Remove card',
                 remove: 'Remove',
-                removeCardDescription: 'Removing this card will delete all unsubmitted transactions.',
+                removeCardDescription: (transactionsUrl: string) =>
+                    `Removing this card will permanently delete all its <a href="${transactionsUrl}">unsubmitted transactions</a>, including unreported transactions and those on draft reports. This can’t be undone.`,
                 cardFeedName: 'Card feed name',
                 cardFeedNameDescription: 'Give the card feed a unique name so you can tell it apart from the others.',
                 cardFeedTransaction: 'Delete transactions',
@@ -8202,6 +8324,16 @@ const translations = {
             },
             officeLocation: 'Office location',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            categoryVisibility: 'Category visibility',
+            allCategories: 'All categories',
+            categoriesCount: ({count}: {count: number}) => ({
+                one: '1 category',
+                other: `${count} categories`,
+            }),
+            categoryVisibilityRequiredModal: {
+                title: 'Members must have at least one category',
+                description: 'Select at least one category this member can use.',
+            },
             changeOfficeLocation: 'Change office location',
             changeWorkArrangement: 'Change work arrangement',
             removeWorkspaceMemberButtonTitle: 'Remove from workspace',
@@ -9635,8 +9767,10 @@ const translations = {
                 autoPayApprovedReportsLimitError: (currency?: string) => `Please enter an amount less than ${currency ?? ''}20,000`,
                 autoPayApprovedReportsLockedSubtitle: 'Go to more features and enable workflows, then add payments to unlock this feature.',
                 autoPayApprovedReportsControlPlanSubtitle: (upgradeLink: string) => `Auto-pay is only available on the Control plan. [Upgrade](${upgradeLink}) to unlock this feature.`,
-                autoPayReportsUnderTitle: 'Auto-pay reports under',
+                autoPayReportsUnderTitle: 'Auto-pay reports less than',
                 autoPayReportsUnderDescription: 'Fully compliant expense reports under this amount will be automatically paid.',
+                autoPayCrossBorderFeesDisclosure:
+                    'Cross-border payments use the mid-market exchange rate at the time of payment. A 1% variable fee applies to all cross-border payments, except the following currencies: CRC (1.32%), KES (1.01%), MAD (1.60%), NPR (1.05%), UGX (1.47%), UYU (1.12%).\n\nExact rates and fees cannot be previewed prior to payment when a report is auto-paid. A complete itemized breakdown (including the exact exchange rate, fees, and final amount) is available on the report immediately after payment.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Add ${featureName} to unlock this feature.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) => `Go to [more features](${moreFeaturesLink}) and enable ${featureName} to unlock this feature.`,
             },
@@ -10046,8 +10180,9 @@ const translations = {
                 describeRuleForConcierge: 'Describe your rule and Concierge will build it',
                 disclaimer: 'AI agents can make mistakes.',
                 createRule: 'Create rule',
-                fallbackBanner: "This isn't a standard rule, so we drafted an agent rule.",
-                fallbackBannerWithExplanation: (explanation: string) => `This isn't a standard rule, so we drafted an agent rule. ${explanation}`,
+                fallbackBanner: "This isn't a standard rule, so we drafted an agent rule. Agent rules run when an expense or report is created or updated.",
+                fallbackBannerWithExplanation: (explanation: string) =>
+                    `This isn't a standard rule, so we drafted an agent rule. Agent rules run when an expense or report is created or updated. ${explanation}`,
                 agentCreatedTitle: 'RuleBot has been added to your workspace!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>To enforce your agent rules, we’ve created an agent for you and added it as an admin to your workspace.<br><br>Edit your agent’s details in <a href="${agentsRoute}">Account &gt; Agents</a>.</muted-text>`,
@@ -10092,7 +10227,7 @@ const translations = {
         scheduleACall: 'Schedule call',
         questionMarkButtonTooltip: 'Get assistance from our team',
         exploreHelpDocs: 'Explore help docs',
-        registerForWebinar: 'Register for webinar',
+        registerForWebinar: 'Webinar',
         onboardingHelp: 'Onboarding help',
     },
     emojiPicker: {
@@ -10929,11 +11064,14 @@ const translations = {
                 upcoming: 'Upcoming',
                 done: 'Done',
                 canceled: 'Canceled',
+                outstanding: 'Outstanding',
+                rejected: 'Rejected',
             },
         },
         tabs: {
             expenseReports: 'Expense reports',
             reports: 'Reports',
+            myReports: 'My reports',
             expenses: 'Expenses',
             submit: 'Drafts',
             approve: 'Needs approval',
@@ -11185,6 +11323,7 @@ const translations = {
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Year',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarter',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approver',
+                [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Violation',
             },
             feed: 'Feed',
             transactionStatus: {
@@ -11223,6 +11362,7 @@ const translations = {
         },
         display: {
             label: 'Display',
+            labelWithCount: ({count}: {count: number}) => (count > 0 ? `Display (${count})` : 'Display'),
             sortBy: 'Sort by',
             sortOrder: 'Sort order',
             groupBy: 'Group by',
@@ -11249,6 +11389,7 @@ const translations = {
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Years',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarters',
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approvers',
+            [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Violations',
         },
         moneyRequestReport: {
             emptyStateTitle: 'No expenses yet',
@@ -11863,6 +12004,7 @@ const translations = {
         autoReportedRejectedExpense: 'This expense was rejected.',
         billableExpense: 'Billable no longer valid',
         cashExpenseWithNoReceipt: (formattedLimit?: string) => `Receipt required${formattedLimit ? ` over ${formattedLimit}` : ''}`,
+        categoryNotAllowed: 'Category not allowed',
         categoryOutOfPolicy: 'Category no longer valid',
         conversionSurcharge: (surcharge: number) => `Applied ${surcharge}% conversion surcharge`,
         customUnitOutOfPolicy: 'Rate not valid for this workspace',
@@ -12102,6 +12244,7 @@ const translations = {
             autoReportedRejectedExpense: 'Expense rejected',
             billableExpense: 'Billable no longer valid',
             cashExpenseWithNoReceipt: 'Receipt required',
+            categoryNotAllowed: 'Category not allowed',
             categoryOutOfPolicy: 'Category no longer valid',
             companyCardRequired: 'Company card required',
             conversionSurcharge: 'Conversion surcharge applied',
@@ -12635,7 +12778,6 @@ const translations = {
             isUnreadWithMention: 'Is unread with mention',
             isWaitingForAssigneeToCompleteAction: 'Is waiting for assignee to complete action',
             hasChildReportAwaitingAction: 'Has child report awaiting action',
-            hasMissingInvoiceBankAccount: 'Has missing invoice bank account',
             hasUnresolvedCardFraudAlert: 'Has unresolved card fraud alert',
             hasDEWApproveFailed: 'Has DEW approve failed',
         },
