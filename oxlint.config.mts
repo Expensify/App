@@ -9,14 +9,7 @@ import {defineConfig} from 'oxlint';
 
 // An oxlint override replaces a rule's options instead of merging them, so every block that sets
 // `no-restricted-imports` restates the full list, built from these.
-const decisionModalRestrictedImportPath = {
-    name: '@components/DecisionModal',
-    importNames: ['default'],
-    message: "Please use showDecisionModal from '@hooks/useDecisionModal' instead of mounting a local DecisionModal.",
-};
-
 const restrictedImportPaths = [
-    decisionModalRestrictedImportPath,
     {
         name: 'react-native',
         importNames: [
@@ -76,8 +69,6 @@ const restrictedImportPaths = [
     {name: 'react-native-onyx', importNames: ['useOnyx'], message: "Please use '@hooks/useOnyx' instead."},
     {name: '@src/utils/findNodeHandle', message: "Do not use 'findNodeHandle' as it is no longer supported on web."},
 ];
-
-const globalModalAndTestRestrictedImportPaths = restrictedImportPaths.filter((entry) => entry.name !== '@components/DecisionModal');
 
 const restrictedImportPatterns = [
     {group: ['**/assets/animations/**/*.json'], message: "Do not import animations directly. Please use the '@components/LottieAnimations' import instead."},
@@ -401,7 +392,6 @@ export default defineConfig({
             'error',
             {
                 paths: [
-                    decisionModalRestrictedImportPath,
                     {name: 'react-native', importNames: ['Button', 'Text', 'TextInput', 'Picker'], message: 'Please use an Expensify component from src/components/ instead.'},
                     {name: 'react-native', importNames: ['SafeAreaView'], message: 'Please use SafeAreaView from react-native-safe-area-context'},
                 ],
@@ -1129,13 +1119,7 @@ export default defineConfig({
         {
             files: ['.github/**/*'],
             rules: {
-                'no-restricted-imports': [
-                    'error',
-                    {
-                        paths: [decisionModalRestrictedImportPath],
-                        patterns: [{group: ['@src/**'], message: 'Do not import files from src/ directory as they can break the GH Actions build script.'}],
-                    },
-                ],
+                'no-restricted-imports': ['error', {patterns: [{group: ['@src/**'], message: 'Do not import files from src/ directory as they can break the GH Actions build script.'}]}],
             },
         },
         {
@@ -1441,17 +1425,6 @@ export default defineConfig({
                 'src/**/__mocks__/**/*.{ts,tsx}',
             ],
             rules: {'rulesdir/no-onyx-loading-status': 'off'},
-        },
-        // Only global wrappers and their tests may render the underlying decision modal directly.
-        {
-            files: ['src/components/Modal/Global/**/*', 'tests/**/*'],
-            rules: {'no-restricted-imports': ['error', {paths: globalModalAndTestRestrictedImportPaths, patterns: restrictedImportPatterns}]},
-        },
-        {
-            files: ['src/components/Modal/Global/**/*.{ts,tsx}', 'tests/**/*.{ts,tsx}'],
-            rules: {
-                'no-restricted-imports': ['error', {paths: globalModalAndTestRestrictedImportPaths, patterns: [...typescriptRestrictedImportPatterns, ...restrictedHeaderImportPatterns]}],
-            },
         },
     ],
 });
