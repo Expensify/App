@@ -1,6 +1,5 @@
-import type {ReportActionsReadinessSignals} from '@hooks/useReportActionsListModel';
-
-import {computeReportActionsSkeletonState} from '@pages/inbox/report/ReportActionsListContext';
+import computeReportActionsSkeletonState from '@pages/inbox/report/ReportActionsListContext/getReportActionsLoadingState';
+import type {ReportActionsReadinessSignals} from '@pages/inbox/report/ReportActionsListContext/getReportActionsLoadingState';
 
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -29,7 +28,6 @@ const readReport: OnyxTypes.Report = {
 function createReadinessSignals(overrides: Partial<ReportActionsReadinessSignals> = {}): ReportActionsReadinessSignals {
     return {
         report,
-        reportResult: {status: 'loaded'},
         isOffline: false,
         reportActionIDFromRoute: undefined,
         transactionThreadReport: undefined,

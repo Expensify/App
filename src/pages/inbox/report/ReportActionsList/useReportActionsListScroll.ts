@@ -34,23 +34,7 @@ function keyExtractor(item: OnyxTypes.ReportAction): string {
 }
 
 /** Owns initial positioning, pagination, unread tracking, and scroll events for the report-actions list. */
-function useReportActionsListScroll({
-    reportID,
-    sortedVisibleReportActions,
-    renderedVisibleReportActions: listData,
-    reportActionIDToDisplayIndex,
-    hasScrolledOverThreshold,
-    markNewestActionAsRead,
-    completeSkippedMarkAsRead,
-    unreadMarkerReportActionID,
-    unreadMarkerReportActionIndex,
-    draftAutoScrollKey,
-    focusRequestedReportActionID,
-    actionBadgeTargetID,
-    linkedReportActionID,
-    onScrolledOverThresholdChange,
-    onLayout,
-}: UseReportActionsListScrollParams) {
+function useReportActionsListScroll({reportID, markNewestActionAsRead, completeSkippedMarkAsRead, onLayout}: UseReportActionsListScrollParams) {
     const {windowHeight} = useWindowDimensions();
     const {
         report,
@@ -63,8 +47,19 @@ function useReportActionsListScroll({
         treatAsNoPaginationAnchor,
         isConciergeHiddenHistory,
         showFullHistory,
+        scrollReportActions,
+        listData,
+        reportActionIDToDisplayIndex,
+        hasScrolledOverThreshold,
+        unreadMarkerReportActionID,
+        unreadMarkerListIndex: unreadMarkerReportActionIndex,
+        draftAutoScrollKey,
+        focusRequestedReportActionID,
+        linkedReportActionID,
+        reportAttributes,
     } = useReportActionsListState();
-    const {setTreatAsNoPaginationAnchor, loadOlderChats, loadNewerChats} = useReportActionsListActions();
+    const {setTreatAsNoPaginationAnchor, loadOlderChats, loadNewerChats, setHasScrolledOverThreshold} = useReportActionsListActions();
+    const actionBadgeTargetID = reportAttributes?.actionTargetReportActionID;
     const showHiddenHistory = isConciergeHiddenHistory && !showFullHistory;
 
     // Remount the list when the deep-linked message or unread anchor changes (scroll positioning), or when the report changes.
@@ -126,7 +121,7 @@ function useReportActionsListScroll({
         report,
         transactionThreadReport,
         parentReportAction,
-        sortedVisibleReportActions,
+        sortedVisibleReportActions: scrollReportActions,
         renderedVisibleReportActions: listData,
         reportActionIDToDisplayIndex,
         keyExtractor,
@@ -145,7 +140,7 @@ function useReportActionsListScroll({
 
     const trackScrollPositionAndThreshold = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         trackVerticalScrolling(event);
-        onScrolledOverThresholdChange(event.nativeEvent.contentOffset.y >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
+        setHasScrolledOverThreshold(event.nativeEvent.contentOffset.y >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
     };
 
     const trackViewableRowIndexes = (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {

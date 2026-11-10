@@ -2,6 +2,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 
 import {useConciergeChatHistoryState} from '@pages/inbox/ConciergeChatHistoryContext';
+import {getConciergeMainChatWelcome} from '@pages/inbox/report/ReportActionsListContext/getConciergeChatHistoryAndWelcome';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -57,8 +58,14 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
         selector: hasUnreadMessageFromOthersSelector,
     });
 
-    const isHistoryExpanded = isConciergeInboxDM && (showFullHistory || !!route.params?.reportActionID);
-    const shouldShowWelcome = isConciergeInboxDM && !isHistoryExpanded && (isHistoryCollapsedByUser || !hasFailedSend) && !hasUnreadMessageFromOthers;
+    const {isMainChatHistoryExpanded: isHistoryExpanded, shouldShowMainChatWelcome: shouldShowWelcome} = getConciergeMainChatWelcome({
+        isMainChat: isConciergeInboxDM,
+        isMainHistoryExpanded: showFullHistory,
+        isMainHistoryCollapsedByUser: isHistoryCollapsedByUser,
+        hasFailedSend: !!hasFailedSend,
+        hasUnreadMessageFromOthers,
+        linkedActionID: route.params?.reportActionID,
+    });
 
     return {
         isHistoryExpanded,

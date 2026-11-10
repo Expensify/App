@@ -1735,6 +1735,8 @@ function shouldReportActionBeVisible(
     reportID?: string,
     isSupportTicketReport = false,
     reportActions?: OnyxEntry<ReportActions>,
+    /** Siblings computed from the caller's complete history, so visibility does not need a store lookup. */
+    paySiblingActionIDs?: ReadonlySet<string>,
 ): boolean {
     if (!reportAction) {
         return false;
@@ -1817,7 +1819,10 @@ function shouldReportActionBeVisible(
 
         // The isNewDot/shouldShow are baked at write time and can be stale for actions created outside NewDot (e.g OldDot or a background job).
         // Not applied to REIMBURSED, which carries bank account details PAY doesn't replace.
-        if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED) && hasSiblingPayReportAction(reportAction, reportAction.reportID ?? reportID, reportActions)) {
+        if (
+            isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED) &&
+            (paySiblingActionIDs ? paySiblingActionIDs.has(reportAction.reportActionID) : hasSiblingPayReportAction(reportAction, reportAction.reportID ?? reportID, reportActions))
+        ) {
             return false;
         }
     }
@@ -6324,6 +6329,7 @@ export {
     isActionableAddPaymentCard,
     isActionableCardFraudAlert,
     isActionableWhisperRequiringWritePermission,
+    getPaySiblingActionIDs,
     getExportIntegrationActionFragments,
     getExportIntegrationLastMessageText,
     getExportIntegrationMessageHTML,

@@ -1,3 +1,5 @@
+import getReportActionsCursors from '@libs/getReportActionsCursors';
+
 import {getNewerActions, getOlderActions} from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -47,34 +49,12 @@ function useLoadReportActions({
 
     const isTransactionThreadReport = !!transactionThreadReportID && transactionThreadReportID !== CONST.FAKE_REPORT_ID;
 
-    let currentReportNewestAction = null;
-    let currentReportOldestAction = null;
-    let transactionThreadNewestAction = null;
-    let transactionThreadOldestAction = null;
-
-    const allReportActionIDsSet = new Set(allReportActionIDs);
-
-    for (const action of reportActions) {
-        // Determine which report this action belongs to
-        const isCurrentReport = allReportActionIDsSet.has(action.reportActionID);
-        const targetReportID = isCurrentReport ? reportID : transactionThreadReportID;
-
-        // Track newest/oldest per report
-        if (targetReportID === reportID) {
-            // Newest = first matching action we encounter
-            if (!currentReportNewestAction) {
-                currentReportNewestAction = action;
-            }
-            // Oldest = last matching action we encounter
-            currentReportOldestAction = action;
-        } else if (isTransactionThreadReport && transactionThreadReportID === targetReportID) {
-            // Same logic for transaction thread
-            if (!transactionThreadNewestAction) {
-                transactionThreadNewestAction = action;
-            }
-            transactionThreadOldestAction = action;
-        }
-    }
+    const {
+        newestReportAction: currentReportNewestAction,
+        oldestReportAction: currentReportOldestAction,
+        newestThreadAction: transactionThreadNewestAction,
+        oldestThreadAction: transactionThreadOldestAction,
+    } = getReportActionsCursors(reportActions, allReportActionIDs);
 
     /**
      * Retrieves the next set of reportActions for the chat once we are nearing the end of what we are currently

@@ -1,19 +1,8 @@
-import useOnyx from '@hooks/useOnyx';
-import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
-import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {shouldKeepBillPayActorHeader} from '@libs/BillPayReportActionUtils';
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {
-    getFirstVisibleReportActionID,
-    getFeedbackPromptActionIDs,
-    isConsecutiveActionMadeByPreviousActor,
-    isDeletedParentAction,
-    isReversedTransaction,
-    isTransactionThread,
-} from '@libs/ReportActionsUtils';
+import {isConsecutiveActionMadeByPreviousActor, isDeletedParentAction, isReversedTransaction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {
     chatIncludesChronosWithID,
     isArchivedNonExpenseReport,
@@ -26,19 +15,14 @@ import {
     isSupportTicket,
 } from '@libs/ReportUtils';
 
-import {useReportActionsListState} from '@pages/inbox/report/ReportActionsListContext';
+import {useReportActionsListActions, useReportActionsListState} from '@pages/inbox/report/ReportActionsListContext';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import {getStableReportSelector} from '@src/selectors/Report';
 import {isLinkedToBillSelector} from '@src/selectors/ReportNameValuePairs';
 import type * as OnyxTypes from '@src/types/onyx';
-import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
-import {getCustomAgentAccountIDs} from '@selectors/AgentZeroChat';
-import {accountIDSelector} from '@selectors/Session';
 import React from 'react';
 
 import type {UseReportActionsListRenderItemParams} from './types';
@@ -46,60 +30,41 @@ import type {UseReportActionsListRenderItemParams} from './types';
 import ReportActionsListRow from './ReportActionsListRow';
 
 /** Builds the report-actions row renderer and the `extraData` values that must re-render rows when they change. */
-function useReportActionsListRenderItem({
-    reportID,
-    reportNameValuePairs,
-    isReportArchived,
-    isOffline,
-    sortedReportActions,
-    renderedVisibleReportActions,
-    listData,
-    canonicalIndexByReportActionID,
-    runsByAnchorReportActionID,
-    expandedSystemMessageReportActionIDs,
-    expandSystemMessageRun,
-    focusRequestedReportActionID,
-    onExpandedSystemMessageReady,
-    draftMessageHTML,
-    draftReportActionID,
-    isDraftPendingCompletion,
-    unreadMarkerReportActionID,
-    linkedReportActionID,
-    onShowPreviousMessages,
-}: UseReportActionsListRenderItemParams) {
+function useReportActionsListRenderItem({onExpandedSystemMessageReady}: UseReportActionsListRenderItemParams) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {
         report,
-        hasNewerActions,
         transactionThreadReport,
         parentReportActionForTransactionThread,
         parentReportAction,
         isConciergeHiddenHistory,
         showFullHistory,
         hasPreviousMessages,
-        persistedReportActionIDs,
+        reportStable,
+        chatReportStable,
+        reportsParentHierarchy,
+        reportNameValuePairs,
+        isReportArchived,
+        isOffline,
+        renderedVisibleReportActions,
+        listData,
+        canonicalIndexByReportActionID,
+        runsByAnchorReportActionID,
+        expandedSystemMessageReportActionIDs,
+        focusRequestedReportActionID,
+        draftMessageHTML,
+        draftReportActionID,
+        isDraftPendingCompletion,
+        unreadMarkerReportActionID,
+        linkedReportActionID,
+        firstVisibleReportActionID,
+        latestConciergeFeedbackActionIDs,
     } = useReportActionsListState();
+    const {expandSystemMessageRun, handleShowPreviousMessages: onShowPreviousMessages} = useReportActionsListActions();
     const showHiddenHistory = isConciergeHiddenHistory && !showFullHistory;
 
-    const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getStableReportSelector});
-    const [chatReportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportStable?.chatReportID)}`, {selector: getStableReportSelector});
-    const reportsParentHierarchy = useReportsParentHierarchy(reportID);
     const isHarvestCreatedExpenseReportAction = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
     const isInvoiceLinkedToBill = isLinkedToBillSelector(reportNameValuePairs);
-
-    const firstVisibleReportActionID = getFirstVisibleReportActionID(sortedReportActions, isOffline);
-
-    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
-
-    // An agent account can be opened through Copilot, and the agent must not rate its own replies
-    const actorAccountIDs = [...new Set(renderedVisibleReportActions.map((action) => action.actorAccountID))].filter((accountID) => accountID !== currentUserAccountID);
-    const [customAgentAccountIDs = getEmptyArray<number>()] = usePersonalDetailsByIDs(actorAccountIDs, getCustomAgentAccountIDs);
-
-    // Skip inside the thread the backend opens after a thumbs down, while a Concierge answer is still streaming, and while newer actions are not loaded because the newest reply may not be in the list yet
-    const latestConciergeFeedbackActionIDs =
-        reportNameValuePairs?.conciergeFeedbackForReportActionID || isDraftPendingCompletion || hasNewerActions
-            ? getEmptyArray<string>()
-            : getFeedbackPromptActionIDs(renderedVisibleReportActions, persistedReportActionIDs, customAgentAccountIDs);
 
     /**
      * Thread's divider line should hide when the first chat in the thread is marked as unread.
@@ -138,6 +103,12 @@ function useReportActionsListRenderItem({
         const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
 
         const collapsedSystemMessageRun = systemMessageRun && !systemMessageRun.isExpanded ? systemMessageRun : undefined;
+        let actionReport = report;
+        if (!reportAction.reportID) {
+            actionReport = undefined;
+        } else if (reportAction.reportID === transactionThreadReport?.reportID) {
+            actionReport = transactionThreadReport;
+        }
 
         return (
             <ReportActionsListRow
@@ -165,7 +136,7 @@ function useReportActionsListRenderItem({
                 displayAsGroup={
                     !isAfterCollapsedRun &&
                     !shouldKeepBillPayActorHeader(reportAction, previousReportAction, reportStable, isInvoiceLinkedToBill) &&
-                    !isConsecutiveChronosAutomaticTimerAction(renderedVisibleReportActions, canonicalIndex, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
+                    !isConsecutiveChronosAutomaticTimerAction(renderedVisibleReportActions, canonicalIndex, chatIncludesChronosWithID(actionReport), isOffline) &&
                     isConsecutiveActionMadeByPreviousActor(renderedVisibleReportActions, canonicalIndex, isOffline)
                 }
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
