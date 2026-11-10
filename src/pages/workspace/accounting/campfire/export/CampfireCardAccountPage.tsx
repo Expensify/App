@@ -76,6 +76,7 @@ function CampfireCardAccountPage({policy}: WithPolicyConnectionsProps) {
                             pendingAction={getCardsCustomExportPendingAction(cardFeeds ?? {}, cardLists ?? {}, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_CAMPFIRE_EXPORT_ACCOUNT, feedKey)}
                         >
                             <MenuItem.Root
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CAMPFIRE.CARD_ACCOUNT_FEED_ROW}
                                 onPress={callIfAuthenticated(
                                     () => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_CARD_ACCOUNT_CARD_LIST.getRoute(policyID, feedWithDomainID)) : undefined),
                                     session,

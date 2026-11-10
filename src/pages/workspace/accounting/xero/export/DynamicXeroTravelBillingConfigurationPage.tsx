@@ -78,6 +78,8 @@ function DynamicXeroTravelBillingConfigurationPage({policy}: WithPolicyConnectio
             <TravelBillingContinuousReconciliationSection
                 policy={policy}
                 connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_SWITCH.XERO}
+                reconciliationAccountSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.TRAVEL_BILLING_RECONCILIATION_ACCOUNT.XERO}
                 isAutoSyncEnabled={!!config?.autoSync?.enabled}
                 isPayableAccountSet={!!config?.export?.travelInvoicingPayableAccountID}
             />

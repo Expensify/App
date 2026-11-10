@@ -64,6 +64,8 @@ function DynamicSageIntacctTravelBillingConfigurationPage({policy}: WithPolicyCo
             <TravelBillingContinuousReconciliationSection
                 policy={policy}
                 connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_SWITCH.SAGE_INTACCT}
+                reconciliationAccountSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.TRAVEL_BILLING_RECONCILIATION_ACCOUNT.SAGE_INTACCT}
                 isAutoSyncEnabled={!!config?.autoSync?.enabled}
                 isPayableAccountSet={!!config?.export?.travelInvoicingPayableAccountID}
             />
