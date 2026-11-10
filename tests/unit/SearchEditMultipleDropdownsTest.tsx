@@ -1,10 +1,14 @@
-import {act, render} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 
 import type {AttendeePickerModalProps} from '@components/AttendeePicker/AttendeePickerModal';
+import ComposeProviders from '@components/ComposeProviders';
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import type {ExpenseFieldDropdownRenderProps} from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type TagPickerModal from '@components/TagPicker/TagPickerModal';
 import type {TaxPickerModalProps} from '@components/TaxPicker/TaxPickerModal';
 
+import SearchEditMultipleAttendeePills from '@pages/Search/SearchEditMultiple/SearchEditMultipleAttendeePills';
 import SearchEditMultipleAttendeesDropdown from '@pages/Search/SearchEditMultiple/SearchEditMultipleAttendeesDropdown';
 import SearchEditMultipleTagDropdown from '@pages/Search/SearchEditMultiple/SearchEditMultipleTagDropdown';
 import SearchEditMultipleTaxDropdown from '@pages/Search/SearchEditMultiple/SearchEditMultipleTaxDropdown';
@@ -231,6 +235,23 @@ describe('SearchEditMultiple dropdowns', () => {
             const draft = await getOnyxValue(DRAFT_KEY);
             expect(draft?.comment?.attendees).toBeUndefined();
             expect(onClose).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('attendee pills', () => {
+        it('shows the draft attendees as pills by name, as the expense form does', async () => {
+            // Given two attendees the bulk edit draft holds
+            // When the attendees row renders its value
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                    <SearchEditMultipleAttendeePills attendees={[bob, alice]} />
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdates();
+
+            // Then each attendee shows as a pill with their name, matching the attendees row on the expense form
+            expect(screen.getByText('Alice')).toBeOnTheScreen();
+            expect(screen.getByText('Bob')).toBeOnTheScreen();
         });
     });
 });

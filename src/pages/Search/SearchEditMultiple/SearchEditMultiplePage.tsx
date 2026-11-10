@@ -64,6 +64,7 @@ import type {ValueOf} from 'type-fest';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import SearchEditMultipleAttendeePills from './SearchEditMultipleAttendeePills';
 import SearchEditMultipleAttendeesDropdown from './SearchEditMultipleAttendeesDropdown';
 import SearchEditMultipleCategoryDropdown from './SearchEditMultipleCategoryDropdown';
 import SearchEditMultipleTagDropdown from './SearchEditMultipleTagDropdown';
@@ -217,6 +218,7 @@ function SearchEditMultiplePage() {
     const description = draftTransaction?.comment?.comment ?? '';
     const draftDate = draftTransaction?.created ?? '';
     const draftAttendees = draftTransaction?.comment?.attendees ?? [];
+    const hasDraftAttendees = draftAttendees.length > 0;
 
     // Mirror the draft merchant in local state so the input updates synchronously as the user types; feeding the async
     // Onyx value straight to `value` snaps the caret to the end on every keystroke. The draft only changes from this
@@ -616,8 +618,11 @@ function SearchEditMultiplePage() {
                     {areAttendeesEnabled && (
                         <ExpenseFieldDropdown
                             name={translate('iou.attendees')}
-                            value={draftAttendees.length ? getAttendeesListDisplayString(draftAttendees, formatPhoneNumber, localeCompare) : ''}
-                            numberOfLinesValue={2}
+                            valueComponent={hasDraftAttendees ? <SearchEditMultipleAttendeePills attendees={draftAttendees} /> : undefined}
+                            hasValueComponent={hasDraftAttendees}
+                            accessibilityLabel={
+                                hasDraftAttendees ? `${translate('iou.attendees')}, ${getAttendeesListDisplayString(draftAttendees, formatPhoneNumber, localeCompare)}` : undefined
+                            }
                             onPress={() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_ATTENDEES_RHP)}
                             shouldOpenInDropdown={canOpenListInDropdown && !isAttendeesDisabled}
                             listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
