@@ -11,7 +11,8 @@ import {hasHoverSupport} from '@libs/DeviceCapabilities';
 
 import type {AIInsight, InsightsScope} from '@src/types/onyx';
 
-import type {ReactNode} from 'react';
+import type {ReactElement} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 import React, {Fragment} from 'react';
 import {View} from 'react-native';
@@ -59,12 +60,10 @@ function InsightsAICardRow({insights, insightsScope, hasFailedToLoad}: InsightsA
         return null;
     }
 
-    const renderWithDivider = (content: ReactNode, index: number, isEmptySlot = false) => (
-        <Fragment key={index}>
-            {index > 0 && (
-                <View style={[styles.borderLeft, shouldUseNarrowLayout ? styles.mh8 : [styles.ml6, styles.mr6], isEmptySlot && StyleUtils.getBorderColorStyle(theme.transparent)]} />
-            )}
-            {content}
+    const renderSlot = (card: ReactElement | undefined, index: number, slotStyle: StyleProp<ViewStyle>) => (
+        <Fragment key={card?.key ?? `empty-${index}`}>
+            {index > 0 && <View style={[styles.borderLeft, shouldUseNarrowLayout ? styles.mh8 : [styles.ml6, styles.mr6], !card && StyleUtils.getBorderColorStyle(theme.transparent)]} />}
+            <View style={slotStyle}>{card}</View>
         </Fragment>
     );
 
@@ -76,7 +75,7 @@ function InsightsAICardRow({insights, insightsScope, hasFailedToLoad}: InsightsA
                 style={[pageGutterEdgeToEdge, styles.pv5]}
                 contentContainerStyle={pageGutter}
             >
-                {cards.map((card, index) => renderWithDivider(<View style={styles.insightsAICard}>{card}</View>, index))}
+                {cards.map((card, index) => renderSlot(card, index, styles.insightsAICard))}
             </ScrollView>
         );
     }
@@ -91,7 +90,7 @@ function InsightsAICardRow({insights, insightsScope, hasFailedToLoad}: InsightsA
                     key={row.at(0)?.key}
                     style={styles.flexRow}
                 >
-                    {Array.from({length: cardsPerRow}, (slot, index) => renderWithDivider(<View style={[styles.flex1, styles.mnw0]}>{row.at(index)}</View>, index, !row.at(index)))}
+                    {Array.from({length: cardsPerRow}, (slot, index) => renderSlot(row.at(index), index, [styles.flex1, styles.mnw0]))}
                 </View>
             ))}
         </View>
