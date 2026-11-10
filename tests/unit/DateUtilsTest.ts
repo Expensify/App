@@ -939,9 +939,21 @@ describe('DateUtils', () => {
             expect(DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20', undefined, undefined)).toBe('');
         });
 
-        it('should format a date-only value in the target timezone', () => {
+        it('should format a date-only value as its calendar date', () => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             const result = DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20', UTC as SelectedTimezone, undefined);
+            expect(result).toBe('June 20th, 2026');
+        });
+
+        it('should keep a date-only value on its own day in a timezone behind UTC', () => {
+            // Given a date-only snapshot boundary and a user whose timezone is behind UTC
+            const americaNewYork: SelectedTimezone = 'America/New_York';
+
+            // When the boundary is formatted for that user
+            const result = DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20', americaNewYork, undefined);
+
+            // Then the stored day is shown. A date-only value is a calendar boundary, so moving it into the user's
+            // timezone as if it were midnight UTC would wrongly show June 19.
             expect(result).toBe('June 20th, 2026');
         });
 
@@ -1291,6 +1303,33 @@ describe('DateUtils', () => {
             // Then the day comes before the month. The hand-written pattern kept the US order and showed the month first.
             expect(DateUtils.getFormattedReservationRangeDate(translateLocal, de, new Date(2026, 2, 17), new Date(2026, 2, 17))).toBe('Dienstag, 17. März');
             expect(DateUtils.getFormattedReservationRangeDate(translateLocal, de, new Date(2023, 2, 17), new Date(2023, 2, 17))).toBe('Freitag, 17. März 2023');
+        });
+    });
+
+    describe('ordinal long date', () => {
+        // cspell:ignore Juni junio
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- 'UTC' is a valid IANA zone but is not in the SelectedTimezone union
+        const UTC_TIMEZONE = 'UTC' as SelectedTimezone;
+
+        // A UTC instant at midday, so the displayed day is the same in every timezone the test can run in.
+        const SNAPSHOT_STARTED_AT = '2026-06-20 12:00:00';
+
+        it('keeps the English ordinal date unchanged', () => {
+            // Given a violation snapshot date and no locale, which falls back to en-US
+            // When it is formatted for display
+            // Then English keeps the ordinal day the hand-written pattern produced, so switching to a localized token is
+            // invisible to English users
+            expect(DateUtils.formatViolationSnapshotStartedAtDate(SNAPSHOT_STARTED_AT, UTC_TIMEZONE, undefined)).toBe('June 20th, 2026');
+        });
+
+        it('orders the date the way each language does', () => {
+            // Given languages that do not write a long date in the US order
+            // When the same date is formatted in each
+            // Then the day comes before the month in German and Spanish, and Japanese leads with the year. A hand-written
+            // pattern kept the US order for every language, which produced forms like `Juni 20., 2026`.
+            expect(DateUtils.formatViolationSnapshotStartedAtDate(SNAPSHOT_STARTED_AT, UTC_TIMEZONE, de)).toBe('20. Juni 2026');
+            expect(DateUtils.formatViolationSnapshotStartedAtDate(SNAPSHOT_STARTED_AT, UTC_TIMEZONE, es)).toBe('20 de junio de 2026');
+            expect(DateUtils.formatViolationSnapshotStartedAtDate(SNAPSHOT_STARTED_AT, UTC_TIMEZONE, ja)).toBe('2026年6月20日');
         });
     });
 

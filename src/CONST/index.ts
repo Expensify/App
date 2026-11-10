@@ -834,7 +834,9 @@ const CONST = {
         FNS_TIMEZONE_FORMAT_STRING: "yyyy-MM-dd'T'HH:mm:ssXXX",
         FNS_DB_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss.SSS',
         ORDINAL_DAY_OF_MONTH: 'do',
-        MONTH_DAY_YEAR_ORDINAL_FORMAT: 'MMMM do, yyyy',
+        // `PPP` is date-fns' long localized date. In en-US it already carries the ordinal day this constant is named
+        // for, so English output is unchanged, while other languages stop being forced into the US component order.
+        MONTH_DAY_YEAR_ORDINAL_FORMAT: 'PPP',
         SECONDS_PER_DAY: 24 * 60 * 60,
         MONTH_DAYS,
     },
@@ -2095,6 +2097,7 @@ const CONST = {
             ADD_EXPENSE: 'addExpense',
             SUBMIT: 'submit',
             APPROVE: 'approve',
+            APPROVE_WITH_VIOLATIONS: 'approveWithViolations',
             PAY: 'pay',
             EXPORT_TO_ACCOUNTING: 'exportToAccounting',
         },
@@ -2833,6 +2836,8 @@ const CONST = {
         SPAN_NAVIGATE_TO_REPORTS_FIRST_PAINT: 'ManualNavigateToReportsFirstPaint',
         SPAN_NAVIGATE_TO_REPORTS_CONTENT_LOAD: 'ManualNavigateToReportsContentLoad',
         SPAN_NAVIGATE_TO_INBOX_TAB: 'ManualNavigateToInboxTab',
+        /** From the idle Spend tab preload until its first content is on screen, the background cost the preload adds. */
+        SPAN_PRELOAD_SEARCH_TAB: 'ManualPreloadSearchTab',
         SPAN_OD_ND_TRANSITION: 'ManualOdNdTransition',
         SPAN_OD_ND_TRANSITION_LOGGED_OUT: 'ManualOdNdTransitionLoggedOut',
         SPAN_OPEN_SEARCH_ROUTER: 'ManualOpenSearchRouter',
@@ -8362,6 +8367,8 @@ const CONST = {
             YEAR: 'year',
             QUARTER: 'quarter',
             APPROVER: 'approver',
+            // Groups by violation type. Only Insights queries use it until the Search command supports it (see https://github.com/Expensify/App/issues/105303)
+            VIOLATION: 'violation',
         },
         /**
          * Single source of truth for which transaction-level columns are available in each column-picker surface:
@@ -8716,6 +8723,11 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
+                // Search never lists violation groups, so they get only the columns every group has
+                VIOLATION: {
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
             };
         },
         get TYPE_DEFAULT_COLUMNS() {
@@ -8778,6 +8790,7 @@ const CONST = {
                 YEAR: [this.TABLE_COLUMNS.GROUP_YEAR, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 QUARTER: [this.TABLE_COLUMNS.GROUP_QUARTER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 APPROVER: [this.TABLE_COLUMNS.AVATAR, this.TABLE_COLUMNS.GROUP_APPROVER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                VIOLATION: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
         },
         BOOLEAN: {
@@ -10423,6 +10436,9 @@ const CONST = {
             TOP_MERCHANTS: 'topMerchants',
             TOP_CATEGORIES: 'topCategories',
             TOP_SPENDERS: 'topSpenders',
+            TOP_VIOLATIONS: 'topViolations',
+            VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
+            VIOLATIONS_BY_APPROVER: 'violationsByApprover',
         },
     },
 
