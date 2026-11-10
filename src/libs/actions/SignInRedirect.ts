@@ -9,7 +9,6 @@ import CONFIG from '@src/CONFIG';
 import type {SignOutReason} from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {RequestsKeptOnSAMLSignOut} from '@src/types/onyx';
 
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
@@ -111,8 +110,6 @@ function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: st
         keysToPreserve.push(ONYXKEYS.ACCOUNT);
     }
 
-    let requestsKeptOnSAMLSignOut: RequestsKeptOnSAMLSignOut | undefined;
-
     // Mark the account as loading and set the login in credentials to trigger the `SAML_SIGN_IN` transition
     if (isSAMLReauthentication) {
         keysToPreserve.push(ONYXKEYS.CREDENTIALS);
@@ -125,19 +122,17 @@ function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: st
         keysToPreserve.push(ONYXKEYS.LAST_VISITED_PATH);
 
         // Every tab empties the request queue on sign-out, so unsent requests are set aside under the account that owns them.
+        // A tab signed out after another one has no session left, so it only keeps what the first tab set aside.
+        keysToPreserve.push(ONYXKEYS.REQUESTS_KEPT_ON_SAML_SIGN_OUT);
+        keysToPreserve.push(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
         if (currentSessionAccountID) {
-            keysToPreserve.push(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
-            requestsKeptOnSAMLSignOut = {accountID: currentSessionAccountID, requests: getAllPersistedRequestsIncludingOngoing()};
+            Onyx.set(ONYXKEYS.REQUESTS_KEPT_ON_SAML_SIGN_OUT, {accountID: currentSessionAccountID, requests: getAllPersistedRequestsIncludingOngoing()});
         }
     }
 
     const clearStartedAt = Date.now();
     const emailAtClearStart = currentSessionEmail;
     return Onyx.clear(keysToPreserve).then(async () => {
-        if (requestsKeptOnSAMLSignOut) {
-            Onyx.set(ONYXKEYS.REQUESTS_KEPT_ON_SAML_SIGN_OUT, requestsKeptOnSAMLSignOut);
-        }
-
         if (lastAuthTokenWrittenAt > clearStartedAt) {
             Log.hmmm('[SignInRedirect] Sign-out clear finished after a new sign-in started', {
                 signOutReason,
