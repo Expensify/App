@@ -1517,23 +1517,29 @@ describe('libs/NextStepUtils', () => {
             expect(message).toBe(`<next-step>Waiting for formatted:${phoneActorLogin} to submit expenses.</next-step>`);
         });
 
-        it.each([CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL, CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID])(
-            'appends the %s timing after the next step message',
-            (autoExportMessageKey) => {
-                // Given a next step from a workspace that auto-exports
-                const nextStep: ReportNextStep = {
-                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
-                    icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
-                    autoExport: {messageKey: autoExportMessageKey},
-                };
-
-                // When the message is built
-                const message = buildNextStepMessage(nextStep, translateLocal, undefined, 999999, formatPhoneNumber);
-
-                // Then the export timing follows the main message
-                expect(message).toBe(`<next-step>nextStep.message.noFurtherAction nextStep.autoExport.${autoExportMessageKey}</next-step>`);
+        it.each([
+            {
+                autoExportMessageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL,
+                expectedAutoExportMessage: 'This report will be exported after final approval.',
             },
-        );
+            {
+                autoExportMessageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID,
+                expectedAutoExportMessage: 'Reimbursable expenses will be exported when this report is paid.',
+            },
+        ])('appends the $autoExportMessageKey timing after the next step message', ({autoExportMessageKey, expectedAutoExportMessage}) => {
+            // Given a next step from a workspace that auto-exports
+            const nextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
+                icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+                autoExport: {messageKey: autoExportMessageKey},
+            };
+
+            // When the message is built
+            const message = buildNextStepMessage(nextStep, translateLocal, undefined, 999999, formatPhoneNumber);
+
+            // Then the export timing follows the main message
+            expect(message).toBe(`<next-step>No further action required! ${expectedAutoExportMessage}</next-step>`);
+        });
 
         it.each([undefined, null])('leaves the message unchanged when the auto-export timing is %s', (autoExport) => {
             // Given a next step without an export timing, which the backend sends as null to clear an earlier one
@@ -1547,7 +1553,7 @@ describe('libs/NextStepUtils', () => {
             const message = buildNextStepMessage(nextStep, translateLocal, undefined, 999999, formatPhoneNumber);
 
             // Then nothing is appended to it
-            expect(message).toBe('<next-step>nextStep.message.noFurtherAction</next-step>');
+            expect(message).toBe('<next-step>No further action required!</next-step>');
         });
 
         it('renders a monthly automatic-submit eta using the day-of-month it encodes, not one shifted by UTC parsing', () => {
