@@ -25,7 +25,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {ValueOf} from 'type-fest';
 
@@ -38,7 +37,7 @@ function WorkspaceMembersRolePage({policy, route}: WorkspaceMembersRolePageProps
     const {translate} = useLocalize();
     const showRuleBotGuardModal = useRuleBotGuardModal();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const [selectedLogins, selectedLoginsMetadata] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE);
+    const [selectedLogins] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const memberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, true);
 
@@ -69,7 +68,6 @@ function WorkspaceMembersRolePage({policy, route}: WorkspaceMembersRolePageProps
     const memberCount = memberLogins.length;
     useRedirectToWorkspaceMembersWithoutSelection({
         policyID,
-        isSelectionLoading: isLoadingOnyxValue(selectedLoginsMetadata),
         selectedMemberCount: memberCount,
     });
 

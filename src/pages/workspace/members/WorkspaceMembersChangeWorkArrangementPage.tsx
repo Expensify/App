@@ -30,7 +30,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList} from '@src/types/onyx';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -48,7 +47,7 @@ function WorkspaceMembersChangeWorkArrangementPage({policy, personalDetails, rou
     const {translate} = useLocalize();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
-    const [selection, selectionMetadata] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT);
+    const [selection] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT);
     const [chosenIsOffice, setChosenIsOffice] = useState<boolean>();
 
     // Members picked on another workspace's member list are left out, even when they also belong to this one
@@ -56,7 +55,6 @@ function WorkspaceMembersChangeWorkArrangementPage({policy, personalDetails, rou
 
     useRedirectToWorkspaceMembersWithoutSelection({
         policyID,
-        isSelectionLoading: isLoadingOnyxValue(selectionMetadata),
         selectedMemberCount: selectedAccountIDs?.length ?? 0,
     });
 

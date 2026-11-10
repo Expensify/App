@@ -176,15 +176,4 @@ describe('WorkspaceMembersChangeWorkArrangementPage', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
         expect(jest.mocked(AccessOrNotFoundWrapper).mock.lastCall?.[0].shouldBeBlocked).toBe(false);
     });
-
-    it('waits for the selection to load before leaving', () => {
-        // Given the selection has not loaded yet
-        jest.mocked(useOnyx).mockReturnValue([undefined, {status: 'loading'}]);
-
-        // When the page opens
-        renderPage(true, false);
-
-        // Then it stays open until it knows whether any members are selected
-        expect(Navigation.navigate).not.toHaveBeenCalled();
-    });
 });
