@@ -2998,7 +2998,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.343):
+  - RNLiveMarkdown (0.1.371):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -4174,7 +4174,7 @@ SPEC CHECKSUMS:
   RNFS: 89de7d7f4c0f6bafa05343c578f61118c8282ed8
   RNGestureHandler: 85e32defcf23dd3b023356355c5c1dd1d9d51bde
   RNGoogleSignin: 89877c73f0fbf6af2038fbdb7b73b5a25b8330cc
-  RNLiveMarkdown: b6894bb864d517f51ea80c98facd26571f2cd0fe
+  RNLiveMarkdown: 5c091b2742b0e26a7085ce2803919ef76198eeb7
   RNLocalize: 82e7aa2857ce5dcd9e2a0c04f8c34c2ed50821df
   rnmapbox-maps: 1cb6aa142a8ea99d0934a36d83d2acf3f2de45d3
   RNNitroSQLite: 8962a30dc9296f8a62bfcc33f3c2a540b1c44aff
