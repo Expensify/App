@@ -36,7 +36,7 @@ function DynamicIOURequestStepReport({route, transaction}: DynamicIOURequestStep
         }
     };
 
-    const {listProps, reportOrDraftReport} = useReportPickerActions({transaction, transactionID, action, iouType, reportIDFromRoute, goBack: handleGoBack});
+    const {listProps, reportOrDraftReport} = useReportPickerActions({transaction, transactionID, action, reportIDFromRoute, goBack: handleGoBack});
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, reportOrDraftReport, transaction);
 

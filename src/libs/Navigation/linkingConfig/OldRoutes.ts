@@ -1,12 +1,12 @@
 const oldRoutes: Record<string, string> = {
     /* eslint-disable @typescript-eslint/naming-convention */
     '/*/*/destination/*/*/edit': '/$1/$2/confirmation/$3/$4/per-diem-destination-edit',
-    '/*/*/destination/*/*': '/$1/$2/start/$3/$4/per-diem-destination',
+    '/*/*/destination/*/*': '/$1/$2/start/$3/$4/per-diem',
     '/*/*/time/*/*/edit': '/$1/$2/confirmation/$3/$4/per-diem-time-edit',
-    '/*/*/time/*/*': '/$1/$2/destination/$3/$4/per-diem-time',
+    '/*/*/time/*/*': '/$1/$2/start/$3/$4/per-diem',
     '/*/*/subrate/*/*/edit/*': '/$1/$2/confirmation/$3/$4/per-diem-subrate-edit/$5',
-    '/*/*/subrate/*/*/*/*': '/$1/$2/start/$3/$4/$5/per-diem-time/per-diem-subrate/$6',
-    '/*/*/subrate/*/*/*': '/$1/$2/start/$3/$4/per-diem-time/per-diem-subrate/$5',
+    '/*/*/subrate/*/*/*/*': '/$1/$2/start/$3/$4/$5/per-diem',
+    '/*/*/subrate/*/*/*': '/$1/$2/start/$3/$4/per-diem',
     '/settings/*/category/*/edit': '/settings/$1/categories/category-settings/$2/category-edit',
     '/settings/*/category/*': '/settings/$1/categories/category-settings/$2',
     '/settings/*/tags/*/edit': '/settings/$1/tags/settings-tags-edit/$2',

@@ -4,7 +4,6 @@ import CollapsibleHeaderOnKeyboardGroupMember from '@components/CollapsibleHeade
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import type {TabSelectorProps} from '@components/TabSelector/types';
@@ -41,16 +40,16 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {TupleToUnion} from 'type-fest';
 
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
 
-import DynamicIOURequestStepDestination from './step/DynamicIOURequestStepDestination';
 import DynamicIOURequestStepDistance from './step/DynamicIOURequestStepDistance';
 import {IOURequestStepAmountWithTransactionOnly} from './step/IOURequestStepAmount';
 import {IOURequestStepConfirmationContentWithWritableReportOrNotFound as IOURequestStepConfirmationContent} from './step/IOURequestStepConfirmation';
 import IOURequestStepHours from './step/IOURequestStepHours';
+import IOURequestStepPerDiem from './step/IOURequestStepPerDiem';
 import IOURequestStepPerDiemWorkspace from './step/IOURequestStepPerDiemWorkspace';
 import IOURequestStepScan from './step/IOURequestStepScan';
 import IOURequestStepTimeWorkspace from './step/IOURequestStepTimeWorkspace';
@@ -61,9 +60,6 @@ const {OnyxTabNavigator, TopTab} = createOnyxTabNavigator(tabNames);
 type IOURequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE> & {
     defaultSelectedTab: TupleToUnion<typeof tabNames>;
 };
-
-// Tab indices for IOURequestStartPage
-const PER_DIEM_TAB_INDEX = 2;
 
 function CollapsibleTabSelector(props: TabSelectorProps) {
     return (
@@ -95,7 +91,6 @@ function IOURequestStartPage({
     const isLoadingSelectedTab = shouldUseTab ? isLoadingOnyxValue(selectedTabResult) : false;
     const [transaction, transactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`);
     const isLoadingTransaction = isLoadingOnyxValue(transactionResult);
-    const perDiemInputRef = useRef<AnimatedTextInputRef | null>(null);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [iouRequestStartPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: createIOURequestStartPoliciesSelector(currentUserPersonalDetails.login, iouType === CONST.IOU.TYPE.INVOICE),
@@ -110,15 +105,6 @@ function IOURequestStartPage({
         [CONST.IOU.TYPE.TRACK]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.INVOICE]: translate('workspace.invoices.sendInvoice'),
         [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
-    };
-
-    const onTabSelectFocusHandler = ({index}: {index: number}) => {
-        if (index !== PER_DIEM_TAB_INDEX) {
-            return;
-        }
-        setTimeout(() => {
-            perDiemInputRef.current?.focus?.();
-        }, CONST.ANIMATED_TRANSITION);
     };
 
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
@@ -180,7 +166,6 @@ function IOURequestStartPage({
         transactionRequestType,
         iouType,
         policy,
-        skipKeyboardDismissForPerDiem: true,
     });
 
     useEffect(() => {
@@ -243,7 +228,9 @@ function IOURequestStartPage({
     // shouldEnableMaxHeight gates the keyboard-open height clamp and `marginTop: viewportOffsetTop`, and together with
     // shouldAvoidScrollOnVirtualViewport (true by default here) it gates useTackInputFocus on mobile WebKit. Same
     // condition the standalone confirmation uses - mobile Safari opts out, and canUseTouchScreen() is false on desktop.
-    const shouldEnableManualConfirmationMaxHeight = shouldEmbedConfirmation && (!shouldUseTab || selectedTab === CONST.TAB_REQUEST.MANUAL) && canUseTouchScreen() && !isMobileSafari();
+    // The per diem tab embeds the confirmation too, unless it is showing the workspace selector first.
+    const isEmbeddedConfirmationTab = !shouldUseTab || selectedTab === CONST.TAB_REQUEST.MANUAL || (selectedTab === CONST.TAB_REQUEST.PER_DIEM && !shouldShowWorkspaceSelectForPerDiem);
+    const shouldEnableEmbeddedConfirmationMaxHeight = shouldEmbedConfirmation && isEmbeddedConfirmationTab && canUseTouchScreen() && !isMobileSafari();
 
     let manualContent: React.ReactNode;
     if (!shouldEmbedConfirmation) {
@@ -296,7 +283,7 @@ function IOURequestStartPage({
         >
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView
-                shouldEnableMaxHeight={selectedTab === CONST.TAB_REQUEST.PER_DIEM || shouldEnableManualConfirmationMaxHeight}
+                shouldEnableMaxHeight={(selectedTab === CONST.TAB_REQUEST.PER_DIEM && shouldShowWorkspaceSelectForPerDiem) || shouldEnableEmbeddedConfirmationMaxHeight}
                 shouldEnableMinHeight={canUseTouchScreen()}
                 testID="IOURequestStartPage"
                 focusTrapSettings={{containerElements: focusTrapContainerElements}}
@@ -322,7 +309,6 @@ function IOURequestStartPage({
                                     id={CONST.TAB.IOU_REQUEST_TYPE}
                                     defaultSelectedTab={defaultSelectedTab}
                                     onTabSelected={resetIOUTypeIfChanged}
-                                    onTabSelect={onTabSelectFocusHandler}
                                     tabBar={CollapsibleTabSelector}
                                     onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
                                     onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
@@ -363,9 +349,7 @@ function IOURequestStartPage({
                                                             navigation={navigation}
                                                         />
                                                     ) : (
-                                                        <DynamicIOURequestStepDestination
-                                                            openedFromStartPage
-                                                            ref={perDiemInputRef}
+                                                        <IOURequestStepPerDiem
                                                             explicitPolicyID={moreThanOnePerDiemExist ? undefined : iouRequestStartPolicies?.firstPerDiemPolicyID}
                                                             route={route}
                                                             navigation={navigation}

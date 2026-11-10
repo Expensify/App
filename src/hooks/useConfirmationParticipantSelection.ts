@@ -1,10 +1,12 @@
 import {setTransactionReport} from '@libs/actions/Transaction';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isParticipantP2P} from '@libs/IOUUtils';
-import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {generateReportID, getReportOrDraftReport} from '@libs/ReportUtils';
+import {isPerDiemRequest} from '@libs/TransactionUtils';
 
 import {setCustomUnitRateID, setMoneyRequestCategory, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport, setMoneyRequestTag} from '@userActions/IOU/MoneyRequest';
+import {resetPerDiemCustomUnit} from '@userActions/IOU/PerDiem';
 
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
@@ -173,7 +175,17 @@ function useConfirmationParticipantSelection({
                     // The previous workspace's category and tag don't apply in the new one, so reset them. No policy is
                     // passed, so the category's tax is cleared too.
                     if (firstParticipant.policyID && firstParticipant.policyID !== policyID) {
-                        const defaultCategory = isDistanceRequest ? (getDistanceRateCustomUnit(workspacePolicy)?.defaultCategory ?? '') : '';
+                        // Per diem rates belong to a workspace, so the form starts over on the new workspace's per diem unit.
+                        const perDiemUnit = isPerDiemRequest(transactionToUpdate) ? getPerDiemCustomUnit(workspacePolicy) : undefined;
+                        if (perDiemUnit) {
+                            resetPerDiemCustomUnit(transactionIDToUpdate, perDiemUnit.customUnitID);
+                        }
+                        let defaultCategory = '';
+                        if (isDistanceRequest) {
+                            defaultCategory = getDistanceRateCustomUnit(workspacePolicy)?.defaultCategory ?? '';
+                        } else if (perDiemUnit) {
+                            defaultCategory = perDiemUnit.defaultCategory ?? '';
+                        }
                         setMoneyRequestCategory(transactionIDToUpdate, defaultCategory, undefined, getCurrencyDecimals);
                         setMoneyRequestTag(transactionIDToUpdate, '');
                     }

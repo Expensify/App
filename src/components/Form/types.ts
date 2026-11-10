@@ -30,11 +30,13 @@ import type TextPicker from '@components/TextPicker';
 import type TimeModalPicker from '@components/TimeModalPicker';
 import type UploadFile from '@components/UploadFile';
 import type ValuePicker from '@components/ValuePicker';
+import type ValueFieldDropdown from '@components/ValuePicker/ValueFieldDropdown';
 
 import type {AccessibilityFocusTarget} from '@libs/Accessibility/moveAccessibilityFocus/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
 import type ConstantSelector from '@pages/Debug/ConstantSelector';
+import type PerDiemTimeField from '@pages/iou/request/step/PerDiemTimeField';
 import type BusinessTypePicker from '@pages/ReimbursementAccount/USD/BusinessInfo/subSteps/TypeBusiness/BusinessTypePicker';
 import type DimensionTypeSelector from '@pages/workspace/accounting/intacct/import/DimensionTypeSelector';
 import type NetSuiteCustomFieldMappingPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomFieldMappingPicker';
@@ -80,6 +82,7 @@ type ValidInputs =
     | typeof StateSelector
     | typeof RoomNameInput
     | typeof ValuePicker
+    | typeof ValueFieldDropdown
     | typeof DatePicker
     | typeof RadioButtons
     | typeof TaxValuePicker
@@ -97,6 +100,7 @@ type ValidInputs =
     | typeof UploadFile
     | typeof PushRowWithModal
     | typeof TimeModalPicker
+    | typeof PerDiemTimeField
     | typeof FileUploadAdapter
     | typeof InlineSelectionListAdapter
     | typeof CurrencyInlineListAdapter

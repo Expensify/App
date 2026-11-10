@@ -25,7 +25,7 @@ type ReportFieldDropdownListProps = ReportFieldDropdownProps & {
 
 /** The report list and the hooks that drive it, which pick through the same hook the full-page selector uses so both leave the expense in the same state */
 function ReportFieldDropdownList({transactionID, onClose, onModalHide, ...popoverProps}: ReportFieldDropdownListProps) {
-    const {reportID, action, iouType} = useConfirmationFields();
+    const {reportID, action} = useConfirmationFields();
 
     // An expense being created, or moved from a tracked expense, lives in its draft until it is saved.
     const transactionCollection = shouldUseTransactionDraft(action) ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION;
@@ -35,7 +35,6 @@ function ReportFieldDropdownList({transactionID, onClose, onModalHide, ...popove
         transaction,
         transactionID,
         action,
-        iouType,
         reportIDFromRoute: reportID,
         goBack: onClose,
         onNavigateAway: onClose,
