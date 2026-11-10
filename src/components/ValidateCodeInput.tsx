@@ -5,6 +5,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isMobileChrome, isMobileSafari} from '@libs/Browser';
+import {markHadTabNavigation} from '@libs/hadTabNavigation';
 import {isNumeric} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
@@ -371,6 +372,8 @@ function ValidateCodeInput({
                 return;
             }
 
+            // The document listener cannot record keyboard navigation once this event is stopped on window.
+            markHadTabNavigation();
             event.preventDefault();
             event.stopPropagation();
             focusedIndexRef.current = newFocusedIndex;

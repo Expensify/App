@@ -1,6 +1,7 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ValidateCodeInput from '@components/ValidateCodeInput';
+import getHadTabNavigation, {resetForTests, setupHadTabNavigation, teardownHadTabNavigation} from '@libs/hadTabNavigation';
 
 import CONST from '@src/CONST';
 
@@ -94,6 +95,8 @@ describe('ValidateCodeInput', () => {
     const focusTrapKeyDown = jest.fn();
 
     beforeEach(() => {
+        resetForTests();
+        setupHadTabNavigation();
         mockIsInputFocused = true;
         mockAnnounce.mockClear();
         focusTrapKeyDown.mockClear();
@@ -101,6 +104,7 @@ describe('ValidateCodeInput', () => {
     });
 
     afterEach(() => {
+        teardownHadTabNavigation();
         document.removeEventListener('keydown', focusTrapKeyDown, true);
     });
 
@@ -132,6 +136,25 @@ describe('ValidateCodeInput', () => {
         expect(currentAnnouncement()).toBe('enter digit 4 of 6');
         expect(event.defaultPrevented).toBe(true);
         expect(focusTrapKeyDown).not.toHaveBeenCalled();
+    });
+
+    it.each([false, true])('records keyboard navigation after a mouse click for internal Tab (shiftKey=%s)', (shiftKey) => {
+        // Given a mouse-arrived user in slot 3, where either Tab direction stays inside the input
+        dispatchTab();
+        render(<ValidateCodeInputHarness />);
+        moveToSlot(2);
+        document.body.dispatchEvent(new MouseEvent('mousedown', {bubbles: true}));
+        expect(getHadTabNavigation()).toBe(false);
+        focusTrapKeyDown.mockClear();
+
+        // When Tab is intercepted on window before the document modality listener can see it
+        const event = dispatchTab(shiftKey);
+
+        // Then keyboard modality is restored without allowing focus-trap to move focus out of the input
+        expect(getHadTabNavigation()).toBe(true);
+        expect(event.defaultPrevented).toBe(true);
+        expect(focusTrapKeyDown).not.toHaveBeenCalled();
+        expect(currentAnnouncement()).toBe(`enter digit ${shiftKey ? 2 : 4} of 6`);
     });
 
     it('lets Shift+Tab from the first slot leave the input', () => {
