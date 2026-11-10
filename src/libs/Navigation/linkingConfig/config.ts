@@ -49,6 +49,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.AUTO_SUBMIT_ROOT]: ROUTES.AUTO_SUBMIT_MODAL_ROOT,
                 [SCREENS.DYNAMIC_CHANGE_POLICY_EDUCATIONAL_ROOT]: DYNAMIC_ROUTES.CHANGE_POLICY_EDUCATIONAL.path,
+                [SCREENS.DYNAMIC_PAYMENT_DETAILS_ROOT]: DYNAMIC_ROUTES.PAYMENT_DETAILS.path,
             },
         },
         [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: {
@@ -859,6 +860,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_TRAVEL_BILLING_PAYABLE_ACCOUNT]: {path: ROUTES.POLICY_ACCOUNTING_DUALENTRY_TRAVEL_BILLING_PAYABLE_ACCOUNT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_SETUP]: {path: ROUTES.POLICY_ACCOUNTING_CAMPFIRE_SETUP.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_EXISTING_CONNECTIONS]: {path: ROUTES.POLICY_ACCOUNTING_CAMPFIRE_EXISTING_CONNECTIONS.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_OAUTH]: {path: ROUTES.POLICY_ACCOUNTING_DIGITS_OAUTH.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_EXISTING_CONNECTIONS]: {path: ROUTES.POLICY_ACCOUNTING_DIGITS_EXISTING_CONNECTIONS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_SUBSIDIARY_SELECTOR]: {path: ROUTES.POLICY_ACCOUNTING_CAMPFIRE_SUBSIDIARY_SELECTOR.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_IMPORT]: {path: ROUTES.POLICY_ACCOUNTING_CAMPFIRE_IMPORT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_EXPORT]: {path: ROUTES.POLICY_ACCOUNTING_CAMPFIRE_EXPORT.route},
@@ -2428,6 +2431,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 // parse must return a string, so an absent sourceReportID maps to an empty string, which consumers read as absent.
                                 // eslint-disable-next-line rulesdir/no-default-id-values
                                 sourceReportID: (sourceReportID: string | undefined) => sourceReportID ?? '',
+                                // Same as sourceReportID: parse must return a string, so an absent sourcePolicyID maps to an empty string, which consumers read as absent.
+                                // eslint-disable-next-line rulesdir/no-default-id-values
+                                sourcePolicyID: (sourcePolicyID: string | undefined) => sourcePolicyID ?? '',
                             },
                             stringify: {
                                 // eslint-disable-next-line
@@ -2436,6 +2442,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 // stringify must return a string, so an absent sourceReportID maps to an empty string, which drops it from the route.
                                 // eslint-disable-next-line rulesdir/no-default-id-values
                                 sourceReportID: (sourceReportID: string | undefined) => sourceReportID ?? '',
+                                // Same as sourceReportID: stringify must return a string, so an absent sourcePolicyID maps to an empty string, which drops it from the route.
+                                // eslint-disable-next-line rulesdir/no-default-id-values
+                                sourcePolicyID: (sourcePolicyID: string | undefined) => sourcePolicyID ?? '',
                             },
                         },
                     },

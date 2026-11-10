@@ -597,7 +597,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
 
     const splitStartDate = draftTransaction?.comment?.splitsStartDate;
     const splitEndDate = draftTransaction?.comment?.splitsEndDate;
-    const splitDatesTitle = DateUtils.getFormattedSplitDateRange(translate, splitStartDate, splitEndDate);
+    const splitDatesTitle = DateUtils.getFormattedSplitDateRange(translate, splitStartDate, splitEndDate, dateFnsLocale);
 
     const handleDatePress = () => {
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE_CREATE_DATE_RANGE.path));
@@ -606,6 +606,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const headerDateContent = (
         <View style={styles.pb3}>
             <MenuItemField
+                sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.SPLIT_DATES_FIELD}
                 name={translate('iou.splitDates')}
                 value={splitDatesTitle}
                 numberOfLinesValue={2}

@@ -291,6 +291,7 @@ function ProfilePage({route}: ProfilePageProps) {
                         {shouldShowLocalTime && !!timezone && <AutoUpdateTime timezone={timezone} />}
                         {isCurrentUser && (
                             <MenuItemNavigation
+                                sentryLabel={CONST.SENTRY_LABEL.PROFILE_PAGE.EDIT_PROFILE}
                                 title={translate('common.editYourProfile')}
                                 icon={expensifyIcons.Pencil}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute(Navigation.getActiveRoute()))}
@@ -302,6 +303,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                 errorRowStyles={[styles.mh5, styles.mb2]}
                             >
                                 <MenuItemWithTopDescription
+                                    sentryLabel={CONST.SENTRY_LABEL.PROFILE_PAGE.CUSTOM_INSTRUCTIONS}
                                     description={translate('profilePage.customInstructions')}
                                     title={Str.htmlDecode(agentPrompt?.prompt?.trim() ?? '')}
                                     shouldParseTitle
@@ -315,6 +317,7 @@ function ProfilePage({route}: ProfilePageProps) {
                         )}
                         {isOwnedAgent && (
                             <MenuItemAction
+                                sentryLabel={CONST.SENTRY_LABEL.PROFILE_PAGE.COPILOT_INTO_ACCOUNT}
                                 title={translate('profilePage.copilotIntoAccount')}
                                 icon={expensifyIcons.UserPlus}
                                 // Agents can't open their Agents pages, so land on Home instead of the default Settings tab
@@ -323,6 +326,7 @@ function ProfilePage({route}: ProfilePageProps) {
                         )}
                         {!!accountID && !isAnonymousUserSession() && (
                             <MenuItemNavigation
+                                sentryLabel={CONST.SENTRY_LABEL.PROFILE_PAGE.CHAT_HISTORY}
                                 title={translate(getChatHistoryTranslationKey(isCustomAgent, login))}
                                 icon={expensifyIcons.History}
                                 onPress={() => navigateToChatHistory(accountID)}
@@ -330,6 +334,7 @@ function ProfilePage({route}: ProfilePageProps) {
                         )}
                         {shouldShowNotificationPreference && (
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.PROFILE_PAGE.NOTIFICATION_PREFERENCES}
                                 name={translate('notificationPreferencesPage.label')}
                                 onPress={() => {
                                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.getRoute(report.reportID)));
@@ -338,7 +343,10 @@ function ProfilePage({route}: ProfilePageProps) {
                             />
                         )}
                         {Permissions.canUsePrivateNotes() && !isEmptyObject(report) && !!report.reportID && !isCurrentUser && (
-                            <MenuItem.Root onPress={callIfAuthenticated(() => navigateToPrivateNotes(report, currentUserAccountID, true), session)}>
+                            <MenuItem.Root
+                                onPress={callIfAuthenticated(() => navigateToPrivateNotes(report, currentUserAccountID, true), session)}
+                                sentryLabel={CONST.SENTRY_LABEL.PROFILE_PAGE.PRIVATE_NOTES}
+                            >
                                 <MenuItem.Row>
                                     <MenuItem.Leading>
                                         <MenuItem.Icon src={expensifyIcons.Pencil} />
@@ -355,6 +363,7 @@ function ProfilePage({route}: ProfilePageProps) {
                         )}
                         {isConcierge && !!guideCalendarLink && (
                             <MenuItemAction
+                                sentryLabel={CONST.SENTRY_LABEL.PROFILE_PAGE.VIDEO_CHAT}
                                 title={translate('videoChatButtonAndMenu.tooltip')}
                                 icon={expensifyIcons.Phone}
                                 onPress={() => {
@@ -364,6 +373,7 @@ function ProfilePage({route}: ProfilePageProps) {
                         )}
                         {!!report?.reportID && !!isDebugModeEnabled && (
                             <MenuItemNavigation
+                                sentryLabel={CONST.SENTRY_LABEL.PROFILE_PAGE.DEBUG}
                                 title={translate('debug.debug')}
                                 icon={expensifyIcons.Bug}
                                 onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID))}

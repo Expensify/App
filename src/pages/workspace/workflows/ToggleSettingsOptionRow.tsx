@@ -18,6 +18,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ReactNode} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
@@ -38,7 +39,7 @@ type ToggleSettingOptionRowProps = {
     switchAccessibilityLabel: string;
 
     /** Label for Sentry tracking of the switch, from `CONST.SENTRY_LABEL`. Each feature passes its own so their interactions aren't grouped together. */
-    switchSentryLabel: string;
+    switchSentryLabel: SentryLabel;
 
     /** subtitle should show below switch and title */
     shouldPlaceSubtitleBelowSwitch?: boolean;

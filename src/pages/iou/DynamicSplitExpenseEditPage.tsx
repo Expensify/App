@@ -82,6 +82,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import {policyTypeSelector} from '@selectors/Policy';
 import {authTokenTypeSelector} from '@selectors/Session';
@@ -92,7 +93,7 @@ type DynamicSplitExpenseEditPageProps = PlatformStackScreenProps<RightModalNavig
 
 type SplitToggleRowProps = {
     label: string;
-    sentryLabel: string;
+    sentryLabel: SentryLabel;
     isOn: boolean;
     onToggle: (value: boolean) => void;
 };
@@ -338,6 +339,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     const distanceRequestFields = isDistance ? (
         <>
             <MenuItemField
+                sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.EDIT_DISTANCE_FIELD}
                 name={translate('common.distance')}
                 value={distanceToDisplay}
                 onPress={() => {
@@ -376,6 +378,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                 }}
             />
             <MenuItem.Root
+                sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.EDIT_RATE_FIELD}
                 onPress={
                     isRateInteractive
                         ? callIfAuthenticated(() => {
@@ -448,6 +451,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                     />
                     <ScrollView>
                         <MenuItemFieldHTML
+                            sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.EDIT_DESCRIPTION_FIELD}
                             key={translate('common.description')}
                             name={translate('common.description')}
                             value={currentDescription}
@@ -469,6 +473,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                         {distanceRequestFields}
                         {shouldShowCategory && (
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.EDIT_CATEGORY_FIELD}
                                 key={translate('common.category')}
                                 name={translate('common.category')}
                                 value={categoryValue}
@@ -521,6 +526,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
 
                                 return (
                                     <HighlightableMenuItemWithTopDescription
+                                        sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.EDIT_TAG_FIELD}
                                         shouldShowRightIcon
                                         key={name}
                                         highlighted={!getTagForDisplay(splitExpenseDraftTransaction, index) && !prevShouldShow}
@@ -549,6 +555,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                 );
                             })}
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.EDIT_DATE_FIELD}
                             key={translate('common.date')}
                             name={translate('common.date')}
                             value={splitExpenseDraftTransactionDetails?.created}
@@ -563,6 +570,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                         />
                         {shouldShowTax && (
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.EDIT_TAX_FIELD}
                                 key={translate('common.tax')}
                                 name={taxRatesDescription ?? translate('common.tax')}
                                 value={taxRateTitle}

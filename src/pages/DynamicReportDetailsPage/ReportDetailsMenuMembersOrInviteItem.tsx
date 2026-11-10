@@ -91,6 +91,7 @@ function ReportDetailsMenuMembersOrInviteItem({reportID}: ReportDetailsMenuMembe
     ) {
         return (
             <MenuItem.Root
+                sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.MEMBERS}
                 onPress={callIfAuthenticated(() => {
                     if (shouldOpenRoomMembersPage) {
                         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_MEMBERS.path));
@@ -119,6 +120,7 @@ function ReportDetailsMenuMembersOrInviteItem({reportID}: ReportDetailsMenuMembe
     if (!isGuestAnnounceRoom && ((isUserCreatedPolicyRoom && (!participants.length || !isPolicyEmployee)) || ((isDefaultRoom || isPolicyExpenseChat) && isChatThread && !isPolicyEmployee))) {
         return (
             <MenuItemNavigation
+                sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.INVITE}
                 title={translate('common.invite')}
                 icon={expensifyIcons.Users}
                 onPress={() => {

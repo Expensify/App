@@ -14,6 +14,7 @@ import {callIfAuthenticated} from '@userActions/Session';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, ReactNode, RefObject} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -24,7 +25,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
-type ExpenseFieldRowProps = {
+type ExpenseFieldRowProps = WithRequiredSentryLabel & {
     /** Name of the field. Renders small above the value, or as the placeholder when there is no value */
     name: string;
 
@@ -83,7 +84,6 @@ type ExpenseFieldRowProps = {
      */
     backgroundStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 
-    sentryLabel?: string;
     testID?: string;
 };
 

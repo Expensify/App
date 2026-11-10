@@ -7,21 +7,23 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 
-type SubmitDraftButtonProps = PressableWithFeedbackProps & {
-    /** The label to display on the button */
-    label: string;
+type SubmitDraftButtonProps = PressableWithFeedbackProps &
+    WithRequiredSentryLabel & {
+        /** The label to display on the button */
+        label: string;
 
-    /** The icon to display on the button */
-    icon: IconAsset;
+        /** The icon to display on the button */
+        icon: IconAsset;
 
-    isDisabled: boolean;
+        isDisabled: boolean;
 
-    /** Handle clicking on send button */
-    onPress?: () => void;
-};
+        /** Handle clicking on send button */
+        onPress?: () => void;
+    };
 
 function SubmitDraftButton({isDisabled: isDisabledProp = false, icon, label, sentryLabel, onPress, ...restProps}: SubmitDraftButtonProps) {
     const theme = useTheme();

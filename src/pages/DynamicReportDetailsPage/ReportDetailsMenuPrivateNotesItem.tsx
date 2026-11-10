@@ -48,6 +48,7 @@ function ReportDetailsMenuPrivateNotesItem({reportID}: ReportDetailsMenuPrivateN
 
     return (
         <MenuItem.Root
+            sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.PRIVATE_NOTES}
             onPress={callIfAuthenticated(() => navigateToPrivateNotes(report, currentUserAccountID), session)}
             accessibilityLabel={translate('privateNotes.title')}
         >

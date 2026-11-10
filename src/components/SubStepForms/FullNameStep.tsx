@@ -76,7 +76,7 @@ function FullNameStepImpl({
     customFirstNameLabel,
     customLastNameLabel,
     shouldShowPatriotActLink = false,
-    forwardedFSClass,
+    forwardedFSClass = CONST.FULLSTORY.CLASS.MASK,
     enabledWhenOffline: enabledWhenOfflineProp = true,
 }: FullNameStepPropsWidened) {
     const {translate} = useLocalize();

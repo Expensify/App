@@ -27,6 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SageIntacctMappingName, SageIntacctMappingValue} from '@src/types/onyx/Policy';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import {authTokenTypeSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
@@ -36,7 +37,7 @@ import {useSharedValue} from 'react-native-reanimated';
 
 type SageIntacctToggleMappingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_MAPPING_TYPE>;
 
-const IMPORT_MAPPING_SWITCH_SENTRY_LABELS: Record<SageIntacctMappingName, string> = {
+const IMPORT_MAPPING_SWITCH_SENTRY_LABELS: Record<SageIntacctMappingName, SentryLabel> = {
     [CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.IMPORT_DEPARTMENTS_SWITCH,
     [CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CLASSES]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.IMPORT_CLASSES_SWITCH,
     [CONST.SAGE_INTACCT_CONFIG.MAPPINGS.LOCATIONS]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.IMPORT_LOCATIONS_SWITCH,
