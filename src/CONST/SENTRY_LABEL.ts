@@ -1371,7 +1371,10 @@ const SENTRY_LABEL = {
             EXACT_ONLINE_WAITLIST_BUTTON: 'WorkspaceAccounting-ExactOnlineWaitlistButton',
             CARD_RECONCILIATION_ACCOUNT: 'WorkspaceAccounting-CardReconciliationAccount',
             CLAIM_OFFER: 'WorkspaceAccounting-ClaimOffer',
-            CLAIM_OFFER_CONNECT: 'WorkspaceAccounting-ClaimOfferConnect',
+            CLAIM_OFFER_CONNECT: {
+                XERO: 'WorkspaceAccounting-ClaimOfferConnect-Xero',
+                UBER: 'WorkspaceAccounting-ClaimOfferConnect-Uber',
+            },
             TRAVEL_BILLING_RECONCILIATION_ACCOUNT: 'WorkspaceAccounting-TravelBillingReconciliationAccount',
             CARD_SECTION_ADD_BUTTON: 'WorkspaceAccounting-CardSectionAddButton',
             CREATE_NEW_CONNECTION: 'WorkspaceAccounting-CreateNewConnection',

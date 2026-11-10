@@ -30,6 +30,7 @@ import {enablePolicyFeatureForConnection} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
@@ -46,6 +47,7 @@ type IntegrationConfig = {
     connectButtonText: string;
     connectionName: string;
     onConnect: () => void;
+    connectSentryLabel: SentryLabel;
 };
 
 type ClaimOfferPageProps = WithPolicyConnectionsProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.CLAIM_OFFER>;
@@ -71,6 +73,7 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
 
     const integrationConfig: Record<IntegrationType, IntegrationConfig> = {
         xero: {
+            connectSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CLAIM_OFFER_CONNECT.XERO,
             headerTitle: translate('workspace.accounting.xero'),
             headline: translate('workspace.accounting.claimOffer.xero.headline'),
             descriptionHtml: translate('workspace.accounting.claimOffer.xero.description'),
@@ -82,6 +85,7 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
             },
         },
         uber: {
+            connectSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CLAIM_OFFER_CONNECT.UBER,
             headerTitle: translate('workspace.accounting.claimOffer.uber.headerTitle'),
             headline: translate('workspace.accounting.claimOffer.uber.headline'),
             descriptionHtml: translate('workspace.accounting.claimOffer.uber.description'),
@@ -127,7 +131,7 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
                 </ButtonDisabledWhenOffline>
             )}
             <ButtonDisabledWhenOffline
-                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CLAIM_OFFER_CONNECT}
+                sentryLabel={config.connectSentryLabel}
                 onPress={handleConnect}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.LARGE}
