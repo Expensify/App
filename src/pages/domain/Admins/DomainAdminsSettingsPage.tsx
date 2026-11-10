@@ -50,6 +50,7 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
                 onClose={() => clearSetPrimaryContactError(domainAccountID)}
             >
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADMINS.PRIMARY_CONTACT}
                     name={translate('domain.admins.primaryContact')}
                     onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.getRoute(domainAccountID))}
                     value={technicalContactSettings?.technicalContactEmail}
