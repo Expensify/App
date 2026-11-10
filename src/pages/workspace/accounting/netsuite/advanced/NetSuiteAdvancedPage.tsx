@@ -35,7 +35,7 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -84,7 +84,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 pendingAction={settingsPendingAction(item.subscribedSettings, config?.pendingFields) ?? settingsPendingAction(item.subscribedSettings, autoSyncConfig?.pendingFields)}
             >
                 <MenuItem.Root
-                    onPress={item?.onPress ? callFunctionIfActionIsAllowed(item.onPress, false, session) : undefined}
+                    onPress={item?.onPress ? callIfAuthenticated(item.onPress, session) : undefined}
                     sentryLabel={item.sentryLabel}
                 >
                     <MenuItemField.Row

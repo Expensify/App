@@ -17,7 +17,7 @@ import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/ut
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -141,7 +141,7 @@ function DynamicQuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPoli
                     errorRowStyles={[styles.ph5]}
                 >
                     <MenuItem.Root
-                        onPress={callFunctionIfActionIsAllowed(section.onPress, false, session)}
+                        onPress={callIfAuthenticated(section.onPress, session)}
                         sentryLabel={section.sentryLabel}
                     >
                         <MenuItemField.Row

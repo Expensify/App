@@ -50,6 +50,7 @@ function ScimTokenContent({domainName}: ScimTokenContentProps) {
                 message={oktaScimToken.error}
                 onRetry={fetchOktaScimToken}
                 size={CONST.BUTTON_SIZE.SMALL}
+                sentryLabel={CONST.SENTRY_LABEL.DOMAIN.SAML.RETRY_SCIM_TOKEN}
             />
         );
     }
