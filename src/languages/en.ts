@@ -3525,6 +3525,7 @@ const translations = {
         disablePaymentsPrompt: 'This will remove all of your payment settings.',
         businessBankAccountCountries: 'Business bank account countries',
         businessBankAccountCountriesDescription: 'Employees in these countries provide local transfer details. Everyone else provides international wire details.',
+        businessBankAccountCountriesError: 'Your reimbursement countries update failed. Please try again.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>A custom approval workflow is enabled on this workspace. To review or change this workflow, please reach out to your <account-manager-link>Account Manager</account-manager-link> or <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -5606,6 +5607,12 @@ const translations = {
             peopleAdminAlternateText: 'Manage members and approval workflows.',
             paymentsAdminAlternateText: 'Manage workflow payments.',
             approveOnlyAlternateText: 'Approve reports only.',
+            newRoles: 'New roles',
+            adminRoles: 'Admin roles',
+            otherRoles: 'Other roles',
+            roleSelectorDescription: `Assign a role to manage a member's workspace permissions. <a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">Compare workspace roles</a>.`,
+            roleSelectorFeedback: 'Not seeing the role you need?',
+            roleSelectorFeedbackLink: 'Let us know',
             reimbursementChoice: {
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES]: 'Direct',
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO]: 'None',
@@ -7072,6 +7079,12 @@ const translations = {
         digits: {
             updateCurrencyTitle: 'Update workspace currency?',
             updateCurrencyPrompt: 'Digits is currently only available for US-based companies that operate in USD.',
+            importDescription: 'Choose which Digits configurations to import.',
+            accountTypesDescription: 'Your Digits accounts will import as categories.',
+            enableNewAccountsTitle: 'Enable newly imported accounts',
+            enableNewAccountsDescription: 'New Digits accounts will be available as categories.',
+            dimensionsImport: 'All Digits dimensions import as tags.',
+            departments: 'Departments',
         },
         zohoBooks: {
             organization: 'Zoho Books organization',
@@ -7394,9 +7407,9 @@ const translations = {
                     heading: 'We have a direct integration with your card issuer and can import your transaction data into Expensify quickly and accurately.\n\nTo get started, simply:',
                     visa: 'We have global integrations with Visa, though eligibility varies by bank and card program.\n\nTo get started, simply:',
                     mastercard: 'We have global integrations with Mastercard, though eligibility varies by bank and card program.\n\nTo get started, simply:',
-                    vcf: `1. Visit [this help article](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) for detailed instructions on how to set up your Visa Commercial Cards.\n\n2. [Contact your bank](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) to verify they support a commercial feed for your program, and ask them to enable it.\n\n3. *Once the feed is enabled and you have its details, continue to the next screen.*`,
+                    vcf: `1. Visit [this help article](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) for detailed instructions on how to set up your Visa Commercial Cards.\n\n2. Contact your bank to verify they support a commercial feed for your program, and ask them to enable it.\n\n3. *Once the feed is enabled and you have its details, continue to the next screen.*`,
                     gl1025: `1. Visit [this help article](${CONST.COMPANY_CARDS_AMEX_COMMERCIAL_CARD_HELP}) to find out if American Express can enable a commercial feed for your program.\n\n2. Once the feed is enabled, Amex will send you a production letter.\n\n3. *Once you have the feed information, continue to the next screen.*`,
-                    cdf: `1. Visit [this help article](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) for detailed instructions on how to set up your Mastercard Commercial Cards.\n\n 2. [Contact your bank](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) to verify they support a commercial feed for your program, and ask them to enable it.\n\n3. *Once the feed is enabled and you have its details, continue to the next screen.*`,
+                    cdf: `1. Visit [this help article](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) for detailed instructions on how to set up your Mastercard Commercial Cards.\n\n 2. Contact your bank to verify they support a commercial feed for your program, and ask them to enable it.\n\n3. *Once the feed is enabled and you have its details, continue to the next screen.*`,
                     stripe: `1. Visit Stripe’s Dashboard, and go to [Settings](${CONST.COMPANY_CARDS_STRIPE_HELP}).\n\n2. Under Product Integrations, click Enable next to Expensify.\n\n3. Once the feed is enabled, click Submit below and we’ll work on adding it.`,
                 },
                 whatBankIssuesCard: 'What bank issues these cards?',
@@ -8389,6 +8402,10 @@ const translations = {
             addedWithPrimary: 'Some members were added with their primary logins.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Added by secondary login ${secondaryLogin}.`,
             workspaceMembersCount: (count: number) => `Total workspace members: ${count}`,
+            newRolesBanner: {
+                title: 'New roles available',
+                subtitle: '<label-text>Give members just the access they need with new <strong>Approve-only</strong> and <strong>Guest</strong> roles.</label-text>',
+            },
             configureHRSync: (providerName: string) => `Configure ${providerName} sync.`,
             syncWithHR: (providerName: string) => `Sync with ${providerName}`,
             allMembers: 'All members',
@@ -12953,6 +12970,7 @@ const translations = {
         deletingTitle: 'Deleting reports...',
         deletingExpensesTitle: 'Deleting expenses...',
         runningBody: "Wait a few minutes, or Concierge can message you when it's done.",
+        changingWorkspaceTitle: 'Moving reports...',
         sendFromConcierge: "Message me when it's done",
         conciergeTitle: 'You bet!',
         conciergeBody: "Concierge will message you when it's done.",
@@ -12989,6 +13007,10 @@ const translations = {
             one: `Deleted expenses on ${doneCount} of ${count} report`,
             other: `Deleted expenses on ${doneCount} of ${count} reports`,
         }),
+        changedWorkspaceTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Changed workspace on ${doneCount} of ${count} report`,
+            other: `Changed workspace on ${doneCount} of ${count} reports`,
+        }),
         noReportsTitle: 'No matching reports',
         noReportsBody: 'None of the reports you selected needed this action.',
         notApprovedBody: ({count}: {count: number}) => ({
@@ -13018,6 +13040,10 @@ const translations = {
         notDeletedBody: ({count}: {count: number}) => ({
             one: "1 report couldn't be deleted.",
             other: `${count} reports couldn't be deleted.`,
+        }),
+        notMovedBody: ({count}: {count: number}) => ({
+            one: "1 report couldn't be moved.",
+            other: `${count} reports couldn't be moved.`,
         }),
         expensesNotDeletedBody: ({count}: {count: number}) => ({
             one: "Expenses on 1 report couldn't be deleted.",

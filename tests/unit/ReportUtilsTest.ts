@@ -11692,6 +11692,32 @@ describe('ReportUtils', () => {
     });
 
     describe('canDeleteReportAction', () => {
+        it.each([
+            {childType: CONST.REPORT.TYPE.SUPPORT_TICKET, reportType: CONST.REPORT.TYPE.CHAT, isActionOwner: true, expected: false},
+            {childType: CONST.REPORT.TYPE.SUPPORT_TICKET, reportType: CONST.REPORT.TYPE.CHAT, isActionOwner: false, expected: false},
+            {childType: CONST.REPORT.TYPE.CHAT, reportType: CONST.REPORT.TYPE.CHAT, isActionOwner: true, expected: true},
+            {childType: undefined, reportType: CONST.REPORT.TYPE.CHAT, isActionOwner: true, expected: true},
+            {childType: undefined, reportType: CONST.REPORT.TYPE.SUPPORT_TICKET, isActionOwner: true, expected: true},
+        ])('comment deletion with childType $childType in reportType $reportType (owner: $isActionOwner): $expected', async ({childType, reportType, isActionOwner, expected}) => {
+            // Given a comment owned by the current user or another member of a workspace they administer
+            const adminPolicy = {...LHNTestUtils.getFakePolicy(), type: CONST.POLICY.TYPE.CORPORATE, role: CONST.POLICY.ROLE.ADMIN};
+            const report = {...LHNTestUtils.getFakeReport(), type: reportType, policyID: adminPolicy.id};
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(89021),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: isActionOwner ? currentUserAccountID : currentUserAccountID + 1,
+                childType,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${adminPolicy.id}`, adminPolicy);
+
+            // When checking the shared Delete permission used by the context menu
+            const canDelete = canDeleteReportAction(reportAction, report.reportID, undefined, undefined, undefined, currentUserAccountID, undefined, undefined, undefined);
+
+            // Then neither authors nor admins can delete ticket previews, while ordinary comments remain deletable
+            expect(canDelete).toBe(expected);
+        });
+
         it('should not allow an Expensify Card transaction to be deleted when managedCard is missing', () => {
             // Given an Expensify Card transaction whose managed-card metadata is unavailable
             const transaction = {

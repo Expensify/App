@@ -3269,6 +3269,7 @@ ${date} の ${merchant} への ${amount}`,
         disablePaymentsPrompt: 'これにより、お支払い設定がすべて削除されます。',
         businessBankAccountCountries: 'ビジネス銀行口座の国',
         businessBankAccountCountriesDescription: 'これらの国の従業員は現地送金の詳細を入力します。それ以外の方は国際電信送金の詳細を入力します。',
+        businessBankAccountCountriesError: '精算対象国の更新に失敗しました。もう一度お試しください。',
         customApprovalWorkflowEnabled:
             '<muted-text-label>このワークスペースではカスタム承認ワークフローが有効になっています。このワークフローを確認または変更するには、<account-manager-link>アカウントマネージャー</account-manager-link>または<concierge-link>Concierge</concierge-link>までご連絡ください。</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -5350,6 +5351,12 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             readOnlyActionPrompt: 'このワークスペースでのあなたのロールは、これらの設定を表示できますが、編集することはできません。',
             noAccessActionPrompt: 'このワークスペースでのあなたのロールでは、これらの設定にアクセスできません。必要な場合は管理者に依頼してください。',
             connections: '連携',
+            newRoles: '新しいロール',
+            adminRoles: '管理者ロール',
+            otherRoles: 'その他の役割',
+            roleSelectorDescription: `メンバーのワークスペース権限を管理するロールを割り当ててください。<a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">ワークスペースロールを比較</a>。`,
+            roleSelectorFeedback: '必要なロールが見つかりませんか？',
+            roleSelectorFeedbackLink: 'お知らせください',
         },
         createdForClient: {
             title: 'クライアントのワークスペースを作成しました！',
@@ -6661,7 +6668,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     mastercard: 'Mastercard とはグローバルに連携していますが、利用できるかどうかは銀行やカードプログラムによって異なります。\n\n開始するには、次の手順に従ってください。',
                     vcf: `1. Visa商用カードの設定方法についての詳しい手順は、[このヘルプ記事](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP})をご覧ください。
 
-2. ご利用のプログラムで商用フィードがサポートされているか確認し、有効化を依頼するために、[銀行に連絡](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP})してください。
+2. ご利用のプログラムで商用フィードがサポートされているか確認し、有効化を依頼するために、銀行に連絡してください。
 
 3. *フィードが有効になり、その詳細がわかったら、次の画面に進んでください。*`,
                     gl1025: `1. ご利用のプログラムで American Express が商用フィードを有効にできるか確認するには、[このヘルプ記事](${CONST.COMPANY_CARDS_AMEX_COMMERCIAL_CARD_HELP})をご覧ください。
@@ -6671,7 +6678,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
 3. *フィード情報を取得したら、次の画面に進んでください。*`,
                     cdf: `1. Mastercard Commercial Cards を設定するための詳しい手順については、[こちらのヘルプ記事](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS})をご覧ください。
 
-2. ご利用のプログラムで商用フィードに対応しているかを確認し、有効化を依頼するために、[銀行に問い合わせてください](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS})。
+2. ご利用のプログラムで商用フィードに対応しているかを確認し、有効化を依頼するために、銀行に問い合わせてください。
 
 3. *フィードが有効になり、その詳細が分かったら、次の画面へ進んでください。*`,
                     stripe: `1. Stripe のダッシュボードにアクセスし、[Settings](${CONST.COMPANY_CARDS_STRIPE_HELP}) に進みます。
@@ -7674,6 +7681,10 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             changeOfficeLocation: 'オフィスの所在地を変更',
             changeWorkArrangement: '勤務形態を変更',
             changeRole: 'ロールを変更',
+            newRolesBanner: {
+                title: '新しいロールが利用可能です',
+                subtitle: '<label-text>新しく追加された<strong>承認のみ</strong>ロールと<strong>ゲスト</strong>ロールで、メンバーに必要なアクセス権だけを付与できます。</label-text>',
+            },
         },
         card: {
             getStartedIssuing: 'まずは最初のバーチャルカードまたは物理カードを発行しましょう。',
@@ -9541,6 +9552,12 @@ ${reportName}`,
         digits: {
             updateCurrencyTitle: 'ワークスペースの通貨を更新しますか？',
             updateCurrencyPrompt: 'Digits は現在、USD で運営されている米国拠点の企業のみご利用いただけます。',
+            importDescription: 'インポートする Digits の設定を選択してください。',
+            accountTypesDescription: 'Digits の勘定科目はカテゴリとしてインポートされます。',
+            enableNewAccountsTitle: '新しくインポートされた口座を有効にする',
+            enableNewAccountsDescription: '新しい Digits アカウントはカテゴリーとして利用できるようになります。',
+            dimensionsImport: 'すべての Digits ディメンションはタグとしてインポートされます。',
+            departments: '部門',
         },
         zohoBooks: {
             organization: 'Zoho Books 組織',
@@ -12612,6 +12629,7 @@ ${reportName}`,
         deletingTitle: 'レポートを削除しています…',
         deletingExpensesTitle: '経費を削除しています…',
         runningBody: '数分お待ちいただくか、完了したら Concierge からメッセージをお送りすることもできます。',
+        changingWorkspaceTitle: 'レポートを移動しています…',
         sendFromConcierge: '完了したらメッセージを送ってください',
         conciergeTitle: 'もちろんです！',
         conciergeBody: '完了したら Concierge からメッセージが届きます。',
@@ -12647,6 +12665,10 @@ ${reportName}`,
         deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `${count} 件中 ${doneCount} 件のレポートの経費を削除しました`,
             other: `${count} 件中 ${doneCount} 件のレポートの経費を削除しました`,
+        }),
+        changedWorkspaceTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `${count} 件中 ${doneCount} 件のレポートのワークスペースを変更しました`,
+            other: `${count} 件中 ${doneCount} 件のレポートのワークスペースを変更しました`,
         }),
         noReportsTitle: '一致するレポートはありません',
         noReportsBody: '選択したレポートには、いずれもこの操作は必要ありませんでした。',
@@ -12684,6 +12706,10 @@ ${reportName}`,
         expensesNotDeletedBody: ({count}: {count: number}) => ({
             one: '1件のレポートの経費を削除できませんでした。',
             other: `${count} 件のレポートの経費を削除できませんでした。`,
+        }),
+        notMovedBody: ({count}: {count: number}) => ({
+            one: '1件のレポートを移動できませんでした。',
+            other: `${count} 件のレポートを移動できませんでした。`,
         }),
     },
     earlyRenewal: {
