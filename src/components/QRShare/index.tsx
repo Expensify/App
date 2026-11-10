@@ -41,16 +41,17 @@ function QRShare({
 }: QRShareProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {windowWidth, windowHeight} = useWindowDimensions();
-    const qrCodeContainerWidth = shouldUseNarrowLayout ? windowWidth : variables.rhpWidth;
+    const qrCodeContainerWidth = isSmallScreenWidth ? windowWidth : variables.rhpWidth;
     const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
 
     const landscapeQrCodeSize = isInLandscapeMode ? Math.min(QR_CODE_LANDSCAPE_SIZE_RATIO * windowHeight, MAX_QR_CODE_LANDSCAPE_SIZE) : undefined;
 
     const {formatPhoneNumber, translate} = useLocalize();
 
-    const [qrCodeSize, setQrCodeSize] = useState<number>(qrCodeContainerWidth - styles.ph5.paddingHorizontal * 2 - variables.qrShareHorizontalPadding * 2);
+    const defaultQrCodeSize = qrCodeContainerWidth - styles.ph5.paddingHorizontal * 2 - variables.qrShareHorizontalPadding * 2;
+    const [qrCodeSize, setQrCodeSize] = useState<number>(defaultQrCodeSize);
     const svgRef = useRef<Svg | undefined>(undefined);
 
     useImperativeHandle(
@@ -63,7 +64,8 @@ function QRShare({
 
     const onLayout = (event: LayoutChangeEvent) => {
         const containerWidth = event.nativeEvent.layout.width - variables.qrShareHorizontalPadding * 2 || 0;
-        setQrCodeSize(Math.max(1, containerWidth));
+        // A resizable RHP can be much wider than the default, so cap the code at its default-width size to keep the page from scrolling
+        setQrCodeSize(Math.max(1, isSmallScreenWidth ? containerWidth : Math.min(containerWidth, defaultQrCodeSize)));
     };
 
     return (
