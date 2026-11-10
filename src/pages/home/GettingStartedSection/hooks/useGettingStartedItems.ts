@@ -25,7 +25,7 @@ import {
     isSubmitPolicy,
     isWorkspaceProvisionedForTravel,
 } from '@libs/PolicyUtils';
-import {generateReportID} from '@libs/ReportUtils';
+import {generateReportID, isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
 import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import isWithinGettingStartedPeriod from '@pages/home/GettingStartedSection/utils/isWithinGettingStartedPeriod';
@@ -107,8 +107,27 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     const [hasIssuedExpensifyCard = false] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
         selector: hasIssuedExpensifyCardSelector,
     });
-    const [hasCreatedExpense = false] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: (transactions) => Object.values(transactions ?? {}).some((transaction) => !!transaction && !isDeletedTransaction(transaction) && !isTransactionPendingDelete(transaction)),
+    const [liveExpenseReportIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: (transactions) => {
+            const reportIDs = new Set<string>();
+            for (const transaction of Object.values(transactions ?? {})) {
+                if (transaction?.reportID && !isDeletedTransaction(transaction) && !isTransactionPendingDelete(transaction)) {
+                    reportIDs.add(transaction.reportID);
+                }
+            }
+            return [...reportIDs];
+        },
+    });
+    // Approvers and payers also hold other people's expenses locally, so only expenses on the user's own reports count.
+    const [hasCreatedExpense = false] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (reports) =>
+            !!liveExpenseReportIDs?.some((reportID) => {
+                if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                    return true;
+                }
+                const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                return report?.ownerAccountID === currentUserAccountID && (isMoneyRequestReport(report) || isSelfDM(report));
+            }),
     });
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const personalCards = useBankLinkedPersonalCards();

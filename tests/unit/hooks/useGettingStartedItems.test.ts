@@ -68,6 +68,12 @@ function buildPolicy(overrides: Partial<Policy> = {}): Policy {
     };
 }
 
+async function addOwnExpense() {
+    await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID});
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}r1`, {reportID: 'r1', type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, {transactionID: '1', reportID: 'r1'});
+}
+
 async function setupTrackWorkspaceScenario(overrides: {policy?: Partial<Policy>; firstDayTrial?: string; lastDayTrial?: string; intentSource?: 'introSelected' | 'onboardingPurpose'} = {}) {
     // New workspaces enable Categories by default, so keep the categories step visible unless a test opts out.
     const policy = buildPolicy({areCategoriesEnabled: true, ...overrides.policy});
@@ -1446,12 +1452,40 @@ describe('useGettingStartedItems', () => {
                 expect(emptyResult.current.items.find((item) => item.key === 'addFirstReceipt')?.isComplete).toBe(false);
 
                 // When the user creates an expense anywhere in the product
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, {transactionID: '1', reportID: 'r1'});
+                await addOwnExpense();
                 await waitForBatchedUpdates();
 
                 // Then the step is marked complete
                 const {result: withExpense} = renderHook(() => useGettingStartedItems());
                 expect(withExpense.current.items.find((item) => item.key === 'addFirstReceipt')?.isComplete).toBe(true);
+            });
+
+            it('should not mark addFirstReceipt complete for an expense on a report the user does not own', async () => {
+                // Given a Track workspace admin who has opened an expense report submitted by another member
+                await setupTrackWorkspaceScenario();
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}r2`, {reportID: 'r2', type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID: CURRENT_USER_ACCOUNT_ID + 1});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}2`, {transactionID: '2', reportID: 'r2'});
+                await waitForBatchedUpdates();
+
+                // When the hook builds the items
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                // Then the step stays incomplete, because approving or paying someone else's expense is not adding a receipt
+                expect(result.current.items.find((item) => item.key === 'addFirstReceipt')?.isComplete).toBe(false);
+            });
+
+            it('should mark addFirstReceipt complete for an unreported expense', async () => {
+                // Given a Track workspace admin with a tracked expense that is not on any report
+                await setupTrackWorkspaceScenario();
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}3`, {transactionID: '3', reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
+                await waitForBatchedUpdates();
+
+                // When the hook builds the items
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                // Then the step is complete, because only the user can hold an unreported expense
+                expect(result.current.items.find((item) => item.key === 'addFirstReceipt')?.isComplete).toBe(true);
             });
 
             it('should keep createWorkspace isComplete=true even when no workspace-related state exists', async () => {
@@ -1888,7 +1922,7 @@ describe('useGettingStartedItems', () => {
                 const {result: emptyResult} = renderHook(() => useGettingStartedItems());
                 expect(emptyResult.current.items.find((item) => item.key === 'addFirstReceipt')?.isComplete).toBe(false);
 
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, {transactionID: '1', reportID: 'r1'});
+                await addOwnExpense();
                 await waitForBatchedUpdates();
 
                 const {result: withExpense} = renderHook(() => useGettingStartedItems());
@@ -1922,7 +1956,7 @@ describe('useGettingStartedItems', () => {
 
         it('should hide the section once every to-do is complete', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, customCategories);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, {transactionID: '1', reportID: 'r1'});
+            await addOwnExpense();
             await Onyx.merge(ONYXKEYS.CARD_LIST, {testCard: {cardID: 1}});
             await setupTrackPersonalScenario({policy: {areCategoriesEnabled: true}});
 
@@ -2110,7 +2144,7 @@ describe('useGettingStartedItems', () => {
                 expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.CREATE, expect.any(String), expect.any(Array), CONST.IOU.REQUEST_TYPE.SCAN);
 
                 // When the user creates an expense anywhere in the product
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, {transactionID: '1', reportID: 'r1'});
+                await addOwnExpense();
                 await waitForBatchedUpdates();
 
                 // Then the step is marked complete
@@ -2157,7 +2191,7 @@ describe('useGettingStartedItems', () => {
 
         it('should hide the section once every to-do is complete', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, customCategories);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, {transactionID: '1', reportID: 'r1'});
+            await addOwnExpense();
             await Onyx.merge(ONYXKEYS.CARD_LIST, {testCard: {cardID: 1}});
             await setupSubmitScenario();
 
@@ -2227,7 +2261,7 @@ describe('useGettingStartedItems', () => {
                 'accountant@test.com': {email: 'accountant@test.com', role: CONST.POLICY.ROLE.USER},
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, customCategory);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, {transactionID: '1', reportID: 'r1'});
+            await addOwnExpense();
             await setupTrackWorkspaceScenario({policy: {areCategoriesEnabled: true, employeeList}});
 
             const {result} = renderHook(() => useGettingStartedItems());
