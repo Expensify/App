@@ -10,6 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import arraysEqual from '@src/utils/arraysEqual';
 
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {authTokenTypeSelector} from '@selectors/Session';
@@ -88,6 +89,18 @@ const SidebarOrderedReportsActionsContext = createContext<SidebarOrderedReportsA
     getReportIDsForTab: () => [],
 });
 
+/** The IDs of the archived reports, sorted so two lists can be compared between renders */
+function getArchivedReportIDs(reportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>): string[] {
+    const archivedReportIDs: string[] = [];
+    for (const [key, reportNameValuePair] of Object.entries(reportNameValuePairs ?? {})) {
+        if (!reportNameValuePair?.private_isArchived) {
+            continue;
+        }
+        archivedReportIDs.push(key.slice(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length));
+    }
+    return archivedReportIDs.sort();
+}
+
 // This file does not compile with React Compiler (render-time ref cache below keeps referential
 // stability), so the manual useMemo/useCallback in this provider are load-bearing and must stay.
 function SidebarOrderedReportsContextProvider({
@@ -116,6 +129,10 @@ function SidebarOrderedReportsContextProvider({
     const transactionViolationsUpdates = useCollectionDelta(transactionViolations);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const reportNameValuePairsUpdates = useCollectionDelta(reportNameValuePairs);
+    // The sort only needs the archived state from the name value pairs, so it reads a set of archived report IDs that
+    // keeps its reference while that set is unchanged
+    const archivedReportIDList = useStableArrayReference(useMemo(() => getArchivedReportIDs(reportNameValuePairs), [reportNameValuePairs]));
+    const archivedReportIDs = useMemo(() => new Set(archivedReportIDList), [archivedReportIDList]);
     const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const reportsDraftsUpdates = useCollectionDelta(reportsDrafts);
     const {isBetaEnabled} = usePermissions();
@@ -130,15 +147,14 @@ function SidebarOrderedReportsContextProvider({
     const reportAttributes = useReportAttributes();
     const prevReportAttributes = usePrevious(reportAttributes);
     const reportAttributesUpdates = useMemo(() => getReportAttributesUpdates(reportAttributes, prevReportAttributes), [reportAttributes, prevReportAttributes]);
-    // REPORT_ATTRIBUTES is a new object on every recompute even when unchanged, so the LHN reads a reference that only
-    // advances when the value diff above reports a change (kept in state during render, so no extra update is scheduled).
+    // REPORT_ATTRIBUTES is rewritten with a new object whenever a recompute processes a report, even if nothing changed, so
+    // the LHN reads a reference that only advances when the value diff above reports a change (kept in state during render)
     const [rememberedReportAttributes, setRememberedReportAttributes] = useState(reportAttributes);
     const hasReportAttributesContentChanged = reportAttributesUpdates !== undefined || reportAttributes === undefined || rememberedReportAttributes === undefined;
     const lhnReportAttributes = hasReportAttributesContentChanged ? reportAttributes : rememberedReportAttributes;
     if (hasReportAttributesContentChanged && rememberedReportAttributes !== reportAttributes) {
         setRememberedReportAttributes(reportAttributes);
     }
-    // The incremental cache the memo below starts from (updated during render right after it)
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
@@ -385,9 +401,8 @@ function SidebarOrderedReportsContextProvider({
     }
 
     const getOrderedReportIDs = useCallback(
-        () => SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplayInLHN, priorityMode, localeCompare, hasDraftByReportID, reportNameValuePairs, lhnReportAttributes),
-        // The set keeps its reference when no report changed, so every input that only affects the order must be listed
-        [reportsToDisplayInLHN, priorityMode, localeCompare, hasDraftByReportID, reportNameValuePairs, lhnReportAttributes],
+        () => SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplayInLHN, priorityMode, localeCompare, hasDraftByReportID, archivedReportIDs, lhnReportAttributes),
+        [reportsToDisplayInLHN, priorityMode, localeCompare, hasDraftByReportID, archivedReportIDs, lhnReportAttributes],
     );
 
     const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);

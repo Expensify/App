@@ -785,6 +785,55 @@ describe('useSidebarOrderedReports', () => {
         expect(mockSidebarUtils.sortReportsToDisplayInLHN.mock.calls.at(-1)?.[1]).toBe(CONST.PRIORITY_MODE.GSD);
     });
 
+    it('should not re-sort the LHN when a report name value pair changes without changing the archived state', async () => {
+        // Given a settled LHN whose recheck finds nothing to change (the same map comes back)
+        const reports = createMockReports({report1: {reportName: 'Chat'}});
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}1` as const;
+        const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}1` as const;
+        mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue({[reportKey]: reports['1']});
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports}) => displayedReports);
+        await act(async () => {
+            await Onyx.set(reportKey, reports['1']);
+            await Onyx.set(reportNameValuePairsKey, {private_isArchived: '2024-01-01 10:00:00'});
+        });
+        renderHook(() => useSidebarOrderedReports(), {wrapper: TestWrapper});
+        await waitForBatchedUpdatesWithAct();
+        mockSidebarUtils.sortReportsToDisplayInLHN.mockClear();
+
+        // When a name value pair that does not affect the order is written for the archived report
+        await act(async () => {
+            await Onyx.merge(reportNameValuePairsKey, {origin: 'chat'});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the LHN is not sorted again
+        expect(mockSidebarUtils.sortReportsToDisplayInLHN).not.toHaveBeenCalled();
+    });
+
+    it('should re-sort the LHN when a displayed report is archived even though the same reports stay displayed', async () => {
+        // Given a settled LHN whose recheck finds nothing to change (the same map comes back)
+        const reports = createMockReports({report1: {reportName: 'Chat'}});
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}1` as const;
+        mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue({[reportKey]: reports['1']});
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports}) => displayedReports);
+        await act(async () => {
+            await Onyx.set(reportKey, reports['1']);
+        });
+        renderHook(() => useSidebarOrderedReports(), {wrapper: TestWrapper});
+        await waitForBatchedUpdatesWithAct();
+        mockSidebarUtils.sortReportsToDisplayInLHN.mockClear();
+
+        // When the report is archived
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}1`, {private_isArchived: '2024-01-01 10:00:00'});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the LHN is sorted again with the report in the archived set, so it moves to the archived group
+        expect(mockSidebarUtils.sortReportsToDisplayInLHN).toHaveBeenCalled();
+        expect(mockSidebarUtils.sortReportsToDisplayInLHN.mock.calls.at(-1)?.[4]).toEqual(new Set(['1']));
+    });
+
     it('should recheck the parent of a thread when the thread is opened and when it is left', async () => {
         // Given a chat shown in the LHN and a thread under it. The chat stays in the LHN while its thread is the focused
         // report (shouldHideReport keeps the parent of the current report), so it has to be rechecked on both transitions.

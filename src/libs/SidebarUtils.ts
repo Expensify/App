@@ -537,7 +537,7 @@ function categorizeReportsForLHN(
     reportsToDisplay: ReportsToDisplayInLHN,
     reportsDrafts: Record<string, boolean> | undefined,
     reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    archivedReportIDs?: Set<string>,
 ) {
     sortKeyCache.clear();
 
@@ -569,9 +569,7 @@ function categorizeReportsForLHN(
             continue;
         }
 
-        const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`;
-        const rNVPs = reportNameValuePairs?.[reportNameValuePairsKey];
-        const isArchived = isArchivedNonExpenseReport(report, !!rNVPs?.private_isArchived);
+        const isArchived = isArchivedNonExpenseReport(report, !!archivedReportIDs?.has(reportID));
         const hasErrors = !!report.hasErrorsOtherThanFailedReceipt && !isArchived;
 
         if (hasErrors) {
@@ -696,7 +694,7 @@ function sortReportsToDisplayInLHN(
     priorityMode: OnyxEntry<PriorityMode>,
     localeCompare: LocaleContextProps['localeCompare'],
     reportsDrafts: Record<string, boolean> | undefined,
-    reportNameValuePairs: OnyxCollection<ReportNameValuePairs> | undefined,
+    archivedReportIDs: Set<string> | undefined,
     reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
 ): string[] {
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
@@ -713,7 +711,7 @@ function sortReportsToDisplayInLHN(
     //      - Sorted by reportDisplayName in GSD (focus) view mode
 
     // Step 1: Categorize reports
-    const categories = categorizeReportsForLHN(reportsToDisplay, reportsDrafts, reportAttributes, reportNameValuePairs);
+    const categories = categorizeReportsForLHN(reportsToDisplay, reportsDrafts, reportAttributes, archivedReportIDs);
 
     // Step 2: Sort each category
     const sortedCategories = sortCategorizedReports(categories, isInDefaultMode, localeCompare);

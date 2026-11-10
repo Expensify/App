@@ -4651,14 +4651,14 @@ describe('SidebarUtils', () => {
     describe('sortReportsToDisplayInLHN', () => {
         describe('categorizeReportsForLHN', () => {
             it('should categorize reports into correct groups', () => {
-                const {reports, reportNameValuePairs} = createSidebarTestData();
+                const {reports} = createSidebarTestData();
 
                 const reportsDrafts: Record<string, boolean> = {
                     '2': true,
                 };
 
                 // When the reports are categorized
-                const result = _categorizeReportsForLHN(reports, reportsDrafts, undefined, reportNameValuePairs);
+                const result = _categorizeReportsForLHN(reports, reportsDrafts, undefined, new Set(['4']));
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(1);
