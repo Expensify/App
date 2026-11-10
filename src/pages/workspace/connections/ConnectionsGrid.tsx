@@ -28,6 +28,7 @@ function ConnectionsGrid({listings, policyID}: ConnectionsGridProps) {
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     // Medium screens can leave less than a card's minimum width once both navigation panes are shown
     const shouldStackCards = shouldUseNarrowLayout || isMediumScreenWidth;
+    const waitlistConnectionNames = CONST.POLICY.CONNECTIONS.WAITLIST_CONNECTION_NAMES;
 
     return (
         <View style={styles.connectionsGrid}>
@@ -40,7 +41,7 @@ function ConnectionsGrid({listings, policyID}: ConnectionsGridProps) {
                         />
                     );
                 }
-                const waitlistConnectionName = CONST.POLICY.CONNECTIONS.WAITLIST_CONNECTION_NAMES.find((name) => name === listing.key);
+                const waitlistConnectionName = waitlistConnectionNames.find((name) => name === listing.key);
                 if (waitlistConnectionName) {
                     // A waitlist signup belongs to a workspace, so there is nothing to join without one
                     if (!policyID) {
