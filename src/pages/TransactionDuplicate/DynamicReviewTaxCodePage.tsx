@@ -69,7 +69,10 @@ function DynamicReviewTaxCodePage() {
     const getTaxAmount = (taxID: string) => {
         const taxPercentage = getTaxValue(policy, transaction, taxID);
         const decimals = getCurrencyDecimals(transaction?.currency);
-        return convertToBackendAmount(calculateTaxAmount(taxPercentage ?? '', getAmount(transaction), decimals));
+        // Calculate the tax from the stored amount so the tax is stored with the same sign as the amount.
+        // On expense reports and unreported expenses, that is the opposite of the displayed sign.
+        const storedAmount = -getAmount(transaction, true);
+        return convertToBackendAmount(calculateTaxAmount(taxPercentage ?? '', storedAmount, decimals));
     };
 
     const setTaxCode = (data: FieldItemType<'taxCode'>) => {

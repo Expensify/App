@@ -25,7 +25,7 @@ type ReviewDuplicates = {
     /** Tax code  which user want to keep */
     taxCode: string;
 
-    /** Calculated tax amount */
+    /** Calculated tax amount, stored with the same sign as the transaction's stored tax amount */
     taxAmount: number;
 
     /** Description  which user want to keep */
