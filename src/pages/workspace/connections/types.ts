@@ -1,5 +1,4 @@
 import type CONST from '@src/CONST';
-import type {AccountingIntegrationWaitlistConnectionName} from '@src/types/onyx/AccountingIntegrationWaitlist';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ComponentRef} from 'react';
@@ -49,9 +48,6 @@ type ConnectionListing = {
 
     /** Receives the element that starts the connection, since some accounting setup flows anchor a popover to it */
     registerConnectButton?: (button: ComponentRef<typeof View> | null) => void;
-
-    /** Set for an integration that isn't available yet, so the card offers its waitlist instead of connecting */
-    waitlistConnectionName?: AccountingIntegrationWaitlistConnectionName;
 };
 
 export type {ConnectionsTab, ConnectionStatus, ConnectionListing};
