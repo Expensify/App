@@ -493,11 +493,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                                     <MenuItemSectionRoot
                                         onPress={
                                             canWritePayments
-                                                ? callFunctionIfActionIsAllowed(
-                                                      () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_REIMBURSEMENT_COUNTRIES.getRoute(policyID)),
-                                                      false,
-                                                      session,
-                                                  )
+                                                ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_REIMBURSEMENT_COUNTRIES.getRoute(policyID)), session)
                                                 : undefined
                                         }
                                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BUSINESS_BANK_ACCOUNT_COUNTRIES}
