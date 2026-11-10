@@ -6,6 +6,8 @@ import useWindowDimensionsForAutoCompleteSuggestions from '@hooks/useWindowDimen
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
+
 import type {ComponentRef} from 'react';
 
 import {Portal} from '@gorhom/portal';
@@ -57,6 +59,7 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({
                 <>
                     <TransparentOverlay
                         onPress={resetSuggestions}
+                        sentryLabel={CONST.SENTRY_LABEL.BASE_AUTO_COMPLETE_SUGGESTIONS.OVERLAY}
                         style={zIndexStyle}
                     />
                     <View

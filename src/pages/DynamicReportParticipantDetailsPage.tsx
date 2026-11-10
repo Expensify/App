@@ -116,6 +116,7 @@ function DynamicReportParticipantDetails({report, route}: DynamicReportParticipa
                     )}
                     {isCurrentUserAdmin && (
                         <Button
+                            sentryLabel={CONST.SENTRY_LABEL.REPORT.PARTICIPANT_DETAILS_REMOVE_BUTTON}
                             onPress={askForConfirmationToRemove}
                             isDisabled={isSelectedMemberCurrentUser}
                             style={styles.mv5}
@@ -132,6 +133,7 @@ function DynamicReportParticipantDetails({report, route}: DynamicReportParticipa
                     {isCurrentUserAdmin && (
                         <OfflineWithFeedback pendingAction={member?.pendingFields?.role ?? null}>
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.REPORT.PARTICIPANT_DETAILS_ROLE_FIELD}
                                 name={translate('common.role')}
                                 onPress={openRoleSelectionModal}
                                 isDisabled={isSelectedMemberCurrentUser}
@@ -140,6 +142,7 @@ function DynamicReportParticipantDetails({report, route}: DynamicReportParticipa
                         </OfflineWithFeedback>
                     )}
                     <MenuItemNavigation
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT.PARTICIPANT_DETAILS_PROFILE}
                         title={translate('common.profile')}
                         icon={icons.Info}
                         onPress={navigateToProfile}

@@ -368,6 +368,7 @@ function TransactionPreviewContent({
                     )}
                     {isReviewDuplicateTransactionPage && !isIOUSettled && !isApproved && !isCardTransaction && areThereDuplicates && (
                         <Button
+                            sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_PREVIEW.KEEP_THIS_ONE_BUTTON}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             style={[styles.ph4, styles.pb4]}
                             onPress={navigateToReviewFields}
