@@ -1178,6 +1178,8 @@ const translations: TranslationDeepObject<typeof en> = {
             configureApprovalsSubText: 'Berichtsfreigaben festlegen',
             setupTravel: 'Reisen einrichten',
             setupTravelSubText: 'Reisespezifische Regeln konfigurieren',
+            addFirstReceipt: 'Fügen Sie Ihren ersten Beleg hinzu',
+            addFirstReceiptSubText: 'Beleg scannen oder manuell eingeben',
         },
         freeTrialSection: {
             title: ({count}: {count: number}) => ({

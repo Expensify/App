@@ -1236,6 +1236,8 @@ const translations: TranslationDeepObject<typeof en> = {
             linkPersonalCardSubText: 'Εισαγάγετε αυτόματα τις δαπάνες',
             setupTravel: 'Ρύθμιση ταξιδιού',
             setupTravelSubText: 'Ρύθμιση ειδικών κανόνων για ταξίδια',
+            addFirstReceipt: 'Προσθέστε την πρώτη σας απόδειξη',
+            addFirstReceiptSubText: 'Σαρώστε ή καταχωρίστε χειροκίνητα μια απόδειξη',
         },
         upcomingTravel: 'Επερχόμενα ταξίδια',
         upcomingTravelSection: {

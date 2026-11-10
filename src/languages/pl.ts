@@ -1220,6 +1220,8 @@ const translations: TranslationDeepObject<typeof en> = {
             configureApprovalsSubText: 'Zdefiniuj zatwierdzanie raportów',
             setupTravel: 'Skonfiguruj podróże',
             setupTravelSubText: 'Skonfiguruj zasady dotyczące podróży',
+            addFirstReceipt: 'Dodaj swój pierwszy paragon',
+            addFirstReceiptSubText: 'Zeskanuj lub wprowadź paragon ręcznie',
         },
         yourSpend: {
             title: 'Twoje wydatki',

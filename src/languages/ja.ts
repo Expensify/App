@@ -1182,6 +1182,8 @@ const translations: TranslationDeepObject<typeof en> = {
             configureApprovalsSubText: 'レポート承認を定義する',
             setupTravel: '出張を設定',
             setupTravelSubText: '出張用のルールを設定する',
+            addFirstReceipt: '最初のレシートを追加する',
+            addFirstReceiptSubText: 'レシートをスキャンするか手入力します',
         },
         yourSpend: {
             title: 'あなたの支出',

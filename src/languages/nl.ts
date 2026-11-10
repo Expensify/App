@@ -1193,6 +1193,8 @@ const translations: TranslationDeepObject<typeof en> = {
             configureApprovalsSubText: 'Definieer rapportgoedkeuringen',
             setupTravel: 'Reizen instellen',
             setupTravelSubText: 'Reisspecifieke regels instellen',
+            addFirstReceipt: 'Voeg je eerste bon toe',
+            addFirstReceiptSubText: 'Scan of voer handmatig een bon in',
         },
         yourSpend: {
             title: 'Je uitgaven',

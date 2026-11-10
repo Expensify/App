@@ -1156,6 +1156,8 @@ const translations: TranslationDeepObject<typeof en> = {
             configureApprovalsSubText: '定义报表审批',
             setupTravel: '设置差旅',
             setupTravelSubText: '配置差旅专用规则',
+            addFirstReceipt: '添加您的第一张票据',
+            addFirstReceiptSubText: '扫描或手动输入收据',
         },
         yourSpend: {title: '您的支出', awaitingApproval: '等待审批', repaidLast30Days: '过去30天已偿还'},
         seeMore: ({count}: {count: number}) => `再查看 ${count} 个`,

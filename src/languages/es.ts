@@ -1180,6 +1180,8 @@ const translations: TranslationDeepObject<typeof en> = {
             configureApprovalsSubText: 'Definir aprobaciones de informes',
             setupTravel: 'Configurar viajes',
             setupTravelSubText: 'Configura reglas específicas de viaje',
+            addFirstReceipt: 'Añade tu primer recibo',
+            addFirstReceiptSubText: 'Escanear o introducir manualmente un recibo',
         },
         upcomingTravel: 'Próximos viajes',
         upcomingTravelSection: {

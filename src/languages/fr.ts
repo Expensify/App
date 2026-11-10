@@ -1198,6 +1198,8 @@ const translations: TranslationDeepObject<typeof en> = {
             configureApprovalsSubText: 'Définir les approbations de notes de frais',
             setupTravel: 'Configurer les déplacements',
             setupTravelSubText: 'Configurer des règles spécifiques aux déplacements',
+            addFirstReceipt: 'Ajoutez votre premier reçu',
+            addFirstReceiptSubText: 'Scanner ou saisir manuellement un reçu',
         },
         yourSpend: {
             title: 'Vos dépenses',

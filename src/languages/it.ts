@@ -1197,6 +1197,8 @@ const translations: TranslationDeepObject<typeof en> = {
             configureApprovalsSubText: 'Definisci le approvazioni dei report',
             setupTravel: 'Configura viaggi',
             setupTravelSubText: 'Configura regole specifiche per i viaggi',
+            addFirstReceipt: 'Aggiungi la tua prima ricevuta',
+            addFirstReceiptSubText: 'Scansiona o inserisci manualmente una ricevuta',
         },
         yourSpend: {
             title: 'Le tue spese',
