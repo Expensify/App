@@ -1954,6 +1954,7 @@ const SENTRY_LABEL = {
         ADD_PAYMENT_CARD: 'SettingsSubscription-AddPaymentCard',
         BILLING_CURRENCY: 'SettingsSubscription-BillingCurrency',
         CANCEL_SUBSCRIPTION_DONE: 'SettingsSubscription-CancelSubscriptionDone',
+        EARLY_RENEWAL_BANNER_CLAIM: 'SettingsSubscription-EarlyRenewalBannerClaim',
         EARLY_RENEWAL_BANNER_RENEW: 'SettingsSubscription-EarlyRenewalBannerRenew',
         EDIT_SUBSCRIPTION: 'SettingsSubscription-EditSubscription',
         EXPENSIFY_CODE: 'SettingsSubscription-ExpensifyCode',
