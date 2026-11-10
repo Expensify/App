@@ -40,20 +40,11 @@ type ConnectedVerifiedBankAccountProps = {
     /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
     setShouldShowConnectedVerifiedBankAccount?: (shouldShowConnectedVerifiedBankAccount: boolean) => void;
 
-    /** Method to set the state of USD bank account step */
-    setUSDBankAccountStep?: (step: string | null) => void;
-
     /** Whether the workspace currency is set to non USD currency */
     isNonUSDWorkspace: boolean;
 };
 
-function ConnectedVerifiedBankAccount({
-    reimbursementAccount,
-    onBackButtonPress,
-    setShouldShowConnectedVerifiedBankAccount,
-    setUSDBankAccountStep,
-    isNonUSDWorkspace,
-}: ConnectedVerifiedBankAccountProps) {
+function ConnectedVerifiedBankAccount({reimbursementAccount, onBackButtonPress, setShouldShowConnectedVerifiedBankAccount, isNonUSDWorkspace}: ConnectedVerifiedBankAccountProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -77,7 +68,6 @@ function ConnectedVerifiedBankAccount({
         reimbursementAccount,
         isNonUSDWorkspace,
         setShouldShowConnectedVerifiedBankAccount,
-        setUSDBankAccountStep,
     });
 
     return (

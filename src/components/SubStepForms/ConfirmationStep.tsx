@@ -175,7 +175,7 @@ function ConfirmationStep({
     shouldApplySafeAreaPaddingBottom = true,
     shouldMarkTitleAsHeading = false,
     shouldAnnounceSubmitState = false,
-    forwardedFSClass,
+    forwardedFSClass = CONST.FULLSTORY.CLASS.MASK,
     children,
 }: ConfirmationStepProps) {
     const {translate} = useLocalize();
