@@ -1966,6 +1966,8 @@ const translations: TranslationDeepObject<typeof en> = {
         undeletedExpense: '恢复了此报销单',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `已为新工作区更新里程报销标准 - ${policyName}`,
         payViaABA: '通过 ABA 支付',
+        missingABADepositAccount: ({name}: {name: string}) => `${name} 没有 AUD 银行账户。请让 TA 添加一个后再重试。`,
+        submittersMissingABADepositAccount: '一个或多个提交人没有 AUD 银行账户。请让他们添加一个后再试一次。',
     },
     transactionMerge: {
         listPage: {
