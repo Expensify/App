@@ -1377,6 +1377,11 @@ function setDraftSplitTransaction(
           })
         : null;
 
+    // getUpdatedTransaction only applies the fields an expense stores, so the draft's own flag for a typed merchant is copied over here.
+    if (updatedTransaction && Object.hasOwn(transactionChanges, 'isMerchantSet')) {
+        updatedTransaction.isMerchantSet = transactionChanges.isMerchantSet;
+    }
+
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, updatedTransaction);
 }
 

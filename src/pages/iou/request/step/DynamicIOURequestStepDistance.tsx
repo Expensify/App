@@ -474,7 +474,7 @@ function DynamicIOURequestStepDistance({
         }
         if (isWaypointsNullIslandError) {
             return {
-                isWaypointsNullIslandError: `${translate('common.please')} ${translate('common.fixTheErrors')} ${translate('common.inTheFormBeforeContinuing')}.`,
+                isWaypointsNullIslandError: translate('common.error.fixErrorsBeforeContinuing'),
             } as Errors;
         }
         if (duplicateWaypointsError) {

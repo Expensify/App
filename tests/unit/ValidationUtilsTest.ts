@@ -11,6 +11,7 @@ import {
     getAgeRequirementError,
     getInvalidAddressErrorTranslationPath,
     isInvalidMerchantValue,
+    isMerchantBlank,
     isPOBoxOrMailDrop,
     isRequiredFulfilled,
     isValidAccountRoute,
@@ -833,6 +834,26 @@ describe('ValidationUtils', () => {
 
         test('Should return false for an empty string', () => {
             expect(isValidPhoneNumber('')).toBe(false);
+        });
+    });
+
+    describe('isMerchantBlank', () => {
+        test('treats whitespace and an untyped placeholder as blank', () => {
+            // Given merchants the user hasn't typed anything real into
+            // When they are checked
+            // Then they count as blank, since the field shows nothing the user entered
+            expect(isMerchantBlank(false, '')).toBe(true);
+            expect(isMerchantBlank(false, '   ')).toBe(true);
+            expect(isMerchantBlank(false, undefined)).toBe(true);
+            expect(isMerchantBlank(false, CONST.TRANSACTION.DEFAULT_MERCHANT)).toBe(true);
+        });
+
+        test('keeps a placeholder value the user typed themselves, and any real merchant, non-blank', () => {
+            // Given a placeholder the user typed, and a real merchant
+            // When they are checked
+            // Then neither is blank: the typed placeholder is an invalid entry rather than a missing one
+            expect(isMerchantBlank(true, CONST.TRANSACTION.DEFAULT_MERCHANT)).toBe(false);
+            expect(isMerchantBlank(false, 'Hilton')).toBe(false);
         });
     });
 

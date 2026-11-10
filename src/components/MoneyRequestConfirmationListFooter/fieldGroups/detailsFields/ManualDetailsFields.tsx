@@ -40,7 +40,11 @@ function ManualDetailsFields({policy, amountDisplay, requiredFlags, errorState}:
                     isDistanceRequest={false}
                     shouldShowTimeRequestFields={false}
                     policy={policy}
-                    {...errorState}
+                    shouldDisplayFieldError={errorState.shouldDisplayFieldError}
+                    formError={errorState.formError}
+                    fieldError={errorState.fieldErrors.amount}
+                    clearFormErrors={errorState.clearFormErrors}
+                    setFormError={errorState.setFormError}
                 />
             )}
 
@@ -48,7 +52,7 @@ function ManualDetailsFields({policy, amountDisplay, requiredFlags, errorState}:
                 <MerchantField
                     isMerchantRequired={requiredFlags.isMerchantRequired}
                     shouldDisplayFieldError={errorState.shouldDisplayFieldError}
-                    formError={errorState.formError}
+                    fieldError={errorState.fieldErrors.merchant}
                 />
             )}
 

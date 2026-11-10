@@ -91,9 +91,6 @@ const baseParams = {
     currentUserPersonalDetails: {accountID: 1} as CurrentUserPersonalDetails,
     isEditingSplitBill: false,
     isMerchantRequired: false,
-    isMerchantFieldValid: true,
-    isMerchantEmpty: false,
-    shouldDisplayFieldError: false,
     shouldShowTax: false,
     isDistanceRequest: false,
     isDistanceRequestWithPendingRoute: false,
@@ -140,37 +137,110 @@ describe('useConfirmationValidation', () => {
     });
 
     it('returns invalidMerchant when merchant exceeds max bytes', () => {
+        // Given a merchant one byte longer than the backend accepts
         const longMerchant = 'A'.repeat(CONST.MERCHANT_NAME_MAX_BYTES + 1);
         const {result} = renderHook(() => useConfirmationValidation({...baseParams, iouMerchant: longMerchant}));
-        expect(result.current.validate()).toEqual({errorKey: 'iou.error.invalidMerchant'});
+
+        // When the user confirms
+        // Then the merchant field blocks it as invalid, since the request would be rejected
+        expect(result.current.validate()).toEqual({isFieldError: true});
+        expect(result.current.fieldErrors).toEqual({merchant: 'iou.error.invalidMerchant'});
     });
 
-    it('returns invalidMerchant when merchant is required but empty', () => {
-        const {result} = renderHook(() => useConfirmationValidation({...baseParams, isMerchantRequired: true, isMerchantEmpty: true, isMerchantFieldValid: false}));
-        expect(result.current.validate()).toEqual({errorKey: 'iou.error.invalidMerchant'});
+    it('returns fieldRequired when a required merchant is left blank, the same as the other required fields', () => {
+        // Given a workspace expense whose merchant still holds the "Expense" placeholder the draft was seeded with
+        const {result} = renderHook(() =>
+            useConfirmationValidation({
+                ...baseParams,
+                iouMerchant: CONST.TRANSACTION.DEFAULT_MERCHANT,
+                transaction: createTransactionBase({amount: 100, merchant: CONST.TRANSACTION.DEFAULT_MERCHANT, isMerchantSet: false, participants: [P2P_PARTICIPANT]}),
+                isMerchantRequired: true,
+            }),
+        );
+
+        // When the user confirms
+        // Then the merchant reads as required, so the footer summary covers it like a missing amount or date
+        expect(result.current.validate()).toEqual({isFieldError: true});
+        expect(result.current.fieldErrors).toEqual({merchant: 'common.error.fieldRequired'});
+    });
+
+    it('returns invalidMerchant when a required merchant was typed but is not valid', () => {
+        // Given a workspace expense where the user typed the disallowed "(none)" as the merchant
+        const {result} = renderHook(() =>
+            useConfirmationValidation({
+                ...baseParams,
+                iouMerchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                transaction: createTransactionBase({amount: 100, merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, isMerchantSet: true, participants: [P2P_PARTICIPANT]}),
+                isMerchantRequired: true,
+            }),
+        );
+
+        // When the user confirms
+        // Then the merchant asks for a valid value instead of saying the field is required
+        expect(result.current.validate()).toEqual({isFieldError: true});
+        expect(result.current.fieldErrors).toEqual({merchant: 'iou.error.invalidMerchant'});
+    });
+
+    it('returns the field errors it blocks on, so the fields show exactly what stops confirmation', () => {
+        // Given a manual workspace expense with neither an amount nor a merchant
+        const {result} = renderHook(() =>
+            useConfirmationValidation(
+                createValidationParamsForParticipant(
+                    POLICY_EXPENSE_CHAT_PARTICIPANT,
+                    {iouAmount: 0, iouMerchant: CONST.TRANSACTION.DEFAULT_MERCHANT, isMerchantRequired: true, isPolicyExpenseChat: true},
+                    {amount: 0, isAmountSet: false, merchant: CONST.TRANSACTION.DEFAULT_MERCHANT, isMerchantSet: false},
+                ),
+            ),
+        );
+
+        // When its validation is read
+        // Then both fields are reported, and the confirm is blocked as a field error so they show them
+        expect(result.current.fieldErrors).toEqual({amount: 'common.error.fieldRequired', merchant: 'common.error.fieldRequired'});
+        expect(result.current.validate()).toEqual({isFieldError: true});
     });
 
     it('returns invalidMerchant when merchant is not required but was explicitly set to an invalid value', () => {
+        // Given an expense whose merchant is optional, but which the user typed with a value that fails validation
         const {result} = renderHook(() =>
             useConfirmationValidation({
                 ...baseParams,
+                iouMerchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                 isMerchantRequired: false,
-                isMerchantFieldValid: false,
-                transaction: createMock<OnyxTypes.Transaction>({transactionID: 'txn1', comment: {}, amount: 100, isMerchantSet: true}),
+                transaction: createMock<OnyxTypes.Transaction>({
+                    transactionID: 'txn1',
+                    comment: {},
+                    amount: 100,
+                    merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                    isMerchantSet: true,
+                }),
             }),
         );
-        expect(result.current.validate()).toEqual({errorKey: 'iou.error.invalidMerchant'});
+
+        // When the user confirms
+        // Then the merchant field blocks it, since an optional merchant is still checked once the user typed one
+        expect(result.current.validate()).toEqual({isFieldError: true});
+        expect(result.current.fieldErrors).toEqual({merchant: 'iou.error.invalidMerchant'});
     });
 
     it('returns null when merchant is not required and was not explicitly set', () => {
+        // Given an expense whose merchant is optional and still holds the "(none)" placeholder the user never typed
         const {result} = renderHook(() =>
             useConfirmationValidation({
                 ...baseParams,
+                iouMerchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                 isMerchantRequired: false,
-                isMerchantFieldValid: false,
-                transaction: createMock<OnyxTypes.Transaction>({transactionID: 'txn1', comment: {}, amount: 100, isMerchantSet: false}),
+                transaction: createMock<OnyxTypes.Transaction>({
+                    transactionID: 'txn1',
+                    comment: {},
+                    amount: 100,
+                    merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                    isMerchantSet: false,
+                }),
             }),
         );
+
+        // When the user confirms
+        // Then nothing blocks it, since an untyped placeholder in an optional field is just a blank merchant
         expect(result.current.validate()).toEqual({errorKey: null});
     });
 
@@ -312,6 +382,7 @@ describe('useConfirmationValidation', () => {
     });
 
     it('returns fieldRequired for manual expense when amount is not set with a policy expense chat participant', () => {
+        // Given a manual workspace expense whose amount the user never entered
         const {result} = renderHook(() =>
             useConfirmationValidation(
                 createValidationParamsForParticipant(
@@ -323,7 +394,11 @@ describe('useConfirmationValidation', () => {
                 ),
             ),
         );
-        expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+
+        // When the user confirms
+        // Then the amount field blocks it as required, since a manual expense can't be created without an amount
+        expect(result.current.validate()).toEqual({isFieldError: true});
+        expect(result.current.fieldErrors).toEqual({amount: 'common.error.fieldRequired'});
     });
 
     it('does not return fieldRequired for scan expense when amount is not set', () => {
@@ -372,6 +447,7 @@ describe('useConfirmationValidation', () => {
 
         describe('policy expense chat participant (workspace submit/create)', () => {
             it.each(IOU_TYPES_WITH_STANDARD_VALIDATION)('returns fieldRequired for unset manual amount when iouType is %s', (iouType) => {
+                // Given a manual workspace expense of this type whose amount the user never entered
                 const {result} = renderHook(() =>
                     useConfirmationValidation(
                         createValidationParamsForParticipant(
@@ -384,10 +460,15 @@ describe('useConfirmationValidation', () => {
                         ),
                     ),
                 );
-                expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+
+                // When the user confirms
+                // Then every type blocks on the same required amount, so the rule doesn't depend on what is being created
+                expect(result.current.validate()).toEqual({isFieldError: true});
+                expect(result.current.fieldErrors).toEqual({amount: 'common.error.fieldRequired'});
             });
 
             it('returns fieldRequired for PAY with unset manual amount before payment method is checked', () => {
+                // Given a payment whose amount the user never entered
                 const {result} = renderHook(() =>
                     useConfirmationValidation(
                         createValidationParamsForParticipant(
@@ -400,8 +481,12 @@ describe('useConfirmationValidation', () => {
                         ),
                     ),
                 );
-                expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
-                expect(result.current.validate(CONST.IOU.PAYMENT_TYPE.ELSEWHERE)).toEqual({errorKey: 'common.error.fieldRequired'});
+
+                // When the user confirms, with or without a payment method
+                // Then the missing amount blocks first, so picking a payment method can't send money without an amount
+                expect(result.current.validate()).toEqual({isFieldError: true});
+                expect(result.current.validate(CONST.IOU.PAYMENT_TYPE.ELSEWHERE)).toEqual({isFieldError: true});
+                expect(result.current.fieldErrors).toEqual({amount: 'common.error.fieldRequired'});
             });
 
             it('returns errorKey: null when manual amount is explicitly set to zero for submit', () => {
@@ -414,19 +499,25 @@ describe('useConfirmationValidation', () => {
             });
 
             it('returns invalidAmount when manual amount is explicitly set to zero for invoice', () => {
+                // Given an invoice to a workspace where the user typed a $0 amount
                 const {result} = renderHook(() =>
                     useConfirmationValidation(
                         createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {...zeroAmountParams, iouType: CONST.IOU.TYPE.INVOICE}, {amount: 0, isAmountSet: true}),
                     ),
                 );
-                expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+
+                // When the user confirms
+                // Then the amount field blocks it as invalid, since an invoice can't be for $0 even where a $0 expense is allowed
+                expect(result.current.validate()).toEqual({isFieldError: true});
+                expect(result.current.fieldErrors).toEqual({amount: 'common.error.invalidAmount'});
             });
         });
 
         describe('P2P participant', () => {
             it.each([CONST.IOU.TYPE.SUBMIT, CONST.IOU.TYPE.CREATE, CONST.IOU.TYPE.PAY, CONST.IOU.TYPE.SPLIT])(
-                'returns invalidAmount (not fieldRequired) for unset manual amount when iouType is %s',
+                'returns fieldRequired for unset manual amount when iouType is %s',
                 (iouType) => {
+                    // Given a manual expense of this type to a person, with no amount entered
                     const {result} = renderHook(() =>
                         useConfirmationValidation(
                             createValidationParamsForParticipant(
@@ -439,7 +530,11 @@ describe('useConfirmationValidation', () => {
                             ),
                         ),
                     );
-                    expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+
+                    // When the user confirms
+                    // Then the amount reads as missing, the same as for a workspace, so the summary above the button covers it too
+                    expect(result.current.validate()).toEqual({isFieldError: true});
+                    expect(result.current.fieldErrors).toEqual({amount: 'common.error.fieldRequired'});
                 },
             );
 
@@ -460,22 +555,37 @@ describe('useConfirmationValidation', () => {
             });
 
             it('returns invalidAmount when manual amount is explicitly set to zero', () => {
+                // Given a manual expense to a person where the user typed a $0 amount
                 const {result} = renderHook(() => useConfirmationValidation(createValidationParamsForParticipant(P2P_PARTICIPANT, zeroAmountParams, {amount: 0, isAmountSet: true})));
-                expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+
+                // When the user confirms
+                // Then the amount field blocks it, since a 1:1 expense can't be $0
+                expect(result.current.validate()).toEqual({isFieldError: true});
+                expect(result.current.fieldErrors).toEqual({amount: 'common.error.invalidAmount'});
             });
 
             it('returns invalidAmount when manual amount is explicitly set to zero for invoice', () => {
+                // Given an invoice to a person where the user typed a $0 amount
                 const {result} = renderHook(() =>
                     useConfirmationValidation(createValidationParamsForParticipant(P2P_PARTICIPANT, {...zeroAmountParams, iouType: CONST.IOU.TYPE.INVOICE}, {amount: 0, isAmountSet: true})),
                 );
-                expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+
+                // When the user confirms
+                // Then the amount field blocks it as invalid, the same as any other 1:1 expense
+                expect(result.current.validate()).toEqual({isFieldError: true});
+                expect(result.current.fieldErrors).toEqual({amount: 'common.error.invalidAmount'});
             });
         });
 
         describe('self-DM participant', () => {
             it('returns fieldRequired for unset manual amount', () => {
+                // Given a manual expense to the self DM whose amount the user never entered
                 const {result} = renderHook(() => useConfirmationValidation(createValidationParamsForParticipant(SELF_DM_PARTICIPANT, zeroAmountParams, {isAmountSet: false})));
-                expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+
+                // When the user confirms
+                // Then the amount reads as required, like any manual expense whose amount was never entered
+                expect(result.current.validate()).toEqual({isFieldError: true});
+                expect(result.current.fieldErrors).toEqual({amount: 'common.error.fieldRequired'});
             });
 
             it('returns errorKey: null when manual amount is explicitly set to zero', () => {
@@ -487,8 +597,13 @@ describe('useConfirmationValidation', () => {
 
     describe('amount validation — P2P zero amount guard', () => {
         it('returns invalidAmount for P2P manual submit with zero amount', () => {
+            // Given a manual expense submitted to a person for $0
             const {result} = renderHook(() => useConfirmationValidation(createValidationParamsForParticipant(P2P_PARTICIPANT, {iouAmount: 0}, {amount: 0, isAmountSet: true})));
-            expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+
+            // When the user confirms
+            // Then the $0 guard blocks it on the amount field, since money can't be requested from a person for nothing
+            expect(result.current.validate()).toEqual({isFieldError: true});
+            expect(result.current.fieldErrors).toEqual({amount: 'common.error.invalidAmount'});
         });
 
         it('returns errorKey: null for policy expense chat participant with zero amount', () => {
@@ -697,6 +812,7 @@ describe('useConfirmationValidation', () => {
 
     describe('amount validation — split bill editing', () => {
         it('returns invalidAmount when editing a split bill with zero amount and required fields otherwise filled', () => {
+            // Given a split between people being edited down to a $0 amount
             const splitParticipants = [P2P_PARTICIPANT, {accountID: 3, isPolicyExpenseChat: false} as Participant];
             const {result} = renderHook(() =>
                 useConfirmationValidation({
@@ -712,11 +828,15 @@ describe('useConfirmationValidation', () => {
                     transactionReport: createMock<OnyxTypes.Report>({type: CONST.REPORT.TYPE.IOU}),
                 }),
             );
-            // P2P zero-amount guard runs before the split-bill-specific invalidAmount check.
-            expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+
+            // When the user saves the split
+            // Then the 1:1 $0 guard on the amount field blocks it, since it runs before the split-specific amount check
+            expect(result.current.validate()).toEqual({isFieldError: true});
+            expect(result.current.fieldErrors).toEqual({amount: 'common.error.invalidAmount'});
         });
 
-        it('returns invalidAmount for split IOU type with unset manual amount and P2P participants', () => {
+        it('returns fieldRequired for split IOU type with unset manual amount and P2P participants', () => {
+            // Given a split between people whose amount the user never entered
             const splitParticipants = [P2P_PARTICIPANT, {accountID: 3, isPolicyExpenseChat: false} as Participant];
             const {result} = renderHook(() =>
                 useConfirmationValidation(
@@ -731,10 +851,15 @@ describe('useConfirmationValidation', () => {
                     ),
                 ),
             );
-            expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+
+            // When the user confirms
+            // Then the amount reads as missing, since an amount the user never entered is checked before the 1:1 $0 guard
+            expect(result.current.validate()).toEqual({isFieldError: true});
+            expect(result.current.fieldErrors).toEqual({amount: 'common.error.fieldRequired'});
         });
 
         it('returns fieldRequired for split IOU type with unset manual amount and a policy expense chat participant', () => {
+            // Given a workspace split whose amount the user never entered
             const {result} = renderHook(() =>
                 useConfirmationValidation(
                     createValidationParamsForParticipant(
@@ -747,10 +872,15 @@ describe('useConfirmationValidation', () => {
                     ),
                 ),
             );
-            expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+
+            // When the user confirms
+            // Then the amount reads as required, like any manual expense whose amount was never entered
+            expect(result.current.validate()).toEqual({isFieldError: true});
+            expect(result.current.fieldErrors).toEqual({amount: 'common.error.fieldRequired'});
         });
 
         it('returns invalidAmount for split IOU type with zero amount and isAmountSet true', () => {
+            // Given a split where the user typed a $0 amount
             const splitParticipants = [POLICY_EXPENSE_CHAT_PARTICIPANT, {accountID: 3, isPolicyExpenseChat: false} as Participant];
             const {result} = renderHook(() =>
                 useConfirmationValidation(
@@ -765,7 +895,11 @@ describe('useConfirmationValidation', () => {
                     ),
                 ),
             );
-            expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+
+            // When the user confirms
+            // Then the amount field blocks it, since a split of $0 has nothing to divide
+            expect(result.current.validate()).toEqual({isFieldError: true});
+            expect(result.current.fieldErrors).toEqual({amount: 'common.error.invalidAmount'});
         });
 
         it('returns iou.error.invalidAmount when editing split bill with zero amount and isAmountSet true', () => {
@@ -791,11 +925,17 @@ describe('useConfirmationValidation', () => {
 
     describe('date validation — inline required date', () => {
         it('returns fieldRequired for manual expense when the date is removed', () => {
+            // Given a manual expense whose date the user cleared
             const {result} = renderHook(() => useConfirmationValidation(createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, baseParams, {created: '', isAmountSet: true})));
-            expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+
+            // When the user confirms
+            // Then the date field blocks it as required, since an expense can't be created without a date
+            expect(result.current.validate()).toEqual({isFieldError: true});
+            expect(result.current.fieldErrors).toEqual({date: 'common.error.fieldRequired'});
         });
 
         it('returns fieldRequired for distance expense when the date is removed', () => {
+            // Given a distance expense whose date the user cleared
             const {result} = renderHook(() =>
                 useConfirmationValidation({
                     ...baseParams,
@@ -810,10 +950,15 @@ describe('useConfirmationValidation', () => {
                     selectedParticipants: [POLICY_EXPENSE_CHAT_PARTICIPANT],
                 }),
             );
-            expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+
+            // When the user confirms
+            // Then the date field blocks it, since the date also decides which distance rate applies
+            expect(result.current.validate()).toEqual({isFieldError: true});
+            expect(result.current.fieldErrors).toEqual({date: 'common.error.fieldRequired'});
         });
 
         it('returns fieldRequired for time expense when the date is removed', () => {
+            // Given a time expense whose date the user cleared
             const {result} = renderHook(() =>
                 useConfirmationValidation({
                     ...baseParams,
@@ -828,16 +973,25 @@ describe('useConfirmationValidation', () => {
                     selectedParticipants: [POLICY_EXPENSE_CHAT_PARTICIPANT],
                 }),
             );
-            expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+
+            // When the user confirms
+            // Then the date field blocks it, the same as for a manual expense
+            expect(result.current.validate()).toEqual({isFieldError: true});
+            expect(result.current.fieldErrors).toEqual({date: 'common.error.fieldRequired'});
         });
 
         it('returns fieldRequired for invoice when the date is removed', () => {
+            // Given an invoice whose date the user cleared
             const {result} = renderHook(() =>
                 useConfirmationValidation(
                     createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {...baseParams, iouType: CONST.IOU.TYPE.INVOICE}, {created: '', isAmountSet: true}),
                 ),
             );
-            expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+
+            // When the user confirms
+            // Then the date field blocks it, so the company info step that follows is never reached without a date
+            expect(result.current.validate()).toEqual({isFieldError: true});
+            expect(result.current.fieldErrors).toEqual({date: 'common.error.fieldRequired'});
         });
 
         it('does not return fieldRequired when the date is present', () => {
@@ -912,7 +1066,6 @@ describe('useConfirmationValidation', () => {
                 isPolicyExpenseChat: true,
                 iouAmount: 0,
                 iouMerchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-                isMerchantEmpty: true,
                 ...overrides,
                 transaction: createTransactionBase({
                     iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
@@ -930,21 +1083,31 @@ describe('useConfirmationValidation', () => {
         });
 
         it.each([
-            ['merchant', {isMerchantSet: true, merchant: 'Starbucks'}, {iouMerchant: 'Starbucks', isMerchantEmpty: false}],
-            ['amount', {isAmountSet: true, amount: 1000}, {iouAmount: 1000}],
-            ['date', {isCreatedSet: true, created: '2025-01-15'}, {}],
-        ])('requires the other two once the %s is entered, since the three are all-or-nothing', (_field, transactionOverrides, overrides) => {
+            ['merchant', {isMerchantSet: true, merchant: 'Starbucks'}, {iouMerchant: 'Starbucks'}, {amount: 'common.error.fieldRequired', date: 'common.error.fieldRequired'}],
+            ['amount', {isAmountSet: true, amount: 1000}, {iouAmount: 1000}, {date: 'common.error.fieldRequired', merchant: 'common.error.fieldRequired'}],
+            ['date', {isCreatedSet: true, created: '2025-01-15'}, {}, {amount: 'common.error.fieldRequired', merchant: 'common.error.fieldRequired'}],
+        ])('requires the other two once the %s is entered, since the three are all-or-nothing', (_field, transactionOverrides, overrides, expectedFieldErrors) => {
+            // Given a workspace scan where the user entered only this one of the amount, merchant and date
             const {result} = renderHook(() => useConfirmationValidation(createScanValidationParams(transactionOverrides, overrides)));
-            expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+
+            // When the user confirms
+            // Then the two blank fields are required, since entering any of them means SmartScan no longer fills them in
+            expect(result.current.validate()).toEqual({isFieldError: true});
+            expect(result.current.fieldErrors).toEqual(expectedFieldErrors);
         });
 
         it.each([
             ['merchant', {isAmountSet: true, amount: 1000, isCreatedSet: true, created: '2025-01-15'}, {iouAmount: 1000}],
-            ['amount', {isMerchantSet: true, merchant: 'Starbucks', isCreatedSet: true, created: '2025-01-15'}, {iouMerchant: 'Starbucks', isMerchantEmpty: false}],
-            ['date', {isAmountSet: true, amount: 1000, isMerchantSet: true, merchant: 'Starbucks'}, {iouAmount: 1000, iouMerchant: 'Starbucks', isMerchantEmpty: false}],
-        ])('still blocks confirmation while only the %s is left blank', (_field, transactionOverrides, overrides) => {
+            ['amount', {isMerchantSet: true, merchant: 'Starbucks', isCreatedSet: true, created: '2025-01-15'}, {iouMerchant: 'Starbucks'}],
+            ['date', {isAmountSet: true, amount: 1000, isMerchantSet: true, merchant: 'Starbucks'}, {iouAmount: 1000, iouMerchant: 'Starbucks'}],
+        ])('still blocks confirmation while only the %s is left blank', (blankField, transactionOverrides, overrides) => {
+            // Given a workspace scan where the user entered two of the three fields and left this one blank
             const {result} = renderHook(() => useConfirmationValidation(createScanValidationParams(transactionOverrides, overrides)));
-            expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+
+            // When the user confirms
+            // Then the last blank field is still required, so a half-entered scan can't be submitted
+            expect(result.current.validate()).toEqual({isFieldError: true});
+            expect(result.current.fieldErrors).toEqual({[blankField]: 'common.error.fieldRequired'});
         });
 
         it('does not require the merchant when the expense goes to a chat that does not require one', () => {
@@ -966,7 +1129,8 @@ describe('useConfirmationValidation', () => {
             const {result} = renderHook(() => useConfirmationValidation(params));
 
             // Then the blank date still blocks confirmation
-            expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+            expect(result.current.validate()).toEqual({isFieldError: true});
+            expect(result.current.fieldErrors).toEqual({date: 'common.error.fieldRequired'});
         });
 
         it('passes again once the user clears the fields back to an untouched scan', () => {
@@ -979,7 +1143,7 @@ describe('useConfirmationValidation', () => {
                 useConfirmationValidation(
                     createScanValidationParams(
                         {isAmountSet: true, amount: 1000, isMerchantSet: true, merchant: 'Starbucks', isCreatedSet: true, created: '2025-01-15'},
-                        {iouAmount: 1000, iouMerchant: 'Starbucks', isMerchantEmpty: false},
+                        {iouAmount: 1000, iouMerchant: 'Starbucks'},
                     ),
                 ),
             );
@@ -987,15 +1151,20 @@ describe('useConfirmationValidation', () => {
         });
 
         it('validates the entered amount the same way a manually entered one is validated', () => {
+            // Given a scan to a person where the user filled in all three fields with a $0 amount
             const {result} = renderHook(() =>
                 useConfirmationValidation(
                     createScanValidationParams(
                         {isAmountSet: true, amount: 0, isMerchantSet: true, merchant: 'Starbucks', isCreatedSet: true, created: '2025-01-15'},
-                        {iouAmount: 0, iouMerchant: 'Starbucks', isMerchantEmpty: false},
+                        {iouAmount: 0, iouMerchant: 'Starbucks'},
                     ),
                 ),
             );
-            expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+
+            // When the user confirms
+            // Then the typed amount is rejected like a manual one, since it replaces what SmartScan would have read
+            expect(result.current.validate()).toEqual({isFieldError: true});
+            expect(result.current.fieldErrors).toEqual({amount: 'common.error.invalidAmount'});
         });
 
         it('blocks a negative entered amount when the expense goes to a 1:1 user', () => {
@@ -1004,11 +1173,12 @@ describe('useConfirmationValidation', () => {
 
             // When the user fills in a negative amount and confirms
             const {result} = renderHook(() =>
-                useConfirmationValidation(createScanValidationParams(filledFields, {iouType: CONST.IOU.TYPE.CREATE, iouAmount: -1234, iouMerchant: 'Starbucks', isMerchantEmpty: false})),
+                useConfirmationValidation(createScanValidationParams(filledFields, {iouType: CONST.IOU.TYPE.CREATE, iouAmount: -1234, iouMerchant: 'Starbucks'})),
             );
 
             // Then it is rejected, since P2P chats don't support negative amounts
-            expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+            expect(result.current.validate()).toEqual({isFieldError: true});
+            expect(result.current.fieldErrors).toEqual({amount: 'common.error.invalidAmount'});
         });
 
         it.each([
@@ -1026,7 +1196,6 @@ describe('useConfirmationValidation', () => {
                         iouType: CONST.IOU.TYPE.CREATE,
                         iouAmount: -1234,
                         iouMerchant: 'Starbucks',
-                        isMerchantEmpty: false,
                         selectedParticipants: [participant],
                     }),
                 ),
@@ -1037,16 +1206,20 @@ describe('useConfirmationValidation', () => {
         });
 
         it('blocks confirmation when another receipt in a multi-scan is the partially filled one', () => {
-            // The transaction on screen is a complete manual scan, but a sibling receipt is not.
+            // Given a multi-scan whose receipt on screen is complete while a sibling receipt is partially filled
             const {result} = renderHook(() =>
                 useConfirmationValidation(
                     createScanValidationParams(
                         {isAmountSet: true, amount: 1000, isMerchantSet: true, merchant: 'Starbucks', isCreatedSet: true, created: '2025-01-15'},
-                        {iouAmount: 1000, iouMerchant: 'Starbucks', isMerchantEmpty: false, partiallyManuallyFilledScanID: 'other-txn'},
+                        {iouAmount: 1000, iouMerchant: 'Starbucks', partiallyManuallyFilledScanID: 'other-txn'},
                     ),
                 ),
             );
-            expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+
+            // When the user confirms
+            // Then it is blocked as a field error with nothing flagged on screen, since Create submits every receipt at once and the sibling has to be brought on screen
+            expect(result.current.validate()).toEqual({isFieldError: true});
+            expect(result.current.fieldErrors).toEqual({});
         });
 
         it('lets a multi-scan through once no receipt is left partially filled', () => {
@@ -1054,7 +1227,7 @@ describe('useConfirmationValidation', () => {
                 useConfirmationValidation(
                     createScanValidationParams(
                         {isAmountSet: true, amount: 1000, isMerchantSet: true, merchant: 'Starbucks', isCreatedSet: true, created: '2025-01-15'},
-                        {iouAmount: 1000, iouMerchant: 'Starbucks', isMerchantEmpty: false, partiallyManuallyFilledScanID: undefined},
+                        {iouAmount: 1000, iouMerchant: 'Starbucks', partiallyManuallyFilledScanID: undefined},
                     ),
                 ),
             );

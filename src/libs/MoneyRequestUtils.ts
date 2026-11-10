@@ -246,14 +246,29 @@ function shouldShowConfirmationDate(shouldShowSmartScanFields: boolean, isDistan
     return shouldShowSmartScanFields || isDistanceRequest;
 }
 
+type ConfirmationMerchantRequirementParams = {
+    isPolicyExpenseChat: boolean;
+    isScanRequest: boolean;
+    isEditingSplitBill: boolean | undefined;
+    shouldShowMerchant: boolean;
+};
+
+/**
+ * Whether the merchant is required on the money request confirmation surface. Only a workspace chat requires one, and
+ * a scan leaves it to SmartScan unless its split is being edited.
+ */
+function isConfirmationMerchantRequired(params: ConfirmationMerchantRequirementParams): boolean {
+    return params.isPolicyExpenseChat && (!params.isScanRequest || !!params.isEditingSplitBill) && params.shouldShowMerchant;
+}
+
 /**
  * Whether the required amount is still missing on the money request confirmation surface.
  * `isAmountSet` is only ever set by the manual flow (scan, per diem, distance and time populate the amount
  * programmatically and never set it), so the manual gate is part of the predicate rather than of each call site.
  * A Scan the user started filling in counts too: its three revealed fields are all-or-nothing, so once any of them
  * carries a value the blank ones are missing rather than SmartScan's to read.
- * This is the single source of truth shared by the validation that raises `common.error.fieldRequired`, the effect
- * that clears it once the field is filled, and the amount field that renders it inline, so the three never drift.
+ * `getConfirmationFieldErrors` reads it to build the amount error, and the field, the blocked confirm and the summary
+ * above the confirm button all read that one map, so an amount reported missing is always the one shown as missing.
  */
 function isConfirmationAmountMissing(transaction: OnyxEntry<ManuallyEnteredScanFields>, canEnterScanFieldsManually = false, shouldRequireMerchant = true): boolean {
     if (isPartiallyEnteredScanExpense(transaction, canEnterScanFieldsManually, shouldRequireMerchant)) {
@@ -272,9 +287,9 @@ function isConfirmationMerchantMissing(transaction: OnyxEntry<ManuallyEnteredSca
 
 /**
  * Whether the required date is still missing on the money request confirmation surface.
- * Gating on the same `shouldShowConfirmationDate && !isReadOnly` condition that renders the inline date picker keeps
- * validation, clearing and the UI in sync, and skips read-only/scan flows where the date is populated server-side.
- * Shares the same drift-proofing purpose as `isConfirmationAmountMissing`.
+ * It is gated on the same `shouldShowConfirmationDate && !isReadOnly` condition that renders the inline date picker,
+ * so a date the user can't enter is never reported missing, and read-only flows get their date server-side.
+ * Like `isConfirmationAmountMissing`, it feeds `getConfirmationFieldErrors`.
  */
 function isConfirmationDateMissing(
     transaction: OnyxEntry<Transaction>,
@@ -294,6 +309,7 @@ export {
     isConfirmationAmountMissing,
     isConfirmationDateMissing,
     isConfirmationMerchantMissing,
+    isConfirmationMerchantRequired,
     shouldShowConfirmationDate,
     replaceAllDigits,
     stripCommaFromAmount,

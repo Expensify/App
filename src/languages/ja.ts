@@ -237,6 +237,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phoneNumber: `完全な電話番号を入力してください
 （例：${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER}）`,
             fieldRequired: 'この項目は必須です',
+            fixErrorsBeforeContinuing: '続行する前にフォームのエラーを修正してください。',
             requestModified: 'このリクエストは別のメンバーによって編集されています',
             characterLimitExceedCounter: (length: number, limit: number) => `文字数制限を超えています（${length}/${limit}）`,
             dateInvalid: '有効な日付を選択してください',
@@ -1735,6 +1736,7 @@ const translations: TranslationDeepObject<typeof en> = {
             atLeastTwoDifferentWaypoints: '少なくとも2つの異なる住所を入力してください',
             splitExpenseMultipleParticipantsErrorMessage: '経費はワークスペースと他のメンバー間で分割できません。選択内容を更新してください。',
             invalidMerchant: '有効な加盟店名を入力してください',
+            enterRequiredFields: '必須項目を入力してください。',
             atLeastOneAttendee: '少なくとも 1 人の出席者を選択する必要があります',
             invalidQuantity: '有効な数量を入力してください',
             quantityGreaterThanZero: '数量は0より大きくなければなりません',

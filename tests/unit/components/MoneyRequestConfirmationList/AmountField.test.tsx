@@ -133,6 +133,7 @@ const amountFieldProps: React.ComponentProps<typeof AmountField> = {
     shouldShowTimeRequestFields: false,
     shouldDisplayFieldError: false,
     formError: 'iou.error.invalidAmount',
+    fieldError: undefined,
     policy: undefined,
     clearFormErrors: jest.fn(),
     setFormError: jest.fn(),

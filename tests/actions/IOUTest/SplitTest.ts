@@ -10701,6 +10701,27 @@ describe('setDraftSplitTransaction', () => {
         // Then the action no longer falls back by itself, so the null merge clears the draft
         expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`)).toBeFalsy();
     });
+
+    it('remembers whether the merchant was typed, which the expense edit itself does not carry', async () => {
+        // Given a split draft whose merchant the user never typed
+        const transactionID = 'typed-merchant';
+        const draftTransaction = createRandomTransaction(1);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, draftTransaction);
+        await waitForBatchedUpdates();
+
+        // When the user types a merchant, and later clears it again
+        setDraftSplitTransaction(transactionID, draftTransaction, {merchant: '(none)', isMerchantSet: true}, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
+        await waitForBatchedUpdates();
+        const typedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+        setDraftSplitTransaction(transactionID, typedDraft, {merchant: '', isMerchantSet: false}, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
+        await waitForBatchedUpdates();
+        const clearedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+
+        // Then the draft records each state, so a placeholder the user typed can be told apart from one the split was seeded with
+        expect(typedDraft?.modifiedMerchant).toBe('(none)');
+        expect(typedDraft?.isMerchantSet).toBe(true);
+        expect(clearedDraft?.isMerchantSet).toBe(false);
+    });
 });
 
 describe('initSplitExpenseItemData', () => {

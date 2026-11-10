@@ -6,6 +6,7 @@ import {
     handleNegativeAmountFlipping,
     isConfirmationAmountMissing,
     isConfirmationDateMissing,
+    isConfirmationMerchantRequired,
     isValidMerchant,
     isValidMoneyRequestAmount,
     validateAmount,
@@ -264,6 +265,35 @@ describe('ReportActionsUtils', () => {
                 expect(isValidMoneyRequestAmount(0, CONST.IOU.TYPE.REQUEST, allowNegative, isP2P)).toBe(true);
                 expect(isValidMoneyRequestAmount(100, CONST.IOU.TYPE.REQUEST, allowNegative, isP2P)).toBe(true);
             });
+        });
+    });
+
+    describe('isConfirmationMerchantRequired', () => {
+        const workspaceManualExpense = {isPolicyExpenseChat: true, isScanRequest: false, isEditingSplitBill: false, shouldShowMerchant: true};
+
+        it('requires the merchant of a manual expense to a workspace', () => {
+            // Given a manual expense to a workspace chat that shows the merchant field
+            // When its merchant requirement is checked
+            // Then the merchant is required
+            expect(isConfirmationMerchantRequired(workspaceManualExpense)).toBe(true);
+        });
+
+        it.each([
+            ['a scan, whose merchant SmartScan reads off the receipt', {isScanRequest: true}],
+            ['an expense to a person', {isPolicyExpenseChat: false}],
+            ['a confirmation that hides the merchant field', {shouldShowMerchant: false}],
+        ])('leaves the merchant optional on %s', (_case, overrides) => {
+            // Given a manual workspace expense that differs in this one way
+            // When its merchant requirement is checked
+            // Then the merchant is optional
+            expect(isConfirmationMerchantRequired({...workspaceManualExpense, ...overrides})).toBe(false);
+        });
+
+        it('requires the merchant while the split of a workspace scan is being edited', () => {
+            // Given a split of a scanned workspace expense that is being edited
+            // When its merchant requirement is checked
+            // Then the merchant is required, the same as on a manual workspace expense
+            expect(isConfirmationMerchantRequired({...workspaceManualExpense, isScanRequest: true, isEditingSplitBill: true})).toBe(true);
         });
     });
 

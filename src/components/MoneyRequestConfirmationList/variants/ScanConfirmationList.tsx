@@ -1,6 +1,6 @@
 import ConfirmationListLayout from '@components/MoneyRequestConfirmationList/ConfirmationListLayout';
 import FieldAutoSelector from '@components/MoneyRequestConfirmationList/FieldAutoSelector';
-import useConfirmationListData, {INLINE_FIELD_ERROR_KEYS} from '@components/MoneyRequestConfirmationList/hooks/useConfirmationListData';
+import useConfirmationListData from '@components/MoneyRequestConfirmationList/hooks/useConfirmationListData';
 import SplitBillController from '@components/MoneyRequestConfirmationList/SplitBillController';
 import TaxController from '@components/MoneyRequestConfirmationList/TaxController';
 import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
@@ -17,7 +17,7 @@ import React, {useState} from 'react';
  * screen and the optional fields collapse behind a show-more button, so it owns that state.
  */
 function ScanConfirmationList(props: MoneyRequestConfirmationListProps) {
-    const {transaction, canEnterScanFieldsManually = false, partiallyManuallyFilledScanID} = props;
+    const {transaction, canEnterScanFieldsManually = false} = props;
 
     const isInLandscapeMode = useIsInLandscapeMode();
 
@@ -40,13 +40,9 @@ function ScanConfirmationList(props: MoneyRequestConfirmationListProps) {
         });
     };
 
-    // Reveal the collapsed fields when the user already filled one of them in, so those values aren't hidden behind
-    // "Show more", or when one of them raises an inline error, or opening the section and pressing Create looks like
-    // it did nothing. Done during render so the expense never paints collapsed first and it survives a remount.
-    // In a multi-scan the error stays set while another receipt is partially filled, so only expand the receipt it belongs to.
+    // The fields expand during render when they hold a value or an error, so the expense never paints collapsed, even after a remount, and Create never looks like it did nothing.
     const hasManuallyEnteredFields = canEnterScanFieldsManually && hasAnyManuallyEnteredScanField(transaction);
-    const doesFormErrorBelongToThisReceipt = !partiallyManuallyFilledScanID || partiallyManuallyFilledScanID === transactionID;
-    const hasInlineFieldError = INLINE_FIELD_ERROR_KEYS.has(data.footerProps.errorState.formError) && doesFormErrorBelongToThisReceipt;
+    const hasInlineFieldError = Object.keys(data.footerProps.errorState.fieldErrors).length > 0;
     if (transactionID && !showMoreFields && (hasManuallyEnteredFields || hasInlineFieldError)) {
         setRevealedTransactionIDs([...revealedTransactionIDs, transactionID]);
     }

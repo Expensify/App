@@ -237,6 +237,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phoneNumber: `请输入完整的电话号码
 （例如：${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER}）`,
             fieldRequired: '此字段为必填项',
+            fixErrorsBeforeContinuing: '请先修复表单中的错误，然后再继续。',
             requestModified: '此请求正在被另一位成员修改',
             characterLimitExceedCounter: (length: number, limit: number) => `超出字符限制（${length}/${limit}）`,
             dateInvalid: '请选择一个有效日期',
@@ -1686,6 +1687,7 @@ const translations: TranslationDeepObject<typeof en> = {
             atLeastTwoDifferentWaypoints: '请输入至少两个不同的地址',
             splitExpenseMultipleParticipantsErrorMessage: '无法将一笔报销同时分摊到一个工作区和其他成员。请更新你的选择。',
             invalidMerchant: '请输入有效的商家',
+            enterRequiredFields: '请填写必填字段。',
             atLeastOneAttendee: '必须选择至少一位参加者',
             invalidQuantity: '请输入有效的数量',
             quantityGreaterThanZero: '数量必须大于零',
