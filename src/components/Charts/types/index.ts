@@ -1,6 +1,7 @@
 import type {LABEL_ROTATIONS} from '@components/Charts/VictoryTheme';
 
 import type {SkParagraph} from '@shopify/react-native-skia';
+import type {ReactNode} from 'react';
 import type {NonEmptyTuple, ValueOf} from 'type-fest';
 
 /** One plotted dataset: a line, or one bar of every group. */
@@ -75,6 +76,12 @@ type ChartProps = {
     formatValue?: ChartValueFormatter;
 
     isLoading?: boolean;
+
+    /** Called with the data point of a tooltip opened by a touch tap when that tooltip is pressed */
+    onTooltipPress?: (dataPoint: ChartDataPoint, index: number) => void;
+
+    /** Shown at the end of a tooltip opened by a touch tap */
+    tooltipFooter?: ReactNode;
 };
 
 type CartesianChartProps = ChartProps & {

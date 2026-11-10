@@ -31,6 +31,7 @@ function ConciergeChatHistoryToggle({isHistoryShown, onPress, containerStyles}: 
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.pv3, styles.mh5, containerStyles]}>
             <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.flexGrow1]} />
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.REPORT.CONCIERGE_CHAT_HISTORY_TOGGLE}
                 size={CONST.BUTTON_SIZE.SMALL}
                 onPress={onPress}
             >
