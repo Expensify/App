@@ -5,7 +5,7 @@ import {search} from '@libs/actions/Search';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {SearchKey} from '@libs/SearchKeyUtils';
-import {isReportActionEntry} from '@libs/SearchUIUtils';
+import {getValidGroupBy, isReportActionEntry} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -79,6 +79,7 @@ function useSearchAutoRefetch({
     const searchTriggeredRef = useRef(false);
     const hasPendingSearchRef = useRef(false);
     const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
+    const isGroupedSearch = !!getValidGroupBy(queryJSON.groupBy);
     const shouldReturnTripRooms = useShouldReturnTripRooms(queryJSON.type);
 
     const searchResultsData = searchResults?.data;
@@ -134,7 +135,9 @@ function useSearchAutoRefetch({
         // The rows and the footer total are served from the Search snapshot, and the footer total is computed by the
         // server, so those edits only become visible after a refetch.
         const hasChangedResultTransaction =
-            !isChat && !hasTransactionsIDsChange && hasChangedTransactionInSearchResults(transactions, transactionsIDs, previousTransactions, previousTransactionsIDsSet, searchResultsData);
+            !isChat &&
+            !hasTransactionsIDsChange &&
+            hasChangedTransactionInSearchResults(transactions, transactionsIDs, previousTransactions, previousTransactionsIDsSet, searchResultsData, isGroupedSearch);
         const hasChangedResultMemberCustomField = !isChat && hasChangedMemberCustomField(memberCustomFields, previousMemberCustomFields);
 
         // Check if there is a change in the transactions or report actions list
@@ -207,6 +210,7 @@ function useSearchAutoRefetch({
         memberCustomFields,
         previousMemberCustomFields,
         isChat,
+        isGroupedSearch,
         searchResultsData,
         isOffline,
         searchResults?.search?.isLoading,
@@ -294,6 +298,9 @@ function extractReportActionIDsFromSearchResults(searchResultsData: Partial<Sear
  * snapshot keys and never touches the transaction collection.
  *
  * A move counts too: the report row owes its count and total to the snapshot, so a transaction never on screen still invalidates it.
+ *
+ * Grouped results only hold the groups. Their transactions and reports live in each group's child snapshot, so neither
+ * check can tell whether a change touches a group, and any changed transaction counts.
  */
 function hasChangedTransactionInSearchResults(
     transactions: OnyxCollection<Transaction>,
@@ -301,6 +308,7 @@ function hasChangedTransactionInSearchResults(
     previousTransactions: OnyxCollection<Transaction>,
     previousTransactionKeys: Set<string>,
     searchResultsData: Partial<SearchResults['data']> | undefined,
+    isGroupedSearch: boolean,
 ): boolean {
     if (!searchResultsData) {
         return false;
@@ -314,6 +322,9 @@ function hasChangedTransactionInSearchResults(
         const previousTransaction = previousTransactions?.[key];
         if (!transaction?.transactionID || !previousTransactionKeys.has(key) || previousTransaction === transaction) {
             continue;
+        }
+        if (isGroupedSearch) {
+            return true;
         }
         if (transaction.reportID !== previousTransaction?.reportID && (isReportInSearchResults(transaction.reportID) || isReportInSearchResults(previousTransaction?.reportID))) {
             return true;
