@@ -27,7 +27,7 @@ const CONTENT_HEIGHT = SUMMARY_Y + SUMMARY_LINE_HEIGHT;
 const BUTTON_HEIGHT = variables.componentSizeSmall;
 const BUTTON_BAR_WIDTH = 48;
 
-/** Stands in for an AI card's chip, title, and summary while the dashboard loads. */
+/** Stands in for an AI card while the insights load. */
 function InsightsAICardSkeleton() {
     const styles = useThemeStyles();
     const theme = useTheme();
