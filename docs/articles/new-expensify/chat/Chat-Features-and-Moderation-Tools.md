@@ -14,7 +14,7 @@ New Expensify Chat makes it easy to collaborate with teammates through messaging
 
 ## How to Send a Message
 
-You can send messages, attach files, and add emojis from the message bar at the bottom of any chat.
+You can send messages, attach files, and add emojis from the message bar at the bottom of any chat. Admins can also restrict who posts in a policy room from the policy settings.
 
 **Web:**
 1. Open any chat from your inbox.
