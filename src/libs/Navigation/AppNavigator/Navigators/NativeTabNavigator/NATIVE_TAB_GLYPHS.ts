@@ -1,3 +1,6 @@
+import type {FlatNavTabBarSlot} from '@libs/Navigation/FlatNavTabBar/FLAT_NAV_TAB_BAR_SLOT';
+import FLAT_NAV_TAB_BAR_SLOT from '@libs/Navigation/FlatNavTabBar/FLAT_NAV_TAB_BAR_SLOT';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
@@ -15,6 +18,8 @@ type NativeTabGlyph = {
 /**
  * Vector copies of the tab bar SVGs in `assets/images`, so Skia draws each glyph at the bar's size and the device's
  * density on both platforms. They have to be kept in sync with those files.
+ *
+ * Tabs are keyed by their route name. The flat nav slots that are not a route of their own are keyed by their slot.
  */
 const NATIVE_TAB_GLYPHS = {
     // home.svg
@@ -75,10 +80,37 @@ const NATIVE_TAB_GLYPHS = {
             {d: 'M10 1c-5 0-9 4-9 9s4 9 9 9 9-4 9-9-4-9-9-9m5.9 12.7C14.6 12.1 12.4 11 10 11s-4.6 1.1-5.9 2.7C3.4 12.6 3 11.4 3 10c0-3.9 3.1-7 7-7s7 3.1 7 7c0 1.4-.4 2.6-1.1 3.7'},
         ],
     },
+    // receipt.svg
+    [FLAT_NAV_TAB_BAR_SLOT.EXPENSES]: {
+        viewBoxSize: 20,
+        paths: [
+            {
+                d: 'M3 1.1V19c0 .4.5.5.7.3l.7-.9q.3-.3.6 0l1.1 1.3q.3.3.6 0l1.1-1.3q.3-.3.6 0l1.1 1.3q.3.3.6 0l1.1-1.3q.3-.3.6 0l1.1 1.3q.3.3.6 0l1.1-1.3q.3-.3.6 0l.7.9c.2.3.7.1.7-.3V1.1c0-.4-.5-.5-.7-.3l-.7.9q-.3.3-.6 0L13.5.4q-.3-.3-.6 0L12 1.7q-.3.3-.6 0L10.3.4q-.3-.3-.6 0L8.5 1.7q-.3.3-.6 0L6.8.3q-.3-.3-.6 0L5 1.7q-.3.3-.6 0L3.7.8C3.5.5 3 .7 3 1.1M7 5c-.6 0-1 .4-1 1s.4 1 1 1h6c.6 0 1-.4 1-1s-.4-1-1-1zm0 4c-.6 0-1 .4-1 1s.4 1 1 1h4c.6 0 1-.4 1-1s-.4-1-1-1zm-1 5c0-.6.4-1 1-1h6c.6 0 1 .4 1 1s-.4 1-1 1H7c-.6 0-1-.4-1-1',
+                isEvenOdd: true,
+            },
+        ],
+    },
+    // document.svg
+    [FLAT_NAV_TAB_BAR_SLOT.REPORTS]: {
+        viewBoxSize: 20,
+        paths: [{d: 'M17.5 7h-6a.5.5 0 0 1-.5-.5v-6a.5.5 0 0 0-.5-.5H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5a.5.5 0 0 0-.5-.5'}, {d: 'M13.5 5H18l-5-5v4.5a.5.5 0 0 0 .5.5'}],
+    },
+    // caret-up-down.svg
+    [FLAT_NAV_TAB_BAR_SLOT.MORE]: {
+        viewBoxSize: 20,
+        paths: [
+            {
+                d: 'm10 .879 5.061 5.061a1.5 1.5 0 1 1-2.121 2.121l-2.939-2.939-2.939 2.939A1.5 1.5 0 1 1 4.941 5.94zm-5.061 11.06a1.5 1.5 0 0 1 2.121 0l2.939 2.939 2.939-2.939a1.5 1.5 0 1 1 2.121 2.121l-5.061 5.061-5.061-5.061a1.5 1.5 0 0 1 0-2.121Z',
+                isEvenOdd: true,
+            },
+        ],
+    },
 } as const satisfies Record<string, NativeTabGlyph>;
 
+type NativeTabGlyphName = keyof typeof NATIVE_TAB_GLYPHS;
+
 /** A tab of the native tab bar, by its route name. */
-type NativeTabName = keyof typeof NATIVE_TAB_GLYPHS;
+type NativeTabName = Exclude<NativeTabGlyphName, FlatNavTabBarSlot>;
 
 export default NATIVE_TAB_GLYPHS;
-export type {NativeTabGlyph, NativeTabName};
+export type {NativeTabGlyph, NativeTabGlyphName, NativeTabName};

@@ -31,6 +31,9 @@ import useIsWorkspacesTabRestored from './useIsWorkspacesTabRestored';
  */
 const TAB_ROOT_SCREENS_WITHOUT_GESTURE = new Set<string>([SCREENS.HOME, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.INSIGHTS, SCREENS.SETTINGS.ROOT]);
 
+/** Tabs that stay reachable by navigation but have no item in the native bar. */
+const TABS_WITHOUT_BAR_ITEM: ReadonlySet<string> = new Set([NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]);
+
 /** stale === false distinguishes a fully realized NavigationState from a PartialState. */
 function isRealizedNavigationState(state: NavigationState | PartialState<NavigationState> | undefined): state is NavigationState {
     return state?.stale === false;
@@ -41,7 +44,6 @@ function useNativeTabNavigator() {
     const {isBlockingViewVisible} = useFullScreenBlockingViewState();
     const {translate} = useLocalize();
     const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {selector: isAnonymousSessionSelector});
-    const tabWithoutBarItem = NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR;
     const {indicatorColor: inboxDotColor} = useInboxTabIndicatorStatus();
     const {indicatorColor: workspacesIndicatorColor, status: workspacesIndicatorStatus} = useWorkspacesTabIndicatorStatus();
     const navigation = useNavigation();
@@ -99,7 +101,7 @@ function useNativeTabNavigator() {
 
     const isTabSelectionEnabled = (routeName: string) => isNativeTabSelectionEnabled(routeName, {isAnonymousUser, isInboxAtChatList, isWorkspacesTabRestored});
 
-    return {shouldShowNativeTabBar, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled};
+    return {shouldShowNativeTabBar, dotColors, tabLabels, tabsWithoutBarItem: TABS_WITHOUT_BAR_ITEM, tabRouterOverride, isTabSelectionEnabled};
 }
 
 export default useNativeTabNavigator;
