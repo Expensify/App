@@ -19,11 +19,11 @@ import type Session from '@src/types/onyx/Session';
 import type {NavigationState} from '@react-navigation/native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-const TEST_SESSION: OnyxEntry<Session> = {accountID: 1, email: 'test@test.com'};
-
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+const TEST_SESSION: OnyxEntry<Session> = {accountID: 1, email: 'test@test.com'};
 
 const mockReports: Record<string, {isMoneyRequest?: boolean}> = {};
 type ReportUtilsMock = Record<string, unknown> & {
