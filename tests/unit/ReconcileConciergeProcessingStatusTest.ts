@@ -73,6 +73,18 @@ describe('ReconcileConciergeProcessingStatus', () => {
         expect(AgentZeroOptimisticStore.getEntry(REPORT_ID, AGENT_ID)?.triggeringReportActionID).toBe(ACTION_ID);
     });
 
+    it('keeps the turn pending when the attachment fails but Concierge is processing the text', async () => {
+        // Given a pending send with text and an attachment.
+        AgentZeroOptimisticStore.increment(REPORT_ID, AGENT_ID, null, ACTION_ID);
+
+        // When the upload error also confirms Concierge is processing the saved text.
+        const response = {jsonCode: 400, conciergeProcessingStatus: {reportID: REPORT_ID, reportActionID: ACTION_ID, isProcessing: true}};
+        await reconcileConciergeProcessingStatus(Promise.resolve(response), {...request, command: WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT}, false);
+
+        // Then the indicator still waits for the worker's completion.
+        expect(AgentZeroOptimisticStore.getEntry(REPORT_ID, AGENT_ID)?.triggeringReportActionID).toBe(ACTION_ID);
+    });
+
     it('moves pending state to the actual reply destination without extending its timeout', async () => {
         // Given the client predicted a new thread before the server chose an existing destination.
         AgentZeroOptimisticStore.increment(REPORT_ID, AGENT_ID, null, ACTION_ID);

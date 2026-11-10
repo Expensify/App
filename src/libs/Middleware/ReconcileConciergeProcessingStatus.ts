@@ -12,6 +12,8 @@ const reconcileConciergeProcessingStatus: Middleware = (requestResponse, request
         const status = response?.conciergeProcessingStatus;
         if (status) {
             AgentZeroOptimisticStore.reconcile(status.reportID, CONST.ACCOUNT_ID.CONCIERGE, status.reportActionID, status.isProcessing);
+            // An upload can fail after the server has accepted the text.
+            return response;
         }
 
         const reportID = request.conciergeProcessingReportID;
