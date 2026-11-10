@@ -8,11 +8,21 @@ import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 
+import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getReportName} from '@libs/ReportNameUtils';
-import {generateReportID, getOutstandingReportsForUser, isMoneyRequestReport, isReportOutstanding, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
+import {
+    generateReportID,
+    getNewestOutstandingReportForUser,
+    getOutstandingReportsForUser,
+    isMoneyRequestReport,
+    isOpenExpenseReport,
+    isReportOutstanding,
+    shouldCreateNewMoneyRequestReport,
+    sortOutstandingReportsBySelected,
+} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -63,6 +73,7 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     const transactionReportID = transactionState?.reportID;
     const participantReportID = transactionState?.participantReportID;
     const isFromGlobalCreate = transactionState?.isFromGlobalCreate ?? false;
+    const isScanRequest = transactionState?.isScanRequest ?? false;
 
     // Per-key report subscriptions instead of full COLLECTION.REPORT
     const [transactionReportEntry] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionReportID}`);
@@ -83,10 +94,22 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
         (report1, report2) => sortOutstandingReportsBySelected(report1, report2, undefined, localeCompare),
     );
 
-    const outstandingReportID = isPolicyExpenseChat ? (iouReportIDFromMain ?? availableOutstandingReports.at(0)?.reportID) : reportID;
+    // Resolve the default report the same way the save path (MoneyRequestBuilder) does, so the field never shows a report
+    // the expense won't be added to. For example, a submitted report awaiting approval can still accept expenses when picked,
+    // but it is never used as the default, so the field shows "New report" instead.
+    const newestOutstandingReport = iouReport ? undefined : getNewestOutstandingReportForUser(policyID, ownerAccountID, rules, reportNameValuePairs, outstandingReportsForPolicy ?? {});
+    const defaultReport = iouReport ?? newestOutstandingReport;
+    const shouldCreateNewReport = shouldCreateNewMoneyRequestReport(defaultReport, mainReport, isScanRequest, isBetaEnabled(CONST.BETAS.ASAP_SUBMIT), rules, action);
+    const defaultReportID = shouldCreateNewReport ? undefined : defaultReport?.reportID;
+
+    const outstandingReportID = isPolicyExpenseChat ? defaultReportID : reportID;
+    const reportIDToUse = shouldUseTransactionReport ? transactionReportID : outstandingReportID;
+
+    // When saving would create a report by default, any outstanding report is an alternative the user can pick. This is based on
+    // the default rather than the picked report, so picking the only outstanding report keeps the field editable to switch back.
+    const isNewReport = !outstandingReportID;
 
     const [selectedReportID, selectedReport] = (() => {
-        const reportIDToUse = shouldUseTransactionReport ? transactionReportID : outstandingReportID;
         if (!reportIDToUse) {
             // Even if we have no report to use we still need a report id for proper navigation
             return [generateReportID(), undefined] as const;
@@ -99,6 +122,8 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
             reportToUse = mainReport;
         } else if (reportIDToUse === iouReportIDFromMain) {
             reportToUse = iouReport;
+        } else if (reportIDToUse === newestOutstandingReport?.reportID) {
+            reportToUse = newestOutstandingReport;
         } else {
             reportToUse = availableOutstandingReports.find((r) => r?.reportID === reportIDToUse);
         }
@@ -115,10 +140,12 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
         return name;
     })();
 
-    const outstandingReports = useOutstandingReports(undefined, isFromGlobalCreate && !isPerDiemRequest ? undefined : policyID, ownerAccountID, false, ownerPersonalDetail?.login);
+    const allOutstandingReports = useOutstandingReports(undefined, isFromGlobalCreate && !isPerDiemRequest ? undefined : policyID, ownerAccountID, false, ownerPersonalDetail?.login);
+    // A tracked expense moved to a workspace can only join an open report, so the picker lists only those. Count the same reports here.
+    const outstandingReports = isMovingTransactionFromTrackExpense(action) ? allOutstandingReports.filter(isOpenExpenseReport) : allOutstandingReports;
     // When creating an expense in an individual report, the report field becomes read-only
     // since the destination is already determined and there's no need to show a selectable list.
-    const shouldReportBeEditable = shouldReportFieldBeEditable(outstandingReports, selectedReportID, isUnreported) && !isMoneyRequestReport(reportID);
+    const shouldReportBeEditable = shouldReportFieldBeEditable(outstandingReports, selectedReportID, isUnreported || isNewReport) && !isMoneyRequestReport(reportID);
     // Editing a saved expense's report and moving a per diem expense both navigate on from the list (to the report, or to
     // the destination step when the workspace changes), so those keep the full page.
     const shouldOpenInDropdown = isBetaEnabled(CONST.BETAS.ANCHORED_FIELD_DROPDOWNS) && !!transactionID && shouldReportBeEditable && action !== CONST.IOU.ACTION.EDIT && !isPerDiemRequest;

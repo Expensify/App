@@ -13,6 +13,7 @@ import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 
 import {createNewReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getPersonalDetailsForAccountID, getReportOrDraftReport, isPolicyExpenseChat, isReportOutstanding} from '@libs/ReportUtils';
@@ -89,6 +90,7 @@ type ReportPickerListProps = Pick<
     | 'isPerDiemRequest'
     | 'isTimeRequest'
     | 'isUnreportedManagedCardTransaction'
+    | 'shouldOnlyListOpenReports'
     | 'createReport'
     | 'targetOwnerAccountID'
 >;
@@ -148,7 +150,14 @@ function useReportPickerActions({
     const ownerAccountID = isUnreported
         ? iouActions?.find((iouAction) => getOriginalMessage(iouAction)?.IOUTransactionID === transaction.transactionID)?.actorAccountID
         : selectedReport?.ownerAccountID;
-    const ownerPersonalDetails: CurrentUserPersonalDetails = {...getPersonalDetailsForAccountID(ownerAccountID, personalDetails), accountID: ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
+    // A new report needs an owner even when the expense has no report to read one from yet, e.g. after the chat's report was submitted
+    // and its iouReportID cleared. Fall back to the workspace chat's owner, then the current user, so the report is linked to the chat.
+    // ownerAccountID itself stays unchanged, because targetExpensePolicyID relies on it.
+    const newReportOwnerAccountID = ownerAccountID ?? (isPolicyExpenseChat(participantReport) ? participantReport?.ownerAccountID : undefined) ?? session?.accountID;
+    const ownerPersonalDetails: CurrentUserPersonalDetails = {
+        ...getPersonalDetailsForAccountID(newReportOwnerAccountID, personalDetails),
+        accountID: newReportOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID,
+    };
     const isPerDiemTransaction = isPerDiemRequest(transaction);
     const isUnreportedManagedCardTransaction = isUnreportedManagedCardTransactionUtil(transaction);
 
@@ -270,7 +279,9 @@ function useReportPickerActions({
     if (isPerDiemTransaction) {
         selectedPolicyID = isFromGlobalCreate ? undefined : perDiemOriginalPolicy?.id;
     } else {
-        selectedPolicyID = !isEditing && !isFromGlobalCreate ? reportOrDraftReport?.policyID : undefined;
+        // The route can hold a generated ID for a report that doesn't exist yet (the field shows "New report"), so fall back to the
+        // workspace chat the expense is created in. Otherwise the list would offer reports from every workspace.
+        selectedPolicyID = !isEditing && !isFromGlobalCreate ? (reportOrDraftReport?.policyID ?? transactionPolicyID) : undefined;
     }
 
     return {
@@ -290,6 +301,7 @@ function useReportPickerActions({
             isPerDiemRequest: transaction ? isPerDiemTransaction : false,
             isTimeRequest: transaction ? isTimeRequestUtil(transaction) : false,
             isUnreportedManagedCardTransaction: transaction ? isUnreportedManagedCardTransaction : false,
+            shouldOnlyListOpenReports: isMovingTransactionFromTrackExpense(action),
             createReport: policyForMovingExpensesID || shouldSelectPolicy || isPerDiemTransaction || isUnreportedManagedCardTransaction ? createReport : undefined,
             targetOwnerAccountID: ownerAccountID,
         },
