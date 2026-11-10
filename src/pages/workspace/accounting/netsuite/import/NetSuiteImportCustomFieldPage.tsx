@@ -154,7 +154,11 @@ function NetSuiteImportCustomFieldPage({
                 addBottomSafeAreaPadding
             >
                 <Button
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.ADD_CUSTOM_FIELD}
+                    sentryLabel={
+                        importCustomField === CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS
+                            ? CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.ADD_CUSTOM_FIELD.CUSTOM_SEGMENTS
+                            : CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.ADD_CUSTOM_FIELD.CUSTOM_LISTS
+                    }
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     isDisabled={!!config?.pendingFields?.[importCustomField]}

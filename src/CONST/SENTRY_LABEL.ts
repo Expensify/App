@@ -1789,7 +1789,10 @@ const SENTRY_LABEL = {
             NETSUITE: {
                 AUTO_SYNC_SWITCH: 'WorkspaceAccountingNetSuite-AutoSyncSwitch',
                 ACCOUNTING_METHOD: 'WorkspaceAccountingNetSuite-AccountingMethod',
-                ADD_CUSTOM_FIELD: 'WorkspaceAccountingNetSuite-AddCustomField',
+                ADD_CUSTOM_FIELD: {
+                    CUSTOM_SEGMENTS: 'WorkspaceAccountingNetSuite-AddCustomField-CustomSegments',
+                    CUSTOM_LISTS: 'WorkspaceAccountingNetSuite-AddCustomField-CustomLists',
+                },
                 CONFIRM_CUSTOM_LIST_SUBMIT: 'WorkspaceAccountingNetSuite-ConfirmCustomListSubmit',
                 CONFIRM_CUSTOM_SEGMENT_SUBMIT: 'WorkspaceAccountingNetSuite-ConfirmCustomSegmentSubmit',
                 CUSTOMERS_OR_PROJECTS: 'WorkspaceAccountingNetSuite-CustomersOrProjects',
