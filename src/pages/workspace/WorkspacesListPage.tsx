@@ -1,7 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import type {DropdownOption, WorkspacesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
+import type {ButtonWithDropdownMenuRef, DropdownOption, WorkspacesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {TableHandle} from '@components/Table';
 import type {WorkspaceRowData, WorkspaceTableColumnKey} from '@components/Tables/WorkspaceListTable';
@@ -52,8 +52,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {canDowngradeSelector} from '@src/selectors/Account';
 import {createDisplayDetailsByAccountIDsSelector} from '@src/selectors/PersonalDetails';
-import {createCopySettingsEligibleTargetsSelector, createReimburserPolicyIDsSelector, createWorkspaceListPoliciesSelector} from '@src/selectors/Policy';
+import {
+    createCopySettingsEligibleTargetsSelector,
+    createOwnedPaidPoliciesCountsSelector,
+    createReimburserPolicyIDsSelector,
+    createWorkspaceListPoliciesSelector,
+} from '@src/selectors/Policy';
 
 import type {ValueOf} from 'type-fest';
 
@@ -90,6 +96,12 @@ function WorkspacesListPage() {
     const {showConfirmModal} = useConfirmModal();
     const [canRenderTransferOwnerButton] = useOnyx(ONYXKEYS.FUND_LIST, {selector: shouldRenderTransferOwnerButton});
     const [isLoadingBill] = useOnyx(ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE);
+    const [canDowngrade] = useOnyx(ONYXKEYS.ACCOUNT, {selector: canDowngradeSelector});
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownedPaidPoliciesCounts] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createOwnedPaidPoliciesCountsSelector(currentUserPersonalDetails.accountID)});
+    const shouldCalculateBillNewDot = !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
+    const wouldBlockDeletion = (amountOwed ?? 0) > 0 && ownedPaidPoliciesCounts?.active === 1;
+    const bulkActionsDropdownRef = useRef<ButtonWithDropdownMenuRef>(null);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {isBetaEnabled} = usePermissions();
     const canUseArchivePolicies = isBetaEnabled(CONST.BETAS.ARCHIVE_POLICIES);
@@ -259,6 +271,13 @@ function WorkspacesListPage() {
         return () => handle.cancel();
     }, [workspaceRows.length, isFocused]);
 
+    useEffect(() => {
+        if (isLoadingBill) {
+            return;
+        }
+        bulkActionsDropdownRef.current?.setIsMenuVisible(false);
+    }, [isLoadingBill]);
+
     const selectedRows = workspaceRows.filter((row) => selectedPolicyIDs.includes(row.policyID));
 
     const confirmBulkAction = (
@@ -385,6 +404,9 @@ function WorkspacesListPage() {
                         // All the pre-deletion checks and the confirmation modal are handled by DeleteWorkspaceFlow, mounted below.
                         setPolicyIDToDelete(firstPolicyID);
                     },
+                    disabled: !!isLoadingBill,
+                    shouldShowLoadingSpinnerIcon: !!isLoadingBill,
+                    shouldCloseModalOnSelect: !shouldCalculateBillNewDot || wouldBlockDeletion,
                 };
             case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.UNARCHIVE:
                 return {
@@ -450,6 +472,7 @@ function WorkspacesListPage() {
     const headerButton =
         shouldUseNarrowLayout && isMobileSelectionModeEnabled ? (
             <ButtonWithDropdownMenu<WorkspacesBulkActionType>
+                ref={bulkActionsDropdownRef}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 shouldAlwaysShowDropdownMenu
                 customText={translate('workspace.common.selected', {count: selectedPolicyIDs.length})}

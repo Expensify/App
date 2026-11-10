@@ -104,6 +104,17 @@ function BulkActionBarContent<TValueType>({
     const inlineOptions = hasMoreMenu ? options.slice(0, inlineActionCount) : options;
     const moreOptions = hasMoreMenu ? options.slice(inlineActionCount) : [];
 
+    // An action that keeps the menu open to show its spinner, such as a delete that first loads the final bill, hands
+    // over to the flow it started once loading ends, so the menu closes then.
+    const isMoreOptionLoading = moreOptions.some((option) => option.shouldShowLoadingSpinnerIcon);
+    const [wasMoreOptionLoading, setWasMoreOptionLoading] = useState(isMoreOptionLoading);
+    if (wasMoreOptionLoading !== isMoreOptionLoading) {
+        setWasMoreOptionLoading(isMoreOptionLoading);
+        if (!isMoreOptionLoading) {
+            setIsMoreMenuVisible(false);
+        }
+    }
+
     const canOwnEscape = !modal?.willAlertModalBecomeVisible && !isCoveredByModal;
 
     // The Side Panel is not a `BaseModal`, so it is absent from both the modal state and the registry of open modals.
