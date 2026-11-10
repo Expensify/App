@@ -606,6 +606,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const headerDateContent = (
         <View style={styles.pb3}>
             <MenuItemField
+                sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.SPLIT_DATES_FIELD}
                 name={translate('iou.splitDates')}
                 value={splitDatesTitle}
                 numberOfLinesValue={2}

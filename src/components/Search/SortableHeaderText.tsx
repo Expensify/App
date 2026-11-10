@@ -10,7 +10,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
@@ -19,7 +19,7 @@ import {View} from 'react-native';
 
 import type {SortOrder} from './types';
 
-type SearchTableHeaderColumnProps = WithSentryLabel & {
+type SearchTableHeaderColumnProps = WithRequiredSentryLabel & {
     text: string;
     icon?: IconAsset;
     isActive: boolean;
