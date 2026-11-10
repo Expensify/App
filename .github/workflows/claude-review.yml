@@ -6,15 +6,15 @@ permissions:
   statuses: write
 
 on:
-  pull_request_target:
-    types: [opened, ready_for_review]
+  pull_request:
+    types: [opened, ready_for_review, synchronize]
   issue_comment:
     types: [created]
 
 jobs:
   authorize:
     if: >-
-      (github.event_name == 'pull_request_target' && github.event.pull_request.draft != true && !contains(github.event.pull_request.title, 'Revert')) ||
+      (github.event_name == 'pull_request' && github.event.pull_request.draft != true && !contains(github.event.pull_request.title, 'Revert')) ||
       (github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(github.event.comment.body, '@claude review'))
     runs-on: blacksmith-2vcpu-ubuntu-2404
     outputs:
@@ -28,8 +28,8 @@ jobs:
         uses: ./.github/actions/javascript/isAuthorizedContributor
         with:
           PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
-          ACTOR: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.user.login || github.event.comment.user.login }}
-          ACTOR_ASSOCIATION: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.author_association || github.event.comment.author_association }}
+          ACTOR: ${{ github.event_name == 'pull_request' && github.event.pull_request.user.login || github.event.comment.user.login }}
+          ACTOR_ASSOCIATION: ${{ github.event_name == 'pull_request' && github.event.pull_request.author_association || github.event.comment.author_association }}
           GITHUB_TOKEN: ${{ github.token }}
           OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
