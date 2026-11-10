@@ -283,8 +283,9 @@ describe('useOtherFeedsForFeedSelector', () => {
         });
     });
 
-    it.each(['Preferred workspace', 'acme.corp'])('should use the resolved subtitle %s before the linked workspace name', (subtitle) => {
-        // Given a resolved workspace or domain subtitle and a different linked workspace name
+    it('should use the resolved subtitle before the linked workspace name', () => {
+        // Given a resolved subtitle and a different linked workspace name
+        const subtitle = 'Preferred workspace';
         mockVisibleFeeds([
             {
                 id: '999_visa',

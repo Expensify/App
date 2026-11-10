@@ -533,7 +533,10 @@ describe('getVisibleCompanyCardFeedsForSelector', () => {
     ])('resolves the subtitle for preferredPolicy=$preferredPolicy before falling back to the domain', ({preferredPolicy, expectedSubtitle}) => {
         // Given a domain feed whose preferred workspace may or may not be loaded
         const cardFeeds = createCompanyCardFeeds({[CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: {preferredPolicy}});
-        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS', name: 'Woo'})};
+        const policies: OnyxCollection<Policy> = {
+            policy_WS: createTestPolicy({id: 'WS', name: 'Woo'}),
+            policy_BACKING: createTestPolicy({id: 'BACKING', name: 'Backing workspace', policyAccountID: fundID}),
+        };
         const domains: OnyxCollection<Domain> = {domain_company: createAdminDomain(fundID, currentUserAccountID)};
 
         // When the selector resolves supporting text using the fund's domain rather than its collection key
@@ -544,15 +547,41 @@ describe('getVisibleCompanyCardFeedsForSelector', () => {
         expect(result.at(0)?.subtitle).toBe(expectedSubtitle);
     });
 
-    it('leaves the subtitle unresolved when the preferred workspace and domain email are unavailable', () => {
-        // Given a visible feed whose preferred workspace record is missing and whose fund has no domain email
-        const cardFeeds = createCompanyCardFeeds({[CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: {preferredPolicy: 'MISSING'}});
-        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS', policyAccountID: fundID})};
+    it.each([
+        {preferredPolicy: 'MISSING', expectedSubtitle: 'Test Workspace'},
+        {preferredPolicy: undefined, expectedSubtitle: 'Test Workspace'},
+        {preferredPolicy: 'PREFERRED', expectedSubtitle: 'Preferred workspace'},
+    ])('uses the backing workspace only when preferredPolicy=$preferredPolicy cannot supply a name', ({preferredPolicy, expectedSubtitle}) => {
+        // Given a visible feed with no domain email and a loaded workspace backing its fund
+        const cardFeeds = createCompanyCardFeeds({[CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: {preferredPolicy}});
+        const policies: OnyxCollection<Policy> = {
+            policy_WS: createTestPolicy({id: 'WS', policyAccountID: fundID}),
+            policy_PREFERRED: createTestPolicy({id: 'PREFERRED', name: 'Preferred workspace'}),
+        };
 
-        // When the selector builds the feed without a reliable workspace name
+        // When the selector resolves the feed subtitle
         const result = getVisibleCompanyCardFeedsForSelector(cardFeeds, translateLocal, undefined, policies, {}, currentUserAccountID);
 
-        // Then it does not invent a name or display the unresolved preferred workspace ID
+        // Then the backing workspace supplies the missing name without replacing a loaded preferred workspace
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.subtitle).toBe(expectedSubtitle);
+        expect(result.at(0)?.id).toBe('1234_cdf');
+    });
+
+    it.each([
+        {role: CONST.POLICY.ROLE.ADMIN, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, name: 'Deleted workspace'},
+        {role: CONST.POLICY.ROLE.USER, pendingAction: undefined, name: 'Member workspace'},
+        {role: CONST.POLICY.ROLE.ADMIN, pendingAction: undefined, name: undefined},
+    ])('does not use an unavailable backing workspace name for role=$role and pendingAction=$pendingAction', ({role, pendingAction, name}) => {
+        // Given domain-admin visibility without an email and a backing policy that is deleted, not administered, or unnamed
+        const cardFeeds = createCompanyCardFeeds({[CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: {preferredPolicy: 'MISSING'}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS', policyAccountID: fundID, role, pendingAction, name})};
+        const domains: OnyxCollection<Domain> = {domain_company: {...createAdminDomain(fundID, currentUserAccountID), email: ''}};
+
+        // When domain access admits the feed despite unavailable workspace metadata
+        const result = getVisibleCompanyCardFeedsForSelector(cardFeeds, translateLocal, undefined, policies, domains, currentUserAccountID);
+
+        // Then the selector leaves existing linked-workspace fallbacks available instead of inventing a name
         expect(result).toHaveLength(1);
         expect(result.at(0)?.subtitle).toBeUndefined();
     });

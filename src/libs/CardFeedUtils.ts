@@ -461,11 +461,13 @@ function getVisibleCompanyCardFeedsForSelector(
     // Precompute the fundIDs (policyAccountIDs) backed by non-deleted policies the user can administer.
     // This avoids re-scanning every policy for each domain entry (was O(domains × policies)).
     const adminPolicyFundIDs = new Set<number>();
+    const adminPolicyNameByFundID = new Map<number, string | undefined>();
     for (const policy of Object.values(policies ?? {})) {
         if (policy?.policyAccountID === undefined || !isPolicyAdmin(policy) || policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             continue;
         }
         adminPolicyFundIDs.add(policy.policyAccountID);
+        adminPolicyNameByFundID.set(policy.policyAccountID, policy.name);
     }
 
     for (const [domainKey, cardFeeds] of Object.entries(allCardFeeds ?? {})) {
@@ -505,7 +507,7 @@ function getVisibleCompanyCardFeedsForSelector(
                 fundID,
                 linkedPolicyIDs,
                 name: getCustomOrFormattedFeedName(translate, feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
-                subtitle: getCompanyFeedSubtitle(feedData, fundID, policies, domains),
+                subtitle: getCompanyFeedSubtitle(feedData, fundID, policies, domains) ?? adminPolicyNameByFundID.get(numericFundID),
             });
         }
     }
