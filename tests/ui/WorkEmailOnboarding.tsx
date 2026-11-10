@@ -1383,6 +1383,55 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it.each([true, false])('uses the merge result only after destination initialization finishes (skip: %s)', async (shouldSkipOnboardingAfterMerge) => {
+        // Given an incomplete source account and a merge awaiting destination initialization.
+        type MergeResult = Awaited<ReturnType<typeof SessionActions.MergeIntoAccountAndLogin>>;
+        let resolveMerge: (result: MergeResult) => void = () => {};
+        const pendingMerge = new Promise<MergeResult>((resolve) => {
+            resolveMerge = resolve;
+        });
+        const merge = jest.spyOn(SessionActions, 'MergeIntoAccountAndLogin').mockReturnValueOnce(pendingMerge);
+        const dismissModal = jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
+        await TestHelper.signInWithTestUser(1, 'test@gmail.com');
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false, signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB});
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND});
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {onboardingWorkEmail: workEmail});
+        });
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION);
+        await waitForBatchedUpdatesWithAct();
+        navigate.mockClear();
+
+        // When a server completion marker arrives before the merge promise resolves.
+        await act(async () => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call -- The rendered form exposes the submit callback through test renderer props.
+            screen.UNSAFE_getByType(ValidateCodeForm).props.handleSubmitForm('123456');
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergeAccountStepCompleted: true});
+        });
+        expect(navigate).not.toHaveBeenCalled();
+        expect(dismissModal).not.toHaveBeenCalled();
+
+        // Then only the destination's result chooses dismissal versus normal continuation.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL});
+            resolveMerge({didMerge: true, shouldRedirectToClassicAfterMerge: false, shouldSkipOnboardingAfterMerge, conciergeReportID: undefined});
+            await pendingMerge;
+        });
+        if (shouldSkipOnboardingAfterMerge) {
+            expect(dismissModal).toHaveBeenCalledTimes(1);
+            expect(navigate).not.toHaveBeenCalled();
+        } else {
+            expect(dismissModal).not.toHaveBeenCalled();
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORKSPACES.getRoute(undefined, false, false), {forceReplace: true});
+        }
+        expect(mockCompleteOnboarding).not.toHaveBeenCalled();
+        expect(await getOnyxValue(ONYXKEYS.NVP_INTRO_SELECTED)).toEqual({choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND});
+        merge.mockRestore();
+        dismissModal.mockRestore();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should complete the validation task and reopen workspaces after the account merge refreshes', async () => {
         // Given an open Add Work Email task and a separate Validate Email task for a merge.
         const validateTaskReportID = 'validate-task-report';
@@ -1413,7 +1462,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         });
         const mergeIntoAccountAndLogin = jest
             .spyOn(SessionActions, 'MergeIntoAccountAndLogin')
-            .mockResolvedValueOnce({didMerge: true, shouldRedirectToClassicAfterMerge: false, conciergeReportID: targetParentReportID});
+            .mockResolvedValueOnce({didMerge: true, shouldRedirectToClassicAfterMerge: false, shouldSkipOnboardingAfterMerge: true, conciergeReportID: targetParentReportID});
         const completeTask = jest.spyOn(TaskActions, 'completeTask').mockReturnValue({});
         const getAccessiblePolicies = jest.spyOn(PolicyActions, 'getAccessiblePolicies').mockReturnValue('accessible-policies-request');
         await TestHelper.signInWithTestUser(1, 'test@gmail.com');
@@ -1481,7 +1530,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
     it('should leave the validation task open when the account merge fails', async () => {
         const mergeIntoAccountAndLogin = jest
             .spyOn(SessionActions, 'MergeIntoAccountAndLogin')
-            .mockResolvedValueOnce({didMerge: false, shouldRedirectToClassicAfterMerge: false, conciergeReportID: undefined});
+            .mockResolvedValueOnce({didMerge: false, shouldRedirectToClassicAfterMerge: false, shouldSkipOnboardingAfterMerge: false, conciergeReportID: undefined});
         const completeTask = jest.spyOn(TaskActions, 'completeTask').mockReturnValue({});
         await TestHelper.signInWithTestUser(1, 'test@gmail.com');
 
@@ -1541,7 +1590,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         screen.UNSAFE_getByType(ValidateCodeForm).props.handleSubmitForm('123456');
         fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('common.close')));
         await act(async () => {
-            resolveMerge({didMerge: true, shouldRedirectToClassicAfterMerge: false, conciergeReportID: 'target-concierge-report'});
+            resolveMerge({didMerge: true, shouldRedirectToClassicAfterMerge: false, shouldSkipOnboardingAfterMerge: true, conciergeReportID: 'target-concierge-report'});
             await pendingMerge;
         });
 

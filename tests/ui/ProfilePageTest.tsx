@@ -269,6 +269,26 @@ describe('ProfilePage - agent account', () => {
         await waitForBatchedUpdatesWithAct();
     }
 
+    it('clears the Display name indicator after both names are saved', async () => {
+        // Given a loaded user without a first or last name.
+        await setupUser('user@expensify.com');
+        const accountID = 123;
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[accountID]: {firstName: '', lastName: ''}});
+        });
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByTestId('display-name-menu-item')).toHaveTextContent(/info-brickRoadIndicator/);
+
+        // When saving both names updates the personal-details record.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[accountID]: {firstName: 'Ada', lastName: 'Lovelace'}});
+        });
+
+        // Then the Display name indicator clears reactively.
+        await waitFor(() => expect(screen.getByTestId('display-name-menu-item')).not.toHaveTextContent(/info-brickRoadIndicator/));
+    });
+
     it('uses the translated name for the status message field', async () => {
         // Given an English-speaking user whose status can be edited
         await setupUser('user@expensify.com');

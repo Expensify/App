@@ -38,11 +38,13 @@ import {resendValidateCode} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Onboarding} from '@src/types/onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import React, {useEffect, useEffectEvent, useRef} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import type {BaseOnboardingWorkEmailValidationProps} from './types';
 
@@ -77,6 +79,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL);
     const createdValidateEmailTaskReportID = useRef<string | undefined>(undefined);
     const isSubmittingAccountMerge = useRef(false);
+    const hasHandledAccountMerge = useRef(false);
     const shouldContinueAfterAccountMerge = useRef(false);
     const delegateAccountID = useDelegateAccountID();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -95,7 +98,6 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
         reportNameValuePairs,
         delegateAccountID,
     });
-    const continueJoinWorkspaceOnboardingFromEffect = useEffectEvent(continueJoinWorkspaceOnboarding);
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
     const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
@@ -103,35 +105,24 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
     const isFocused = useIsFocused();
 
     useEffect(() => {
-        if (!isConciergeTaskFlow || !isCurrentPrimaryValidated || isSubmittingAccountMerge.current) {
+        if (!isConciergeTaskFlow || !isCurrentPrimaryValidated || isSubmittingAccountMerge.current || hasHandledAccountMerge.current) {
             return;
         }
 
         Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(undefined, true, true), {forceReplace: true});
     }, [isConciergeTaskFlow, isCurrentPrimaryValidated]);
 
-    useEffect(() => {
-        if (onboardingValues?.isMergeAccountStepCompleted === undefined) {
-            return;
-        }
-        setOnboardingErrorMessage(null);
-        if (onboardingValues?.shouldRedirectToClassicAfterMerge) {
-            openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
-            return;
-        }
-        if (isConciergeTaskFlow && isSubmittingAccountMerge.current) {
-            return;
-        }
+    const continueOnboarding = (values: Partial<Onboarding> | undefined = onboardingValues) => {
         // Once we verify that shouldValidate is false, we need to force replace the screen
         // so that we don't navigate back on back button press
-        if (isVsb || isSmb) {
+        if (values?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB || values?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB) {
             Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {
                 forceReplace: true,
             });
             return;
         }
 
-        if (!onboardingValues?.isMergeAccountStepSkipped) {
+        if (!values?.isMergeAccountStepSkipped) {
             Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(undefined, isConciergeTaskFlow, isConciergeTaskFlow), {
                 forceReplace: true,
             });
@@ -139,13 +130,28 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
         }
 
         if (onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE) {
-            continueJoinWorkspaceOnboardingFromEffect({forceReplace: true});
+            continueJoinWorkspaceOnboarding({forceReplace: true});
             return;
         }
 
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {
             forceReplace: true,
         });
+    };
+    const continueOnboardingFromEffect = useEffectEvent(continueOnboarding);
+
+    useEffect(() => {
+        // Server updates can publish the completion marker before destination initialization finishes.
+        // Submitted merges navigate in their response handler; this effect still handles skipping the step.
+        if (onboardingValues?.isMergeAccountStepCompleted === undefined || isSubmittingAccountMerge.current || hasHandledAccountMerge.current) {
+            return;
+        }
+        setOnboardingErrorMessage(null);
+        if (onboardingValues?.shouldRedirectToClassicAfterMerge) {
+            openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+            return;
+        }
+        continueOnboardingFromEffect();
     }, [
         onboardingValues?.isMergeAccountStepCompleted,
         onboardingValues?.shouldRedirectToClassicAfterMerge,
@@ -183,11 +189,25 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
         isSubmittingAccountMerge.current = true;
         shouldContinueAfterAccountMerge.current = true;
         MergeIntoAccountAndLogin(workEmail, validateCode, session?.accountID, onboardingEmail?.completedTaskReportActionID).then(
-            async ({didMerge, shouldRedirectToClassicAfterMerge, conciergeReportID: mergedConciergeReportID}) => {
+            async ({didMerge, shouldRedirectToClassicAfterMerge, shouldSkipOnboardingAfterMerge, conciergeReportID: mergedConciergeReportID}) => {
                 isSubmittingAccountMerge.current = false;
                 const shouldContinue = shouldContinueAfterAccountMerge.current;
                 shouldContinueAfterAccountMerge.current = false;
-                if (!didMerge || !isConciergeTaskFlow || !shouldContinue) {
+                if (!didMerge || !shouldContinue) {
+                    return;
+                }
+                hasHandledAccountMerge.current = true;
+
+                if (!isConciergeTaskFlow) {
+                    if (shouldRedirectToClassicAfterMerge) {
+                        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+                    } else if (shouldSkipOnboardingAfterMerge) {
+                        Navigation.dismissModal();
+                    } else {
+                        // OpenApp has finished applying destination data; the submit closure still contains source values.
+                        const destinationOnboarding = await Onyx.get(ONYXKEYS.NVP_ONBOARDING);
+                        continueOnboarding({...destinationOnboarding, isMergeAccountStepSkipped: false});
+                    }
                     return;
                 }
 
@@ -214,6 +234,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
                     CONST.ACCOUNT_ID.CONCIERGE,
                 );
                 if (shouldRedirectToClassicAfterMerge) {
+                    openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
                     return;
                 }
                 getAccessiblePolicies();

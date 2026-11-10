@@ -40,7 +40,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getFormattedAddress, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {expensifyLoginsSelector, getContactMethodsOptions, getLoginListBrickRoadIndicator} from '@libs/UserUtils';
+import {expensifyLoginsSelector, getContactMethodsOptions, getLoginListBrickRoadIndicator, hasMissingDisplayName} from '@libs/UserUtils';
 import {formatVacationDelegateClearDateTime, getActiveVacationDelegate, getVacationDelegateClearDateTime} from '@libs/VacationDelegateUtils';
 
 import useTimeSensitiveHomeAddress from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveHomeAddress';
@@ -142,6 +142,7 @@ function ProfilePage() {
             title: temporaryGetDisplayNameOrDefault({passedPersonalDetails: currentUserPersonalDetails, translate, formatPhoneNumber}),
             pageRoute: ROUTES.SETTINGS_DISPLAY_NAME,
             testID: 'display-name-menu-item',
+            brickRoadIndicator: hasMissingDisplayName(currentUserPersonalDetails) ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.DISPLAY_NAME,
         },
         {
