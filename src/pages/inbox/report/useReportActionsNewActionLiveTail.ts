@@ -257,7 +257,8 @@ function useReportActionsNewActionLiveTail({
         if (liveTailJumpRef.current.stage !== 'await_scroll') {
             return;
         }
-        if (!hasNewestReportAction) {
+        // Offline jumps can only reach the newest cached page, which may not contain the newest server message.
+        if (!treatAsNoPaginationAnchor || (!isOffline && !hasNewestReportAction)) {
             return;
         }
 
@@ -267,7 +268,7 @@ function useReportActionsNewActionLiveTail({
         queueMicrotask(() => {
             setShouldScrollToBottom(true);
         });
-    }, [hasNewestReportAction, treatAsNoPaginationAnchor, setIsFloatingMessageCounterVisible, setShouldScrollToBottom]);
+    }, [hasNewestReportAction, isOffline, treatAsNoPaginationAnchor, setIsFloatingMessageCounterVisible, setShouldScrollToBottom]);
 
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?

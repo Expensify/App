@@ -38,6 +38,7 @@ const mockScrollToBottom = jest.fn();
 const mockScrollToIndex = jest.fn();
 let mockLinkedActionPosition = 40;
 let mockListScroll: number | undefined;
+let mockListHeaderSize = 0;
 jest.mock('@hooks/useReportScrollManager', () => ({
     __esModule: true,
     default: () => ({
@@ -218,7 +219,7 @@ function buildActionListContextValue() {
                 scrollToIndex: mockScrollToIndex,
                 scrollToEnd: mockScrollToBottom,
                 scrollToOffset: jest.fn(),
-                getState: () => ({positionByKey: () => mockLinkedActionPosition, scroll: mockListScroll, contentLength: 5000, scrollLength: 600}),
+                getState: () => ({positionByKey: () => mockLinkedActionPosition, scroll: mockListScroll, contentLength: 5000, scrollLength: 600, headerSize: mockListHeaderSize}),
             },
         }),
     };
@@ -255,6 +256,7 @@ describe('useReportActionsScroll', () => {
         mockRouteParams = {};
         mockLinkedActionPosition = 40;
         mockListScroll = undefined;
+        mockListHeaderSize = 0;
         mockIsFocused = true;
         mockReportRHPActiveRoute = undefined;
         mockIsFloatingMessageCounterVisible = false;
@@ -496,6 +498,22 @@ describe('useReportActionsScroll', () => {
     });
 
     describe('linked message positioning', () => {
+        it('does not reposition an Android link already aligned below the offline history header', async () => {
+            // Given the row position excludes an 800-point header that the scroll offset includes.
+            const platform = jest.replaceProperty(Platform, 'OS', 'android');
+            mockRouteParams = {reportActionID: LINKED_ACTION_ID};
+            mockLinkedActionPosition = 400;
+            mockListHeaderSize = 800;
+            mockListScroll = 1160;
+            const {result} = await renderScroll({renderedVisibleReportActions: [makeAction('123'), makeAction(LINKED_ACTION_ID), makeAction('999')]});
+
+            // When the positioned list becomes ready, it must not start a redundant native scroll.
+            act(() => result.current.onLoad());
+            flushTransitions();
+            expect(mockScrollToIndex).not.toHaveBeenCalled();
+            platform.restore();
+        });
+
         it('lets Android preserve an already aligned linked message when a preceding row changes height', async () => {
             // Given Android has already positioned the link and is preserving it during measurement.
             const platform = jest.replaceProperty(Platform, 'OS', 'android');

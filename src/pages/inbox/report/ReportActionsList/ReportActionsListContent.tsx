@@ -22,7 +22,7 @@ import {isArchivedReport} from '@libs/ReportUtils';
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
-import {useActionListContext} from '@pages/inbox/ActionListContext';
+import {useActionListContext, useActionListReady} from '@pages/inbox/ActionListContext';
 import {useConciergeChatHistoryActions} from '@pages/inbox/ConciergeChatHistoryContext';
 import AskConciergeWelcome from '@pages/inbox/report/AskConciergeWelcome';
 import ConciergeChatHistoryToggle from '@pages/inbox/report/ConciergeChatHistoryToggle';
@@ -39,7 +39,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {LegendList} from '@legendapp/list/react-native';
 import {useRoute} from '@react-navigation/native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Platform, View} from 'react-native';
 
 import type {ReportActionsListProps} from './types';
@@ -192,6 +192,11 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     });
 
     useReportActionsListTelemetry({reportID, listID, loadedInitialViewportListID, shouldShowInitialViewportSkeleton});
+
+    const {setIsReady} = useActionListReady();
+    useEffect(() => {
+        setIsReady(shouldShowConciergeWelcome || (!shouldShowInitialViewportSkeleton && loadedInitialViewportListID === listID));
+    }, [listID, loadedInitialViewportListID, setIsReady, shouldShowConciergeWelcome, shouldShowInitialViewportSkeleton]);
 
     const {renderItem, extraData} = useReportActionsListRenderItem({
         ...reportActionsListData,

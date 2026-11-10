@@ -6,9 +6,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 
+import {useActionListReady} from '@pages/inbox/ActionListContext';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React from 'react';
+import React, {useEffect} from 'react';
 
 import AskConciergeEmptyState from './AskConciergeEmptyState';
 import ConciergeChatHistoryToggle from './ConciergeChatHistoryToggle';
@@ -22,6 +24,8 @@ type AskConciergeWelcomeProps = {
 };
 
 function AskConciergeWelcome({reportID, onShowPreviousMessages}: AskConciergeWelcomeProps) {
+    const {setIsReady} = useActionListReady();
+    useEffect(() => () => setIsReady(false), [setIsReady]);
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -31,7 +35,10 @@ function AskConciergeWelcome({reportID, onShowPreviousMessages}: AskConciergeWel
             style={[!shouldUseNarrowLayout && styles.flexGrow0, styles.conciergeAskColumn]}
             contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter]}
             keyboardShouldPersistTaps="handled"
-            onLayout={() => markOpenReportEnd(reportID, report, {warm: true})}
+            onLayout={() => {
+                setIsReady(true);
+                markOpenReportEnd(reportID, report, {warm: true});
+            }}
         >
             <AskConciergeEmptyState />
             <ConciergeChatHistoryToggle

@@ -89,12 +89,16 @@ function useReportActionsListScroll({
     const {getScrollOffset, scrollOffsetRef} = useActionListContext();
     const listRef = useActionListRef();
     const legendListRef = useRef<LegendListRef>(null);
+    const headerSizeRef = useRef(0);
 
     useImperativeHandle(
         listRef,
         (): ActionListRef => ({
             getScrollableNode: (): unknown => legendListRef.current?.getScrollableNode(),
-            getState: () => legendListRef.current?.getState(),
+            getState: () => {
+                const state = legendListRef.current?.getState();
+                return state ? {...state, headerSize: headerSizeRef.current} : undefined;
+            },
             computeVisibleIndices: () => {
                 const state = legendListRef.current?.getState();
                 return state ? {startIndex: state.start, endIndex: state.end} : undefined;
@@ -445,6 +449,9 @@ function useReportActionsListScroll({
             onReady: handleListReady,
             onItemSizeChanged,
             onContentSizeChange: trackContentSizeChange,
+            onMetricsChange: ({headerSize}: {headerSize: number}) => {
+                headerSizeRef.current = headerSize;
+            },
         },
     };
 }

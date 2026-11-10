@@ -30,6 +30,7 @@ import Visibility from '@libs/Visibility';
 
 import {ActionListContext} from '@pages/inbox/ActionListContext';
 import type ActionListRefType from '@pages/inbox/ActionListTypes';
+import ChatReportActions from '@pages/inbox/ChatReportActions';
 import {useConciergeChatHistoryActions, useConciergeChatHistoryState} from '@pages/inbox/ConciergeChatHistoryContext';
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 import CollapsedSystemMessages from '@pages/inbox/report/CollapsedSystemMessages';
@@ -246,7 +247,7 @@ type MockLegendListProps = {
     contentContainerStyle?: StyleProp<ViewStyle>;
     data?: OnyxTypes.ReportAction[];
     drawDistance?: number;
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+    // eslint-disable-next-line @typescript-eslint/naming-convention -- The mock must preserve LegendList's public prop name.
     experimental_hideItemsUntilMeasured?: boolean;
     extraData?: unknown;
     getItemType?: (item: OnyxTypes.ReportAction) => string;
@@ -1003,6 +1004,43 @@ describe('ReportActionsList (body)', () => {
         act(() => getCapturedListProps()?.onLoad?.());
         expect(screen.getByTestId('ReportActionsSkeletonCover')).toBeTruthy();
         act(() => getCapturedListProps()?.onReady?.());
+        expect(screen.queryByTestId('ReportActionsSkeletonCover')).toBeNull();
+    });
+
+    it('preserves the visible offline list while reconnecting and loading its first server page', async () => {
+        // Given cached messages have already been positioned while their OpenReport cannot finish offline.
+        mockUseNetwork.mockReturnValue({isOffline: true});
+        mockHasOnceLoadedReportActions = false;
+        mockIsLoadingInitialReportActions = true;
+        let isAppLoadPending = true;
+        mockUseOnyx.mockImplementation((key, options) => {
+            if (key === ONYXKEYS.PERSISTED_REQUESTS || key === ONYXKEYS.PERSISTED_ONGOING_REQUESTS) {
+                return [isAppLoadPending, {status: 'loaded'}];
+            }
+            return getMockOnyxValue(key, options);
+        });
+        const view = render(<ChatReportActions report={mockReport} />);
+        expect(screen.queryByTestId('ReportActionsSkeletonCover')).toBeNull();
+
+        // When connectivity returns, both the queued request and its eventual response must preserve that viewport.
+        mockShouldCallLegendListOnLoad = false;
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockUseIsReportLoadPending.mockReturnValue(true);
+        view.rerender(<ChatReportActions report={mockReport} />);
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryByTestId('ReportActionsSkeletonCover')).toBeNull();
+        expect(mockLegendListUnmount).not.toHaveBeenCalled();
+
+        mockHasOnceLoadedReportActions = true;
+        mockIsLoadingInitialReportActions = false;
+        mockUseIsReportLoadPending.mockReturnValue(false);
+        isAppLoadPending = false;
+        view.rerender(<ChatReportActions report={mockReport} />);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then no replacement list resets the reader's scroll position or flashes another loading cover.
+        expect(mockLegendListMount).toHaveBeenCalledTimes(1);
+        expect(mockLegendListUnmount).not.toHaveBeenCalled();
         expect(screen.queryByTestId('ReportActionsSkeletonCover')).toBeNull();
     });
 

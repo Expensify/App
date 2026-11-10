@@ -32,7 +32,7 @@ import {
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 
 import ConciergeThinkingMessage from '@pages/home/report/ConciergeThinkingMessage';
-import {useActionListRef} from '@pages/inbox/ActionListContext';
+import {useActionListReady, useActionListRef} from '@pages/inbox/ActionListContext';
 import {useConciergeDraft} from '@pages/inbox/ConciergeDraftContext';
 import CollapsedSystemMessages from '@pages/inbox/report/CollapsedSystemMessages';
 import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
@@ -98,6 +98,7 @@ function reportNameValuePairsSelector(reportNameValuePairs: OnyxEntry<OnyxTypes.
  * Mounted with `key={reportID}` by the wrapper below, so all hook state resets on report switch.
  */
 function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: MoneyRequestReportActionsListContentProps) {
+    const {setIsReady} = useActionListReady();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -373,6 +374,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     };
 
     const onListLayout = (event: LayoutChangeEvent) => {
+        setIsReady(true);
         syncBottomOffsetFromLayout(event);
         recordTimeToMeasureItemLayout();
     };
@@ -419,7 +421,10 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                     <MoneyRequestReportEmptyStateView
                         report={report}
                         policy={policy}
-                        onLayout={onLayout}
+                        onLayout={(event) => {
+                            setIsReady(true);
+                            onLayout?.(event);
+                        }}
                     />
                 )}
                 {!isReportEmpty && !!reportStable && (

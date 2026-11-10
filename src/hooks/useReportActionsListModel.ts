@@ -58,9 +58,9 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`, {
         selector: reportActionsListLoadingStateSelector,
     });
-    // This flag is monotonic for one report visit. Keep it true if the RAM-only entry is briefly
-    // absent while optimistic writes are merged, so the hydrated list never returns to its loading state.
-    const hasOnceLoadedReportActions = useInitial(reportLoadingState?.hasOnceLoadedReportActions ? true : undefined);
+    // Cached actions shown offline already have a usable layout. Refresh them in place on reconnect,
+    // and keep this visit loaded if its RAM-only entry briefly disappears during optimistic updates.
+    const hasOnceLoadedReportActions = useInitial(reportLoadingState?.hasOnceLoadedReportActions || (isOffline && reportActions.length > 0) ? true : undefined);
     const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
     const isInitialReportLoadPending = !hasOnceLoadedReportActions && (isReportLoadPending || isLoadingInitialReportActions !== false);
     const isLoadingOlderReportActions = reportLoadingState?.isLoadingOlderReportActions;

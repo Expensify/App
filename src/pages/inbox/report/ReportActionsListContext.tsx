@@ -91,7 +91,7 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
 
     const shouldShowSkeletonForInitialLoad = isReportLoadPending && (isReportDataIncomplete || isMissingReportActions) && !isOffline;
 
-    const shouldShowSkeletonForAppLoad = !!isLoadingApp && !isOffline;
+    const shouldShowSkeletonForAppLoad = !!isLoadingApp && !hasOnceLoadedReportActions && !isOffline;
 
     // Show skeleton for the Concierge side panel until report data has been loaded
     // at least once. Before the first openReport response, hasOlderActions is

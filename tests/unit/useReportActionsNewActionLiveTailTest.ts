@@ -125,9 +125,17 @@ describe('useReportActionsNewActionLiveTail', () => {
     });
 
     it.each([false, true])('reaches the cached newest window offline when in side panel is %s', async (isInSidePanel) => {
-        // Given an offline report showing an older linked page.
+        // Given an offline report whose newest cached page does not contain the newest server message.
         mockIsInSidePanel = isInSidePanel;
-        const params = buildParams({isOffline: true, linkedReportActionID: '2'});
+        const linkedAction = getFakeReportAction(2);
+        const newestCachedAction = getFakeReportAction(3);
+        const params = buildParams({
+            isOffline: true,
+            linkedReportActionID: linkedAction.reportActionID,
+            renderedVisibleReportActions: [linkedAction],
+            sortedAllReportActionsForPagination: [newestCachedAction, linkedAction],
+            reportActionPages: [[newestCachedAction.reportActionID], [linkedAction.reportActionID]],
+        });
         const {result, rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: params});
 
         // When Latest messages is pressed, release the anchor locally instead of waiting for OpenReport.
@@ -139,7 +147,23 @@ describe('useReportActionsNewActionLiveTail', () => {
         expect(result.current.isScrollToBottomEnabled).toBe(false);
 
         // Then request the scroll after the cached newest window enters the list.
-        rerender({...params, linkedReportActionID: '', treatAsNoPaginationAnchor: true, hasNewestReportAction: true});
+        const newestCachedParams = {...params, linkedReportActionID: '', treatAsNoPaginationAnchor: true, renderedVisibleReportActions: [newestCachedAction]};
+        rerender(newestCachedParams);
+        await waitFor(() => expect(result.current.isScrollToBottomEnabled).toBe(true));
+        act(() => {
+            result.current.setIsScrollToBottomEnabled(false);
+            result.current.completeLiveTailPruneAfterScrollToBottom();
+        });
+        expect(params.setTreatAsNoPaginationAnchor).toHaveBeenLastCalledWith(false);
+
+        // When the reader scrolls away and presses Latest messages again, the completed jump must not block it.
+        rerender({...newestCachedParams, treatAsNoPaginationAnchor: false});
+        act(() => result.current.requestLiveTailJump());
+        expect(result.current.isScrollToBottomEnabled).toBe(false);
+        expect(params.setTreatAsNoPaginationAnchor).toHaveBeenLastCalledWith(true);
+        rerender(newestCachedParams);
+
+        // Then another local scroll is requested without ever needing the uncached server message.
         await waitFor(() => expect(result.current.isScrollToBottomEnabled).toBe(true));
     });
 

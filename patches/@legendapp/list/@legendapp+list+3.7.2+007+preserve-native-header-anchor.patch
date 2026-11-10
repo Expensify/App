@@ -1,0 +1,64 @@
+diff --git a/node_modules/@legendapp/list/react-native.js b/node_modules/@legendapp/list/react-native.js
+index 134135f..ef5db5d 100644
+--- a/node_modules/@legendapp/list/react-native.js
++++ b/node_modules/@legendapp/list/react-native.js
+@@ -6705,7 +6705,7 @@ function shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, nextHeaderSize
+   const sizeDiff = nextHeaderSize - previousHeaderSize;
+   const leadingPadding = props.horizontal ? props.stylePaddingLeft : props.stylePaddingTop;
+   const previousHeaderEnd = (leadingPadding || 0) + previousHeaderSize;
+-  return Platform.OS === "web" && props.maintainVisibleContentPosition.size && didContainersLayout && didFinishInitialScroll && !scrollingTo && scroll >= previousHeaderEnd - SCROLL_ADJUST_EPSILON && Math.abs(sizeDiff) > SCROLL_ADJUST_EPSILON;
++  return props.maintainVisibleContentPosition.size && didContainersLayout && didFinishInitialScroll && !scrollingTo && scroll >= previousHeaderEnd - SCROLL_ADJUST_EPSILON && Math.abs(sizeDiff) > SCROLL_ADJUST_EPSILON;
+ }
+ function setHeaderSize(ctx, size) {
+   const { state } = ctx;
+@@ -6716,7 +6716,17 @@ function setHeaderSize(ctx, size) {
+     set$(ctx, "headerSize", size);
+     updateContentMetricsState(ctx);
+     if (hasMeasuredOrEstimatedHeaderBaseline && shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, size)) {
+-      requestAdjust(ctx, size - previousHeaderSize);
++      let positionDiff = size - previousHeaderSize;
++      if (Platform.OS === "android") {
++        const maxScroll = getScrollRangeEnd(ctx);
++        if (state.scroll > maxScroll + SCROLL_ADJUST_EPSILON) {
++          const targetScroll = Math.max(0, Math.min(state.scroll + positionDiff, maxScroll));
++          state.scroll = maxScroll;
++          state.scrollPending = maxScroll;
++          positionDiff = targetScroll - maxScroll;
++        }
++      }
++      requestAdjust(ctx, positionDiff);
+     }
+   }
+   state.didMeasureHeader = true;
+diff --git a/node_modules/@legendapp/list/react-native.mjs b/node_modules/@legendapp/list/react-native.mjs
+index cb06128..4c6d3d6 100644
+--- a/node_modules/@legendapp/list/react-native.mjs
++++ b/node_modules/@legendapp/list/react-native.mjs
+@@ -6684,7 +6684,7 @@ function shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, nextHeaderSize
+   const sizeDiff = nextHeaderSize - previousHeaderSize;
+   const leadingPadding = props.horizontal ? props.stylePaddingLeft : props.stylePaddingTop;
+   const previousHeaderEnd = (leadingPadding || 0) + previousHeaderSize;
+-  return Platform.OS === "web" && props.maintainVisibleContentPosition.size && didContainersLayout && didFinishInitialScroll && !scrollingTo && scroll >= previousHeaderEnd - SCROLL_ADJUST_EPSILON && Math.abs(sizeDiff) > SCROLL_ADJUST_EPSILON;
++  return props.maintainVisibleContentPosition.size && didContainersLayout && didFinishInitialScroll && !scrollingTo && scroll >= previousHeaderEnd - SCROLL_ADJUST_EPSILON && Math.abs(sizeDiff) > SCROLL_ADJUST_EPSILON;
+ }
+ function setHeaderSize(ctx, size) {
+   const { state } = ctx;
+@@ -6695,7 +6695,17 @@ function setHeaderSize(ctx, size) {
+     set$(ctx, "headerSize", size);
+     updateContentMetricsState(ctx);
+     if (hasMeasuredOrEstimatedHeaderBaseline && shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, size)) {
+-      requestAdjust(ctx, size - previousHeaderSize);
++      let positionDiff = size - previousHeaderSize;
++      if (Platform.OS === "android") {
++        const maxScroll = getScrollRangeEnd(ctx);
++        if (state.scroll > maxScroll + SCROLL_ADJUST_EPSILON) {
++          const targetScroll = Math.max(0, Math.min(state.scroll + positionDiff, maxScroll));
++          state.scroll = maxScroll;
++          state.scrollPending = maxScroll;
++          positionDiff = targetScroll - maxScroll;
++        }
++      }
++      requestAdjust(ctx, positionDiff);
+     }
+   }
+   state.didMeasureHeader = true;

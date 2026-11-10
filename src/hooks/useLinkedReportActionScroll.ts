@@ -1,3 +1,4 @@
+/** Keeps a linked action positioned as its measured layout settles, until the reader takes over scrolling. */
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
 import {useActionListContext} from '@pages/inbox/ActionListContext';
@@ -19,7 +20,6 @@ type LinkedReportActionScrollParams = {
     isLastAction: boolean;
 };
 
-/** Keeps a linked action positioned as its measured layout settles, until the reader takes over scrolling. */
 function useLinkedReportActionScroll({listID, linkedReportActionID, targetIndex, isLastAction}: LinkedReportActionScrollParams) {
     const isFocused = useIsFocused();
     const {getListRef} = useActionListContext();
@@ -67,7 +67,7 @@ function useLinkedReportActionScroll({listID, linkedReportActionID, targetIndex,
             const state = getListRef()?.current?.getState?.();
             const position = state?.positionByKey(linkedReportActionID);
             if (position !== undefined && state?.scroll !== undefined && state.contentLength !== undefined && state.scrollLength !== undefined) {
-                const targetOffset = Math.max(0, Math.min(position - CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET, state.contentLength - state.scrollLength));
+                const targetOffset = Math.max(0, Math.min(position + (state.headerSize ?? 0) - CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET, state.contentLength - state.scrollLength));
                 // LegendList includes pending native anchoring in its scroll offset. An imperative
                 // scroll to that same offset would apply the height correction twice on Android.
                 if (Math.abs(targetOffset - state.scroll) <= 1) {
@@ -137,12 +137,13 @@ function useLinkedReportActionScroll({listID, linkedReportActionID, targetIndex,
         if (!shouldPositionRef.current || readyListID !== listID || !linkedReportActionID || isLastAction) {
             return;
         }
-        const position = getListRef()?.current?.getState?.()?.positionByKey(linkedReportActionID);
+        const state = getListRef()?.current?.getState?.();
+        const position = state?.positionByKey(linkedReportActionID);
         if (position === undefined) {
             return;
         }
         const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent;
-        const targetOffset = Math.max(0, Math.min(position - CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET, contentSize.height - layoutMeasurement.height));
+        const targetOffset = Math.max(0, Math.min(position + (state?.headerSize ?? 0) - CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET, contentSize.height - layoutMeasurement.height));
         // Native anchoring can commit after the row-size correction. Check the resulting viewport
         // as well, so that late adjustment cannot move a successfully positioned link out of view.
         if (Math.abs(targetOffset - contentOffset.y) > 1) {

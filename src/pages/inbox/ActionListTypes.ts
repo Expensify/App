@@ -34,6 +34,7 @@ type ActionListRef = {
               scroll?: number;
               contentLength?: number;
               scrollLength?: number;
+              headerSize?: number;
           }
         | undefined;
 };

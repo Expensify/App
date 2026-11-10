@@ -1,5 +1,6 @@
 /** Keep chat effects unmounted during app loading, except for the Concierge welcome screen. */
 import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
+import useInitial from '@hooks/useInitial';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
@@ -24,8 +25,9 @@ function ChatReportActions({report}: ChatReportActionsProps) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const isAppLoadPending = useIsAppLoadPending();
     const isConciergeMainDM = isConciergeChatReport(report, conciergeReportID);
+    const hasRenderedReportActions = useInitial(isOffline || !isAppLoadPending || isConciergeMainDM ? true : undefined);
 
-    if (isAppLoadPending && !isOffline && !isConciergeMainDM) {
+    if (!hasRenderedReportActions) {
         return (
             <ReportActionsLoadingSkeleton
                 reportID={report.reportID}
