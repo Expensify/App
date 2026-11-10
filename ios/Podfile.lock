@@ -2865,7 +2865,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-document-picker (10.1.3):
+  - react-native-document-picker (12.0.3):
     - boost
     - DoubleConversion
     - fast_float
@@ -5466,7 +5466,7 @@ SPEC CHECKSUMS:
   react-native-blob-util: bfb49875b35b64e5b94dd0081509eb9affdbee5e
   react-native-cameraroll: 5a97a5d58b7fda947e48654f310bb7344952b47b
   react-native-config: aac11ad60d8dd87c3b071ebd3bc1e5a0f101b2bc
-  react-native-document-picker: d9693d7ee9ff51b3ddd2623248f9cee0cc0e591e
+  react-native-document-picker: 8cae7ba456415147970963963ab596d7bcb5bf40
   react-native-image-picker: ced7cb8ea317e2911e8c060f10cad2ce0d519256
   react-native-key-command: 146d1c22f0bb1604a1460497eed95ffa40208815
   react-native-keyboard-controller: 26e798f6ef3a5f780ceb6e32be2bba6154a309e1
