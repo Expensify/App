@@ -1173,8 +1173,6 @@ const translations: TranslationDeepObject<typeof en> = {
             customizeSpendCategoriesSubText: 'Orden en classificeer uitgaven',
             customizeExpenseCategories: 'Pas je uitgavencategorieën aan',
             customizeExpenseCategoriesSubText: 'Voeg de categorieën van je bedrijf toe om je uitgaven te coderen',
-            createExpense: 'Maak een uitgave',
-            createExpenseSubText: 'Scan, sleep neer en zet neer, of voer handmatig een uitgave in met de +-knop',
             linkPersonalCard: 'Koppel persoonlijke kaart',
             linkPersonalCardSubText: 'Importeer uitgaven automatisch',
             configureApprovals: 'Goedkeuringsworkflow instellen',

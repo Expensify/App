@@ -1136,8 +1136,6 @@ const translations: TranslationDeepObject<typeof en> = {
             customizeSpendCategoriesSubText: '整理并分类支出',
             customizeExpenseCategories: '自定义您的支出类别',
             customizeExpenseCategoriesSubText: '添加贵公司的类别以对支出进行编码',
-            createExpense: '创建报销费用',
-            createExpenseSubText: '使用 + 按钮扫描、拖放或手动输入支出',
             linkPersonalCard: '关联个人银行卡',
             linkPersonalCardSubText: '自动导入支出',
             configureApprovals: '配置审批流程',
