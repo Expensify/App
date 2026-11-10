@@ -317,6 +317,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
             addressName: policy?.achAccount?.addressName,
             bankName: policy?.achAccount?.bankName,
             state: policy?.achAccount?.state,
+            bankAccountList,
         });
     };
 
