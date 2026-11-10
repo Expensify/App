@@ -106,4 +106,21 @@ describe('AttachmentImageReauthenticator', () => {
         expect(reconnect).not.toHaveBeenCalled();
         expect(reauthenticate).not.toHaveBeenCalled();
     });
+
+    test('tries again once back online when the device went offline during the wait', async () => {
+        // Given a receipt is shown with an expired session, and the device goes offline before the wait is over
+        const session = {authToken: 'fifthToken', encryptedAuthToken: 'fifthEncryptedToken'};
+        activateReauthenticator(session);
+        jest.mocked(getIsOffline).mockReturnValue(true);
+        await jest.advanceTimersByTimeAsync(TIME_BEFORE_RECONNECT_MS);
+        expect(reconnect).not.toHaveBeenCalled();
+
+        // When the device is back online and the receipt asks again with the same session
+        jest.mocked(getIsOffline).mockReturnValue(false);
+        activateReauthenticator(session);
+        await jest.advanceTimersByTimeAsync(TIME_BEFORE_RECONNECT_MS);
+
+        // Then it reconnects, instead of leaving the receipt loading forever
+        expect(reconnect).toHaveBeenCalledTimes(1);
+    });
 });
