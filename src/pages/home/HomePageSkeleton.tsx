@@ -112,8 +112,6 @@ function renderIconTwoBarWithTrailingRow(args: TrailingSkeletonRowArgs) {
 type HomePageSkeletonCardProps = {
     children: React.ReactNode;
     hasBottomPadding?: boolean;
-
-    /** Whether the card stands in for a widget with a line of text under its title */
     hasSubtitle?: boolean;
 };
 
