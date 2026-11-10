@@ -1,4 +1,6 @@
 /** The side panel's committed width on a wide layout, clamped to the bounds the window and the RHP beside it allow. */
+import useNavigationBarWidth from '@components/Navigation/FlatNavigationBar/useNavigationBarWidth';
+
 import getSidePanelWidthBounds from '@libs/Navigation/helpers/sidePanelWidth/getSidePanelWidthBounds';
 
 import variables from '@styles/variables';
@@ -23,9 +25,10 @@ function useSidePanelWidth(): SidePanelWidth {
     const {windowWidth} = useWindowDimensions();
     const {isExtraLargeScreenWidth} = useResponsiveLayout();
     const isWideRHPDisplayed = useIsWideRHPDisplayed();
+    const navigationBarWidth = useNavigationBarWidth();
 
-    // Only a docked panel shifts the RHP. One floating over the page leaves it where it is.
-    const bounds = getSidePanelWidthBounds(windowWidth, isExtraLargeScreenWidth && isWideRHPDisplayed);
+    // Only an extra large window docks the panel. A smaller one floats it over the page, which leaves the page and the RHP where they are.
+    const bounds = getSidePanelWidthBounds(windowWidth, isExtraLargeScreenWidth ? {navigationBarWidth, isWideRHPDisplayed} : undefined);
     const {width, isResizable} = usePaneWidth(ONYXKEYS.SIDE_PANEL_WIDTH, CONST.BETAS.RESIZABLE_SIDE_PANEL, variables.resizableSidePanelDefaultWidth, bounds);
 
     // Outside the beta the panel keeps its fixed width.
