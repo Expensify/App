@@ -5413,6 +5413,12 @@ ${amount} para ${merchant} - ${date}`,
             readOnlyActionPrompt: 'Sua função no workspace pode ver essas configurações, mas não pode editá-las.',
             noAccessActionPrompt: 'Sua função no espaço de trabalho não tem acesso a essas configurações. Peça a um administrador se você precisar disso.',
             connections: 'Conexões',
+            newRoles: 'Novos cargos',
+            adminRoles: 'Funções de administrador',
+            otherRoles: 'Outros cargos',
+            roleSelectorDescription: `Atribua uma função para gerenciar as permissões de área de trabalho de um membro. <a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">Compare funções de área de trabalho</a>.`,
+            roleSelectorFeedback: 'Não está vendo a função que você precisa?',
+            roleSelectorFeedbackLink: 'Conte para a gente',
         },
         createdForClient: {
             title: 'Você criou um espaço de trabalho para seu cliente!',
@@ -7796,6 +7802,10 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             changeOfficeLocation: 'Alterar local do escritório',
             changeWorkArrangement: 'Alterar regime de trabalho',
             changeRole: 'Alterar função',
+            newRolesBanner: {
+                title: 'Novos cargos disponíveis',
+                subtitle: '<label-text>Dê aos membros apenas o acesso de que precisam com os novos papéis <strong>Apenas aprovar</strong> e <strong>Convidado</strong>.</label-text>',
+            },
         },
         card: {
             getStartedIssuing: 'Comece emitindo seu primeiro cartão virtual ou físico.',
@@ -8574,6 +8584,12 @@ ${reportName}`,
                 description: `Aproveite a sincronização automática e reduza lançamentos manuais com a integração Expensify + Campfire. Alinhe dimensões de categorização de despesas e a sincronização de impostos à sua configuração Campfire para maior visibilidade financeira.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Nossa integração com a Campfire está disponível apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: {
+                title: 'Digits',
+                description: `Aproveite a sincronização automática e reduza lançamentos manuais com a integração Expensify + Digits. Alinhe dimensões de categorização de despesas à sua configuração Digits para maior visibilidade financeira.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Nossa integração com a Digits está disponível apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
                 title: 'Dynamics 365 Business Central',
@@ -9684,6 +9700,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     return `${customAccountsCount} cartões com contas personalizadas`;
                 },
             },
+        },
+        digits: {
+            updateCurrencyTitle: 'Atualizar a moeda do espaço de trabalho?',
+            updateCurrencyPrompt: 'No momento, o Digits só está disponível para empresas sediadas nos EUA que operam em USD.',
         },
         zohoBooks: {
             organization: 'Organização Zoho Books',

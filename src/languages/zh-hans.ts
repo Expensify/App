@@ -5233,6 +5233,12 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             readOnlyActionPrompt: '你的工作区角色可以查看这些设置，但不能编辑。',
             noAccessActionPrompt: '您的工作区角色无权访问这些设置。如需访问，请联系管理员。',
             connections: '连接',
+            newRoles: '新角色',
+            adminRoles: '管理员角色',
+            otherRoles: '其他角色',
+            roleSelectorDescription: `为成员分配一个角色以管理其工作区权限。<a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">比较工作区角色</a>。`,
+            roleSelectorFeedback: '没有找到你需要的角色？',
+            roleSelectorFeedbackLink: '告诉我们',
         },
         createdForClient: {
             title: '您已为客户创建了工作区！',
@@ -7492,6 +7498,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             changeOfficeLocation: '更改办公室位置',
             changeWorkArrangement: '更改工作安排',
             changeRole: '更改角色',
+            newRolesBanner: {title: '新角色已可用', subtitle: '<label-text>使用全新的<strong>仅审批</strong>和<strong>来宾</strong>角色，仅授予成员所需的访问权限。</label-text>'},
         },
         card: {
             getStartedIssuing: '从发放您的第一张虚拟卡或实体卡开始使用。',
@@ -8251,6 +8258,12 @@ ${reportName}`,
                 description: `通过 Expensify 与 Campfire 的集成，享受自动同步，减少手动录入。将费用编码维度与税务同步与您的 Campfire 配置对齐，以获得更清晰的财务可见性。`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>我们的 Campfire 集成仅适用于 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: {
+                title: 'Digits',
+                description: `通过 Expensify 与 Digits 的集成，享受自动同步，减少手动录入。将费用编码维度与您的 Digits 配置对齐，以获得更清晰的财务可见性。`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>我们的 Digits 集成仅适用于 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
                 title: 'Dynamics 365 Business Central',
@@ -9289,6 +9302,10 @@ ${reportName}`,
                     return `${customAccountsCount} 张带有自定义账户的卡`;
                 },
             },
+        },
+        digits: {
+            updateCurrencyTitle: '更新工作区货币？',
+            updateCurrencyPrompt: 'Digits 目前仅适用于在美国运营且使用美元的公司。',
         },
         zohoBooks: {
             organization: 'Zoho Books 组织',

@@ -47,6 +47,9 @@ const SENTRY_LABEL = {
     HIGH_CONTRAST_MODE_SWITCHER: {
         TOGGLE: 'HighContrastModeSwitcher-Toggle',
     },
+    NEW_WORKSPACE_ROLES_BANNER: {
+        DISMISS: 'NewWorkspaceRolesBanner-Dismiss',
+    },
     TEST_TOOLS_MODAL_NAVIGATOR: {
         DISMISS: 'TestToolsModalNavigator-Dismiss',
     },
@@ -1284,6 +1287,7 @@ const SENTRY_LABEL = {
             BULK_ACTIONS_DROPDOWN: 'WorkspaceMembers-BulkActionsDropdown',
             MORE_DROPDOWN: 'WorkspaceMembers-MoreDropdown',
             LIST_ROW: 'WorkspaceMembers-ListRow',
+            ROLE_SAVE_BUTTON: 'WorkspaceMembers-RoleSaveButton',
             CATEGORY_VISIBILITY: 'WorkspaceMemberDetails-CategoryVisibility',
         },
         CATEGORIES: {
@@ -1366,6 +1370,8 @@ const SENTRY_LABEL = {
         ACCOUNTING: {
             EXACT_ONLINE_WAITLIST_BUTTON: 'WorkspaceAccounting-ExactOnlineWaitlistButton',
             CARD_SECTION_ADD_BUTTON: 'WorkspaceAccounting-CardSectionAddButton',
+            CREATE_NEW_CONNECTION: 'WorkspaceAccounting-CreateNewConnection',
+            COPY_EXISTING_CONNECTION: 'WorkspaceAccounting-CopyExistingConnection',
             TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_SWITCH: 'WorkspaceAccounting-TravelBillingContinuousReconciliationSwitch',
             CONTINUOUS_RECONCILIATION_SWITCH: 'WorkspaceAccounting-ContinuousReconciliationSwitch',
             QBO: {

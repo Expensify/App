@@ -5447,6 +5447,12 @@ ${amount} dla ${merchant} - ${date}`,
             readOnlyActionPrompt: 'Twoja rola w przestrzeni roboczej może wyświetlać te ustawienia, ale nie może ich edytować.',
             noAccessActionPrompt: 'Twoja rola w tym zespole nie ma dostępu do tych ustawień. Jeśli go potrzebujesz, poproś administratora.',
             connections: 'Połączenia',
+            newRoles: 'Nowe role',
+            adminRoles: 'Role administratora',
+            otherRoles: 'Inne role',
+            roleSelectorDescription: `Przydziel rolę, aby zarządzać uprawnieniami członka w przestrzeni roboczej. <a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">Porównaj role w przestrzeni roboczej</a>.`,
+            roleSelectorFeedback: 'Nie widzisz potrzebnej roli?',
+            roleSelectorFeedbackLink: 'Daj nam znać',
         },
         createdForClient: {
             title: 'Utworzyłeś przestrzeń roboczą dla swojego klienta!',
@@ -7816,6 +7822,10 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             changeOfficeLocation: 'Zmień lokalizację biura',
             changeWorkArrangement: 'Zmień tryb pracy',
             changeRole: 'Zmień rolę',
+            newRolesBanner: {
+                title: 'Nowe role dostępne',
+                subtitle: '<label-text>Daj członkom dokładnie taki dostęp, jakiego potrzebują, dzięki nowym rolom <strong>Tylko zatwierdzanie</strong> i <strong>Gość</strong>.</label-text>',
+            },
         },
         card: {
             getStartedIssuing: 'Zacznij od wydania swojej pierwszej wirtualnej lub fizycznej karty.',
@@ -8589,6 +8599,12 @@ ${reportName}`,
                 description: `Korzystaj z automatycznej synchronizacji i ogranicz ręczne wprowadzanie danych dzięki integracji Expensify + Campfire. Dopasuj wymiary kategoryzacji wydatków i synchronizację podatków do konfiguracji Campfire, aby uzyskać lepszą widoczność finansową.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Integracja z Campfire jest dostępna tylko w planie Control, zaczynającym się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: {
+                title: 'Digits',
+                description: `Korzystaj z automatycznej synchronizacji i ogranicz ręczne wprowadzanie danych dzięki integracji Expensify + Digits. Dopasuj wymiary kategoryzacji wydatków do konfiguracji Digits, aby uzyskać lepszą widoczność finansową.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Integracja z Digits jest dostępna tylko w planie Control, zaczynającym się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
                 title: 'Dynamics 365 Business Central',
@@ -9693,6 +9709,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     return `${customAccountsCount} karty z niestandardowymi kontami`;
                 },
             },
+        },
+        digits: {
+            updateCurrencyTitle: 'Zaktualizować walutę przestrzeni roboczej?',
+            updateCurrencyPrompt: 'Digits jest obecnie dostępny tylko dla firm z siedzibą w USA, które działają w USD.',
         },
         zohoBooks: {
             organization: 'Organizacja Zoho Books',

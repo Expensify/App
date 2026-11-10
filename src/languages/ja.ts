@@ -5361,6 +5361,12 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             readOnlyActionPrompt: 'このワークスペースでのあなたのロールは、これらの設定を表示できますが、編集することはできません。',
             noAccessActionPrompt: 'このワークスペースでのあなたのロールでは、これらの設定にアクセスできません。必要な場合は管理者に依頼してください。',
             connections: '連携',
+            newRoles: '新しいロール',
+            adminRoles: '管理者ロール',
+            otherRoles: 'その他の役割',
+            roleSelectorDescription: `メンバーのワークスペース権限を管理するロールを割り当ててください。<a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">ワークスペースロールを比較</a>。`,
+            roleSelectorFeedback: '必要なロールが見つかりませんか？',
+            roleSelectorFeedbackLink: 'お知らせください',
         },
         createdForClient: {
             title: 'クライアントのワークスペースを作成しました！',
@@ -7685,6 +7691,10 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             changeOfficeLocation: 'オフィスの所在地を変更',
             changeWorkArrangement: '勤務形態を変更',
             changeRole: 'ロールを変更',
+            newRolesBanner: {
+                title: '新しいロールが利用可能です',
+                subtitle: '<label-text>新しく追加された<strong>承認のみ</strong>ロールと<strong>ゲスト</strong>ロールで、メンバーに必要なアクセス権だけを付与できます。</label-text>',
+            },
         },
         card: {
             getStartedIssuing: 'まずは最初のバーチャルカードまたは物理カードを発行しましょう。',
@@ -8456,6 +8466,12 @@ ${reportName}`,
                 description: `Expensify と Campfire の連携で自動同期を活用し、手入力を減らしましょう。経費のコーディングディメンションと税務同期を Campfire の設定に合わせて、財務の可視性を高めます。`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Campfire 連携は Control プランでのみご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からご利用いただけます。</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: {
+                title: 'Digits',
+                description: `Expensify と Digits の連携で自動同期を活用し、手入力を減らしましょう。経費のコーディングディメンションを Digits の設定に合わせて、財務の可視性を高めます。`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Digits 連携は Control プランでのみご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からご利用いただけます。</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
                 title: 'Dynamics 365 Business Central',
@@ -9542,6 +9558,10 @@ ${reportName}`,
                     return `カスタム口座のあるカードが ${customAccountsCount} 枚`;
                 },
             },
+        },
+        digits: {
+            updateCurrencyTitle: 'ワークスペースの通貨を更新しますか？',
+            updateCurrencyPrompt: 'Digits は現在、USD で運営されている米国拠点の企業のみご利用いただけます。',
         },
         zohoBooks: {
             organization: 'Zoho Books 組織',

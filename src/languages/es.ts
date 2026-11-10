@@ -5436,6 +5436,12 @@ ${amount} para ${merchant} - ${date}`,
             approveOnlyAlternateText: 'Solo aprobar informes.',
             noAccessActionPrompt: 'Tu rol en el espacio de trabajo no tiene acceso a estos ajustes. Pide a un administrador que te lo habilite si lo necesitas.',
             connections: 'Conexiones',
+            newRoles: 'Nuevos roles',
+            adminRoles: 'Roles de administrador',
+            otherRoles: 'Otros roles',
+            roleSelectorDescription: `Asigna un rol para gestionar los permisos de espacio de trabajo de un miembro. <a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">Comparar roles de espacio de trabajo</a>.`,
+            roleSelectorFeedback: '¿No ves el rol que necesitas?',
+            roleSelectorFeedbackLink: 'Cuéntanos',
         },
         createdForClient: {
             title: '¡Has creado un espacio de trabajo para tu cliente!',
@@ -7780,6 +7786,10 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             categoryVisibilityRequiredModal: {title: 'Los miembros deben tener al menos una categoría', description: 'Selecciona al menos una categoría que esta persona pueda usar.'},
             changeOfficeLocation: 'Cambiar ubicación de la oficina',
             changeWorkArrangement: 'Cambiar modalidad de trabajo',
+            newRolesBanner: {
+                title: 'Nuevos roles disponibles',
+                subtitle: '<label-text>Da a los miembros solo el acceso que necesitan con los nuevos roles de <strong>Solo aprobación</strong> e <strong>Invitado</strong>.</label-text>',
+            },
         },
         accounting: {
             settings: 'configuración',
@@ -8735,6 +8745,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>Nuestra integración con Campfire solo está disponible en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
+            [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: {
+                title: 'Digits',
+                description: `Disfruta de la sincronización automatizada y reduce las entradas manuales con la integración Expensify + Digits. Alinea las dimensiones de codificación de gastos con tu configuración de Digits para una visibilidad financiera más clara.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>Nuestra integración con Digits solo está disponible en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
                 title: 'Dynamics 365 Business Central',
                 description: `Disfruta de la sincronización automatizada y reduce las entradas manuales con la integración Expensify + Dynamics 365 Business Central. Alinea dimensiones de codificación de gastos y la sincronización de impuestos con tu configuración de Dynamics 365 Business Central para una visibilidad financiera más clara.`,
@@ -9645,6 +9661,10 @@ ${reportName}`,
                     return `${customAccountsCount} tarjetas con cuentas personalizadas`;
                 },
             },
+        },
+        digits: {
+            updateCurrencyTitle: '¿Actualizar la moneda del espacio de trabajo?',
+            updateCurrencyPrompt: 'Digits actualmente solo está disponible para empresas con sede en EE. UU. que operan en USD.',
         },
         zohoBooks: {
             organization: 'Organización Zoho Books',
