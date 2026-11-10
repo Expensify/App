@@ -25,6 +25,8 @@ Use this guide to understand:
 - You can **Hold** expenses when they should not move forward yet
 - You can use **Merge reports** to combine two or more eligible reports from the same submitter and workspace. Reports must be at the same approval stage; Outstanding and Approved reports must share an approver. Submitters can merge their own Draft reports or reports awaiting their first approval, current approvers can merge Outstanding reports assigned to them, and workspace admins can merge eligible Draft, Outstanding, or Approved reports.
 
+**Note:** Merge reports is currently available only to accounts with the report merging beta enabled.
+
 Merging keeps one selected report and deletes the others, including their report-level comments. [Learn how to merge reports](/articles/new-expensify/reports-and-expenses/Managing-Expenses-in-a-Report#how-to-merge-reports).
 
 Only workspace admins can merge Approved reports; the retained report stays Approved and payable without going through approval again. Paid/reimbursed and Done/closed reports cannot be merged. Editable report fields must match across the selection. An accounting-export warning does not block merging, but exporting again may create duplicate accounting data.
@@ -189,6 +191,7 @@ Open a report to see available actions.
 - Primary actions (like **Submit**, **Approve**, or **Pay**) appear at the top of the report
 - Additional actions are available when you open the report and choose **More**
 - **Merge reports** is a selection action, not an individual report action. On web, select specific reports in **Spend > Reports**, then select **Merge reports** from the selection bar, or from **More** if it is not shown directly.
+  - On mobile, press and hold a report in **Spend > Reports**, select **Select**, then select the other reports. Open **X selected** (where X is the number of selected reports), then select **Merge reports**.
 - Available actions change based on:
   - Your role
   - Report status

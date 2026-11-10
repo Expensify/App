@@ -88,6 +88,8 @@ To clear your selection on web, click the **X** on the right side of the selecti
 
 ## How to merge reports
 
+**Note:** Merge reports is currently available only to accounts with the report merging beta enabled.
+
 Use **Merge reports** to consolidate all expenses from two or more reports into one of the selected reports. This combines reports, not duplicate expenses.
 
 The reports must belong to the same submitter and workspace and be at the same point in the approval workflow. Outstanding and Approved reports must also have the same approver. You need edit access to every selected report:
@@ -105,6 +107,15 @@ Paid/reimbursed and Done/closed reports cannot be merged. You cannot mix Draft, 
 3. Select **Merge reports** from the selection bar. If it is not shown directly, select **More**, then **Merge reports**.
 4. Choose the report you want to keep.
 5. Select **Confirm**.
+
+**On mobile:**
+
+1. In the navigation tabs on the bottom, select **Spend > Reports**.
+2. Press and hold a report, then select **Select**.
+3. Select each other report you want to merge. Select specific reports rather than all matching search results.
+4. Select **X selected** (where X is the number of selected reports), then select **Merge reports**.
+5. Choose the report you want to keep.
+6. Select **Confirm**.
 
 If an error says the reports have different report field values, **Confirm** is disabled. Open each report and make the editable report fields match before merging. Formula fields do not need to match. Workspace admins can update report fields on Approved reports without unapproving them. This field check applies to all report merges, not only Approved reports.
 
