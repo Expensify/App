@@ -2,6 +2,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/HomeAddressForm';
 
 import swapBackgroundTabForRHPTarget from './swapBackgroundTabForRHPTarget';
 
@@ -11,12 +12,25 @@ import swapBackgroundTabForRHPTarget from './swapBackgroundTabForRHPTarget';
  * because they only need the home address, while the full private personal details form also requires a
  * legal name, date of birth, phone number and a magic code.
  */
-function openHomeAddressPage() {
-    swapBackgroundTabForRHPTarget(navigationRef.getRootState(), ROUTES.SETTINGS_HOME_ADDRESS);
+function navigateToHomeAddress(fieldToFocus?: string) {
+    const route = ROUTES.SETTINGS_HOME_ADDRESS.getRoute(fieldToFocus);
+    const didSwapBackgroundTab = swapBackgroundTabForRHPTarget(navigationRef.getRootState(), route);
 
-    // The swap can start its own tab transition. Opening the RHP during it is safe only because the address form
-    // focuses no field on open, so the tab change has no focus to take away.
-    Navigation.navigate(ROUTES.SETTINGS_HOME_ADDRESS);
+    // A tab change can steal focus and validate the empty field, so finish it before opening a form that requests focus.
+    if (fieldToFocus && didSwapBackgroundTab) {
+        Navigation.runAfterUpcomingTransition(() => Navigation.navigate(route));
+        return;
+    }
+    Navigation.navigate(route);
 }
 
+function openHomeAddressPage() {
+    navigateToHomeAddress();
+}
+
+function openHomeAddressPageWithFocus() {
+    navigateToHomeAddress(INPUT_IDS.ADDRESS_LINE_1);
+}
+
+export {openHomeAddressPageWithFocus};
 export default openHomeAddressPage;

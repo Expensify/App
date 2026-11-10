@@ -88,7 +88,7 @@ describe('PreferencesPage distance preferences', () => {
 
         // Then the address-only page opens, so changing the address does not require a legal name, date of birth,
         // phone number or magic code
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_HOME_ADDRESS);
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_HOME_ADDRESS.getRoute());
     });
 
     it('hides distance preferences without the commuter exclusions beta', async () => {

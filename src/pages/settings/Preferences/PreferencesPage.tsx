@@ -181,7 +181,7 @@ function PreferencesPage() {
                             isCentralPane
                         >
                             <MenuItemSectionRoot
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_HOME_ADDRESS)}
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_HOME_ADDRESS.getRoute())}
                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.HOME_ADDRESS}
                             >
                                 <MenuItemField.Row
