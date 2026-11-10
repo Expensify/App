@@ -12,6 +12,7 @@ import Onyx from 'react-native-onyx';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const policyID = 'CF7BE4573FC925E8';
+const otherPolicyID = 'A1B2C3D4E5F60718';
 const domainFundID = 18452096;
 const workspaceFundID = 22588762;
 
@@ -79,6 +80,79 @@ describe('useTravelBillingFundID', () => {
         // Then it returns the workspace because no domain holds the travel feed
         await waitFor(() => {
             expect(result.current).toBe(workspaceFundID);
+        });
+    });
+
+    it('resolves the workspace fund when the domain travel billing feed lists only other workspaces', async () => {
+        // Given a domain linked to the workspace through its US card program, whose TRAVEL_US program lists only another workspace
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {id: policyID, policyAccountID: workspaceFundID});
+        await Onyx.merge(getTravelBillingCardSettingsKey(domainFundID), {
+            [CONST.COUNTRY.US]: {linkedPolicyIDs: [policyID], paymentBankAccountID: 67890},
+            [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {...travelBillingSettings, linkedPolicyIDs: [otherPolicyID]},
+        });
+        await waitForBatchedUpdates();
+
+        // When the hook resolves the travel billing fund
+        const {result} = renderHook(() => useTravelBillingFundID(policyID));
+        await waitForBatchedUpdates();
+
+        // Then it returns the workspace, because the domain's travel feed belongs to the other workspace and the backend sets this one up on its workspace account
+        await waitFor(() => {
+            expect(result.current).toBe(workspaceFundID);
+        });
+    });
+
+    it('resolves the workspace fund when the domain travel billing feed was turned off by its last workspace', async () => {
+        // Given a domain linked to the workspace through its US card program, whose TRAVEL_US program was deactivated and kept an empty linkedPolicyIDs list
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {id: policyID, policyAccountID: workspaceFundID});
+        await Onyx.merge(getTravelBillingCardSettingsKey(domainFundID), {
+            [CONST.COUNTRY.US]: {linkedPolicyIDs: [policyID], paymentBankAccountID: 67890},
+            [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {isEnabled: false, linkedPolicyIDs: [], paymentBankAccountID: 8789966},
+        });
+        await waitForBatchedUpdates();
+
+        // When the hook resolves the travel billing fund
+        const {result} = renderHook(() => useTravelBillingFundID(policyID));
+        await waitForBatchedUpdates();
+
+        // Then it returns the workspace, because the backend treats an empty list as naming no workspaces rather than as a legacy feed
+        await waitFor(() => {
+            expect(result.current).toBe(workspaceFundID);
+        });
+    });
+
+    it('resolves the default domain fund when its travel billing feed predates linked policies', async () => {
+        // Given a domain linked to the workspace through its US card program, with a legacy TRAVEL_US program that has no linkedPolicyIDs
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {id: policyID, policyAccountID: workspaceFundID});
+        await Onyx.merge(getTravelBillingCardSettingsKey(domainFundID), {
+            [CONST.COUNTRY.US]: {linkedPolicyIDs: [policyID], paymentBankAccountID: 67890},
+            [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {isEnabled: true, paymentBankAccountID: 8789966},
+        });
+        await waitForBatchedUpdates();
+
+        // When the hook resolves the travel billing fund
+        const {result} = renderHook(() => useTravelBillingFundID(policyID));
+        await waitForBatchedUpdates();
+
+        // Then it returns the domain, because a feed without linkedPolicyIDs doesn't name other workspaces as its owners
+        await waitFor(() => {
+            expect(result.current).toBe(domainFundID);
+        });
+    });
+
+    it('resolves the default domain fund when the domain linked through its card program has no travel billing feed', async () => {
+        // Given a domain linked to the workspace through its US card program and no TRAVEL_US program anywhere
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {id: policyID, policyAccountID: workspaceFundID});
+        await Onyx.merge(getTravelBillingCardSettingsKey(domainFundID), {[CONST.COUNTRY.US]: {linkedPolicyIDs: [policyID], paymentBankAccountID: 67890}});
+        await waitForBatchedUpdates();
+
+        // When the hook resolves the travel billing fund
+        const {result} = renderHook(() => useTravelBillingFundID(policyID));
+        await waitForBatchedUpdates();
+
+        // Then it keeps returning the default domain fund, so setting up travel billing still starts from the domain
+        await waitFor(() => {
+            expect(result.current).toBe(domainFundID);
         });
     });
 });
