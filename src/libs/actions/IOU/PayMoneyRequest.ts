@@ -134,6 +134,9 @@ type PayMoneyRequestFunctionParams = {
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     rules: OnyxCollection<OnyxTypes.Rule>;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+
+    /** The Wise quote the admin confirmed */
+    wiseQuoteID?: string;
 };
 
 function getPayMoneyRequestParams({
@@ -228,7 +231,10 @@ function getPayMoneyRequestParams({
             successData: policySuccessData,
             params,
         } = buildPolicyData({
-            policyOwner: {email: currentUserEmailParam, accountID: currentUserAccountIDParam},
+            policyOwner: {
+                email: currentUserEmailParam,
+                accountID: currentUserAccountIDParam,
+            },
             policyName: defaultWorkspaceName,
             makeMeAdmin: true,
             policyID: payerPolicyID,
@@ -259,9 +265,17 @@ function getPayMoneyRequestParams({
             policyName,
         };
 
-        onyxData.optimisticData?.push(...(policyOptimisticData ?? []), {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_ACTIVE_POLICY_ID, value: payerPolicyID});
+        onyxData.optimisticData?.push(...(policyOptimisticData ?? []), {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+            value: payerPolicyID,
+        });
         onyxData.successData?.push(...(policySuccessData ?? []));
-        onyxData.failureData?.push(...(policyFailureData ?? []), {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_ACTIVE_POLICY_ID, value: activePolicy?.id ?? null});
+        onyxData.failureData?.push(...(policyFailureData ?? []), {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+            value: activePolicy?.id ?? null,
+        });
     }
 
     if (isIndividualInvoiceRoom(chatReport) && payAsBusiness && existingB2BInvoiceReport) {
@@ -309,7 +323,14 @@ function getPayMoneyRequestParams({
     }
     let optimisticNextStep = null;
     if (!isInvoiceReport) {
-        optimisticNextStep = buildOptimisticNextStep({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED, isTrackIntentUser, rules});
+        // A paid report has no next approver, so personalDetailsByLogins isn't needed.
+        optimisticNextStep = buildOptimisticNextStep({
+            report: iouReport,
+            predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            isTrackIntentUser,
+            rules,
+            personalDetailsByLogins: undefined,
+        });
     }
 
     const optimisticChatReport = {
@@ -452,7 +473,10 @@ function getPayMoneyRequestParams({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
                 [optimisticReportPreviewAction.reportActionID]: hasStalePayFailure
-                    ? {...optimisticReportPreviewAction, errors: {[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY]: null}}
+                    ? {
+                          ...optimisticReportPreviewAction,
+                          errors: {[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY]: null},
+                      }
                     : optimisticReportPreviewAction,
             },
         });
@@ -463,7 +487,11 @@ function getPayMoneyRequestParams({
                 [optimisticReportPreviewAction.reportActionID]: {
                     created: optimisticReportPreviewAction.created,
                     // Only shown once the preview is deleted, see getVisibleReportActionErrors.
-                    ...(shouldMirrorPayFailure ? {errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.payFailedExpenseDeleted', CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY)} : {}),
+                    ...(shouldMirrorPayFailure
+                        ? {
+                              errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.payFailedExpenseDeleted', CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY),
+                          }
+                        : {}),
                 },
             },
         });
@@ -679,6 +707,7 @@ function cancelPayment(
     const hasConnectedBankAccount = !!policy?.achAccount?.accountNumber;
     const predictedNextStatus = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL && hasConnectedBankAccount ? CONST.REPORT.STATUS_NUM.SUBMITTED : statusNum;
 
+    // The next step is only SUBMITTED for Optional approval policies, which never look up the next approver, so personalDetailsByLogins isn't needed.
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
         predictedNextStatus,
@@ -689,6 +718,7 @@ function cancelPayment(
         isASAPSubmitBetaEnabled,
         isTrackIntentUser,
         rules,
+        personalDetailsByLogins: undefined,
     });
     const iouReportActions = getAllReportActions(chatReport.iouReportID);
     const expenseReportActions = getAllReportActions(expenseReport.reportID);
@@ -773,12 +803,14 @@ function cancelPayment(
                 isWaitingOnBankAccount: expenseReport.isWaitingOnBankAccount,
                 canCancelReimbursement: expenseReport.canCancelReimbursement,
                 isCancelledIOU: false,
+                // A paid report has no next approver, so personalDetailsByLogins isn't needed.
                 nextStep:
                     buildOptimisticNextStep({
                         report: expenseReport,
                         predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED,
                         isTrackIntentUser,
                         rules,
+                        personalDetailsByLogins: undefined,
                     }) ?? null,
                 pendingFields: {
                     nextStep: null,
@@ -944,6 +976,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         rules,
         bankAccountList,
         formatPhoneNumber,
+        wiseQuoteID,
     } = params;
     const policyForBillingRestriction = chatReportPolicy ?? (policy?.id === chatReport.policyID ? policy : undefined);
     if (
@@ -956,7 +989,12 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     }
 
     // The backend rejects this payment until the account is set up for global reimbursements, so open the onboarding right away instead of showing an optimistic payment
-    const bankAccountToSetUp = getBankAccountToSetUpBeforePaying({paymentType, methodID, bankAccountList, isWiseReimbursementsBetaEnabled});
+    const bankAccountToSetUp = getBankAccountToSetUpBeforePaying({
+        paymentType,
+        methodID,
+        bankAccountList,
+        isWiseReimbursementsBetaEnabled,
+    });
     if (methodID && bankAccountToSetUp) {
         Onyx.set(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL, {
             bankAccountID: methodID,
@@ -969,7 +1007,9 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     const paymentSelected = paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
     completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, currentUserAccountID, conciergeChat, delegateAccountID);
 
-    const recipient = {accountID: iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
+    const recipient = {
+        accountID: iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
+    };
     const {params: payMoneyRequestParams, onyxData} = getPayMoneyRequestParams({
         initialChatReport: chatReport,
         iouReport,
@@ -998,6 +1038,15 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         formatPhoneNumber,
     });
 
+    // Wise takes a quote for one transfer only, so a payment retried after a failure asks for a new quote
+    if (wiseQuoteID && iouReport?.reportID) {
+        onyxData.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {wiseQuote: null, wiseQuoteRequest: null},
+        });
+    }
+
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
     // Expensify Wallets.
     const apiCommand = paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET : WRITE_COMMANDS.PAY_MONEY_REQUEST;
@@ -1006,7 +1055,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     if (shouldPlaySuccessSound) {
         playSound(SOUNDS.SUCCESS);
     }
-    API.write(apiCommand, payMoneyRequestParams, mergeAdditionalPayOnyxData(onyxData, additionalOnyxData));
+    API.write(apiCommand, {...payMoneyRequestParams, wiseQuoteID}, mergeAdditionalPayOnyxData(onyxData, additionalOnyxData));
     notifyNewAction(!full ? (Navigation.getTopmostReportId() ?? iouReport?.reportID) : iouReport?.reportID, undefined, true);
     return payMoneyRequestParams.optimisticHoldReportID;
 }
@@ -1026,7 +1075,9 @@ function markReportPaymentReceived(
     if (!chatReport || !iouReport) {
         return;
     }
-    const recipient = {accountID: iouReport.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
+    const recipient = {
+        accountID: iouReport.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
+    };
     const total = getReimbursableTotal(iouReport);
     const optimisticIOUReportAction = buildOptimisticIOUReportAction({
         type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
@@ -1048,11 +1099,25 @@ function markReportPaymentReceived(
     // translateLocal is used because this runs outside a React component where the useLocalize hook is unavailable.
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const receivedPaymentMessage = getElsewherePaymentReportActionMessage(translateLocal, optimisticIOUReportAction.originalMessage);
-    optimisticIOUReportAction.message = [{html: receivedPaymentMessage, text: receivedPaymentMessage, isEdited: false, type: CONST.REPORT.MESSAGE.TYPE.COMMENT}];
+    optimisticIOUReportAction.message = [
+        {
+            html: receivedPaymentMessage,
+            text: receivedPaymentMessage,
+            isEdited: false,
+            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+        },
+    ];
 
     const reportPreviewAction = getReportPreviewReportAction(chatReport.reportID, iouReport.reportID, chatReportActions);
     const optimisticReportPreviewAction = reportPreviewAction ? updateReportPreview(iouReport, reportPreviewAction, getCurrencyDecimals, formatPhoneNumber, true) : null;
-    const optimisticNextStep = buildOptimisticNextStep({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED, isTrackIntentUser, rules});
+    // A paid report has no next approver, so personalDetailsByLogins isn't needed.
+    const optimisticNextStep = buildOptimisticNextStep({
+        report: iouReport,
+        predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED,
+        isTrackIntentUser,
+        rules,
+        personalDetailsByLogins: undefined,
+    });
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
@@ -1106,7 +1171,10 @@ function markReportPaymentReceived(
                 // Clear any mirrored failure, or it resurfaces as a phantom error once the report is deleted.
                 [optimisticReportPreviewAction.reportActionID]:
                     CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY in (optimisticReportPreviewAction.errors ?? {})
-                        ? {...optimisticReportPreviewAction, errors: {[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY]: null}}
+                        ? {
+                              ...optimisticReportPreviewAction,
+                              errors: {[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY]: null},
+                          }
                         : optimisticReportPreviewAction,
             },
         });
@@ -1179,7 +1247,11 @@ function markReportPaymentReceived(
     };
 
     playSound(SOUNDS.SUCCESS);
-    API.write(WRITE_COMMANDS.MARK_REPORT_PAYMENT_RECEIVED, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.MARK_REPORT_PAYMENT_RECEIVED, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
     notifyNewAction(iouReport.reportID, undefined, true);
 }
 
@@ -1211,7 +1283,9 @@ function payInvoice({
     bankAccountList,
     formatPhoneNumber,
 }: PayInvoiceArgs) {
-    const recipient = {accountID: invoiceReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
+    const recipient = {
+        accountID: invoiceReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
+    };
     const {
         onyxData,
         params: {
@@ -1309,10 +1383,13 @@ function savePreferredPaymentMethod(
         [policyID]: type
             ? {
                   [type]: {name: paymentMethod},
-                  [CONST.LAST_PAYMENT_METHOD.LAST_USED]: {name: typeof prevPaymentMethod === 'string' ? prevPaymentMethod : (prevPaymentMethod?.lastUsed?.name ?? paymentMethod)},
+                  [CONST.LAST_PAYMENT_METHOD.LAST_USED]: {
+                      name: typeof prevPaymentMethod === 'string' ? prevPaymentMethod : (prevPaymentMethod?.lastUsed?.name ?? paymentMethod),
+                  },
               }
             : paymentMethod,
     });
 }
 
 export {cancelPayment, completePaymentOnboarding, getBankAccountToSetUpBeforePaying, markReportPaymentReceived, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
+export type {PayMoneyRequestFunctionParams};

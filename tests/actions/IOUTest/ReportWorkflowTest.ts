@@ -923,7 +923,10 @@ describe('actions/IOU/ReportWorkflow', () => {
                     });
 
                     const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {isASAPSubmitBetaEnabled: false});
+                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {
+                        isASAPSubmitBetaEnabled: false,
+                        personalDetailsByLogins: undefined,
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -1009,7 +1012,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             policyName: "Carlos's Workspace",
                             policyID: undefined,
                             engagementChoice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
-                            introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                            introSelected: {choice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT},
                             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                             currentUserEmailParam: CARLOS_EMAIL,
                             currency: undefined,
@@ -1337,7 +1340,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             policyName: "Carlos's Workspace",
                             policyID: undefined,
                             engagementChoice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
-                            introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                            introSelected: {choice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT},
                             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                             currentUserEmailParam: CARLOS_EMAIL,
                             currency: undefined,
@@ -1603,6 +1606,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                     setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {
                         isASAPSubmitBetaEnabled: false,
+                        personalDetailsByLogins: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -1863,7 +1867,10 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateAccountID: undefined,
             });
 
-            setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {isASAPSubmitBetaEnabled: false});
+            setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {
+                isASAPSubmitBetaEnabled: false,
+                personalDetailsByLogins: undefined,
+            });
             await waitForBatchedUpdates();
 
             let chatReport: OnyxEntry<Report>;

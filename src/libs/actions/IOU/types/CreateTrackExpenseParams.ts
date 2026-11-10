@@ -10,6 +10,7 @@ import type {CurrentUser} from '@userActions/Policy/Policy';
 import type {IOUAction} from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Accountant} from '@src/types/onyx/IOU';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -45,6 +46,7 @@ type CreateTrackExpenseParams = {
     existingActionableWhisperReportActionID?: string;
     isASAPSubmitBetaEnabled: boolean;
     currentUser: CurrentUser;
+    currentUserPersonalDetails?: CurrentUserPersonalDetails;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;

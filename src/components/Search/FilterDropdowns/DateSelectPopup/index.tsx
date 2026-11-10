@@ -17,6 +17,7 @@ import {getDateModifierTitle, getDateRangeDisplayValueFromFormValue} from '@libs
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -40,7 +41,7 @@ type DateSelectPopupProps = {
     /** Function to set the popover width dynamically */
     setPopoverWidth?: (width: number | undefined) => void;
 
-    applySentryLabel: string;
+    applySentryLabel: SentryLabel;
 };
 
 function DateSelectPopup({
@@ -174,6 +175,7 @@ function DateSelectPopup({
                     <View style={[styles.flex1, useRangeLayout && styles.ml2]}>
                         <ActionButtons
                             containerStyle={[styles.flexRow, styles.gap2]}
+                            applySentryLabel={applySentryLabel}
                             onApply={applyChanges}
                         />
                     </View>

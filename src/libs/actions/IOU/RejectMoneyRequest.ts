@@ -1083,6 +1083,7 @@ function rejectExpenseReport(
     const optimisticStateNum = isRejectToSubmitter ? CONST.REPORT.STATE_NUM.OPEN : CONST.REPORT.STATE_NUM.SUBMITTED;
     const optimisticStatusNum = isRejectToSubmitter ? CONST.REPORT.STATUS_NUM.OPEN : CONST.REPORT.STATUS_NUM.SUBMITTED;
 
+    // Rejecting either reopens the report or sends it to targetAccountID, so the next approver is never looked up and personalDetailsByLogins isn't needed.
     const optimisticNextStep = isRejectToSubmitter
         ? buildOptimisticNextStep({
               report,
@@ -1090,6 +1091,7 @@ function rejectExpenseReport(
               isRejectedReport: true,
               isTrackIntentUser,
               rules,
+              personalDetailsByLogins: undefined,
           })
         : buildOptimisticNextStep({
               report,
@@ -1097,6 +1099,7 @@ function rejectExpenseReport(
               bypassNextApproverID: targetAccountID,
               isTrackIntentUser,
               rules,
+              personalDetailsByLogins: undefined,
           });
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [

@@ -236,6 +236,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             reportTransactions,
             rules,
             delegateAccountID,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
         });
         refreshSearch();
     };

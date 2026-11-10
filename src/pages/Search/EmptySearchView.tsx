@@ -275,6 +275,7 @@ function EmptySearchViewContent({
                         <View style={[styles.mt6, styles.alignSelfCenter]}>
                             <SearchScopeProvider isOnSearch={false}>
                                 <BookTravelButton
+                                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.EMPTY_STATE.BOOK_TRAVEL}
                                     text={translate('search.searchResults.emptyTripResults.buttonText')}
                                     activePolicyID={activePolicy?.id}
                                 />
