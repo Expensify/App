@@ -123,7 +123,7 @@ function InsightsPageControls({filters, defaultFilters, onChange, isPolicyAvaila
             ref={captureRef ? viewRef(captureRef) : undefined}
             collapsable={false}
             testID="InsightsCaptureControls"
-            style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap2]}
+            style={[styles.flexRow, styles.flexWrap, styles.flexShrink1, styles.alignItemsCenter, styles.gap2]}
         >
             {controls}
             {exportButton}

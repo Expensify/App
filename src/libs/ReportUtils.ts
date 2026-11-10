@@ -4068,6 +4068,7 @@ function canDeleteReportAction(
         reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT ||
         reportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
         isCreatedTaskReportAction(reportAction) ||
+        isCreatedSupportTicketReportAction(reportAction) ||
         reportAction?.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE
     ) {
         return false;
@@ -11564,11 +11565,6 @@ function reasonForReportToBeInOptionList({
     }
 
     if (!canAccessReport(report, isDefaultRoomsBetaEnabled, hasGuidesEmails, isReportArchived)) {
-        return null;
-    }
-
-    // Members and admins are always participants, so this workspace chat is only here for the "From" on a report shared with the user.
-    if (isPolicyExpenseChat(report) && !report.isOwnPolicyExpenseChat && !isReportArchived && !!report.participants && !!currentUserAccountID && !report.participants[currentUserAccountID]) {
         return null;
     }
 
