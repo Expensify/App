@@ -26,6 +26,7 @@ import {hasAuthToken} from '@libs/CurrentUserStore';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import FraudProtection from '@libs/FraudProtection';
 import getPlatform from '@libs/getPlatform';
+import getShouldSkipOnboardingAfterMerge from '@libs/getShouldSkipOnboardingAfterMerge';
 import HttpUtils from '@libs/HttpUtils';
 import Log from '@libs/Log';
 import {findMatchingDynamicSuffix} from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
@@ -1819,13 +1820,6 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_ONBOARDING,
-            value: {
-                isMergeAccountStepCompleted: true,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
@@ -1862,7 +1856,11 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
             } else {
                 Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: true});
             }
-            return {didMerge: false, shouldRedirectToClassicAfterMerge: false, conciergeReportID: undefined};
+            return {didMerge: false, shouldRedirectToClassicAfterMerge: false, shouldSkipOnboardingAfterMerge: false, conciergeReportID: undefined};
+        }
+
+        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+            return {didMerge: false, shouldRedirectToClassicAfterMerge: false, shouldSkipOnboardingAfterMerge: false, conciergeReportID: undefined};
         }
 
         const responseOnyxData = response?.onyxData as Array<{key: string; value?: unknown}> | undefined;
@@ -1879,10 +1877,15 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
         // For more information see the slack discussion: https://expensify.slack.com/archives/C08CZDJFJ77/p1742838796040369
         return SequentialQueue.waitForIdle().then(() => {
             if (!response?.authToken || !response?.encryptedAuthToken) {
-                return {didMerge: false, shouldRedirectToClassicAfterMerge: false, conciergeReportID: undefined};
+                return {didMerge: false, shouldRedirectToClassicAfterMerge: false, shouldSkipOnboardingAfterMerge: false, conciergeReportID: undefined};
             }
 
-            return updateAuthTokenAndOpenApp(response.authToken, response.encryptedAuthToken).then(() => ({didMerge: true, shouldRedirectToClassicAfterMerge, conciergeReportID}));
+            const shouldSkipOnboardingAfterMerge = getShouldSkipOnboardingAfterMerge(response.onyxData);
+            return updateAuthTokenAndOpenApp(response.authToken, response.encryptedAuthToken).then(async () => {
+                // Do not let the source account advance onboarding while destination initialization is in flight.
+                await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergeAccountStepCompleted: true});
+                return {didMerge: true, shouldRedirectToClassicAfterMerge, shouldSkipOnboardingAfterMerge, conciergeReportID};
+            });
         });
     });
 }

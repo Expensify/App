@@ -5,6 +5,40 @@ import type {LoginList} from '@src/types/onyx';
 import {formatPhoneNumber, translateLocal} from '../utils/TestHelper';
 
 describe('UserUtils', () => {
+    describe('missing display name indicators', () => {
+        it.each([
+            {firstName: '', lastName: '', expected: true},
+            {firstName: 'Ada', lastName: '', expected: true},
+            {firstName: '', lastName: 'Lovelace', expected: true},
+            {firstName: ' ', lastName: 'Lovelace', expected: true},
+            {firstName: 'Ada', lastName: 'Lovelace', expected: false},
+        ])('shows INFO for missing names: %j', ({firstName, lastName, expected}) => {
+            // Given loaded personal details with either or both names missing.
+            const personalDetails = {firstName, lastName};
+            // When calculating the Profile indicator from current personal details.
+            const status = UserUtils.getProfilePageBrickRoadIndicator(undefined, undefined, undefined, undefined, false, UserUtils.hasMissingDisplayName(personalDetails));
+            // Then INFO persists until both names have been saved.
+            expect(status).toBe(expected ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined);
+        });
+
+        it('does not flag unloaded details', () => {
+            // Given a current-user provider without a loaded personal-details record.
+            // When checking for missing names before that record arrives.
+            // Then there is no transient missing-name indicator.
+            expect(UserUtils.hasMissingDisplayName(undefined)).toBe(false);
+            expect(UserUtils.hasMissingDisplayName({})).toBe(false);
+        });
+
+        it('preserves error priority over missing-name INFO', () => {
+            // Given a missing name and a phone-number error.
+            const details = {errorFields: {phoneNumber: {message: 'error'}}};
+            // When calculating the Profile indicator.
+            const status = UserUtils.getProfilePageBrickRoadIndicator(undefined, details, undefined, undefined, false, true);
+            // Then the actionable error retains priority.
+            expect(status).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+        });
+    });
+
     describe('getContactMethodsOptions', () => {
         type TestCase = {
             name: string;

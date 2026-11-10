@@ -3,6 +3,7 @@
 import {beforeEach, jest, test} from '@jest/globals';
 
 import {openApp, reconnectApp} from '@libs/actions/App';
+import * as AppActions from '@libs/actions/App';
 import * as DelegateActions from '@libs/actions/Delegate';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {getAll as getAllPersistedRequests} from '@libs/actions/PersistedRequests';
@@ -101,6 +102,36 @@ beforeEach(() => {
 });
 
 describe('Session', () => {
+    it('waits for destination initialization before publishing merge completion', async () => {
+        // Given an incomplete source and a response identifying a completed destination.
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+        const mergeRequest = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValueOnce({
+            jsonCode: CONST.JSON_CODE.SUCCESS,
+            authToken: 'destination-token',
+            encryptedAuthToken: 'destination-encrypted-token',
+            onyxData: [{onyxMethod: Onyx.METHOD.SET, key: ONYXKEYS.NVP_ONBOARDING, value: {hasCompletedGuidedSetupFlow: true}}],
+        });
+        let resolveOpenApp: () => void = () => {};
+        const destinationOpenApp = new Promise<void>((resolve) => {
+            resolveOpenApp = resolve;
+        });
+        const openDestination = jest.spyOn(AppActions, 'openApp').mockReturnValueOnce(destinationOpenApp);
+
+        // When the merge response arrives but destination OpenApp has not finished.
+        const merge = SessionUtil.MergeIntoAccountAndLogin('work@example.com', '123456', 1);
+        await waitForBatchedUpdates();
+        expect(openDestination).toHaveBeenCalledTimes(1);
+        expect((await getOnyxValue(ONYXKEYS.NVP_ONBOARDING))?.isMergeAccountStepCompleted).toBeUndefined();
+        resolveOpenApp();
+        const result = await merge;
+
+        // Then response-backed eligibility and the completion marker are available only after initialization.
+        expect(result).toEqual(expect.objectContaining({didMerge: true, shouldSkipOnboardingAfterMerge: true}));
+        expect((await getOnyxValue(ONYXKEYS.NVP_ONBOARDING))?.isMergeAccountStepCompleted).toBe(true);
+        mergeRequest.mockRestore();
+        openDestination.mockRestore();
+    });
+
     describe('callFunctionIfActionIsAllowed', () => {
         test('blocks a non-anonymous action for a passed anonymous session even when the stored session is signed in', async () => {
             // Given a signed-in session stored in Onyx

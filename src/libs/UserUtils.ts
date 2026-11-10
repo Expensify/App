@@ -1,7 +1,7 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
-import type {LoginList, Logins, NewLogin, PrivatePersonalDetails, VacationDelegate} from '@src/types/onyx';
+import type {LoginList, Logins, NewLogin, PersonalDetails, PrivatePersonalDetails, VacationDelegate} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -192,16 +192,23 @@ function getProfilePageBrickRoadIndicator(
     vacationDelegate: OnyxEntry<VacationDelegate>,
     email: string | undefined,
     shouldShowAddHomeAddress = false,
+    shouldShowDisplayNameInfo = false,
 ): LoginListIndicator {
     const hasPhoneNumberError = !!privatePersonalDetails?.errorFields?.phoneNumber;
     if (hasLoginListError(loginList) || hasPhoneNumberError || !isEmptyObject(getVacationDelegateErrors(vacationDelegate))) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
-    if (hasLoginListInfo(loginList, email) || shouldShowAddHomeAddress) {
+    if (hasLoginListInfo(loginList, email) || shouldShowAddHomeAddress || shouldShowDisplayNameInfo) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
 
     return undefined;
+}
+
+function hasMissingDisplayName(personalDetails: Pick<PersonalDetails, 'firstName' | 'lastName' | 'displayName'> | undefined): boolean {
+    // The current-user provider supplies an account ID before the personal-details record arrives.
+    const hasLoadedName = personalDetails?.firstName !== undefined || personalDetails?.lastName !== undefined || personalDetails?.displayName !== undefined;
+    return hasLoadedName && (!personalDetails?.firstName?.trim() || !personalDetails?.lastName?.trim());
 }
 
 /**
@@ -278,6 +285,7 @@ export {
     generateAccountID,
     getLoginListBrickRoadIndicator,
     getProfilePageBrickRoadIndicator,
+    hasMissingDisplayName,
     hasLoginListError,
     hasLoginListInfo,
     hashText,
