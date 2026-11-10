@@ -1,7 +1,7 @@
 ---
 title: Expense and Report Actions
-description: Learn what actions (Submit, Approve, Pay, Export, Hold) are available on reports based on role and report status.
-keywords: [New Expensify, report actions Expensify, who can approve report, when can I pay report, who can cancel payment, report status actions, approver permissions, change approver, reassign approver, bypass approvers]
+description: Learn which report actions, including merging reports, are available based on your role and report status.
+keywords: [New Expensify, report actions Expensify, merge reports, combine expense reports, who can approve report, when can I pay report, who can cancel payment, report status actions, approver permissions, change approver, reassign approver, bypass approvers]
 internalScope: Audience is all members. High level overview of what report actions are available based on role and report status. Does not cover step-by-step instructions for performing each action.
 ---
 
@@ -23,6 +23,9 @@ Use this guide to understand:
 - You can **pay** a report after it is **Approved** status and you are a **payer**
 - You can **export** a report when it is **Approved or Paid** status and you are an **admin or exporter**
 - You can **Hold** expenses when they should not move forward yet
+- You can use **Merge reports** to combine two or more eligible reports from the same submitter and workspace. Reports must be at the same approval stage; Outstanding reports must share the current approver. Submitters can merge their own Draft reports or reports awaiting their first approval, current approvers can merge Outstanding reports assigned to them, and workspace admins can merge eligible Draft or Outstanding reports.
+
+Merging keeps one selected report and deletes the others, including their report-level comments. [Learn how to merge reports](/articles/new-expensify/reports-and-expenses/Managing-Expenses-in-a-Report#how-to-merge-reports).
 
 [Learn more about report statuses](articles/new-expensify/reports-and-expenses/Understanding-Report-Statuses-and-Actions#report-statuses).
 
@@ -183,6 +186,7 @@ Open a report to see available actions.
 
 - Primary actions (like **Submit**, **Approve**, or **Pay**) appear at the top of the report
 - Additional actions are available when you open the report and choose **More**
+- **Merge reports** is a selection action, not an individual report action. On web, select specific reports in **Spend > Reports**, then select **Merge reports** from the selection bar, or from **More** if it is not shown directly.
 - Available actions change based on:
   - Your role
   - Report status

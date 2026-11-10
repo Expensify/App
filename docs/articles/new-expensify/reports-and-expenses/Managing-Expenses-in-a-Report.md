@@ -1,10 +1,11 @@
 ---
 title: Managing Expenses in a Report
-description: Learn how to add, remove, and move expenses in a report in New Expensify, including how comments and system messages interact with them.
-keywords: [New Expensify, manage expenses, add expense, delete expense, move expense, expense table, edit report, report approval, expense actions, create report, admin create report, inline editing, edit expense inline, sort expenses in a report, sort by date, sort by column, expense order in a report, group by category, group by tag]
+description: Learn how to add, remove, and move expenses or merge reports in New Expensify, including what happens to comments and report details.
+keywords: [New Expensify, manage expenses, add expense, delete expense, move expense, merge reports, combine expense reports, expense table, edit report, report approval, expense actions, create report, admin create report, inline editing, edit expense inline, sort expenses in a report, sort by date, sort by column, expense order in a report, group by category, group by tag]
+internalScope: Audience is submitters, approvers, and workspace admins. Covers managing expenses within reports and consolidating report contents by merging reports. Does not cover merging duplicate expenses or configuring approval workflows.
 ---
 
-Managing expenses in reports helps you keep everything organized and ready for approval, payment, or export. This guide covers adding, moving, deleting, and editing expenses, as well as understanding audit trails and collaboration.
+Managing expenses in reports helps you keep everything organized and ready for approval, payment, or export. This guide covers adding, moving, deleting, and editing expenses, merging reports, and understanding audit trails and collaboration.
 
 # Managing Expenses in a Report in New Expensify
 
@@ -82,6 +83,32 @@ To clear your selection on web, click the **X** on the right side of the selecti
 **Note:** Reports are limited to 500 expenses. If you choose a destination report that already has 500 expenses, the move is blocked and a message appears: *Reports are limited to 500 expenses. Please move some to another report.* Move some expenses out of that report or pick a different destination.
 
 **Note:** Workspace Admins can also create reports on behalf of employees by moving expenses to a new report. This is particularly useful for processing company card expenses or splitting expenses across different accounting periods. See [Create and Submit Reports](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-and-Submit-Reports) for more details.
+
+---
+
+## How to merge reports
+
+Use **Merge reports** to consolidate all expenses from two or more reports into one of the selected reports. This combines reports, not duplicate expenses.
+
+The reports must belong to the same submitter and workspace and be at the same point in the approval workflow. Outstanding reports must also have the same current approver. You need edit access to every selected report:
+
+- Submitters can merge their own Draft reports or Outstanding reports that have not yet received their first approval.
+- Current approvers can merge Outstanding reports assigned to them.
+- Workspace admins can merge eligible Draft or Outstanding reports in their workspace.
+
+Paid and Done reports cannot be merged.
+
+**On web:**
+
+1. In the navigation tabs on the left, select **Spend > Reports**.
+2. Select the checkbox beside each report you want to merge. Select specific reports rather than all matching search results.
+3. Select **Merge reports** from the selection bar. If it is not shown directly, select **More**, then **Merge reports**.
+4. Choose the report you want to keep.
+5. Select **Confirm**.
+
+All expenses move into the report you chose, and you are taken to that report. Its report-level details and approval state stay unchanged.
+
+**Important:** The other selected reports and their report-level comments are permanently deleted. Their comments are not copied to the report you keep.
 
 ---
 
