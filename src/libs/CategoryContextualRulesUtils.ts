@@ -11,6 +11,7 @@ import type {DynamicRouteSuffix} from '@src/ROUTES';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy, PolicyCategory, Rule} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -32,6 +33,8 @@ type CategoryContextualRule = {
     conditionSummary?: string;
     /** Dynamic route suffix under category settings (keeps Categories underlay on refresh). */
     dynamicRoutePath: DynamicRouteSuffix | ReturnType<typeof DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_EDIT.getRoute>;
+    /** Sentry label for the rule row, one variant per rule type */
+    sentryLabel: SentryLabel;
     pendingAction?: PendingAction;
     /** Optimistically deleted rules stay listed (struck through) but must not be openable. */
     isDisabled?: boolean;
@@ -94,6 +97,7 @@ function getCategoryContextualRules({
     if (flagSummary && (isOffline || !isFlagPendingDelete)) {
         rules.push({
             key: `flag-for-review-${categoryName}`,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_RULE_ROW.FLAG_FOR_REVIEW,
             summary: flagSummary,
             dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_EDIT.path,
             pendingAction: flagPendingAction,
@@ -113,6 +117,7 @@ function getCategoryContextualRules({
         if (summary) {
             rules.push({
                 key: `require-fields-${categoryName}`,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_RULE_ROW.REQUIRE_FIELDS,
                 summary,
                 dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_REQUIRE_FIELDS_EDIT.path,
                 pendingAction: requireFieldsPendingAction,
@@ -142,6 +147,7 @@ function getCategoryContextualRules({
 
         rules.push({
             key: `expense-default-${ruleID}`,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_RULE_ROW.TAX,
             summary,
             // The category is left out, since naming the page the admin is already on reads as noise.
             conditionSummary: getExpenseDefaultConditionText(rule.filters, translate, true),

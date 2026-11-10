@@ -3507,15 +3507,6 @@ function canIOUBePaid(
         return false;
     }
 
-    if (getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
-        if (!onlyShowPayElsewhere) {
-            return false;
-        }
-        if (iouReport?.statusNum !== CONST.REPORT.STATUS_NUM.SUBMITTED) {
-            return false;
-        }
-    }
-
     if (isInvoiceReport(iouReport)) {
         if (isChatReportArchived || iouSettled || isOpenInvoiceReport(iouReport)) {
             return false;
@@ -3524,6 +3515,16 @@ function canIOUBePaid(
             return chatReport?.invoiceReceiver?.accountID === currentUserAccountID;
         }
         return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN;
+    }
+
+    // Invoice payment depends on the receiver policy above, so the sender's reimbursement choice only gates non-invoice reports.
+    if (getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
+        if (!onlyShowPayElsewhere) {
+            return false;
+        }
+        if (iouReport?.statusNum !== CONST.REPORT.STATUS_NUM.SUBMITTED) {
+            return false;
+        }
     }
 
     const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, iouReport, bankAccountList, policy, onlyShowPayElsewhere);
@@ -4067,6 +4068,7 @@ function canDeleteReportAction(
         reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT ||
         reportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
         isCreatedTaskReportAction(reportAction) ||
+        isCreatedSupportTicketReportAction(reportAction) ||
         reportAction?.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE
     ) {
         return false;
@@ -11566,11 +11568,6 @@ function reasonForReportToBeInOptionList({
         return null;
     }
 
-    // Members and admins are always participants, so this workspace chat is only here for the "From" on a report shared with the user.
-    if (isPolicyExpenseChat(report) && !report.isOwnPolicyExpenseChat && !isReportArchived && !!report.participants && !!currentUserAccountID && !report.participants[currentUserAccountID]) {
-        return null;
-    }
-
     const parentReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
 
     // If this is a transaction thread associated with a report that only has one transaction, omit it
@@ -14714,6 +14711,51 @@ function isReportExportedOrPending(reportActions: OnyxEntry<ReportActions> | Rep
     return !!report?.pendingFields?.export || isExported(reportActions, report);
 }
 
+/**
+ * Whether an export this client started is still running.
+ *
+ * There is no client event meaning "the export finished" - the 200 only means the request was accepted, and the real
+ * outcome arrives later over Pusher - so the state is resolved by comparison at read time
+ * rather than cleared from a callback. Nothing is stored, so no stale flag can strand the button and no other flow
+ * has to remember to clear one.
+ *
+ * Ordered the same way `isExported` orders an export against the actions that reset it: the attempt's own timestamp
+ * is read off the action that started it.
+ */
+function isExportInProgress(reportActions: OnyxEntry<ReportActions> | ReportAction[]): boolean {
+    const reportActionList = Array.isArray(reportActions) ? reportActions : Object.values(reportActions ?? {});
+
+    if (reportActionList.length === 0) {
+        return false;
+    }
+
+    let lastExportStartedCreated = '';
+    let lastExportResolvedCreated = '';
+
+    for (const action of reportActionList) {
+        // One action type covers both halves of an export, and only `pendingAction` separates them: a pending one renders
+        // "started exporting this report to ...", anything else renders a finished export. See getExportIntegrationActionFragments.
+        const isExportIntegration = isExportIntegrationAction(action);
+        if (isExportIntegration && action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+            // A rejected request leaves its errors on the started action, and nothing will ever answer it
+            if (isEmptyObject(action.errors) && action.created > lastExportStartedCreated) {
+                lastExportStartedCreated = action.created;
+            }
+            continue;
+        }
+
+        // Every outcome ends the attempt, finished exports and reconciled ones included, unlike `hasExportError` which only
+        // counts failures. A pending one is this client's own optimistic action, which says nothing about what the server did.
+        const isOutcome = (isExportIntegration || isIntegrationMessageAction(action)) && !action.pendingAction;
+        // Resetting the approval state invalidates the export the same way it invalidates a finished one in `isExported`.
+        if ((isOutcome || RESET_APPROVAL_ACTION_TYPES.has(action.actionName)) && action.created > lastExportResolvedCreated) {
+            lastExportResolvedCreated = action.created;
+        }
+    }
+
+    return !!lastExportStartedCreated && lastExportResolvedCreated < lastExportStartedCreated;
+}
+
 function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[], report?: OnyxEntry<Report>) {
     if (report?.hasExportError) {
         return true;
@@ -16148,6 +16190,7 @@ export {
     isReportExportedOrPending,
     hasExpensifyGuidesEmails,
     hasExportError,
+    isExportInProgress,
     hasOnlyNonReimbursableTransactions,
     isCardOnlyReport,
     hasSettledZeroReimbursableSpend,

@@ -267,6 +267,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.name}>
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_NAME}
                             name={translate('common.name')}
                             onPress={canWriteCategories ? navigateToEditCategory : undefined}
                             value={decodedCategoryName}
@@ -274,6 +275,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.['GL Code']}>
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_GL_CODE}
                             name={translate('workspace.categories.glCode')}
                             onPress={
                                 canWriteCategories
@@ -303,6 +305,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.['Payroll Code']}>
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_PAYROLL_CODE}
                             name={translate('workspace.categories.payrollCode')}
                             onPress={
                                 canWriteCategories
@@ -332,6 +335,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                         <>
                             <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.commentHint}>
                                 <MenuItemFieldHTML
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_DESCRIPTION_HINT}
                                     name={translate('workspace.rules.categoryRules.descriptionHint')}
                                     value={policyCategory?.commentHint}
                                     onPress={
@@ -344,6 +348,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                 />
                             </OfflineWithFeedback>
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_APPROVER}
                                 name={translate('workspace.rules.categoryRules.approver')}
                                 value={approverText}
                                 onPress={
@@ -364,6 +369,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                     )}
                     {canWriteCategories && !isThereAnyAccountingConnection && (
                         <MenuItemAction
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_DELETE}
                             icon={expensifyIcons.Trashcan}
                             title={translate('workspace.categories.deleteCategory')}
                             onPress={async () => {
@@ -396,6 +402,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     pendingAction={rule.pendingAction}
                                 >
                                     <MenuItem
+                                        sentryLabel={rule.sentryLabel}
                                         icon={expensifyIcons.Bolt}
                                         title={rule.summary}
                                         description={rule.conditionSummary}
@@ -411,6 +418,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                             ))}
                             {canWriteRules && (
                                 <MenuItemAction
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_CREATE_RULE}
                                     icon={expensifyIcons.Plus}
                                     title={translate('workspace.rules.categoryRules.createNewRule')}
                                     onPress={() => navigateToCategoryRule(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_NEW.path)}
