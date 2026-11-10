@@ -31,7 +31,34 @@ diff --git a/node_modules/react-native-pdf/index.js b/node_modules/react-native-
          }
      }
  
-@@ -250,17 +248,30 @@ export default class Pdf extends Component {
+@@ -167,10 +165,16 @@ export default class Pdf extends Component {
+         const filename = source.cacheFileName || SHA1(uri) + '.pdf';
+         const cacheFile = ReactNativeBlobUtil.fs.dirs.CacheDir + '/' + filename;
+ 
++        // The cache check is async, so the source can change before it ends. Only the latest source may load.
++        const isCurrentSource = () => (Image.resolveAssetSource(this.props.source) || {}).uri === source.uri;
++
+         if (source.cache) {
+             ReactNativeBlobUtil.fs
+                 .stat(cacheFile)
+                 .then(stats => {
++                    if (!isCurrentSource()) {
++                        return;
++                    }
+                     if (!Boolean(source.expiration) || (source.expiration * 1000 + stats.lastModified) > (new Date().getTime())) {
+                         if (this._mounted) {
+                             this.setState({path: cacheFile, isDownloaded: true});
+@@ -181,6 +185,9 @@ export default class Pdf extends Component {
+                     }
+                 })
+                 .catch(() => {
++                    if (!isCurrentSource()) {
++                        return;
++                    }
+                     this._prepareFile(source);
+                 })
+ 
+@@ -250,17 +257,30 @@ export default class Pdf extends Component {
  
      };
  
@@ -67,7 +94,7 @@ diff --git a/node_modules/react-native-pdf/index.js b/node_modules/react-native-
          this.lastRNBFTask = ReactNativeBlobUtil.config({
              // response data will be saved to this path if it has access right.
              path: tempCacheFile,
-@@ -278,9 +289,6 @@ export default class Pdf extends Component {
+@@ -278,9 +298,6 @@ export default class Pdf extends Component {
                  if (this._mounted) {
                      this.setState({progress: received / total});
                  }
@@ -77,7 +104,7 @@ diff --git a/node_modules/react-native-pdf/index.js b/node_modules/react-native-
              });
  
          this.lastRNBFTask
-@@ -313,6 +321,9 @@ export default class Pdf extends Component {
+@@ -313,6 +330,9 @@ export default class Pdf extends Component {
                  ReactNativeBlobUtil.fs
                      .cp(tempCacheFile, cacheFile)
                      .then(() => {
@@ -87,7 +114,7 @@ diff --git a/node_modules/react-native-pdf/index.js b/node_modules/react-native-
                          if (this._mounted) {
                              this.setState({path: cacheFile, isDownloaded: true, progress: 1});
                          }
-@@ -323,6 +334,9 @@ export default class Pdf extends Component {
+@@ -323,6 +343,9 @@ export default class Pdf extends Component {
                      });
              })
              .catch(async (error) => {

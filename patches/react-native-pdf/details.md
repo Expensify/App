@@ -105,9 +105,9 @@
 
     `_downloadFile` stored the promise returned by `.catch()` in `lastRNBFTask` instead of the react-native-blob-util task, so it had no `cancel()`. `componentDidUpdate` then loaded the new source without canceling, and the next `_downloadFile` called `lastRNBFTask.cancel()` and threw. `_prepareFile` doesn't await `_downloadFile`, so the error became an unhandled promise rejection.
 
-    The patch stores the task itself and checks `cancel()` before calling it. Each download gets an id, and a canceled or replaced download ignores its result, so a cancellation isn't reported to `onError` and an old download can't replace the current PDF. `componentDidUpdate` loads the new source right away instead of in the cancel callback, which react-native-blob-util doesn't call when the request has already finished. A failed download is now reported to `onError` once, instead of also being copied to the cache and shown.
+    The patch stores the task itself and checks `cancel()` before calling it. Each download gets an id, and a canceled or replaced download ignores its result, so a cancellation isn't reported to `onError` and an old download can't replace the current PDF. `componentDidUpdate` loads the new source right away instead of in the cancel callback, which react-native-blob-util doesn't call when the request has already finished. A failed download is now reported to `onError` once, instead of also being copied to the cache and shown. A cache check that ends after the source changed is ignored too, so it can't start a download of the old source that cancels the new one.
     ```
 
 - Upstream PR/issue: https://github.com/wonday/react-native-pdf/pull/1057. Since 7.0.5, react-native-pdf stores the cancelable task (https://github.com/wonday/react-native-pdf/pull/1031) but still reports a canceled download to `onError`. This patch can be dropped once #1057 is released.
 - E/App issue: https://github.com/Expensify/App/issues/106338
-- PR introducing patch: TBD
+- PR introducing patch: https://github.com/Expensify/App/pull/106351

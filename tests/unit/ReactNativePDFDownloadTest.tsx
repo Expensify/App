@@ -27,6 +27,8 @@ type MockTask = Promise<MockResponse> & {
 
 const mockTasks: MockTask[] = [];
 const mockCachedFiles = new Set<string>();
+// Cache checks wait for this before they settle, so a test can change the source while one is running
+let mockCacheCheckGate: Promise<void> = Promise.resolve();
 
 jest.mock('react-native-blob-util', () => {
     const createTask = (uri: string): MockTask => {
@@ -72,7 +74,7 @@ jest.mock('react-native-blob-util', () => {
             config: () => ({fetch: (_method: string, uri: string) => createTask(uri)}),
             fs: {
                 dirs: {CacheDir: '/cache'},
-                stat: jest.fn((path: string) => (mockCachedFiles.has(path) ? Promise.resolve({lastModified: Date.now()}) : Promise.reject(new Error('not cached')))),
+                stat: jest.fn((path: string) => mockCacheCheckGate.then(() => (mockCachedFiles.has(path) ? {lastModified: Date.now()} : Promise.reject(new Error('not cached'))))),
                 unlink: jest.fn(() => Promise.resolve()),
                 cp: jest.fn(() => Promise.resolve()),
             },
@@ -128,6 +130,7 @@ describe('react-native-pdf download cancellation', () => {
     beforeEach(() => {
         mockTasks.length = 0;
         mockCachedFiles.clear();
+        mockCacheCheckGate = Promise.resolve();
     });
 
     it('cancels the old download and shows the new source when the source changes during a download', async () => {
@@ -163,6 +166,28 @@ describe('react-native-pdf download cancellation', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the new source stays shown
+        expect(escapedRejections).toEqual([]);
+        expect(onError).not.toHaveBeenCalled();
+        expect(pdf.state).toMatchObject({path: getCacheFile(URL_WITH_NEW_TOKEN), isDownloaded: true});
+    });
+
+    it('ignores a cache check that finishes after the source changed', async () => {
+        // Given a PDF whose cache check is still running
+        let finishCacheChecks: () => void = () => {};
+        mockCacheCheckGate = new Promise((resolve) => {
+            finishCacheChecks = resolve;
+        });
+        const onError = jest.fn();
+        const {pdf, escapedRejections, changeSource} = renderPdf(URL_WITH_OLD_TOKEN, onError);
+
+        // When the source changes to a cached file before that check ends
+        mockCachedFiles.add(getCacheFile(URL_WITH_NEW_TOKEN));
+        changeSource(URL_WITH_NEW_TOKEN);
+        finishCacheChecks();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the old source isn't downloaded and the new one is shown
+        expect(mockTasks).toHaveLength(0);
         expect(escapedRejections).toEqual([]);
         expect(onError).not.toHaveBeenCalled();
         expect(pdf.state).toMatchObject({path: getCacheFile(URL_WITH_NEW_TOKEN), isDownloaded: true});
