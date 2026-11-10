@@ -44,7 +44,7 @@ const MIN_MEMBERS_FOR_ACCOUNTANT_INVITED = 2;
 
 type GettingStartedItemKey =
     | 'createWorkspace'
-    | 'createExpense'
+    | 'addFirstReceipt'
     | 'customizeExpenseCategories'
     | 'customizeSpendCategories'
     | 'customizeCategories'
