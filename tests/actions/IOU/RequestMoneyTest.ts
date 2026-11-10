@@ -2640,7 +2640,7 @@ describe('actions/IOU', () => {
         });
 
         describe('conciergeChat forwarding', () => {
-            it('threads the conciergeChat report into prepareOnboardingOnyxData for test drive expenses', async () => {
+            it('threads the conciergeChat report and currentUserAccountID into prepareOnboardingOnyxData for test drive expenses', async () => {
                 const prepareOnboardingOnyxDataSpy = jest.spyOn(require('@libs/ReportUtils'), 'prepareOnboardingOnyxData');
                 const conciergeChat = {reportID: 'concierge-test-drive-1'};
                 mockFetch?.pause?.();
@@ -2686,6 +2686,7 @@ describe('actions/IOU', () => {
                     expect.objectContaining({
                         conciergeChat,
                         engagementChoice: CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
                     }),
                 );
 

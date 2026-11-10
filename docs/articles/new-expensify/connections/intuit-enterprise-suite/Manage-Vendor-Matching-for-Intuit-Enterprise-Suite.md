@@ -51,8 +51,8 @@ Vendors are managed in Intuit Enterprise Suite, and the list refreshes when the 
 ## How to set a default company card vendor for Intuit Enterprise Suite
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [workspace name]**.
-2. Select **Accounting**.
-3. On the Intuit Enterprise Suite connection, select **Export**.
+2. Select **Connections**, then select **Configure** next to Intuit Enterprise Suite.
+3. Select **Export**.
 4. Select **Export company card expenses as**.
 5. Select **Default vendor**.
 6. Select a vendor from your imported Intuit Enterprise Suite vendor list.

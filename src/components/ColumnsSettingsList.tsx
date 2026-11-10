@@ -72,6 +72,12 @@ type ColumnsSettingsListProps = {
     /** Callback fired with the updated column list when the user saves changes */
     onSave: (columns: SearchCustomColumnIds[]) => void;
 
+    /** Callback fired when the user resets the columns. When provided, it replaces resetting the selection in place */
+    onReset?: () => void;
+
+    /** Whether to show the reset columns link */
+    shouldShowResetColumns?: boolean;
+
     /** The active Search type, used to resolve type-specific column labels */
     type?: SearchDataTypes;
 };
@@ -85,6 +91,8 @@ function ColumnsSettingsList({
     groupColumns = [],
     defaultGroupColumns = [],
     onSave,
+    onReset,
+    shouldShowResetColumns,
     type,
 }: ColumnsSettingsListProps) {
     const theme = useTheme();
@@ -231,6 +239,10 @@ function ColumnsSettingsList({
     };
 
     const resetColumns = () => {
+        if (onReset) {
+            onReset();
+            return;
+        }
         setColumns(defaultColumns);
         setSearchValue('');
     };
@@ -238,6 +250,8 @@ function ColumnsSettingsList({
     const handleSave = () => {
         onSave(selectedColumnIds);
     };
+
+    const isResetColumnsVisible = shouldShowResetColumns ?? !isDefaultState;
 
     const renderItem = ({item, isFocused}: {item: ListItem; isFocused?: boolean}) => {
         return (
@@ -259,7 +273,7 @@ function ColumnsSettingsList({
             includeSafeAreaPaddingBottom
         >
             <HeaderWithBackButton title={translate('search.columns')}>
-                {!isDefaultState && <TextLink onPress={resetColumns}>{translate('search.resetColumns')}</TextLink>}
+                {isResetColumnsVisible && <TextLink onPress={resetColumns}>{translate('search.resetColumns')}</TextLink>}
             </HeaderWithBackButton>
             <ListSearchBar
                 label={translate('common.search')}
