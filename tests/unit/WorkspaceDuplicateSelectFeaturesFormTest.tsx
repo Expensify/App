@@ -229,6 +229,18 @@ describe('WorkspaceDuplicateSelectFeaturesForm Rules and Merchant rules', () => 
         expect(row?.alternateText ?? '').not.toContain('source.example.com');
     });
 
+    it('includes Invoices when markup is the only invoice configuration', async () => {
+        // Given enabled invoicing with markup and no company details, invoice fields, or bank accounts.
+        await renderForm(false, {areInvoicesEnabled: true, areInvoiceFieldsEnabled: false, invoice: {markUp: 25}, fieldList: {}});
+
+        // When the default selection is submitted.
+        pressContinue();
+
+        // Then markup remains available to copy even without other invoice configuration.
+        expect(getRow('invoices')?.isSelected).toBe(true);
+        expect(getSentParts()).toContain('invoices');
+    });
+
     it('includes Time tracking and Receipt partners from the shared copy settings list', async () => {
         // Given configured time tracking and receipt partners.
         await renderForm(false, {units: {time: {enabled: true, rate: 75}}, receiptPartners: {enabled: true}});

@@ -125,7 +125,8 @@ function usePolicyCopySettingsSelection(
         hasWorkflowRules: !!workflows?.length,
         hasWorkspaceRules: !!rules?.length,
         codingRulesCount,
-        hasInvoiceConfiguration: !!sourcePolicy?.areInvoicesEnabled && (!!invoiceConfigurationText || invoiceFieldsCount > 0 || isInvoiceFieldsEnabled(sourcePolicy)),
+        hasInvoiceConfiguration:
+            !!sourcePolicy?.areInvoicesEnabled && (!!sourcePolicy.invoice?.markUp || !!invoiceConfigurationText || invoiceFieldsCount > 0 || isInvoiceFieldsEnabled(sourcePolicy)),
         isCollectPolicy: isCollectPolicy(sourcePolicy),
     };
 
