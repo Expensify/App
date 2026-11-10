@@ -24,7 +24,7 @@ type ColumnConfig = {
     columnName: SearchColumnType;
     translationKey: TranslationPaths | undefined;
     icon?: IconAsset;
-    isColumnSortable?: boolean;
+    isColumnSortable: boolean;
     sortColumnName?: SearchSortBy;
     canBeMissing?: boolean;
     canEdit?: boolean;
@@ -94,8 +94,7 @@ function SortableTableHeader({
                         return null;
                     }
 
-                    // `SortableHeaderText` sorts by default, so a column sorts unless it sets `isColumnSortable: false`.
-                    const isSortable = shouldShowSorting && isColumnSortable !== false;
+                    const isSortable = shouldShowSorting && isColumnSortable;
                     const sortByColumnName = sortColumnName ?? columnName;
                     const isActive = sortBy === sortByColumnName;
                     const isYesNoColumn =
