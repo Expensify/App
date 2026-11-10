@@ -1,5 +1,6 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import ActivityIndicator from '@components/ActivityIndicator';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -124,18 +125,28 @@ describe('AccountingIntegrationWaitlistCard', () => {
         expect(joinAccountingIntegrationWaitlist).toHaveBeenCalledTimes(2);
     });
 
-    it('queues the signup while offline and confirms it once the server saves it', async () => {
-        // Given the user is offline
+    it('disables Join waitlist while offline instead of loading a request that cannot finish', async () => {
+        // Given the user is offline with a signup still queued for this workspace
         await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+        await Onyx.set(ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS, {policy: {[SAGE_ACCOUNTING]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}}});
         renderCard();
         await waitForBatchedUpdatesWithAct();
 
         // When the user presses Join waitlist
-        fireEvent.press(screen.getByRole('button', {name: 'Join waitlist'}));
+        const button = screen.getByRole('button', {name: 'Join waitlist'});
+        fireEvent.press(button);
 
-        // Then the signup is queued for when the user is back online, with no confirmation until the server saves it
-        expect(joinAccountingIntegrationWaitlist).toHaveBeenCalledWith('policy', SAGE_ACCOUNTING);
-        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        // Then the button is disabled rather than loading, and no other signup starts
+        expect(button).toBeDisabled();
+        expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeNull();
+        expect(joinAccountingIntegrationWaitlist).not.toHaveBeenCalled();
+
+        // When the connection returns
+        await act(() => Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: false}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the queued request shows as loading while it's in flight
+        expect(screen.UNSAFE_queryByType(ActivityIndicator)).not.toBeNull();
     });
 
     it('shows the waitlist status only on the workspace that joined', async () => {

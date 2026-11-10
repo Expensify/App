@@ -11,6 +11,7 @@ import Text from '@components/Text';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
@@ -45,6 +46,7 @@ function AccountingIntegrationWaitlistCard({connectionName, title, icon, policyI
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const {showConfirmModal} = useConfirmModal();
     const policy = usePolicy(policyID);
     const {canWrite, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.ACCOUNTING);
@@ -140,7 +142,9 @@ function AccountingIntegrationWaitlistCard({connectionName, title, icon, policyI
                                 ) : (
                                     <Button
                                         onPress={joinWaitlist}
-                                        isLoading={!!request?.pendingAction}
+                                        // A queued request can't finish offline, so the button is disabled rather than loading until the connection returns
+                                        isDisabled={isOffline}
+                                        isLoading={!isOffline && !!request?.pendingAction}
                                         style={styles.justifyContentCenter}
                                         innerStyles={!canWrite ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
                                         hoverStyles={!canWrite ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
