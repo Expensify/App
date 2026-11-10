@@ -219,7 +219,7 @@ function getHRCards({
                   {
                       field: 'finalApprover',
                       description: translate('workspace.merge.finalApprover'),
-                      title: getMergeFinalApproverDisplayName(config?.finalApprover, policyEmployeePersonalDetails, translate, formatPhoneNumber),
+                      title: getMergeFinalApproverDisplayName(config?.finalApprover, policyEmployeePersonalDetails, translate, formatPhoneNumber) ?? translate('workspace.merge.notSet'),
                       route: provider.finalApproverRoute.getRoute(policyID),
                       pendingAction: config?.pendingFields?.finalApprover,
                       errors: config?.errorFields?.finalApprover,
@@ -268,7 +268,7 @@ function getHRCards({
                   {
                       field: 'finalApprover',
                       description: translate('workspace.merge.finalApprover'),
-                      title: getMergeFinalApproverDisplayName(mergeConfig?.finalApprover, policyEmployeePersonalDetails, translate, formatPhoneNumber),
+                      title: getMergeFinalApproverDisplayName(mergeConfig?.finalApprover, policyEmployeePersonalDetails, translate, formatPhoneNumber) ?? translate('workspace.merge.notSet'),
                       route: ROUTES.WORKSPACE_HR_MERGE_FINAL_APPROVER.getRoute(policyID),
                       pendingAction: mergeConfig?.pendingFields?.finalApprover,
                       errors: mergeConfig?.errorFields?.finalApprover,

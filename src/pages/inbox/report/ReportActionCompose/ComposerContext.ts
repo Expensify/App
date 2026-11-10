@@ -1,6 +1,6 @@
 import type {Emoji} from '@assets/emojis/types';
 
-import type {TextSelection} from '@components/Composer/types';
+import type {CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
 import type Mention from '@components/MentionSuggestions/types';
 
 import type {ReportActionEditMessageState} from '@pages/inbox/report/ReportActionEditMessageContext';
@@ -10,7 +10,7 @@ import type {ReportAction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {ComponentRef, RefObject} from 'react';
-import type {BlurEvent, TextInputSelectionChangeEvent, View} from 'react-native';
+import type {BlurEvent, View} from 'react-native';
 
 import {createContext, useContext} from 'react';
 
@@ -19,7 +19,7 @@ import type useDebouncedCommentMaxLengthValidation from './useDebouncedCommentMa
 
 type SuggestionsRef = {
     resetSuggestions: () => void;
-    onSelectionChange?: (event: TextInputSelectionChangeEvent) => void;
+    onSelectionChange?: (event: CustomSelectionChangeEvent) => void;
     triggerHotkeyActions: (event: KeyboardEvent) => boolean | undefined;
     updateShouldShowSuggestionMenuToFalse: (shouldShowSuggestionMenu?: boolean) => void;
     setShouldBlockSuggestionCalc: (shouldBlock: boolean) => void;

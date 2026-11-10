@@ -9,6 +9,8 @@ import type {CardStatus, TokenizationStatus} from '@expensify/react-native-walle
 
 import {addCardToGoogleWallet, checkWalletAvailability, getCardStatusBySuffix, getSecureWalletInfo, listTokens, resumeAddCardToGoogleWallet} from '@expensify/react-native-wallet';
 
+import type {AddCardToWalletOptions} from './types';
+
 import isCardStatusInWallet from './isCardStatusInWallet';
 
 function checkIfWalletIsAvailable(): Promise<boolean> {
@@ -36,15 +38,28 @@ async function getTokenReferenceIDAwaitingVerification(card: Card): Promise<stri
     }
 }
 
-async function handleAddCardToWallet(card: Card, cardHolderName: string): Promise<TokenizationStatus> {
+async function handleAddCardToWallet(card: Card, cardHolderName: string, _cardDescription: string, options: AddCardToWalletOptions = {}): Promise<TokenizationStatus> {
+    const {authentication, signal} = options;
+    if (signal?.aborted) {
+        return 'canceled';
+    }
     const tokenReferenceID = await getTokenReferenceIDAwaitingVerification(card);
+    if (signal?.aborted) {
+        return 'canceled';
+    }
 
     // Resume verification of the existing token instead of provisioning the card again
     if (tokenReferenceID) {
         return resumeAddCardToGoogleWallet({network: CONST.COMPANY_CARDS.CARD_TYPE.VISA, tokenReferenceID, cardHolderName, lastDigits: card.lastFourPAN});
     }
     const walletData = await getSecureWalletInfo();
-    const cardData = await createDigitalGoogleWallet({cardID: card.cardID, cardHolderName, ...walletData});
+    if (signal?.aborted) {
+        return 'canceled';
+    }
+    const cardData = await createDigitalGoogleWallet({cardID: card.cardID, cardHolderName, ...walletData}, authentication);
+    if (signal?.aborted) {
+        return 'canceled';
+    }
     return addCardToGoogleWallet(cardData);
 }
 

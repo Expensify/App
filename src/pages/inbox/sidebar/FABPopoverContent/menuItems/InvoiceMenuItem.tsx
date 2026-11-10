@@ -28,6 +28,7 @@ type InvoiceMenuItemProps = {
 };
 
 function InvoiceMenuItem({reportID}: InvoiceMenuItemProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['InvoiceGeneric']);
@@ -38,6 +39,7 @@ function InvoiceMenuItem({reportID}: InvoiceMenuItemProps) {
 
     return (
         <FABFocusableMenuItem
+            sentryLabel={CONST.SENTRY_LABEL.FAB_MENU.SEND_INVOICE}
             itemId={ITEM_ID}
             isVisible={canSendInvoice}
             pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.SEND_INVOICE}
@@ -46,7 +48,7 @@ function InvoiceMenuItem({reportID}: InvoiceMenuItemProps) {
             onPress={() =>
                 interceptAnonymousUser(() => {
                     startMoneyRequest(CONST.IOU.TYPE.INVOICE, reportID, draftTransactionIDs, undefined, undefined, undefined, true);
-                })
+                }, session)
             }
             shouldCallAfterModalHide={shouldUseNarrowLayout}
         />

@@ -1,6 +1,7 @@
 import type {LABEL_ROTATIONS} from '@components/Charts/VictoryTheme';
 
 import type {SkParagraph} from '@shopify/react-native-skia';
+import type {ReactNode} from 'react';
 import type {NonEmptyTuple, ValueOf} from 'type-fest';
 
 /** One plotted dataset: a line, or one bar of every group. */
@@ -11,8 +12,11 @@ type ChartSeries = {
     /** Color of the series' line. Left out, the chart's default color. */
     color?: string;
 
-    /** Names the series in the tooltip, like "Average" */
+    /** Names the series in the tooltip, like "Monthly average" */
     label?: string;
+
+    /** Whether the series holds an average, drawn as one horizontal dashed line across the plot */
+    isAverage?: boolean;
 };
 
 type ChartDataPoint = {
@@ -28,6 +32,12 @@ type ChartDataPoint = {
     /** The point's signed share of total spend, in percentage points */
     percentOfTotal?: number;
 
+    /** Each series' name for the dates this point covers in its period, which names its row in the tooltip */
+    seriesLabels?: Partial<Record<string, string>>;
+
+    /** Each series' share of its own period's total spend, in percentage points, set when several series are compared */
+    seriesPercentOfTotal?: Partial<Record<string, number>>;
+
     /** Color of the point's bar or slice. Left out, the chart's default color. */
     color?: string;
 
@@ -37,7 +47,10 @@ type ChartDataPoint = {
     /** Number of expenses in this point */
     count?: number;
 
-    /** Marks a time-based point whose period hasn't ended yet, so its total is still changing. Only a line chart's last point is drawn differently. */
+    /** The money each series' expenses total at this point, written out. Set when the plotted value isn't money, so the tooltip can name the spend behind it. */
+    seriesTotals?: Partial<Record<string, string>>;
+
+    /** Marks a time-based point whose period hasn't ended yet, the current one or a later one, so its total is still changing. A line chart draws these points dashed. */
     isInProgress?: boolean;
 };
 
@@ -50,13 +63,25 @@ type UnitWithFallback = {value: string; fallback: string};
 /** Position of the unit symbol relative to the formatted value. */
 type UnitPosition = 'left' | 'right';
 
+/** Formats a plotted value for display, in place of the chart's own number-and-unit formatting */
+type ChartValueFormatter = (value: number, options?: {shouldUseCompactNotation?: boolean}) => string;
+
 type ChartProps = {
     data: ChartDataPoint[];
 
     /** The datasets plotted, in drawing order. The first one is the chart's primary series. */
     series: NonEmptyTuple<ChartSeries>;
 
+    /** Formats every plotted value the chart writes out. Left out, values are numbers carrying the chart's unit. */
+    formatValue?: ChartValueFormatter;
+
     isLoading?: boolean;
+
+    /** Called with the data point of a tooltip opened by a touch tap when that tooltip is pressed */
+    onTooltipPress?: (dataPoint: ChartDataPoint, index: number) => void;
+
+    /** Shown at the end of a tooltip opened by a touch tap */
+    tooltipFooter?: ReactNode;
 };
 
 type CartesianChartProps = ChartProps & {
@@ -65,6 +90,9 @@ type CartesianChartProps = ChartProps & {
 
     /** Position of the unit symbol relative to the value. Defaults to 'left'. */
     yAxisUnitPosition?: UnitPosition;
+
+    /** Keeps the Y-axis ticks on whole numbers, for charts plotting things that don't come in fractions, like a count of expenses. */
+    shouldUseWholeNumberTicks?: boolean;
 };
 
 type PieSlice = {
@@ -100,4 +128,34 @@ type LabelRotation = ValueOf<typeof LABEL_ROTATIONS>;
 
 type ParagraphWithWidth = {para: SkParagraph | null; width: number};
 
-export type {CartesianChartProps, ChartDataPoint, ChartProps, ChartSeries, LabelRotation, ParagraphWithWidth, PieSlice, UnitPosition, UnitWithFallback};
+/** Layout for wrapped (multi-line, centered, horizontal) bar labels. Absent means single-line axis-style labels. */
+type WrappedLabelConfig = {
+    /** Pixel width of a bar's column; a wrapped label fills it, centered on the bar. */
+    columnWidth: number;
+
+    /** Maximum lines a wrapped label uses before it is truncated with an ellipsis. */
+    maxLines: number;
+
+    /** Pixel line height reserved per label line, shared so the hit box matches the painted lines. */
+    lineHeight: number;
+
+    /** Whether each label has text, so empty labels stay non-interactive in hit testing. */
+    hasLabel: boolean[];
+
+    /** Full canvas width (px), used to keep edge labels from clipping past the canvas. */
+    canvasWidth: number;
+};
+
+export type {
+    CartesianChartProps,
+    ChartDataPoint,
+    ChartProps,
+    ChartSeries,
+    ChartValueFormatter,
+    LabelRotation,
+    ParagraphWithWidth,
+    PieSlice,
+    UnitPosition,
+    UnitWithFallback,
+    WrappedLabelConfig,
+};

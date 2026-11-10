@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import type {Card} from '@src/types/onyx';
 
 import type {AndroidCardData, CardStatus, TokenizationStatus} from '@expensify/react-native-wallet';
-import type {AppStateStatus, View as ViewType} from 'react-native';
+import type {View as ViewType} from 'react-native';
 
 import {
     addCardToAppleWallet,
@@ -55,6 +55,7 @@ jest.mock('@components/ActivityIndicator', () => {
 
 jest.mock('@libs/actions/Wallet', () => ({issuerEncryptPayloadCallback: jest.fn(), createDigitalGoogleWallet: jest.fn()}));
 jest.mock('@libs/actions/PaymentMethods', () => ({getPaymentMethods: jest.fn()}));
+jest.mock('@components/MultifactorAuthentication/Context/MultifactorAuthenticationMainContext', () => ({useMultifactorAuthentication: () => ({executeScenario: jest.fn()})}));
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn()}));
 
 // Render the raw translation keys so assertions don't depend on the copy.
@@ -95,7 +96,7 @@ function renderCardWalletSection() {
 function bringAppToForeground() {
     for (const [event, listener] of addEventListenerSpy.mock.calls) {
         if (event === 'change') {
-            (listener as (state: AppStateStatus) => void)('active');
+            listener('active');
         }
     }
 }
@@ -240,7 +241,7 @@ describe('Google Wallet on Android', () => {
         jest.mocked(resumeAddCardToGoogleWallet).mockResolvedValue('success');
 
         // When the user taps the Add button
-        const status = await handleAddCardToGoogleWallet(card, 'Card Holder');
+        const status = await handleAddCardToGoogleWallet(card, 'Card Holder', 'Expensify Card');
 
         // Then the existing token is resumed, so no second token gets provisioned for the same card
         expect(status).toBe('success');
@@ -257,7 +258,7 @@ describe('Google Wallet on Android', () => {
         jest.mocked(addCardToGoogleWallet).mockResolvedValue('success');
 
         // When the user taps the Add button
-        const status = await handleAddCardToGoogleWallet(card, 'Card Holder');
+        const status = await handleAddCardToGoogleWallet(card, 'Card Holder', 'Expensify Card');
 
         // Then the regular provisioning flow runs
         expect(status).toBe('success');

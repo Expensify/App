@@ -17,14 +17,16 @@ import {
 } from '@libs/CardUtils';
 import {getCategoryNameError, getCategoryNameErrorMessage, getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getDistanceRateNameError, getDistanceRateNameErrorMessage, getDistanceRateValueError, getDistanceRateValueErrorMessage} from '@libs/PolicyDistanceRatesUtils';
 import {getPerDiemAmountError, getPerDiemAmountErrorMessage, getPerDiemNameError, getPerDiemNameErrorMessage} from '@libs/PolicyPerDiemUtils';
 import {getCleanedTagName, getTagList} from '@libs/PolicyUtils';
 import StringUtils from '@libs/StringUtils';
 import {getTagNameError, getTagNameErrorMessage} from '@libs/TagUtils';
 
-import {updateExpensifyCardLimit, updateExpensifyCardLimitType} from '@userActions/Card';
+import {updateExpensifyCardLimit, updateExpensifyCardLimitType, updateExpensifyCardTitle} from '@userActions/Card';
 import {updateCompanyCardName} from '@userActions/CompanyCards';
+import type {OnboardingTaskCompletionOnyxData} from '@userActions/Task';
 
 import CONST from '@src/CONST';
 import type {Card, Policy} from '@src/types/onyx';
@@ -47,6 +49,7 @@ function renameCategoryInline(
     currentName: string,
     newName: string,
     isVendorMatchingBetaEnabled: boolean | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
 ): string | undefined {
     const sanitized = StringUtils.sanitizeName(newName);
     const currentDisplayName = getDecodedCategoryName(currentName);
@@ -60,7 +63,7 @@ function renameCategoryInline(
         return getCategoryNameErrorMessage(translate, categoryError, newName);
     }
 
-    renamePolicyCategory(policyData, {oldName: currentName, newName: sanitized}, isVendorMatchingBetaEnabled);
+    renamePolicyCategory(policyData, {oldName: currentName, newName: sanitized}, isVendorMatchingBetaEnabled, reviewWorkspaceSettingsTaskData);
 }
 
 function renameTagInline(translate: LocalizedTranslate, policyData: PolicyData, oldName: string, newName: string, isVendorMatchingBetaEnabled: boolean | undefined): string | undefined {
@@ -103,21 +106,37 @@ function renameCompanyCardInline(
     updateCompanyCardName(domainOrWorkspaceAccountID, cardID, sanitized, bankName, storedName);
 }
 
-function renameDistanceRateInline(translate: LocalizedTranslate, policyID: string, customUnit: CustomUnit, rate: Rate, newName: string): string | undefined {
+function renameExpensifyCardInline(translate: LocalizedTranslate, workspaceAccountID: number, cardID: number, newName: string, currentName: string): string | undefined {
     const sanitized = StringUtils.sanitizeName(newName);
-    const currentName = rate.name ?? '';
-    const existingRateNames = Object.values(customUnit.rates ?? {}).map((existingRate) => existingRate.name ?? '');
 
     if (sanitized === currentName) {
         return;
     }
 
-    const nameError = getDistanceRateNameError(existingRateNames, newName, currentName);
-    if (nameError) {
-        return getDistanceRateNameErrorMessage(translate, nameError, newName);
+    const cardNameError = getCardNameError(newName);
+    if (cardNameError) {
+        return getCardNameErrorMessage(translate, cardNameError, newName);
     }
 
-    updatePolicyDistanceRateName(policyID, customUnit, [{...rate, name: sanitized}]);
+    updateExpensifyCardTitle(workspaceAccountID, cardID, sanitized, currentName);
+}
+
+function renameDistanceRateInline(translate: LocalizedTranslate, policyID: string, customUnit: CustomUnit, rate: Rate, newName: string): string | undefined {
+    // The cell edits the name without the hidden date suffix, so check and save the full name that gets stored
+    const nameToSave = DistanceRequestUtils.getRateNameWithDateSuffix(rate, StringUtils.sanitizeName(newName));
+    const currentName = rate.name ?? '';
+    const existingRateNames = Object.values(customUnit.rates ?? {}).map((existingRate) => existingRate.name ?? '');
+
+    if (nameToSave === currentName) {
+        return;
+    }
+
+    const nameError = getDistanceRateNameError(existingRateNames, nameToSave, currentName);
+    if (nameError) {
+        return getDistanceRateNameErrorMessage(translate, nameError, nameToSave);
+    }
+
+    updatePolicyDistanceRateName(policyID, customUnit, [{...rate, name: nameToSave}]);
 }
 
 function updateDistanceRateValueInline(
@@ -300,6 +319,7 @@ export {
     renameCategoryInline,
     renameTagInline,
     renameCompanyCardInline,
+    renameExpensifyCardInline,
     renameDistanceRateInline,
     updateDistanceRateValueInline,
     updateMemberRoleInline,

@@ -25,6 +25,7 @@ import type {ReportAction, ReportActionReactions} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -156,6 +157,7 @@ function ConciergeFeedbackPrompt({
     shouldRenderSelectedReactionBubble = false,
     shouldHideUnselectedThumbAfterRating = false,
 }: ConciergeFeedbackPromptProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -202,7 +204,7 @@ function ConciergeFeedbackPrompt({
             emoji={emoji}
             label={emoji.name === thumbsUp.name ? (positiveTooltipText ?? translate('common.yes')) : (negativeTooltipText ?? translate('common.no'))}
             accessibilityLabel={translate(emoji.name === thumbsUp.name ? 'concierge.feedback.useful' : 'concierge.feedback.notUseful')}
-            onPress={callFunctionIfActionIsAllowed(() => rate(emoji))}
+            onPress={callFunctionIfActionIsAllowed(() => rate(emoji), false, session)}
             shouldShowTooltip={shouldShowTooltips}
             isSelected={isSelected}
             shouldRenderSelectedReactionBubble={shouldRenderSelectedReactionBubble}

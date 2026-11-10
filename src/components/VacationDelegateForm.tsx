@@ -101,7 +101,7 @@ function VacationDelegateForm({
     const savedDelegateOnOpen = useInitialSelection(savedDelegate);
     const savedClearDateTime = savedDelegate ? getVacationDelegateClearDateTime(vacationDelegate?.clearAfter, timezone) : '';
     const savedClearDate = savedDelegate ? getVacationDelegateClearDate(vacationDelegate?.clearAfter, timezone) : '';
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- an empty draft means no member was picked yet
+    // an empty draft means no member was picked yet
     const delegate = draftValues?.[INPUT_IDS.DELEGATE] || savedDelegate;
     const clearDate = draftValues?.[INPUT_IDS.CLEAR_AFTER_DATE] ?? savedClearDate;
     const formattedClearDateTime = formatVacationDelegateClearDateTime(

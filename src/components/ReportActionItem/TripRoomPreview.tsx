@@ -34,7 +34,7 @@ import type {ListRenderItemInfo, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {FlatList, View} from 'react-native';
 
 type TripRoomPreviewProps = {
@@ -98,6 +98,7 @@ function ReservationView({reservation, onPress, isCancelled}: ReservationViewPro
 
     return (
         <MenuItemWithTopDescription
+            sentryLabel={CONST.SENTRY_LABEL.TRIP_ROOM_PREVIEW.RESERVATION}
             description={displayDescription}
             descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
             titleComponent={titleComponent}
@@ -142,16 +143,12 @@ function TripRoomPreview({action, containerStyles, isHovered = false}: TripRoomP
 
     const {totalDisplaySpend = 0, currency = reportCurrency} = chatReport ? getTripTotal(chatReport, reportNameValuePairs) : {};
 
-    const displayAmount = useMemo(() => {
-        if (totalDisplaySpend) {
-            return convertToDisplayString(totalDisplaySpend, currency);
-        }
-
-        return convertToDisplayString(
-            tripTransactions?.reduce((acc, transaction) => acc + Math.abs(transaction.amount), 0),
-            currency,
-        );
-    }, [convertToDisplayString, currency, totalDisplaySpend, tripTransactions]);
+    const displayAmount = totalDisplaySpend
+        ? convertToDisplayString(totalDisplaySpend, currency)
+        : convertToDisplayString(
+              tripTransactions?.reduce((acc, transaction) => acc + Math.abs(transaction.amount), 0),
+              currency,
+          );
 
     const navigateToTrip = () => Navigation.navigate(getReportRouteForCurrentContext({reportID: chatReportID}));
     const renderItem = ({item}: ListRenderItemInfo<ReservationData>) => (
@@ -205,7 +202,10 @@ function TripRoomPreview({action, containerStyles, isHovered = false}: TripRoomP
                             <Text style={[styles.headerText, styles.lineHeightXLarge]}>{displayAmount}</Text>
                         </View>
 
-                        <Button onPress={navigateToTrip}>
+                        <Button
+                            onPress={navigateToTrip}
+                            sentryLabel={CONST.SENTRY_LABEL.TRIP_ROOM_PREVIEW.VIEW_BUTTON}
+                        >
                             <Button.Text>{translate('common.view')}</Button.Text>
                         </Button>
                     </View>

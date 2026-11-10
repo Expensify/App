@@ -108,6 +108,10 @@ function DynamicWorkspaceCompanyCardAccountSelectCardPage({route}: DynamicWorksp
             featureName={featureName}
             policyFeature={policyFeature}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
+            shouldBeBlocked={!!getConnectedIntegration(policy) && exportMenuItem?.shouldShowMenuItem !== true}
+            fullPageNotFoundViewProps={{
+                onBackButtonPress: () => Navigation.goBack(backPath),
+            }}
         >
             <SelectionScreen
                 policyID={policyID}

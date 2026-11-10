@@ -83,7 +83,6 @@ function StateSelector({errorText, onBlur, value: stateCode, label, onInputChang
             shouldShowRightIcon
             title={title}
             // Label can be an empty string
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             description={label || translate('common.state')}
             brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
             errorText={errorText}

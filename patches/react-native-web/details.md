@@ -1,6 +1,6 @@
 # `react-native-web` patches
 
-### [react-native-web+0.21.2+001+initial.patch](react-native-web+0.21.2+001+initial.patch)
+### [react-native-web+0.21.4+001+initial.patch](react-native-web+0.21.4+001+initial.patch)
 
 - Reason:
   
@@ -12,7 +12,7 @@
 - E/App issue: 🛑
 - PR introducing patch: https://github.com/Expensify/App/pull/24482
 
-### [react-native-web+0.21.2+002+fixLastSpacer.patch](react-native-web+0.21.2+002+fixLastSpacer.patch)
+### [react-native-web+0.21.4+002+fixLastSpacer.patch](react-native-web+0.21.4+002+fixLastSpacer.patch)
 
 - Reason:
   
@@ -24,7 +24,7 @@
 - E/App issue: 🛑
 - PR introducing patch: https://github.com/Expensify/App/pull/32843
 
-### [react-native-web+0.21.2+004+fixPointerEventDown.patch](react-native-web+0.21.2+004+fixPointerEventDown.patch)
+### [react-native-web+0.21.4+004+fixPointerEventDown.patch](react-native-web+0.21.4+004+fixPointerEventDown.patch)
 
 - Reason:
   
@@ -36,7 +36,7 @@
 - E/App issue: 🛑
 - PR introducing patch: https://github.com/Expensify/App/pull/38494
 
-### [react-native-web+0.21.2+005+osr-improvement.patch](react-native-web+0.21.2+005+osr-improvement.patch)
+### [react-native-web+0.21.4+005+osr-improvement.patch](react-native-web+0.21.4+005+osr-improvement.patch)
 
 - Reason:
   
@@ -48,7 +48,7 @@
 - E/App issue: 🛑
 - PR introducing patch: 
 
-### [react-native-web+0.21.2+006+modal.patch](react-native-web+0.21.2+006+modal.patch)
+### [react-native-web+0.21.4+006+modal.patch](react-native-web+0.21.4+006+modal.patch)
 
 - Reason:
   
@@ -60,19 +60,7 @@
 - E/App issue: 🛑
 - PR introducing patch: https://github.com/Expensify/App/pull/39520 and https://github.com/Expensify/App/pull/76277
 
-### [react-native-web+0.21.2+007+fix-scrollable-overflown-text.patch](react-native-web+0.21.2+007+fix-scrollable-overflown-text.patch)
-
-- Reason:
-  
-    ```
-    Changes Text component's multiline `overflow` property to clip instead of hiding, thus forbidding scrolling entirely through any mechanism and preventing issues when selecting clipped text.
-    ```
-  
-- Upstream PR/issue: 🛑
-- E/App issue: 🛑
-- PR introducing patch: https://github.com/Expensify/App/pull/47532
-
-### [react-native-web+0.21.2+008+fix-nested-flatlist-scroll-on-web.patch](react-native-web+0.21.2+008+fix-nested-flatlist-scroll-on-web.patch)
+### [react-native-web+0.21.4+008+fix-nested-flatlist-scroll-on-web.patch](react-native-web+0.21.4+008+fix-nested-flatlist-scroll-on-web.patch)
 
 - Reason:
   
@@ -84,7 +72,7 @@
 - E/App issue: 🛑
 - PR introducing patch: https://github.com/Expensify/App/pull/60174
 
-### [react-native-web+0.21.2+009+fix-two-direction-scroll-on-web.patch](react-native-web+0.21.2+009+fix-two-direction-scroll-on-web.patch)
+### [react-native-web+0.21.4+009+fix-two-direction-scroll-on-web.patch](react-native-web+0.21.4+009+fix-two-direction-scroll-on-web.patch)
 
 - Reason:
   
@@ -96,7 +84,7 @@
 - E/App issue: 🛑
 - PR introducing patch: https://github.com/Expensify/App/pull/60340
 
-### [react-native-web+0.21.2+010+fullstory-support.patch](react-native-web+0.21.2+010+fullstory-support.patch)
+### [react-native-web+0.21.4+010+fullstory-support.patch](react-native-web+0.21.4+010+fullstory-support.patch)
 
 - Reason:
   
@@ -108,7 +96,7 @@
 - E/App issue: As explained above the current solution can't be applied to upstream because it's tailored to Fullstory needs.
 - PR introducing patch: https://github.com/Expensify/App/pull/67552
 
-### [react-native-web+0.21.2+011+fix-overscroll-recoil.patch](react-native-web+0.21.2+011+fix-overscroll-recoil.patch)
+### [react-native-web+0.21.4+011+fix-overscroll-recoil.patch](react-native-web+0.21.4+011+fix-overscroll-recoil.patch)
 
 - Reason:
   
@@ -120,7 +108,7 @@
 - E/App issue: https://github.com/Expensify/App/issues/66821
 - PR introducing patch: https://github.com/Expensify/App/pull/69820
 
-### [react-native-web+0.21.2+012+submitBehavior-support.patch](react-native-web+0.21.2+012+submitBehavior-support.patch)
+### [react-native-web+0.21.4+012+submitBehavior-support.patch](react-native-web+0.21.4+012+submitBehavior-support.patch)
 
 - Reason:
     ```
@@ -135,7 +123,7 @@
 - E/App issue: https://github.com/Expensify/App/issues/73782
 - PR introducing patch: https://github.com/Expensify/App/pull/76332
 
-### [react-native-web+0.21.2+013+fix-select-responder-termination.patch](react-native-web+0.21.2+013+fix-select-responder-termination.patch)
+### [react-native-web+0.21.4+013+fix-select-responder-termination.patch](react-native-web+0.21.4+013+fix-select-responder-termination.patch)
 
 - Reason:
   

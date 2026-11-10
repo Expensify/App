@@ -1397,6 +1397,99 @@ describe('OptionsListUtils', () => {
             expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
         });
 
+        describe('excludeWorkspacesWithoutCreateExpensePermission', () => {
+            const approveOnlyPolicyID = 'APPROVE_ONLY_POLICY_1';
+            const approveOnlyChatReportID = '901';
+
+            const buildPolicyWithRole = (role: Policy['role']): Policy => ({
+                id: approveOnlyPolicyID,
+                name: 'Approve Only Workspace',
+                role,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                owner: 'reedrichards@expensify.com',
+                outputCurrency: 'USD',
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                employeeList: {
+                    [CURRENT_USER_EMAIL]: {
+                        email: CURRENT_USER_EMAIL,
+                        role,
+                    },
+                },
+            });
+
+            const workspaceChatReports: OnyxCollection<Report> = {
+                [approveOnlyChatReportID]: {
+                    reportID: approveOnlyChatReportID,
+                    reportName: 'Approve Only Workspace',
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    isOwnPolicyExpenseChat: true,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    policyID: approveOnlyPolicyID,
+                    policyName: 'Approve Only Workspace',
+                    ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                    lastVisibleActionCreated: '2022-11-22 03:26:02.001',
+                    participants: {
+                        [CURRENT_USER_ACCOUNT_ID]: {
+                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                        },
+                    },
+                },
+            };
+
+            // Mirrors the config ParticipantSearchResults passes for create/submit flows
+            const getOptionsForPolicy = (policy: Policy) => {
+                const policies: OnyxCollection<Policy> = {
+                    [`${ONYXKEYS.COLLECTION.POLICY}${approveOnlyPolicyID}`]: policy,
+                };
+                const optionList = createFilteredOptionList(
+                    PERSONAL_DETAILS,
+                    workspaceChatReports,
+                    createMockReportAttributesDerived(workspaceChatReports, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID),
+                    EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+                    policies,
+                    {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true, formatPhoneNumber},
+                    undefined,
+                );
+
+                return getValidOptions(
+                    optionList,
+                    policies,
+                    {},
+                    loginList,
+                    CURRENT_USER_ACCOUNT_ID,
+                    CURRENT_USER_EMAIL,
+                    undefined,
+                    {
+                        getReportByID: getReportByIDFromOnyx,
+                        dateFnsLocale: undefined,
+                        convertToDisplayString,
+                        includeRecentReports: true,
+                        includeP2P: true,
+                        includeOwnedWorkspaceChats: true,
+                        excludeWorkspacesWithoutCreateExpensePermission: true,
+                        shouldSeparateWorkspaceChat: true,
+                        action: CONST.IOU.ACTION.CREATE,
+                        personalDetails: PERSONAL_DETAILS,
+                    },
+                    {translate: translateLocal, formatPhoneNumber},
+                    undefined,
+                );
+            };
+
+            it('should exclude the workspace chat when the member role is approveOnly', () => {
+                const {options: results} = getOptionsForPolicy(buildPolicyWithRole(CONST.POLICY.ROLE.APPROVE_ONLY));
+
+                expect(results.workspaceChats).toEqual([]);
+                expect(results.recentReports.find((report) => report.reportID === approveOnlyChatReportID)).toBeUndefined();
+            });
+
+            it('should include the workspace chat when the member role can create expenses', () => {
+                const {options: results} = getOptionsForPolicy(buildPolicyWithRole(CONST.POLICY.ROLE.USER));
+
+                expect(results.workspaceChats).toEqual(expect.arrayContaining([expect.objectContaining({reportID: approveOnlyChatReportID})]));
+            });
+        });
+
         it.each([
             {
                 description: 'Vietnamese diacritics',
@@ -1684,7 +1777,7 @@ describe('OptionsListUtils', () => {
                     lastVisibleActionLastModified: '2024-12-15 21:13:24.317',
                     ownerAccountID: 0,
                     permissions: ['read', 'write'],
-                    participants: {1: {notificationPreference: 'always'}},
+                    participants: {1: {notificationPreference: 'always'}, [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: 'always'}},
                     policyID: '52A5ABD88FBBD18F',
                     policyName: "A's Workspace",
                     reportID,
@@ -1742,7 +1835,7 @@ describe('OptionsListUtils', () => {
                     lastVisibleActionLastModified: '2024-12-15 21:13:24.317',
                     ownerAccountID: 0,
                     permissions: ['read', 'write'],
-                    participants: {1: {notificationPreference: 'always'}},
+                    participants: {1: {notificationPreference: 'always'}, [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: 'always'}},
                     policyID: '52A5ABD88FBBD18F',
                     policyName: "A's Workspace",
                     reportID,
@@ -8287,6 +8380,50 @@ describe('OptionsListUtils', () => {
             expect(result.text).not.toBe('');
         });
 
+        it('resolves a stale optimistic accountID to the canonical account by login', () => {
+            // Given a draft participant whose optimistic accountID was dropped from personal details after the server
+            // assigned the real account, while its login still maps to that real account
+            const participant: Participant = {
+                accountID: 9999997,
+                login: 'tonystark@expensify.com',
+            };
+
+            // When the participant option is built
+            const result = getParticipantsOption(participant, PERSONAL_DETAILS, translateLocal);
+
+            // Then it points at the canonical account so the existing chat with them can be found
+            expect(result.accountID).toBe(2);
+            expect(result.keyForList).toBe('2');
+            expect(result.login).toBe('tonystark@expensify.com');
+        });
+
+        it('resolves a stale optimistic accountID for a phone login stored without the SMS domain', async () => {
+            // Given the canonical account for a phone number, whose login carries the SMS domain
+            const canonicalAccountID = 8800001;
+            const canonicalLogin = '+12025550199@expensify.sms';
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [canonicalAccountID]: {accountID: canonicalAccountID, login: canonicalLogin, displayName: canonicalLogin},
+            });
+            await waitForBatchedUpdates();
+
+            // And a draft participant that still holds the dropped optimistic accountID and the phone number as it was
+            // typed into the participant search, without the SMS domain
+            const participant: Participant = {
+                accountID: 9999996,
+                login: '+12025550199',
+            };
+
+            // When the participant option is built
+            const result = getParticipantsOption(participant, PERSONAL_DETAILS, translateLocal);
+
+            // Then it points at the canonical account so the existing chat with them can be found
+            expect(result.accountID).toBe(canonicalAccountID);
+            expect(result.login).toBe(canonicalLogin);
+
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[canonicalAccountID]: null});
+            await waitForBatchedUpdates();
+        });
+
         it('uses participant.login when no accountID is provided', () => {
             const participant: Participant = {login: 'guest@example.com'};
 
@@ -12029,6 +12166,131 @@ describe('OptionsListUtils', () => {
             );
 
             expect(result.reports.map((option) => option.item?.reportID)).toEqual(['102']);
+        });
+
+        it('prioritizes the default workspace chat over newer reports', () => {
+            // Given a recent chat and an older expense chat that the current user owns in their default workspace
+            const defaultWorkspaceChat: Report = {
+                ...createChatReport('102', '2020-01-01 00:00:00', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                policyID: 'defaultPolicy',
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            };
+            const reports = [createChatReport('101', '2024-01-01 00:00:00'), defaultWorkspaceChat];
+
+            // When the option list is capped to one report and the default workspace is passed
+            const result = createFilteredOptionList(
+                {},
+                reportsToCollection(reports),
+                undefined,
+                {},
+                undefined,
+                {
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    dateFnsLocale: undefined,
+                    convertToDisplayString,
+                    conciergeReportID: undefined,
+                    maxRecentReports: 1,
+                    includeP2P: false,
+                    formatPhoneNumber,
+                    activePolicyID: 'defaultPolicy',
+                },
+                undefined,
+            );
+
+            // Then the default workspace chat is kept, so a quiet default workspace still reaches the participant picker
+            expect(result.reports.map((option) => option.item?.reportID)).toEqual(['102']);
+        });
+
+        it('does not prioritize an expense chat in the default workspace owned by another member', () => {
+            // Given a recent chat and an older expense chat in the default workspace that another member owns
+            const otherMemberWorkspaceChat: Report = {
+                ...createChatReport('102', '2020-01-01 00:00:00', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                policyID: 'defaultPolicy',
+                ownerAccountID: 1,
+            };
+            const reports = [createChatReport('101', '2024-01-01 00:00:00'), otherMemberWorkspaceChat];
+
+            // When the option list is capped to one report and the default workspace is passed
+            const result = createFilteredOptionList(
+                {},
+                reportsToCollection(reports),
+                undefined,
+                {},
+                undefined,
+                {
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    dateFnsLocale: undefined,
+                    convertToDisplayString,
+                    conciergeReportID: undefined,
+                    maxRecentReports: 1,
+                    includeP2P: false,
+                    formatPhoneNumber,
+                    activePolicyID: 'defaultPolicy',
+                },
+                undefined,
+            );
+
+            // Then only the user's own default workspace chat is boosted, so recency decides here
+            expect(result.reports.map((option) => option.item?.reportID)).toEqual(['101']);
+        });
+
+        it('returns the default workspace chat first in the workspace chats of getValidOptions', () => {
+            // Given three workspace chats the current user owns, where the default workspace's chat is the least recent
+            const policies: Record<string, Policy> = {};
+            const reports = ['1', '2', '3'].map((index) => {
+                policies[`${ONYXKEYS.COLLECTION.POLICY}policy${index}`] = {...POLICY, id: `policy${index}`, name: `Workspace ${index}`};
+                return {
+                    ...createChatReport(`20${index}`, `202${index}-01-01 00:00:00`, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                    policyID: `policy${index}`,
+                    ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                    isOwnPolicyExpenseChat: true,
+                };
+            });
+            const optionList = createFilteredOptionList(
+                {},
+                reportsToCollection(reports),
+                undefined,
+                {},
+                policies,
+                {
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    dateFnsLocale: undefined,
+                    convertToDisplayString,
+                    conciergeReportID: undefined,
+                    includeP2P: false,
+                    formatPhoneNumber,
+                },
+                undefined,
+            );
+
+            // When the workspace chats are separated and capped to two results with policy1 as the default workspace
+            const getWorkspaceChatIDs = (defaultPolicyID: string | undefined) =>
+                getValidOptions(
+                    optionList,
+                    policies,
+                    {},
+                    loginList,
+                    CURRENT_USER_ACCOUNT_ID,
+                    CURRENT_USER_EMAIL,
+                    undefined,
+                    {
+                        getReportByID: getReportByIDFromOnyx,
+                        dateFnsLocale: undefined,
+                        convertToDisplayString,
+                        includeOwnedWorkspaceChats: true,
+                        shouldSeparateWorkspaceChat: true,
+                        includeP2P: false,
+                        maxElements: 2,
+                        activePolicyID: defaultPolicyID,
+                    },
+                    {translate: translateLocal, formatPhoneNumber},
+                    undefined,
+                ).options.workspaceChats?.map((option) => option.reportID);
+
+            // Then without a default workspace the two most recent chats are returned
+            expect(getWorkspaceChatIDs(undefined)).toEqual(['203', '202']);
+            // And with a default workspace its chat is kept and listed first, ahead of more recent ones
+            expect(getWorkspaceChatIDs('policy1')).toEqual(['201', '203']);
         });
 
         it('prioritizes non-archived reports over newer archived reports', () => {

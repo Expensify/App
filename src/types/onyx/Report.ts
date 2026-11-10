@@ -5,7 +5,9 @@ import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {ValueOf} from 'type-fest';
 
 import type * as OnyxCommon from './OnyxCommon';
-import type {PolicyReportField} from './Policy';
+import type {AutoReportingOffset, PolicyReportField} from './Policy';
+import type WiseQuote from './WiseQuote';
+import type {WiseQuoteRequest} from './WiseQuote';
 
 /** Preference that defines how regular the chat notifications are sent to the user */
 type NotificationPreference = ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>;
@@ -51,9 +53,14 @@ type InvoiceReceiverType = InvoiceReceiver['type'];
 /** Record of report participants, indexed by their accountID */
 type Participants = Record<number, Participant>;
 
-/** Report next step */
+/**
+ * Report next step
+ */
 type ReportNextStep = {
+    /** Message key */
     messageKey: ValueOf<typeof CONST.NEXT_STEP.MESSAGE_KEY>;
+
+    /** Icon */
     icon: ValueOf<typeof CONST.NEXT_STEP.ICONS>;
 
     /** The account ID of the user who is required to take action. This could be -1 which translates to "an admin" */
@@ -65,13 +72,31 @@ type ReportNextStep = {
 
         /** The ETA date time */
         dateTime?: string;
-    };
 
-    /** The fill color of the icon */
-    iconFill?: string;
+        /** The submission frequency the ETA was calculated from */
+        autoReportingFrequency?: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
+
+        /** The submission day the ETA was calculated from */
+        autoReportingOffset?: AutoReportingOffset;
+
+        /** The second twice a month submission day the ETA was calculated from */
+        autoReportingOffsetSecondSemiMonthly?: AutoReportingOffset;
+
+        /** The workspace timezone the ETA was calculated in */
+        timeZone?: string;
+    };
 
     /** Currency the submitter's deposit account must use for direct reimbursement, named in the waitingForSubmitterAccount copy */
     requiredDepositCurrency?: string;
+
+    /** Whether paying from the workspace reimbursement account sends this report through a global provider */
+    requiresGlobalReimbursement?: boolean;
+
+    /** Currency the submitter receives the reimbursement in */
+    depositCurrency?: string;
+
+    /** The fill color of the icon */
+    iconFill?: string;
 };
 
 /** Model of report data */
@@ -88,6 +113,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The date the report was approved */
         approved?: string;
+
+        /** The date the report was paid */
+        paid?: string;
 
         /** Custom field 1 value for the report submitter */
         submitterUserID?: string;
@@ -109,6 +137,15 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Currency of `creditedAmount` */
         creditedCurrency?: string;
+
+        /** Comma separated IDs of the report's settled withdrawals, in ascending order */
+        withdrawalIDs?: string;
+
+        /** Wise's latest price for paying this cross-currency report, shown for the admin to confirm before Pay */
+        wiseQuote?: WiseQuote;
+
+        /** The payment `wiseQuote` was asked for */
+        wiseQuoteRequest?: WiseQuoteRequest;
 
         chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 
@@ -193,6 +230,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         lastActionType?: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE>;
         ownerAccountID?: number;
 
+        /** Sender of the invoice linked to the bill. An unlinked bill uses its owner's account. */
+        billSenderAccountID?: number;
+
         /** Collection of report participants, indexed by their accountID */
         participants?: Participants;
 
@@ -224,6 +264,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether Auth still allows the bank reimbursement to be cancelled, returned by OpenReport */
         canCancelReimbursement?: boolean;
+
+        /** Whether the report can't be paid until the cancelled reimbursement finishes processing */
+        isWaitingForCancelledReimbursement?: boolean;
 
         isCancelledIOU?: boolean;
         hasReportBeenRetracted?: boolean;

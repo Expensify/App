@@ -116,13 +116,18 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
 
     return (
         <Button
+            sentryLabel={CONST.SENTRY_LABEL.SEARCH.TASK_ACTION_BUTTON}
             size={CONST.BUTTON_SIZE.SMALL}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             style={[styles.w100]}
             isDisabled={!isTaskActionable}
-            onPress={callFunctionIfActionIsAllowed(() => {
-                completeTask(taskItem as Report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail, taskItem.reportID);
-            })}
+            onPress={callFunctionIfActionIsAllowed(
+                () => {
+                    completeTask(taskItem as Report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail, taskItem.reportID);
+                },
+                false,
+                session,
+            )}
         >
             <Button.Text>{translate('task.action')}</Button.Text>
         </Button>
@@ -136,8 +141,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
     const theme = useTheme();
     const {isLargeScreenWidth} = useResponsiveLayout();
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldDisplayCompactArrowIcon = !!(item.parentReportIcon || item.parentReportName);
+    const shouldDisplayCompactArrowIcon = !!(item.parentReportIcon ?? item.parentReportName);
 
     if (!isLargeScreenWidth) {
         return (

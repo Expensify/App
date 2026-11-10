@@ -11,8 +11,8 @@ import {Linking} from 'react-native';
 
 jest.mock('react-native-pdf', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
-    return function MockPDF({onPressLink}: PdfProps) {
-        return ReactModule.createElement('PDF', {testID: 'pdf', onPressLink});
+    return function MockPDF({onPressLink, enableDoubleTapZoom}: PdfProps) {
+        return ReactModule.createElement('PDF', {testID: 'pdf', onPressLink, enableDoubleTapZoom});
     };
 });
 
@@ -96,5 +96,23 @@ describe('native PDF annotation links', () => {
         // Then the existing travel authentication flow is used
         expect(openTravelDotLink).toHaveBeenCalledWith('123', '/trips/123');
         expect(openURLSpy).not.toHaveBeenCalled();
+    });
+});
+
+describe('native PDF zoom', () => {
+    it('enables double-tap zoom', () => {
+        // Given a PDF rendered in the native attachment viewer
+        render(
+            <PDFView
+                sourceURL="https://example.com/receipt.pdf"
+                onLoadComplete={jest.fn()}
+            />,
+        );
+
+        // When the native PDF component receives its props
+        const pdf = screen.getByTestId('pdf');
+
+        // Then double-tap zoom is explicitly enabled, because on the New Architecture an omitted prop is read as false
+        expect(pdf.props.enableDoubleTapZoom).toBe(true);
     });
 });

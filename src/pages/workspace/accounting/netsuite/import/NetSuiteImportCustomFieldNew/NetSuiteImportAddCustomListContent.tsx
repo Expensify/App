@@ -24,7 +24,7 @@ import type {Policy} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 import {getCustomListInitialSubstep, getSubstepValues} from './customUtils';
@@ -52,13 +52,13 @@ function NetSuiteImportAddCustomListContent({policy, draftValues, policyIDParam}
     const {translate} = useLocalize();
     const formRef = useRef<FormRef | null>(null);
 
-    const values = useMemo(() => getSubstepValues(draftValues), [draftValues]);
-    const startFrom = useMemo(() => getCustomListInitialSubstep(values), [values]);
+    const values = getSubstepValues(draftValues);
+    const startFrom = getCustomListInitialSubstep(values);
 
     const config = policy?.connections?.netsuite?.options?.config;
-    const customLists = useMemo(() => config?.syncOptions?.customLists ?? [], [config?.syncOptions]);
+    const customLists = config?.syncOptions?.customLists ?? [];
 
-    const handleFinishStep = useCallback(() => {
+    const handleFinishStep = () => {
         const updatedCustomLists = customLists.concat([
             {
                 listName: values[INPUT_IDS.LIST_NAME],
@@ -76,7 +76,7 @@ function NetSuiteImportAddCustomListContent({policy, draftValues, policyIDParam}
         );
         clearDraftValues(ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM);
         Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS));
-    }, [values, customLists, policyID]);
+    };
 
     const {CurrentPage, isEditing, nextPage, prevPage, pageIndex, moveTo, isRedirecting} = useSubPage<CustomFieldSubPageWithPolicy>({
         pages,
@@ -105,13 +105,13 @@ function NetSuiteImportAddCustomListContent({policy, draftValues, policyIDParam}
         prevPage();
     };
 
-    const handleNextScreen = useCallback(() => {
+    const handleNextScreen = () => {
         if (isEditing) {
             goBackToConfirmStep();
             return;
         }
         nextPage();
-    }, [isEditing, goBackToConfirmStep, nextPage]);
+    };
 
     if (isRedirecting) {
         return (

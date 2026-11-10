@@ -41,7 +41,7 @@ function SupportTicketResolvedFooter({reportID, isOffline, shouldShowReopenButto
                     return;
                 }
 
-                Growl.error(translate('supportTicket.noSupportRepAvailable'));
+                Growl.error({bodyText: translate('supportTicket.noSupportRepAvailable')});
                 Navigation.goBack(undefined, {afterTransition: () => openConciergeAnywhere({forceConcierge: true})});
             })
             .catch((error: unknown) => Log.hmmm('[SupportTicketResolvedFooter] Failed to reopen support ticket', {reportID, error}))

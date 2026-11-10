@@ -1,3 +1,4 @@
+import CardUnsubmittedTransactionsPrompt from '@components/CardUnsubmittedTransactionsPrompt';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
@@ -99,6 +100,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'ZohoBooksSquare',
         'BusinessCentralSquare',
         'GustoSquare',
     ]);
@@ -155,6 +157,32 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
             unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID, bank, card);
         }
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
+    };
+
+    const confirmUnassignCard = () => {
+        if (!card) {
+            return;
+        }
+
+        showConfirmModal({
+            shouldSetModalVisibility: false,
+            title: translate('common.areYouSure'),
+            prompt: (
+                <CardUnsubmittedTransactionsPrompt
+                    cardIDs={[card.cardID]}
+                    descriptionKey="workspace.moreFeatures.companyCards.unassignCardDescription"
+                />
+            ),
+            confirmText: translate('workspace.moreFeatures.companyCards.unassign'),
+            cancelText: translate('common.cancel'),
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+
+            unassignCard();
+        });
     };
 
     const updateCard = () => {
@@ -286,28 +314,14 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                         />
                     )}
                     {canWriteCompanyCards && (
-                        <MenuItem
-                            icon={expensifyIcons.RemoveMembers}
-                            title={translate('workspace.moreFeatures.companyCards.unassignCard')}
-                            style={styles.mb1}
-                            onPress={() => {
-                                showConfirmModal({
-                                    shouldSetModalVisibility: false,
-                                    title: translate('workspace.moreFeatures.companyCards.unassignCard'),
-                                    prompt: translate('workspace.moreFeatures.companyCards.unassignCardDescription'),
-                                    confirmText: translate('workspace.moreFeatures.companyCards.unassign'),
-                                    cancelText: translate('common.cancel'),
-                                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-                                }).then((result) => {
-                                    if (result.action !== ModalActions.CONFIRM) {
-                                        return;
-                                    }
-
-                                    unassignCard();
-                                });
-                            }}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.UNASSIGN_CARD}
-                        />
+                        <View style={styles.mb1}>
+                            <MenuItemAction
+                                icon={expensifyIcons.RemoveMembers}
+                                title={translate('workspace.moreFeatures.companyCards.unassignCard')}
+                                onPress={confirmUnassignCard}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.UNASSIGN_CARD}
+                            />
+                        </View>
                     )}
                     {exportMenuItem?.shouldShowMenuItem ? (
                         <>
