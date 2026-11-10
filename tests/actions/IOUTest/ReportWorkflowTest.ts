@@ -3666,6 +3666,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             created,
             childReportID: reportID,
             originalMessage: {linkedReportID: reportID},
+            message: [{type: 'TEXT', html: 'Report preview', text: 'Report preview'}],
         });
 
         const setupChat = async (approvalMode: NonNullable<Policy['approvalMode']>, expenseReportOverrides: Partial<Report> = {}, hasOtherReportAwaitingUser = false) => {
@@ -3755,7 +3756,12 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
             const onyxData: AnyOnyxData | undefined = jest.mocked(API.write).mock.calls.at(0)?.[2];
-            return onyxData?.optimisticData?.find((update) => update.key === chatKey);
+            const chatUpdates = onyxData?.optimisticData?.filter((update) => update.key === chatKey) ?? [];
+            const mergedChatValue: Partial<Report> = {};
+            for (const update of chatUpdates) {
+                Object.assign(mergedChatValue, update.value);
+            }
+            return mergedChatValue;
         };
 
         beforeEach(() => {
@@ -3769,10 +3775,10 @@ describe('actions/IOU/ReportWorkflow', () => {
             const {policy, expenseReport} = await setupChat(CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, {hasParentAccess: false});
 
             // When the delegate approves the report
-            const chatUpdate = approve(expenseReport, policy);
+            const chatValue = approve(expenseReport, policy);
 
-            // Then no optimistic update targets the parent chat, so the delegate cannot be left with a flag nothing resets
-            expect(chatUpdate).toBeUndefined();
+            // Then no optimistic update sets the flag on the parent chat, so the delegate cannot be left with a flag nothing resets
+            expect(chatValue).not.toHaveProperty('hasOutstandingChildRequest');
         });
 
         it('does not count the approved report as outstanding on the parent chat of a DEW policy with parent access', async () => {
@@ -3780,11 +3786,10 @@ describe('actions/IOU/ReportWorkflow', () => {
             const {policy, expenseReport} = await setupChat(CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, {hasParentAccess: true});
 
             // When the approver approves the report
-            const chatUpdate = approve(expenseReport, policy);
+            const chatValue = approve(expenseReport, policy);
 
             // Then the parent chat flag is false because DEW keeps the report SUBMITTED with the approver as manager
-            const chatValue: OnyxEntry<Report> = chatUpdate?.value;
-            expect(chatValue?.hasOutstandingChildRequest).toBe(false);
+            expect(chatValue.hasOutstandingChildRequest).toBe(false);
         });
 
         it('keeps the parent chat flag true on a DEW policy when another report still awaits the approver', async () => {
@@ -3792,11 +3797,10 @@ describe('actions/IOU/ReportWorkflow', () => {
             const {policy, expenseReport} = await setupChat(CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, {hasParentAccess: true}, true);
 
             // When the approver approves the first report
-            const chatUpdate = approve(expenseReport, policy);
+            const chatValue = approve(expenseReport, policy);
 
             // Then the flag stays true because the other report still needs the approver
-            const chatValue: OnyxEntry<Report> = chatUpdate?.value;
-            expect(chatValue?.hasOutstandingChildRequest).toBe(true);
+            expect(chatValue.hasOutstandingChildRequest).toBe(true);
         });
 
         it('still updates the parent chat on a BASIC policy', async () => {
@@ -3804,12 +3808,11 @@ describe('actions/IOU/ReportWorkflow', () => {
             const {policy, expenseReport} = await setupChat(CONST.POLICY.APPROVAL_MODE.BASIC, {hasParentAccess: true});
 
             // When the approver approves the report
-            const chatUpdate = approve(expenseReport, policy);
+            const chatValue = approve(expenseReport, policy);
 
             // Then the parent chat is updated and the flag is false because the approved report no longer awaits the approver
-            const chatValue: OnyxEntry<Report> = chatUpdate?.value;
-            expect(chatUpdate).toBeDefined();
-            expect(chatValue?.hasOutstandingChildRequest).toBe(false);
+            expect(chatValue).toHaveProperty('hasOutstandingChildRequest');
+            expect(chatValue.hasOutstandingChildRequest).toBe(false);
         });
     });
 
