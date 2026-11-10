@@ -4,6 +4,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ReceiptCropView from '@components/ReceiptCropView';
 import type {CropRect} from '@components/ReceiptCropView';
 import ReceiptScanningLine from '@components/ReceiptScanningLine';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TranslatedReceiptCard from '@components/TranslatedReceiptCard';
 
@@ -605,7 +606,13 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         footerActionButtons = null;
     } else {
         footerActionButtons = (
-            <View style={[styles.flexRow, styles.gap2, styles.ph5, styles.pb5, styles.justifyContentCenter]}>
+            <ScrollView
+                style={styles.flexGrow0}
+                contentContainerStyle={[styles.flexGrow1, styles.flexRow, styles.gap2, styles.ph5, styles.pb5, styles.justifyContentCenter]}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+            >
                 {!!shouldShowRotateAndCropReceiptButton && (
                     <Button
                         sentryLabel={CONST.SENTRY_LABEL.RECEIPT_MODAL.ROTATE}
@@ -676,7 +683,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         <Button.Text>{translate('common.replace')}</Button.Text>
                     </Button>
                 )}
-            </View>
+            </ScrollView>
         );
     }
 
