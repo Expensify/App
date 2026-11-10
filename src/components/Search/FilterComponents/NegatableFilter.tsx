@@ -40,6 +40,7 @@ function NegatableFilter({baseFilterKey, isNegated, children, style, onNegationC
                 <Text style={[styles.textLabelSupporting]}>{translate('search.filters.filterType.label')}</Text>
                 <View style={[styles.border, styles.negatableFilterButtons]}>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.NEGATABLE_FILTER_POSITIVE}
                         style={[styles.flex1]}
                         innerStyles={[isNegated ? styles.bgTransparent : undefined]}
                         size={CONST.BUTTON_SIZE.SMALL}
@@ -48,6 +49,7 @@ function NegatableFilter({baseFilterKey, isNegated, children, style, onNegationC
                         <Button.Text style={[isNegated ? styles.textMicroBoldSupporting : undefined]}>{positive}</Button.Text>
                     </Button>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.NEGATABLE_FILTER_NEGATIVE}
                         style={[styles.flex1]}
                         innerStyles={[isNegated ? undefined : styles.bgTransparent]}
                         size={CONST.BUTTON_SIZE.SMALL}

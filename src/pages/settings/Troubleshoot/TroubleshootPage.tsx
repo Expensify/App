@@ -237,6 +237,7 @@ function TroubleshootPage() {
                                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}>
                                         <Switch
                                             accessibilityLabel={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}
+                                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_TROUBLESHOOT.MASK_EXPORT_ONYX_DATA_SWITCH}
                                             isOn={shouldMaskOnyxState}
                                             onToggle={setShouldMaskOnyxState}
                                         />
