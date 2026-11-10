@@ -170,11 +170,13 @@ function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: st
  * @param signOutReason Which path tore down the session. Telemetry only, it must not drive behavior.
  * @param errorMessage Error message to be displayed on the sign in page
  * @param isSAMLReauthentication Whether the redirection was triggered by reauthentication for SAML required account
+ * @param isStashingSession Whether the outgoing session is stashed to come back after a Supportal session
  */
-function redirectToSignIn(signOutReason: SignOutReason, errorMessage?: string, isSAMLReauthentication?: boolean): Promise<void> {
+function redirectToSignIn(signOutReason: SignOutReason, errorMessage?: string, isSAMLReauthentication?: boolean, isStashingSession?: boolean): Promise<void> {
     // Onyx.clear empties SESSION before its promise resolves, so the session type is read first.
-    // An agent's Supportal or Copilot session must leave the agent's own experience cookie alone, matching Web-Expensify.
-    const shouldClearExperienceCookie = !currentIsAgentSession;
+    // A Supportal or Copilot session runs in the agent's own browser, and an agent starting Supportal stashes their own session,
+    // so both leave the experience cookie of the agent's account alone.
+    const shouldClearExperienceCookie = !currentIsAgentSession && !isStashingSession;
     return clearStorageAndRedirect(signOutReason, errorMessage, isSAMLReauthentication).then(() => {
         clearSessionStorage();
         if (!shouldClearExperienceCookie) {

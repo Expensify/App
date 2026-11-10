@@ -71,7 +71,7 @@ jest.mock('@libs/openExternalLink', () => ({
 
 jest.mock('@libs/getPlatform', () => jest.fn());
 
-// Mocked to check that the sign in redirect clears the HybridWeb experience cookie
+// Mocked to check that the sign in redirect clears the experience cookie
 jest.mock('@libs/ExperienceCookie', () => ({
     writeExperienceCookie: jest.fn(),
     clearExperienceCookie: jest.fn(),
@@ -1540,7 +1540,7 @@ describe('Session', () => {
             await SignInRedirect.default(CONST.SIGN_OUT_REASON.USER_SIGN_OUT);
             await waitForBatchedUpdates();
 
-            // Then the cookie is cleared, so the HybridWeb router doesn't keep serving the signed out user's product
+            // Then the cookie is cleared, so the next user isn't served the signed out user's product
             expect(clearExperienceCookie).toHaveBeenCalledTimes(1);
         });
 
@@ -1559,6 +1559,19 @@ describe('Session', () => {
             await waitForBatchedUpdates();
 
             // Then the agent's own cookie in this browser is left alone
+            expect(clearExperienceCookie).not.toHaveBeenCalled();
+        });
+
+        test('keeps the experience cookie when an agent starts a Supportal session', async () => {
+            // Given an agent signed in to their own account
+            await TestHelper.signInWithTestUser();
+
+            // When they open Supportal, which signs them out and stashes their session to come back to it
+            signOutAndRedirectToSignIn(false, true, false, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
+            await waitForBatchedUpdates();
+
+            // Then their own cookie is left alone, because their session continues after Supportal
+            expect(await getOnyxValue(ONYXKEYS.STASHED_SESSION)).toEqual(expect.objectContaining({email: 'test@user.com'}));
             expect(clearExperienceCookie).not.toHaveBeenCalled();
         });
     });
