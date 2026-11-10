@@ -689,6 +689,7 @@ function retireInterruptedPusherDraft(runtime: PusherDraftPacingRuntime, event: 
 
     // A failed or cleared event can overtake the start, even while a different reply is visible.
     if (event.sequence > (interruptedDraftSequences.get(event.streamSessionID) ?? 0)) {
+        // Reinserting moves the entry to the end of the map so eviction keeps the most recently updated endings.
         interruptedDraftSequences.delete(event.streamSessionID);
         interruptedDraftSequences.set(event.streamSessionID, event.sequence);
         if (interruptedDraftSequences.size > MAX_INTERRUPTED_DRAFTS) {
