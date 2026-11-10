@@ -128,6 +128,7 @@ import GalleryNotFound from '@assets/images/gallery-not-found.svg';
 import GalleryPlus from '@assets/images/gallery-plus.svg';
 import Gallery from '@assets/images/gallery.svg';
 import Gear from '@assets/images/gear.svg';
+import GlobeWithCard from '@assets/images/globe-with-card.svg';
 import Globe from '@assets/images/globe.svg';
 import Hashtag from '@assets/images/hashtag.svg';
 import Heart from '@assets/images/heart.svg';
@@ -426,6 +427,7 @@ const Expensicons = {
     GalleryPlus,
     Gear,
     Globe,
+    GlobeWithCard,
     GoogleLogo,
     Hashtag,
     Heart,

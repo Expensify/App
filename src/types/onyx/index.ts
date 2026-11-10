@@ -94,6 +94,7 @@ import type {
     DynamicFormFieldOption,
     DynamicFormFieldType,
     DynamicFormHeading,
+    DynamicFormLink,
     DynamicFormListField,
     DynamicFormListItem,
     DynamicFormMultiChoiceField,
@@ -145,6 +146,7 @@ import type Logins from './Logins';
 import type MapboxAccessToken from './MapboxAccessToken';
 import type MarketingAttribution from './MarketingAttribution';
 import type {StoredMarketingAttribution} from './MarketingAttribution';
+import type MembersNeedCategoryModal from './MembersNeedCategoryModal';
 import type MerchantRuleSuggestion from './MerchantRuleSuggestion';
 import type MergeTransaction from './MergeTransaction';
 import type Modal from './Modal';
@@ -262,6 +264,7 @@ import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
 import type WiseBankAccountFields from './WiseBankAccountFields';
 import type {WiseKYCReviewEmbeddedLink} from './WiseKYCReview';
+import type WiseQuote from './WiseQuote';
 import type WorkspaceMembersSelectedForBulkEdit from './WorkspaceMembersSelectedForBulkEdit';
 import type WorkspaceMembersSelectedForRoleChange from './WorkspaceMembersSelectedForRoleChange';
 
@@ -496,6 +499,7 @@ export type {
     CorpayFields,
     WiseBankAccountFields,
     WiseKYCReviewEmbeddedLink,
+    WiseQuote,
     CorpayFormField,
     DynamicFormAddressField,
     DynamicFormChoiceField,
@@ -505,6 +509,7 @@ export type {
     DynamicFormFieldOption,
     DynamicFormFieldType,
     DynamicFormHeading,
+    DynamicFormLink,
     DynamicFormListField,
     DynamicFormListItem,
     DynamicFormMultiChoiceField,
@@ -518,6 +523,7 @@ export type {
     DismissedProductTraining,
     TravelProvisioning,
     EnableGlobalReimbursementsModal,
+    MembersNeedCategoryModal,
     SidePanel,
     SidePanelContext,
     InsightsScope,

@@ -24,8 +24,11 @@ type InsightsGraph = {
     /** Hash of the snapshot holding the data for the "Average" compare mode */
     averageSnapshotHash?: number;
 
-    /** Average group total over the selected period, in the same units as the snapshot's totals, which the "Average" compare mode draws */
-    average?: number;
+    /** Average group total over the selected period, in the same units as the snapshot's totals, which the "Average" compare mode draws on amount charts */
+    averageAmount?: number;
+
+    /** Average number of expenses per group over the selected period, which the "Average" compare mode draws on count charts */
+    averageCount?: number;
 };
 
 /** Kind of signal an AI insight was detected from */

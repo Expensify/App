@@ -111,11 +111,6 @@ type ProfileNavigatorParamList = {
         accountID: string;
         reportID: string;
         login?: string;
-        policyID?: string;
-    };
-    [SCREENS.DYNAMIC_PROFILE_DISPLAY_NAME]: {
-        memberAccountID: string;
-        policyID: string;
     };
 };
 
@@ -265,6 +260,9 @@ type MoneyRequestNavigatorParamList = {
 
         /** Whether owned workspace chats should be left out of the picker (sent as the string 'true' when on) */
         shouldExcludeWorkspaces?: string;
+
+        /** Whether the page was opened from the confirmation's "To" row, so a selection returns to it (sent as the string 'true' when on) */
+        isFromConfirmation?: string;
     };
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DATE]: {
         action: IOUAction;
@@ -703,7 +701,6 @@ type ReimbursementAccountNavigatorParamList = {
         backTo?: Routes;
         policyID?: string;
         bankAccountID?: string;
-        subStep?: typeof CONST.BANK_ACCOUNT.STEP.COUNTRY;
         isChangingBankAccount?: boolean;
     };
     [SCREENS.REIMBURSEMENT_ACCOUNT_USD]: {
@@ -783,6 +780,9 @@ type FeatureTrainingNavigatorParamList = {
     [SCREENS.FEATURE_TRAINING_ROOT]: undefined;
     [SCREENS.AUTO_SUBMIT_ROOT]: undefined;
     [SCREENS.DYNAMIC_CHANGE_POLICY_EDUCATIONAL_ROOT]: undefined;
+    [SCREENS.DYNAMIC_PAYMENT_DETAILS_ROOT]: {
+        reportID: string;
+    };
 };
 
 type ReferralDetailsNavigatorParamList = {
@@ -1027,6 +1027,8 @@ type ReportsSplitNavigatorParamList = {
         isPendingCreation?: string;
         /** The report the user was viewing when they opened Concierge from the side-pane button (native), so Concierge can act on it. */
         sourceReportID?: string;
+        /** The workspace whose page the user was viewing when they opened Concierge from the side-pane button (native), so Concierge can act on it. */
+        sourcePolicyID?: string;
         /** When 'true', a money-request report opens scrolled to its latest message instead of the top (used by the "X Replies" link). */
         shouldScrollToLatest?: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
