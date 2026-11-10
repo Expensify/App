@@ -238,6 +238,8 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                 endSpanWithAttributes(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE, {
                     [CONST.TELEMETRY.ATTRIBUTE_PHOTO_WIDTH]: photo.width,
                     [CONST.TELEMETRY.ATTRIBUTE_PHOTO_HEIGHT]: photo.height,
+                    [CONST.TELEMETRY.ATTRIBUTE_CAPTURE_DURATION_MS]: photo.captureDurationMs,
+                    [CONST.TELEMETRY.ATTRIBUTE_SAVE_DURATION_MS]: photo.saveDurationMs,
                 });
                 if (!isMultiScanEnabled) {
                     startReceiptPrepareSpan(CONST.TELEMETRY.SPAN_PLATFORM.NATIVE);

@@ -103,7 +103,7 @@ function ImportFromFileStep() {
                         testID="ImportFromFileStep-TemplateLink"
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('workspace.companyCards.addNewCard.createFileFeedHelpText.templateLink')}
-                        sentryLabel="ImportFromFileStep-TemplateLink"
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.IMPORT_FROM_FILE_TEMPLATE_LINK}
                         onPress={downloadTemplate}
                         style={styles.dInlineFlex}
                     >
@@ -117,7 +117,7 @@ function ImportFromFileStep() {
                         // while onPress preventDefault()s the anchor's default navigation and routes through openLink on every platform.
                         href={CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}
                         accessibilityLabel={translate('workspace.companyCards.addNewCard.createFileFeedHelpText.helpGuideLink')}
-                        sentryLabel="ImportFromFileStep-HelpGuideLink"
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.IMPORT_FROM_FILE_HELP_GUIDE_LINK}
                         onPress={(event) => {
                             event?.preventDefault();
                             openLink(CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL, environmentURL, false, session);

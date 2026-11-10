@@ -27,6 +27,7 @@ import type {BillingGraceEndPeriod, IntroSelected, Policy, Transaction} from '@s
 import type {CreatableWorkspaceType} from '@src/types/onyx/Policy';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -55,9 +56,9 @@ function navigateToRestrictedActionIfNeeded(
 }
 
 type AddExpenseDropdownSentryLabels = {
-    createExpense: string;
-    trackDistance: string;
-    addExistingExpense: string;
+    createExpense: SentryLabel;
+    trackDistance: SentryLabel;
+    addExistingExpense: SentryLabel;
 };
 
 /**
