@@ -6,6 +6,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {TableHandle} from '@components/Table';
 import type {WorkspaceRowData, WorkspaceTableColumnKey} from '@components/Tables/WorkspaceListTable';
 import WorkspaceListTable from '@components/Tables/WorkspaceListTable';
+import BulkLeaveWorkspacesFlow from '@components/Tables/WorkspaceListTable/BulkLeaveWorkspacesFlow';
 import LeaveWorkspaceFlow from '@components/Tables/WorkspaceListTable/LeaveWorkspaceFlow';
 import TransferOwnershipFlow from '@components/Tables/WorkspaceListTable/TransferOwnershipFlow';
 import WorkspaceListLayout, {WorkspaceListHeaderContent} from '@components/WorkspaceListLayout';
@@ -31,7 +32,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {close} from '@libs/actions/Modal';
 import {clearCopyPolicySettings} from '@libs/actions/Policy/CopyPolicySettings';
 import {checkBulkTransferPolicyBillingOwner, queueBulkExportPolicyMembers, queueBulkTransferPolicyBillingOwner} from '@libs/actions/Policy/Member';
-import {queueBulkArchivePolicy, clearDuplicateWorkspace, dismissWorkspaceError, queueBulkLeavePolicy} from '@libs/actions/Policy/Policy';
+import {queueBulkArchivePolicy, clearDuplicateWorkspace, dismissWorkspaceError} from '@libs/actions/Policy/Policy';
 import {callIfAuthenticated} from '@libs/actions/Session';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -124,6 +125,7 @@ function WorkspacesListPage() {
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
     const [policyIDToArchive, setPolicyIDToArchive] = useState<string>();
     const [activeFlow, setActiveFlow] = useState<ActiveWorkspaceFlow>();
+    const [policyIDsToLeave, setPolicyIDsToLeave] = useState<string[]>();
     const [isCheckingTransfer, setIsCheckingTransfer] = useState(false);
     const [selectedPolicyIDs, setSelectedPolicyIDs] = useState<string[]>([]);
     const clearSelection = () => setSelectedPolicyIDs([]);
@@ -462,12 +464,7 @@ function WorkspacesListPage() {
                             setActiveFlow({type, policyID: firstPolicyID});
                             return;
                         }
-                        confirmBulkAction(policyIDs, translate('workspace.common.leaveWorkspacesTitle', {count: policyIDs.length}), translate('common.leave'), () =>
-                            queueBulkLeavePolicy(
-                                currentUserPersonalDetails.login ?? '',
-                                selectedRows.filter((row) => policyIDs.includes(row.policyID)).map((row) => ({id: row.policyID, pendingAction: row.pendingAction})),
-                            ),
-                        );
+                        setPolicyIDsToLeave(policyIDs);
                     }, session),
                 };
         }
@@ -584,6 +581,14 @@ function WorkspacesListPage() {
                     <LeaveWorkspaceFlow
                         policyID={activeFlow.policyID}
                         onDismiss={dismissActiveFlow}
+                    />
+                )}
+                {!!policyIDsToLeave && (
+                    <BulkLeaveWorkspacesFlow
+                        selectedRows={selectedRows}
+                        policyIDs={policyIDsToLeave}
+                        onConfirm={clearSelection}
+                        onDismiss={() => setPolicyIDsToLeave(undefined)}
                     />
                 )}
                 {activeFlow?.type === CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.UNARCHIVE && (

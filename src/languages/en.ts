@@ -562,7 +562,17 @@ const translations = {
             `If you leave this workspace, you'll be replaced as the preferred exporter with ${workspaceOwner}, the workspace owner.`,
         leaveWorkspaceConfirmationTechContact: (workspaceOwner: string) =>
             `If you leave this workspace, you'll be replaced as the technical contact with ${workspaceOwner}, the workspace owner.`,
-        leaveWorkspaceReimburser: "You can't leave this workspace as the reimburser. Please set a new reimburser in Workspaces > Make or track payments, then try again.",
+        leaveWorkspaceReimburser: "You can't leave this workspace as the payer. Please set a new payer in Workflows > Payments, then try again.",
+        leaveWorkspacesConfirmation: "If you leave these workspaces, you won't be able to submit expenses to them.",
+        leaveWorkspacesConfirmationAuditor: "If you leave these workspaces, you won't be able to view their reports and settings.",
+        leaveWorkspacesConfirmationAdmin: "If you leave these workspaces, you won't be able to manage their settings.",
+        leaveWorkspacesConfirmationApprover: (workspaceOwner: string) =>
+            `If you leave these workspaces, you'll be replaced in the approval workflow by ${workspaceOwner}, the workspace owner.`,
+        leaveWorkspacesConfirmationExporter: (workspaceOwner: string) =>
+            `If you leave these workspaces, you'll be replaced as the preferred exporter with ${workspaceOwner}, the workspace owner.`,
+        leaveWorkspacesConfirmationTechContact: (workspaceOwner: string) =>
+            `If you leave these workspaces, you'll be replaced as the technical contact with ${workspaceOwner}, the workspace owner.`,
+        leaveWorkspacesReimburser: "You can't leave these workspaces as the payer. Please set a new payer in Workflows > Payments, then try again.",
         reimbursable: 'Reimbursable',
         nonReimbursable: 'Non-reimbursable',
         editYourProfile: 'Edit your profile',

@@ -1,5 +1,12 @@
 import {getWorkspaceAddressStreetLines} from '@libs/WorkspaceDisplayUtils';
-import {getBrickRoadForPolicy, getChatTabBrickRoad, getChatTabBrickRoadReportID, getLeaveWorkspaceConfirmationPrompt, getWorkspacesBulkActions} from '@libs/WorkspacesSettingsUtils';
+import {
+    getBrickRoadForPolicy,
+    getBulkLeaveWorkspacesConfirmationPrompt,
+    getChatTabBrickRoad,
+    getChatTabBrickRoadReportID,
+    getLeaveWorkspaceConfirmationPrompt,
+    getWorkspacesBulkActions,
+} from '@libs/WorkspacesSettingsUtils';
 import type {WorkspacesBulkActionContext, WorkspacesBulkActionRow} from '@libs/WorkspacesSettingsUtils';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
@@ -286,6 +293,63 @@ describe('WorkspacesSettingsUtils', () => {
         it('returns default key when user has no special role', () => {
             const policy = createMock<Policy>({});
             expect(getLeaveWorkspaceConfirmationPrompt(policy, userEmail, ownerDisplayName, translate)).toBe('common.leaveWorkspaceConfirmation');
+        });
+    });
+
+    describe('getBulkLeaveWorkspacesConfirmationPrompt', () => {
+        // The stub keeps the owner name in the output so the tests can tell the owner groups apart.
+        const translate = <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>): string => [path, ...parameters].join(':');
+        const userEmail = 'user@example.com';
+        const buildWorkspace = (name: string, policy: Policy, ownerDisplayName = 'Owner A') => ({
+            policy,
+            name,
+            ownerDisplayName,
+            isApproverOfOutstandingReports: false,
+        });
+
+        it('uses the singular warning for a single workspace and the plural one for several', () => {
+            // Given one workspace the user audits and two they administer
+            const workspaces = [
+                buildWorkspace('Admin 1', createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN})),
+                buildWorkspace('Auditor 1', createMock<Policy>({role: CONST.POLICY.ROLE.AUDITOR})),
+                buildWorkspace('Admin 2', createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN})),
+            ];
+
+            // When the bulk leave prompt is built
+            const prompt = getBulkLeaveWorkspacesConfirmationPrompt(workspaces, userEmail, translate);
+
+            // Then each warning lists its workspaces, worded for how many it covers, with auditor before admin
+            expect(prompt).toBe(
+                `common.leaveWorkspaceConfirmationAuditor\n${CONST.DOT_SEPARATOR} Auditor 1\n\ncommon.leaveWorkspacesConfirmationAdmin\n${CONST.DOT_SEPARATOR} Admin 1\n${CONST.DOT_SEPARATOR} Admin 2`,
+            );
+        });
+
+        it('groups the warnings that name the owner by owner', () => {
+            // Given the user approves in three workspaces owned by two different people
+            const workspaces = [
+                buildWorkspace('Approver 1', createMock<Policy>({approver: userEmail}), 'Owner A'),
+                buildWorkspace('Approver 2', createMock<Policy>({approver: userEmail}), 'Owner B'),
+                buildWorkspace('Approver 3', createMock<Policy>({approver: userEmail}), 'Owner A'),
+            ];
+
+            // When the bulk leave prompt is built
+            const prompt = getBulkLeaveWorkspacesConfirmationPrompt(workspaces, userEmail, translate);
+
+            // Then each owner gets their own warning, so the owner named in it is right for every workspace listed under it
+            expect(prompt).toBe(
+                `common.leaveWorkspacesConfirmationApprover:Owner A\n${CONST.DOT_SEPARATOR} Approver 1\n${CONST.DOT_SEPARATOR} Approver 3\n\ncommon.leaveWorkspaceConfirmationApprover:Owner B\n${CONST.DOT_SEPARATOR} Approver 2`,
+            );
+        });
+
+        it('lists the workspaces the user pays for last', () => {
+            // Given the user is the payer of one workspace and a member of another
+            const workspaces = [buildWorkspace('Payer 1', createMock<Policy>({achAccount: {reimburser: userEmail}})), buildWorkspace('Member 1', createMock<Policy>({}))];
+
+            // When the bulk leave prompt is built
+            const prompt = getBulkLeaveWorkspacesConfirmationPrompt(workspaces, userEmail, translate);
+
+            // Then the payer warning comes after the warnings for the workspaces being left
+            expect(prompt).toBe(`common.leaveWorkspaceConfirmation\n${CONST.DOT_SEPARATOR} Member 1\n\ncommon.leaveWorkspaceReimburser\n${CONST.DOT_SEPARATOR} Payer 1`);
         });
     });
 

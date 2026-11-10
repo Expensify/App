@@ -5205,6 +5205,15 @@ const CONST = {
             UNARCHIVE: 'unarchive',
             LEAVE: 'leave',
         },
+        LEAVE_WORKSPACE_WARNINGS: {
+            MEMBER: 'member',
+            AUDITOR: 'auditor',
+            ADMIN: 'admin',
+            APPROVER: 'approver',
+            EXPORTER: 'exporter',
+            TECHNICAL_CONTACT: 'technicalContact',
+            PAYER: 'payer',
+        },
         POLICY_FEATURE: {
             OVERVIEW: 'overview',
             MEMBERS: 'members',

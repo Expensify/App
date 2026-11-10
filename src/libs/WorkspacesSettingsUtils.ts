@@ -108,6 +108,57 @@ function getOwnershipChecksDisplayText(
     return {title, text, buttonText};
 }
 
+type LeaveWorkspaceWarning = ValueOf<typeof CONST.POLICY.LEAVE_WORKSPACE_WARNINGS>;
+
+function getLeaveWorkspaceWarning(policy: OnyxEntry<Policy>, userEmail: string, isApproverOfOutstandingReports = false): LeaveWorkspaceWarning {
+    if (policy?.achAccount?.reimburser === userEmail) {
+        return CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.PAYER;
+    }
+
+    if (policy?.technicalContact === userEmail) {
+        return CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.TECHNICAL_CONTACT;
+    }
+
+    if (getConnectionExporters(policy).some((exporter) => exporter === userEmail)) {
+        return CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.EXPORTER;
+    }
+
+    if (isPolicyApprover(policy, userEmail) || isApproverOfOutstandingReports) {
+        return CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.APPROVER;
+    }
+
+    if (isPolicyAdmin(policy)) {
+        return CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.ADMIN;
+    }
+
+    if (isPolicyAuditor(policy)) {
+        return CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.AUDITOR;
+    }
+
+    return CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.MEMBER;
+}
+
+function getLeaveWorkspaceWarningText(warning: LeaveWorkspaceWarning, workspaceCount: number, ownerDisplayName: string, translate: LocaleContextProps['translate']): string {
+    const isPlural = workspaceCount > 1;
+    switch (warning) {
+        case CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.PAYER:
+            return translate(isPlural ? 'common.leaveWorkspacesReimburser' : 'common.leaveWorkspaceReimburser');
+        case CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.TECHNICAL_CONTACT:
+            return isPlural ? translate('common.leaveWorkspacesConfirmationTechContact', ownerDisplayName) : translate('common.leaveWorkspaceConfirmationTechContact', ownerDisplayName);
+        case CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.EXPORTER:
+            return isPlural ? translate('common.leaveWorkspacesConfirmationExporter', ownerDisplayName) : translate('common.leaveWorkspaceConfirmationExporter', ownerDisplayName);
+        case CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.APPROVER:
+            return isPlural ? translate('common.leaveWorkspacesConfirmationApprover', ownerDisplayName) : translate('common.leaveWorkspaceConfirmationApprover', ownerDisplayName);
+        case CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.ADMIN:
+            return translate(isPlural ? 'common.leaveWorkspacesConfirmationAdmin' : 'common.leaveWorkspaceConfirmationAdmin');
+        case CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.AUDITOR:
+            return translate(isPlural ? 'common.leaveWorkspacesConfirmationAuditor' : 'common.leaveWorkspaceConfirmationAuditor');
+        case CONST.POLICY.LEAVE_WORKSPACE_WARNINGS.MEMBER:
+        default:
+            return translate(isPlural ? 'common.leaveWorkspacesConfirmation' : 'common.leaveWorkspaceConfirmation');
+    }
+}
+
 function getLeaveWorkspaceConfirmationPrompt(
     policy: OnyxEntry<Policy>,
     userEmail: string,
@@ -115,33 +166,38 @@ function getLeaveWorkspaceConfirmationPrompt(
     translate: LocaleContextProps['translate'],
     isApproverOfOutstandingReports = false,
 ): string {
-    const exporters = getConnectionExporters(policy);
+    return getLeaveWorkspaceWarningText(getLeaveWorkspaceWarning(policy, userEmail, isApproverOfOutstandingReports), 1, ownerDisplayName, translate);
+}
 
-    if (policy?.achAccount?.reimburser === userEmail) {
-        return translate('common.leaveWorkspaceReimburser');
+type BulkLeaveWorkspace = {
+    policy: OnyxEntry<Policy>;
+    name: string;
+    ownerDisplayName: string;
+    isApproverOfOutstandingReports: boolean;
+};
+
+/**
+ * Lists the selected workspaces under the warning that applies to each, in the same order as LEAVE_WORKSPACE_WARNINGS.
+ */
+function getBulkLeaveWorkspacesConfirmationPrompt(workspaces: BulkLeaveWorkspace[], userEmail: string, translate: LocaleContextProps['translate']): string {
+    const warningOrder: LeaveWorkspaceWarning[] = Object.values(CONST.POLICY.LEAVE_WORKSPACE_WARNINGS);
+    const groups = new Map<string, {warning: LeaveWorkspaceWarning; ownerDisplayName: string; names: string[]}>();
+    for (const workspace of workspaces) {
+        const warning = getLeaveWorkspaceWarning(workspace.policy, userEmail, workspace.isApproverOfOutstandingReports);
+
+        // Some warnings name the owner, so workspaces with different owners need separate groups.
+        const groupKey = getLeaveWorkspaceWarningText(warning, 1, workspace.ownerDisplayName, translate);
+        const group = groups.get(groupKey) ?? {warning, ownerDisplayName: workspace.ownerDisplayName, names: []};
+        group.names.push(workspace.name);
+        groups.set(groupKey, group);
     }
 
-    if (policy?.technicalContact === userEmail) {
-        return translate('common.leaveWorkspaceConfirmationTechContact', ownerDisplayName);
-    }
-
-    if (exporters.some((exporter) => exporter === userEmail)) {
-        return translate('common.leaveWorkspaceConfirmationExporter', ownerDisplayName);
-    }
-
-    if (isPolicyApprover(policy, userEmail) || isApproverOfOutstandingReports) {
-        return translate('common.leaveWorkspaceConfirmationApprover', ownerDisplayName);
-    }
-
-    if (isPolicyAdmin(policy)) {
-        return translate('common.leaveWorkspaceConfirmationAdmin');
-    }
-
-    if (isPolicyAuditor(policy)) {
-        return translate('common.leaveWorkspaceConfirmationAuditor');
-    }
-
-    return translate('common.leaveWorkspaceConfirmation');
+    return [...groups.values()]
+        .sort((a, b) => warningOrder.indexOf(a.warning) - warningOrder.indexOf(b.warning))
+        .map((group) =>
+            [getLeaveWorkspaceWarningText(group.warning, group.names.length, group.ownerDisplayName, translate), ...group.names.map((name) => `${CONST.DOT_SEPARATOR} ${name}`)].join('\n'),
+        )
+        .join('\n\n');
 }
 
 type WorkspacesBulkActionRow = {
@@ -243,5 +299,13 @@ function getWorkspacesBulkActions(selectedRows: WorkspacesBulkActionRow[], conte
     return actions;
 }
 
-export {getChatTabBrickRoadReportID, getBrickRoadForPolicy, getChatTabBrickRoad, getOwnershipChecksDisplayText, getLeaveWorkspaceConfirmationPrompt, getWorkspacesBulkActions};
+export {
+    getChatTabBrickRoadReportID,
+    getBrickRoadForPolicy,
+    getChatTabBrickRoad,
+    getOwnershipChecksDisplayText,
+    getLeaveWorkspaceConfirmationPrompt,
+    getBulkLeaveWorkspacesConfirmationPrompt,
+    getWorkspacesBulkActions,
+};
 export type {BrickRoad, WorkspacesBulkAction, WorkspacesBulkActionContext, WorkspacesBulkActionRow};
