@@ -2,14 +2,14 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 
-import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
+import {payInvoice} from '@libs/actions/IOU/PayMoneyRequest';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getIsOffline} from '@libs/NetworkState';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import type {KYCFlowEvent, TriggerKYCFlow, WorkspacePolicyPaymentOption} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
@@ -29,6 +29,8 @@ import {loginSelector} from '@selectors/PersonalDetails';
 import truncate from 'lodash/truncate';
 import {useContext, useEffect, useRef} from 'react';
 
+import type {ActionHandledType} from './useHoldMenuSubmit';
+
 import useActiveAdminPolicies from './useActiveAdminPolicies';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -36,12 +38,13 @@ import useDelegateAccountID from './useDelegateAccountID';
 import useLastWorkspaceNumber from './useLastWorkspaceNumber';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
-import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import useParticipantsInvoiceReport from './useParticipantsInvoiceReport';
 import usePayChatReportActions from './usePayChatReportActions';
 import usePaymentOptions from './usePaymentOptions';
+import usePayWithWiseQuote from './usePayWithWiseQuote';
 import usePermissions from './usePermissions';
+import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
 import {usePersonalDetail} from './usePersonalDetails';
 import usePolicy from './usePolicy';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
@@ -83,8 +86,9 @@ function useSelectionModePayment({
 }: UseSelectionModePaymentParams) {
     const {translate, localeCompare} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
-    const {isOffline} = useNetwork();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {isBetaEnabled} = usePermissions();
+    const {payWithWiseQuote} = usePayWithWiseQuote();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const activeAdminPolicies = useActiveAdminPolicies();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
@@ -129,7 +133,7 @@ function useSelectionModePayment({
     const kycWallRef = useContext(KYCWallContext);
 
     // Store the pending payment and resume it after the user validates, instead of dropping it on the way to the magic-code screen.
-    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((retry) => retry?.());
+    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((retry?: () => void) => retry?.());
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Cash', 'ArrowRight', 'Building'] as const);
 
@@ -216,7 +220,7 @@ function useSelectionModePayment({
                 rules,
             });
         } else {
-            payMoneyRequest({
+            payWithWiseQuote({
                 bankAccountList,
                 getCurrencyDecimals,
                 isASAPSubmitBetaEnabled,
@@ -237,19 +241,21 @@ function useSelectionModePayment({
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
                 isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
                 onPaid,
+                onPaymentSent: () =>
+                    refreshSearchAfterReportAction({
+                        currentSearchQueryJSON,
+                        currentSearchKey,
+                        shouldCalculateTotals,
+                        // Read at payment time, since the Wise quote can be confirmed after the network state changes
+                        isOffline: getIsOffline(),
+                        isLoading: !!currentSearchResults?.search?.isLoading,
+                        shouldReturnTripRooms,
+                    }),
                 chatReportActions: getChatReportActions(false),
                 delegateAccountID,
                 isTrackIntentUser,
                 conciergeChat,
                 rules,
-            });
-            refreshSearchAfterReportAction({
-                currentSearchQueryJSON,
-                currentSearchKey,
-                shouldCalculateTotals,
-                isOffline,
-                isLoading: !!currentSearchResults?.search?.isLoading,
-                shouldReturnTripRooms,
             });
         }
 
@@ -315,6 +321,7 @@ function useSelectionModePayment({
 
     const invokePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         selectPaymentType({
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             getCurrencyDecimals,
             event,
             iouPaymentType,

@@ -17,6 +17,7 @@ function BaseSearchList({
     ref,
     onEndReached,
     onEndReachedThreshold,
+    selectionTopBar,
     ListFooterComponent,
     onViewableItemsChanged,
     onLayout,
@@ -30,25 +31,29 @@ function BaseSearchList({
     };
 
     return (
-        <AnimatedFlashListComponent
-            data={data}
-            renderItem={renderItemWithoutKeyboardFocus}
-            keyExtractor={keyExtractor}
-            onScroll={onScroll}
-            showsVerticalScrollIndicator={false}
-            ref={ref}
-            onEndReached={onEndReached}
-            onEndReachedThreshold={onEndReachedThreshold}
-            ListFooterComponent={ListFooterComponent}
-            onViewableItemsChanged={onViewableItemsChanged}
-            onLayout={onLayout}
-            removeClippedSubviews
-            drawDistance={250}
-            {...tabRootScrollProps}
-            maintainVisibleContentPosition={{disabled: true}}
-            stickyHeaderIndices={stickyHeaderIndices}
-            getItemType={getItemType}
-        />
+        <>
+            {/* The page header never scrolls away on native, so the select-all bar always stays pinned above the rows. */}
+            {selectionTopBar}
+            <AnimatedFlashListComponent
+                data={data}
+                renderItem={renderItemWithoutKeyboardFocus}
+                keyExtractor={keyExtractor}
+                onScroll={onScroll}
+                showsVerticalScrollIndicator={false}
+                ref={ref}
+                onEndReached={onEndReached}
+                onEndReachedThreshold={onEndReachedThreshold}
+                ListFooterComponent={ListFooterComponent}
+                onViewableItemsChanged={onViewableItemsChanged}
+                onLayout={onLayout}
+                removeClippedSubviews
+                drawDistance={250}
+                {...tabRootScrollProps}
+                maintainVisibleContentPosition={{disabled: true}}
+                stickyHeaderIndices={stickyHeaderIndices}
+                getItemType={getItemType}
+            />
+        </>
     );
 }
 

@@ -11,9 +11,10 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalDetailsForAccountIDs} from '@libs/PersonalDetailsUtils';
+import {getLoginByAccountID, getPersonalDetailsForAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getHumanAgentAccountIDFromReportAction, getHumanAgentFirstName} from '@libs/ReportActionsUtils';
 import {getReportNameFromNames} from '@libs/ReportAttributesUtils';
 import {getReportName} from '@libs/ReportNameUtils';
@@ -22,6 +23,7 @@ import {
     canEditReportTitle,
     getChatRoomSubtitle,
     getDisplayNamesWithTooltips,
+    getInvoiceReceiverPolicyID,
     getParentNavigationSubtitle,
     getReportStatusColorStyle,
     getReportStatusTooltipTranslation,
@@ -210,10 +212,14 @@ function AvatarWithDisplayName({
     const isInSidePanel = useIsInSidePanel();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`);
+    const [invoiceReceiverPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
+        selector: getInvoiceReceiverPolicyID,
+    });
     const [personalDetails] = useAllPersonalDetails() ?? CONST.EMPTY_OBJECT;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const policy = usePolicy(report?.policyID);
+    const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
     const theme = useTheme();
     const styles = useThemeStyles();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to display the edit button only on large screens
@@ -252,6 +258,7 @@ function AvatarWithDisplayName({
     const parentNavigationSubtitleData = getParentNavigationSubtitle(
         report,
         policy,
+        invoiceReceiverPolicy,
         conciergeReportID,
         translate,
         formatPhoneNumber,
@@ -266,7 +273,10 @@ function AvatarWithDisplayName({
     const statusText = shouldDisplayStatus ? getReportStatusTranslation({stateNum: report?.stateNum, statusNum: report?.statusNum, translate}) : undefined;
     const statusTooltipText = shouldDisplayStatus ? getReportStatusTooltipTranslation({stateNum: report?.stateNum, statusNum: report?.statusNum, translate}) : undefined;
     const reportStatusColorStyle = shouldDisplayStatus ? getReportStatusColorStyle(theme, report?.stateNum, report?.statusNum) : {};
-    const shouldShowReportTitleEditButton = shouldEnableDetailPageNavigation && !isSmallScreenWidth && canEditReportTitle(report, policy, currentUserAccountID, rules);
+    const shouldShowReportTitleEditButton =
+        shouldEnableDetailPageNavigation &&
+        !isSmallScreenWidth &&
+        canEditReportTitle(report, policy, currentUserAccountID, rules, getLoginByAccountID(report?.ownerAccountID, personalDetails));
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(parentReportAction);
     const humanAgentName = getHumanAgentFirstName(parentReportAction, personalDetails);
 

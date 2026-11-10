@@ -188,4 +188,42 @@ describe('getMissingPrefill', () => {
         // Then there is nothing left to write, so the page stops waiting and renders the flow
         expect(missing).toEqual({});
     });
+
+    it('resumes from the pages saved to Wise, over the details on file', () => {
+        // Given a representative page saved earlier, with an SSN the server holds, a file it stored, and a key a later save dropped
+        const businessAccountData: WiseBusinessAccountData = {
+            ...BUSINESS_ACCOUNT_DATA,
+            wise: {
+                pages: {representative: {firstName: 'Alicia', ssnProvided: true, phoneNumber: null}},
+                documents: {representative: {idDocument: ['kyc/1/license.jpg']}},
+            },
+        };
+
+        // When the onboarding builds its starting answers
+        const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, businessAccountData, PRIVATE_PERSONAL_DETAILS);
+
+        // Then the saved name wins over the private details, the SSN counts as provided, the file comes back as a saved file,
+        // and the dropped key falls back to the details on file
+        expect(prefill).toMatchObject({
+            firstName: 'Alicia',
+            ssnProvided: true,
+            phoneNumber: '+15125550199',
+            idDocument: [{name: 'license.jpg', uri: 'kyc/1/license.jpg', savedFileKey: 'kyc/1/license.jpg'}],
+        });
+    });
+
+    it('drops an SSN the server holds once a saved page says the representative has none', () => {
+        // Given a representative page saved with "I don't have an SSN" after an SSN was saved, which the server still reports as provided
+        const businessAccountData: WiseBusinessAccountData = {
+            ...BUSINESS_ACCOUNT_DATA,
+            wise: {pages: {representative: {hasNoSSN: true, ssnProvided: true}}},
+        };
+
+        // When the onboarding builds its starting answers
+        const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, businessAccountData, PRIVATE_PERSONAL_DETAILS);
+
+        // Then the SSN does not count as on file, so saying they have one again asks for a new one
+        expect(prefill.hasNoSSN).toBe(true);
+        expect(prefill).not.toHaveProperty('ssnProvided');
+    });
 });

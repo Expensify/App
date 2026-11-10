@@ -19,20 +19,21 @@ import useTransactionThreadData from './useTransactionThreadData';
 
 function MarkAsResolvedPrimaryAction({reportID, chatReportID, isDisabled}: SimpleActionProps) {
     const {translate} = useLocalize();
-    const {transaction, transactionThreadReport} = useTransactionThreadData(reportID, chatReportID);
+    const {transaction, transactionThreadReport, reportActions} = useTransactionThreadData(reportID, chatReportID);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transaction?.transactionID)}`);
 
     const {isOffline} = useNetwork();
 
     return (
         <Button
+            sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_PRIMARY_ACTION.MARK_AS_RESOLVED}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             isDisabled={isDisabled}
             onPress={() => {
                 if (!transaction?.transactionID) {
                     return;
                 }
-                markRejectViolationAsResolved(transaction.transactionID, isOffline, transactionViolations, transactionThreadReport?.reportID);
+                markRejectViolationAsResolved(transaction.transactionID, isOffline, transactionViolations, transactionThreadReport?.reportID, reportActions);
             }}
         >
             <Button.Text>{translate('iou.reject.markAsResolved')}</Button.Text>

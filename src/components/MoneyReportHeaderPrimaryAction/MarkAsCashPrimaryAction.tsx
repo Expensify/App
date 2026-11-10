@@ -20,6 +20,7 @@ function MarkAsCashPrimaryAction({reportID, chatReportID, isDisabled}: SimpleAct
 
     return (
         <Button
+            sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_PRIMARY_ACTION.MARK_AS_CASH}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             isDisabled={isDisabled}
             onPress={() => {

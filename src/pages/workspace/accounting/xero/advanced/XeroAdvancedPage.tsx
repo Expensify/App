@@ -7,7 +7,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -16,7 +15,6 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, getCurrentXeroOrganizationName, settingsPendingAction} from '@libs/PolicyUtils';
 
-import {getAccountingSettingsRoute} from '@pages/workspace/connections/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -37,7 +35,6 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
 
     const policyID = policy?.id;
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const xeroConfig = policy?.connections?.xero?.config;
     const {pendingFields, errorFields, sync} = xeroConfig ?? {};
     const {bankAccounts, expenseAccounts} = policy?.connections?.xero?.data ?? {};
@@ -63,7 +60,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
-            onBackButtonPress={() => Navigation.goBack(getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled, policyID))}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))}
             displayName="XeroAdvancedPage"
             headerTitle="workspace.accounting.advanced"
             headerSubtitle={currentXeroOrganizationName}
@@ -92,6 +89,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 title={translate('workspace.accounting.reimbursedReports')}
                 subtitle={translate('workspace.xero.advancedConfig.reimbursedReportsDescription')}
                 switchAccessibilityLabel={translate('workspace.xero.advancedConfig.reimbursedReportsDescription')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.SYNC_REIMBURSED_REPORTS_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={styles.mv3}
                 isActive={!!sync?.syncReimbursedReports}

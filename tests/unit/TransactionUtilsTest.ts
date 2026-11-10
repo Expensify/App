@@ -15,7 +15,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import type {Card, Policy, Report, ReviewDuplicates, Transaction} from '../../src/types/onyx';
-import type {Routes} from '../../src/types/onyx/Transaction';
+import type {Routes, TransactionCustomUnit} from '../../src/types/onyx/Transaction';
 import type {TransactionViolation} from '../../src/types/onyx/TransactionViolation';
 
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
@@ -406,9 +406,124 @@ describe('TransactionUtils', () => {
             expect(categoryTaxValue).toBe('10%');
         });
 
+        describe('distance expenses', () => {
+            const distanceRateID = 'DISTANCE_RATE_ID';
+
+            function buildDistancePolicy(category: string, taxEnabled: boolean, rateTaxRateExternalID?: string, isRateTaxDisabled = false): Policy {
+                return {
+                    ...createRandomPolicy(0),
+                    taxRates: {
+                        ...CONST.DEFAULT_TAX,
+                        taxes: {
+                            ...CONST.DEFAULT_TAX.taxes,
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            id_TAX_RATE_2: {name: 'Tax Rate 2', value: '8%', isDisabled: isRateTaxDisabled},
+                        },
+                    },
+                    rules: {expenseRules: createCategoryTaxExpenseRules(category, 'id_TAX_RATE_1')},
+                    customUnits: {
+                        DISTANCE_CUSTOM_UNIT: {
+                            attributes: {taxEnabled, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                            customUnitID: 'DISTANCE_CUSTOM_UNIT',
+                            enabled: true,
+                            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                            rates: {
+                                [distanceRateID]: {
+                                    attributes: {taxRateExternalID: rateTaxRateExternalID},
+                                    currency: 'USD',
+                                    customUnitRateID: distanceRateID,
+                                    enabled: true,
+                                    name: 'Test rate',
+                                    rate: 67,
+                                    subRates: [],
+                                },
+                            },
+                        },
+                    },
+                };
+            }
+
+            function buildDistanceTransaction(): Transaction {
+                const transaction = generateTransaction();
+                return {
+                    ...transaction,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                    comment: {...transaction.comment, customUnit: {customUnitRateID: distanceRateID}},
+                };
+            }
+
+            it('should apply the category rule when distance tax tracking is on and the rate has no tax rate of its own', () => {
+                // Given a policy whose distance rates track tax, where the selected rate has no tax rate of its own
+                const category = 'Advertising';
+                const fakePolicy = buildDistancePolicy(category, true);
+
+                // When retrieving the tax from the associated category
+                const {categoryTaxCode, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, buildDistanceTransaction(), fakePolicy, getCurrencyDecimalsLocal);
+
+                // Then the category rule fills the slot the rate left empty, rather than the workspace default
+                expect(categoryTaxCode).toBe('id_TAX_RATE_1');
+                expect(categoryTaxValue).toBe('5%');
+            });
+
+            it('should keep the rate tax rate when distance tax tracking is on and the rate has its own tax rate', () => {
+                // Given a policy whose distance rates track tax, where the selected rate carries its own tax rate
+                const category = 'Advertising';
+                const fakePolicy = buildDistancePolicy(category, true, 'id_TAX_RATE_2');
+
+                // When retrieving the tax from the associated category
+                const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(
+                    category,
+                    buildDistanceTransaction(),
+                    fakePolicy,
+                    getCurrencyDecimalsLocal,
+                );
+
+                // Then the category rule is skipped, because the rate's own tax rate takes precedence over it
+                expect(categoryTaxCode).toBeUndefined();
+                expect(categoryTaxAmount).toBeUndefined();
+                expect(categoryTaxValue).toBeUndefined();
+            });
+
+            it('should apply the category rule when the rate points at a tax rate that was disabled', () => {
+                // Given a distance rate that still points at a tax rate the admin has since disabled
+                const category = 'Advertising';
+                const fakePolicy = buildDistancePolicy(category, true, 'id_TAX_RATE_2', true);
+
+                // When retrieving the tax from the associated category
+                const {categoryTaxCode, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, buildDistanceTransaction(), fakePolicy, getCurrencyDecimalsLocal);
+
+                // Then the rate counts as having no tax rate, so the category rule applies no matter which of the two the user picked first
+                expect(categoryTaxCode).toBe('id_TAX_RATE_1');
+                expect(categoryTaxValue).toBe('5%');
+            });
+
+            it('should fall back to the workspace default when the category rule points at a disabled tax rate', () => {
+                // Given a category rule pointing at a tax rate the admin has since disabled, on a rate with no tax rate of its own
+                const category = 'Advertising';
+                const fakePolicy: Policy = {
+                    ...buildDistancePolicy(category, true),
+                    taxRates: {
+                        ...CONST.DEFAULT_TAX,
+                        taxes: {
+                            ...CONST.DEFAULT_TAX.taxes,
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            id_TAX_RATE_1: {name: 'Tax Rate 1', value: '5%', isDisabled: true},
+                        },
+                    },
+                };
+
+                // When retrieving the tax from the associated category
+                const {categoryTaxCode, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, buildDistanceTransaction(), fakePolicy, getCurrencyDecimalsLocal);
+
+                // Then the rule is skipped, because the expense cannot carry a tax rate the user is no longer offered
+                expect(categoryTaxCode).toBe('id_TAX_EXEMPT');
+                expect(categoryTaxValue).toBe('0%');
+            });
+        });
+
         describe('should return undefined tax', () => {
-            it('if the transaction type is distance', () => {
-                // Given a policy with tax expense rules associated with a category
+            it('if the transaction type is distance and distance tax tracking is disabled', () => {
+                // Given a policy with tax expense rules associated with a category, and no distance rates tracking tax
                 const category = 'Advertising';
                 const fakePolicy: Policy = {
                     ...createRandomPolicy(0),
@@ -516,6 +631,32 @@ describe('TransactionUtils', () => {
             // When resolving the default tax code for a distance expense on that rate
             // Then no tax code is returned, because none of them can be picked
             expect(TransactionUtils.getDefaultTaxCode(policy, distanceTransaction)).toBeUndefined();
+        });
+
+        it('taxes only the reimbursable distance when a commuter exclusion applies', () => {
+            // Given a 30 mile trip on a taxed rate, where the workspace excludes 10 miles as a commute
+            const policy = buildDistancePolicy({rateTaxCode: 'id_TAX_RATE_1'});
+            const buildTrip = (customUnit: TransactionCustomUnit): Transaction => ({
+                ...distanceTransaction,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, customUnitRateID: RATE_ID, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, ...customUnit},
+                },
+            });
+
+            // When computing the tax for the full trip, the excluded trip, and a trip of only the reimbursable part
+            const fullTrip = TransactionUtils.getDistanceRateTaxUpdates(policy, buildTrip({quantity: 30}), RATE_ID, getCurrencyDecimalsLocal);
+            const excludedTrip = TransactionUtils.getDistanceRateTaxUpdates(
+                policy,
+                buildTrip({quantity: 30, commuterExclusion: 10, reimbursableDistance: 20}),
+                RATE_ID,
+                getCurrencyDecimalsLocal,
+            );
+            const shortTrip = TransactionUtils.getDistanceRateTaxUpdates(policy, buildTrip({quantity: 20}), RATE_ID, getCurrencyDecimalsLocal);
+
+            // Then the commute is left out of the tax, so the expense is taxed as if it were only the reimbursable 20 miles
+            expect(excludedTrip.taxAmount).toBe(shortTrip.taxAmount);
+            expect(excludedTrip.taxAmount).toBeLessThan(fullTrip.taxAmount);
         });
 
         it('makes getDistanceRateTaxUpdates drop the disabled tax rate', () => {
@@ -3233,7 +3374,7 @@ describe('TransactionUtils', () => {
                 reportID: undefined,
             });
 
-            const result = TransactionUtils.getReportOwnerAccountIDAsAttendee(transaction, currentUserPersonalDetails.accountID);
+            const result = TransactionUtils.getReportOwnerAccountIDAsAttendee(transaction, currentUserPersonalDetails.accountID, SECOND_USER_ID);
 
             expect(result).toBeUndefined();
         });
@@ -3243,7 +3384,7 @@ describe('TransactionUtils', () => {
                 reportID: FAKE_OPEN_REPORT_SECOND_USER_ID,
             });
 
-            const result = TransactionUtils.getReportOwnerAccountIDAsAttendee(transaction, currentUserPersonalDetails.accountID);
+            const result = TransactionUtils.getReportOwnerAccountIDAsAttendee(transaction, currentUserPersonalDetails.accountID, secondUserOpenReport.ownerAccountID);
 
             expect(result).toBe(SECOND_USER_ID);
         });
@@ -3253,7 +3394,7 @@ describe('TransactionUtils', () => {
                 reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
             });
 
-            const result = TransactionUtils.getReportOwnerAccountIDAsAttendee(transaction, currentUserPersonalDetails.accountID);
+            const result = TransactionUtils.getReportOwnerAccountIDAsAttendee(transaction, currentUserPersonalDetails.accountID, SECOND_USER_ID);
 
             expect(result).toBe(CURRENT_USER_ID);
         });
@@ -5095,6 +5236,26 @@ describe('TransactionUtils', () => {
 
                 expect(result.keep.reimbursable).toBe(false);
                 expect(result.change.reimbursable).toBeUndefined();
+            });
+
+            it('should preserve an imported reimbursable=true value when the kept transaction is a managed card', () => {
+                const managedCardTransaction = generateTransaction({reimbursable: true, managedCard: true});
+                const duplicates = [generateTransaction({reimbursable: false, managedCard: false})];
+
+                const result = TransactionUtils.compareDuplicateTransactionFields({}, managedCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+
+                expect(result.keep.reimbursable).toBe(true);
+                expect(result.change.reimbursable).toBeUndefined();
+            });
+
+            it('should default reimbursable to false when the kept managed card has no reimbursable value', () => {
+                const managedCardTransaction = generateTransaction({managedCard: true});
+                delete managedCardTransaction.reimbursable;
+                const duplicates = [generateTransaction({reimbursable: true, managedCard: false})];
+
+                const result = TransactionUtils.compareDuplicateTransactionFields({}, managedCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+
+                expect(result.keep.reimbursable).toBe(false);
             });
 
             it('should not force reimbursable to false when the reviewing (kept) transaction is a cash expense, even if a duplicate is a managed card', () => {

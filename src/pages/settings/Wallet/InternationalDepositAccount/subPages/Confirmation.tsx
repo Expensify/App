@@ -5,8 +5,8 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
+import TermsOfServiceLabel from '@components/TermsOfServiceLabel';
 import Text from '@components/Text';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -38,11 +38,6 @@ type MenuItemProps = {
     interactive?: boolean;
     disabled?: boolean;
 };
-
-function TermsAndConditionsLabel() {
-    const {translate} = useLocalize();
-    return <RenderHTML html={translate('common.acceptTermsOfService')} />;
-}
 
 function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProps) {
     const {translate} = useLocalize();
@@ -199,9 +194,9 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
             >
                 <InputWrapper
                     InputComponent={CheckboxWithLabel}
-                    aria-label={`${translate('common.iAcceptThe')} ${translate('common.addCardTermsOfService')}`}
+                    accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.addCardTermsOfService')}`}
                     inputID="acceptTerms"
-                    LabelComponent={TermsAndConditionsLabel}
+                    LabelComponent={TermsOfServiceLabel}
                     style={[styles.mt3]}
                     shouldSaveDraft
                 />

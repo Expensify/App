@@ -33,7 +33,7 @@ function UpgradeConfirmation({addCompanyCard, addPersonalCard}: {addCompanyCard:
             <ConfirmationPage.Content>
                 <ConfirmationPage.Illustration />
                 <ConfirmationPage.Heading>{translate('personalCard.newWorkspace')}</ConfirmationPage.Heading>
-                <View style={[styles.renderHTML, styles.w100]}>
+                <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter, styles.w100]}>
                     <RenderHTML html={translate('personalCard.successMessage', {subscriptionLink})} />
                 </View>
             </ConfirmationPage.Content>
