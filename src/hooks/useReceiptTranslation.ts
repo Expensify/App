@@ -8,6 +8,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
@@ -28,9 +29,17 @@ function useReceiptTranslation(transaction: OnyxEntry<Transaction>) {
 
     // The server sends the transaction's receiptID as a string but the translation's as a number
     const isSameReceipt = !!receiptID && !!savedTranslation && String(savedTranslation.receiptID) === String(receiptID);
-    const savedTranslationRows = isSameReceipt && savedTranslation.state === CONST.RECEIPT.TRANSLATION_STATE.TRANSLATED ? savedTranslation.rows : undefined;
+    const savedTranslationState = isSameReceipt ? savedTranslation.state : undefined;
+    const savedTranslationRows = savedTranslationState === CONST.RECEIPT.TRANSLATION_STATE.TRANSLATED ? savedTranslation?.rows : undefined;
     const isTranslating = receiptTranslationState?.requestState === CONST.RECEIPT.TRANSLATION_REQUEST_STATE.LOADING;
     const translatedReceiptRows = receiptTranslationState?.isShowingTranslation && !isTranslating ? savedTranslationRows : undefined;
+
+    const showTranslationError = (state: ValueOf<typeof CONST.RECEIPT.TRANSLATION_STATE> | undefined) => {
+        if (state === CONST.RECEIPT.TRANSLATION_STATE.TRANSLATED) {
+            return;
+        }
+        Growl.error({bodyText: translate(state ? `receipt.translationError.${state}` : 'receipt.translationError.generic')});
+    };
 
     const startTranslation = () => {
         if (!transactionID || !receiptID) {
@@ -40,12 +49,11 @@ function useReceiptTranslation(transaction: OnyxEntry<Transaction>) {
             showReceiptTranslation(transactionID);
             return;
         }
-        translateReceipt(transactionID, locale).then((state) => {
-            if (state === CONST.RECEIPT.TRANSLATION_STATE.TRANSLATED) {
-                return;
-            }
-            Growl.error({bodyText: translate(state ? `receipt.translationError.${state}` : 'receipt.translationError.generic')});
-        });
+        if (savedTranslationState && savedTranslationState !== CONST.RECEIPT.TRANSLATION_STATE.TRANSLATED) {
+            showTranslationError(savedTranslationState);
+            return;
+        }
+        translateReceipt(transactionID, locale).then(showTranslationError);
     };
 
     const showOriginal = () => {
