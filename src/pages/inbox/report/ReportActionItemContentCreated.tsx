@@ -67,10 +67,13 @@ function ReportActionItemContentCreated({parentReportAction, transactionID, draf
     // The comments below an expense get a heading like the expense's other sections, once there is anything to head.
     const expenseThreadDivider = hasActionsAfterCreated && (
         <>
-            <SpacerView
-                shouldShow
-                style={styles.reportHorizontalRule}
-            />
+            {/* An unread comment's "New" line takes the rule's place, as it does below every other created action. */}
+            {!shouldHideThreadDividerLine && (
+                <SpacerView
+                    shouldShow
+                    style={styles.reportHorizontalRule}
+                />
+            )}
             <View
                 style={[styles.mh5, styles.pv2, styles.userSelectNone]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}

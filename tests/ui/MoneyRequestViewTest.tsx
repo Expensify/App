@@ -301,8 +301,8 @@ describe('MoneyRequestView edit fields', () => {
         expect(screen.queryByLabelText('common.date')).toBeNull();
     });
 
-    it('shows the category and tag of an editable expense as dropdown fields', async () => {
-        // Given an open expense on a workspace with categories and tags
+    it('shows the category and tag from the report policy as dropdown fields when nothing is selected yet', async () => {
+        // Given an open expense with no category or tag yet, on a workspace with categories and tags
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
             parentReportID: expenseReportID,
@@ -322,7 +322,8 @@ describe('MoneyRequestView edit fields', () => {
         renderMoneyRequestView(threadReport, {areCategoriesEnabled: true, areTagsEnabled: true});
         await waitForBatchedUpdatesWithAct();
 
-        // Then both are fields that report a closed list, which is how a field that opens its list in place reads
+        // Then both show from the report's workspace, as fields that report a closed list, which is how a field that
+        // opens its list in place reads
         await waitFor(() => {
             expect(screen.getByLabelText(fieldLabel('common.category')).props.accessibilityState).toMatchObject({expanded: false});
         });
@@ -348,33 +349,6 @@ describe('MoneyRequestView edit fields', () => {
             expect(screen.getByLabelText(fieldLabel('iou.attendees')).props.accessibilityState).toMatchObject({expanded: false});
         });
         expect(screen.getByLabelText(fieldLabel('common.report')).props.accessibilityState).toMatchObject({expanded: false});
-    });
-
-    it('shows the Category and Tag rows from the report policy when nothing is selected yet', async () => {
-        const threadReport = {
-            ...LHNTestUtils.getFakeReport(),
-            parentReportID: expenseReportID,
-            parentReportActionID,
-        };
-
-        await setupTestData();
-
-        await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {
-                Travel: {name: 'Travel', enabled: true},
-            });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
-                Location: {name: 'Location', orderWeight: 0, required: false, tags: {Berlin: {name: 'Berlin', enabled: true}}},
-            });
-        });
-
-        renderMoneyRequestView(threadReport, {areCategoriesEnabled: true, areTagsEnabled: true});
-        await waitForBatchedUpdatesWithAct();
-
-        await waitFor(() => {
-            expect(screen.getByLabelText(fieldLabel('common.category'))).toBeOnTheScreen();
-            expect(screen.getByLabelText(fieldLabel('Location'))).toBeOnTheScreen();
-        });
     });
 
     it('marks selectable toggle labels for multi-field copying', async () => {

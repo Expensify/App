@@ -232,7 +232,7 @@ function MoneyRequestView({
     isFromReviewDuplicates = false,
     mergeTransactionID,
 }: MoneyRequestViewProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Checkmark', 'Suitcase', 'NewWindow']);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Suitcase', 'NewWindow']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -485,9 +485,6 @@ function MoneyRequestView({
             policy,
             rules,
         });
-
-    // The values shown for review in the duplicates and merge flows are not saved yet, so those flows lock every field.
-    const isReviewingUnsavedValues = isFromReviewDuplicates || isFromMergeTransaction;
 
     const canEditDate =
         isEditable &&
@@ -1389,16 +1386,10 @@ function MoneyRequestView({
     // A per diem amount comes from its rates, a distance amount waits for its route, a scanning receipt's amount comes
     // from SmartScan and a split amount is edited across its splits, so those keep the row that opens their own page.
     const canEditAmountInline =
-        canEditAmount &&
-        !isReviewingUnsavedValues &&
-        shouldDisplayTransactionAmount &&
-        !isPerDiemRequest &&
-        !isTransactionScanning &&
-        !hasFailedScanAmountPlaceholder &&
-        !(shouldShowSplitIndicator && isSplitAvailable);
+        canEditAmount && shouldDisplayTransactionAmount && !isPerDiemRequest && !isTransactionScanning && !hasFailedScanAmountPlaceholder && !(shouldShowSplitIndicator && isSplitAvailable);
     const canAddCategory = canCreateCategoryInSitu(policy, currentUserEmailParam);
     // A tax rate that can no longer be picked asks to be cleared first, which the tax amount's page flow handles.
-    const canEditTaxAmountInline = canEditTaxFields && !isReviewingUnsavedValues && !shouldShowTaxDisabledAlert;
+    const canEditTaxAmountInline = canEditTaxFields && !shouldShowTaxDisabledAlert;
 
     const hasAttendees = Array.isArray(actualAttendees) && actualAttendees.length > 0;
     const attendeesPerPersonText =
