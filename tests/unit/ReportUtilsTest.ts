@@ -4683,15 +4683,23 @@ describe('ReportUtils', () => {
                         includeOpenDraftPreview = true,
                         unloadedSiblingStatusNum,
                         includeLoadedSiblingWithoutTransactions = false,
-                    }: {includeOpenDraftPreview?: boolean; unloadedSiblingStatusNum?: ReportAction['childStatusNum']; includeLoadedSiblingWithoutTransactions?: boolean} = {},
+                        asSubmitter = false,
+                    }: {
+                        includeOpenDraftPreview?: boolean;
+                        unloadedSiblingStatusNum?: ReportAction['childStatusNum'];
+                        includeLoadedSiblingWithoutTransactions?: boolean;
+                        asSubmitter?: boolean;
+                    } = {},
                 ) => {
+                    const expenseOwnerAccountID = asSubmitter ? currentUserAccountID : otherUserAccountID;
+                    const expenseManagerAccountID = asSubmitter ? otherUserAccountID : currentUserAccountID;
                     const heldExpenseReport: Report = {
                         ...LHNTestUtils.getFakeReport(),
                         reportID: heldExpenseReportID,
                         chatReportID,
                         policyID: '1',
-                        ownerAccountID: otherUserAccountID,
-                        managerID: currentUserAccountID,
+                        ownerAccountID: expenseOwnerAccountID,
+                        managerID: expenseManagerAccountID,
                         type: CONST.REPORT.TYPE.EXPENSE,
                         stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                         statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
@@ -4702,7 +4710,7 @@ describe('ReportUtils', () => {
                         reportID: openDraftReportID,
                         chatReportID,
                         policyID: '1',
-                        ownerAccountID: otherUserAccountID,
+                        ownerAccountID: expenseOwnerAccountID,
                         type: CONST.REPORT.TYPE.EXPENSE,
                         stateNum: CONST.REPORT.STATE_NUM.OPEN,
                         statusNum: CONST.REPORT.STATUS_NUM.OPEN,
@@ -4712,7 +4720,7 @@ describe('ReportUtils', () => {
                         ...createPolicyExpenseChat(7400, false),
                         reportID: chatReportID,
                         policyID: '1',
-                        ownerAccountID: otherUserAccountID,
+                        ownerAccountID: expenseOwnerAccountID,
                         hasOutstandingChildRequest: true,
                         iouReportID: openDraftReportID,
                     };
@@ -4730,7 +4738,7 @@ describe('ReportUtils', () => {
                         childReportID,
                         childStatusNum,
                         childType: CONST.REPORT.TYPE.EXPENSE,
-                        childManagerAccountID: currentUserAccountID,
+                        childManagerAccountID: expenseManagerAccountID,
                         shouldShow: true,
                         message: [{type: 'COMMENT', html: 'Expense report', text: 'Expense report'}],
                         originalMessage: {linkedReportID: childReportID},
@@ -4761,7 +4769,7 @@ describe('ReportUtils', () => {
                         reportActionID: 'mr_7401',
                         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                         created: '2024-01-01 00:00:00.000',
-                        actorAccountID: otherUserAccountID,
+                        actorAccountID: expenseOwnerAccountID,
                         childReportID: heldTransactionThreadReportID,
                         originalMessage: {
                             IOUTransactionID: '7401',
@@ -4781,9 +4789,10 @@ describe('ReportUtils', () => {
                     await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {
                         id: '1',
                         type: CONST.POLICY.TYPE.TEAM,
-                        role: CONST.POLICY.ROLE.ADMIN,
+                        role: asSubmitter ? CONST.POLICY.ROLE.USER : CONST.POLICY.ROLE.ADMIN,
                         approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                         reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                        harvesting: {enabled: false},
                     });
                     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, policyExpenseChat);
                     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${heldExpenseReportID}`, heldExpenseReport);
@@ -4900,6 +4909,26 @@ describe('ReportUtils', () => {
                     // Then Approve lands on the sibling, because the snapshot shows it is not held
                     expect(reportAction?.childReportID).toBe(loadedSiblingReportID);
                     expect(actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
+                });
+
+                it('shows ADD when the submitter has an empty report beside one the approver held', async () => {
+                    // Given the approver held the submitted expense, and the submitter's chat also has an empty open report
+                    const policyExpenseChat = await seedHeldSubmittedChild(otherUserAccountID, {asSubmitter: true});
+
+                    // When the submitter's attention is derived
+                    const {reportAction, actionBadge} =
+                        getReasonAndReportActionThatRequiresAttention({
+                            optionOrReport: policyExpenseChat,
+                            currentUserLogin: currentUserEmail,
+                            currentUserAccountID,
+                            transactionViolations: undefined,
+                            reportMetadata: undefined,
+                        }) ?? {};
+
+                    // Then the empty report keeps its Add badge, because the submitter can still add an expense
+                    expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
+                    expect(reportAction?.childReportID).toBe(openDraftReportID);
+                    expect(actionBadge).toBe(CONST.REPORT.ACTION_BADGE.ADD);
                 });
             });
         });

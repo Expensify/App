@@ -3830,7 +3830,9 @@ function getIOUReportActionWithBadge({
         }
     }
 
-    const isBlockedOnlyByHeldReports = !earliestAction && hasHeldReport && !hasUnresolvedOutstandingReport;
+    // An Add action is a real action for the submitter, so a held sibling must not remove that chip. The approver
+    // never gets Add on someone else's expense report, so this still hides the approver's dot.
+    const isBlockedOnlyByHeldReports = !earliestAction && !earliestAddAction && hasHeldReport && !hasUnresolvedOutstandingReport;
     if (!earliestAction && earliestAddAction) {
         return {reportAction: earliestAddAction, actionBadge: CONST.REPORT.ACTION_BADGE.ADD, isBlockedOnlyByHeldReports};
     }
@@ -5442,8 +5444,8 @@ function getReasonAndReportActionThatRequiresAttention({
     // This only has to run on the fallback path: when a candidate was found, getBadgeFromIOUReport has already applied
     // the same exclusion while picking it, so the chat is known to have an actionable child even when a sibling of that
     // child is fully held. The walk flag covers the case where that fallback id is a different report than the held child
-    // (the chat's open draft), so checking only that id would never see the held transactions. Add does not count as a
-    // selected candidate, so an empty report cannot hide that decision.
+    // (the chat's open draft), so checking only that id would never see the held transactions. Add is not a selected
+    // candidate, and the flag is already false when the submitter has an Add action.
     const isFallbackReportExcludedForHeldExpenses =
         !dotCandidateAction && (isBlockedOnlyByHeldReports || isReportExcludedForHeldExpenses(iouReport, transactions, iouReportActions, currentUserAccountID));
 
