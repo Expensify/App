@@ -400,7 +400,7 @@ function useNavigationSuggestionSources(shouldBuildSources: boolean, shouldWatch
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const {clearSelectedTransactions} = useSearchSelectionActions();
-    const typeMenuSections = useSearchTypeMenuSectionsForNavigation(shouldWatchForApprovals, shouldBuildSources);
+    const typeMenuSections = useSearchTypeMenuSectionsForNavigation(shouldWatchForApprovals);
     const {accountMenuItemsData, generalMenuItemsData} = useSettingsNavigationMenuData();
 
     // A blank query matches nothing, so skip building the sources; workspace menu items are the costliest.

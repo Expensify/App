@@ -73,11 +73,12 @@ describe('activeSpans benchmark logging', () => {
         expect(mockStartInactiveSpan).not.toHaveBeenCalled();
     });
 
-    it('still logs the benchmark line only for spans that were not canceled when logging is off', () => {
-        // Given a production build, where endSpan skips the console log and never reads the span's attributes,
-        // so the canceled state has to come from the tracked entry
+    it('logs nothing to the console and skips the benchmark line of a canceled span in a production build', () => {
+        // Given a production build, where endSpan never reads the span's attributes, so the canceled state comes from the tracked entry
         // eslint-disable-next-line no-underscore-dangle -- __DEV__ is the React Native global the code under test reads
         (global as Record<string, unknown>).__DEV__ = false;
+        const consoleDebugSpy = jest.spyOn(console, 'debug').mockImplementation(() => {});
+        consoleDebugSpy.mockClear();
         startSpan('ManualOpenReport', {name: 'ManualOpenReport'});
         startSpan('ManualOpenSearchRouter', {name: 'ManualOpenSearchRouter'});
 
@@ -85,7 +86,9 @@ describe('activeSpans benchmark logging', () => {
         endSpan('ManualOpenReport');
         cancelSpan('ManualOpenSearchRouter');
 
-        // Then only the ended span reaches the benchmark log, because a canceled span's duration does not measure a finished navigation
+        // Then nothing reaches the console, since React Native serializes every argument for the native logger,
+        // and only the ended span reaches the benchmark log
+        expect(consoleDebugSpy).not.toHaveBeenCalled();
         expect(mockLogBenchmarkSpanEnd).toHaveBeenCalledTimes(1);
         expect(mockLogBenchmarkSpanEnd).toHaveBeenCalledWith('ManualOpenReport', expect.any(Number));
     });

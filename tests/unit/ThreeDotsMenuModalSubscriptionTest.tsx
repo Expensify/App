@@ -1,4 +1,4 @@
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
@@ -6,8 +6,6 @@ import {setModalVisibility, willAlertModalBecomeVisible} from '@libs/actions/Mod
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-
-import type {ReactNode} from 'react';
 
 import React, {Profiler} from 'react';
 import Onyx from 'react-native-onyx';
@@ -35,48 +33,6 @@ jest.mock('@components/PopoverMenu', () => {
     return MockPopoverMenu;
 });
 
-jest.mock('@components/Icon', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- jest.requireActual returns an untyped module; standard RN-mock pattern in this repo.
-    const {View: RNView} = jest.requireActual('react-native');
-    function MockIcon() {
-        return <RNView />;
-    }
-    return MockIcon;
-});
-
-jest.mock('@components/Tooltip/PopoverAnchorTooltip', () => {
-    function MockTooltip({children}: {children?: ReactNode}) {
-        return children;
-    }
-    return MockTooltip;
-});
-
-jest.mock('@components/Tooltip/EducationalTooltip', () => {
-    function MockEducationalTooltip({children}: {children?: ReactNode}) {
-        return children;
-    }
-    return MockEducationalTooltip;
-});
-
-const onRender = jest.fn();
-
-const renderMenu = async () => {
-    render(
-        <Profiler
-            id="three-dots-menu"
-            onRender={onRender}
-        >
-            <ThreeDotsMenu
-                shouldSelfPosition
-                testID="three-dots-menu"
-                anchorAlignment={anchorAlignment}
-                menuItems={menuItems}
-            />
-        </Profiler>,
-    );
-    await waitForBatchedUpdatesWithAct();
-};
-
 describe('ThreeDotsMenu modal subscription', () => {
     beforeAll(() => {
         // The same starting value the app gives the key at launch, so every write below lands on a key that already has a value
@@ -84,17 +40,25 @@ describe('ThreeDotsMenu modal subscription', () => {
         return waitForBatchedUpdates();
     });
 
-    afterEach(async () => {
-        onRender.mockClear();
-        await act(async () => {
-            await Onyx.clear();
-        });
+    it('re-renders only when an alert modal is about to cover it, and then closes its open popover', async () => {
+        // Given a menu with its popover open, because many of these menus stay mounted on the Workspaces tab while the user navigates
+        const onRender = jest.fn();
+        render(
+            <Profiler
+                id="three-dots-menu"
+                onRender={onRender}
+            >
+                <ThreeDotsMenu
+                    shouldSelfPosition
+                    testID="three-dots-menu"
+                    anchorAlignment={anchorAlignment}
+                    menuItems={menuItems}
+                />
+            </Profiler>,
+        );
         await waitForBatchedUpdatesWithAct();
-    });
-
-    it('does not re-render when a right-docked screen toggles the modal visibility flag', async () => {
-        // Given a mounted menu with its render count reset, because many of these menus stay mounted on the Workspaces tab while the user navigates
-        await renderMenu();
+        fireEvent.press(screen.getByTestId('three-dots-menu'));
+        expect(await screen.findByTestId('popover-open')).toBeOnTheScreen();
         onRender.mockClear();
 
         // When a right-docked screen such as the Search Router is focused and then blurred, which writes the modal visibility on every open and close
@@ -106,13 +70,6 @@ describe('ThreeDotsMenu modal subscription', () => {
 
         // Then the menu does not render, because it only depends on whether an alert modal is about to cover it
         expect(onRender).not.toHaveBeenCalled();
-    });
-
-    it('closes its open popover when an alert modal is about to cover it, and ignores popovers', async () => {
-        // Given a menu with its popover open, the only state in which another modal covering the menu matters
-        await renderMenu();
-        fireEvent.press(screen.getByTestId('three-dots-menu'));
-        expect(await screen.findByTestId('popover-open')).toBeOnTheScreen();
 
         // When a popover is about to become visible
         willAlertModalBecomeVisible(true, true);

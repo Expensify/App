@@ -45,7 +45,7 @@ import createMock from '../utils/createMock';
 
 type GetWorkspaceMenuItems = typeof getWorkspaceMenuItems;
 
-const mockUseSearchTypeMenuSections = jest.fn<SearchTypeMenuSection[], [isScreenFocused?: boolean, shouldBuildSections?: boolean]>();
+const mockUseSearchTypeMenuSections = jest.fn<SearchTypeMenuSection[], [isScreenFocused?: boolean]>();
 const mockUseMemoizedLazyExpensifyIcons = jest.fn<Record<string, IconAsset>, []>();
 const mockUseCreateNavigationSuggestions = jest.fn<NavigationSuggestionSourceItem[], []>(() => []);
 const mockUseSettingsNavigationMenuData = jest.fn<{accountMenuItemsData: MenuSection; generalMenuItemsData: MenuSection}, []>();
@@ -147,7 +147,7 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
 jest.mock('@hooks/useSearchTypeMenuSections', () => ({
     __esModule: true,
     default: (isScreenFocused?: boolean) => mockUseSearchTypeMenuSections(isScreenFocused),
-    useSearchTypeMenuSectionsForNavigation: (isScreenFocused?: boolean, shouldBuildSections?: boolean) => mockUseSearchTypeMenuSections(isScreenFocused, shouldBuildSections),
+    useSearchTypeMenuSectionsForNavigation: (isScreenFocused?: boolean) => mockUseSearchTypeMenuSections(isScreenFocused),
 }));
 
 jest.mock('@pages/settings/useSettingsNavigationMenuData', () => ({
@@ -885,37 +885,6 @@ describe('Workspace Search Router navigation source', () => {
         );
         expect(mockIsBetaEnabled).toHaveBeenCalledWith(CONST.BETAS.VENDOR_MATCHING);
     });
-
-    it.each(['', '   '])('skips building the sources for the empty query %p the Search Router opens with', (query) => {
-        // Given an account with workspaces, whose settings menus are the most expensive navigation source to build
-        const policy = createWorkspacePolicy('1', 'Alpha Workspace');
-        mockUseOnyx.mockImplementation((key) => {
-            if (key === ONYXKEYS.COLLECTION.POLICY) {
-                return [{[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy}];
-            }
-            if (key === ONYXKEYS.SESSION) {
-                return [workspaceCurrentUserLogin];
-            }
-            return [undefined];
-        });
-        mockUseMemoizedLazyExpensifyIcons.mockReturnValue({...spendIcons, ...workspaceIcons, Home: mockIcon, Inbox: mockIcon, ReceiptMultiple: mockIcon, Gear: mockIcon});
-        mockUseSearchTypeMenuSections.mockReturnValue([]);
-
-        // When the hook renders with the empty query of a fresh Search Router open
-        const {result, rerender} = renderHook(({currentQuery}) => useNavigationSuggestions(currentQuery), {initialProps: {currentQuery: query}});
-
-        // Then no suggestion is returned and neither the Workspace menus nor the Spend sections are built, since the result would be discarded anyway
-        expect(result.current).toEqual([]);
-        expect(getWorkspaceMenuItems).not.toHaveBeenCalled();
-        expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(true, false);
-
-        // When the user types the first character
-        rerender({currentQuery: 'a'});
-
-        // Then both sources are built again, so the skip only lasts while the query is empty
-        expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(true, true);
-        expect(getWorkspaceMenuItems).toHaveBeenCalled();
-    });
 });
 
 describe('Spend Search Router navigation source', () => {
@@ -1055,7 +1024,7 @@ describe('Spend Search Router navigation source', () => {
             initialProps: {shouldWatchForApprovals: false},
         });
 
-        expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(false, true);
+        expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(false);
         expect(result.current).toHaveLength(1);
         expect(result.current.at(0)).toMatchObject({
             text: 'Go to Reports',
@@ -1072,7 +1041,7 @@ describe('Spend Search Router navigation source', () => {
         expect(rightElement.props).toMatchObject({text: 'Spend', icon: spendContextIcon, iconSize: variables.fontSizeLabel, showTooltip: false});
 
         rerender({shouldWatchForApprovals: true});
-        expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(true, true);
+        expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(true);
     });
 
     it('keeps Create rows reachable when top-level and Spend sources are present', () => {
