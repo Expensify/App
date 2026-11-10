@@ -101,6 +101,15 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
 
     const emptyResult: UseGettingStartedItemsResult = {shouldShowSection: false, items: []};
 
+    // Completes on any expense the user has, so expenses created before this step existed also count.
+    const addFirstReceiptItem: GettingStartedItem = {
+        key: 'addFirstReceipt',
+        label: translate('homePage.gettingStartedSection.addFirstReceipt'),
+        subText: translate('homePage.gettingStartedSection.addFirstReceiptSubText'),
+        isComplete: hasCreatedExpense,
+        onPress: () => startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN),
+    };
+
     // Hide the whole section as soon as every onboarding to-do is complete, instead of keeping it
     // around for the full Getting Started window.
     const buildResult = (builtItems: GettingStartedItem[]): UseGettingStartedItemsResult => {
@@ -168,7 +177,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         return emptyResult;
     }
 
-    // The Submit intent has exactly two to-dos and no "Create a workspace" step, because the workspace already exists here.
+    // The Submit intent has no "Create a workspace" step, because the workspace already exists here.
     if (isSubmitIntent) {
         const submitItems: GettingStartedItem[] = [];
 
@@ -183,6 +192,8 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
                 route: ROUTES.WORKSPACE_CATEGORIES.getRoute(activePolicyID),
             });
         }
+
+        submitItems.push(addFirstReceiptItem);
 
         submitItems.push({
             key: 'linkPersonalCard',
@@ -219,13 +230,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             });
         }
 
-        items.push({
-            key: 'createExpense',
-            label: translate('homePage.gettingStartedSection.createExpense'),
-            subText: translate('homePage.gettingStartedSection.createExpenseSubText'),
-            isComplete: hasCreatedExpense,
-            onPress: () => startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs),
-        });
+        items.push(addFirstReceiptItem);
 
         items.push({
             key: 'linkPersonalCard',
@@ -248,6 +253,8 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
                 route: ROUTES.WORKSPACE_CATEGORIES.getRoute(activePolicyID),
             });
         }
+
+        items.push(addFirstReceiptItem);
 
         if (policy.areCompanyCardsEnabled) {
             items.push({
