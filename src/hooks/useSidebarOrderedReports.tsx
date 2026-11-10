@@ -130,18 +130,15 @@ function SidebarOrderedReportsContextProvider({
     const reportAttributes = useReportAttributes();
     const prevReportAttributes = usePrevious(reportAttributes);
     const reportAttributesUpdates = useMemo(() => getReportAttributesUpdates(reportAttributes, prevReportAttributes), [reportAttributes, prevReportAttributes]);
-    // REPORT_ATTRIBUTES is rewritten with a new object on every recompute, even when nothing changed (see
-    // getReportAttributesUpdates). Everything below only needs the attributes' content, so it reads a reference that
-    // advances only when that value diff reports a change — otherwise every no-op rewrite would recompute the LHN set,
-    // re-sort it and republish the context to every consumer. The reference is remembered in state during render (React
-    // re-runs this render with the new state before committing), so no extra update is scheduled for it.
+    // REPORT_ATTRIBUTES is a new object on every recompute even when unchanged, so the LHN reads a reference that only
+    // advances when the value diff above reports a change (kept in state during render, so no extra update is scheduled).
     const [rememberedReportAttributes, setRememberedReportAttributes] = useState(reportAttributes);
     const hasReportAttributesContentChanged = reportAttributesUpdates !== undefined || reportAttributes === undefined || rememberedReportAttributes === undefined;
     const lhnReportAttributes = hasReportAttributesContentChanged ? reportAttributes : rememberedReportAttributes;
     if (hasReportAttributesContentChanged && rememberedReportAttributes !== reportAttributes) {
         setRememberedReportAttributes(reportAttributes);
     }
-    // The incremental cache the memo below starts from: the result of the previous run, see the render-phase update below it.
+    // The incremental cache the memo below starts from (updated during render right after it)
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
@@ -230,9 +227,7 @@ function SidebarOrderedReportsContextProvider({
                 const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
                 reportsToUpdate.add(reportKey);
 
-                // The parent of the focused thread stays in the LHN only while the thread is open (see shouldHideReport),
-                // so it must be rechecked both when the thread is opened and when it is left. The cache below never
-                // triggers a render of its own, so nothing else would recheck it.
+                // A thread's parent stays in the LHN only while the thread is open (see shouldHideReport), so recheck it too
                 const parentReportID = chatReports?.[reportKey]?.parentReportID;
                 if (parentReportID) {
                     reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
@@ -383,20 +378,15 @@ function SidebarOrderedReportsContextProvider({
         return result;
     }, [reportsDrafts]);
 
-    // Store the result as the next incremental baseline during render, not in an effect. React re-runs this render
-    // right away with the new state and commits once, so the commit leaves no update pending. A setState in a passive
-    // effect does leave one: every provider commit caused by an Onyx write is a synchronous useOnyx commit whose passive
-    // effects React flushes inside the commit, and a run of such commits is what React's nested-update counter counts
-    // (React #185 after 50 in a row — the crash this replaces).
+    // Stored during render, not in an effect: a setState in a passive effect leaves an update pending after every
+    // Onyx-driven commit, which is what React's nested-update counter counts (React #185 after 50 in a row).
     if (currentReportsToDisplay !== reportsToDisplayInLHN) {
         setCurrentReportsToDisplay(reportsToDisplayInLHN);
     }
 
     const getOrderedReportIDs = useCallback(
         () => SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplayInLHN, priorityMode, localeCompare, hasDraftByReportID, reportNameValuePairs, lhnReportAttributes),
-        // The set keeps its reference when no report changed, so every input that only affects the ORDER (the priority
-        // mode's ordering rule, the archived state from reportNameValuePairs) has to be listed here, otherwise switching
-        // to Focus mode with the same chats eligible would leave them in the previous order.
+        // The set keeps its reference when no report changed, so every input that only affects the order must be listed
         [reportsToDisplayInLHN, priorityMode, localeCompare, hasDraftByReportID, reportNameValuePairs, lhnReportAttributes],
     );
 

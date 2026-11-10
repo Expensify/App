@@ -273,11 +273,7 @@ type FlaggedLHNEntryFields = {
     lastVisibleActionCreatedForInboxTab: string;
 };
 
-/**
- * A flagged LHN entry is a spread copy of its report, so it can never be reference-equal to the report it was built
- * from. Remember the source report of each copy so an unchanged report (with unchanged flags) can reuse the entry
- * instead of allocating a new one — which is what lets updateReportsToDisplayInLHN hand back the same map.
- */
+/** Source report of each flagged entry (a spread copy), so an unchanged report can reuse its entry */
 const flaggedLHNEntrySources = new WeakMap<ReportsToDisplayInLHN[string], Report>();
 
 function toFlaggedLHNEntry(report: Report, fields: FlaggedLHNEntryFields): ReportsToDisplayInLHN[string] {
@@ -286,10 +282,7 @@ function toFlaggedLHNEntry(report: Report, fields: FlaggedLHNEntryFields): Repor
     return entry;
 }
 
-/**
- * Whether an existing flagged entry already reflects this report and these values. `lastVisibleActionCreatedForInboxTab`
- * is compared too: it comes from the hidden one-transaction thread, which can change while the report object itself doesn't.
- */
+/** Whether the existing flagged entry was built from this report with these values */
 function isFlaggedLHNEntryUpToDate(existingEntry: ReportsToDisplayInLHN[string] | undefined, report: Report, fields: FlaggedLHNEntryFields): boolean {
     if (!existingEntry) {
         return false;
