@@ -8,7 +8,7 @@ import {useEffect} from 'react';
 
 const copyableTextSelector = `[data-${CONST.COPYABLE_TEXT_ELEMENT}=true]`;
 const copyableRowSelector = `[data-${CONST.COPYABLE_ROW_ELEMENT}=true]`;
-const shouldPreserveCopyableSelectionAnchor = typeof navigator !== 'undefined' && isMobileChrome();
+const shouldPreserveCopyableSelectionAnchor = isMobileChrome();
 
 let copyableSelectionAnchor: {node: Node; offset: number} | null = null;
 
