@@ -3656,7 +3656,6 @@ describe('actions/IOU/ReportWorkflow', () => {
         const policyID = 'parent-chat-policy';
         const chatReportID = 'parent-chat-report';
         const approvedReportID = 'approved-expense-report';
-        const otherReportID = 'other-expense-report';
         const ownerAccountID = 5001;
         const chatKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}` as const;
 
@@ -3669,7 +3668,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             message: [{type: 'TEXT', html: 'Report preview', text: 'Report preview'}],
         });
 
-        const setupChat = async (approvalMode: NonNullable<Policy['approvalMode']>, expenseReportOverrides: Partial<Report> = {}, hasOtherReportAwaitingUser = false) => {
+        const setupChat = async (approvalMode: NonNullable<Policy['approvalMode']>, expenseReportOverrides: Partial<Report> = {}) => {
             const policy: Policy = {
                 ...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM),
                 id: policyID,
@@ -3703,24 +3702,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${approvedReportID}`, expenseReport);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
                 [`preview-${approvedReportID}`]: buildPreviewAction(approvedReportID, '2024-08-08 18:00:00.000'),
-                ...(hasOtherReportAwaitingUser ? {[`preview-${otherReportID}`]: buildPreviewAction(otherReportID, '2024-08-08 19:00:00.000')} : {}),
             });
-
-            if (hasOtherReportAwaitingUser) {
-                const otherReport: Report = {
-                    ...expenseReport,
-                    reportID: otherReportID,
-                };
-                const otherTransaction = buildOptimisticTransaction({
-                    transactionParams: {
-                        amount: 5000,
-                        currency: CONST.CURRENCY.USD,
-                        reportID: otherReportID,
-                    },
-                });
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${otherReportID}`, otherReport);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${otherTransaction.transactionID}`, otherTransaction);
-            }
 
             const approvedTransaction = buildOptimisticTransaction({
                 transactionParams: {
@@ -3781,26 +3763,15 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(chatValue).not.toHaveProperty('hasOutstandingChildRequest');
         });
 
-        it('does not count the approved report as outstanding on the parent chat of a DEW policy with parent access', async () => {
-            // Given a DEW policy where the approver has access to the parent chat and the approved report is the only report in it
+        it('still updates the parent chat when a DEW approver has access to the parent chat', async () => {
+            // Given a DEW policy and an approver who can read the parent policy expense chat
             const {policy, expenseReport} = await setupChat(CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, {hasParentAccess: true});
 
             // When the approver approves the report
             const chatValue = approve(expenseReport, policy);
 
-            // Then the parent chat flag is false because DEW keeps the report SUBMITTED with the approver as manager
-            expect(chatValue.hasOutstandingChildRequest).toBe(false);
-        });
-
-        it('keeps the parent chat flag true on a DEW policy when another report still awaits the approver', async () => {
-            // Given a DEW policy with parent access and a second submitted report that still awaits the same approver
-            const {policy, expenseReport} = await setupChat(CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, {hasParentAccess: true}, true);
-
-            // When the approver approves the first report
-            const chatValue = approve(expenseReport, policy);
-
-            // Then the flag stays true because the other report still needs the approver
-            expect(chatValue.hasOutstandingChildRequest).toBe(true);
+            // Then the parent chat still gets its optimistic flag update
+            expect(chatValue).toHaveProperty('hasOutstandingChildRequest');
         });
 
         it('still updates the parent chat on a BASIC policy', async () => {

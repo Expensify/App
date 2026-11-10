@@ -280,7 +280,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             value: {
                 hasOutstandingChildRequest: hasOutstandingChildRequest(
                     chatReport,
-                    isDEWPolicy ? [updatedExpenseReport] : updatedExpenseReport,
+                    updatedExpenseReport,
                     currentUserEmailParam,
                     currentUserAccountIDParam,
                     // TODO: https://github.com/Expensify/App/issues/66512
