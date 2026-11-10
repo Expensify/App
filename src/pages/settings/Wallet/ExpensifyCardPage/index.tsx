@@ -619,7 +619,9 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                             <View style={styles.mt4}>
                                 {shouldShowChangePINRow && (
                                     <MenuItemNavigation
-                                        sentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.CHANGE_PIN}
+                                        sentryLabel={
+                                            isOfflinePINMarket(countryByIp) ? CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.CHANGE_PIN.ATM : CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.CHANGE_PIN.IN_APP
+                                        }
                                         title={translate('cardPage.changePin')}
                                         icon={expensifyIcons.Key}
                                         onPress={() => {

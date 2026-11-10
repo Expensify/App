@@ -48,7 +48,11 @@ function BankAccountPurpose({showCountrySelectionStep}: BankAccountPurposeProps)
             <View style={styles.mh5}>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('bankAccount.bankAccountPurposeTitle')}</Text>
                 <MenuItem
-                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.BANK_ACCOUNT_PURPOSE_GET_REIMBURSED}
+                    sentryLabel={
+                        isCollectingDepositAccounts
+                            ? CONST.SENTRY_LABEL.SETTINGS_WALLET.BANK_ACCOUNT_PURPOSE_GET_REIMBURSED.COLLECT_DEPOSIT_ACCOUNT
+                            : CONST.SENTRY_LABEL.SETTINGS_WALLET.BANK_ACCOUNT_PURPOSE_GET_REIMBURSED.PERSONAL_BANK_ACCOUNT
+                    }
                     icon={illustrations.WalletAlt2}
                     title={translate('bankAccount.getReimbursed')}
                     description={translate('bankAccount.getReimbursedDescription')}

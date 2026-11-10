@@ -1896,11 +1896,17 @@ const SENTRY_LABEL = {
         DELEGATOR_REMOVE: 'SettingsSecurity-DelegatorRemove',
     },
     SETTINGS_WALLET: {
-        ADD_COMPANY_CARDS: 'SettingsWallet-AddCompanyCards',
+        ADD_COMPANY_CARDS: {
+            WORKSPACE: 'SettingsWallet-AddCompanyCards-Workspace',
+            WORKSPACES_LIST: 'SettingsWallet-AddCompanyCards-WorkspacesList',
+        },
         ADD_TRANSFER_BANK_ACCOUNT: 'SettingsWallet-AddTransferBankAccount',
         ADD_TRANSFER_DEBIT_CARD: 'SettingsWallet-AddTransferDebitCard',
         BANK_ACCOUNT_COUNTRY_NEXT: 'SettingsWallet-BankAccountCountryNext',
-        BANK_ACCOUNT_PURPOSE_GET_REIMBURSED: 'SettingsWallet-BankAccountPurposeGetReimbursed',
+        BANK_ACCOUNT_PURPOSE_GET_REIMBURSED: {
+            COLLECT_DEPOSIT_ACCOUNT: 'SettingsWallet-BankAccountPurposeGetReimbursed-CollectDepositAccount',
+            PERSONAL_BANK_ACCOUNT: 'SettingsWallet-BankAccountPurposeGetReimbursed-PersonalBankAccount',
+        },
         BANK_ACCOUNT_PURPOSE_MAKE_PAYMENTS: 'SettingsWallet-BankAccountPurposeMakePayments',
         DEPOSIT_ACCOUNT_COUNTRY: 'SettingsWallet-DepositAccountCountry',
         DEPOSIT_ACCOUNT_CURRENCY: 'SettingsWallet-DepositAccountCurrency',
@@ -2030,7 +2036,10 @@ const SENTRY_LABEL = {
         ACTIVATE_PHYSICAL_CARD: 'ExpensifyCardPage-ActivatePhysicalCard',
         ACTIVATE_PHYSICAL_CARD_SUBMIT: 'ExpensifyCardPage-ActivatePhysicalCardSubmit',
         CARD_ADDED_TO_WALLET_CONTINUE: 'ExpensifyCardPage-CardAddedToWalletContinue',
-        CHANGE_PIN: 'ExpensifyCardPage-ChangePIN',
+        CHANGE_PIN: {
+            ATM: 'ExpensifyCardPage-ChangePIN-ATM',
+            IN_APP: 'ExpensifyCardPage-ChangePIN-InApp',
+        },
         CHANGE_PIN_CONFIRM: 'ExpensifyCardPage-ChangePINConfirm',
         CHANGE_PIN_NEXT: 'ExpensifyCardPage-ChangePINNext',
         CHANGE_PIN_VISIBILITY_TOGGLE: 'ExpensifyCardPage-ChangePINVisibilityToggle',
