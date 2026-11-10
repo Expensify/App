@@ -25,8 +25,8 @@ import useAppFocusEvent from './useAppFocusEvent';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsAnonymousUser from './useIsAnonymousUser';
 import useIsHiddenWideTabPreMount from './useIsHiddenWideTabPreMount';
-import useIsInPreloadedTab from './useIsInPreloadedTab';
 import useIsReportActionsLoaded from './useIsReportActionsLoaded';
+import useIsReportOutOfSight from './useIsReportOutOfSight';
 import {useDerivedIsEmptyReport} from './useReportAttributes';
 import useReportIsArchived from './useReportIsArchived';
 
@@ -123,13 +123,10 @@ function useMarkAsRead({
     const isReportArchived = useReportIsArchived(reportID);
     const derivedIsEmptyReport = useDerivedIsEmptyReport(reportID);
     const isReportActionsLoaded = useIsReportActionsLoaded(reportID);
-    // A preloaded tab mounts this screen before the user opens it. Marking read assumes the user is looking,
-    // so hold every readNewestAction until the tab is focused, which drops the preloaded flag.
-    const isInPreloadedTab = useIsInPreloadedTab();
-
-    // A hidden wide submit pre-mount is held the same way until its reveal.
+    // A preloaded tab or a hidden wide submit pre-mount mounts this screen before the user sees it. Marking read assumes the
+    // user is looking, so hold every readNewestAction until the tab is focused or the pre-mount is revealed.
+    const isHiddenFromUser = useIsReportOutOfSight();
     const isHiddenPreMount = useIsHiddenWideTabPreMount();
-    const isHiddenFromUser = isInPreloadedTab || isHiddenPreMount;
 
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     useEffect(() => {

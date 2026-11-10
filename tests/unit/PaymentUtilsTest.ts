@@ -156,6 +156,7 @@ describe('PaymentUtils', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             ownerLogin: undefined,
+            personalDetailsByLogins: {},
         };
 
         beforeEach(() => {
@@ -245,6 +246,7 @@ describe('PaymentUtils', () => {
 
             expect(approveMoneyRequest).toHaveBeenCalledWith({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                personalDetailsByLogins: {},
                 expenseReport: params.iouReport,
                 expenseReportPolicy: params.expenseReportPolicy,
                 currentUserAccountIDParam: params.currentAccountID,
@@ -274,6 +276,7 @@ describe('PaymentUtils', () => {
 
             expect(approveMoneyRequest).toHaveBeenCalledWith({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                personalDetailsByLogins: {},
                 expenseReport: params.iouReport,
                 expenseReportPolicy: params.expenseReportPolicy,
                 currentUserAccountIDParam: params.currentAccountID,

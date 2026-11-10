@@ -1,6 +1,8 @@
-import {act, render, screen, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import Text from '@components/Text';
+
+import openHomeAddressPage from '@libs/Navigation/helpers/openHomeAddressPage';
 
 import HomeAddressRequiredContent from '@pages/inbox/report/actionContents/HomeAddressRequiredContent';
 
@@ -28,6 +30,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
 }));
 
+jest.mock('@libs/Navigation/helpers/openHomeAddressPage', () => jest.fn());
+
 jest.mock('@components/RenderHTML', () => {
     function MockRenderHTML() {
         return null;
@@ -37,8 +41,8 @@ jest.mock('@components/RenderHTML', () => {
 });
 
 jest.mock('@components/Button', () => {
-    function MockButton({children}: {children: React.ReactNode}) {
-        return mockReact.createElement('mock-button', null, children);
+    function MockButton({children, onPress}: {children: React.ReactNode; onPress?: () => void}) {
+        return mockReact.createElement('mock-button', {onPress}, children);
     }
 
     function ButtonText({children}: {children: React.ReactNode}) {
@@ -100,6 +104,18 @@ describe('HomeAddressRequiredContent', () => {
         await waitFor(() => {
             expect(screen.queryByText('homePage.timeSensitiveSection.addHomeAddress.cta')).toBeNull();
         });
+    });
+
+    it('opens the address-only home address page from the CTA', () => {
+        // Given the prompt for a member who has no home address saved
+        render(<HomeAddressRequiredContent action={action} />);
+
+        // When they press its CTA
+        fireEvent.press(screen.getByText('homePage.timeSensitiveSection.addHomeAddress.cta'));
+
+        // Then the address-only page opens, so adding the address their commute is measured from does not require a
+        // legal name, date of birth, phone number or magic code
+        expect(openHomeAddressPage).toHaveBeenCalledTimes(1);
     });
 
     it('keeps the CTA when the workspace never saved a work arrangement', async () => {

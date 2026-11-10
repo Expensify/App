@@ -33,6 +33,10 @@ function isNavigationIntentOnlyQuery(query: string) {
     return /^go(?:\s+to)?$/i.test(query.trim());
 }
 
+function canQueryMatchNavigationSuggestions(query: string) {
+    return !!query.trim();
+}
+
 function toMatchKey(value: string | undefined) {
     return StringUtils.normalizeForMatch(value ?? '').toLowerCase();
 }
@@ -73,16 +77,11 @@ function getGoToText(translate: LocaleContextProps['translate'], destination: st
     return translate('search.goTo', {destination});
 }
 
-/** Whether the query can produce navigation suggestions at all, so callers can skip building the sources when it cannot. */
-function canQueryMatchNavigationSuggestions(query: string) {
-    const trimmedQuery = query.trim();
-    return !!stripNavigationIntentPrefix(trimmedQuery) || isNavigationIntentOnlyQuery(trimmedQuery);
-}
-
 function buildNavigationSuggestions(query: string, sources: NavigationSuggestionSourceItem[][], localeCompare: LocaleContextProps['localeCompare']): SearchQueryItem[] {
     if (!canQueryMatchNavigationSuggestions(query)) {
         return [];
     }
+
     const trimmedQuery = query.trim();
     const isNavigationIntentOnly = isNavigationIntentOnlyQuery(trimmedQuery);
     const matchQuery = stripNavigationIntentPrefix(trimmedQuery);
@@ -105,9 +104,9 @@ function buildNavigationSuggestions(query: string, sources: NavigationSuggestion
 }
 
 export {
-    canQueryMatchNavigationSuggestions,
     stripNavigationIntentPrefix,
     isNavigationIntentOnlyQuery,
+    canQueryMatchNavigationSuggestions,
     matchesNavigationQuery,
     sortNavigationSuggestionItems,
     getGoToText,

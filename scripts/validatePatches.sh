@@ -4,11 +4,12 @@ set -e
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 readonly ROOT_DIR
 readonly DETAILS_MD="details.md"
+readonly BASE_REF="${BASE_REF:-main}"
 ERRORS=()
 
-# Get list of modified patch files in PR (compared to main branch)
-CHANGED_PATCHES=$(git diff --diff-filter=AMR --name-only origin/main | grep "^patches/.*\.patch$" || true)
-REMOVED_PATCHES=$(git diff --diff-filter=D --name-only origin/main | grep "^patches/.*\.patch$" || true)
+# Get list of modified patch files in PR (compared to the base branch)
+CHANGED_PATCHES=$(git diff --diff-filter=AMR --name-only "origin/$BASE_REF" | grep "^patches/.*\.patch$" || true)
+REMOVED_PATCHES=$(git diff --diff-filter=D --name-only "origin/$BASE_REF" | grep "^patches/.*\.patch$" || true)
 
 if [[ -z "$CHANGED_PATCHES" ]] && [[ -z "$REMOVED_PATCHES" ]]; then
   echo "✅  No modified or removed patch files."

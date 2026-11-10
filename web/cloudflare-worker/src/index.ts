@@ -95,6 +95,7 @@ function setSecurityHeaders(headers: Headers, environment: Env['ENVIRONMENT'] | 
     headers.set('X-Frame-Options', 'SAMEORIGIN');
     headers.set('X-Content-Type-Options', 'nosniff');
     headers.set('Referrer-Policy', 'origin-when-cross-origin');
+    headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
     // Used by react-native-release-profiler
     headers.set('Document-Policy', 'js-profiling');
 }
@@ -190,6 +191,15 @@ export default {
         // Twins are only served as an encoding of the original.
         if (isTwinPath(url.pathname)) {
             return createNotFoundResponse(env.ENVIRONMENT, nonce);
+        }
+
+        // The app's forms keep `method="post" action="/"` for password managers, so a submit the app doesn't cancel
+        // reaches here. Static Assets only serves GET and HEAD, so load the same page instead of returning a 405.
+        // Locally, API requests are POSTs through this Worker to the backend.
+        if (request.method === 'POST' && !(isDevelopment && isAPIRequest(url.pathname))) {
+            const redirect = new Response(null, {status: 303, headers: {Location: `${url.origin}${url.pathname}${url.search}`, 'Cache-Control': 'no-store'}});
+            setSecurityHeaders(redirect.headers, env.ENVIRONMENT, nonce);
+            return redirect;
         }
 
         const isNavigation = request.headers.get('Sec-Fetch-Mode') === 'navigate';

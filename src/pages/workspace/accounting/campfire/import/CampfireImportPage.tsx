@@ -1,7 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
 import Text from '@components/Text';
 
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -10,12 +9,12 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 
-import {getAccountingSettingsRoute} from '@pages/workspace/connections/utils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -24,7 +23,6 @@ function CampfireImportPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const campfireConfig = policy?.connections?.campfire?.config;
     const campfireData = policy?.connections?.campfire?.data;
     const enableNewCategories = campfireConfig?.enableNewCategories ?? false;
@@ -34,7 +32,7 @@ function CampfireImportPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
-            onBackButtonPress={() => Navigation.goBack(getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled, policyID))}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))}
             displayName="CampfireImportPage"
             headerTitle="workspace.accounting.import"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
@@ -52,6 +50,7 @@ function CampfireImportPage({policy}: WithPolicyConnectionsProps) {
                 title={translate('workspace.accounting.accounts')}
                 subtitle={translate('workspace.campfire.accountTypesDescription')}
                 switchAccessibilityLabel={translate('workspace.accounting.accounts')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CAMPFIRE.ACCOUNTS_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive
@@ -62,6 +61,7 @@ function CampfireImportPage({policy}: WithPolicyConnectionsProps) {
                 title={translate('workspace.campfire.enableNewAccountsTitle')}
                 subtitle={translate('workspace.campfire.enableNewAccountsDescription')}
                 switchAccessibilityLabel={translate('workspace.campfire.enableNewAccountsTitle')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CAMPFIRE.ENABLE_NEW_ACCOUNTS_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive={enableNewCategories}
@@ -84,6 +84,7 @@ function CampfireImportPage({policy}: WithPolicyConnectionsProps) {
                                 key={field.id}
                                 title={field.name}
                                 switchAccessibilityLabel={field.name}
+                                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CAMPFIRE.DIMENSION_SWITCH}
                                 shouldPlaceSubtitleBelowSwitch
                                 wrapperStyle={[styles.mv3, styles.mh5]}
                                 isActive={isImported}
@@ -104,6 +105,7 @@ function CampfireImportPage({policy}: WithPolicyConnectionsProps) {
                     <ToggleSettingOptionRow
                         title={translate('workspace.taxes.taxRates')}
                         switchAccessibilityLabel={translate('workspace.taxes.taxRates')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CAMPFIRE.TAX_RATES_SWITCH}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.mv3, styles.mh5]}
                         isActive={syncTaxRates}

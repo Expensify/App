@@ -46,9 +46,14 @@ const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         travelSettings: policy.travelSettings,
     };
 
+// The draft IDs are only used by an empty state button, which needs a focused screen. An unfocused consumer ignores draft
+// writes, so starting a Create expense flow (which writes a draft) does not re-render a hidden tab.
+const noDraftTransactionIDsSelector = (): string[] => [];
+
 const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
     email: session?.email,
     accountID: session?.accountID,
+    authTokenType: session?.authTokenType,
 });
 
 const NO_TYPE_MENU_SECTIONS: ReturnType<typeof createTypeMenuSections> = [];
@@ -56,8 +61,8 @@ const NO_TYPE_MENU_SECTIONS: ReturnType<typeof createTypeMenuSections> = [];
 /**
  * Get a list of all search groupings, along with their search items.
  *
- * `isScreenFocused` gates the reports-awaiting-approval watch so an off-screen consumer stops recomputing it. It
- * defaults to `true` (always watch) for consumers rendered outside a navigator or where focus can't be tracked
+ * `isScreenFocused` gates the reports-awaiting-approval watch and the draft transaction IDs so an off-screen consumer stops
+ * recomputing them. It defaults to `true` (always watch) for consumers rendered outside a navigator or where focus can't be tracked
  * reliably, so this hook never depends on a navigation context itself.
  *
  * `shouldBuildSections` set to false skips building the sections (canned queries are parsed per item) and returns an
@@ -72,7 +77,9 @@ const useSearchTypeMenuSections = (isScreenFocused = true, shouldBuildSections =
     const [allPolicies] = useMappedPolicies(policyMapper);
     const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: isScreenFocused ? validTransactionDraftIDsSelector : noDraftTransactionIDsSelector,
+    });
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     // Migrated Control workspaces leave `areRulesEnabled` undefined; Violations by submitter then depends on
     // Classic category rules stored on POLICY_CATEGORIES. No selector: mapping this collection would still be
@@ -125,6 +132,7 @@ const useSearchTypeMenuSections = (isScreenFocused = true, shouldBuildSections =
               isTrackIntentUser: isTrackIntentUser ?? false,
               hasReportAwaitingApproval,
               policyCategories: allPolicyCategories,
+              session: currentUserLoginAndAccountID,
           });
 
     return typeMenuSections;
@@ -137,10 +145,6 @@ const useSearchTypeMenuSectionsForNavigation = (isScreenFocused = true, shouldBu
     let sections = typeMenuSections;
     if (!isBetaEnabled(CONST.BETAS.TRAVEL_APPROVAL)) {
         sections = omitTravelApprovalMenuItems(sections);
-    }
-
-    if (!isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE)) {
-        return sections;
     }
 
     return omitInsightsPageMenuItems(sections);
