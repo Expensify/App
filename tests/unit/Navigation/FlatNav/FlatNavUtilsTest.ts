@@ -99,6 +99,7 @@ describe('FlatNavUtils', () => {
             expect(allKeys).not.toContain(SEARCH_KEYS.TOP_SPENDERS);
             expect(allKeys).not.toContain(SEARCH_KEYS.TOP_CATEGORIES);
             expect(allKeys).not.toContain(SEARCH_KEYS.TOP_MERCHANTS);
+            expect(allKeys).not.toContain(SEARCH_KEYS.TOP_TAGS);
             expect(allKeys).not.toContain(SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER);
         });
 
@@ -110,6 +111,7 @@ describe('FlatNavUtils', () => {
                 SEARCH_KEYS.TOP_SPENDERS,
                 SEARCH_KEYS.TOP_CATEGORIES,
                 SEARCH_KEYS.TOP_MERCHANTS,
+                SEARCH_KEYS.TOP_TAGS,
                 SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER,
             ]);
             const expectedKeys = allCannedKeys.filter((key) => !insightKeys.has(key)).sort();

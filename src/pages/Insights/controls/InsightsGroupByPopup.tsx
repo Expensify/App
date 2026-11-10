@@ -8,6 +8,8 @@ import type {ListItem} from '@components/SelectionList/types';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
+
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -16,8 +18,8 @@ type InsightsGroupByPopupProps<T extends string> = {
     selectedValue: T;
     defaultValue: T;
     label: string;
-    resetSentryLabel: string;
-    applySentryLabel: string;
+    resetSentryLabel: SentryLabel;
+    applySentryLabel: SentryLabel;
     closeOverlay: () => void;
     onChange: (value: T) => void;
 };
