@@ -6,7 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import Navigation from '@libs/Navigation/Navigation';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,16 +34,12 @@ function NetSuiteCustomListPicker({value, policyID, errorText, isEditing}: NetSu
 
     return (
         <MenuItem.Root
-            onPress={callFunctionIfActionIsAllowed(
-                () => {
-                    if (!policyID) {
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_SELECTOR.getRoute(policyID, isEditing ? 'edit' : undefined));
-                },
-                false,
-                session,
-            )}
+            onPress={callIfAuthenticated(() => {
+                if (!policyID) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_SELECTOR.getRoute(policyID, isEditing ? 'edit' : undefined));
+            }, session)}
         >
             <MenuItemField.Row
                 name={translate('workspace.netsuite.import.importCustomFields.customLists.fields.listName')}

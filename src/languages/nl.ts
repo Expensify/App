@@ -3300,6 +3300,7 @@ ${amount} voor ${merchant} - ${date}`,
         disablePaymentsPrompt: 'Hiermee verwijder je al je betaalinstellingen.',
         businessBankAccountCountries: 'Landen met zakelijke bankrekeningen',
         businessBankAccountCountriesDescription: 'Werknemers in deze landen geven lokale overboekingsgegevens op. Iedereen daarbuiten geeft internationale overschrijvingsgegevens op.',
+        businessBankAccountCountriesError: 'Het bijwerken van je terugbetalingslanden is mislukt. Probeer het opnieuw.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Er is een aangepaste goedkeuringsworkflow ingeschakeld voor deze workspace. Neem contact op met je <account-manager-link>Accountmanager</account-manager-link> of <concierge-link>Concierge</concierge-link> om deze workflow te bekijken of te wijzigen.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -6752,7 +6753,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     mastercard: 'We hebben wereldwijde integraties met Mastercard, al verschilt de geschiktheid per bank en kaartprogramma.\n\nGa als volgt aan de slag:',
                     vcf: `1. Bezoek [dit hulpartikel](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) voor gedetailleerde instructies over het instellen van je Visa zakelijke kaarten.
 
-2. [Neem contact op met je bank](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) om te controleren of ze een commerciële feed voor je programma ondersteunen en vraag hen om deze in te schakelen.
+2. Neem contact op met je bank om te controleren of ze een commerciële feed voor je programma ondersteunen en vraag hen om deze in te schakelen.
 
 3. *Zodra de feed is ingeschakeld en je de details hebt, ga je verder naar het volgende scherm.*`,
                     gl1025: `1. Bezoek [dit hulpartikel](${CONST.COMPANY_CARDS_AMEX_COMMERCIAL_CARD_HELP}) om te zien of American Express een commerciële feed voor uw programma kan inschakelen.
@@ -6762,7 +6763,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
 3. *Zodra u de feedinformatie heeft, gaat u door naar het volgende scherm.*`,
                     cdf: `1. Bezoek [dit helpartikel](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) voor gedetailleerde instructies over het instellen van je Mastercard Commercial Cards.
 
-2. [Neem contact op met je bank](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) om te controleren of zij een commerciële feed voor je programma ondersteunen, en vraag hen deze in te schakelen.
+2. Neem contact op met je bank om te controleren of zij een commerciële feed voor je programma ondersteunen, en vraag hen deze in te schakelen.
 
 3. *Zodra de feed is ingeschakeld en je de details hebt, ga je verder naar het volgende scherm.*`,
                     stripe: `1. Ga naar het Stripe-dashboard en vervolgens naar [Settings](${CONST.COMPANY_CARDS_STRIPE_HELP}).
@@ -9677,6 +9678,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         digits: {
             updateCurrencyTitle: 'Werkruimtevaluta bijwerken?',
             updateCurrencyPrompt: 'Digits is momenteel alleen beschikbaar voor in de VS gevestigde bedrijven die in USD werken.',
+            importDescription: 'Kies welke Digits-configuraties je wilt importeren.',
+            accountTypesDescription: 'Je Digits-accounts worden geïmporteerd als categorieën.',
+            enableNewAccountsTitle: 'Nieuw geïmporteerde rekeningen inschakelen',
+            enableNewAccountsDescription: 'Nieuwe Digits-accounts zullen beschikbaar zijn als categorieën.',
+            dimensionsImport: 'Alle Digits-dimensies worden geïmporteerd als tags.',
+            departments: 'Afdelingen',
         },
         zohoBooks: {
             organization: 'Zoho Books-organisatie',
@@ -12797,6 +12804,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         deletingTitle: 'Rapporten verwijderen...',
         deletingExpensesTitle: 'Uitgaven verwijderen...',
         runningBody: 'Wacht een paar minuten, of laat Concierge je een bericht sturen zodra het klaar is.',
+        changingWorkspaceTitle: 'Rapporten verplaatsen...',
         sendFromConcierge: 'Stuur me een bericht als het klaar is',
         conciergeTitle: 'Zeker weten!',
         conciergeBody: 'Concierge stuurt je een bericht zodra het klaar is.',
@@ -12832,6 +12840,10 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Uitgaven verwijderd in ${doneCount} van ${count} rapport`,
             other: `Uitgaven verwijderd in ${doneCount} van ${count} rapporten`,
+        }),
+        changedWorkspaceTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Werkruimte gewijzigd in ${doneCount} van ${count} rapport`,
+            other: `Werkruimte gewijzigd in ${doneCount} van ${count} rapporten`,
         }),
         noReportsTitle: 'Geen overeenkomende rapporten',
         noReportsBody: 'Geen van de rapporten die je hebt geselecteerd had deze actie nodig.',
@@ -12869,6 +12881,10 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         expensesNotDeletedBody: ({count}: {count: number}) => ({
             one: 'Uitgaven in 1 rapport konden niet worden verwijderd.',
             other: `Uitgaven in ${count} rapporten konden niet worden verwijderd.`,
+        }),
+        notMovedBody: ({count}: {count: number}) => ({
+            one: '1 rapport kon niet worden verplaatst.',
+            other: `${count} rapporten konden niet worden verplaatst.`,
         }),
     },
     earlyRenewal: {
