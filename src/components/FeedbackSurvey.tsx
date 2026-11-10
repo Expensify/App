@@ -11,7 +11,7 @@ import type ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/FeedbackSurveyForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import type {Choice} from './RadioButtons';
@@ -54,15 +54,12 @@ function FeedbackSurvey({title, description, onSubmit, footerText, isNoteRequire
 
     const isLoadingDraft = isLoadingOnyxValue(draftResults);
 
-    const options = useMemo<Choice[]>(
-        () => [
-            {value: CONST.FEEDBACK_SURVEY_OPTIONS.TOO_LIMITED.ID, label: translate(CONST.FEEDBACK_SURVEY_OPTIONS.TOO_LIMITED.TRANSLATION_KEY)},
-            {value: CONST.FEEDBACK_SURVEY_OPTIONS.TOO_EXPENSIVE.ID, label: translate(CONST.FEEDBACK_SURVEY_OPTIONS.TOO_EXPENSIVE.TRANSLATION_KEY)},
-            {value: CONST.FEEDBACK_SURVEY_OPTIONS.INADEQUATE_SUPPORT.ID, label: translate(CONST.FEEDBACK_SURVEY_OPTIONS.INADEQUATE_SUPPORT.TRANSLATION_KEY)},
-            {value: CONST.FEEDBACK_SURVEY_OPTIONS.BUSINESS_CLOSING.ID, label: translate(CONST.FEEDBACK_SURVEY_OPTIONS.BUSINESS_CLOSING.TRANSLATION_KEY)},
-        ],
-        [translate],
-    );
+    const options: Choice[] = [
+        {value: CONST.FEEDBACK_SURVEY_OPTIONS.TOO_LIMITED.ID, label: translate(CONST.FEEDBACK_SURVEY_OPTIONS.TOO_LIMITED.TRANSLATION_KEY)},
+        {value: CONST.FEEDBACK_SURVEY_OPTIONS.TOO_EXPENSIVE.ID, label: translate(CONST.FEEDBACK_SURVEY_OPTIONS.TOO_EXPENSIVE.TRANSLATION_KEY)},
+        {value: CONST.FEEDBACK_SURVEY_OPTIONS.INADEQUATE_SUPPORT.ID, label: translate(CONST.FEEDBACK_SURVEY_OPTIONS.INADEQUATE_SUPPORT.TRANSLATION_KEY)},
+        {value: CONST.FEEDBACK_SURVEY_OPTIONS.BUSINESS_CLOSING.ID, label: translate(CONST.FEEDBACK_SURVEY_OPTIONS.BUSINESS_CLOSING.TRANSLATION_KEY)},
+    ];
 
     useEffect(() => {
         if (!draft?.reason || isLoadingDraft) {

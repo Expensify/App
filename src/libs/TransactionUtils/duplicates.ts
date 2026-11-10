@@ -25,7 +25,7 @@ import Onyx from 'react-native-onyx';
 // This cycle import is safe because this file was extracted from TransactionUtils/index.ts, which re-exports it.
 // The functions imported here are pure helpers that aren't called at initialization time.
 // eslint-disable-next-line import/no-cycle
-import {getAmount, getCurrency, getDescription, getFormattedCreated, getMerchant, getReimbursable, isCardTransactionReimbursableEditable, isExpensifyCardTransaction} from './index';
+import {getAmount, getCurrency, getDescription, getFormattedCreated, getMerchant, isCardTransactionReimbursableEditable, isExpensifyCardTransaction} from './index';
 
 type FieldsToCompare = Record<string, Array<keyof Transaction>>;
 type FieldsToChange = {
@@ -209,7 +209,7 @@ function isReportMergeableForDuplicates(report: OnyxEntry<Report>): boolean {
  * merge request that would fail server-side.
  */
 function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Transaction>>): Transaction[] {
-    return transactions.filter((transaction) => !!transaction && isReportMergeableForDuplicates(getReportOrDraftReport(transaction.reportID))) as Transaction[];
+    return transactions.filter((transaction) => !!transaction && isReportMergeableForDuplicates(getReportOrDraftReport({reportID: transaction.reportID}))) as Transaction[];
 }
 
 /**
@@ -408,7 +408,7 @@ function compareDuplicateTransactionFields(
                 if (isExpensifyCardTransaction(selectedTransaction)) {
                     keep[fieldName] = false;
                 } else if (!isCardTransactionReimbursableEditable(selectedTransaction)) {
-                    keep[fieldName] = getReimbursable(selectedTransaction);
+                    keep[fieldName] = selectedTransaction?.[keys[0]] ?? selectedTransaction?.[keys[1]] ?? false;
                 } else if (areAllFieldsEqualForKey) {
                     keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
                 } else {

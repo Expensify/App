@@ -3,7 +3,7 @@ import SkeletonRect from '@components/SkeletonRect';
 import useContainerWidth from '@hooks/useContainerWidth';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import ItemListSkeletonView from './ItemListSkeletonView';
@@ -22,7 +22,7 @@ function MergeExpensesSkeleton({fixedNumItems, speed}: MergeExpensesSkeletonProp
     const {onLayout, containerWidth: pageWidth} = useContainerWidth(24);
     const styles = useThemeStyles();
 
-    const skeletonItem = useCallback(() => {
+    const skeletonItem = () => {
         return (
             <>
                 <SkeletonRect
@@ -57,7 +57,7 @@ function MergeExpensesSkeleton({fixedNumItems, speed}: MergeExpensesSkeletonProp
                 />
             </>
         );
-    }, [pageWidth]);
+    };
 
     return (
         <View

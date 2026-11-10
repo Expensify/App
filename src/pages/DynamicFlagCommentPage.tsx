@@ -25,10 +25,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {SvgProps} from 'react-native-svg';
 import type {ValueOf} from 'type-fest';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -47,11 +49,13 @@ type SeverityItem = {
     description: string;
     furtherDetails: string;
     furtherDetailsIcon: React.FC<SvgProps> | IconAsset;
+    sentryLabel: SentryLabel;
 };
 
 type SeverityItemList = SeverityItem[];
 
 function DynamicFlagCommentPage({parentReportAction, report, parentReport, reportAction}: DynamicFlagCommentPageProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -74,6 +78,7 @@ function DynamicFlagCommentPage({parentReportAction, report, parentReport, repor
     const severities: SeverityItemList = [
         {
             severity: CONST.MODERATION.FLAG_SEVERITY_SPAM,
+            sentryLabel: CONST.SENTRY_LABEL.REPORT.FLAG_COMMENT_OPTION.SPAM,
             name: translate('moderation.spam'),
             icon: expensifyIcons.FlagLevelOne,
             description: translate('moderation.spamDescription'),
@@ -82,6 +87,7 @@ function DynamicFlagCommentPage({parentReportAction, report, parentReport, repor
         },
         {
             severity: CONST.MODERATION.FLAG_SEVERITY_INCONSIDERATE,
+            sentryLabel: CONST.SENTRY_LABEL.REPORT.FLAG_COMMENT_OPTION.INCONSIDERATE,
             name: translate('moderation.inconsiderate'),
             icon: expensifyIcons.FlagLevelOne,
             description: translate('moderation.inconsiderateDescription'),
@@ -90,6 +96,7 @@ function DynamicFlagCommentPage({parentReportAction, report, parentReport, repor
         },
         {
             severity: CONST.MODERATION.FLAG_SEVERITY_INTIMIDATION,
+            sentryLabel: CONST.SENTRY_LABEL.REPORT.FLAG_COMMENT_OPTION.INTIMIDATION,
             name: translate('moderation.intimidation'),
             icon: expensifyIcons.FlagLevelTwo,
             description: translate('moderation.intimidationDescription'),
@@ -98,6 +105,7 @@ function DynamicFlagCommentPage({parentReportAction, report, parentReport, repor
         },
         {
             severity: CONST.MODERATION.FLAG_SEVERITY_BULLYING,
+            sentryLabel: CONST.SENTRY_LABEL.REPORT.FLAG_COMMENT_OPTION.BULLYING,
             name: translate('moderation.bullying'),
             icon: expensifyIcons.FlagLevelTwo,
             description: translate('moderation.bullyingDescription'),
@@ -106,6 +114,7 @@ function DynamicFlagCommentPage({parentReportAction, report, parentReport, repor
         },
         {
             severity: CONST.MODERATION.FLAG_SEVERITY_HARASSMENT,
+            sentryLabel: CONST.SENTRY_LABEL.REPORT.FLAG_COMMENT_OPTION.HARASSMENT,
             name: translate('moderation.harassment'),
             icon: expensifyIcons.FlagLevelThree,
             description: translate('moderation.harassmentDescription'),
@@ -114,6 +123,7 @@ function DynamicFlagCommentPage({parentReportAction, report, parentReport, repor
         },
         {
             severity: CONST.MODERATION.FLAG_SEVERITY_ASSAULT,
+            sentryLabel: CONST.SENTRY_LABEL.REPORT.FLAG_COMMENT_OPTION.ASSAULT,
             name: translate('moderation.assault'),
             icon: expensifyIcons.FlagLevelThree,
             description: translate('moderation.assaultDescription'),
@@ -136,11 +146,12 @@ function DynamicFlagCommentPage({parentReportAction, report, parentReport, repor
 
     const severityMenuItems = severities.map((item) => (
         <MenuItem
+            sentryLabel={item.sentryLabel}
             key={`${item.severity}`}
             shouldShowRightIcon
             title={item.name}
             description={item.description}
-            onPress={callFunctionIfActionIsAllowed(() => flagComment(item.severity))}
+            onPress={callFunctionIfActionIsAllowed(() => flagComment(item.severity), false, session)}
             style={[styles.pt2, styles.pb4, styles.ph5, styles.flexRow]}
             furtherDetails={item.furtherDetails}
             furtherDetailsIcon={item.furtherDetailsIcon}

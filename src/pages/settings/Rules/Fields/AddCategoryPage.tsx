@@ -17,17 +17,15 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 type AddCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.RULES.EDIT_CATEGORY>;
 
 function AddCategoryPage({route}: AddCategoryPageProps) {
     const [form] = useOnyx(ONYXKEYS.FORMS.EXPENSE_RULE_FORM);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
-    const availableNonPersonalPolicyCategoriesSelector = useCallback(
-        (allPolicyCategories: OnyxCollection<PolicyCategories>) => getAvailableNonPersonalPolicyCategories(allPolicyCategories, personalPolicyID),
-        [personalPolicyID],
-    );
+    const availableNonPersonalPolicyCategoriesSelector = (allPolicyCategories: OnyxCollection<PolicyCategories>) =>
+        getAvailableNonPersonalPolicyCategories(allPolicyCategories, personalPolicyID);
     const [allPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
         selector: availableNonPersonalPolicyCategoriesSelector,
     });

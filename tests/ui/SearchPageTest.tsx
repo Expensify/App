@@ -4,14 +4,18 @@ import ComposeProviders from '@components/ComposeProviders';
 import FullScreenBlockingViewContextProvider from '@components/FullScreenBlockingViewContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import type * as ExpenseReportSearchViewModule from '@components/Search/ExpenseReportSearchView';
 import type * as SearchContext from '@components/Search/SearchContext';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
+import type {CommonSearchViewProps} from '@components/Search/searchViewProps';
 import type * as SearchWriteActionsProviderModule from '@components/Search/SearchWriteActionsProvider';
 import type {SearchData, SearchSelectionActionsValue, SelectedTransactionInfo} from '@components/Search/types';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
+import type * as PlaybackContextModule from '@components/VideoPlayerContexts/PlaybackContext';
 
+import {IsInPreloadedTabContext} from '@hooks/useIsInPreloadedTab';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
@@ -33,6 +37,10 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import styles from '@src/styles';
+import {defaultTheme} from '@src/styles/theme';
+import createStyleUtils from '@src/styles/utils';
+import variables from '@src/styles/variables';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 
@@ -41,7 +49,7 @@ import type * as reactNavigationNativeImport from '@react-navigation/native';
 import type React from 'react';
 
 import {PortalProvider} from '@gorhom/portal';
-import {NavigationContainer} from '@react-navigation/native';
+import {CommonActions, NavigationContainer} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
@@ -136,6 +144,28 @@ jest.mock('@components/Search/SearchWriteActionsProvider', () => {
         return createElement(SearchWriteActionsProvider, props);
     }
     return {__esModule: true, default: MockSearchWriteActionsProvider};
+});
+
+// The props <Search> hands the Reports view, which carry the column size options its rows and column width budget share.
+const mockRenderExpenseReportSearchView = jest.fn<void, [CommonSearchViewProps]>();
+jest.mock('@components/Search/ExpenseReportSearchView', () => {
+    const {createElement} = jest.requireActual<typeof React>('react');
+    const {default: ExpenseReportSearchView} = jest.requireActual<typeof ExpenseReportSearchViewModule>('@components/Search/ExpenseReportSearchView');
+    function MockExpenseReportSearchView(props: CommonSearchViewProps) {
+        mockRenderExpenseReportSearchView(props);
+        return createElement(ExpenseReportSearchView, props);
+    }
+    return {__esModule: true, default: MockExpenseReportSearchView};
+});
+
+// Spies on the shared video player reset, keeping the rest of the playback context real.
+const mockResetVideoPlayerData = jest.fn();
+jest.mock('@components/VideoPlayerContexts/PlaybackContext', () => {
+    const actualPlaybackContext = jest.requireActual<typeof PlaybackContextModule>('@components/VideoPlayerContexts/PlaybackContext');
+    return {
+        ...actualPlaybackContext,
+        usePlaybackActionsContext: () => ({...actualPlaybackContext.usePlaybackActionsContext(), resetVideoPlayerData: mockResetVideoPlayerData}),
+    };
 });
 
 function lastWriteActionsRender() {
@@ -262,42 +292,42 @@ function TestNavigationContainer({initialState}: TestNavigationContainerProps) {
     );
 }
 
-function getSearchPage(query = SearchQueryUtils.buildSearchQueryString(failedQueryJSON)) {
+function getSearchPage(query = SearchQueryUtils.buildSearchQueryString(failedQueryJSON), isInPreloadedTab = false) {
     return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, PlaybackContextProvider, FullScreenBlockingViewContextProvider]}>
             <PortalProvider>
                 <SearchContextProvider>
-                    <TestNavigationContainer
-                        initialState={{
-                            index: 0,
-                            routes: [
-                                {
-                                    name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
-                                    state: {
-                                        index: 0,
-                                        routes: [
-                                            {
-                                                name: SCREENS.SEARCH.ROOT,
-                                                params: {q: query},
-                                            },
-                                        ],
+                    <IsInPreloadedTabContext.Provider value={isInPreloadedTab}>
+                        <TestNavigationContainer
+                            initialState={{
+                                index: 0,
+                                routes: [
+                                    {
+                                        name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+                                        state: {
+                                            index: 0,
+                                            routes: [
+                                                {
+                                                    name: SCREENS.SEARCH.ROOT,
+                                                    params: {q: query},
+                                                },
+                                            ],
+                                        },
                                     },
-                                },
-                            ],
-                        }}
-                    />
+                                ],
+                            }}
+                        />
+                    </IsInPreloadedTabContext.Provider>
                 </SearchContextProvider>
             </PortalProvider>
         </ComposeProviders>
     );
 }
 
-const renderPage = (query = SearchQueryUtils.buildSearchQueryString(failedQueryJSON)) => render(getSearchPage(query));
+const renderPage = (query = SearchQueryUtils.buildSearchQueryString(failedQueryJSON), isInPreloadedTab = false) => render(getSearchPage(query, isInPreloadedTab));
 
 describe('SearchPageNarrow', () => {
     beforeAll(() => {
-        mockUseResponsiveLayout.mockReturnValue(createMock<ReturnType<typeof useResponsiveLayout>>({shouldUseNarrowLayout: true, isSmallScreenWidth: true}));
-
         Onyx.init({
             keys: ONYXKEYS,
             evictableKeys: [
@@ -318,6 +348,7 @@ describe('SearchPageNarrow', () => {
     });
 
     beforeEach(() => {
+        mockUseResponsiveLayout.mockReturnValue(createMock<ReturnType<typeof useResponsiveLayout>>({shouldUseNarrowLayout: true, isSmallScreenWidth: true}));
         mockUseNetwork.mockReturnValue({isOffline: false} as ReturnType<typeof useNetwork>);
         mockSearchQueryParam.mockReturnValue(FAILED_QUERY);
         mockIsFocused.mockReturnValue(true);
@@ -367,8 +398,12 @@ describe('SearchPageNarrow', () => {
         });
 
         // Then the query is requested again, because without that attempt the page renders its error view on every
-        // mount with nothing in flight
-        expect(mockSearch).toHaveBeenCalledTimes(1);
+        // mount with nothing in flight. The page and Search are the only two callers expected to ask for it, and
+        // search() collapses their asks into one request, so every call must be that same first page and the count
+        // must stay within those two. That upper bound is what fails here if the guard ever regresses into a loop.
+        expect(mockSearch).toHaveBeenCalled();
+        expect(mockSearch.mock.calls.length).toBeLessThanOrEqual(2);
+        expect(mockSearch.mock.calls.every(([params]) => params?.queryJSON?.hash === failedQueryJSON?.hash && params?.offset === 0)).toBe(true);
     });
 
     // Reproduces the reload case: the errored snapshot survives but the in-memory response code does not,
@@ -493,6 +528,51 @@ describe('SearchPageNarrow', () => {
         expect(screen.getByText('Refresh needed')).toBeTruthy();
         expect(screen.getByText('Refresh')).toBeTruthy();
         expect(screen.queryByText('Oops... Something went wrong')).toBeNull();
+    });
+
+    it('requests a query again when its tab is shown after an earlier visit left it failed', async () => {
+        // Given the page requested the query and that request failed before the server could answer
+        const {rerender} = renderPage();
+        // A narrow tab switch only sets the route's params, and the search context reads the query from the root state
+        const switchToQuery = async (query: string) => {
+            mockSearchQueryParam.mockReturnValue(query);
+            await act(async () => {
+                navigationRef.dispatch({...CommonActions.setParams({q: query}), source: navigationRef.getCurrentRoute()?.key});
+            });
+            rerender(getSearchPage(query));
+            await act(async () => {
+                jest.runAllTimers();
+            });
+        };
+
+        await act(async () => {
+            jest.runAllTimers();
+        });
+        await setFailedSnapshot(CONST.JSON_CODE.NO_RESPONSE);
+        expect(screen.getByText('Refresh needed')).toBeTruthy();
+
+        // When the user switches to another tab and back, which keeps the page mounted and only remounts Search
+        await switchToQuery(EXPENSE_QUERY);
+        mockSearch.mockClear();
+        await switchToQuery(FAILED_QUERY);
+
+        // Then the failed query is requested again instead of staying on the refresh view until tapped
+        expect(mockSearch.mock.calls.some(([params]) => params?.queryJSON?.hash === failedQueryJSON?.hash)).toBe(true);
+    });
+
+    it('does not request a query again when the persisted response marks it invalid', async () => {
+        // Given a snapshot the server rejected as a malformed query, which no retry can fix
+        await setFailedSnapshot(CONST.JSON_CODE.INVALID_SEARCH_QUERY);
+        mockSearch.mockClear();
+
+        // When the page mounts on that query
+        renderPage();
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // Then the query is not sent again, so the error view stays put instead of flashing a request that cannot succeed
+        expect(mockSearch.mock.calls.some(([params]) => params?.queryJSON?.hash === failedQueryJSON?.hash)).toBe(false);
     });
 
     it('renders the empty state when a response without data reached the terminal loaded state', async () => {
@@ -654,6 +734,32 @@ describe('SearchPageNarrow', () => {
 
         // Then the refresh goes out anyway: the claim stops a duplicate mount request, not the one that recovers an empty page
         expect(firstPageCallCount()).toBeGreaterThan(callsWhileOffline);
+    });
+
+    it('sends nothing from a hidden preloaded tab, even on the reconnect path that skips the focus check', async () => {
+        // Given the idle preload built the tab in the background from cached results, while the device was offline
+        mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
+        mockIsFocused.mockReturnValue(false);
+        mockUseNetwork.mockReturnValue({isOffline: true});
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, getExpenseSnapshot(false));
+        });
+        renderPage(EXPENSE_QUERY, true);
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        // When the app comes back online with an error on the snapshot, which normally forces a refresh
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, {errors: {error: 'error'}});
+        });
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // Then no request goes out, so the request and its recent search entry wait until the user opens the tab
+        expect(mockSearch).not.toHaveBeenCalled();
     });
 
     it('does not let a later page consume the first-page claim', async () => {
@@ -1019,6 +1125,28 @@ describe('SearchPageNarrow', () => {
                 jest.advanceTimersByTime(0);
             });
 
+            expect(mockSearch).toHaveBeenCalledTimes(1);
+            expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: 0, searchKey: CONST.SEARCH.SEARCH_KEYS.SUBMIT}));
+        });
+
+        it('asks for its first page exactly once when its preloaded tab is opened', async () => {
+            // Given the idle preload built the to-do search in a hidden tab, which holds its request
+            await seedTodoReports(3);
+            mockIsFocused.mockReturnValue(false);
+            const {rerender} = renderPage(TODO_QUERY, true);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            expect(mockSearch).not.toHaveBeenCalled();
+
+            // When the user opens the tab
+            mockIsFocused.mockReturnValue(true);
+            rerender(getSearchPage(TODO_QUERY, false));
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            // Then the first page goes out once, as on a normal visit, since the page-level setup leaves live searches to Search
             expect(mockSearch).toHaveBeenCalledTimes(1);
             expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: 0, searchKey: CONST.SEARCH.SEARCH_KEYS.SUBMIT}));
         });
@@ -1691,5 +1819,58 @@ describe('SearchPageNarrow', () => {
 
         // Then the totals stay, because they belong to the Search the user can still see
         expect(mockClearFooterConversion).not.toHaveBeenCalled();
+    });
+    it('budgets the Reports date column at the width its rows draw', async () => {
+        // Given cached Reports results, whose rows draw the date column at the wider "Created" width
+        const reportQuery = 'type:expense-report';
+        const reportQueryJSON = SearchQueryUtils.buildSearchQueryJSON(reportQuery);
+        const reportSnapshot = getExpenseSnapshot(false);
+        mockSearchQueryParam.mockReturnValue(reportQuery);
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${reportQueryJSON?.hash}`, {
+                ...reportSnapshot,
+                search: {
+                    ...reportSnapshot.search,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                    hash: reportQueryJSON?.hash,
+                    sortBy: reportQueryJSON?.sortBy,
+                    sortOrder: reportQueryJSON?.sortOrder,
+                },
+            });
+        });
+
+        // When the page renders them
+        renderPage(reportQuery);
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // Then the column width budget reads the same date width the rows draw, since with resizable columns any
+        // difference overflows the row and pushes the Action button into the trailing caret
+        const columnSizeOptions = mockRenderExpenseReportSearchView.mock.lastCall?.[0].columnSizeOptions;
+        const StyleUtils = createStyleUtils(defaultTheme, styles(defaultTheme));
+        expect(columnSizeOptions).toBeDefined();
+        expect(StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, columnSizeOptions).width).toBe(variables.w80);
+    });
+
+    it('resets the shared video player only once a wide preloaded tab is opened', async () => {
+        // Given a wide layout, where Search resets the shared video player on mount, and the idle preload building the tab hidden
+        mockUseResponsiveLayout.mockReturnValue(createMock<ReturnType<typeof useResponsiveLayout>>({shouldUseNarrowLayout: false, isSmallScreenWidth: false}));
+        const page = renderPage(undefined, true);
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        // Then a video the user is watching in the visible report keeps playing
+        expect(mockResetVideoPlayerData).not.toHaveBeenCalled();
+
+        // When the user opens the tab
+        page.rerender(getSearchPage(undefined, false));
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        // Then the player is reset once, as on any other wide visit to Search
+        expect(mockResetVideoPlayerData).toHaveBeenCalledTimes(1);
     });
 });

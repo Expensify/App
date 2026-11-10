@@ -6,6 +6,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {
@@ -38,14 +39,17 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
 
 function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
@@ -60,26 +64,18 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const shouldShowCustomFormIDOptions = useSharedValue(!shouldHideCustomFormIDOptions(config));
     const shouldAnimateAccordionSection = useSharedValue(false);
 
-    const selectedReimbursementAccount = useMemo(
-        () => getFilteredReimbursableAccountOptions(payableList).find(({id}) => id === config?.reimbursementAccountID),
-        [payableList, config?.reimbursementAccountID],
-    );
-    const selectedCollectionAccount = useMemo(
-        () => getFilteredCollectionAccountOptions(payableList).find(({id}) => id === config?.collectionAccount),
-        [payableList, config?.collectionAccount],
-    );
-    const selectedFxExpenseAccount = useMemo(() => expenseAccounts?.find(({id}) => id === config?.fxExpenseAccount), [expenseAccounts, config?.fxExpenseAccount]);
+    const selectedReimbursementAccount = getFilteredReimbursableAccountOptions(payableList).find(({id}) => id === config?.reimbursementAccountID);
+    const selectedCollectionAccount = getFilteredCollectionAccountOptions(payableList).find(({id}) => id === config?.collectionAccount);
+    const selectedFxExpenseAccount = expenseAccounts?.find(({id}) => id === config?.fxExpenseAccount);
     const approvalAccount = config?.approvalAccount;
-    const selectedApprovalAccount = useMemo(() => {
-        // NetSuite uses a synthesized "default approval account" when nothing is explicitly set.
-        if (!approvalAccount || approvalAccount === CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT) {
-            return {
-                id: CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT,
-                name: translate('workspace.netsuite.advancedConfig.defaultApprovalAccount'),
-            };
-        }
-        return getFilteredApprovalAccountOptions(payableList).find(({id}) => id === approvalAccount);
-    }, [approvalAccount, payableList, translate]);
+    // NetSuite uses a synthesized "default approval account" when nothing is explicitly set.
+    const selectedApprovalAccount =
+        !approvalAccount || approvalAccount === CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT
+            ? {
+                  id: CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT,
+                  name: translate('workspace.netsuite.advancedConfig.defaultApprovalAccount'),
+              }
+            : getFilteredApprovalAccountOptions(payableList).find(({id}) => id === approvalAccount);
 
     const renderDefaultMenuItem = (item: MenuItemToRender) => {
         return (
@@ -87,7 +83,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 key={item.description}
                 pendingAction={settingsPendingAction(item.subscribedSettings, config?.pendingFields) ?? settingsPendingAction(item.subscribedSettings, autoSyncConfig?.pendingFields)}
             >
-                <MenuItem.Root onPress={item?.onPress ? callFunctionIfActionIsAllowed(item.onPress) : undefined}>
+                <MenuItem.Root onPress={item?.onPress ? callFunctionIfActionIsAllowed(item.onPress, false, session) : undefined}>
                     <MenuItemField.Row
                         name={item.description ?? ''}
                         value={item.title}
@@ -127,6 +123,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             subtitle: translate('workspace.netsuite.advancedConfig.reimbursedReportsDescription'),
             isActive: !!config?.syncOptions.syncReimbursedReports,
             switchAccessibilityLabel: translate('workspace.netsuite.advancedConfig.reimbursedReportsDescription'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.SYNC_REIMBURSED_REPORTS_SWITCH,
             shouldPlaceSubtitleBelowSwitch: true,
             onCloseError: () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_REIMBURSED_REPORTS),
             onToggle: (isEnabled) => updateNetSuiteSyncReimbursedReports(policyID, isEnabled),
@@ -170,6 +167,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             subtitle: translate('workspace.netsuite.advancedConfig.inviteEmployeesDescription'),
             isActive: !!config?.syncOptions.syncPeople,
             switchAccessibilityLabel: translate('workspace.netsuite.advancedConfig.inviteEmployeesDescription'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.INVITE_EMPLOYEES_SWITCH,
             shouldPlaceSubtitleBelowSwitch: true,
             shouldParseSubtitle: true,
             onCloseError: () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_PEOPLE),
@@ -182,6 +180,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             title: translate('workspace.netsuite.advancedConfig.autoCreateEntities'),
             isActive: !!config?.autoCreateEntities,
             switchAccessibilityLabel: translate('workspace.netsuite.advancedConfig.autoCreateEntities'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.AUTO_CREATE_ENTITIES_SWITCH,
             onCloseError: () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.AUTO_CREATE_ENTITIES),
             onToggle: (isEnabled) => updateNetSuiteAutoCreateEntities(policyID, isEnabled),
             pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.AUTO_CREATE_ENTITIES], config?.pendingFields),
@@ -196,6 +195,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             title: translate('workspace.netsuite.advancedConfig.enableCategories'),
             isActive: !!config?.syncOptions.enableNewCategories,
             switchAccessibilityLabel: translate('workspace.netsuite.advancedConfig.enableCategories'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.ENABLE_NEW_CATEGORIES_SWITCH,
             onCloseError: () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.ENABLE_NEW_CATEGORIES),
             onToggle: (isEnabled) => updateNetSuiteEnableNewCategories(policyID, isEnabled),
             pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.SYNC_OPTIONS.ENABLE_NEW_CATEGORIES], config?.pendingFields),
@@ -246,6 +246,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             subtitle: translate('workspace.netsuite.advancedConfig.customFormIDDescription'),
             isActive: !!config?.customFormIDOptions?.enabled,
             switchAccessibilityLabel: translate('workspace.netsuite.advancedConfig.customFormIDDescription'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CUSTOM_FORM_ID_SWITCH,
             shouldPlaceSubtitleBelowSwitch: true,
             onCloseError: () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_ENABLED),
             onToggle: (isEnabled) => {
@@ -284,6 +285,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))}
             displayName="NetSuiteAdvancedPage"
             headerTitle="workspace.accounting.advanced"
             headerSubtitle={config?.subsidiary ?? ''}

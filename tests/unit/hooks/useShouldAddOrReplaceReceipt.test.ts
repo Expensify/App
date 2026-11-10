@@ -11,6 +11,7 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 
 import Onyx from 'react-native-onyx';
 
+import createRandomReportAction from '../../utils/collections/reportActions';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 const ACCOUNT_ID = 1;
@@ -136,5 +137,48 @@ describe('useShouldAddOrReplaceReceipt', () => {
 
         // Then a dropped file replaces the receipt
         expect(result.current.shouldAddOrReplaceReceipt).toBe(true);
+    });
+
+    it('stops offering to replace the receipt once the parent report actions show the report was forwarded since the last submit', async () => {
+        // Given a corporate workspace where the submitter reports to the manager, a submitted expense report, and its transaction thread open in the composer
+        const SUBMITTER_EMAIL = 'submitter@test.com';
+        const MANAGER_EMAIL = 'manager@test.com';
+        const THREAD_REPORT_ID = '101';
+        const submittedAction: ReportAction = {...createRandomReportAction(2), actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED, created: '2025-01-02 12:00:00'};
+        const forwardedAction: ReportAction = {...createRandomReportAction(3), actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED, created: '2025-01-03 12:00:00'};
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [ACCOUNT_ID]: {accountID: ACCOUNT_ID, login: SUBMITTER_EMAIL},
+            [MANAGER_ACCOUNT_ID]: {accountID: MANAGER_ACCOUNT_ID, login: MANAGER_EMAIL},
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+            type: CONST.POLICY.TYPE.CORPORATE,
+            employeeList: {[SUBMITTER_EMAIL]: {email: SUBMITTER_EMAIL, role: CONST.POLICY.ROLE.USER, submitsTo: MANAGER_EMAIL}},
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${THREAD_REPORT_ID}`, {
+            reportID: THREAD_REPORT_ID,
+            policyID: POLICY_ID,
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID: REPORT_ID,
+            parentReportActionID: iouAction.reportActionID,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[submittedAction.reportActionID]: submittedAction});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, buildTransaction(CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE, CONST.IOU.REQUEST_TYPE.MANUAL));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the composer checks the transaction thread while the report has only been submitted
+        const {result} = renderHook(() => useShouldAddOrReplaceReceipt(THREAD_REPORT_ID));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the submitter can still replace the receipt, judged from the parent report's actions the hook subscribes to
+        expect(result.current.transactionID).toBe(TRANSACTION_ID);
+        expect(result.current.shouldAddOrReplaceReceipt).toBe(true);
+
+        // When the manager forwards the report after that submit
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[forwardedAction.reportActionID]: forwardedAction});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the hook picks the forward up from those actions and stops offering to replace the receipt
+        expect(result.current.shouldAddOrReplaceReceipt).toBe(false);
     });
 });

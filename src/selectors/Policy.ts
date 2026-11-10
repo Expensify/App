@@ -6,8 +6,11 @@ import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 import {getConnectedHRProvider} from '@libs/merge/HRUtils';
 import type {PolicyPaymentAttribution} from '@libs/PolicyPaymentUtils';
 import {
+    canCreateExpensesOnPolicy,
+    canEditWorkspaceSettings,
     canSendInvoice,
     getActiveAdminWorkspaces,
+    getActivePolicies,
     getActivePoliciesWithExpenseChat,
     getOwnedPaidPolicies,
     getPolicyIDFromDomainName,
@@ -17,9 +20,12 @@ import {
     isPaidGroupPolicy,
     isPendingDeletePolicy,
     isPerDiemEligiblePolicy,
+    isPolicyAccessible,
     isPolicyAdmin,
     isArchivedOrPendingDeletePolicy,
     isArchivedPolicy,
+    isGroupPolicy,
+    isPolicyProvisionedForTravel,
     isTimeTrackingEnabled,
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
@@ -28,7 +34,7 @@ import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, Policy, PolicyConnectionSyncProgress, PolicyReportField} from '@src/types/onyx';
+import type {Card, FullPolicySnapshot, Policy, PolicyConnectionSyncProgress, PolicyEmployee, PolicyReportField} from '@src/types/onyx';
 import type {PolicyConnectionName, PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 
@@ -44,7 +50,9 @@ type ReusablePolicyConnectionName =
     | typeof CONST.POLICY.CONNECTIONS.NAME.CERTINIA
     | typeof CONST.POLICY.CONNECTIONS.NAME.RILLET
     | typeof CONST.POLICY.CONNECTIONS.NAME.DUALENTRY
-    | typeof CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE;
+    | typeof CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE
+    | typeof CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS
+    | typeof CONST.POLICY.CONNECTIONS.NAME.DIGITS;
 
 const ownerPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountID: number) => getOwnedPaidPolicies(policies, currentUserAccountID);
 
@@ -156,7 +164,12 @@ const createWorkspaceListPoliciesSelector =
                         ownerAccountID: details.ownerAccountID,
                         ownerEmail: details.ownerEmail,
                         ownerDefaultAvatar:
-                            details.ownerAccountID && details.ownerEmail ? getDefaultAvatarURL({accountID: details.ownerAccountID, accountEmail: details.ownerEmail}) : undefined,
+                            details.ownerAccountID && details.ownerEmail
+                                ? getDefaultAvatarURL({
+                                      accountID: details.ownerAccountID,
+                                      accountEmail: details.ownerEmail,
+                                  })
+                                : undefined,
                         avatar: details.avatar,
                     };
                 }
@@ -208,7 +221,10 @@ type TimeSensitiveAdminPolicies = {
 const createTimeSensitiveAdminPoliciesSelector =
     (currentUserLogin: string | undefined, connectionSyncProgress: OnyxCollection<PolicyConnectionSyncProgress>) =>
     (policies: OnyxCollection<Policy>): TimeSensitiveAdminPolicies => {
-        const result: TimeSensitiveAdminPolicies = {policies: [], brokenConnections: []};
+        const result: TimeSensitiveAdminPolicies = {
+            policies: [],
+            brokenConnections: [],
+        };
 
         for (const policy of getActiveAdminWorkspaces(policies, currentUserLogin)) {
             result.policies.push({
@@ -254,6 +270,23 @@ const createHasAdminPolicyWithXeroConnectionSelector =
         hasPolicyWithXeroConnection(getActiveAdminWorkspaces(policies, currentUserLogin));
 
 const hasActiveAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin).length > 0;
+
+/**
+ * Whether the user could edit the settings of any active group workspace, which is what the upgrade page gates on once a
+ * workspace is in the route. Admins pass, and so do editors on a Submit workspace, who `getActiveAdminWorkspaces`
+ * leaves out. Personal policies don't count because they can't be upgraded.
+ */
+const canEditAnyWorkspaceSettingsSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string): boolean =>
+    getActivePolicies(policies, currentUserAccountLogin).some((policy) => isGroupPolicy(policy) && canEditWorkspaceSettings(policy, currentUserAccountLogin));
+
+/**
+ * Creates a selector for whether the user belongs to any workspace with Travel enabled and provisioned, so subscribers only
+ * re-render when that answer changes rather than on every policy collection change.
+ */
+const createHasTravelEnabledPolicySelector =
+    (currentUserLogin: string | undefined) =>
+    (policies: OnyxCollection<Policy>): boolean =>
+        Object.values(policies ?? {}).some((policy) => policy?.isTravelEnabled && isPolicyProvisionedForTravel(policy) && isPolicyAccessible(policy, currentUserLogin ?? ''));
 
 /**
  * Creates a selector returning only whether the user has any active workspace they can submit expenses to
@@ -330,6 +363,34 @@ const createPoliciesByIDsSelector = (policyIDs: string[]) => {
             }
         }
         return filtered;
+    };
+};
+
+type MemberCustomFields = Pick<PolicyEmployee, ValueOf<typeof CONST.CUSTOM_FIELD_KEYS>>;
+
+type MemberCustomFieldsByPolicyID = Record<string, Record<string, MemberCustomFields>>;
+
+/**
+ * Creates a selector returning only the member custom fields of the given policies, keyed by policy ID and then
+ * by member login, so a consumer watching for custom field edits doesn't re-render on every other policy write.
+ */
+const createMemberCustomFieldsSelector = (policyIDs: string[]) => {
+    const customFieldKeys = Object.values(CONST.CUSTOM_FIELD_KEYS);
+
+    return (policies: OnyxCollection<Policy>): MemberCustomFieldsByPolicyID => {
+        const customFieldsByPolicyID: MemberCustomFieldsByPolicyID = {};
+        for (const policyID of policyIDs) {
+            const employeeList = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList;
+            if (!employeeList) {
+                continue;
+            }
+            const customFieldsByLogin: Record<string, MemberCustomFields> = {};
+            for (const [login, employee] of Object.entries(employeeList)) {
+                customFieldsByLogin[login] = Object.fromEntries(customFieldKeys.map((key) => [key, employee[key]]));
+            }
+            customFieldsByPolicyID[policyID] = customFieldsByLogin;
+        }
+        return customFieldsByPolicyID;
     };
 };
 
@@ -424,7 +485,7 @@ const createFilteredPoliciesInfoSelector =
         let filteredPoliciesCount = 0;
         let firstPolicy: BillingRestrictionPolicy | undefined;
         for (const policy of Object.values(policies ?? {})) {
-            if (!policy || !shouldShowPolicy(policy, false, email) || isTeachersUnitePolicyID(policy.id)) {
+            if (!policy || !shouldShowPolicy(policy, false, email) || isTeachersUnitePolicyID(policy.id) || !canCreateExpensesOnPolicy(policy, email)) {
                 continue;
             }
             if (filteredPoliciesCount === 0) {
@@ -477,6 +538,12 @@ const adminPoliciesConnectedToDualEntrySelector = (policies: OnyxCollection<Poli
 const adminPoliciesConnectedToCampfireSelector = (policies: OnyxCollection<Policy>) =>
     Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE));
 
+const adminPoliciesConnectedToZohoBooksSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS));
+
+const adminPoliciesConnectedToDigitsSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.DIGITS));
+
 const reusableConnectionAdminSelectors: Record<ReusablePolicyConnectionName, (policies: OnyxCollection<Policy>) => Policy[]> = {
     [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: adminPoliciesConnectedToNetSuiteSelector,
     [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: adminPoliciesConnectedToSageIntacctSelector,
@@ -485,6 +552,8 @@ const reusableConnectionAdminSelectors: Record<ReusablePolicyConnectionName, (po
     [CONST.POLICY.CONNECTIONS.NAME.RILLET]: adminPoliciesConnectedToRilletSelector,
     [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: adminPoliciesConnectedToDualEntrySelector,
     [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: adminPoliciesConnectedToCampfireSelector,
+    [CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: adminPoliciesConnectedToZohoBooksSelector,
+    [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: adminPoliciesConnectedToDigitsSelector,
 };
 
 function isReusablePolicyConnection(policy: Policy, connectionName: ReusablePolicyConnectionName, currentPolicyID?: string) {
@@ -535,14 +604,54 @@ function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: st
 
 const policyNameSelector = (policy: OnyxEntry<Policy>) => policy?.name;
 
+const fullPolicySnapshotLastModifiedSelector = (snapshot: OnyxEntry<FullPolicySnapshot>) => snapshot?.lastModified;
+
+/** Maps each policyID to the lastModified of its full policy snapshot, for screens that open reports from several policies. */
+const fullPolicySnapshotLastModifiedByPolicyIDSelector = (snapshots: OnyxCollection<FullPolicySnapshot>): Record<string, number> => {
+    const lastModifiedByPolicyID: Record<string, number> = {};
+    for (const [key, snapshot] of Object.entries(snapshots ?? {})) {
+        if (!snapshot?.lastModified) {
+            continue;
+        }
+        lastModifiedByPolicyID[key.slice(ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT.length)] = snapshot.lastModified;
+    }
+    return lastModifiedByPolicyID;
+};
+
 /** The policy fields a workspace avatar renders from. */
 const policyAvatarFieldsSelector = (policy: OnyxEntry<Policy>): Pick<Policy, 'avatarURL' | 'name'> | undefined => (policy ? {avatarURL: policy.avatarURL, name: policy.name} : undefined);
 
 const policyTypeSelector = (policy: OnyxEntry<Policy>) => policy?.type;
 
+/** Keeps only the policy fields `getVisibleTransactionViolations` reads, and only the current user's `employeeList` entry. */
+const createPolicyViolationVisibilitySelector =
+    (email: string) =>
+    (policy: OnyxEntry<Policy>): OnyxEntry<Policy> => {
+        if (!policy) {
+            return policy;
+        }
+        const {id, name, role, type, owner, outputCurrency, autoReporting, autoReportingFrequency, isAttendeeTrackingEnabled, autoCategorizeNewExpenses} = policy;
+        const employee = policy.employeeList?.[email];
+        return {
+            id,
+            name,
+            role,
+            type,
+            owner,
+            outputCurrency,
+            autoReporting,
+            autoReportingFrequency,
+            isAttendeeTrackingEnabled,
+            autoCategorizeNewExpenses,
+            employeeList: employee ? {[email]: employee} : undefined,
+        };
+    };
+
 const policyRoleSelector = (policy: OnyxEntry<Policy>) => policy?.role;
 
 const areInvoicesEnabledSelector = (policy: OnyxEntry<Policy>) => policy?.areInvoicesEnabled;
+
+const policyDefaultBankAccountIDSelector = (policy: OnyxEntry<Policy>) => policy?.achAccount?.bankAccountID;
 
 /** The policy fields that attribute a payment to a bank account (see `getBankAccountLastFourDigits`). */
 const policyPaymentAttributionSelector = (policy: OnyxEntry<Policy>): PolicyPaymentAttribution | undefined =>
@@ -587,7 +696,7 @@ const groupByPolicyAccountIDPoliciesSelector = (policies: OnyxCollection<Policy>
         return m;
     }, new Map<number, Policy>());
 
-export type {PolicySelector, TimeSensitiveAdminPolicy};
+export type {MemberCustomFieldsByPolicyID, PolicySelector, TimeSensitiveAdminPolicy};
 export {
     createAllPolicyReportFieldsSelector,
     ownerPoliciesSelector,
@@ -598,11 +707,14 @@ export {
     createWorkspaceListPoliciesSelector,
     activeAdminPoliciesSelector,
     hasActiveAdminPoliciesSelector,
+    canEditAnyWorkspaceSettingsSelector,
     createHasAdminPolicyWithXeroConnectionSelector,
     createTimeSensitiveAdminPoliciesSelector,
+    createHasTravelEnabledPolicySelector,
     createHasWorkspaceToSubmitToSelector,
     createPoliciesForAssignedCardsSelector,
     createPoliciesByIDsSelector,
+    createMemberCustomFieldsSelector,
     policyTimeTrackingSelector,
     createIOURequestStartPoliciesSelector,
     policyMapper,
@@ -614,14 +726,18 @@ export {
     homeAndOfficeCommuterExclusionPolicyNameSelector,
     policyAvatarFieldsSelector,
     policyNameSelector,
+    fullPolicySnapshotLastModifiedSelector,
+    fullPolicySnapshotLastModifiedByPolicyIDSelector,
     policyRoleSelector,
     policyTypeSelector,
     areInvoicesEnabledSelector,
+    policyDefaultBankAccountIDSelector,
     policyPaymentAttributionSelector,
     createAdminPoliciesSelector,
     isAdminForPolicyByIDSelector,
     isCollectingDepositAccountsSelector,
     createIsInternationalCountrySelector,
     groupByPolicyAccountIDPoliciesSelector,
+    createPolicyViolationVisibilitySelector,
 };
 export type {ReusablePolicyConnectionName};

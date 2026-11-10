@@ -48,7 +48,7 @@ function QuickbooksDesktopTravelBillingConfigurationPage({policy}: WithPolicyCon
     const sections: QBDSection[] = [
         {
             title: travelPayableAccount?.name,
-            description: translate('workspace.common.travelInvoicingPayableAccount'),
+            description: translate('workspace.common.travelBillingPayableAccount'),
             onPress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT.path)),
             subscribedSettings: payableAccount,
             pendingAction: settingsPendingAction(payableAccount, qbdConfig?.pendingFields),
@@ -59,7 +59,7 @@ function QuickbooksDesktopTravelBillingConfigurationPage({policy}: WithPolicyCon
     return (
         <ConnectionLayout
             displayName="QuickbooksDesktopTravelBillingConfigurationPage"
-            headerTitle="workspace.common.travelInvoicing"
+            headerTitle="workspace.common.travelBilling"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}

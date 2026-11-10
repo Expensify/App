@@ -407,7 +407,11 @@ function clearNewRulePrompt() {
     clearDraftValues(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM);
 }
 
-function addPolicyAgentRule(policyID: string, agentRuleID: string, prompt: string) {
+/**
+ * @param title - Known title of the rule, for example from a selected suggestion. The list shows it right away instead
+ * of the prompt, until the server returns its generated title.
+ */
+function addPolicyAgentRule(policyID: string, agentRuleID: string, prompt: string, title?: string) {
     if (!policyID || !agentRuleID || !prompt) {
         Log.warn('Invalid params for addPolicyAgentRule', {policyID, agentRuleID, prompt});
         return;
@@ -427,6 +431,7 @@ function addPolicyAgentRule(policyID: string, agentRuleID: string, prompt: strin
                                 ruleID: agentRuleID,
                                 created: new Date().toISOString(),
                                 prompt,
+                                ...(title ? {title} : {}),
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                             },
                         },

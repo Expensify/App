@@ -1,7 +1,7 @@
 import type {RsbuildConfig} from '@rsbuild/core';
 import type {DefinePluginOptions, RspackPluginInstance, SwcJsMinimizerRspackPluginOptions} from '@rspack/core';
 
-import {GenerateSW} from '@aaroon/workbox-rspack-plugin';
+import {InjectManifest} from '@aaroon/workbox-rspack-plugin';
 import {pluginSvgr} from '@rsbuild/plugin-svgr';
 import {RsdoctorRspackPlugin} from '@rsdoctor/rspack-plugin';
 import {rspack} from '@rspack/core';
@@ -25,6 +25,8 @@ import oxcReactCompilerConfig from '../babel/oxcReactCompilerConfig.js';
 import BrotliCompressionPlugin from './BrotliCompressionPlugin.ts';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import CustomVersionFilePlugin from './CustomVersionFilePlugin.ts';
+// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+import {FORWARDED_DEVELOPMENT_ENV_KEYS} from './developmentEnvKeys.ts';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import ModuleInitTimingPlugin from './ModuleInitTimingPlugin.ts';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
@@ -133,6 +135,10 @@ function mapEnvironmentToLogoSuffix(environmentFile: string): string {
  */
 function getDefineValues(file: string): DefinePluginOptions {
     const isDevelopmentFile = file === '.env' || file === '.env.development';
+    const parsedConfig = dotenv.config({path: file}).parsed;
+    const developmentOverrides = isDevelopmentFile
+        ? Object.fromEntries(FORWARDED_DEVELOPMENT_ENV_KEYS.flatMap((key: string) => (process.env[key] === undefined ? [] : [[key, process.env[key]]])))
+        : {};
     /* eslint-disable @typescript-eslint/naming-convention */
     return {
         process: {env: {}},
@@ -142,7 +148,10 @@ function getDefineValues(file: string): DefinePluginOptions {
         global: 'globalThis',
         // Define EXPO_OS for web platform to fix expo-modules-core warning
         'process.env.EXPO_OS': JSON.stringify('web'),
-        __REACT_WEB_CONFIG__: JSON.stringify(dotenv.config({path: file}).parsed),
+        __REACT_WEB_CONFIG__: JSON.stringify({
+            ...parsedConfig,
+            ...developmentOverrides,
+        }),
 
         // React Native JavaScript environment requires the global __DEV__ variable to be accessible.
         // react-native-render-html uses variable to log exclusively during development.
@@ -369,7 +378,9 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                 // which can only classify frames when it did.
                 __SENTRY_APPLICATION_KEY_STAMPED__: !!sentryWebpackPlugin,
             },
-            entry: {main: './index.js'},
+            // fonts.css is bundled rather than copied as a static file, so its font paths resolve to the same
+            // content-hashed font files the charts import, and the browser downloads each font only once.
+            entry: {main: ['./assets/css/fonts.css', './index.js']},
         },
         output: {
             target: 'web',
@@ -410,8 +421,7 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                 {from: 'web/robots.txt'},
                 {from: 'assets/images/expensify-app-icon.svg'},
                 {from: 'web/manifest.json'},
-                {from: 'assets/css', to: 'css'},
-                {from: 'assets/fonts/web', to: 'fonts'},
+                {from: 'assets/css/pdf.css', to: 'css/pdf.css'},
                 {from: 'assets/sounds', to: 'sounds'},
                 {from: 'assets/pdfs', to: 'pdfs'},
                 {from: 'node_modules/react-pdf/dist/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
@@ -511,9 +521,9 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                     ...(isDevelopment
                         ? []
                         : [
-                              new GenerateSW({
-                                  clientsClaim: true,
-                                  skipWaiting: true,
+                              new InjectManifest({
+                                  swSrc: path.resolve(dirname, '../../web/service-worker.ts'),
+                                  swDest: 'service-worker.js',
                                   // Cap is generous on purpose: the vendor (~6.5 MiB), main (~5.5 MiB),
                                   // authScreens.prefetch (~10.1 MiB) chunks and the canvaskit wasm (~7.7 MiB) are
                                   // all critical for offline boot, so we precache the lot. JS chunks are
@@ -525,24 +535,6 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                                   // worker requests the original URLs and the CDN transparently serves the Brotli copy,
                                   // so adding the twins to the precache as well would download every chunk twice.
                                   exclude: [/\.map$/, /^manifest.*\.js$/, /\.br$/],
-                                  // Single-page app: any unmatched navigation should serve the cached app shell.
-                                  navigateFallback: '/index.html',
-                                  // Don't fall back for asset-like or .well-known requests.
-                                  navigateFallbackDenylist: [/^\/_/, /^\/\.well-known/, /\/[^/?]+\.[^/]+$/],
-                                  runtimeCaching: [
-                                      {
-                                          // Same-origin user media (receipts, chat attachments) — cache opportunistically
-                                          // so they're viewable on offline refresh. The function below is serialized into
-                                          // the generated service worker, so it executes in the SW context where
-                                          // `sameOrigin` is the appropriate Workbox match (no need to read `self.location`).
-                                          urlPattern: ({sameOrigin, url, request}) => sameOrigin && (request.destination === 'image' || /\/(receipts|chat-attachments)\//.test(url.pathname)),
-                                          handler: 'StaleWhileRevalidate',
-                                          options: {
-                                              cacheName: 'user-media',
-                                              expiration: {maxEntries: 200, maxAgeSeconds: 7 * 24 * 60 * 60},
-                                          },
-                                      },
-                                  ],
                               }),
                           ]),
                     // Inject <link rel="prefetch/preload" /> into HTML.
