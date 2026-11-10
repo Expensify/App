@@ -72,7 +72,7 @@ describe('useSwitchToClassic', () => {
     });
 
     it('marks the cookie and opens Classic only after the server saves the switch', async () => {
-        // Given an account in the hybridWeb beta
+        // Given an account in the beta that uses the experience cookie
         await arrangeAccount([CONST.BETAS.HYBRID_WEB]);
         const {result} = await renderSwitchToClassic();
 
@@ -80,7 +80,7 @@ describe('useSwitchToClassic', () => {
         act(() => result.current.switchToClassic('Too many clicks'));
         await setSwitchRequestState({isLoading: true, errors: null});
 
-        // Then the switch is recorded, the buttons are disabled, and Classic doesn't open yet, because it would read the old tryNewDot
+        // Then the switch is recorded, the buttons are disabled, and Classic doesn't open yet, because Classic would send the user back to New Expensify
         expect(switchToOldDot).toHaveBeenCalledWith('Too many clicks');
         expect(result.current.isSwitchingToClassic).toBe(true);
         expect(writeExperienceCookie).not.toHaveBeenCalled();
@@ -97,7 +97,7 @@ describe('useSwitchToClassic', () => {
     });
 
     it('shows an error and stays in New Expensify when the server rejects the switch', async () => {
-        // Given an account in the hybridWeb beta
+        // Given an account in the beta that uses the experience cookie
         await arrangeAccount([CONST.BETAS.HYBRID_WEB]);
         const {result} = await renderSwitchToClassic();
 
@@ -111,8 +111,75 @@ describe('useSwitchToClassic', () => {
         expect(openOldDotLink).not.toHaveBeenCalled();
     });
 
+    it('ignores a switch started elsewhere after a rejected one', async () => {
+        // Given a switch from this screen that the server rejected
+        await arrangeAccount([CONST.BETAS.HYBRID_WEB]);
+        const {result} = await renderSwitchToClassic();
+        await requestSwitchAndRespond(result.current, {isLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
+
+        // When a switch started in another tab succeeds
+        await setSwitchRequestState({isLoading: true, errors: null});
+        await setSwitchRequestState({isLoading: false});
+
+        // Then this screen doesn't navigate, because the user didn't ask it to again
+        expect(openOldDotLink).not.toHaveBeenCalled();
+    });
+
+    it('ignores a switch started elsewhere after a saved one', async () => {
+        // Given a switch from this screen that the server saved
+        await arrangeAccount([CONST.BETAS.HYBRID_WEB]);
+        const {result} = await renderSwitchToClassic();
+        await requestSwitchAndRespond(result.current, {isLoading: false});
+
+        // When a switch started in another tab finishes
+        await setSwitchRequestState({isLoading: true, errors: null});
+        await setSwitchRequestState({isLoading: false});
+
+        // Then Classic isn't opened a second time, because only the switch started here belongs to this screen
+        expect(openOldDotLink).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps waiting for the switch when the exit survey form is reset in another tab', async () => {
+        // Given a switch from this screen that is waiting for the server
+        await arrangeAccount([CONST.BETAS.HYBRID_WEB]);
+        const {result} = await renderSwitchToClassic();
+        act(() => result.current.switchToClassic('Too many clicks'));
+        await setSwitchRequestState({isLoading: true, errors: null});
+
+        // When another tab opens the exit survey, which resets the shared form
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, null);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Classic doesn't open early, because the switch isn't saved yet
+        expect(result.current.isSwitchingToClassic).toBe(true);
+        expect(openOldDotLink).not.toHaveBeenCalled();
+
+        // When the server saves the switch
+        await setSwitchRequestState({isLoading: false});
+
+        // Then Classic opens
+        expect(openOldDotLink).toHaveBeenCalledWith(CONST.OLDDOT_URLS.INBOX, true);
+    });
+
+    it('waits for the new request when the form still holds an earlier saved switch', async () => {
+        // Given a form that still holds a switch saved earlier, as after a Troubleshoot switch without the exit survey
+        await arrangeAccount([CONST.BETAS.HYBRID_WEB]);
+        await Onyx.merge(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, {isLoading: false});
+        const {result} = await renderSwitchToClassic();
+
+        // When the user switches again, before the new request's optimistic data arrives
+        act(() => result.current.switchToClassic(''));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Classic doesn't open on the earlier result
+        expect(result.current.isSwitchingToClassic).toBe(true);
+        expect(openOldDotLink).not.toHaveBeenCalled();
+    });
+
     it('opens Classic without marking the cookie for an account outside the beta', async () => {
-        // Given an account with every beta but hybridWeb, which the server only enables explicitly
+        // Given an account with every beta except the one that uses the experience cookie, which the server only enables explicitly
         await Onyx.set(ONYXKEYS.BETA_CONFIGURATION, {explicitOnly: [CONST.BETAS.HYBRID_WEB]});
         await arrangeAccount([CONST.BETAS.ALL]);
         const {result} = await renderSwitchToClassic();
@@ -120,7 +187,7 @@ describe('useSwitchToClassic', () => {
         // When the server saves the switch
         await requestSwitchAndRespond(result.current, {isLoading: false});
 
-        // Then Classic opens but the cookie, which the router only reads for beta accounts, is left alone
+        // Then Classic opens but the cookie, which is only used for accounts in the beta, is left alone
         expect(openOldDotLink).toHaveBeenCalledWith(CONST.OLDDOT_URLS.INBOX, true);
         expect(writeExperienceCookie).not.toHaveBeenCalled();
     });
@@ -130,7 +197,7 @@ describe('useSwitchToClassic', () => {
         ['Supportal with a used support token', {isSupportAuthTokenUsed: true}],
         ['Copilot', {authTokenType: CONST.AUTH_TOKEN_TYPES.DELEGATE}],
     ])('does not overwrite the agent cookie in a %s session', async (_, session) => {
-        // Given an agent acting on an account in the hybridWeb beta
+        // Given an agent acting on an account in the beta that uses the experience cookie
         await arrangeAccount([CONST.BETAS.HYBRID_WEB], session);
         const {result} = await renderSwitchToClassic();
 
@@ -159,7 +226,7 @@ describe('useSwitchToClassic', () => {
     });
 
     it('opens Classic right away without recording a switch', async () => {
-        // Given an account in the hybridWeb beta that the server already keeps in Classic
+        // Given an account in the beta that uses the experience cookie that the server already keeps in Classic
         await arrangeAccount([CONST.BETAS.HYBRID_WEB]);
         const {result} = renderHook(() => useOpenClassic(), {wrapper: Wrapper});
         await waitForBatchedUpdatesWithAct();

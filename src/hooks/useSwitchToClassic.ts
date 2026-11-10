@@ -10,13 +10,13 @@ import type {ExitSurveyResponseForm} from '@src/types/form/ExitSurveyResponseFor
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import {useEffect, useState} from 'react';
 
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useOpenClassic from './useOpenClassic';
-import usePrevious from './usePrevious';
 
 type UseSwitchToClassic = {
     /** Records the switch with the exit survey response and opens Classic once the server has saved it */
@@ -26,40 +26,74 @@ type UseSwitchToClassic = {
     isSwitchingToClassic: boolean;
 };
 
-const isLoadingSelector = (form: OnyxEntry<ExitSurveyResponseForm>) => !!form?.isLoading;
+const REQUEST_STATUS = {
+    PENDING: 'pending',
+    SAVED: 'saved',
+    FAILED: 'failed',
+} as const;
 
-const hasErrorsSelector = (form: OnyxEntry<ExitSurveyResponseForm>) => !isEmptyObject(form?.errors);
+const SWITCH_STEP = {
+    IDLE: 'idle',
+
+    // switchToClassic was called, but its optimistic data hasn't reached this hook yet, so the form may still hold an earlier request's result
+    SENDING: 'sending',
+
+    // The form tracks the request started here
+    SAVING: 'saving',
+} as const;
+
+/**
+ * Reads the state of the latest SwitchToOldDot request from the form. Only the request's own data sets isLoading, so a form without it,
+ * like one reset when the exit survey opens in another tab, says nothing about the request.
+ */
+function requestStatusSelector(form: OnyxEntry<ExitSurveyResponseForm>): ValueOf<typeof REQUEST_STATUS> | undefined {
+    if (form?.isLoading === undefined) {
+        return undefined;
+    }
+    if (form.isLoading) {
+        return REQUEST_STATUS.PENDING;
+    }
+    return isEmptyObject(form.errors) ? REQUEST_STATUS.SAVED : REQUEST_STATUS.FAILED;
+}
 
 function useSwitchToClassic(): UseSwitchToClassic {
     const {translate} = useLocalize();
     const openClassic = useOpenClassic();
-    const [isLoading = false] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, {selector: isLoadingSelector});
-    const [hasErrors = false] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, {selector: hasErrorsSelector});
+    const [requestStatus] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, {selector: requestStatusSelector});
 
     // Local state rather than the persisted isLoading alone, so a request that never finished in an earlier session can't disable the buttons,
     // and a switch started in another tab doesn't navigate this one
-    const [hasRequestedSwitch, setHasRequestedSwitch] = useState(false);
-    const wasLoading = usePrevious(isLoading);
+    const [step, setStep] = useState<ValueOf<typeof SWITCH_STEP>>(SWITCH_STEP.IDLE);
 
-    // Classic opens only after SwitchToOldDot is saved. Otherwise Classic can read the old tryNewDot NVP, set the experience cookie back to
-    // `new` and route the user back to New Expensify. wasLoading with !isLoading holds only in the render where the request finishes, so this runs once per request.
+    // Classic opens only after the switch is saved, because Classic sends users who still prefer New Expensify back to it.
+    // The step returns to idle once the request finishes, so a later request from another tab can't act on this screen.
     useEffect(() => {
-        if (!hasRequestedSwitch || !wasLoading || isLoading) {
+        if (step === SWITCH_STEP.SENDING && requestStatus === REQUEST_STATUS.PENDING) {
+            // The step disables the buttons, and it has to wait for the Onyx update that the request's optimistic data triggers
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setStep(SWITCH_STEP.SAVING);
             return;
         }
-        if (hasErrors) {
+        if (step !== SWITCH_STEP.SAVING) {
+            return;
+        }
+        if (requestStatus === REQUEST_STATUS.FAILED) {
+            setStep(SWITCH_STEP.IDLE);
             Growl.error({bodyText: translate('common.genericErrorMessage')});
             return;
         }
-        openClassic();
-    }, [hasRequestedSwitch, wasLoading, isLoading, hasErrors, translate, openClassic]);
+        if (requestStatus === REQUEST_STATUS.SAVED) {
+            setStep(SWITCH_STEP.IDLE);
+            openClassic();
+        }
+    }, [step, requestStatus, translate, openClassic]);
 
     const switchToClassic = (exitSurveyResponse: string | undefined) => {
-        setHasRequestedSwitch(true);
+        setStep(SWITCH_STEP.SENDING);
         switchToOldDot(exitSurveyResponse);
     };
 
-    return {switchToClassic, isSwitchingToClassic: hasRequestedSwitch && isLoading};
+    return {switchToClassic, isSwitchingToClassic: step !== SWITCH_STEP.IDLE};
 }
 
 export default useSwitchToClassic;
