@@ -48,7 +48,7 @@ type AIInsightChipValue =
           currency: string;
       };
 
-/** Chip showing how much an item changed, colored by whether the change is good or bad. Its value is the size of the change, without its sign. */
+/** Chip showing how much an item changed */
 type AIInsightChangeChip = AIInsightChipValue & {
     type: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_TYPE.CHANGE;
     direction: ValueOf<typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_DIRECTION>;
@@ -59,20 +59,15 @@ type AIInsightNeutralChip = AIInsightChipValue & {
     type: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_TYPE.NEUTRAL;
 };
 
-/** Stat shown at the top of an AI insight card */
+/** An AI insight's statistic: a change, or a share or amount with no direction */
 type AIInsightChip = AIInsightChangeChip | AIInsightNeutralChip;
 
 /** AI-written insight about the dashboard's data */
 type AIInsight = {
     id: string;
     signal: AIInsightSignal;
-
-    /** Item that changed, like a merchant, member, or "Total spend" */
     title: string;
-
     chip: AIInsightChip;
-
-    /** One short line under the title */
     summary: string;
 
     /** Message sent to Concierge when the user asks it to explain the card */

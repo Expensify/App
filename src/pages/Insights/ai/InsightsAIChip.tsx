@@ -18,7 +18,7 @@ type InsightsAIChipProps = {
     chip: AIInsightChip;
 };
 
-/** Stat at the top of an AI insight card, colored by whether the change is good or bad rather than which way it went. */
+/** Chip with an AI insight's statistic */
 function InsightsAIChip({chip}: InsightsAIChipProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
