@@ -18,6 +18,8 @@ import {setDraftValues} from '@libs/actions/FormActions';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {setDraftFlagForReviewRule, setDraftMerchantRule, setDraftRequireFieldsRule, setDraftSpendRule} from '@libs/actions/User';
 import {filterInactiveCards} from '@libs/CardUtils';
+import {categoryHasTaxRule, getCategoryTaxRuleDraftFromGeneratedValues} from '@libs/CategoryTaxRulesUtils';
+import {getMerchantRuleDraftFromGeneratedValues} from '@libs/ExpenseDefaultRuleUtils';
 import {hasExplicitFlagAmount} from '@libs/FlagForReviewRulesUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -32,10 +34,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import AGENT_RULE_INPUT_IDS from '@src/types/form/AddAgentRuleForm';
-import type {PolicyCategory} from '@src/types/onyx';
+import type {Policy, PolicyCategory} from '@src/types/onyx';
 import type {GeneratedRuleState, GeneratedRuleType, GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 
 import type {ReactNode} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import React from 'react';
@@ -52,13 +55,14 @@ type DescribeNewRuleFormProps = {
 
 type SeedDraftContext = {
     policyID: string;
+    policy: OnyxEntry<Policy>;
 
     /** The cards that a new spend rule can cover, or undefined while the card settings load */
     eligibleCardIDs: string[] | undefined;
 };
 
 /** Seeds the draft of the editor for the generated rule type and opens that editor */
-function seedDraftAndNavigate(values: GeneratedRuleValues, ruleType: GeneratedRuleType, {policyID, eligibleCardIDs}: SeedDraftContext) {
+function seedDraftAndNavigate(values: GeneratedRuleValues, ruleType: GeneratedRuleType, {policyID, policy, eligibleCardIDs}: SeedDraftContext) {
     switch (ruleType) {
         case CONST.GENERATED_RULE.RULE_TYPE.REQUIRE_FIELDS:
             setDraftRequireFieldsRule(getRequireFieldsDraftFromGeneratedValues(values).draft);
@@ -72,10 +76,13 @@ function seedDraftAndNavigate(values: GeneratedRuleValues, ruleType: GeneratedRu
             setDraftSpendRule(getSpendRuleDraftFromGeneratedValues(values, eligibleCardIDs));
             Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID));
             break;
-        // A category tax default is an expense default that matches on a category, so both open the same editor.
         case CONST.GENERATED_RULE.RULE_TYPE.EXPENSE_DEFAULTS:
+            setDraftMerchantRule(getMerchantRuleDraftFromGeneratedValues(values));
+            Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
+            break;
+        // The expense defaults editor takes its rule type from the draft. Therefore a category draft opens the category tax rate editor.
         case CONST.GENERATED_RULE.RULE_TYPE.CATEGORY_TAX_RATE:
-            setDraftMerchantRule(values);
+            setDraftMerchantRule(getCategoryTaxRuleDraftFromGeneratedValues(values, policy));
             Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
             break;
         default:
@@ -121,6 +128,8 @@ function DescribeNewRuleForm({policyID, children}: DescribeNewRuleFormProps) {
                 return !categoryHasAnyRequireFieldsRule(category);
             case CONST.GENERATED_RULE.RULE_TYPE.FLAG_FOR_REVIEW:
                 return !hasExplicitFlagAmount(category.maxExpenseAmount);
+            case CONST.GENERATED_RULE.RULE_TYPE.CATEGORY_TAX_RATE:
+                return !categoryHasTaxRule(policy?.rules?.expenseRules, category.name);
             default:
                 return true;
         }
@@ -144,7 +153,7 @@ function DescribeNewRuleForm({policyID, children}: DescribeNewRuleFormProps) {
             addBottomSafeAreaPadding
             shouldUseScrollView
             submitFlexEnabled
-            onRuleGenerated={(values, generatedRuleType) => seedDraftAndNavigate(values, generatedRuleType, {policyID, eligibleCardIDs})}
+            onRuleGenerated={(values, generatedRuleType) => seedDraftAndNavigate(values, generatedRuleType, {policyID, policy, eligibleCardIDs})}
             isCategoryEligible={isCategoryEligible}
             onAgentRuleFallback={offerAgentRule}
         >

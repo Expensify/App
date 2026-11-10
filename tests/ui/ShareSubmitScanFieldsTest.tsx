@@ -49,7 +49,7 @@ function getDraft(): Promise<OnyxEntry<Transaction>> {
         const connection = Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
             callback: (value) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(value);
             },
         });

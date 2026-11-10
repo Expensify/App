@@ -57,6 +57,7 @@ import createRandomPolicy from '../../utils/collections/policies';
 import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
+import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import {
     createGlobalFetchMock,
@@ -199,7 +200,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
                                 callback: (allReports) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
                                     chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
 
                                     resolve();
@@ -256,7 +257,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
                                 callback: (allReports) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
                                     expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
                                     Onyx.merge(`report_${expenseReport?.reportID}`, {
                                         statusNum: 0,
@@ -273,7 +274,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
                                 callback: (allReports) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
                                     expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
 
                                     // Verify report is a draft
@@ -315,7 +316,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
                                 callback: (allReports) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
                                     expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
                                     // Report was submitted correctly
                                     expect(expenseReport?.stateNum).toBe(1);
@@ -918,7 +919,10 @@ describe('actions/IOU/ReportWorkflow', () => {
                     });
 
                     const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {isASAPSubmitBetaEnabled: false});
+                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {
+                        isASAPSubmitBetaEnabled: false,
+                        personalDetailsByLogins: undefined,
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -927,7 +931,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
                                 callback: (allReports) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
                                     chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
 
                                     resolve();
@@ -1004,7 +1008,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             policyName: "Carlos's Workspace",
                             policyID: undefined,
                             engagementChoice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
-                            introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                            introSelected: {choice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT},
                             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                             currentUserEmailParam: CARLOS_EMAIL,
                             currency: undefined,
@@ -1022,7 +1026,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.REPORT,
                                     callback: (allReports) => {
-                                        Onyx.disconnect(connection);
+                                        connection.unsubscribe();
                                         chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
                                         resolve();
                                     },
@@ -1079,7 +1083,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.REPORT,
                                     callback: (allReports) => {
-                                        Onyx.disconnect(connection);
+                                        connection.unsubscribe();
                                         chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
                                         resolve();
                                     },
@@ -1136,7 +1140,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.POLICY,
                                     callback: (allPolicies) => {
-                                        Onyx.disconnect(connection);
+                                        connection.unsubscribe();
                                         policy = Object.values(allPolicies ?? {}).find((p): p is OnyxEntry<Policy> => p?.name === "Carlos's Workspace");
                                         expect(policy).toBeTruthy();
                                         resolve();
@@ -1150,7 +1154,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.REPORT,
                                     callback: (allReports) => {
-                                        Onyx.disconnect(connection);
+                                        connection.unsubscribe();
                                         expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
 
                                         Onyx.merge(`report_${expenseReport?.reportID}`, {
@@ -1180,7 +1184,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.REPORT,
                                     callback: (allReports) => {
-                                        Onyx.disconnect(connection);
+                                        connection.unsubscribe();
                                         expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
 
                                         resolve();
@@ -1225,7 +1229,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.REPORT,
                                     callback: (allReports) => {
-                                        Onyx.disconnect(connection);
+                                        connection.unsubscribe();
                                         expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
 
                                         resolve();
@@ -1285,7 +1289,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.POLICY,
                                     callback: (allPolicies) => {
-                                        Onyx.disconnect(connection);
+                                        connection.unsubscribe();
                                         policy = Object.values(allPolicies ?? {}).find((p): p is OnyxEntry<Policy> => p?.id === policy?.id);
                                         resolve();
                                     },
@@ -1298,7 +1302,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.REPORT,
                                     callback: (allReports) => {
-                                        Onyx.disconnect(connection);
+                                        connection.unsubscribe();
                                         chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
 
                                         expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], true, false)).toBe(false);
@@ -1331,7 +1335,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             policyName: "Carlos's Workspace",
                             policyID: undefined,
                             engagementChoice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
-                            introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                            introSelected: {choice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT},
                             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                             currentUserEmailParam: CARLOS_EMAIL,
                             currency: undefined,
@@ -1349,7 +1353,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.REPORT,
                                     callback: (allReports) => {
-                                        Onyx.disconnect(connection);
+                                        connection.unsubscribe();
                                         chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
                                         resolve();
                                     },
@@ -1406,7 +1410,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.REPORT,
                                     callback: (allReports) => {
-                                        Onyx.disconnect(connection);
+                                        connection.unsubscribe();
                                         chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
                                         resolve();
                                     },
@@ -1463,7 +1467,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.POLICY,
                                     callback: (allPolicies) => {
-                                        Onyx.disconnect(connection);
+                                        connection.unsubscribe();
                                         policy = Object.values(allPolicies ?? {}).find((p): p is OnyxEntry<Policy> => p?.name === "Carlos's Workspace");
                                         expect(policy).toBeTruthy();
                                         resolve();
@@ -1477,7 +1481,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.REPORT,
                                     callback: (allReports) => {
-                                        Onyx.disconnect(connection);
+                                        connection.unsubscribe();
                                         expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
 
                                         Onyx.merge(`report_${expenseReport?.reportID}`, {
@@ -1507,7 +1511,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.REPORT,
                                     callback: (allReports) => {
-                                        Onyx.disconnect(connection);
+                                        connection.unsubscribe();
                                         expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
 
                                         // Verify report is a draft
@@ -1550,7 +1554,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.REPORT,
                                     callback: (allReports) => {
-                                        Onyx.disconnect(connection);
+                                        connection.unsubscribe();
                                         expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
 
                                         // Report was submitted with some fail
@@ -1596,6 +1600,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                     setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {
                         isASAPSubmitBetaEnabled: false,
+                        personalDetailsByLogins: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -1605,7 +1610,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.POLICY,
                                 callback: (allPolicies) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
                                     policy = Object.values(allPolicies ?? {}).find((p): p is OnyxEntry<Policy> => p?.id === policyID);
                                     expect(policy).toBeTruthy();
                                     expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL);
@@ -1620,7 +1625,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
                                 callback: (allReports) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
                                     chatReport = Object.values(allReports ?? {}).find(
                                         (report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT && report.policyID === policyID,
                                     );
@@ -1679,7 +1684,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
                                 callback: (allReports) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
                                     expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE && report?.policyID === policyID);
                                     Onyx.merge(`report_${expenseReport?.reportID}`, {
                                         statusNum: 0,
@@ -1696,7 +1701,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
                                 callback: (allReports) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
                                     expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE && report?.policyID === policyID);
 
                                     expect(expenseReport?.stateNum).toBe(0);
@@ -1738,7 +1743,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
                                 callback: (allReports) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
                                     expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE && report?.policyID === policyID);
 
                                     expect(expenseReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
@@ -1854,7 +1859,10 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateAccountID: undefined,
             });
 
-            setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {isASAPSubmitBetaEnabled: false});
+            setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {
+                isASAPSubmitBetaEnabled: false,
+                personalDetailsByLogins: undefined,
+            });
             await waitForBatchedUpdates();
 
             let chatReport: OnyxEntry<Report>;
@@ -4030,6 +4038,50 @@ describe('actions/IOU/ReportWorkflow', () => {
     });
 
     describe('canIOUBePaid', () => {
+        it('offers Pay and Pay Elsewhere for a business invoice when the sender policy has reimburseNo or only public data', () => {
+            // Given a submitted business invoice, an admin receiver, and either a reimburseNo or redacted sender policy.
+            const {policy, convertedInvoiceChat: chatReport}: InvoiceTestData = InvoiceData;
+            const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(chatReport);
+            if (!invoiceReceiverPolicyID) {
+                throw new Error('Expected the invoice receiver to be a business policy.');
+            }
+
+            const invoiceReport = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.INVOICE,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            const receiverPolicy = {
+                ...createRandomPolicy(Number(invoiceReceiverPolicyID), CONST.POLICY.TYPE.TEAM),
+                id: invoiceReceiverPolicyID,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+            const senderPolicyWithNoReimbursement: Policy = {
+                ...createRandomPolicy(697049),
+                ...policy,
+                id: policy?.id ?? '697049',
+                name: policy?.name ?? 'Sender Workspace',
+                role: CONST.POLICY.ROLE.ADMIN,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+            };
+            const publicSenderPolicy = createMock<Policy>({
+                id: senderPolicyWithNoReimbursement.id,
+                name: senderPolicyWithNoReimbursement.name,
+                role: senderPolicyWithNoReimbursement.role,
+            });
+
+            // When the receiver requests Pay or Pay Elsewhere for either sender policy shape.
+            for (const senderPolicy of [senderPolicyWithNoReimbursement, publicSenderPolicy]) {
+                // Then both actions remain available because the sender's reimbursement choice does not govern invoice payment.
+                expect(canIOUBePaid(invoiceReport, chatReport, senderPolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, false, receiverPolicy)).toBe(true);
+                expect(canIOUBePaid(invoiceReport, chatReport, senderPolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], true, false, receiverPolicy)).toBe(true);
+            }
+            // Then a non-admin receiver cannot pay, even when the sender policy is redacted.
+            expect(canIOUBePaid(invoiceReport, chatReport, publicSenderPolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, false, {...receiverPolicy, role: CONST.POLICY.ROLE.USER})).toBe(
+                false,
+            );
+        });
+
         it('should return false if the report has negative total and onlyShowPayElsewhere is false', async () => {
             const policyChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
             const fakePolicy: Policy = {
@@ -4600,7 +4652,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(report?.iouReportID);
                     },
                 });
@@ -6896,7 +6948,18 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
             await waitForBatchedUpdates();
 
-            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
+            const result = getBadgeFromIOUReport({
+                iouReport: fakeIouReport,
+                chatReport: fakeChatReport,
+                policy: fakePolicy,
+                reportMetadata: {},
+                invoiceReceiverPolicy: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                iouReportActions: undefined,
+                isChatReportArchived: false,
+                allViolations: undefined,
+            });
             expect(result).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
         });
 
@@ -6948,7 +7011,18 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
             await waitForBatchedUpdates();
 
-            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
+            const result = getBadgeFromIOUReport({
+                iouReport: fakeIouReport,
+                chatReport: fakeChatReport,
+                policy: fakePolicy,
+                reportMetadata: {},
+                invoiceReceiverPolicy: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                iouReportActions: undefined,
+                isChatReportArchived: false,
+                allViolations: undefined,
+            });
             expect(result).toBe(CONST.REPORT.ACTION_BADGE.PAY);
         });
 
@@ -7004,7 +7078,18 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
             await waitForBatchedUpdates();
 
-            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
+            const result = getBadgeFromIOUReport({
+                iouReport: fakeIouReport,
+                chatReport: fakeChatReport,
+                policy: fakePolicy,
+                reportMetadata: {},
+                invoiceReceiverPolicy: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                iouReportActions: undefined,
+                isChatReportArchived: false,
+                allViolations: undefined,
+            });
             expect(result).toBeUndefined();
         });
 
@@ -7069,7 +7154,18 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeNonReimbursableTransaction.transactionID}`, fakeNonReimbursableTransaction);
             await waitForBatchedUpdates();
 
-            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
+            const result = getBadgeFromIOUReport({
+                iouReport: fakeIouReport,
+                chatReport: fakeChatReport,
+                policy: fakePolicy,
+                reportMetadata: {},
+                invoiceReceiverPolicy: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                iouReportActions: undefined,
+                isChatReportArchived: false,
+                allViolations: undefined,
+            });
             expect(result).toBe(CONST.REPORT.ACTION_BADGE.PAY);
         });
 
@@ -7128,7 +7224,18 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
             await waitForBatchedUpdates();
 
-            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
+            const result = getBadgeFromIOUReport({
+                iouReport: fakeIouReport,
+                chatReport: fakeChatReport,
+                policy: fakePolicy,
+                reportMetadata: {},
+                invoiceReceiverPolicy: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                iouReportActions: undefined,
+                isChatReportArchived: false,
+                allViolations: undefined,
+            });
             expect(result).toBe(CONST.REPORT.ACTION_BADGE.PAY);
         });
 
@@ -7164,7 +7271,18 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, fakeIouReport);
             await waitForBatchedUpdates();
 
-            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
+            const result = getBadgeFromIOUReport({
+                iouReport: fakeIouReport,
+                chatReport: fakeChatReport,
+                policy: fakePolicy,
+                reportMetadata: {},
+                invoiceReceiverPolicy: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                iouReportActions: undefined,
+                isChatReportArchived: false,
+                allViolations: undefined,
+            });
             expect(result).toBeUndefined();
         });
 
@@ -7225,7 +7343,18 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             // RORY_EMAIL is not the designated payer, so they should not get the PAY badge
-            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
+            const result = getBadgeFromIOUReport({
+                iouReport: fakeIouReport,
+                chatReport: fakeChatReport,
+                policy: fakePolicy,
+                reportMetadata: {},
+                invoiceReceiverPolicy: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                iouReportActions: undefined,
+                isChatReportArchived: false,
+                allViolations: undefined,
+            });
             expect(result).toBeUndefined();
         });
 
@@ -7247,23 +7376,32 @@ describe('actions/IOU/ReportWorkflow', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
             };
 
+            const badgeParams = {
+                iouReport,
+                chatReport,
+                policy,
+                reportMetadata: {},
+                invoiceReceiverPolicy,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                iouReportActions: undefined,
+                isChatReportArchived: false,
+                allViolations: undefined,
+            };
+
             // When the chat report is not archived
             // Then the invoice is payable, so the PAY badge is returned
-            expect(getBadgeFromIOUReport(iouReport, chatReport, policy, {}, invoiceReceiverPolicy, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined)).toBe(
-                CONST.REPORT.ACTION_BADGE.PAY,
-            );
+            expect(getBadgeFromIOUReport(badgeParams)).toBe(CONST.REPORT.ACTION_BADGE.PAY);
 
             // When the chat report is archived in Onyx but the caller does not thread the archived state down
             // Then getBadgeFromIOUReport must not fall back to the module-level Onyx cache, so the invoice stays payable
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport.reportID}`, {private_isArchived: DateUtils.getDBTime()});
             await waitForBatchedUpdates();
-            expect(getBadgeFromIOUReport(iouReport, chatReport, policy, {}, invoiceReceiverPolicy, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined)).toBe(
-                CONST.REPORT.ACTION_BADGE.PAY,
-            );
+            expect(getBadgeFromIOUReport(badgeParams)).toBe(CONST.REPORT.ACTION_BADGE.PAY);
 
             // When the caller threads the archived state down
             // Then no badge is returned because the archived chat blocks paying the invoice
-            expect(getBadgeFromIOUReport(iouReport, chatReport, policy, {}, invoiceReceiverPolicy, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, true, undefined)).toBeUndefined();
+            expect(getBadgeFromIOUReport({...badgeParams, isChatReportArchived: true})).toBeUndefined();
         });
     });
     describe('canIOUBePaid with a deprecated reimbursement choice', () => {

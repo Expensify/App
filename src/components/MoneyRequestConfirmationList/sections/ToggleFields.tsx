@@ -3,6 +3,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
+import CONST from '@src/CONST';
+
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
@@ -37,6 +39,7 @@ function ToggleFields({isReadOnly, shouldShowReimbursable, shouldShowBillable, o
                 >
                     <ToggleSettingOptionRow
                         switchAccessibilityLabel={Str.UCFirst(translate('iou.reimbursable'))}
+                        switchSentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.REIMBURSABLE_SWITCH}
                         title={Str.UCFirst(translate('iou.reimbursable'))}
                         onToggle={(isOn) => onToggleReimbursable?.(isOn)}
                         isActive={iouIsReimbursable}
@@ -52,6 +55,7 @@ function ToggleFields({isReadOnly, shouldShowReimbursable, shouldShowBillable, o
                 >
                     <ToggleSettingOptionRow
                         switchAccessibilityLabel={translate('common.billable')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.BILLABLE_SWITCH}
                         title={translate('common.billable')}
                         onToggle={(isOn) => onToggleBillable?.(isOn)}
                         isActive={iouIsBillable}

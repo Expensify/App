@@ -10,7 +10,6 @@ import navigationRef from '@libs/Navigation/navigationRef';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 
 import type {ValueOf} from 'type-fest';
 
@@ -322,7 +321,8 @@ describe('useBlockDistanceRequest', () => {
         expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'iou.homeAddressRequired.title'}));
     });
 
-    it('opens private personal details on top of the profile page when the home address prompt is confirmed', async () => {
+    it('opens the address-only home address page on top of the preferences page when the home address prompt is confirmed', async () => {
+        // Given a workspace that measures commutes from the member's home, and a member who will confirm the prompt
         mockShowConfirmModal.mockResolvedValue({action: ModalActions.CONFIRM});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy_home_and_office`, {
             id: 'policy_home_and_office',
@@ -333,19 +333,22 @@ describe('useBlockDistanceRequest', () => {
         });
         await waitForBatchedUpdates();
 
+        // When they start a distance request without a home address and confirm the prompt
         const {result} = renderHook(() =>
             useBlockDistanceRequest({
                 policyID: 'policy_home_and_office',
                 isDistanceRequest: true,
             }),
         );
-
         await act(async () => {
             expect(result.current()).toBe(true);
             await Promise.resolve();
         });
-        await waitFor(() => expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1)));
-        expect(swapBackgroundTabForRHPTarget).toHaveBeenCalledWith(mockRootState, ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1));
+
+        // Then the address-only page opens over the preferences page, because the commute only needs the address and
+        // the member should not have to enter a legal name, date of birth, phone number or magic code to add it
+        await waitFor(() => expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_HOME_ADDRESS));
+        expect(swapBackgroundTabForRHPTarget).toHaveBeenCalledWith(mockRootState, ROUTES.SETTINGS_HOME_ADDRESS);
     });
 
     it('allows a distance request when the current home address is present', async () => {

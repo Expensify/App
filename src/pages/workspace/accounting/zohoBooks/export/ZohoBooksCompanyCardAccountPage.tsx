@@ -1,6 +1,6 @@
 /**
  * Lets an admin pick the Zoho Books account that company card expenses export to.
- * It lists the active bank and credit card accounts the backend syncs for this picker, since saving only accepts one of those.
+ * It lists only the active bank and credit card accounts, since saving only accepts one of those.
  */
 import BlockingView from '@components/BlockingViews/BlockingView';
 import type {ListItem} from '@components/SelectionList/types';
@@ -44,12 +44,17 @@ function ZohoBooksCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_EXPORT.getRoute(policyID) : undefined;
 
     const data: AccountListItem[] =
-        zohoBooksData?.bankAccounts?.map((accountItem) => ({
-            value: accountItem.id,
-            text: accountItem.name,
-            keyForList: accountItem.id,
-            isSelected: creditCardAccountID === accountItem.id,
-        })) ?? [];
+        zohoBooksData?.bankAccounts
+            ?.filter(
+                (accountItem) =>
+                    accountItem.isActive && (accountItem.accountType === CONST.ZOHO_BOOKS_ACCOUNT_TYPE.BANK || accountItem.accountType === CONST.ZOHO_BOOKS_ACCOUNT_TYPE.CREDIT_CARD),
+            )
+            .map((accountItem) => ({
+                value: accountItem.id,
+                text: accountItem.name,
+                keyForList: accountItem.id,
+                isSelected: creditCardAccountID === accountItem.id,
+            })) ?? [];
     const {filteredData, textInputOptions} = useSelectionListSearch(data);
 
     const headerContent = (

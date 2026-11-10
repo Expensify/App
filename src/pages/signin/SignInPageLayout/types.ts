@@ -1,9 +1,11 @@
 import type {LinkProps, PressProps} from '@components/TextLink';
 
+import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
 import type React from 'react';
 import type {ForwardedRef} from 'react';
+import type {ValueOf} from 'type-fest';
 
 type SignInPageLayoutProps = {
     /** The children to show inside the layout */
@@ -37,8 +39,12 @@ type SignInPageLayoutRef = {
     scrollPageToTop: (animated?: boolean) => void;
 };
 
-type FooterColumnRow = (LinkProps | PressProps) & {
+type FooterLink = (LinkProps | PressProps) & {
+    sentryLabel: ValueOf<typeof CONST.SENTRY_LABEL.SIGN_IN.FOOTER_LINK>;
+};
+
+type FooterColumnRow = FooterLink & {
     translationPath: TranslationPaths;
 };
 
-export type {SignInPageLayoutRef, SignInPageLayoutProps, FooterColumnRow};
+export type {SignInPageLayoutRef, SignInPageLayoutProps, FooterLink, FooterColumnRow};
