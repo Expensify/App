@@ -209,8 +209,11 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
 
     const overlayPositionLeft = -1 * calculateSuperWideRHPWidth(windowWidth);
 
+    // The committed width, so the overlays beside a resized single card catch up with its edge once a drag ends.
+    const {width: resizableSingleRHPWidth} = useSingleRHPWidth();
+
     // Width of the focused card. The super wide animated width already gives up the Side Panel offset.
-    let focusedRHPWidth: OverlayPositionValue = singleRHPWidth;
+    let focusedRHPWidth: OverlayPositionValue = resizableSingleRHPWidth;
     if (isSuperWideRHPFocused) {
         focusedRHPWidth = animatedWidth;
     } else if (isWideRHPFocused) {
@@ -227,10 +230,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         !shouldUseNarrowLayout &&
         (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0 || shouldRenderSecondaryOverlayForRHPOnWideRHP || shouldRenderSecondaryOverlayForRHPOnSuperWideRHP);
 
-    const {width: resizableSingleRHPWidth} = useSingleRHPWidth();
     const frameStyle = getRHPFrameStyle({styles, animatedWidth, singleRHPWidth: resizableSingleRHPWidth, shouldUseNarrowLayout, shouldUseCenteredFrame});
     const isResizableSingleRHP = useIsResizableSingleRHP();
-    const stackContentStyle = styles.singleRHPStackBox(isResizableSingleRHP);
+    // A single card stacked on a wide one sizes itself (see useModalStackScreenOptions), so only the lone floating card needs the fixed stack box.
+    const stackContentStyle = styles.singleRHPStackBox(isResizableSingleRHP && superWideRHPRouteKeys.length === 0 && wideRHPRouteKeys.length === 0);
 
     const screenListeners = {
         blur: () => {
