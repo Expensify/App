@@ -10,6 +10,9 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import type {TaskForParameters} from '@libs/actions/Report';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
+// Testing only so it's okay to import computeReportName
+// eslint-disable-next-line no-restricted-imports
+import computeReportNameOriginal from '@libs/computeReportName';
 import DateUtils from '@libs/DateUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {compute} from '@libs/Formula';
@@ -24,9 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, getSortedReportActions, getSystemMessageDisplayState, isActionOfType, isWhisperAction} from '@libs/ReportActionsUtils';
-// Testing only so it's okay to import computeReportName
-// eslint-disable-next-line no-restricted-imports
-import {buildReportNameFromParticipantNames, computeReportName as computeReportNameOriginal, getGroupChatName, getPolicyExpenseChatName, getReportName} from '@libs/ReportNameUtils';
+import {buildReportNameFromParticipantNames, getGroupChatName, getPolicyExpenseChatName, getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
     applyLabelToUploadingAttachmentHtml,
@@ -3723,6 +3724,35 @@ describe('ReportUtils', () => {
                     expect(reportName).toBe(
                         "The Regions Bank cards connection has been broken for 30 days. Log into your bank to fix it or remove the connection if it's no longer in use. You won't lose any submitted expenses if you remove it.",
                     );
+                });
+
+                test('should name a company card feed without a custom name by its bank name', () => {
+                    // Given a broken connection message for a feed with no custom name, so the saved feed name is the bank itself
+                    const companyCardConnectionBrokenAction: ReportAction = {
+                        ...baseParentReportAction,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN,
+                        originalMessage: {
+                            feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE,
+                            bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE,
+                            policyID: '1',
+                        },
+                    };
+                    const threadReport: Report = {
+                        ...baseExpenseReport,
+                        parentReportID: baseChatReport.reportID,
+                        parentReportActionID: companyCardConnectionBrokenAction.reportActionID,
+                    };
+                    const reportActions = {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReport.parentReportID}`]: {
+                            [companyCardConnectionBrokenAction.reportActionID]: companyCardConnectionBrokenAction,
+                        },
+                    };
+
+                    // When the thread name is computed
+                    const reportName = computeReportName(threadReport, undefined, undefined, undefined, undefined, participantsPersonalDetails, reportActions);
+
+                    // Then it uses the bank name the company cards page shows instead of the bank
+                    expect(reportName).toBe('The Capital One connection is broken. To restore card imports, log into your bank.');
                 });
 
                 test('should handle automatically paid with Expensify action', () => {
@@ -11662,6 +11692,32 @@ describe('ReportUtils', () => {
     });
 
     describe('canDeleteReportAction', () => {
+        it.each([
+            {childType: CONST.REPORT.TYPE.SUPPORT_TICKET, reportType: CONST.REPORT.TYPE.CHAT, isActionOwner: true, expected: false},
+            {childType: CONST.REPORT.TYPE.SUPPORT_TICKET, reportType: CONST.REPORT.TYPE.CHAT, isActionOwner: false, expected: false},
+            {childType: CONST.REPORT.TYPE.CHAT, reportType: CONST.REPORT.TYPE.CHAT, isActionOwner: true, expected: true},
+            {childType: undefined, reportType: CONST.REPORT.TYPE.CHAT, isActionOwner: true, expected: true},
+            {childType: undefined, reportType: CONST.REPORT.TYPE.SUPPORT_TICKET, isActionOwner: true, expected: true},
+        ])('comment deletion with childType $childType in reportType $reportType (owner: $isActionOwner): $expected', async ({childType, reportType, isActionOwner, expected}) => {
+            // Given a comment owned by the current user or another member of a workspace they administer
+            const adminPolicy = {...LHNTestUtils.getFakePolicy(), type: CONST.POLICY.TYPE.CORPORATE, role: CONST.POLICY.ROLE.ADMIN};
+            const report = {...LHNTestUtils.getFakeReport(), type: reportType, policyID: adminPolicy.id};
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(89021),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: isActionOwner ? currentUserAccountID : currentUserAccountID + 1,
+                childType,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${adminPolicy.id}`, adminPolicy);
+
+            // When checking the shared Delete permission used by the context menu
+            const canDelete = canDeleteReportAction(reportAction, report.reportID, undefined, undefined, undefined, currentUserAccountID, undefined, undefined, undefined);
+
+            // Then neither authors nor admins can delete ticket previews, while ordinary comments remain deletable
+            expect(canDelete).toBe(expected);
+        });
+
         it('should not allow an Expensify Card transaction to be deleted when managedCard is missing', () => {
             // Given an Expensify Card transaction whose managed-card metadata is unavailable
             const transaction = {
@@ -14391,7 +14447,7 @@ describe('ReportUtils', () => {
             it('should keep DEW precedence over IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION for an approver without parent access', async () => {
                 // Given the hasParentAccess=false fixture that otherwise yields IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION with an
                 // APPROVE badge, plus a DEW approve failure. The bare DEW dot is intentional: it deep-links to the failure message,
-                // and useOptimisticNextStep keys the "fix the issues" next step off this reason.
+                // and useNextStep keys the "fix the issues" next step off this reason.
                 const policyID = 'testPolicyDEW123';
                 const fakePolicy: Policy = {
                     ...createRandomPolicy(1),

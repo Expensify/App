@@ -507,6 +507,7 @@ function NumberWithSymbolForm({
             {leadingRightHandSideComponent}
             {shouldShowFlipButton && allowNegativeInput && canUseTouchScreen && (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.NUMBER_WITH_SYMBOL_FORM.FLIP_BUTTON}
                     size={CONST.BUTTON_SIZE.SMALL}
                     innerStyles={shouldUseBorderlessButtons ? styles.bgTransparent : undefined}
                     // `innerStyles` never reaches the hover style `Button` layers on top, so the pill the
@@ -527,6 +528,7 @@ function NumberWithSymbolForm({
             )}
             {shouldShowCurrencyButton && !!currencyOrUnitButtonText && (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.NUMBER_WITH_SYMBOL_FORM.CURRENCY_BUTTON}
                     ref={currencyButtonRef}
                     size={CONST.BUTTON_SIZE.SMALL}
                     innerStyles={shouldUseBorderlessButtons ? styles.bgTransparent : undefined}
@@ -661,6 +663,7 @@ function NumberWithSymbolForm({
                         <View style={[styles.flexRow, styles.justifyContentCenter, styles.gap2]}>
                             {isSymbolPressable && (
                                 <Button
+                                    sentryLabel={CONST.SENTRY_LABEL.NUMBER_WITH_SYMBOL_FORM.CURRENCY_BUTTON}
                                     size={CONST.BUTTON_SIZE.SMALL}
                                     onPress={onSymbolButtonPress}
                                     style={styles.minWidth18}
@@ -676,6 +679,7 @@ function NumberWithSymbolForm({
                             )}
                             {allowFlippingAmount && (
                                 <Button
+                                    sentryLabel={CONST.SENTRY_LABEL.NUMBER_WITH_SYMBOL_FORM.FLIP_BUTTON}
                                     size={CONST.BUTTON_SIZE.SMALL}
                                     onPress={toggleNegative}
                                     style={styles.minWidth18}
@@ -747,6 +751,7 @@ function NumberWithSymbolForm({
                         <View style={[styles.flexRow, styles.moneyRequestAmountContainer, styles.alignItemsCenter, styles.justifyContentCenter]}>{textInputComponent}</View>
                         {isSymbolPressable && !!currency && !canUseTouchScreen && (
                             <Button
+                                sentryLabel={CONST.SENTRY_LABEL.NUMBER_WITH_SYMBOL_FORM.CURRENCY_BUTTON}
                                 size={CONST.BUTTON_SIZE.SMALL}
                                 onPress={onSymbolButtonPress}
                                 style={styles.minWidth18}
@@ -776,6 +781,7 @@ function NumberWithSymbolForm({
             <View style={[styles.flexRow, styles.justifyContentCenter, shouldShowBigNumberPad ? styles.mb2 : styles.mb0, styles.gap2]}>
                 {isSymbolPressable && canUseTouchScreen && (
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.NUMBER_WITH_SYMBOL_FORM.CURRENCY_BUTTON}
                         size={CONST.BUTTON_SIZE.SMALL}
                         onPress={onSymbolButtonPress}
                         style={styles.minWidth18}
@@ -791,6 +797,7 @@ function NumberWithSymbolForm({
                 )}
                 {allowFlippingAmount && canUseTouchScreen && (
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.NUMBER_WITH_SYMBOL_FORM.FLIP_BUTTON}
                         size={CONST.BUTTON_SIZE.SMALL}
                         onPress={toggleNegative}
                         style={styles.minWidth18}

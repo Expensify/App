@@ -34,6 +34,7 @@ function SymbolButton({onSymbolButtonPress, symbol, isSymbolPressable = true, te
     return isSymbolPressable ? (
         <Tooltip text={translate('common.selectSymbolOrCurrency')}>
             <PressableWithoutFeedback
+                sentryLabel={CONST.SENTRY_LABEL.SYMBOL_BUTTON.SELECT_CURRENCY}
                 onPress={onSymbolButtonPress}
                 accessibilityLabel={translate('common.selectSymbolOrCurrency')}
                 role={CONST.ROLE.BUTTON}
