@@ -48,6 +48,7 @@ jobs:
         uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
         with:
           fetch-depth: 1
+          persist-credentials: false
 
       - name: Setup Claude review toolkit
         id: toolkit
@@ -100,7 +101,7 @@ jobs:
           claude_args: |
             --model claude-opus-4-8
             --effort xhigh
-            --allowedTools "Task,Glob,Grep,Read,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(check-compiler.sh:*)" --json-schema '${{ steps.toolkit.outputs.schema_json }}'
+            --allowedTools "Task,Glob(./**),Grep(./**),Read(./**),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(check-compiler.sh:*)" --disallowedTools "Read(//proc/**),Grep(//proc/**),Glob(//proc/**)" --json-schema '${{ steps.toolkit.outputs.schema_json }}'
 
       - name: Post code review results
         if: steps.code-review.outcome == 'success'
@@ -122,7 +123,7 @@ jobs:
           claude_args: |
             --model claude-opus-4-8
             --effort high
-            --allowedTools "Task,Glob,Grep,Read,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),mcp__github_inline_comment__create_inline_comment"
+            --allowedTools "Task,Glob(./**),Grep(./**),Read(./**),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),mcp__github_inline_comment__create_inline_comment" --disallowedTools "Read(//proc/**),Grep(//proc/**),Glob(//proc/**),Bash(gh pr comment *-F*),Bash(gh pr comment *--body-file*)"
 
       - name: Record review completion
         if: steps.code-review.outcome == 'success' || steps.docs-review.outcome == 'success'
