@@ -3001,6 +3001,85 @@ describe('actions/Duplicate', () => {
             expect(JSON.parse(String(writeCall?.[1]?.subRates))).toEqual([expect.objectContaining({id: 'subrate-1', quantity: 1, rate: 5000})]);
         });
 
+        it('per diem expense whose workspace price changed since it was created', async () => {
+            // Given a workspace whose per diem sub-rate now costs 60.00
+            const targetPolicy: Policy = {
+                ...mockPolicy,
+                customUnits: {
+                    perDiemUnit: {
+                        customUnitID: 'perDiemUnit',
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                        rates: {
+                            polandRate: {
+                                customUnitRateID: 'polandRate',
+                                name: 'Poland',
+                                currency: 'PLN',
+                                subRates: [{id: 'subrate-1', name: 'Full Day', rate: 6000}],
+                            },
+                        },
+                    },
+                },
+            };
+
+            // And a per diem expense created in New Expensify when the sub-rate cost 50.00
+            const perDiemTransaction = {
+                ...mockTransaction,
+                amount: -5000,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                comment: {
+                    type: 'customUnit' as const,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                        customUnitID: 'perDiemUnit',
+                        customUnitRateID: 'polandRate',
+                        subRates: [{id: 'subrate-1', name: 'Full Day', quantity: 1, rate: 5000}],
+                        attributes: {
+                            dates: {
+                                start: '2026-07-31 05:30:00',
+                                end: '2026-07-31 20:00:00',
+                            },
+                        },
+                    },
+                },
+            };
+
+            // When the expense is duplicated
+            duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
+                conciergeChat: undefined,
+                transaction: perDiemTransaction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                customUnitPolicyID: '',
+                targetPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetReport: policyExpenseChat,
+                existingTransactionDraft: undefined,
+                personalDetails: {},
+                recentWaypoints: [],
+                targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
+                rules: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the sub-rate keeps its own price, because duplicating a report sets the report total from the source expenses' amounts
+            const writeCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST));
+            expect(JSON.parse(String(writeCall?.[1]?.subRates))).toEqual([expect.objectContaining({id: 'subrate-1', rate: 5000})]);
+        });
+
         it('should not pass linkedTrackedExpenseReportAction.childReportID as transactionThreadReportID to the API', async () => {
             // Given a transaction with linkedTrackedExpenseReportAction set
             // This simulates a split expense that was removed from a report, where the
