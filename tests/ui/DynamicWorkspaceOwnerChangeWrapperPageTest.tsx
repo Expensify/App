@@ -104,15 +104,17 @@ describe('DynamicWorkspaceOwnerChangeWrapperPage', () => {
     it('offers to take over all of the owner workspaces when the user can take over billing for them together', async () => {
         // Given the owner has two paid workspaces the user is an admin on, and the server can take over both together
         await setPolicies(createOwnerPolicy('1'), createOwnerPolicy('2'));
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[OWNER_ACCOUNT_ID]: {accountID: OWNER_ACCOUNT_ID, login: OWNER_EMAIL, displayName: 'Test Card'}});
         mockCheckBulkTransferPolicyBillingOwner.mockResolvedValue(['1', '2']);
 
         // When the user opens the transfer flow for the first workspace
         renderOwnerChangePage();
         await waitForBatchedUpdatesWithAct();
 
-        // Then nothing is transferred yet, and the user is asked whether to take over both
+        // Then nothing is transferred yet, and the user is asked whether to take over both of the owner's workspaces
         expect(mockCheckBulkTransferPolicyBillingOwner).toHaveBeenCalledWith(['1', '2']);
         expect(requestWorkspaceOwnerChange).not.toHaveBeenCalled();
+        expect(screen.getByText(/^Test Card owns 2 workspaces where you're an admin/)).toBeOnTheScreen();
         expect(screen.getByText('Yes, all 2')).toBeOnTheScreen();
 
         // When the user takes over all of them
@@ -124,7 +126,7 @@ describe('DynamicWorkspaceOwnerChangeWrapperPage', () => {
     });
 
     it('continues with this workspace only when the user picks it', async () => {
-        // Given the user is asked whether to take over both
+        // Given the user is asked whether to take over both of the owner's workspaces
         await setPolicies(createOwnerPolicy('1'), createOwnerPolicy('2'));
         mockCheckBulkTransferPolicyBillingOwner.mockResolvedValue(['1', '2']);
         renderOwnerChangePage();

@@ -5,11 +5,13 @@ import Button from '@components/Button';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {queueBulkTransferPolicyBillingOwner} from '@libs/actions/Policy/Member';
 
 import CONST from '@src/CONST';
+import {displayNameSelector} from '@src/selectors/PersonalDetails';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -30,6 +32,7 @@ type WorkspaceOwnerChangeAllWorkspacesCheckProps = {
 function WorkspaceOwnerChangeAllWorkspacesCheck({policy, policyIDs, onTakeOverThisWorkspace}: WorkspaceOwnerChangeAllWorkspacesCheckProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [ownerDisplayName] = usePersonalDetail(policy?.ownerAccountID, displayNameSelector);
 
     const takeOverAllWorkspaces = () => {
         if (!policy?.id) {
@@ -41,7 +44,7 @@ function WorkspaceOwnerChangeAllWorkspacesCheck({policy, policyIDs, onTakeOverTh
     return (
         <>
             <Text style={[styles.textHeadline, styles.mt3, styles.mb2]}>{translate('workspace.changeOwner.takeOverAllWorkspacesTitle')}</Text>
-            <Text style={styles.flex1}>{translate('workspace.changeOwner.takeOverAllWorkspacesText', {ownerName: policy?.owner ?? '', count: policyIDs.length})}</Text>
+            <Text style={styles.flex1}>{translate('workspace.changeOwner.takeOverAllWorkspacesText', {ownerName: ownerDisplayName ?? policy?.owner ?? '', count: policyIDs.length})}</Text>
             <View style={[styles.pb5, styles.gap3]}>
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
