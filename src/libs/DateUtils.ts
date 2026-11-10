@@ -1192,8 +1192,32 @@ function isValidDateString(dateString: string) {
     return !Number.isNaN(date.getTime());
 }
 
-function getFormattedDateRangeForPerDiem(date1: Date, date2: Date, dateFnsLocale: DateFnsLocale | undefined): string {
-    return `${format(date1, 'MMM d, yyyy', {locale: dateFnsLocale})} - ${format(date2, 'MMM d, yyyy', {locale: dateFnsLocale})}`;
+/**
+ * Formats the date range that goes into a per-diem expense's merchant, e.g. January 22, 2026 to January 23, 2026.
+ *
+ * The server builds the saved merchant itself, in English and in this exact form, whatever the user's language. The app
+ * shows this one until the server's arrives, so it matches it rather than following the user's language; otherwise the
+ * merchant would visibly change once the expense is saved.
+ */
+function getFormattedDateRangeForPerDiem(date1: Date, date2: Date): string {
+    return `${format(date1, 'MMMM dd, yyyy', {locale: enUS})} to ${format(date2, 'MMMM dd, yyyy', {locale: enUS})}`;
+}
+
+/**
+ * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language.
+ * They format in UTC, so pass dates through `toUTCWallClockDate` to show them in the device's current timezone.
+ */
+const memoizedCreateNumericDateWithYearFormatter = memoize((localeCode: string) => new Intl.DateTimeFormat(localeCode, {year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'UTC'}));
+
+/**
+ * Formats a date as a short numeric date with the year, in the language's own order and separators, e.g. 06/20/2026 in
+ * English and 20.06.2026 in German.
+ *
+ * date-fns' `P` gives the same result in most languages, but writes a two-digit year in Greek and Chinese.
+ */
+function formatToNumericDateWithYear(date: Date, dateFnsLocale: DateFnsLocale | undefined): string {
+    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
+    return memoizedCreateNumericDateWithYearFormatter(dateFnsLocale?.code ?? 'en-US').format(toUTCWallClockDate(date));
 }
 
 /**
@@ -1598,6 +1622,7 @@ const DateUtils = {
     isFutureDay,
     isTransactionDateFuture,
     getFormattedDateRangeForPerDiem,
+    formatToNumericDateWithYear,
     getFormattedSplitDateRange,
     formatInTimeZoneWithFallback,
     formatToLongDateInTimeZone,
