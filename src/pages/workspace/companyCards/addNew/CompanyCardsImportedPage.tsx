@@ -32,7 +32,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 type CompanyCardsImportedPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_IMPORTED>;
 
@@ -74,10 +74,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
     const layoutName = addNewCard?.data?.companyCardLayoutName ?? '';
     const prefilledLayoutType = addNewCard?.data?.layoutType;
-    const generatedLayoutType = useMemo(
-        () => prefilledLayoutType ?? getCSVFeedType(workspaceCardFeeds?.settings?.companyCards),
-        [prefilledLayoutType, workspaceCardFeeds?.settings?.companyCards],
-    );
+    const generatedLayoutType = prefilledLayoutType ?? getCSVFeedType(workspaceCardFeeds?.settings?.companyCards);
     const layoutType = prefilledLayoutType ?? generatedLayoutType;
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);

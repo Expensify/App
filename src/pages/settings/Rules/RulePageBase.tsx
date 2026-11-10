@@ -28,6 +28,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -39,7 +40,8 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect, useState} from 'react';
+import {authTokenTypeSelector} from '@selectors/Session';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type RulePageBaseProps = {
@@ -85,6 +87,7 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: ExpenseRuleForm) 
 };
 
 function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const [expenseRules = getEmptyArray<ExpenseRule>()] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES);
     const [form] = useOnyx(ONYXKEYS.FORMS.EXPENSE_RULE_FORM);
@@ -98,17 +101,14 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
     useEffect(() => () => clearDraftRule(), []);
 
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
-    const categoriesSelector = useCallback(
-        (allPolicyCategories: OnyxCollection<PolicyCategories>) => {
-            const categories = getAvailableNonPersonalPolicyCategories(allPolicyCategories, personalPolicyID);
-            return (
-                Object.values(categories ?? {})
-                    .filter((policyCategories) => hasEnabledOptions(policyCategories ?? {}))
-                    .flatMap((policyCategories) => Object.values(policyCategories ?? {})).length > 0
-            );
-        },
-        [personalPolicyID],
-    );
+    const categoriesSelector = (allPolicyCategories: OnyxCollection<PolicyCategories>) => {
+        const categories = getAvailableNonPersonalPolicyCategories(allPolicyCategories, personalPolicyID);
+        return (
+            Object.values(categories ?? {})
+                .filter((policyCategories) => hasEnabledOptions(policyCategories ?? {}))
+                .flatMap((policyCategories) => Object.values(policyCategories ?? {})).length > 0
+        );
+    };
     const [hasPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
         selector: categoriesSelector,
     });
@@ -162,7 +162,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                 <HeaderWithBackButton title={translate(titleKey)} />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <Text style={[styles.textHeadlineH2, styles.reportHorizontalRule, styles.mt4, styles.mb2]}>{translate('expenseRulesPage.addRule.expenseContains')}</Text>
-                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => navigateTo(EXPENSE_RULE_INPUT_IDS.MERCHANT, hash))}>
+                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => navigateTo(EXPENSE_RULE_INPUT_IDS.MERCHANT, hash), false, session)}>
                         <MenuItemField.Row
                             name={translate('common.merchant')}
                             value={form?.merchantToMatch}
@@ -235,6 +235,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                                 updateDraftRule({createReport: isEnabled});
                             }}
                             switchAccessibilityLabel={translate('expenseRulesPage.addRule.createReport')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.CREATE_REPORT_SWITCH}
                             title={translate('expenseRulesPage.addRule.createReport')}
                             titleStyle={styles.pv2}
                             wrapperStyle={styles.flex1}
@@ -256,6 +257,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                             isActive={shouldUpdateMatchingTransactions}
                             onToggle={setShouldUpdateMatchingTransactions}
                             switchAccessibilityLabel={translate('expenseRulesPage.addRule.applyToExistingExpenses')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.APPLY_TO_EXISTING_EXPENSES_SWITCH}
                             title={translate('expenseRulesPage.addRule.applyToExistingExpenses')}
                             wrapperStyle={styles.mb4}
                         />

@@ -42,12 +42,13 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {useCallback, useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type AddExistingExpensePageType = PlatformStackScreenProps<AddExistingExpensesParamList, typeof SCREENS.ADD_EXISTING_EXPENSES_ROOT>;
 
 function AddExistingExpense({route}: AddExistingExpensePageType) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['FolderWithPapersAndWatch']);
     const [errorMessage, setErrorMessage] = useState<string>('');
@@ -74,17 +75,25 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
     const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const styles = useThemeStyles();
 
-    const transactionsSelector = useCallback(
-        (allTransactions: OnyxCollection<Transaction>) =>
-            getEligibleTransactionsToAdd({transactions: allTransactions, report, policy, cardList, currentUserAccountID, reportID, allOpenReports, openReportDrafts}),
-        [report, policy, cardList, currentUserAccountID, reportID, allOpenReports, openReportDrafts],
-    );
+    // Onyx applies the optimistic isLoadingUnreportedTransactions asynchronously, so this ref blocks repeat onEndReached calls until the flag catches up.
+    const isFetchingMoreUnreportedTransactionsRef = useRef(false);
+
+    const transactionsSelector = (allTransactions: OnyxCollection<Transaction>) =>
+        getEligibleTransactionsToAdd({transactions: allTransactions, report, policy, cardList, currentUserAccountID, reportID, allOpenReports, openReportDrafts});
     const [transactions = getEmptyArray<Transaction>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: transactionsSelector});
 
-    const fetchMoreUnreportedTransactions = () => {
-        if (!hasMoreUnreportedTransactionsResults || isLoadingUnreportedTransactions) {
+    useEffect(() => {
+        if (isLoadingUnreportedTransactions) {
             return;
         }
+        isFetchingMoreUnreportedTransactionsRef.current = false;
+    }, [isLoadingUnreportedTransactions]);
+
+    const fetchMoreUnreportedTransactions = () => {
+        if (!hasMoreUnreportedTransactionsResults || isLoadingUnreportedTransactions || isFetchingMoreUnreportedTransactionsRef.current) {
+            return;
+        }
+        isFetchingMoreUnreportedTransactionsRef.current = true;
         fetchUnreportedExpenses(offset + CONST.UNREPORTED_EXPENSES_PAGE_SIZE);
         setOffset((prevOffset) => prevOffset + CONST.UNREPORTED_EXPENSES_PAGE_SIZE);
     };
@@ -181,7 +190,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
                                     }
                                     interceptAnonymousUser(() => {
                                         startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, draftTransactionIDs, undefined, false, backToReport);
-                                    });
+                                    }, session);
                                 },
                                 buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                             },

@@ -23,6 +23,9 @@ type OpenPicker = Parameters<AttachmentPickerProps['children']>[0]['openPicker']
 
 const mockOpenPicker = jest.fn<ReturnType<OpenPicker>, Parameters<OpenPicker>>();
 
+// The component renders outside a NavigationContainer here, so the screen-bound hook cannot read focus.
+jest.mock('@hooks/useScreenBoundDynamicRoute', () => () => (suffix: string) => suffix);
+
 jest.mock('@react-navigation/native', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actual = jest.requireActual('@react-navigation/native');

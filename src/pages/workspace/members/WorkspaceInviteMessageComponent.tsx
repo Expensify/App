@@ -62,7 +62,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 
 type WorkspaceInviteMessageComponentProps = {
@@ -129,7 +129,7 @@ function WorkspaceInviteMessageComponent({
 
     // `approvalMode` can drift from the actual workflow structure because it is updated optimistically.
     // Dynamic external workflows that hide people also have no selectable approver.
-    const {isAdvanceApproval, rulesCollection} = useApprovalWorkflows(policy);
+    const {isAdvanceApproval, rulesCollection, shouldUseApprovalWorkflowRules} = useApprovalWorkflows(policy);
 
     // Dynamic External Workflow also routes by each member's approver, even when the derived workflows look basic.
     const isDynamicExternalApproval = hasDynamicExternalWorkflow(policy) && isControlPolicy(policy);
@@ -172,14 +172,11 @@ function WorkspaceInviteMessageComponent({
         })
         .join(', ');
 
-    const welcomeNoteSubject = useMemo(
-        () => `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`,
-        [policy?.name, currentUserPersonalDetails?.displayName],
-    );
+    const welcomeNoteSubject = `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`;
 
-    const getDefaultWelcomeNote = useCallback(() => {
+    const getDefaultWelcomeNote = () => {
         return formData?.[INPUT_IDS.WELCOME_MESSAGE] ?? workspaceInviteMessageDraft ?? translate('workspace.common.welcomeNote');
-    }, [workspaceInviteMessageDraft, translate, formData]);
+    };
 
     useEffect(() => {
         if (isOnyxLoading) {
@@ -256,7 +253,7 @@ function WorkspaceInviteMessageComponent({
                             approvalWorkflow: approvalWorkflowToSave,
                             policy,
                             rules: rulesCollection,
-                            isMultipleApproversBetaEnabled: isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS),
+                            shouldUseApprovalWorkflowRules,
                         }),
                 });
             } else {

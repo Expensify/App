@@ -33,7 +33,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 import PublicReceiptVisibilityToggle from './PublicReceiptVisibilityToggle';
@@ -167,17 +167,15 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
 
     const requiredFieldsList = [policy?.requiresCategory && translate('common.category'), ...requiredTagLabels].filter(Boolean).join(', ');
 
-    const prohibitedExpensesText = useMemo(() => {
-        const prohibitedExpensesList = Object.values(CONST.POLICY.PROHIBITED_EXPENSES)
-            .filter((key) => policy?.prohibitedExpenses?.[key])
-            .map((key) => translate(`workspace.rules.individualExpenseRules.${key}`));
-
-        if (!prohibitedExpensesList.length) {
-            return '';
-        }
-
-        return prohibitedExpensesList.join(', ');
-    }, [policy?.prohibitedExpenses, translate]);
+    let prohibitedExpensesText;
+    const prohibitedExpensesList = Object.values(CONST.POLICY.PROHIBITED_EXPENSES)
+        .filter((key) => policy?.prohibitedExpenses?.[key])
+        .map((key) => translate(`workspace.rules.individualExpenseRules.${key}`));
+    if (!prohibitedExpensesList.length) {
+        prohibitedExpensesText = '';
+    } else {
+        prohibitedExpensesText = prohibitedExpensesList.join(', ');
+    }
 
     const policyControlItems: BasicRuleMenuItem[] = [
         {
@@ -285,6 +283,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     title={translate('workspace.rules.individualExpenseRules.requireCompanyCard')}
                     subtitle={translate('workspace.rules.individualExpenseRules.requireCompanyCardDescription')}
                     switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.requireCompanyCard')}
+                    switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_COMPANY_CARD_SWITCH}
                     wrapperStyle={[styles.pv3]}
                     isActive={requireCompanyCardsEnabled}
                     disabled={isRequireCompanyCardsLocked}
@@ -299,6 +298,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     title={translate('workspace.rules.individualExpenseRules.eReceipts')}
                     subtitle={translate('workspace.rules.individualExpenseRules.eReceiptsHint')}
                     switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.eReceipts')}
+                    switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.E_RECEIPTS_SWITCH}
                     shouldParseSubtitle
                     wrapperStyle={[styles.pv3]}
                     isActive={areEReceiptsEnabled}
@@ -313,6 +313,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     title={translate('workspace.rules.individualExpenseRules.attendeeTracking')}
                     subtitle={translate('workspace.rules.individualExpenseRules.attendeeTrackingHint')}
                     switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.attendeeTracking')}
+                    switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ATTENDEE_TRACKING_SWITCH}
                     wrapperStyle={[styles.pv3]}
                     isActive={isAttendeeTrackingEnabledForPolicy}
                     disabled={!canWriteRules || isCollect}

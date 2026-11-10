@@ -16,7 +16,7 @@ import Text from '@src/components/Text';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 function AccountType({isEditing, onNext, fieldsMap}: CustomSubPageProps) {
@@ -32,26 +32,19 @@ function AccountType({isEditing, onNext, fieldsMap}: CustomSubPageProps) {
         shouldSaveDraft: isEditing,
     });
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> => {
-            if (!fieldData.isRequired || values[CONST.CORPAY_FIELDS.ACCOUNT_TYPE_KEY]) {
-                return {};
-            }
-            return {[CONST.CORPAY_FIELDS.ACCOUNT_TYPE_KEY]: translate('common.error.pleaseSelectOne')};
-        },
-        [fieldData.isRequired, translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> => {
+        if (!fieldData.isRequired || values[CONST.CORPAY_FIELDS.ACCOUNT_TYPE_KEY]) {
+            return {};
+        }
+        return {[CONST.CORPAY_FIELDS.ACCOUNT_TYPE_KEY]: translate('common.error.pleaseSelectOne')};
+    };
 
-    const options = useMemo(
-        () =>
-            (fieldData.valueSet ?? []).map((item) => {
-                return {
-                    value: item.id,
-                    label: item.text,
-                };
-            }),
-        [fieldData.valueSet],
-    );
+    const options = (fieldData.valueSet ?? []).map((item) => {
+        return {
+            value: item.id,
+            label: item.text,
+        };
+    });
 
     return (
         <FormProvider

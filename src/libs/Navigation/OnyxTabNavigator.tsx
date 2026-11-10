@@ -27,7 +27,7 @@ import type {EventArg, NavigationProp, ParamListBase, ScreenListeners, TabNaviga
 
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import {TabActions, useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {Keyboard, StyleSheet, View} from 'react-native';
 
 import type {RegisterTabSwitchGuard, TabSwitchGuard} from './TabSwitchGuardContext';
@@ -140,6 +140,19 @@ const getTabNames = (children: React.ReactNode): string[] => {
     return result;
 };
 
+function LazyPlaceholder() {
+    const styles = useThemeStyles();
+    return (
+        <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading, styles.w100]}>
+            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+        </View>
+    );
+}
+
+function renderLazyPlaceholder() {
+    return <LazyPlaceholder />;
+}
+
 // This takes all the same props as MaterialTopTabsNavigator: https://reactnavigation.org/docs/material-top-tab-navigator/#props,
 // except ID is now required, and it gets a `selectedTab` from Onyx
 // It also takes 2 more optional callbacks to manage the focus trap container elements of the tab bar and the active tab
@@ -163,7 +176,6 @@ function createOnyxTabNavigator<const TTabName extends string>(names: ReadonlyAr
         shouldReapplyInterruptedTabPress = false,
         ...rest
     }: OnyxTabNavigatorProps<TTabName>) {
-        const styles = useThemeStyles();
         const isFirstMountRef = useRef(true);
         // Mapping of tab name to focus trap container element
         const [focusTrapContainerElementMapping, setFocusTrapContainerElementMapping] = useState<Record<string, HTMLElement>>({});
@@ -177,14 +189,6 @@ function createOnyxTabNavigator<const TTabName extends string>(names: ReadonlyAr
 
         const storedTabName = names.find((name) => name === selectedTab);
         const validInitialTab = storedTabName && tabNames.includes(storedTabName) ? storedTabName : defaultSelectedTab;
-
-        const LazyPlaceholder = useCallback(() => {
-            return (
-                <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading, styles.w100]}>
-                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
-                </View>
-            );
-        }, [styles.fullScreenLoading, styles.w100]);
 
         // This callback is used to register the focus trap container element of each available tab screen
         const setTabFocusTrapContainerElement = (tabName: string, containerElement: HTMLElement | null) => {
@@ -337,19 +341,16 @@ function createOnyxTabNavigator<const TTabName extends string>(names: ReadonlyAr
          * This is a TabBar wrapper component that includes the focus trap container element callback.
          * In `TabSelector.tsx` component, the callback prop to register focus trap container element is supported out of the box
          */
-        const TabBarWithFocusTrapInclusion = useCallback(
-            (props: TabSelectorProps) => {
-                return (
-                    <TabBar
-                        onFocusTrapContainerElementChanged={onTabBarFocusTrapContainerElementChanged}
-                        shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
-                        equalWidth={equalWidth}
-                        {...props}
-                    />
-                );
-            },
-            [TabBar, onTabBarFocusTrapContainerElementChanged, shouldShowLabelWhenInactive, equalWidth],
-        );
+        const renderTabBar = (props: TabSelectorProps) => {
+            return (
+                <TabBar
+                    onFocusTrapContainerElementChanged={onTabBarFocusTrapContainerElementChanged}
+                    shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
+                    equalWidth={equalWidth}
+                    {...props}
+                />
+            );
+        };
 
         // Drop a queued re-apply jump on unmount so it isn't dispatched into a navigator that no longer exists.
         useEffect(() => () => cancelQueuedTabSwitch(reapplyFrameRef.current), []);
@@ -373,7 +374,7 @@ function createOnyxTabNavigator<const TTabName extends string>(names: ReadonlyAr
                         initialRouteName={validInitialTab}
                         backBehavior={backBehavior}
                         keyboardDismissMode="none"
-                        tabBar={TabBarWithFocusTrapInclusion}
+                        tabBar={renderTabBar}
                         onTabSelect={onTabSelect}
                         screenListeners={({navigation}: {navigation: NavigationProp<ParamListBase>}) => {
                             const callerListeners = screenListeners ?? {};
@@ -417,7 +418,7 @@ function createOnyxTabNavigator<const TTabName extends string>(names: ReadonlyAr
                             ...defaultScreenOptions,
                             swipeEnabled: false,
                             lazy: lazyLoadEnabled,
-                            lazyPlaceholder: LazyPlaceholder,
+                            lazyPlaceholder: renderLazyPlaceholder,
                         }}
                     >
                         {children}

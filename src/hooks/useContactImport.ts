@@ -12,7 +12,7 @@ import type {PersonalDetails} from '@src/types/onyx';
 
 import type {PermissionStatus} from 'react-native-permissions';
 
-import {useCallback, useState} from 'react';
+import {useState} from 'react';
 import {RESULTS} from 'react-native-permissions';
 
 import useLocalize from './useLocalize';
@@ -41,13 +41,13 @@ function useContactImport(): UseContactImportResult {
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
 
-    const importAndSaveContacts = useCallback(() => {
+    const importAndSaveContacts = () => {
         contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
             setContactPermissionState(permissionStatus);
             const usersFromContact = getContactsExtended(contactList, localeCompare, formatPhoneNumber, countryCode, loginList);
             setContacts(usersFromContact);
         });
-    }, [localeCompare, formatPhoneNumber, countryCode, loginList]);
+    };
 
     // Opens the system contact picker and adds the picked contacts to the list, replacing any earlier copy of the same login
     const pickContact = () => {

@@ -1,10 +1,12 @@
 import {hasPaymentMethodError} from '@libs/actions/PaymentMethods';
+import {hasAgentErrorsSelector} from '@libs/AgentUtils';
 import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {hasCardPendingDigitalWalletApproval, hasPendingExpensifyCardAction} from '@libs/CardUtils';
 import {hasSubscriptionGreenDotInfo, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import {expensifyLoginsSelector, hasDeviceManagementError, hasIntegrationServerLoginError, hasLoginListError, hasLoginListInfo} from '@libs/UserUtils';
 
 import useTimeSensitiveHomeAddress from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveHomeAddress';
+import useTimeSensitiveWiseMoreInfoNeeded from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveWiseMoreInfoNeeded';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,12 +42,14 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [hasDeviceManagementErrorValue] = useOnyx(ONYXKEYS.LOGINS, {selector: hasDeviceManagementError});
     const [hasIntegrationServerError] = useOnyx(ONYXKEYS.LOGINS, {selector: hasIntegrationServerLoginError});
+    const [hasAgentError] = useOnyx(ONYXKEYS.COLLECTION.AGENT, {selector: hasAgentErrorsSelector});
 
     const {
         companyCards: {shouldShowRBR: hasCompanyCardFeedErrors},
     } = useCardFeedErrors();
     const {isPolicyAdmin} = usePoliciesWithCardFeedErrors();
     const {shouldShowAddHomeAddress} = useTimeSensitiveHomeAddress();
+    const {wiseMoreInfoNeededBankAccounts} = useTimeSensitiveWiseMoreInfoNeeded();
 
     const accountChecks: Partial<Record<IndicatorStatus, boolean>> = {
         [CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS]: Object.keys(userWallet?.errors ?? {}).length > 0,
@@ -69,6 +73,7 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
         [CONST.INDICATOR_STATUS.HAS_EMPLOYEE_CARD_FEED_ERRORS]: !isPolicyAdmin ? hasCompanyCardFeedErrors : false,
         [CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT]: Object.values(bankAccountList ?? {}).some((bankAccount) => bankAccount?.accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED),
         [CONST.INDICATOR_STATUS.HAS_DEVICE_MANAGEMENT_ERROR]: hasDeviceManagementErrorValue,
+        [CONST.INDICATOR_STATUS.HAS_AGENT_ERRORS]: !!hasAgentError,
     };
 
     const infoChecks: Partial<Record<IndicatorStatus, boolean>> = {
@@ -87,6 +92,7 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
             ownerTravelBillingGracePeriodEnd,
         ),
         [CONST.INDICATOR_STATUS.HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO]: hasPartiallySetupBankAccount(bankAccountList) || hasPersonalBankAccountMissingInfo(bankAccountList),
+        [CONST.INDICATOR_STATUS.HAS_WISE_MORE_INFO_NEEDED_INFO]: wiseMoreInfoNeededBankAccounts.length > 0,
     };
 
     const [accountStatus] = Object.entries(accountChecks).find(([, value]) => value) ?? [];

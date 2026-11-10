@@ -33,7 +33,7 @@ import ROUTES from '@src/ROUTES';
 
 import type {TupleToUnion} from 'type-fest';
 
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useRef} from 'react';
 
 type WorkspaceInvoiceVBASectionProps = {
     /** The policy ID currently being configured */
@@ -81,17 +81,15 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
     const isNonUSDWorkspace = policy?.outputCurrency !== CONST.CURRENCY.USD;
     const achData = reimbursementAccount?.achData;
 
-    const shouldShowContinueModal = useMemo(() => {
-        return hasInProgressVBBA(achData, isNonUSDWorkspace, policyID);
-    }, [achData, isNonUSDWorkspace, policyID]);
+    const shouldShowContinueModal = hasInProgressVBBA(achData, isNonUSDWorkspace, policyID);
 
-    const confirmCurrencyChangeAndHideModal = useCallback(() => {
+    const confirmCurrencyChangeAndHideModal = () => {
         if (!policy) {
             return;
         }
 
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id, {isForcedToChangeCurrency: true}));
-    }, [policy]);
+    };
 
     /**
      * Display the delete/default menu, or the add payment method menu
@@ -122,7 +120,7 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
         }
     };
 
-    const deletePaymentMethod = useCallback(() => {
+    const deletePaymentMethod = () => {
         const bankAccountID = paymentMethod.selectedPaymentMethod.bankAccountID;
         if (paymentMethod.selectedPaymentMethodType !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || !bankAccountID) {
             return;
@@ -134,14 +132,14 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
         }
 
         deletePaymentBankAccount(bankAccountID, personalPolicyID);
-    }, [availableBankAccounts, paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethodType, personalPolicyID, policyID, transferBankAccountID]);
+    };
 
-    const makeDefaultPaymentMethod = useCallback(() => {
+    const makeDefaultPaymentMethod = () => {
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && selectedAvailableBankAccountID !== undefined) {
             setInvoicingTransferBankAccount(selectedAvailableBankAccountID, policyID, transferBankAccountID);
         }
         resetSelectedPaymentMethodData();
-    }, [paymentMethod.selectedPaymentMethodType, selectedAvailableBankAccountID, policyID, transferBankAccountID, resetSelectedPaymentMethodData]);
+    };
 
     const onBankAccountRowPressed = ({accountData}: PaymentMethodPressHandlerParams) => {
         const accountPolicyID = accountData?.additionalData?.policyID;
@@ -194,81 +192,54 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
         continueAddBankAccountFlow();
     };
 
-    const threeDotsMenuItems = useMemo(() => {
-        const items: PopoverMenuItem[] = [];
-
-        if (isPopoverBottomMount) {
-            items.push({
-                text: paymentMethod.formattedSelectedPaymentMethod.title,
-                icon: paymentMethod.formattedSelectedPaymentMethod.icon?.icon,
-                numberOfLinesTitle: 0,
-                iconHeight: paymentMethod.formattedSelectedPaymentMethod.icon?.iconHeight ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize,
-                iconWidth: paymentMethod.formattedSelectedPaymentMethod.icon?.iconWidth ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize,
-                iconStyles: paymentMethod.formattedSelectedPaymentMethod.icon?.iconStyles,
-                description: paymentMethod.formattedSelectedPaymentMethod.description,
-                wrapperStyle: [styles.mb1, styles.ph5, styles.pt5],
-                interactive: false,
-                displayInDefaultIconColor: true,
-            });
-        }
-
-        if (shouldShowMakeDefaultButton) {
-            items.push({
-                text: translate('walletPage.setDefaultConfirmation'),
-                icon: icons.Star,
-                onSelected: () => {
-                    makeDefaultPaymentMethod();
-                },
-                numberOfLinesTitle: 0,
-            });
-        }
-
+    const items: PopoverMenuItem[] = [];
+    if (isPopoverBottomMount) {
         items.push({
-            text: translate('common.delete'),
-            icon: icons.Trashcan,
-            onSelected: () => {
-                closeModal(() => {
-                    showConfirmModal({
-                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-                        title: translate('walletPage.deleteAccount'),
-                        prompt: translate('walletPage.deleteConfirmation'),
-                        confirmText: translate('common.delete'),
-                        cancelText: translate('common.cancel'),
-                        shouldShowCancelButton: true,
-                        onModalHide: resetSelectedPaymentMethodData,
-                    }).then((result) => {
-                        if (result.action !== ModalActions.CONFIRM) {
-                            return;
-                        }
-
-                        deletePaymentMethod();
-                    });
-                });
-            },
+            text: paymentMethod.formattedSelectedPaymentMethod.title,
+            icon: paymentMethod.formattedSelectedPaymentMethod.icon?.icon,
+            numberOfLinesTitle: 0,
+            iconHeight: paymentMethod.formattedSelectedPaymentMethod.icon?.iconHeight ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize,
+            iconWidth: paymentMethod.formattedSelectedPaymentMethod.icon?.iconWidth ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize,
+            iconStyles: paymentMethod.formattedSelectedPaymentMethod.icon?.iconStyles,
+            description: paymentMethod.formattedSelectedPaymentMethod.description,
+            wrapperStyle: [styles.mb1, styles.ph5, styles.pt5],
+            interactive: false,
+            displayInDefaultIconColor: true,
         });
-
-        return items;
-    }, [
-        isPopoverBottomMount,
-        shouldShowMakeDefaultButton,
-        translate,
-        icons.Trashcan,
-        icons.Star,
-        paymentMethod.formattedSelectedPaymentMethod.title,
-        paymentMethod.formattedSelectedPaymentMethod.icon?.icon,
-        paymentMethod.formattedSelectedPaymentMethod.icon?.iconHeight,
-        paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize,
-        paymentMethod.formattedSelectedPaymentMethod.icon?.iconWidth,
-        paymentMethod.formattedSelectedPaymentMethod.icon?.iconStyles,
-        paymentMethod.formattedSelectedPaymentMethod.description,
-        styles.mb1,
-        styles.ph5,
-        styles.pt5,
-        makeDefaultPaymentMethod,
-        showConfirmModal,
-        deletePaymentMethod,
-        resetSelectedPaymentMethodData,
-    ]);
+    }
+    if (shouldShowMakeDefaultButton) {
+        items.push({
+            text: translate('walletPage.setDefaultConfirmation'),
+            icon: icons.Star,
+            onSelected: () => {
+                makeDefaultPaymentMethod();
+            },
+            numberOfLinesTitle: 0,
+        });
+    }
+    items.push({
+        text: translate('common.delete'),
+        icon: icons.Trashcan,
+        onSelected: () => {
+            closeModal(() => {
+                showConfirmModal({
+                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+                    title: translate('walletPage.deleteAccount'),
+                    prompt: translate('walletPage.deleteConfirmation'),
+                    confirmText: translate('common.delete'),
+                    cancelText: translate('common.cancel'),
+                    shouldShowCancelButton: true,
+                    onModalHide: resetSelectedPaymentMethodData,
+                }).then((result) => {
+                    if (result.action !== ModalActions.CONFIRM) {
+                        return;
+                    }
+                    deletePaymentMethod();
+                });
+            });
+        },
+    });
+    const threeDotsMenuItems = items;
 
     return (
         <Section

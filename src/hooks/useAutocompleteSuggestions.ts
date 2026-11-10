@@ -19,7 +19,7 @@ import {
     getAutocompleteTaxList,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import {getUserFriendlyKey, getUserFriendlyValue} from '@libs/SearchQueryUtils';
+import {getUserFriendlyKey, getUserFriendlyValue, isFilterSupported, isGroupBySupportedBySearch} from '@libs/SearchQueryUtils';
 import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -61,6 +61,8 @@ type UseAutocompleteSuggestionsParams = {
     getReportByID: GetOptionsConfig['getReportByID'];
     draftComments: OnyxCollection<string>;
     isDefaultRoomsBetaEnabled: boolean;
+    /** Trip searches return trip rooms with the TravelApproval beta, which have their own statuses and no group-by */
+    isTravelApprovalBetaEnabled: boolean;
     countryCode: OnyxEntry<number>;
     loginList: OnyxEntry<Record<string, unknown>>;
     policies: NonNullable<OnyxCollection<Policy>>;
@@ -77,7 +79,10 @@ type UseAutocompleteSuggestionsParams = {
 
 // Static autocomplete lists derived from CONST values, computed once at module load
 const DATA_TYPE_VALUES = Object.values(CONST.SEARCH.DATA_TYPES);
-const GROUP_BY_FRIENDLY_VALUES = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
+// Insights-only group-bys aren't suggested because Search can't group by them (see https://github.com/Expensify/App/issues/105303)
+const GROUP_BY_FRIENDLY_VALUES = Object.values(CONST.SEARCH.GROUP_BY)
+    .filter(isGroupBySupportedBySearch)
+    .map((value) => getUserFriendlyValue(value));
 const VIEW_FRIENDLY_VALUES = Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
 const EXPENSE_TYPE_FRIENDLY_VALUES = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
 const RECEIPT_TYPE_FRIENDLY_VALUES = CONST.SEARCH.SELECTABLE_RECEIPT_TYPES.map((value) => getUserFriendlyValue(value));
@@ -92,6 +97,7 @@ const EXPENSE_STATUS_VALUES = Object.values(CONST.SEARCH.STATUS.EXPENSE);
 const EXPENSE_REPORT_STATUS_VALUES = Object.values(CONST.SEARCH.STATUS.EXPENSE_REPORT);
 const INVOICE_STATUS_VALUES = Object.values(CONST.SEARCH.STATUS.INVOICE);
 const TRIP_STATUS_VALUES = Object.values(CONST.SEARCH.STATUS.TRIP);
+const TRIP_ROOM_STATUS_VALUES = CONST.SEARCH.TRIP_FILTER_STATUSES;
 const TASK_STATUS_VALUES = Object.values(CONST.SEARCH.STATUS.TASK);
 const DEFAULT_STATUS_VALUES = Object.values({
     ...CONST.SEARCH.STATUS.EXPENSE,
@@ -114,6 +120,7 @@ function useAutocompleteSuggestions({
     getReportByID,
     draftComments,
     isDefaultRoomsBetaEnabled,
+    isTravelApprovalBetaEnabled,
     countryCode,
     loginList,
     policies,
@@ -179,7 +186,8 @@ function useAutocompleteSuggestions({
             .map((range) => range.value.toLowerCase()),
     );
 
-    const typeFilter = parsedQuery?.ranges?.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
+    // The search parser applies repeated `type:` filters in order, so the last one decides the query type.
+    const typeFilter = parsedQuery?.ranges?.findLast((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
     const currentType = (typeFilter?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE) as SearchDataTypes;
 
     switch (autocompleteKey) {
@@ -250,6 +258,7 @@ function useAutocompleteSuggestions({
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE:
@@ -303,6 +312,11 @@ function useAutocompleteSuggestions({
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
+            // `in:` only works for types that support it (chat, task). A bare `in:` with no explicit type resolves to `type:chat`, so keep suggesting in that case.
+            if (typeFilter && !isFilterSupported(CONST.SEARCH.SYNTAX_FILTER_KEYS.IN, currentType)) {
+                return getEmptyArray<AutocompleteItemData>();
+            }
+
             // If autocompleteValue is empty or just whitespace and we have already completed keys,
             // return empty array to hide suggestion list (consistent with group-by behavior)
             if (!autocompleteValue.trim() && alreadyAutocompletedKeys.size > 0) {
@@ -375,8 +389,9 @@ function useAutocompleteSuggestions({
                 switch (currentType) {
                     case CONST.SEARCH.DATA_TYPES.EXPENSE:
                     case CONST.SEARCH.DATA_TYPES.INVOICE:
-                    case CONST.SEARCH.DATA_TYPES.TRIP:
                         return GROUP_BY_FRIENDLY_VALUES;
+                    case CONST.SEARCH.DATA_TYPES.TRIP:
+                        return isTravelApprovalBetaEnabled ? [] : GROUP_BY_FRIENDLY_VALUES;
                     default:
                         return [];
                 }
@@ -406,7 +421,7 @@ function useAutocompleteSuggestions({
                         suggestedStatuses = INVOICE_STATUS_VALUES;
                         break;
                     case CONST.SEARCH.DATA_TYPES.TRIP:
-                        suggestedStatuses = TRIP_STATUS_VALUES;
+                        suggestedStatuses = isTravelApprovalBetaEnabled ? TRIP_ROOM_STATUS_VALUES : TRIP_STATUS_VALUES;
                         break;
                     case CONST.SEARCH.DATA_TYPES.TASK:
                         suggestedStatuses = TASK_STATUS_VALUES;

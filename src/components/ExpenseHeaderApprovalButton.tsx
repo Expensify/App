@@ -10,8 +10,11 @@ import CONST from '@src/CONST';
 import type {Report, Transaction} from '@src/types/onyx';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
@@ -21,6 +24,9 @@ import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 
 type ExpenseHeaderApprovalButtonProps = {
+    /** Defaults to false; changes button styling without changing approval behavior. */
+    isSecondary?: boolean;
+
     /** Whether any transaction is on hold */
     isAnyTransactionOnHold: boolean;
 
@@ -44,6 +50,30 @@ type ExpenseHeaderApprovalButtonProps = {
 
     /** Whether to disable the approve button */
     isDisabled?: boolean;
+
+    /** Whether the button should show a loading spinner */
+    isLoading?: boolean;
+
+    /** The size of the button */
+    size?: ValueOf<typeof CONST.BUTTON_SIZE>;
+
+    /** Whether the dropdown button should use its compact inline form */
+    shouldUseShortForm?: boolean;
+
+    /** Whether the button is rendered inside another pressable, since nesting buttons isn't valid html */
+    isNested?: boolean;
+
+    /** Whether the button should stay visually normal even when disabled */
+    stayNormalOnDisable?: boolean;
+
+    /** Additional styles to add to the button */
+    style?: StyleProp<ViewStyle>;
+
+    /** Additional styles to add to the dropdown button's wrapper */
+    wrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Label used to identify this button in Sentry */
+    sentryLabel?: SentryLabel;
 };
 
 type ApprovalOption = {
@@ -107,6 +137,7 @@ function getApprovalDropdownOptions({
 }
 
 function ExpenseHeaderApprovalButton({
+    isSecondary = false,
     isAnyTransactionOnHold,
     isDelegateAccessRestricted,
     onApprove,
@@ -115,6 +146,14 @@ function ExpenseHeaderApprovalButton({
     transactions,
     shouldShowPayButton,
     isDisabled,
+    isLoading,
+    size,
+    shouldUseShortForm,
+    isNested,
+    stayNormalOnDisable,
+    style,
+    wrapperStyle,
+    sentryLabel = CONST.SENTRY_LABEL.REPORT_PREVIEW.APPROVE_BUTTON,
 }: ExpenseHeaderApprovalButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -142,7 +181,7 @@ function ExpenseHeaderApprovalButton({
                 options={approvalOptions}
                 menuHeaderText={hasOnlyHeldExpenses ? translate('iou.confirmApprovalAllHoldAmount') : translate('iou.confirmApprovalWithHeldAmount')}
                 onPress={() => {}}
-                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                variant={isSecondary ? undefined : CONST.BUTTON_VARIANT.SUCCESS}
                 customText={translate('iou.approve')}
                 headerTextStyles={styles.lineHeightNormal}
                 shouldAlwaysShowDropdownMenu
@@ -153,17 +192,28 @@ function ExpenseHeaderApprovalButton({
                 // edge — the menu would otherwise be clamped to the window edge and cover the header. Flip instead.
                 shouldSwitchPositionIfOverflow
                 isDisabled={isDisabled}
-                sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.APPROVE_BUTTON}
+                isLoading={isLoading}
+                size={size}
+                shouldUseShortForm={shouldUseShortForm}
+                stayNormalOnDisable={stayNormalOnDisable}
+                style={style}
+                wrapperStyle={wrapperStyle}
+                sentryLabel={sentryLabel}
             />
         );
     }
 
     return (
         <Button
-            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            variant={isSecondary ? undefined : CONST.BUTTON_VARIANT.SUCCESS}
             onPress={() => onApprove(true)}
-            sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.APPROVE_BUTTON}
+            sentryLabel={sentryLabel}
             isDisabled={isDisabled}
+            isLoading={isLoading}
+            size={size}
+            isNested={isNested}
+            stayNormalOnDisable={stayNormalOnDisable}
+            style={style}
         >
             <Button.Text>{translate('iou.approve')}</Button.Text>
         </Button>

@@ -56,6 +56,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, ReactNode} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -64,7 +65,7 @@ import type {ValueOf} from 'type-fest';
 
 import {useRoute} from '@react-navigation/native';
 import {homeAndOfficeCommuterExclusionPolicyNameSelector} from '@selectors/Policy';
-import React, {useMemo, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 import AgentAIPromptSection from './AgentAIPromptSection';
@@ -90,7 +91,7 @@ function ProfilePage() {
         const pronounsKey = currentUserPersonalDetails?.pronouns?.replace(CONST.PRONOUNS.PREFIX, '') ?? '';
         return pronounsKey ? translate(`pronouns.${pronounsKey}` as TranslationPaths) : translate('profilePage.selectYourPronouns');
     };
-    const logins = useMemo(() => getContactMethodsOptions(translate, formatPhoneNumber, loginList, session?.email), [loginList, session?.email, translate, formatPhoneNumber]);
+    const logins = getContactMethodsOptions(translate, formatPhoneNumber, loginList, session?.email);
 
     const avatarURL = currentUserPersonalDetails?.avatar ?? '';
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -128,7 +129,7 @@ function ProfilePage() {
         onPress?: () => void;
         brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
         testID?: string;
-        sentryLabel?: string;
+        sentryLabel?: SentryLabel;
 
         /** Replaces the default name and value line, for a value that is not plain text */
         content?: ReactNode;
@@ -221,7 +222,7 @@ function ProfilePage() {
         description: string;
         title: string;
         testID: string;
-        sentryLabel: string;
+        sentryLabel: SentryLabel;
         action: () => void;
         brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
         furtherDetails?: string;

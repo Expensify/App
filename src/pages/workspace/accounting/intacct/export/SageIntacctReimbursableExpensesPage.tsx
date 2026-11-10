@@ -83,6 +83,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
             shouldPlaceSubtitleBelowSwitch: true,
             isActive: !!config?.export.reimbursableExpenseReportDefaultVendor,
             switchAccessibilityLabel: translate('workspace.sageIntacct.defaultVendor'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.DEFAULT_VENDOR_SWITCH,
             onToggle: (enabled) => {
                 if (!policyID) {
                     return;
@@ -126,7 +127,9 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
             headerTitle="workspace.accounting.exportOutOfPocket"
             title="workspace.sageIntacct.reimbursableExpenses.description"
             onBackButtonPress={() =>
-                Navigation.goBack(backTo ?? (policyID && createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID))))
+                Navigation.goBack(
+                    backTo ?? (policyID && createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.path, ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))),
+                )
             }
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}

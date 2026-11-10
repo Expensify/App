@@ -54,7 +54,7 @@ function ChatSearchView({
 }: ChatSearchViewProps) {
     const {type} = queryJSON;
 
-    const {isKeyboardShown, safeAreaPaddingBottomStyle, isLargeScreenWidth, toggleAll, selectedTransactions, listRef, onLongPressRow, modal, handleSelectRow, scrollToListIndex} =
+    const {isKeyboardShown, safeAreaPaddingBottomStyle, isLargeScreenWidth, toggleAll, selectedTransactions, listRef, onLongPressRow, handleSelectRow, scrollToListIndex} =
         useSearchListViewState({
             data,
             isMobileSelectionModeEnabled,
@@ -87,6 +87,21 @@ function ChatSearchView({
     const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === totalItems && hasLoadedAllTransactions;
     const selectAllButtonVisible = canSelectMultiple && !searchTableHeader;
 
+    const selectionTopBar = tableHeaderVisible ? (
+        <SelectionTopBar
+            isLargeScreenWidth={isLargeScreenWidth}
+            shouldSplitGroups={false}
+            canSelectMultiple={canSelectMultiple}
+            isSelectAllChecked={isSelectAllChecked}
+            selectedItemsLength={selectedItemsLength}
+            totalItems={totalItems}
+            hasLoadedAllTransactions={hasLoadedAllTransactions}
+            selectAllButtonVisible={selectAllButtonVisible}
+            onAllCheckboxPress={toggleAll}
+            SearchTableHeader={searchTableHeader}
+        />
+    ) : undefined;
+
     return (
         <SearchListViewLayout
             columns={columns}
@@ -99,21 +114,8 @@ function ChatSearchView({
             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
             containerStyle={containerStyle}
         >
-            {tableHeaderVisible && (
-                <SelectionTopBar
-                    isLargeScreenWidth={isLargeScreenWidth}
-                    shouldSplitGroups={false}
-                    canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    selectedItemsLength={selectedItemsLength}
-                    totalItems={totalItems}
-                    hasLoadedAllTransactions={hasLoadedAllTransactions}
-                    selectAllButtonVisible={selectAllButtonVisible}
-                    onAllCheckboxPress={toggleAll}
-                    SearchTableHeader={searchTableHeader}
-                />
-            )}
             <BaseSearchList
+                selectionTopBar={selectionTopBar}
                 data={data}
                 renderItem={renderItem}
                 onSelectRow={handleSelectRow}
@@ -132,7 +134,6 @@ function ChatSearchView({
                 contentContainerStyle={contentContainerStyle}
                 newTransactions={newTransactions}
             />
-            {modal}
         </SearchListViewLayout>
     );
 }

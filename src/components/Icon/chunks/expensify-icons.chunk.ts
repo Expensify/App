@@ -10,6 +10,7 @@ import ArrowRightLong from '@assets/images/arrow-right-long.svg';
 import ArrowRight from '@assets/images/arrow-right.svg';
 import ArrowSplit from '@assets/images/arrow-split.svg';
 import ArrowUpLong from '@assets/images/arrow-up-long.svg';
+import ArrowUpRight from '@assets/images/arrow-up-right.svg';
 import UpArrow from '@assets/images/arrow-up.svg';
 import ArrowsLeftRight from '@assets/images/arrows-leftright.svg';
 import AttachmentNotFound from '@assets/images/attachment-not-found.svg';
@@ -127,6 +128,7 @@ import GalleryNotFound from '@assets/images/gallery-not-found.svg';
 import GalleryPlus from '@assets/images/gallery-plus.svg';
 import Gallery from '@assets/images/gallery.svg';
 import Gear from '@assets/images/gear.svg';
+import GlobeWithCard from '@assets/images/globe-with-card.svg';
 import Globe from '@assets/images/globe.svg';
 import Hashtag from '@assets/images/hashtag.svg';
 import Heart from '@assets/images/heart.svg';
@@ -144,6 +146,7 @@ import ChatGPTSquare from '@assets/images/integrationicons/chatgpt-icon-square.s
 import CircleSlash from '@assets/images/integrationicons/circle-slash.svg';
 import ClaudeSquare from '@assets/images/integrationicons/claude-icon-square.svg';
 import CursorSquare from '@assets/images/integrationicons/cursor-icon-square.svg';
+import DigitsSquare from '@assets/images/integrationicons/digits-icon-square.svg';
 import DualEntrySquare from '@assets/images/integrationicons/dualentry-icon-square.svg';
 import ExactOnlineSquare from '@assets/images/integrationicons/exact-online-icon-square.svg';
 import NetSuiteExport from '@assets/images/integrationicons/export/netsuite-icon.svg';
@@ -324,6 +327,7 @@ const Expensicons = {
     ArrowRightLong,
     ArrowsLeftRight,
     ArrowUpLong,
+    ArrowUpRight,
     ArrowDownLong,
     AttachmentNotFound,
     BackArrow,
@@ -423,6 +427,7 @@ const Expensicons = {
     GalleryPlus,
     Gear,
     Globe,
+    GlobeWithCard,
     GoogleLogo,
     Hashtag,
     Heart,
@@ -617,6 +622,7 @@ const Expensicons = {
     Contactless,
     CampfireSquare,
     ZohoBooksSquare,
+    DigitsSquare,
 };
 
 // Create the ExpensifyIcons object from the imported Expensicons

@@ -1,6 +1,7 @@
 import useIsSupportalSession from '@hooks/useIsSupportalSession';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {showSupportalPermissionDenied} from '@libs/actions/App';
@@ -11,12 +12,14 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import FABFocusableMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABFocusableMenuItem';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
 
 const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.NEW_CHAT;
 
 function NewChatMenuItem() {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['ChatBubble']);
@@ -24,6 +27,7 @@ function NewChatMenuItem() {
 
     return (
         <FABFocusableMenuItem
+            sentryLabel={CONST.SENTRY_LABEL.FAB_MENU.START_CHAT}
             itemId={ITEM_ID}
             pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.START_CHAT}
             icon={icons.ChatBubble}
@@ -34,7 +38,7 @@ function NewChatMenuItem() {
                     showSupportalPermissionDenied({command: WRITE_COMMANDS.OPEN_REPORT});
                     return;
                 }
-                interceptAnonymousUser(startNewChat);
+                interceptAnonymousUser(startNewChat, session);
             }}
             shouldCallAfterModalHide={shouldUseNarrowLayout}
         />

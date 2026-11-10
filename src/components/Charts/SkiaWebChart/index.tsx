@@ -1,4 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import {useIsInsideChartReveal, useReportChartLoading} from '@components/Charts/components/ChartReveal';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 
@@ -30,8 +31,6 @@ type SkiaWebChartProps<TProps> = {
 
     /** Props forwarded to the lazily-loaded chart component. */
     componentProps: TProps;
-
-    /** Identifies the loading skeleton span for telemetry. */
 };
 
 type ChartUnavailableProps = {
@@ -51,6 +50,9 @@ function ChartUnavailable({description = 'common.webGLNotSupported'}: ChartUnava
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['MonitorSyncNo']);
 
+    // This state never loads, and Skia draws none of it, so an enclosing ChartReveal shows it at once
+    useReportChartLoading(false, false);
+
     return (
         <View style={styles.chartWebFallback}>
             <Icon
@@ -62,6 +64,15 @@ function ChartUnavailable({description = 'common.webGLNotSupported'}: ChartUnava
             <Text style={[styles.textSupporting, styles.textAlignCenter]}>{translate(description)}</Text>
         </View>
     );
+}
+
+/**
+ * Draws nothing, so an enclosing ChartReveal keeps its spinner up while Skia loads.
+ * Reports loading so the reveal also holds that spinner until Skia has drawn the chart that replaces this.
+ */
+function ChartSkiaLoading() {
+    useReportChartLoading(true);
+    return null;
 }
 
 function ChartFailedToLoad() {
@@ -97,9 +108,9 @@ const logSkiaLoadError = (error: Error, info: {componentStack?: string | null}) 
 function SkiaWebChart<TProps extends object>({getComponent, componentProps}: SkiaWebChartProps<TProps>) {
     const styles = useThemeStyles();
     const containerRef = useRef<HTMLElement | null>(null);
+    const isInsideChartReveal = useIsInsideChartReveal();
 
-    // Probe once per mount (not per render) so re-rendering doesn't repeatedly create WebGL contexts,
-    // while a fresh chart still re-checks capability instead of trusting a stale session-wide result.
+    // Probed on each mount, so a fresh chart re-checks capability instead of trusting a stale session-wide result.
     const [isSupported] = useState(() => isSkiaWebSupported());
 
     // The probe can pass while the renderer still ends up without a drawing surface, so also listen for the
@@ -111,7 +122,9 @@ function SkiaWebChart<TProps extends object>({getComponent, componentProps}: Ski
         return <ChartUnavailable />;
     }
 
-    const fallback = (
+    const fallback = isInsideChartReveal ? (
+        <ChartSkiaLoading />
+    ) : (
         <View style={styles.chartWebFallback}>
             <ActivityIndicator size="large" />
         </View>

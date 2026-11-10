@@ -25,8 +25,8 @@ Once configured, you can:
 Each Workspace has its own DualEntry integration. To view or update the configuration settings:
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile) go to **Workspaces > [workspace name]**.
-2. Select **Accounting**.
-3. On the DualEntry connection, select **Import**, **Export**, or **Advanced**.
+2. Select **Connections**, then select **Configure** next to DualEntry.
+3. Select **Import**, **Export**, or **Advanced**.
 
 ---
 
