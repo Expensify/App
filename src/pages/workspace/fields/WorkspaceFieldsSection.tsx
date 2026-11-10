@@ -77,6 +77,12 @@ type WorkspaceFieldsSectionProps = {
     syncErrorConnectionNames?: readonly PolicyConnectionName[];
     titleAccessibilityRole?: typeof CONST.ROLE.HEADER;
     switchSentryLabel: SentryLabel;
+
+    /** Sentry label for each field row */
+    rowSentryLabel: SentryLabel;
+
+    /** Sentry label for the add field button */
+    addFieldSentryLabel: SentryLabel;
 };
 
 function keyExtractor(item: FieldListItem) {
@@ -106,6 +112,8 @@ function WorkspaceFieldsSection({
     syncErrorConnectionNames,
     titleAccessibilityRole,
     switchSentryLabel,
+    rowSentryLabel,
+    addFieldSentryLabel,
 }: WorkspaceFieldsSectionProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -158,6 +166,7 @@ function WorkspaceFieldsSection({
     const renderItem = ({item}: ListRenderItemInfo<FieldListItem>) => (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
             <MenuItem
+                sentryLabel={rowSentryLabel}
                 style={cardPaddingHorizontal}
                 onPress={() => navigateToFieldSettings(item)}
                 description={item.text}
@@ -261,6 +270,7 @@ function WorkspaceFieldsSection({
                             </View>
                             {canWrite && (
                                 <MenuItemSectionRoot
+                                    sentryLabel={addFieldSentryLabel}
                                     onPress={() => {
                                         setInitialCreateReportFieldsForm();
                                         Navigation.navigate(createRoute);

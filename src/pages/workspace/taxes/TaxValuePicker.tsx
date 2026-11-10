@@ -56,7 +56,10 @@ function TaxValuePicker({policyID, value, errorText, rightLabel, onInputChange, 
     };
 
     return (
-        <MenuItem.Root onPress={callFunctionIfActionIsAllowed(handlePress, false, session)}>
+        <MenuItem.Root
+            onPress={callFunctionIfActionIsAllowed(handlePress, false, session)}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.CREATE_VALUE}
+        >
             <MenuItemField.Row
                 name={translate('workspace.taxes.value')}
                 value={value ? getTaxValueWithPercentage(value) : ''}

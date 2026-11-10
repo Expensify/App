@@ -143,6 +143,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                 >
                     <View style={[styles.mt6, styles.mbn3]}>
                         <MenuItemSectionRoot
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.AUTO_APPROVE_REPORTS_UNDER}
                             onPress={
                                 canWriteApprovals
                                     ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.RULES_AUTO_APPROVE_REPORTS_UNDER.getRoute(policyID)), false, session)
@@ -169,6 +170,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                 >
                     <View style={[styles.mt6, styles.mbn3]}>
                         <MenuItemSectionRoot
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.RANDOM_REPORT_AUDIT}
                             onPress={
                                 canWriteApprovals ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.RULES_RANDOM_REPORT_AUDIT.getRoute(policyID)), false, session) : undefined
                             }
@@ -221,6 +223,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                 >
                     <View style={[styles.mt6, styles.mbn3]}>
                         <MenuItemSectionRoot
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.AUTO_PAY_REPORTS_UNDER}
                             onPress={
                                 canWritePayments
                                     ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.RULES_AUTO_PAY_REPORTS_UNDER.getRoute(policyID)), false, session)
