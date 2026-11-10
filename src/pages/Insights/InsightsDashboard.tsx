@@ -314,9 +314,9 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         }
         setFilters(update);
     };
-    const {headlineChart: headlineSpec, supportingCharts: supportingSpecs} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
+    const {headlineChart: headlineSpec, supportingCharts: supportingSpecs, isPolicyEligible: isDashboardPolicyEligible} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
     const policiesInScope = getPoliciesInScope(policies, filters.policyIDs);
-    const eligibleCharts = getVisibleCharts(supportingSpecs, policiesInScope, login);
+    const eligibleCharts = getVisibleCharts(supportingSpecs, policiesInScope, login, isDashboardPolicyEligible);
     const eligibleGraphKeys = eligibleCharts.map(({graphKey}) => graphKey).join(',');
     // Settled from the policies already in Onyx, so the charts are never requested for a dashboard the upsell stands in for
     const shouldUpsell = arePoliciesLoaded && shouldUpsellControlPlan(dashboardID, policiesInScope, filters.policyIDs, login);
@@ -385,6 +385,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                 filters={filters}
                 defaultFilters={defaultFilters}
                 onChange={updateFilters}
+                isPolicyAvailable={isDashboardPolicyEligible ? (policy) => isDashboardPolicyEligible(policy, login) : undefined}
                 captureRef={controlsRef}
                 onExport={exportDashboard}
                 isExporting={isExporting}

@@ -1,8 +1,8 @@
 import {canSendInvoice} from '@libs/PolicyUtils';
 import {
     getCategory,
-    getCreated,
     getCurrency,
+    getFormattedCreated,
     getMerchant,
     getTag,
     getTagForDisplay,
@@ -41,7 +41,7 @@ const dateStateSelector = (t: OnyxEntry<Transaction>): DateState | undefined => 
         return undefined;
     }
     return {
-        iouCreated: getCreated(t),
+        iouCreated: getFormattedCreated(t),
         isMissing: isCreatedMissing(t),
         hasReceipt: hasReceipt(t),
         isCreatedSet: t.isCreatedSet ?? false,

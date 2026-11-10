@@ -32,7 +32,7 @@ import {close} from '@libs/actions/Modal';
 import {clearCopyPolicySettings} from '@libs/actions/Policy/CopyPolicySettings';
 import {checkBulkTransferPolicyBillingOwner, queueBulkExportPolicyMembers, queueBulkTransferPolicyBillingOwner} from '@libs/actions/Policy/Member';
 import {queueBulkArchivePolicy, clearDuplicateWorkspace, dismissWorkspaceError, queueBulkLeavePolicy} from '@libs/actions/Policy/Policy';
-import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
+import {callIfAuthenticated} from '@libs/actions/Session';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import openInternalRouteInNewTab from '@libs/Navigation/helpers/openInternalRouteInNewTab';
@@ -448,7 +448,7 @@ function WorkspacesListPage() {
                     text: translate('workspace.common.unarchive'),
                     icon: icons.ArrowCircleClockwise,
                     shouldSkipFocusRestore: true,
-                    onSelected: callFunctionIfActionIsAllowed(() => setActiveFlow({type, policyID: firstPolicyID}), false, session),
+                    onSelected: callIfAuthenticated(() => setActiveFlow({type, policyID: firstPolicyID}), session),
                 };
             case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.LEAVE:
             default:
@@ -457,22 +457,18 @@ function WorkspacesListPage() {
                     text: translate('common.leave'),
                     icon: icons.Exit,
                     shouldSkipFocusRestore: true,
-                    onSelected: callFunctionIfActionIsAllowed(
-                        () => {
-                            if (isSingleSelection) {
-                                setActiveFlow({type, policyID: firstPolicyID});
-                                return;
-                            }
-                            confirmBulkAction(policyIDs, translate('workspace.common.leaveWorkspacesTitle', {count: policyIDs.length}), translate('common.leave'), () =>
-                                queueBulkLeavePolicy(
-                                    currentUserPersonalDetails.login ?? '',
-                                    selectedRows.filter((row) => policyIDs.includes(row.policyID)).map((row) => ({id: row.policyID, pendingAction: row.pendingAction})),
-                                ),
-                            );
-                        },
-                        false,
-                        session,
-                    ),
+                    onSelected: callIfAuthenticated(() => {
+                        if (isSingleSelection) {
+                            setActiveFlow({type, policyID: firstPolicyID});
+                            return;
+                        }
+                        confirmBulkAction(policyIDs, translate('workspace.common.leaveWorkspacesTitle', {count: policyIDs.length}), translate('common.leave'), () =>
+                            queueBulkLeavePolicy(
+                                currentUserPersonalDetails.login ?? '',
+                                selectedRows.filter((row) => policyIDs.includes(row.policyID)).map((row) => ({id: row.policyID, pendingAction: row.pendingAction})),
+                            ),
+                        );
+                    }, session),
                 };
         }
     };

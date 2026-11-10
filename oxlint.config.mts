@@ -144,7 +144,6 @@ const SENTRY_LABEL_PRESS_HANDLER_WRAPPERS = [
     'FocusableMenuItem',
     'FormAlertWithSubmitButton',
     'HighlightableMenuItem',
-    'LinkButton',
     'MenuItem',
     'MenuItem.Root',
     'MenuItemAction',
@@ -1088,7 +1087,7 @@ export default defineConfig({
             jsPlugins: ['eslint-plugin-you-dont-need-lodash-underscore'],
         },
         {
-            files: ['.github/**/*', 'scripts/**/*', 'server/**/*', 'tests/**/*'],
+            files: ['.github/**/*', 'scripts/**/*', 'server/**/*', 'tests/**/*', '.claude/skills/*/scripts/**/*'],
             rules: {
                 'no-await-in-loop': 'off',
                 'core/no-restricted-syntax': ['error', 'ForInStatement', 'LabeledStatement', 'WithStatement'],
