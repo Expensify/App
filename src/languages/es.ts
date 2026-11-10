@@ -9658,6 +9658,12 @@ ${reportName}`,
         digits: {
             updateCurrencyTitle: '¿Actualizar la moneda del espacio de trabajo?',
             updateCurrencyPrompt: 'Digits actualmente solo está disponible para empresas con sede en EE. UU. que operan en USD.',
+            importDescription: 'Elige qué configuraciones de Digits quieres importar.',
+            accountTypesDescription: 'Tus cuentas de Digits se importarán como categorías.',
+            enableNewAccountsTitle: 'Habilitar cuentas recién importadas',
+            enableNewAccountsDescription: 'Las nuevas cuentas de Digits estarán disponibles como categorías.',
+            dimensionsImport: 'Todas las dimensiones de Digits se importan como etiquetas.',
+            departments: 'Departamentos',
         },
         zohoBooks: {
             organization: 'Organización Zoho Books',

@@ -325,6 +325,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                         >
                             <View style={styles.mt3}>
                                 <MenuItemField
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.SETTINGS_COMMUTER_EXCLUSIONS}
                                     name={translate('workspace.distanceRates.commuterExclusions.title')}
                                     value={getCommuterExclusionsSummary(policy?.commuterExclusions, defaultUnit, translate)}
                                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS.getRoute(policyID))}

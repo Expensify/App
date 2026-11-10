@@ -78,6 +78,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
         >
             {domainHasOnlyOneAdmin && (
                 <MenuItemAction
+                    sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADMINS.RESET_DOMAIN}
                     title={translate('domain.admins.resetDomain')}
                     icon={icons.ClosedSign}
                     onPress={() => Navigation.navigate(ROUTES.DOMAIN_RESET_DOMAIN.getRoute(domainAccountID, accountID))}
@@ -85,6 +86,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
             )}
             {!domainHasOnlyOneAdmin && (
                 <MenuItem.Root
+                    sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADMINS.REVOKE_ADMIN_ACCESS}
                     isDisabled={isCurrentUserPrimaryContact}
                     onPress={callIfAuthenticated(handleRevokeAdminAccess, session)}
                 >

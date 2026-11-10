@@ -143,6 +143,7 @@ function ListField({rows, addTitle, addDescription, canAddMore = true, errorText
                         <MenuItem.Trailing>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                                 <Button
+                                    sentryLabel={CONST.SENTRY_LABEL.LIST_FIELD.EDIT_BUTTON}
                                     style={[EDIT_BUTTON_WRAPPER_STYLE, styles.justifyContentCenter]}
                                     size={CONST.BUTTON_SIZE.SMALL}
                                     accessibilityLabel={translate('listField.editItem', {name: row.title})}
@@ -181,6 +182,7 @@ function ListField({rows, addTitle, addDescription, canAddMore = true, errorText
             ))}
             {canAddMore && (
                 <MenuItem.Root
+                    sentryLabel={CONST.SENTRY_LABEL.LIST_FIELD.ADD_BUTTON}
                     ref={addRowRef}
                     onPress={callIfAuthenticated(onAdd, session)}
                 >

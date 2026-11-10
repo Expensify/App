@@ -9793,6 +9793,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         digits: {
             updateCurrencyTitle: 'Mettre à jour la devise de l’espace de travail ?',
             updateCurrencyPrompt: 'Digits n’est actuellement disponible que pour les entreprises basées aux États-Unis qui opèrent en USD.',
+            importDescription: 'Choisissez quelles configurations Digits importer.',
+            accountTypesDescription: 'Vos comptes Digits seront importés en tant que catégories.',
+            enableNewAccountsTitle: 'Activer les nouveaux comptes importés',
+            enableNewAccountsDescription: 'Les nouveaux comptes Digits seront disponibles en tant que catégories.',
+            dimensionsImport: 'Toutes les dimensions Digits sont importées en tant que tags.',
+            departments: 'Services',
         },
         zohoBooks: {
             organization: 'Organisation Zoho Books',
