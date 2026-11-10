@@ -8,12 +8,13 @@
 /* eslint-disable import/extensions -- Node loads this file as ESM, which needs the extension on relative imports, while the presets ask for none */
 import {buildOxlintConfig} from 'eslint-config-expensify/oxlint';
 import {reactCompilerRuleNames} from 'eslint-config-expensify/oxlint/utils';
+import storybookPlugin from 'eslint-plugin-storybook';
 
-import {APP_HOSTED_ESLINT_RULE_IDS, APP_LOCAL_HOSTED_RULES} from './config/oxlint/appHostedRules.mjs';
+import {APP_HOSTED_RULE_IDS_BY_NAME} from './config/oxlint/appHostedRules.mjs';
 import {RULE_BY_CATEGORY} from './config/oxlint/reactCompilerRust.mjs';
 
 // React Compiler rules run as `rc/<name>` (config/oxlint/plugins/rc-rules.mjs), the ones the Rust compiler reports. The
-// other compiler rules of eslint-plugin-react-hooks (component-hook-factories, config, gating) are dropped by the package.
+// package drops the compiler rules oxlint cannot run (see `DROPPED_RULES` in its oxlint/tables.js).
 // oxlint's built-in react/<name> versions are not used: an `eslint-disable` comment for react-hooks/exhaustive-deps or
 // react-hooks/rules-of-hooks also hides every compiler error in that component (https://github.com/oxc-project/oxc/issues/26277).
 const rcRuleNames = new Set(Object.values(RULE_BY_CATEGORY));
@@ -21,6 +22,22 @@ const unknownRcRules = [...rcRuleNames].filter((name) => !reactCompilerRuleNames
 if (unknownRcRules.length) {
     throw new Error(`config/oxlint/reactCompilerRust.mjs maps rules that eslint-plugin-react-hooks does not have: ${unknownRcRules.join(', ')}`);
 }
+
+// eslint-plugin-storybook's own recommended config, run as an oxlint JS plugin. Its `storybook/` rules keep their names,
+// so findings and `eslint-disable` comments use them as they are. oxlint does not read `@(a|b)` globs, so they are
+// rewritten as `{a,b}`, and the config's react-hooks and import-x rules, which only turn checks off, are left out: for
+// stories, `react/rules-of-hooks` is turned off below.
+const storybookOverrides = storybookPlugin.configs['flat/recommended'].flatMap(({files, rules}) =>
+    files && rules
+        ? [
+              {
+                  files: files.flat().map((glob) => glob.replaceAll(/@\(([^)]*)\)/g, (match: string, alternatives: string) => `{${alternatives.split('|').join(',')}}`)),
+                  jsPlugins: ['eslint-plugin-storybook'],
+                  rules: Object.fromEntries(Object.entries(rules).filter(([ruleID]) => ruleID.startsWith('storybook/'))),
+              },
+          ]
+        : [],
+);
 
 // An oxlint override replaces a rule's options instead of merging them, so every block that sets
 // `no-restricted-imports` restates the full list, built from these.
@@ -241,7 +258,7 @@ export default await buildOxlintConfig({
         hosted: './config/oxlint/plugins/hosted-rules.mjs',
         rulesdir: './config/oxlint/plugins/expensify-rules.mjs',
     },
-    extraRunningNames: ['rc/', ...[...APP_HOSTED_ESLINT_RULE_IDS.map((ruleID) => ruleID.split('/').at(-1)), ...Object.keys(APP_LOCAL_HOSTED_RULES)].map((name) => `hosted/${name}`)],
+    extraRunningNames: ['rc/', ...Object.keys(APP_HOSTED_RULE_IDS_BY_NAME).map((name) => `hosted/${name}`)],
     env: {node: true, browser: true, audioworklet: true, jest: true},
     globals: {__DEV__: 'readonly'},
     jsPlugins: [
@@ -774,28 +791,11 @@ export default await buildOxlintConfig({
             files: ['tests/tooling/**/*.ts'],
             rules: {'typescript/await-thenable': 'off'},
         },
+        ...storybookOverrides,
         {
-            // oxlint has no storybook plugin, so this restates the story-file scope and severities of
-            // `plugin:storybook/recommended`.
+            // eslint-plugin-storybook's recommended config turns this off for stories.
             files: ['**/*.{stories,story}.{ts,tsx,js,jsx,mjs,cjs}'],
-            rules: {
-                // The storybook preset turns this off for stories.
-                'react/rules-of-hooks': 'off',
-                'hosted/await-interactions': 'error',
-                'hosted/context-in-play-function': 'error',
-                'hosted/default-exports': 'error',
-                'hosted/hierarchy-separator': 'warn',
-                'hosted/no-redundant-story-name': 'warn',
-                'hosted/no-renderer-packages': 'error',
-                'hosted/prefer-pascal-case': 'warn',
-                'hosted/story-exports': 'error',
-                'hosted/use-storybook-expect': 'error',
-                'hosted/use-storybook-testing-library': 'error',
-            },
-        },
-        {
-            files: ['.storybook/main.{js,cjs,mjs,ts}'],
-            rules: {'hosted/no-uninstalled-addons': 'error'},
+            rules: {'react/rules-of-hooks': 'off'},
         },
         {files: ['src/types/onyx/**/*.ts'], rules: {'hosted/require-jsdoc': ['error', {contexts: ['TSInterfaceDeclaration', 'TSTypeAliasDeclaration']}]}},
         {

@@ -4,24 +4,8 @@
  * imports: scripts/lint/oxlint/OxlintLinter.ts loads it through ruleNames.mjs.
  */
 
-// ESLint plugin rules that no preset turns on but oxlint.config.mts does. oxlint has no native version of any of them.
-// `storybook/` rules come from eslint-plugin-storybook, which the package does not list, so hosted-rules.mjs passes
-// its rules to hostRule.
-const APP_HOSTED_ESLINT_RULE_IDS = [
-    'jsdoc/require-jsdoc',
-    'react/no-unused-prop-types',
-    'storybook/await-interactions',
-    'storybook/context-in-play-function',
-    'storybook/default-exports',
-    'storybook/hierarchy-separator',
-    'storybook/no-redundant-story-name',
-    'storybook/no-renderer-packages',
-    'storybook/no-uninstalled-addons',
-    'storybook/prefer-pascal-case',
-    'storybook/story-exports',
-    'storybook/use-storybook-expect',
-    'storybook/use-storybook-testing-library',
-];
+// ESLint plugin rules that no preset turns on but oxlint.config.mts does. oxlint has no native version of either.
+const APP_HOSTED_ESLINT_RULE_IDS = ['jsdoc/require-jsdoc', 'react/no-unused-prop-types'];
 
 // The App's own hosted rules (hosted/<name>) and the ESLint ID their `eslint-disable` comments use.
 const APP_LOCAL_HOSTED_RULES = {
@@ -29,4 +13,10 @@ const APP_LOCAL_HOSTED_RULES = {
     'no-deprecated-self-closing-jsx': '@typescript-eslint/no-deprecated',
 };
 
-export {APP_HOSTED_ESLINT_RULE_IDS, APP_LOCAL_HOSTED_RULES};
+// Each of the above by the name it runs under (`hosted/<name>`), with the ESLint ID findings and comments use.
+const APP_HOSTED_RULE_IDS_BY_NAME = {
+    ...Object.fromEntries(APP_HOSTED_ESLINT_RULE_IDS.map((ruleID) => [ruleID.split('/').at(-1), ruleID])),
+    ...APP_LOCAL_HOSTED_RULES,
+};
+
+export {APP_HOSTED_ESLINT_RULE_IDS, APP_HOSTED_RULE_IDS_BY_NAME, APP_LOCAL_HOSTED_RULES};

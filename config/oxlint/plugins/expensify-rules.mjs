@@ -18,7 +18,7 @@ const localRulesDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.
 
 const localRules = {};
 for (const file of fs.readdirSync(localRulesDirectory)) {
-    if (file.endsWith('.js') && file !== 'CONST.js') {
+    if (file.endsWith('.js')) {
         localRules[file.replace(/\.js$/, '')] = require(path.join(localRulesDirectory, file));
     }
 }

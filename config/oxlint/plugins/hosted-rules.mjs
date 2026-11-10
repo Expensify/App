@@ -5,15 +5,11 @@
  */
 import {rules as presetRules} from 'eslint-config-expensify/oxlint/plugins/hosted';
 import {hostRule, withEslintDirectiveIDs} from 'eslint-config-expensify/oxlint/utils';
-import {createRequire} from 'node:module';
 
 import {EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN} from '../../reactCompiler/suppressedRules.mjs';
-import {APP_HOSTED_ESLINT_RULE_IDS, APP_LOCAL_HOSTED_RULES} from '../appHostedRules.mjs';
+import {APP_HOSTED_RULE_IDS_BY_NAME, APP_LOCAL_HOSTED_RULES} from '../appHostedRules.mjs';
 import {create as noDeprecatedSelfClosingJsxCreate, meta as noDeprecatedSelfClosingJsxMeta} from '../noDeprecatedSelfClosingJsx.mjs';
 import {withFullGating, withMessageGating} from '../reactCompilerGate.mjs';
-
-const require = createRequire(import.meta.url);
-const storybookPlugin = require('eslint-plugin-storybook');
 
 const plugin = {
     meta: {
@@ -23,7 +19,9 @@ const plugin = {
     rules: {
         ...presetRules,
         ...Object.fromEntries(
-            APP_HOSTED_ESLINT_RULE_IDS.map((ruleID) => [ruleID.split('/').at(-1), ruleID.startsWith('storybook/') ? hostRule(ruleID, storybookPlugin.rules) : hostRule(ruleID)]),
+            Object.entries(APP_HOSTED_RULE_IDS_BY_NAME)
+                .filter(([name]) => !(name in APP_LOCAL_HOSTED_RULES))
+                .map(([name, ruleID]) => [name, hostRule(ruleID)]),
         ),
 
         // In files React Compiler memoizes, reactCompilerGate.mjs drops all jsx-no-constructed-context-values reports and
