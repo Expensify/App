@@ -41,7 +41,8 @@ function InsightsExplainButton({explainPrompt, insightsScope, isAccented = false
             size={CONST.BUTTON_SIZE.SMALL}
             onPress={() => askConcierge(explainPrompt, {insightsScope})}
             sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.AI_EXPLAIN}
-            style={styles.alignSelfStart}
+            // Keep the integration intact so Explain can be restored later.
+            style={[styles.alignSelfStart, styles.dNone]}
             innerStyles={styles.bgTransparent}
             hoverStyles={styles.hoveredComponentBG}
         >
