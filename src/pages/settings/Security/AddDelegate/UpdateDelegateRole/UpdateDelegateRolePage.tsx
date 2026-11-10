@@ -81,7 +81,8 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
                             Navigation.dismissModal();
                             return;
                         }
-
+                        // Downgrading from full access to submitter removes privileges, so it is applied directly
+                        // without requiring the magic code that every other role change goes through.
                         if (currentRole === CONST.DELEGATE_ROLE.ALL && option.value === CONST.DELEGATE_ROLE.SUBMITTER) {
                             updateDelegateRole({
                                 email: login,
