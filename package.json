@@ -260,7 +260,6 @@
     "@octokit/plugin-throttling": "^11.0.0",
     "@octokit/request-error": "^7.0.0",
     "@octokit/webhooks-types": "^7.6.1",
-    "@playwright/test": "1.64.1",
     "@react-native-community/cli": "20.1.0",
     "@react-native-community/cli-platform-android": "20.1.0",
     "@react-native-community/cli-platform-ios": "20.1.0",

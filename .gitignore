@@ -53,8 +53,6 @@ scripts/generated/
 # node.js
 #
 node_modules/
-test-results/
-playwright-report/
 npm-debug.log
 yarn-error.log
 
