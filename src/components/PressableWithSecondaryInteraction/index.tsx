@@ -27,6 +27,7 @@ function PressableWithSecondaryInteraction({
     activeOpacity = 1,
     opacityAnimationDuration,
     shouldAllowTextSelection = false,
+    sentryLabel,
     ref,
     ...rest
 }: PressableWithSecondaryInteractionProps) {
@@ -100,6 +101,7 @@ function PressableWithSecondaryInteraction({
     // On Web, Text does not support LongPress events thus manage inline mode with styling instead of using Text.
     return (
         <PressableWithFeedback
+            sentryLabel={sentryLabel}
             {...rest}
             accessibilityState={accessibilityState}
             accessibilityHasPopup={accessibilityHasPopup}

@@ -1246,8 +1246,17 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Conformità',
         runningTotal: 'Totale progressivo',
+        upsellState: {
+            title: 'Passa a Control per maggiori informazioni',
+            subtitle: 'Tieni traccia delle tendenze di conformità alla policy spese e segnala i recidivi.',
+            button: 'Passa a Control',
+        },
         explain: 'Spiega',
         explainChartPrompt: (chartTitle: string) => `Spiega i dati in ${chartTitle}.`,
+        violationsOverTime: 'Violazioni nel tempo',
+        topViolations: 'Violazioni principali',
+        violationsBySubmitter: 'Violazioni da parte di chi invia',
+        violationsByApprover: "Violazioni da parte dell'approvatore",
         viewDetails: 'Vedi dettagli',
         viewAll: 'Vedi tutto',
         topExpenses: 'Spese principali',
@@ -3291,6 +3300,7 @@ ${amount} per ${merchant} - ${date}`,
         disablePaymentsPrompt: 'Questo rimuoverà tutte le tue impostazioni di pagamento.',
         businessBankAccountCountries: 'Paesi del conto bancario aziendale',
         businessBankAccountCountriesDescription: 'I dipendenti in questi paesi forniscono i dati per i bonifici locali. Tutti gli altri forniscono i dati per i bonifici internazionali.',
+        businessBankAccountCountriesError: 'L’aggiornamento dei paesi di rimborso non è riuscito. Riprova.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>In questo spazio di lavoro è attivato un processo di approvazione personalizzato. Per rivedere o modificare questo processo, contatta il tuo <account-manager-link>Account Manager</account-manager-link> o <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -5390,6 +5400,12 @@ ${amount} per ${merchant} - ${date}`,
             readOnlyActionPrompt: 'Il tuo ruolo nello spazio di lavoro può visualizzare queste impostazioni, ma non può modificarle.',
             noAccessActionPrompt: 'Il tuo ruolo nello spazio di lavoro non ha accesso a queste impostazioni. Chiedi a un amministratore se ne hai bisogno.',
             connections: 'Connessioni',
+            newRoles: 'Nuovi ruoli',
+            adminRoles: 'Ruoli amministratore',
+            otherRoles: 'Altri ruoli',
+            roleSelectorDescription: `Assegna un ruolo per gestire le autorizzazioni di spazio di lavoro di un membro. <a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">Confronta i ruoli dello spazio di lavoro</a>.`,
+            roleSelectorFeedback: 'Non vedi il ruolo che ti serve?',
+            roleSelectorFeedbackLink: 'Facci sapere',
         },
         createdForClient: {
             title: 'Hai creato uno spazio di lavoro per il tuo cliente!',
@@ -6744,7 +6760,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     mastercard: "Abbiamo integrazioni globali con Mastercard, anche se l'idoneità varia in base alla banca e al programma della carta.\n\nPer iniziare, è sufficiente:",
                     vcf: `1. Visita [questo articolo della guida](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) per istruzioni dettagliate su come configurare le tue Visa Commercial Cards.
 
-2. [Contatta la tua banca](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) per verificare che supporti un feed commerciale per il tuo programma e chiedi che venga abilitato.
+2. Contatta la tua banca per verificare che supporti un feed commerciale per il tuo programma e chiedi che venga abilitato.
 
 3. *Una volta che il feed è stato abilitato e disponi dei relativi dettagli, continua alla schermata successiva.*`,
                     gl1025: `1. Visita [questo articolo di supporto](${CONST.COMPANY_CARDS_AMEX_COMMERCIAL_CARD_HELP}) per scoprire se American Express può abilitare un feed commerciale per il tuo programma.
@@ -6754,7 +6770,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
 3. *Una volta che hai le informazioni sul feed, continua alla schermata successiva.*`,
                     cdf: `1. Visita [questo articolo della guida](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) per istruzioni dettagliate su come configurare le tue Mastercard Commercial Cards.
 
- 2. [Contatta la tua banca](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) per verificare che supporti un flusso commerciale per il tuo programma e chiedi che lo attivino.
+ 2. Contatta la tua banca per verificare che supporti un flusso commerciale per il tuo programma e chiedi che lo attivino.
 
 3. *Una volta che il flusso è stato attivato e ne hai i dettagli, continua alla schermata successiva.*`,
                     stripe: `1. Visita la Dashboard di Stripe e vai su [Settings](${CONST.COMPANY_CARDS_STRIPE_HELP}).
@@ -7779,6 +7795,10 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             changeOfficeLocation: 'Cambia sede dell’ufficio',
             changeWorkArrangement: 'Modifica modalità di lavoro',
             changeRole: 'Cambia ruolo',
+            newRolesBanner: {
+                title: 'Nuovi ruoli disponibili',
+                subtitle: '<label-text>Dai ai membri solo l’accesso di cui hanno bisogno con i nuovi ruoli <strong>Solo approvazione</strong> e <strong>Ospite</strong>.</label-text>',
+            },
         },
         card: {
             getStartedIssuing: 'Inizia emettendo la tua prima carta virtuale o fisica.',
@@ -8556,6 +8576,12 @@ ${reportName}`,
                 description: `Approfitta della sincronizzazione automatizzata e riduci le registrazioni manuali con l’integrazione Expensify + Campfire. Allinea dimensioni di codifica delle spese e sincronizzazione fiscale alla tua configurazione Campfire per una maggiore visibilità finanziaria.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>La nostra integrazione con Campfire è disponibile solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: {
+                title: 'Digits',
+                description: `Approfitta della sincronizzazione automatizzata e riduci le registrazioni manuali con l’integrazione Expensify + Digits. Allinea le dimensioni di codifica delle spese alla tua configurazione Digits per una maggiore visibilità finanziaria.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>La nostra integrazione con Digits è disponibile solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
                 title: 'Dynamics 365 Business Central',
@@ -9675,6 +9701,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 },
             },
         },
+        digits: {
+            updateCurrencyTitle: 'Aggiornare la valuta dello spazio di lavoro?',
+            updateCurrencyPrompt: 'Digits è attualmente disponibile solo per le aziende con sede negli Stati Uniti che operano in USD.',
+        },
         zohoBooks: {
             organization: 'Organizzazione Zoho Books',
             organizationSelectDescription: 'Scegli l’organizzazione in Zoho Books da cui desideri importare i dati.',
@@ -9912,7 +9942,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         scheduleACall: 'Programma chiamata',
         questionMarkButtonTooltip: 'Ricevi assistenza dal nostro team',
         exploreHelpDocs: 'Esplora la guida',
-        registerForWebinar: 'Registrati al webinar',
+        registerForWebinar: 'Webinar',
         onboardingHelp: 'Aiuto per la configurazione',
     },
     emojiPicker: {
@@ -10923,6 +10953,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Anno',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestre',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approvatore',
+                [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Violazione',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -10984,6 +11015,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Anni',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestri',
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approvatori',
+            [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Violazioni',
         },
         moneyRequestReport: {emptyStateTitle: 'Nessuna spesa ancora', accessPlaceHolder: 'Apri per i dettagli'},
         noCategory: 'Nessuna categoria',
@@ -12800,6 +12832,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         deletingTitle: 'Eliminazione dei report in corso...',
         deletingExpensesTitle: 'Eliminazione delle spese in corso...',
         runningBody: 'Aspetta qualche minuto oppure lascia che Concierge ti invii un messaggio quando ha finito.',
+        changingWorkspaceTitle: 'Spostamento dei report in corso...',
         sendFromConcierge: 'Scrivimi quando hai finito',
         conciergeTitle: 'Ci puoi contare!',
         conciergeBody: 'Concierge ti manderà un messaggio quando avrà finito.',
@@ -12835,6 +12868,10 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Spese eliminate in ${doneCount} su ${count} report`,
             other: `Spese eliminate in ${doneCount} su ${count} report`,
+        }),
+        changedWorkspaceTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Spazio di lavoro modificato su ${doneCount} di ${count} report`,
+            other: `Spazio di lavoro modificato su ${doneCount} di ${count} report`,
         }),
         noReportsTitle: 'Nessun report corrispondente',
         noReportsBody: 'Nessuno dei report che hai selezionato richiedeva questa azione.',
@@ -12872,6 +12909,10 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         expensesNotDeletedBody: ({count}: {count: number}) => ({
             one: 'Le spese di 1 report non hanno potuto essere eliminate.',
             other: `Le spese di ${count} report non hanno potuto essere eliminate.`,
+        }),
+        notMovedBody: ({count}: {count: number}) => ({
+            one: '1 report non può essere spostato.',
+            other: `${count} report non hanno potuto essere spostati.`,
         }),
     },
     earlyRenewal: {

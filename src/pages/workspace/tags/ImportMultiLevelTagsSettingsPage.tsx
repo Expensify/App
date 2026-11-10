@@ -35,7 +35,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
@@ -54,7 +53,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
     const styles = useThemeStyles();
     const [isImportingTags, setIsImportingTags] = useState(false);
     const {setIsClosing} = useCloseImportPage();
-    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
     const {isBetaEnabled} = usePermissions();
     const isAppendingToExistingLists = hasAccountingConnections && isBetaEnabled(CONST.BETAS.INDIRECT_TAG_UPLOADS) && !!spreadsheet?.isAppendingToExistingLists;
@@ -81,10 +80,6 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
         }
         closeImportPageAndModal();
     };
-
-    if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
-        return;
-    }
 
     if (hasAccountingConnections && !isAppendingToExistingLists) {
         return <NotFoundPage />;
