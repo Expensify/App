@@ -125,7 +125,7 @@ function ReportFetchHandler() {
     const hasCreatedLegacyThreadRef = useRef(false);
     const didSubscribeToReportLeavingEvents = useRef(false);
     const joinedSecureLinkReportIDRef = useRef<string | undefined>(undefined);
-    const redirectedToParentReportKeyRef = useRef<string | undefined>(undefined);
+    const decidedParentReportRedirectKeyRef = useRef<string | undefined>(undefined);
     const hiddenPreMountFetchedRouteRef = useRef<Pick<ReportScreenRoute, 'key' | 'params'> | undefined>(undefined);
 
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
@@ -598,17 +598,23 @@ function ReportFetchHandler() {
         Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: reportIDFromRoute, backTo: route.params?.backTo}), {forceReplace: true});
     }, [isFocused, report, reportIDFromRoute, route.params?.backTo, shouldReplaceWithExpenseReportRHP]);
 
-    // Open a linked action on a one-transaction thread in the parent report instead. Fires once per linked route: the
-    // condition can flip later, and re-running would pull the user out of a thread they opened themselves.
+    // Open a linked action on a one-transaction thread in the parent report instead, deciding once per linked route. While the
+    // opening load hydrates the answer may still flip to "redirect"; once it settles, "stay" sticks so later edits can't move the user.
     useEffect(() => {
-        if (!shouldRedirectToParentReport || !isFocused || !report?.parentReportID) {
+        if (!isFocused || !reportActionIDFromRoute || !report?.parentReportID) {
             return;
         }
         const redirectKey = `${route.key}:${reportActionIDFromRoute}`;
-        if (redirectedToParentReportKeyRef.current === redirectKey) {
+        if (decidedParentReportRedirectKeyRef.current === redirectKey) {
             return;
         }
-        redirectedToParentReportKeyRef.current = redirectKey;
+        if (!shouldRedirectToParentReport) {
+            if (reportLoadingState.hasOnceLoadedReportActions) {
+                decidedParentReportRedirectKeyRef.current = redirectKey;
+            }
+            return;
+        }
+        decidedParentReportRedirectKeyRef.current = redirectKey;
 
         // Stay in the Search RHP when the link was opened from there, so the search context isn't lost.
         const parentRoute =
@@ -616,7 +622,16 @@ function ReportFetchHandler() {
                 ? ROUTES.SEARCH_REPORT.getRoute({reportID: report.parentReportID, reportActionID: reportActionIDFromRoute, backTo: route.params?.backTo})
                 : ROUTES.REPORT_WITH_ID.getRoute(report.parentReportID, reportActionIDFromRoute, undefined, route.params?.backTo);
         Navigation.navigate(parentRoute, {forceReplace: true});
-    }, [shouldRedirectToParentReport, isFocused, report?.parentReportID, reportActionIDFromRoute, route.key, route.name, route.params?.backTo]);
+    }, [
+        shouldRedirectToParentReport,
+        isFocused,
+        report?.parentReportID,
+        reportActionIDFromRoute,
+        reportLoadingState.hasOnceLoadedReportActions,
+        route.key,
+        route.name,
+        route.params?.backTo,
+    ]);
 
     useEffect(() => {
         // This function is triggered when a user clicks on a link to navigate to a report.
