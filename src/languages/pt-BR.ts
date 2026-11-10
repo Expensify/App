@@ -9694,6 +9694,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         digits: {
             updateCurrencyTitle: 'Atualizar a moeda do espaço de trabalho?',
             updateCurrencyPrompt: 'No momento, o Digits só está disponível para empresas sediadas nos EUA que operam em USD.',
+            importDescription: 'Escolha quais configurações do Digits importar.',
+            accountTypesDescription: 'Suas contas do Digits serão importadas como categorias.',
+            enableNewAccountsTitle: 'Ativar contas recém-importadas',
+            enableNewAccountsDescription: 'Novas contas Digits ficarão disponíveis como categorias.',
+            dimensionsImport: 'Todas as dimensões Digits são importadas como tags.',
+            departments: 'Departamentos',
         },
         zohoBooks: {
             organization: 'Organização Zoho Books',

@@ -42,6 +42,7 @@ function useInsightsFilters(dashboard: InsightsDashboardID, shouldSkipFetch?: (n
 
     const defaultFilters: InsightsFilters = {
         ...DEFAULT_INSIGHTS_FILTERS,
+        date: dashboard === CONST.INSIGHTS.DASHBOARD.COMPLIANCE ? {preset: CONST.SEARCH.DATE_PRESETS.LAST_MONTH} : DEFAULT_INSIGHTS_FILTERS.date,
         groupCurrency: activePolicy?.outputCurrency ?? CONST.CURRENCY.USD,
     };
     const filters: InsightsFilters = {...defaultFilters, ...parseInsightsFilters(storedQuery)};
