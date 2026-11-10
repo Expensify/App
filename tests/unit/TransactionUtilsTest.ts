@@ -631,6 +631,7 @@ describe('TransactionUtils', () => {
                 transactionChanges: {merchant: 'Zero Scan edited'},
                 personalPolicyOutputCurrency: undefined,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
             updatedTransaction.pendingFields = {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
 
@@ -656,6 +657,7 @@ describe('TransactionUtils', () => {
                 transactionChanges: {merchant: 'Failed Scan edited'},
                 personalPolicyOutputCurrency: undefined,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
             updatedTransaction.pendingFields = {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
 
@@ -706,6 +708,7 @@ describe('TransactionUtils', () => {
                 transactionChanges: {distance: newDistance},
                 personalPolicyOutputCurrency: undefined,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then: quantity should be updated
@@ -769,6 +772,7 @@ describe('TransactionUtils', () => {
                 transactionChanges: {distance: 20},
                 personalPolicyOutputCurrency: undefined,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             expect(updatedTransaction.routes).toEqual(routes);
@@ -815,6 +819,7 @@ describe('TransactionUtils', () => {
                 transactionChanges: {customUnitRateID: 'rate2'},
                 personalPolicyOutputCurrency: undefined,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then: the amount/merchant are recalculated locally against the new rate (10 mi × rate2), not deferred to the server
@@ -862,6 +867,7 @@ describe('TransactionUtils', () => {
                 transactionChanges: {customUnitRateID: 'rate2'},
                 personalPolicyOutputCurrency: undefined,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then: the rate id updates, but amount/merchant recalculation is deferred to the server (no valid local mileage data)
@@ -924,6 +930,7 @@ describe('TransactionUtils', () => {
                 transactionChanges: {customUnitRateID: 'rate2'},
                 personalPolicyOutputCurrency: undefined,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then: the rate id updates, but the stale distance is not turned into an amount/merchant
@@ -989,6 +996,7 @@ describe('TransactionUtils', () => {
                     },
                     personalPolicyOutputCurrency: undefined,
                     getCurrencySymbol: getCurrencySymbolLocal,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
 
                 const expectedExclusion = rateUnitChanged ? 4.83 : 3;
@@ -1054,6 +1062,7 @@ describe('TransactionUtils', () => {
                 transactionChanges: {distance: 20},
                 personalPolicyOutputCurrency: undefined,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             expect(updatedTransaction.comment?.customUnit?.quantity).toBe(20);
@@ -1131,6 +1140,7 @@ describe('TransactionUtils', () => {
                 transactionChanges: {selectedRouteKey: 'route1'},
                 personalPolicyOutputCurrency: undefined,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // The commute is excluded from the new route's distance, so only the 17 reimbursable miles are charged.
@@ -1202,6 +1212,7 @@ describe('TransactionUtils', () => {
                     transactionChanges: {customUnitRateID: 'ID2'},
                     personalPolicyOutputCurrency: undefined,
                     getCurrencySymbol: getCurrencySymbolLocal,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
 
             // When the rate is changed
@@ -1280,6 +1291,7 @@ describe('TransactionUtils', () => {
                     transactionChanges: {distance: 20},
                     personalPolicyOutputCurrency: 'EUR',
                     getCurrencySymbol: getCurrencySymbolLocal,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
 
                 // Currency + merchant follow the threaded personal currency (EUR), and amount = 20 mi × 30¢ = 600.
@@ -1334,6 +1346,7 @@ describe('TransactionUtils', () => {
                     },
                     personalPolicyOutputCurrency: 'EUR',
                     getCurrencySymbol: getCurrencySymbolLocal,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
 
                 // Merchant currency and modifiedCurrency both follow the EUR personal-policy rate, not the USD transaction currency.
@@ -1394,6 +1407,7 @@ describe('TransactionUtils', () => {
                 },
                 personalPolicyOutputCurrency: undefined,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             expect(updatedTransaction.comment?.customUnit).toMatchObject({quantity: 20, commuterExclusion: 3, reimbursableDistance: 17});
@@ -1443,6 +1457,7 @@ describe('TransactionUtils', () => {
                 },
                 personalPolicyOutputCurrency: undefined,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then the whole 20 miles is reimbursable, rather than the old commute coming off it
@@ -1497,6 +1512,7 @@ describe('TransactionUtils', () => {
                 },
                 personalPolicyOutputCurrency: undefined,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then only the usual commute comes off the 20 mile trip, not the old full-trip exclusion
@@ -1516,6 +1532,7 @@ describe('TransactionUtils', () => {
                 transactionChanges: {amount: newAmount},
                 personalPolicyOutputCurrency: undefined,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             expect(updatedTransaction.modifiedAmount).toBe(-newAmount);
@@ -1531,6 +1548,7 @@ describe('TransactionUtils', () => {
                 transactionChanges: {amount: newAmount},
                 personalPolicyOutputCurrency: undefined,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             expect(updatedTransaction.modifiedAmount).toBe(newAmount);
@@ -1545,6 +1563,7 @@ describe('TransactionUtils', () => {
                 transactionChanges: {taxCode: 'id_TAX_RATE_1', taxAmount: 50, taxValue: '5%'},
                 personalPolicyOutputCurrency: undefined,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             expect(updatedTransaction.taxValue).toBe('5%');
@@ -1561,9 +1580,58 @@ describe('TransactionUtils', () => {
                 transactionChanges: {taxValue: '5%'},
                 personalPolicyOutputCurrency: undefined,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             expect(updatedTransaction.taxValue).toBe('10%');
+        });
+
+        it("resolves the category rule's tax when an existing expense's category changes", () => {
+            // Given an expense on a policy whose expense default sets a tax for the category being picked
+            const transaction = generateTransaction({category: 'Meals', taxCode: 'id_TAX_EXEMPT', taxValue: '0%', taxAmount: 0});
+            const policy: Policy = {...createRandomPolicy(0), id: '0', taxRates: CONST.DEFAULT_TAX};
+            const rules = createCategoryTaxRulesCollection('0', 'Advertising', 'id_TAX_RATE_1');
+
+            // When the category is edited, which an existing expense does without passing through the confirmation page
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                transactionChanges: {category: 'Advertising'},
+                policy,
+                rules,
+                personalPolicyOutputCurrency: undefined,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            // Then the optimistic update carries the rule's tax, so offline the expense shows it without waiting for the server
+            expect(updatedTransaction.taxCode).toBe('id_TAX_RATE_1');
+            expect(updatedTransaction.taxValue).toBe('5%');
+            expect(updatedTransaction.taxAmount).toBe(5);
+        });
+
+        it('leaves the tax alone when the category is cleared on a server backed edit', () => {
+            // Given an expense carrying the tax its category rule set
+            const transaction = generateTransaction({category: 'Advertising', taxCode: 'id_TAX_RATE_1', taxValue: '5%', taxAmount: 5});
+            const policy: Policy = {...createRandomPolicy(0), id: '0', taxRates: CONST.DEFAULT_TAX};
+            const rules = createCategoryTaxRulesCollection('0', 'Advertising', 'id_TAX_RATE_1');
+
+            // When the category is cleared
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                transactionChanges: {category: ''},
+                policy,
+                rules,
+                personalPolicyOutputCurrency: undefined,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            // Then the stored tax is left untouched, because the server leaves it untouched too and predicting a change would flicker
+            expect(updatedTransaction.taxCode).toBe('id_TAX_RATE_1');
+            expect(updatedTransaction.taxValue).toBe('5%');
+            expect(updatedTransaction.taxAmount).toBe(5);
         });
     });
 

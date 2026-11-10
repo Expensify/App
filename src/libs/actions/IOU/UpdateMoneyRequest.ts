@@ -322,6 +322,7 @@ function updateMoneyRequestDate({
             policy: effectivePolicy,
             delegateAccountID,
             currencyContext: {getCurrencyDecimals, getCurrencySymbol},
+            rules,
             hash,
             distanceOriginalPolicy,
             currentTransactionViolations,
@@ -608,6 +609,7 @@ function updateMoneyRequestMerchant({
             policy,
             delegateAccountID,
             currencyContext: {getCurrencyDecimals, getCurrencySymbol},
+            rules,
             hash,
         });
     } else {
@@ -1251,6 +1253,7 @@ function updateMoneyRequestDistance({
             policy,
             delegateAccountID,
             currencyContext: {personalPolicyOutputCurrency, getCurrencyDecimals, getCurrencySymbol},
+            rules,
             distanceOriginalPolicy,
         });
     } else {
@@ -1502,6 +1505,7 @@ function updateMoneyRequestDescription({
             policy,
             delegateAccountID,
             currencyContext: {getCurrencyDecimals, getCurrencySymbol},
+            rules,
             hash,
         });
     } else {
@@ -1646,6 +1650,7 @@ function updateMoneyRequestDistanceRate({
             policy,
             delegateAccountID,
             currencyContext: {personalPolicyOutputCurrency, getCurrencyDecimals, getCurrencySymbol},
+            rules,
             hash,
             shouldBuildOptimisticModifiedExpenseReportAction,
             distanceOriginalPolicy,
@@ -1771,6 +1776,7 @@ function updateMoneyRequestAmountAndCurrency({
             policy,
             delegateAccountID,
             currencyContext: {getCurrencyDecimals, getCurrencySymbol},
+            rules,
             hash,
         });
     } else {
@@ -1984,6 +1990,8 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
               policy,
               personalPolicyOutputCurrency,
               getCurrencySymbol,
+              getCurrencyDecimals,
+              rules,
           })
         : undefined;
 
@@ -2548,6 +2556,7 @@ type GetUpdateTrackExpenseParamsType = {
     policy: OnyxEntry<OnyxTypes.Policy>;
     delegateAccountID: number | undefined;
     currencyContext: TrackExpenseCurrencyContext;
+    rules: OnyxCollection<OnyxTypes.Rule>;
     hash?: number;
     shouldBuildOptimisticModifiedExpenseReportAction?: boolean;
     distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>;
@@ -2573,12 +2582,13 @@ function getUpdateTrackExpenseParams(
         policy,
         delegateAccountID,
         currencyContext,
+        rules,
         hash,
         shouldBuildOptimisticModifiedExpenseReportAction = true,
         distanceOriginalPolicy,
         currentTransactionViolations,
     } = params;
-    const {personalPolicyOutputCurrency, getCurrencySymbol} = currencyContext;
+    const {personalPolicyOutputCurrency, getCurrencySymbol, getCurrencyDecimals} = currencyContext;
     const optimisticData: Array<
         OnyxUpdate<
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
@@ -2617,6 +2627,8 @@ function getUpdateTrackExpenseParams(
               policy: policyForTransaction,
               personalPolicyOutputCurrency,
               getCurrencySymbol,
+              getCurrencyDecimals,
+              rules,
           })
         : null;
     const transactionDetails = getTransactionDetails(updatedTransaction);

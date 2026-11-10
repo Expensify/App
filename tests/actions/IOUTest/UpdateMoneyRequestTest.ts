@@ -488,6 +488,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 policy: createRandomPolicy(1),
                 delegateAccountID: undefined,
                 currencyContext: {getCurrencyDecimals: getCurrencyDecimalsLocal, getCurrencySymbol: getCurrencySymbolLocal},
+                rules: {},
                 hash: snapshotHash,
             });
             const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}` as const;
@@ -2128,6 +2129,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 policy: fakePolicy,
                 delegateAccountID: undefined,
                 currencyContext: {getCurrencyDecimals: getCurrencyDecimalsLocal, getCurrencySymbol: getCurrencySymbolLocal},
+                rules: {},
             });
 
             // Then the raw caller value flows into the API params instead of the rounded display value (5.56).
@@ -2207,6 +2209,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 policy: fakePolicy,
                 delegateAccountID: undefined,
                 currencyContext: {getCurrencyDecimals: getCurrencyDecimalsLocal, getCurrencySymbol: getCurrencySymbolLocal},
+                rules: {},
                 hash: snapshotHash,
                 currentTransactionViolations: [],
             });
@@ -2283,6 +2286,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 policy: fakePolicy,
                 delegateAccountID: undefined,
                 currencyContext: {getCurrencyDecimals: getCurrencyDecimalsLocal, getCurrencySymbol: getCurrencySymbolLocal},
+                rules: {},
             });
 
             // Then no optimistic or failure update targets a report key built from an undefined report ID.
