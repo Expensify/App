@@ -3,7 +3,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -63,7 +62,7 @@ import {
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {ownerPoliciesSelector} from '@src/selectors/Policy';
+import {canEditAnyWorkspaceSettingsSelector, ownerPoliciesSelector} from '@src/selectors/Policy';
 import type {Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -129,7 +128,6 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const {translate} = useLocalize();
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const {accountID, email = ''} = useCurrentUserPersonalDetails();
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const [priorFirstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
@@ -137,6 +135,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     const ownerPoliciesSelectorWithAccountID = (policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID);
     const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: ownerPoliciesSelectorWithAccountID});
+    const canEditAnyWorkspaceSettingsSelectorWithLogin = (policies: OnyxCollection<Policy>) => canEditAnyWorkspaceSettingsSelector(policies, email);
+    const [canEditAnyWorkspaceSettings] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: canEditAnyWorkspaceSettingsSelectorWithLogin});
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {isOffline} = useNetwork();
     const canPerformUpgrade = canModifyPlan(ownerPolicies, policy) || isUpgradingFromSubmitPolicy;
@@ -193,8 +193,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.id:
                 return Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.id:
-                // Connections also upgrades for HR, and passes itself as the page to return to
-                return Navigation.goBack((isUnifiedConnectionsBetaEnabled ? route.params.backTo : undefined) ?? ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+                // Connections upgrades for HR and passes itself as the page to return to
+                return Navigation.goBack(route.params.backTo ?? ROUTES.WORKSPACE_CONNECTIONS_HR.getRoute(policyID));
             default:
                 return route.params.backTo ? Navigation.goBack(route.params.backTo) : Navigation.goBack();
         }
@@ -311,17 +311,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.governmentDistanceRates.id: {
                 const storedGovernmentRateCountry = getAutoUpdateGovernmentRateCountry(policy);
                 const isSharedCurrency = isSharedGovernmentRateCurrency(policy?.outputCurrency);
-                if (!distanceRateCustomUnit || (isSharedCurrency && !storedGovernmentRateCountry)) {
+                if (!policy || !distanceRateCustomUnit || (isSharedCurrency && !storedGovernmentRateCountry)) {
                     break;
                 }
-                setWorkspaceDistanceAutoUpdate(
-                    policyID,
-                    distanceRateCustomUnit,
-                    true,
-                    governmentMileageRates ?? [],
-                    policy?.outputCurrency,
-                    isSharedCurrency ? storedGovernmentRateCountry : undefined,
-                );
+                setWorkspaceDistanceAutoUpdate(policy, true, governmentMileageRates ?? [], isSharedCurrency ? storedGovernmentRateCountry : undefined);
                 break;
             }
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.publicReceiptVisibility.id:
@@ -335,10 +328,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 enablePerDiem(policyID, true, perDiemCustomUnit?.customUnitID, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.id:
-                enablePolicyHR(policyID, true, !isUnifiedConnectionsBetaEnabled);
+                enablePolicyHR(policyID, true, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.recruiting.id:
-                enablePolicyRecruiting(policyID, true, !isUnifiedConnectionsBetaEnabled);
+                enablePolicyRecruiting(policyID, true, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id:
@@ -401,7 +394,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     // Editors can view the intro but only admins can upgrade, so we separate
     // access (canEditWorkspaceSettings) from the upgrade action (canPerformUpgrade).
-    if (policy ? !canEditWorkspaceSettings(policy) : !canPerformUpgrade) {
+    // Without a workspace in the route the page only pitches Control and links to the workspace list, so being able
+    // to edit any workspace is enough to view it.
+    const canViewUpgradePage = policy ? canEditWorkspaceSettings(policy) : canPerformUpgrade || !!canEditAnyWorkspaceSettings;
+    if (!canViewUpgradePage) {
         return <NotFoundPage />;
     }
 

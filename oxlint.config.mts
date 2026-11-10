@@ -1,8 +1,7 @@
 /**
- * oxlint runs next to ESLint for now (`npm run lint -- --linter=oxlint` and the non-blocking
- * oxlint.yml workflow), so this file copies config/eslint/eslint.config.mjs rule by rule.
- * If you change a rule there, change it here too. ESLint rules oxlint can't run natively come from
- * the JS plugins in config/oxlint/plugins.
+ * oxlint config for `npm run lint` (see contributingGuides/LINTING.md). Rules oxlint can't run
+ * natively come from the JS plugins in config/oxlint/plugins, which load the ESLint plugins' own
+ * rule code.
  */
 /* eslint-disable @typescript-eslint/naming-convention -- the rule names in this file are quoted object keys */
 /* eslint-disable import/no-extraneous-dependencies -- oxlint is a devDependency; this file only runs while linting */
@@ -56,7 +55,7 @@ const restrictedImportPaths = [
     {name: '@styles/utils', importNames: ['default', 'DefaultStyleUtils'], message: 'Do not import StyleUtils directly. Please use the `useStyleUtils` hook instead.'},
     {name: '@styles/theme', importNames: ['default', 'defaultTheme'], message: 'Do not import themes directly. Please use the `useTheme` hook instead.'},
     {name: '@styles/theme/illustrations', message: 'Do not import theme illustrations directly. Please use the `useThemeIllustrations` hook instead.'},
-    {name: 'date-fns/locale', message: "Do not import 'date-fns/locale' directly. Please use the submodule import instead, like 'date-fns/locale/en-GB'."},
+    {name: 'date-fns/locale', message: "Do not import 'date-fns/locale' directly. Please use the submodule import instead, like 'date-fns/locale/en-US'."},
     {
         name: 'expensify-common',
         importNames: ['Device', 'ExpensiMark'],
@@ -81,8 +80,7 @@ const restrictedImportPatterns = [
 const typescriptRestrictedImportPatterns = [
     ...restrictedImportPatterns,
     {
-        group: ['**/ReportNameUtils', '**/libs/ReportNameUtils'],
-        importNames: ['computeReportName'],
+        group: ['**/computeReportName', '**/libs/computeReportName'],
         message: 'Do not import computeReportName. Use getReportName instead, which properly uses derived report attributes.',
     },
     {
@@ -110,17 +108,141 @@ const restrictedHeaderImportPatterns = [
 const victoryChartRendererRestrictedImportPaths = restrictedImportPaths.filter((entry) => entry.name !== '@styles/theme');
 const victoryChartRendererRestrictedImportPatterns = typescriptRestrictedImportPatterns.filter((entry) => !entry.group.includes('@styles/theme/themes/**'));
 
+/**
+ * Pressables and the components that forward their `sentryLabel` prop to one, so the `no-restricted-syntax` rules below can require the label.
+ * The lists come from every JSX component whose props accept `sentryLabel`. Inputs (e.g. TextInput) and wrappers that fall back to a default
+ * label (e.g. FormProvider, RadioButton) are left out. Don't add new components here: give them a required `sentryLabel` prop instead, which
+ * TypeScript checks at every usage. Once a component's usages all have a label, make its prop required and remove it from these lists.
+ * Names of compound components are written with dots, e.g. `MenuItem.Root`.
+ */
+const SENTRY_LABEL_PRESSABLES = [
+    'PressableWithoutFeedback',
+    'PressableWithFeedback',
+    'PressableWithDelayToggle',
+    'PressableWithoutFocus',
+    'PressableWithSecondaryInteraction',
+    'AnimatedPressableWithoutFeedback',
+    'AnimatedPressableWithSecondaryInteraction',
+];
+
+/** Wrappers that only need a label when they get a press handler, since without one they can render read-only (e.g. a MenuItem without onPress). */
+const SENTRY_LABEL_PRESS_HANDLER_WRAPPERS = [
+    'AvatarButtonWithIcon',
+    'BaseMiniContextMenuItem',
+    'Button',
+    'ButtonDisabledWhenOffline',
+    'ButtonWithDropdownMenu',
+    'CardDetailsActionButton',
+    'CardSectionButton',
+    'Checkbox',
+    'ConfirmationPage.PrimaryButton',
+    'ConfirmationPage.SecondaryButton',
+    'ConfirmationPageButtonBase',
+    'ConfirmationPagePrimaryButton',
+    'ContextMenuItem',
+    'FeatureTraining.HelpButton',
+    'FocusableMenuItem',
+    'FormAlertWithSubmitButton',
+    'HighlightableMenuItem',
+    'MenuItem',
+    'MenuItem.Root',
+    'MenuItemAction',
+    'MenuItemAvatarNavigation',
+    'MenuItemField',
+    'MenuItemFieldHTML',
+    'MenuItemNavigation',
+    'MenuItemRoot',
+    'MenuItemSectionRoot',
+    'MenuItemWithLabel',
+    'MenuItemWithTopDescription',
+    'PopoverMenu.Item',
+    'PopoverMenu.RadioItem',
+    'RowMenuItem',
+    'SelectionButton',
+    'Table.Row',
+    'TableRow',
+    'TabSelectorItem',
+    'ToggleDistanceUnitButton',
+    'ViewButton',
+];
+
+/** Wrappers that handle the press themselves (e.g. ThreeDotsMenu opens its menu), so they always need a label. */
+const SENTRY_LABEL_SELF_PRESS_WRAPPERS = ['AvatarWithImagePicker', 'BookTravelButton', 'FeatureTraining.ConfirmButton', 'PopoverMenu.Sub.Trigger', 'ThreeDotsMenu'];
+
+/** Builds an esquery selector list matching JSX elements named e.g. `Button` or `MenuItem.Root`. */
+function jsxElementNamesSelector(names: string[]): string {
+    return names
+        .map((name) => {
+            const parts = name.split('.');
+            if (parts.length === 1) {
+                return `[name.name="${name}"]`;
+            }
+            return parts
+                .map((part, index) => {
+                    const path = ['name', ...Array<string>(parts.length - 1 - index).fill('object')].join('.');
+                    return index === 0 ? `[${path}.name="${part}"]` : `[${path}.property.name="${part}"]`;
+                })
+                .join('');
+        })
+        .join(', ');
+}
+
+/** `no-restricted-syntax` entries for all code. */
+const restrictedSyntax = [
+    {selector: 'TSEnumDeclaration', message: "Please don't declare enums, use union types instead."},
+    {
+        selector: 'CallExpression[callee.object.name="React"][callee.property.name="forwardRef"]',
+        message: 'forwardRef is deprecated. Please use ref as a prop instead. See: contributingGuides/STYLE.md#forwarding-refs',
+    },
+    {
+        selector: 'ImportNamespaceSpecifier[parent.source.value=/^@libs/]',
+        message: 'Namespace imports from @libs are not allowed. Use named imports instead. Example: import { method } from "@libs/module"',
+    },
+    {
+        selector: 'ImportNamespaceSpecifier[parent.source.value=/^@userActions/]',
+        message: 'Namespace imports from @userActions are not allowed. Use named imports instead. Example: import { action } from "@userActions/module"',
+    },
+    {
+        selector: 'ImportNamespaceSpecifier[parent.source.value=/^\\.\\./]',
+        message: 'Namespace imports from parent directories are not allowed. Use named imports instead. Example: import { method } from "../libs/module"',
+    },
+    {
+        selector: 'ImportNamespaceSpecifier[parent.source.value=/^\\./]',
+        message: 'Namespace imports from sibling modules are not allowed. Use named imports instead. Example: import { method } from "./libs/module"',
+    },
+    {selector: 'LabeledStatement', message: 'Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand.'},
+    {selector: 'WithStatement', message: '`with` is disallowed in strict mode because it makes code impossible to predict and optimize. It is also deprecated.'},
+];
+
+/** `no-restricted-syntax` entries that require a `sentryLabel` on pressables and pressable wrappers. */
+const sentryLabelRestrictedSyntax = [
+    {
+        selector: `JSXOpeningElement:matches(${jsxElementNamesSelector(SENTRY_LABEL_PRESSABLES)}):not(:has(> JSXAttribute[name.name="sentryLabel"]))`,
+        message: 'Pressable components must have a sentryLabel from CONST.SENTRY_LABEL. See contributingGuides/SENTRY_LABEL.md.',
+    },
+    {
+        // Spread props may carry the label, which a selector can't see, so those are skipped.
+        selector: `JSXOpeningElement:matches(${jsxElementNamesSelector(SENTRY_LABEL_PRESS_HANDLER_WRAPPERS)}):has(> JSXAttribute[name.name=/^on(Press|LongPress|SecondaryInteraction|Select|Submit)$/]):not(:has(> JSXAttribute[name.name="sentryLabel"])):not(:has(> JSXSpreadAttribute))`,
+        message: 'Button, MenuItem and other pressable wrappers that handle a press must have a sentryLabel from CONST.SENTRY_LABEL. See contributingGuides/SENTRY_LABEL.md.',
+    },
+    {
+        // Spread props may carry the label, which a selector can't see, so those are skipped.
+        selector: `JSXOpeningElement:matches(${jsxElementNamesSelector(SENTRY_LABEL_SELF_PRESS_WRAPPERS)}):not(:has(> JSXAttribute[name.name="sentryLabel"])):not(:has(> JSXSpreadAttribute))`,
+        message: 'ThreeDotsMenu, DropdownButton and other wrappers that handle their own press must have a sentryLabel from CONST.SENTRY_LABEL. See contributingGuides/SENTRY_LABEL.md.',
+    },
+];
+
 export default defineConfig({
     plugins: ['typescript', 'import', 'jsx-a11y', 'unicorn', 'react'],
     // oxlint reserves `react`, `import` and `jsdoc` for its native ports, so jsPlugins use these aliases.
     jsPlugins: [
         {name: 'rulesdir', specifier: './config/oxlint/plugins/expensify-rules.mjs'},
-        {name: 'report-name-utils', specifier: './config/eslint/plugins/eslint-plugin-report-name-utils.mjs'},
+        {name: 'report-name-utils', specifier: './config/oxlint/plugins/report-name-utils.mjs'},
         {name: 'core', specifier: './config/oxlint/plugins/core-rules.mjs'},
         {name: 'hosted', specifier: './config/oxlint/plugins/hosted-rules.mjs'},
         {name: 'rc', specifier: './config/oxlint/plugins/rc-rules.mjs'},
     ],
-    // Every rule is listed explicitly to mirror eslint.config.mjs.
+    // Every rule is listed explicitly; no category turns rules on by default.
     categories: {correctness: 'off'},
     options: {typeAware: true},
     env: {builtin: true, es2026: true, node: true, browser: true, audioworklet: true, jest: true},
@@ -143,7 +265,7 @@ export default defineConfig({
         '**/dist/**/*',
         'server/**/dist/**',
         'server/victory-chart-renderer/.dev/**',
-        '.eslint-reports/**/*',
+        '.lint-reports/**/*',
         'android/**/build/**/*',
         'docs/vendor/**/*',
         'docs/assets/**/*',
@@ -547,36 +669,7 @@ export default defineConfig({
         'typescript/no-unsafe-call': 'error',
         'typescript/no-unsafe-member-access': 'error',
         'react/jsx-key': 'error',
-        'core/no-restricted-syntax': [
-            'error',
-            {selector: 'TSEnumDeclaration', message: "Please don't declare enums, use union types instead."},
-            {
-                selector: 'CallExpression[callee.object.name="React"][callee.property.name="forwardRef"]',
-                message: 'forwardRef is deprecated. Please use ref as a prop instead. See: contributingGuides/STYLE.md#forwarding-refs',
-            },
-            {
-                selector: 'ImportNamespaceSpecifier[parent.source.value=/^@libs/]',
-                message: 'Namespace imports from @libs are not allowed. Use named imports instead. Example: import { method } from "@libs/module"',
-            },
-            {
-                selector: 'ImportNamespaceSpecifier[parent.source.value=/^@userActions/]',
-                message: 'Namespace imports from @userActions are not allowed. Use named imports instead. Example: import { action } from "@userActions/module"',
-            },
-            {
-                selector: 'ImportNamespaceSpecifier[parent.source.value=/^\\.\\./]',
-                message: 'Namespace imports from parent directories are not allowed. Use named imports instead. Example: import { method } from "../libs/module"',
-            },
-            {
-                selector: 'ImportNamespaceSpecifier[parent.source.value=/^\\./]',
-                message: 'Namespace imports from sibling modules are not allowed. Use named imports instead. Example: import { method } from "./libs/module"',
-            },
-            {
-                selector: 'JSXElement[openingElement.name.name=/^Pressable(WithoutFeedback|WithFeedback|WithDelayToggle|WithoutFocus)$/]:not(:has(JSXAttribute[name.name="sentryLabel"]))',
-                message: 'All Pressable components must include sentryLabel prop for Sentry tracking. Example: <PressableWithoutFeedback sentryLabel="MoreMenu-ExportFile" />',
-            },
-            {selector: 'LabeledStatement', message: 'Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand.'},
-            {selector: 'WithStatement', message: '`with` is disallowed in strict mode because it makes code impossible to predict and optimize. It is also deprecated.'},
-        ],
+        'core/no-restricted-syntax': ['error', ...restrictedSyntax, ...sentryLabelRestrictedSyntax],
         // ESLint's own rule, not oxlint's: the React Compiler gate spots the "wrap it in useCallback/useMemo"
         // reports by ESLint's wording, which oxlint's version does not use, and it only works on JS plugin rules.
         'hosted/exhaustive-deps': 'error',
@@ -876,9 +969,9 @@ export default defineConfig({
                         forbid: [
                             {
                                 propName: 'fsClass',
-                                allowedFor: ['View', 'Animated.View', 'Text', 'Pressable'],
+                                allowedFor: ['View', 'Animated.View', 'Text', 'Animated.Text', 'Pressable'],
                                 message:
-                                    "The 'fsClass' prop doesn't work for custom components, only RN's View, Text and Pressable.\nPlease use the 'ForwardedFSClassProps' or 'MultipleFSClassProps' types to pass down the desired 'fsClass' value to the allowed components.",
+                                    "The 'fsClass' prop doesn't work for custom components, only RN's View, Text and Pressable (plain or Animated).\nType the component's props with 'ForwardedFSClassProps' and pass 'forwardedFSClass' down to one of those, or wrap the content in 'FSClassView' so text inputs inside follow its class.",
                             },
                         ],
                     },
@@ -994,7 +1087,7 @@ export default defineConfig({
             jsPlugins: ['eslint-plugin-you-dont-need-lodash-underscore'],
         },
         {
-            files: ['.github/**/*', 'scripts/**/*', 'server/**/*', 'tests/**/*'],
+            files: ['.github/**/*', 'scripts/**/*', 'server/**/*', 'tests/**/*', '.claude/skills/*/scripts/**/*'],
             rules: {
                 'no-await-in-loop': 'off',
                 'core/no-restricted-syntax': ['error', 'ForInStatement', 'LabeledStatement', 'WithStatement'],
@@ -1265,6 +1358,8 @@ export default defineConfig({
             rules: {
                 // The storybook preset turns this off for stories.
                 'react/rules-of-hooks': 'off',
+                // Stories never send anything to Sentry, so they don't need a sentryLabel.
+                'core/no-restricted-syntax': ['error', ...restrictedSyntax],
                 'hosted/await-interactions': 'error',
                 'hosted/context-in-play-function': 'error',
                 'hosted/default-exports': 'error',

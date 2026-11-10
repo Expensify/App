@@ -130,7 +130,6 @@ You can customize your workspace by enabling additional features. Once enabled, 
 
 Popular options:
 - [Distance rates](https://help.expensify.com/articles/new-expensify/workspaces/Set-distance-rates)
-- [Accounting integrations](https://help.expensify.com/new-expensify/hubs/connections/)
 - [Workflows](https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows)
 - [Tags](https://help.expensify.com/articles/new-expensify/workspaces/Create-expense-tags)
 - [Taxes](https://help.expensify.com/articles/new-expensify/workspaces/Track-taxes)

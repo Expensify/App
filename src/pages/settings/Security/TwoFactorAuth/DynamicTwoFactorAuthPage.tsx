@@ -27,7 +27,6 @@ import {quitAndNavigateBack, setCodesAreCopied} from '@userActions/TwoFactorAuth
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
@@ -59,7 +58,7 @@ function DynamicTwoFactorAuthPage() {
         setStatusAnnouncement((prev) => ({id: prev.id + 1, text: message}));
     };
 
-    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     // EnableTwoFactorAuth mints a new secret on every call. Guard the in-flight request so a focus
     // flicker before recovery codes land cannot send a second Toggle and invalidate the first QR code.
     const hasRequestedEnableRef = useRef(false);
@@ -98,7 +97,7 @@ function DynamicTwoFactorAuthPage() {
             return;
         }
 
-        if (isLoadingOnyxValue(accountMetadata) || (is2FAEnabled && !is2FASetupInProgress) || account?.recoveryCodes || !isUserValidated) {
+        if ((is2FAEnabled && !is2FASetupInProgress) || account?.recoveryCodes || !isUserValidated) {
             return;
         }
 
@@ -113,7 +112,7 @@ function DynamicTwoFactorAuthPage() {
 
         toggleTwoFactorAuth(true);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
-    }, [isUserValidated, accountMetadata.status, isFocused, is2FAEnabled, is2FASetupInProgress]);
+    }, [isUserValidated, isFocused, is2FAEnabled, is2FASetupInProgress]);
 
     return (
         <TwoFactorAuthWrapper
