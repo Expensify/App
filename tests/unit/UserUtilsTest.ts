@@ -403,7 +403,14 @@ describe('UserUtils', () => {
                     partnerUserID: 'aa_user_example_com',
                     lastLogin: '2024-01-02',
                     validatedDate: null,
-                    errorFields: {revoke: {message: 'Unable to revoke login'}},
+                    errorFields: {
+                        revoke: {message: 'Unable to revoke login'},
+                        defaultLogin: undefined,
+                        validateLogin: undefined,
+                        addedLogin: undefined,
+                        deletedLogin: undefined,
+                        validateCodeSent: undefined,
+                    },
                 },
             };
 
