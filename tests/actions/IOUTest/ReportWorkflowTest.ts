@@ -5688,6 +5688,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             const outstandingReportPreview: ReportAction = {
                 ...createRandomReportAction(2),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                // eslint-disable-next-line @typescript-eslint/no-deprecated -- hasOutstandingChildRequest reads linkedReportID from the stored preview action.
                 originalMessage: {
                     linkedReportID: outstandingReport.reportID,
                 },
@@ -5723,6 +5724,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             approveMoneyRequest({
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                personalDetailsByLogins: {},
                 expenseReport: approvedReport,
                 expenseReportPolicy: policy,
                 currentUserAccountIDParam: CURRENT_USER_ACCOUNT_ID,
