@@ -40,7 +40,8 @@ function ConnectionsGrid({listings, policyID}: ConnectionsGridProps) {
                         />
                     );
                 }
-                if (listing.waitlistConnectionName) {
+                const waitlistConnectionName = CONST.POLICY.CONNECTIONS.WAITLIST_CONNECTION_NAMES.find((name) => name === listing.key);
+                if (waitlistConnectionName) {
                     // A waitlist signup belongs to a workspace, so there is nothing to join without one
                     if (!policyID) {
                         return null;
@@ -48,7 +49,7 @@ function ConnectionsGrid({listings, policyID}: ConnectionsGridProps) {
                     return (
                         <AccountingIntegrationWaitlistCard
                             key={listing.key}
-                            connectionName={listing.waitlistConnectionName}
+                            connectionName={waitlistConnectionName}
                             title={listing.title}
                             icon={listing.icon}
                             policyID={policyID}
