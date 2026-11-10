@@ -60,7 +60,12 @@ function activate(session: Session) {
 }
 
 function tryReconnect() {
-    if (getIsOffline() || !active) {
+    if (getIsOffline()) {
+        // The image asks again once the device is back online, so it has to start over then
+        deactivate();
+        return;
+    }
+    if (!active) {
         return;
     }
 
@@ -70,7 +75,11 @@ function tryReconnect() {
 }
 
 function tryReauthenticate() {
-    if (getIsOffline() || !active) {
+    if (getIsOffline()) {
+        deactivate();
+        return;
+    }
+    if (!active) {
         return;
     }
     reauthenticate().catch((error) => {
