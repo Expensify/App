@@ -154,6 +154,7 @@ function BookingView({booking, bookingApproval, onPress}: BookingViewProps) {
     return (
         // eslint-disable-next-line @typescript-eslint/no-deprecated -- Matches the reservation rows above; the compound MenuItem has no leaf for the trip reservation icon.
         <MenuItemWithTopDescription
+            sentryLabel={CONST.SENTRY_LABEL.TRIP_ROOM_PREVIEW.BOOKING}
             description={description}
             descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
             title={getBookingTitle(translate, booking.reservations)}
