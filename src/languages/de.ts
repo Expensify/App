@@ -8618,6 +8618,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Unsere Campfire-Integration ist nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
+            [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: {
+                title: 'Digits',
+                description: `Profitiere von automatisierter Synchronisierung und reduziere manuelle Eingaben mit der Expensify + Digits-Integration. Richte Spesenkodierungsdimensionen auf deine Digits-Einrichtung aus, um eine klarere finanzielle Übersicht zu erhalten.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Unsere Digits-Integration ist nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
                 title: 'Dynamics 365 Business Central',
                 description: `Profitiere von automatisierter Synchronisierung und reduziere manuelle Eingaben mit der Expensify + Dynamics 365 Business Central-Integration. Richte Spesenkodierungsdimensionen und die Steuersynchronisierung auf deine Dynamics 365 Business Central-Einrichtung aus, um eine klarere finanzielle Übersicht zu erhalten.`,
@@ -9741,6 +9747,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 },
             },
         },
+        digits: {
+            updateCurrencyTitle: 'Arbeitsbereichswährung aktualisieren?',
+            updateCurrencyPrompt: 'Digits ist derzeit nur für Unternehmen mit Sitz in den USA verfügbar, die in USD arbeiten.',
+        },
         zohoBooks: {
             organization: 'Zoho Books-Organisation',
             organizationSelectDescription: 'Wählen Sie die Organisation in Zoho Books aus, aus der Sie Daten importieren möchten.',
@@ -9979,7 +9989,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         scheduleACall: 'Anruf planen',
         questionMarkButtonTooltip: 'Holen Sie sich Unterstützung von unserem Team',
         exploreHelpDocs: 'Hilfedokumente durchsuchen',
-        registerForWebinar: 'Für Webinar registrieren',
+        registerForWebinar: 'Webinar',
         onboardingHelp: 'Onboarding-Hilfe',
     },
     emojiPicker: {

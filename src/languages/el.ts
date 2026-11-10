@@ -8906,6 +8906,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Η ενοποίησή μας με το Campfire είναι διαθέσιμη μόνο στο πρόγραμμα Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
             },
+            [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: {
+                title: 'Digits',
+                description: `Απολαύστε τον αυτόματο συγχρονισμό και μειώστε τις χειροκίνητες εγγραφές με την ενσωμάτωση Expensify + Digits. Ευθυγραμμίστε τις διαστάσεις κωδικοποίησης εξόδων με τη ρύθμιση Digits για πιο ξεκάθαρη οικονομική εικόνα.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Η ενοποίησή μας με το Digits είναι διαθέσιμη μόνο στο πρόγραμμα Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
                 title: 'Dynamics 365 Business Central',
                 description: `Απολαύστε τον αυτόματο συγχρονισμό και μειώστε τις χειροκίνητες εγγραφές με την ενσωμάτωση Expensify + Dynamics 365 Business Central. Ευθυγραμμίστε τις διαστάσεις κωδικοποίησης εξόδων και τον συγχρονισμό φόρων με τη ρύθμιση Dynamics 365 Business Central για πιο ξεκάθαρη οικονομική εικόνα.`,
@@ -9898,6 +9904,10 @@ ${reportName}`,
                 },
             },
         },
+        digits: {
+            updateCurrencyTitle: 'Ενημέρωση νομίσματος χώρου εργασίας;',
+            updateCurrencyPrompt: 'Το Digits είναι προς το παρόν διαθέσιμο μόνο για εταιρείες με έδρα στις ΗΠΑ που λειτουργούν σε USD.',
+        },
         zohoBooks: {
             organization: 'Οργανισμός Zoho Books',
             organizationSelectDescription: 'Επιλέξτε τον οργανισμό στο Zoho Books από τον οποίο θέλετε να εισαγάγετε δεδομένα.',
@@ -10138,7 +10148,7 @@ ${reportName}`,
         scheduleACall: 'Προγραμματίστε κλήση',
         questionMarkButtonTooltip: 'Λάβετε βοήθεια από την ομάδα μας',
         exploreHelpDocs: 'Δείτε τις οδηγίες βοήθειας',
-        registerForWebinar: 'Εγγραφείτε στο διαδικτυακό σεμινάριο',
+        registerForWebinar: 'Διαδικτυακό σεμινάριο',
         onboardingHelp: 'Βοήθεια εκκίνησης',
     },
     emojiPicker: {

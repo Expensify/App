@@ -8579,6 +8579,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Integracja z Campfire jest dostępna tylko w planie Control, zaczynającym się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
             },
+            [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: {
+                title: 'Digits',
+                description: `Korzystaj z automatycznej synchronizacji i ogranicz ręczne wprowadzanie danych dzięki integracji Expensify + Digits. Dopasuj wymiary kategoryzacji wydatków do konfiguracji Digits, aby uzyskać lepszą widoczność finansową.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Integracja z Digits jest dostępna tylko w planie Control, zaczynającym się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
                 title: 'Dynamics 365 Business Central',
                 description: `Korzystaj z automatycznej synchronizacji i ogranicz ręczne wprowadzanie danych dzięki integracji Expensify + Dynamics 365 Business Central. Dopasuj wymiary kategoryzacji wydatków i synchronizację podatków do konfiguracji Dynamics 365 Business Central, aby uzyskać lepszą widoczność finansową.`,
@@ -9683,6 +9689,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 },
             },
         },
+        digits: {
+            updateCurrencyTitle: 'Zaktualizować walutę przestrzeni roboczej?',
+            updateCurrencyPrompt: 'Digits jest obecnie dostępny tylko dla firm z siedzibą w USA, które działają w USD.',
+        },
         zohoBooks: {
             organization: 'Organizacja Zoho Books',
             organizationSelectDescription: 'Wybierz organizację w Zoho Books, z której chcesz importować dane.',
@@ -9928,7 +9938,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         scheduleACall: 'Zaplanuj rozmowę',
         questionMarkButtonTooltip: 'Uzyskaj pomoc od naszego zespołu',
         exploreHelpDocs: 'Przeglądaj centrum pomocy',
-        registerForWebinar: 'Zarejestruj się na webinar',
+        registerForWebinar: 'Webinar',
         onboardingHelp: 'Pomoc przy wdrażaniu',
     },
     emojiPicker: {

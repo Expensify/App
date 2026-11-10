@@ -8724,6 +8724,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>Nuestra integración con Campfire solo está disponible en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
+            [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: {
+                title: 'Digits',
+                description: `Disfruta de la sincronización automatizada y reduce las entradas manuales con la integración Expensify + Digits. Alinea las dimensiones de codificación de gastos con tu configuración de Digits para una visibilidad financiera más clara.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>Nuestra integración con Digits solo está disponible en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
                 title: 'Dynamics 365 Business Central',
                 description: `Disfruta de la sincronización automatizada y reduce las entradas manuales con la integración Expensify + Dynamics 365 Business Central. Alinea dimensiones de codificación de gastos y la sincronización de impuestos con tu configuración de Dynamics 365 Business Central para una visibilidad financiera más clara.`,
@@ -9635,6 +9641,10 @@ ${reportName}`,
                 },
             },
         },
+        digits: {
+            updateCurrencyTitle: '¿Actualizar la moneda del espacio de trabajo?',
+            updateCurrencyPrompt: 'Digits actualmente solo está disponible para empresas con sede en EE. UU. que operan en USD.',
+        },
         zohoBooks: {
             organization: 'Organización Zoho Books',
             organizationSelectDescription: 'Elige la organización de Zoho Books desde la que deseas importar datos.',
@@ -9872,7 +9882,7 @@ ${reportName}`,
         scheduleACall: 'Programar llamada',
         questionMarkButtonTooltip: 'Obtén ayuda de nuestro equipo',
         exploreHelpDocs: 'Explorar la documentación de ayuda',
-        registerForWebinar: 'Registrarse para el seminario web',
+        registerForWebinar: 'Seminario web',
         onboardingHelp: 'Ayuda de incorporación',
     },
     emojiPicker: {

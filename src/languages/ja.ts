@@ -8446,6 +8446,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Campfire 連携は Control プランでのみご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からご利用いただけます。</muted-text>`,
             },
+            [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: {
+                title: 'Digits',
+                description: `Expensify と Digits の連携で自動同期を活用し、手入力を減らしましょう。経費のコーディングディメンションを Digits の設定に合わせて、財務の可視性を高めます。`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Digits 連携は Control プランでのみご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からご利用いただけます。</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
                 title: 'Dynamics 365 Business Central',
                 description: `Expensify と Dynamics 365 Business Central の連携で自動同期を活用し、手入力を減らしましょう。経費のコーディングディメンションと税務同期を Dynamics 365 Business Central の設定に合わせて、財務の可視性を高めます。`,
@@ -9532,6 +9538,10 @@ ${reportName}`,
                 },
             },
         },
+        digits: {
+            updateCurrencyTitle: 'ワークスペースの通貨を更新しますか？',
+            updateCurrencyPrompt: 'Digits は現在、USD で運営されている米国拠点の企業のみご利用いただけます。',
+        },
         zohoBooks: {
             organization: 'Zoho Books 組織',
             organizationSelectDescription: 'データをインポートする Zoho Books の組織を選択してください。',
@@ -9760,7 +9770,7 @@ ${reportName}`,
         scheduleACall: '通話を予約',
         questionMarkButtonTooltip: 'サポートチームに問い合わせる',
         exploreHelpDocs: 'ヘルプドキュメントを確認',
-        registerForWebinar: 'ウェビナーに登録',
+        registerForWebinar: 'ウェビナー',
         onboardingHelp: 'オンボーディングヘルプ',
     },
     emojiPicker: {

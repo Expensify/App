@@ -8241,6 +8241,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>我们的 Campfire 集成仅适用于 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
+            [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: {
+                title: 'Digits',
+                description: `通过 Expensify 与 Digits 的集成，享受自动同步，减少手动录入。将费用编码维度与您的 Digits 配置对齐，以获得更清晰的财务可见性。`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>我们的 Digits 集成仅适用于 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
                 title: 'Dynamics 365 Business Central',
                 description: `通过 Expensify 与 Dynamics 365 Business Central 的集成，享受自动同步，减少手动录入。将费用编码维度与税务同步与您的 Dynamics 365 Business Central 配置对齐，以获得更清晰的财务可见性。`,
@@ -9279,6 +9285,10 @@ ${reportName}`,
                 },
             },
         },
+        digits: {
+            updateCurrencyTitle: '更新工作区货币？',
+            updateCurrencyPrompt: 'Digits 目前仅适用于在美国运营且使用美元的公司。',
+        },
         zohoBooks: {
             organization: 'Zoho Books 组织',
             organizationSelectDescription: '选择您要从中导入数据的 Zoho Books 组织。',
@@ -9507,7 +9517,7 @@ ${reportName}`,
         scheduleACall: '安排通话',
         questionMarkButtonTooltip: '获取我们团队的协助',
         exploreHelpDocs: '浏览帮助文档',
-        registerForWebinar: '注册网络研讨会',
+        registerForWebinar: '网络研讨会',
         onboardingHelp: '入门帮助',
     },
     emojiPicker: {
