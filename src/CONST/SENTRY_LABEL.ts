@@ -1638,6 +1638,7 @@ const SENTRY_LABEL = {
     },
     SETTINGS_EXIT_SURVEY: {
         GO_TO_CLASSIC: 'SettingsExitSurvey-GoToExpensifyClassic',
+        GO_BACK_JUST_ONCE: 'SettingsExitSurvey-GoBackJustOnce',
     },
     MESSAGES_ROW: {
         DISMISS: 'MessagesRow-Dismiss',
