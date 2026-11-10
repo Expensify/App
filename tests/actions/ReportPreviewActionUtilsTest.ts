@@ -10,7 +10,7 @@ import {hasOnlyNonReimbursableTransactions, isPayer} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {NetSuiteConnection} from '@src/types/onyx/Policy';
 
 import Onyx from 'react-native-onyx';
@@ -47,6 +47,10 @@ jest.mock('@libs/ReportUtils', () => ({
 }));
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    // Read these exports lazily because PolicyUtils and TransactionUtils import each other.
+    isPolicyMember: (...args: Parameters<typeof PolicyUtils.isPolicyMember>) => jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyMember(...args),
+    isPolicyAdmin: (...args: Parameters<typeof PolicyUtils.isPolicyAdmin>) => jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAdmin(...args),
+    isInstantSubmitEnabled: (...args: Parameters<typeof PolicyUtils.isInstantSubmitEnabled>) => jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils').isInstantSubmitEnabled(...args),
     isPreferredExporter: jest.fn().mockReturnValue(true),
     hasAccountingConnections: jest.fn().mockReturnValue(true),
     getValidConnectedIntegration: jest.fn().mockReturnValue('netsuite'),
@@ -702,6 +706,110 @@ describe('getReportPreviewAction', () => {
     });
 
     describe('canApprove', () => {
+        it.each([
+            {
+                name: 'no violations',
+                violation: undefined,
+                isAdmin: true,
+                isDismissed: false,
+                shouldPrioritizeView: false,
+            },
+            {
+                name: 'a violation outside the preview rows',
+                violation: CONST.VIOLATIONS.MISSING_CATEGORY,
+                isAdmin: true,
+                isDismissed: false,
+                shouldPrioritizeView: true,
+            },
+            {
+                name: 'a dismissed violation',
+                violation: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                isAdmin: true,
+                isDismissed: true,
+                shouldPrioritizeView: false,
+            },
+            {
+                name: 'an auto-approval notice visible to an admin',
+                violation: CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT,
+                isAdmin: true,
+                isDismissed: false,
+                shouldPrioritizeView: true,
+            },
+            {
+                name: 'an auto-approval notice hidden from a non-admin',
+                violation: CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT,
+                isAdmin: false,
+                isDismissed: false,
+                shouldPrioritizeView: false,
+            },
+            {
+                name: 'an RTER warning hidden on a weekly workspace',
+                violation: CONST.VIOLATIONS.RTER,
+                isAdmin: true,
+                isDismissed: false,
+                shouldPrioritizeView: false,
+            },
+        ])('prioritizes View based on $name', ({violation, isAdmin, isDismissed, shouldPrioritizeView}) => {
+            // Given an approvable report with six expenses and a violation only on its last expense
+            const report = createMock<Report>({
+                reportID: `${REPORT_ID}`,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: 2,
+                managerID: CURRENT_USER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            });
+            const policy = createMock<Policy>({
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: isAdmin ? CONST.POLICY.ROLE.ADMIN : CONST.POLICY.ROLE.USER,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY,
+            });
+            const transactions = Array.from({length: 6}, (_, index) =>
+                createMock<Transaction>({
+                    transactionID: `${index + 1}`,
+                    reportID: `${REPORT_ID}`,
+                    amount: 100,
+                    merchant: 'Test Merchant',
+                    created: '2025-01-01',
+                    comment:
+                        violation && isDismissed
+                            ? {
+                                  dismissedViolations: {
+                                      [violation]: {[CURRENT_USER_EMAIL]: '2025-01-01'},
+                                  },
+                              }
+                            : {},
+                }),
+            );
+
+            // When the decision uses the full report's transactions and the current approver's visibility rules
+            const action = getReportPreviewAction({
+                isReportArchived: false,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                report,
+                policy,
+                transactions,
+                violationsData: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}6`]: violation
+                        ? [
+                              createMock<TransactionViolation>({
+                                  name: violation,
+                                  type: violation === CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT ? CONST.VIOLATION_TYPES.NOTICE : CONST.VIOLATION_TYPES.VIOLATION,
+                              }),
+                          ]
+                        : [],
+                },
+                bankAccountList: {},
+                reportMetadata: undefined,
+                ownerLogin: 'submitter@example.com',
+                rules: undefined,
+            });
+
+            // Then approval remains available, with View promoted only for a visible violation
+            expect(action).toBe(shouldPrioritizeView ? CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE_WITH_VIOLATIONS : CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
+        });
         it('should return true for report being processed', async () => {
             const report = {
                 ...createRandomReport(REPORT_ID, undefined),
@@ -812,6 +920,52 @@ describe('getReportPreviewAction', () => {
                 created: '2025-01-01',
             });
 
+            expect(
+                getReportPreviewAction({
+                    isReportArchived: false,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_EMAIL,
+                    report,
+                    policy,
+                    transactions: [transaction],
+                    bankAccountList: {},
+                    reportMetadata: undefined,
+                    ownerLogin: CURRENT_USER_EMAIL,
+                    rules: undefined,
+                }),
+            ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+        });
+
+        it('should return VIEW for report whose only expense failed SmartScan with missing fields', async () => {
+            // Given a submitted expense report whose only expense failed SmartScan and has no amount
+            const report = {
+                ...createRandomReport(REPORT_ID, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: CURRENT_USER_ACCOUNT_ID,
+                isWaitingOnBankAccount: false,
+            };
+
+            const policy = createRandomPolicy(0);
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+            policy.approver = CURRENT_USER_EMAIL;
+            policy.approvalMode = CONST.POLICY.APPROVAL_MODE.BASIC;
+            policy.preventSelfApproval = false;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            const transaction = createMock<Transaction>({
+                reportID: `${REPORT_ID}`,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {source: 'receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+                amount: 0,
+                merchant: 'Merchant',
+                created: '2025-01-01',
+            });
+
+            // When getting the report preview action
+            // Then it should be VIEW instead of APPROVE because the expense still needs its missing fields filled in
             expect(
                 getReportPreviewAction({
                     isReportArchived: false,
