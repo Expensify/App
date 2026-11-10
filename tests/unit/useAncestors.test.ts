@@ -182,6 +182,30 @@ describe('useAncestors', () => {
         expect(result.current.map(({report}) => report.reportID)).toEqual(['cycleParent']);
     });
 
+    test('updates the new marker when the action before the ancestor changes', async () => {
+        // Given an unread parent action whose previous action is unread too, so the parent is not the first unread one
+        const parentReport: Report = {reportID: 'markerParent', lastReadTime: '2026-01-01 00:00:01.000'};
+        const childReport: Report = {reportID: 'markerChild', parentReportID: 'markerParent', parentReportActionID: 'parentAction'};
+        const readAction: ReportAction = {reportActionID: 'readAction', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '2026-01-01 00:00:00.500'};
+        const previousAction: ReportAction = {reportActionID: 'previousAction', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '2026-01-01 00:00:02.000'};
+        const parentAction: ReportAction = {reportActionID: 'parentAction', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '2026-01-01 00:00:03.000'};
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}markerParent`, parentReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}markerParent`, {readAction, previousAction, parentAction});
+        });
+        const {result} = renderHook(() => useAncestors(childReport));
+        await waitForBatchedUpdates();
+        expect(result.current.at(0)?.shouldDisplayNewMarker).toBe(false);
+
+        // When the previous action is removed, so the parent becomes the first unread action
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}markerParent`, {previousAction: null});
+        });
+
+        // Then the ancestor shows the new marker without waiting for another write to the parent report
+        expect(result.current.at(0)?.shouldDisplayNewMarker).toBe(true);
+    });
+
     test('if no ancestor reports', () => {
         const mockReport = mockReports[`${ONYXKEYS.COLLECTION.REPORT}1`]; // First report, should have no ancestors
         const {

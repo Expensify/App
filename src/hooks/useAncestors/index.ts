@@ -1,5 +1,6 @@
 import useOnyx from '@hooks/useOnyx';
 
+import {getSortedReportActions} from '@libs/ReportActionsUtils';
 import type {Ancestor} from '@libs/ReportUtils';
 import {getAncestors, getParentReportChain} from '@libs/ReportUtils';
 
@@ -21,7 +22,7 @@ function selectAncestorReports(reports: OnyxCollection<Report>, report: OnyxEntr
     return ancestorReports;
 }
 
-/** Keeps only the parent report actions the given report was created from, up the chain */
+/** Keeps only the parent report actions the given report was created from, up the chain, and the action before each one */
 function selectAncestorReportActions(
     reportActions: OnyxCollection<ReportActions>,
     report: OnyxEntry<Report>,
@@ -31,10 +32,19 @@ function selectAncestorReportActions(
     const ancestorReportActions: OnyxCollection<ReportActions> = {};
     for (const {reportID, reportActionID} of getParentReportChain(report, ancestorReports, reportDrafts)) {
         const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
-        const ancestorReportAction = reportActions?.[reportActionsKey]?.[reportActionID];
-        if (ancestorReportAction) {
-            ancestorReportActions[reportActionsKey] = {[reportActionID]: ancestorReportAction};
+        const parentReportActions = reportActions?.[reportActionsKey];
+        const ancestorReportAction = parentReportActions?.[reportActionID];
+        if (!ancestorReportAction) {
+            continue;
         }
+
+        // The new marker on an ancestor also depends on the action before it, so a change to that action has to re-render too.
+        const sortedReportActions = getSortedReportActions(Object.values(parentReportActions ?? {}));
+        const ancestorIndex = sortedReportActions.findIndex((action) => action.reportActionID === reportActionID);
+        const previousReportAction = ancestorIndex > 0 ? sortedReportActions.at(ancestorIndex - 1) : undefined;
+        ancestorReportActions[reportActionsKey] = previousReportAction
+            ? {[previousReportAction.reportActionID]: previousReportAction, [reportActionID]: ancestorReportAction}
+            : {[reportActionID]: ancestorReportAction};
     }
     return ancestorReportActions;
 }
