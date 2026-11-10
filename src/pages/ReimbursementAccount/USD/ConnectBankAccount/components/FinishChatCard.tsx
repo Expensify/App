@@ -40,14 +40,11 @@ type FinishChatCardProps = {
     /** The policy which the user has access to and which the report is tied to */
     policy: OnyxEntry<Policy>;
 
-    /** Method to set the state of USD bank account step */
-    setUSDBankAccountStep?: (step: string | null) => void;
-
     /** Route to return to when navigating back out of the flow */
     backTo?: Route;
 };
 
-function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, setUSDBankAccountStep, backTo}: FinishChatCardProps) {
+function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, backTo}: FinishChatCardProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -61,7 +58,6 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, se
     useResetBankAccountModal({
         reimbursementAccount,
         isNonUSDWorkspace: false,
-        setUSDBankAccountStep,
     });
 
     const handleNavigateToConciergeChat = () =>

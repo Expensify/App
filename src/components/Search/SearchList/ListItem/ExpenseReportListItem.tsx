@@ -25,6 +25,7 @@ import {useReportPaymentContext} from '@hooks/usePaymentContext';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchActionPress from '@hooks/useSearchActionPress';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -46,6 +47,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, Report} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {transactionViolationsByIDsSelector} from '@selectors/TransactionViolations';
@@ -112,6 +114,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const {isSelectAllChecked: isSelected, isIndeterminate} = useGroupCheckboxState({
         groupKey: item.keyForList,
         groupTransactions: reportItem.transactions ?? [],
+        groupCount: undefined,
     });
     const {translate, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
@@ -199,7 +202,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                 policyCategories,
                 transaction.category ?? '',
                 getAttendees(transaction),
-                currentUserDetails,
+                submitterLogin,
                 isAttendeeTrackingEnabled(policyForViolations),
                 policyForViolations.type === CONST.POLICY.TYPE.CORPORATE,
                 isInvoice,
@@ -212,7 +215,8 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {showConfirmModal} = useConfirmModal();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
-    const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
+    const {shouldDisableSearchSubmitPress} = useSearchSubmitPopoverGuard();
+    const beginSearchActionPress = useSearchActionPress();
     const {transactions: reportTransactions, violations: reportViolations} = useTransactionsAndViolationsForReport(reportItem.reportID);
     const liveReportTransactions = Object.values(reportTransactions);
     const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
@@ -244,25 +248,16 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const [liveViolationsForSnapshotTransactions] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
         selector: transactionViolationsByIDsSelector(snapshotTransactionIDs),
     });
-    const {
-        currentUserAccountID,
-        currentUserLogin,
-        introSelected,
-        isASAPSubmitBetaEnabled,
-        isWiseReimbursementsBetaEnabled,
-        isSelfTourViewed,
-        activePolicy,
-        chatReportPolicy,
-        amountOwed,
-        delegateEmail,
-        delegateAccountID,
-        conciergeChat,
-        bankAccountList,
-    } = useReportPaymentContext({
-        chatReportPolicyID: chatReport?.policyID,
-    });
+    const {currentUserAccountID, currentUserLogin, isASAPSubmitBetaEnabled, isWiseReimbursementsBetaEnabled, activePolicy, chatReportPolicy, delegateEmail, delegateAccountID} =
+        useReportPaymentContext({
+            chatReportPolicyID: chatReport?.policyID,
+        });
 
-    const handleOnButtonPress = () => {
+    const handleOnButtonPress = async () => {
+        const pressTimeInputs = await beginSearchActionPress(liveReportItem.action);
+        if (!pressTimeInputs) {
+            return;
+        }
         handleActionButtonPress({
             isASAPSubmitBetaEnabled,
             isWiseReimbursementsBetaEnabled,
@@ -282,16 +277,11 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             personalPolicyID,
             confirmSubmitReportViolations,
             ownerBillingGracePeriodEnd,
-            amountOwed,
             openReportSubmitToPopover,
-            shouldDisableSearchSubmitPress,
-            consumeIgnoreNextSearchSubmitPress,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             currentUserAccountID,
             currentUserLogin,
-            introSelected,
-            isSelfTourViewed,
             activePolicy,
             chatReport,
             chatReportPolicy,
@@ -306,8 +296,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             allViolations: liveViolationsForSnapshotTransactions,
             rules,
             personalDetailsByLogins: getPersonalDetailsByLogin(),
-            conciergeChat,
-            bankAccountList,
+            ...pressTimeInputs,
         });
     };
 
@@ -356,9 +345,23 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         : !!reportItem.hasVisibleViolations;
     const hasVisibleReportViolations = hasLiveTransactions ? liveHasVisibleViolations : fallbackHasVisibleViolations;
     const hasAnyVisibleViolations = hasVisibleReportViolations || hasSyncedMissingAttendeesViolation;
+    const shouldShowViolationsMessage = hasAnyVisibleViolations && shouldShowViolationDescription;
+
+    // Prefer live Onyx errors so the message goes away once the error is dismissed in the report
+    const hasReportErrors = !isEmptyObject(parentReport ? parentReport.errors : item.errors);
+
+    const descriptionMessages: string[] = [];
+    if (reportItem?.isRejectedReport) {
+        descriptionMessages.push(translate('iou.rejectReport.rejectedReportMessage'));
+    } else if (shouldShowViolationsMessage) {
+        descriptionMessages.push(translate('reportViolations.reportContainsExpensesWithViolations'));
+    }
+    if (hasReportErrors) {
+        descriptionMessages.push(translate('reportViolations.reportHasErrors'));
+    }
 
     let getDescription;
-    if (reportItem?.isRejectedReport) {
+    if (descriptionMessages.length > 0) {
         getDescription = (
             <View
                 style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.userSelectNone]}
@@ -381,47 +384,22 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                         },
                     ]}
                 >
-                    {translate('iou.rejectReport.rejectedReportMessage')}
+                    {descriptionMessages.join(' ')}
                 </Text>
             </View>
         );
-    } else {
-        getDescription =
-            !hasAnyVisibleViolations || !shouldShowViolationDescription ? undefined : (
-                <View
-                    style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.userSelectNone]}
-                    dataSet={{
-                        [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true,
-                    }}
-                >
-                    <Icon
-                        src={expensifyIcons.DotIndicator}
-                        fill={theme.danger}
-                        additionalStyles={[styles.mr1]}
-                        width={12}
-                        height={12}
-                    />
-                    <Text
-                        style={[
-                            isLargeScreenWidth ? styles.textMicro : styles.mutedNormalTextLabel,
-                            {
-                                color: theme.textError,
-                            },
-                        ]}
-                    >
-                        {translate('reportViolations.reportContainsExpensesWithViolations')}
-                    </Text>
-                </View>
-            );
     }
 
     // Full label for the button (its whole announcement); just a row identifier for the group, whose cells are reachable.
     const rowAccessibilityLabel = canSelectMultiple ? liveReportItem.reportName : getExpenseReportRowAccessibilityLabel(liveReportItem, {translate, dateFnsLocale, convertToDisplayString});
 
+    // Report errors are summarized in the description above, so don't let the list item show them as a separate row
+    const itemWithoutErrors = {...item, errors: undefined};
+
     // Keep nested controls reachable: a group on web, and accessible={false} on iOS (which otherwise collapses children).
     return (
         <ListItemComposed
-            item={item}
+            item={itemWithoutErrors}
             isSelected={isSelected}
             accessible={canSelectMultiple && shouldBreakAccessibilityGrouping() ? false : undefined}
             accessibilityRole={canSelectMultiple ? CONST.ROLE.GROUP : undefined}

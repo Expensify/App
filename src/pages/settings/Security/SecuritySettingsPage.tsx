@@ -139,7 +139,11 @@ function SecuritySettingsPage() {
                 }
                 if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.INVOICING) {
                     Navigation.navigate(
-                        ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(currentUserPersonalDetails.login ?? '', CONST.MERGE_ACCOUNT_RESULTS.ERR_INVOICING, ROUTES.SETTINGS_SECURITY),
+                        ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(
+                            currentUserPersonalDetails.login ?? '',
+                            CONST.MERGE_ACCOUNT_RESULTS.ERR_INVOICING,
+                            ROUTES.SETTINGS_SECURITY.getRoute(),
+                        ),
                     );
                     return;
                 }

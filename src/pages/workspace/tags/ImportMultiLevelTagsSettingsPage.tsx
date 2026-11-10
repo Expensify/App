@@ -35,7 +35,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
@@ -54,7 +53,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
     const styles = useThemeStyles();
     const [isImportingTags, setIsImportingTags] = useState(false);
     const {setIsClosing} = useCloseImportPage();
-    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
     const {isBetaEnabled} = usePermissions();
     const isAppendingToExistingLists = hasAccountingConnections && isBetaEnabled(CONST.BETAS.INDIRECT_TAG_UPLOADS) && !!spreadsheet?.isAppendingToExistingLists;
@@ -81,10 +80,6 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
         }
         closeImportPageAndModal();
     };
-
-    if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
-        return;
-    }
 
     if (hasAccountingConnections && !isAppendingToExistingLists) {
         return <NotFoundPage />;
@@ -120,6 +115,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                         <Switch
                             isOn={spreadsheet?.containsHeader ?? true}
                             accessibilityLabel={translate('workspace.tags.importMultiLevelTags.firstRowTitle')}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.IMPORT_FIRST_ROW_TITLE_SWITCH}
                             onToggle={(value) => {
                                 setImportedSpreadsheetIsFirstLineHeader(value);
                             }}
@@ -139,6 +135,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                             <Switch
                                 isOn={spreadsheet?.isImportingIndependentMultiLevelTags ?? true}
                                 accessibilityLabel={translate('workspace.tags.importMultiLevelTags.independentTags')}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.IMPORT_INDEPENDENT_TAGS_SWITCH}
                                 onToggle={(value) => {
                                     setImportedSpreadsheetIsImportingIndependentMultiLevelTags(value);
                                 }}
@@ -157,6 +154,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                         <Switch
                             isOn={spreadsheet?.isGLAdjacent ?? false}
                             accessibilityLabel={translate('workspace.tags.importMultiLevelTags.glAdjacentColumn')}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.IMPORT_GL_ADJACENT_COLUMN_SWITCH}
                             onToggle={(value) => {
                                 setImportedSpreadsheetIsGLAdjacent(value);
                             }}

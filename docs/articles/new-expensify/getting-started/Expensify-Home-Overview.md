@@ -120,10 +120,7 @@ To display a different insight, select the insight title and choose another insi
 - **Top merchants**
 - **Top spenders**
 
-To view all available insights: 
-
- - On web, select **Insights** in the navigation tabs on the left.
- - On mobile, select **Spend** in the navigation tabs on the bottom,.
+To view all available insights, select **Insights** in the navigation tabs (on the left on web, on the bottom on mobile).
 
 To learn more about each insight, see [Learn About Insights](/articles/new-expensify/insights/Learn-About-Insights).
 

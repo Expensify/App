@@ -3,12 +3,11 @@ import {ALL_WIDE_RIGHT_MODALS, SUPER_WIDE_RIGHT_MODALS} from '@components/WideRH
 import SidePanelActions from '@libs/actions/SidePanel';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import clearSelectedTextIfComposerBlurred from '@libs/clearSelectedTextIfComposerBlurred/clearSelectedTextIfComposerBlurred';
-import {getErrorMessage} from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {setupHadTabNavigation} from '@libs/hadTabNavigation';
 import Log from '@libs/Log';
 import {cancelSkipNextFocusRestore, skipNextFocusRestore} from '@libs/NavigationFocusReturn';
-import {shallowCompare} from '@libs/ObjectUtils';
+import {filterObject, shallowCompare} from '@libs/ObjectUtils';
 import {holdPendingSearchWriteFlush, releasePendingSearchWriteFlush} from '@libs/pendingSearchWrite';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
@@ -43,7 +42,6 @@ import {clearPreservedNavigatorStates} from './AppNavigator/createSplitNavigator
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
 import getActiveRoute from './helpers/getActiveRoute';
 import getActiveTabName from './helpers/getActiveTabName';
-import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
 import getFocusedReportParams from './helpers/getFocusedReportParams';
 import getStateFromPath from './helpers/getStateFromPath';
 import getTopmostReportParams from './helpers/getTopmostReportParams';
@@ -367,9 +365,10 @@ const routeParamsIgnore = ['path', 'initial', 'params', 'state', 'screen', 'poli
 /**
  * @private
  * If we use destructuring, we will get an error if any of the ignored properties are not present in the object.
+ * Empty-string params are dropped because they produce the same URL as a missing param, e.g. a cleared `reportActionID`.
  */
 function getRouteParamsToCompare(routeParams: Record<string, string | undefined>) {
-    return omit(routeParams, routeParamsIgnore);
+    return filterObject(omit(routeParams, routeParamsIgnore), (_key, value) => value !== '');
 }
 
 /**
@@ -773,31 +772,10 @@ function resetToAppRoot() {
     navigationRef.current?.reset({index: 0, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]});
 }
 
-/**
- * Drops the navigation caches that belong to the current session, so the next session can't restore them.
- * Every session boundary (sign-out and copilot switches) must call this, so add any new per-session navigation cache here.
- */
+/** Called on every session boundary (sign-out, copilot switch), so add any new per-session navigation cache here. */
 function clearSessionNavigationState() {
     clearPreservedNavigatorStates();
     clearLastVisitedTabPaths();
-}
-
-/**
- * Starts navigation over from `route` when the signed-in account changes without a sign-out, e.g. a copilot switch.
- * Otherwise screens of the previous account stay mounted (e.g. their workspace chat in the Inbox tab) and show "not found".
- * It never throws, because callers run it in the middle of the account switch and a failed reset must not abort it.
- */
-function resetForSessionChange(route: Route) {
-    clearSessionNavigationState();
-
-    if (!navigationRef.isReady()) {
-        return;
-    }
-    try {
-        navigationRef.resetRoot({...getAdaptedStateFromPath(route), stale: true});
-    } catch (error) {
-        Log.hmmm('[Navigation] Failed to reset navigation for session change', {error: getErrorMessage(error)});
-    }
 }
 
 /**
@@ -1424,7 +1402,6 @@ export default {
     resetToHome,
     resetToAppRoot,
     clearSessionNavigationState,
-    resetForSessionChange,
     goBackToHome,
     closeRHPFlow,
     setNavigationActionToMicrotaskQueue,

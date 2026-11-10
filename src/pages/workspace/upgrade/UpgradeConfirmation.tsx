@@ -53,7 +53,7 @@ function UpgradeConfirmation({policyName, planName, afterUpgradeAcknowledged, is
         description = <Text style={[styles.textAlignCenter, styles.w100]}>{translate('workspace.upgrade.completed.distanceRateMessage')}</Text>;
     } else {
         description = (
-            <View style={[styles.renderHTML, styles.w100]}>
+            <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter, styles.w100]}>
                 <RenderHTML html={translate('workspace.upgrade.completed.successMessage', policyName, planName ?? translate('workspace.type.control'), subscriptionLink)} />
             </View>
         );
