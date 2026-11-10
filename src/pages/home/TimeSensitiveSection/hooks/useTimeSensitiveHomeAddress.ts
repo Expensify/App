@@ -1,5 +1,6 @@
 import useOnyx from '@hooks/useOnyx';
 
+import {isArchivedOrPendingDeletePolicy} from '@libs/PolicyUtils';
 import {getEffectiveWorkArrangement} from '@libs/WorkArrangementUtils';
 
 import CONST from '@src/CONST';
@@ -12,7 +13,7 @@ const createNeedsHomeAddressWorkspaceSelector = (currentUserEmail: string | unde
     Object.values(policies ?? {}).some(
         (policy) =>
             policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE &&
-            policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+            !isArchivedOrPendingDeletePolicy(policy) &&
             getEffectiveWorkArrangement(currentUserEmail ? policy.employeeList?.[currentUserEmail]?.hasOfficeWorkArrangement : undefined, policy.commuterExclusions.isOfficeWorkArrangement),
     );
 
@@ -20,7 +21,7 @@ const hasHomeAddressSelector = (privatePersonalDetails: OnyxEntry<PrivatePersona
 
 /**
  * Surfaces the "Add a home address" item under Home > Time sensitive when the user belongs to at
- * least one active workspace that measures their commute from home - the homeAndOffice
+ * least one active (not archived or deleted) workspace that measures their commute from home - the homeAndOffice
  * commuter-exclusion method, with the user office-based under it - but has no home address recorded
  * in their private personal details.
  */

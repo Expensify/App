@@ -218,6 +218,7 @@ function AccountDetailsPage() {
                         />
                     </View>
                     <FormAlertWithSubmitButton
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SECURITY.MERGE_ACCOUNTS_NEXT}
                         isAlertVisible={!!genericError}
                         onSubmit={() => {
                             formRef.current?.submit();

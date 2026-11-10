@@ -16,14 +16,14 @@ const onUnhandledRejection = (event: PromiseRejectionEvent) => {
             return;
         }
 
-        Log.alert(`Unhandled Promise Rejection: ${event.reason.message}\nStack: ${event.reason.stack}`, {}, false);
+        Log.hmmm(`Unhandled Promise Rejection: ${event.reason.message}\nStack: ${event.reason.stack}`);
         return;
     }
 
     if (typeof event.reason === 'object' && event.reason !== null) {
         rejection = JSON.stringify(event.reason);
     }
-    Log.alert(`Unhandled Promise Rejection: ${String(rejection)}`, {}, false);
+    Log.hmmm(`Unhandled Promise Rejection: ${String(rejection)}`);
 };
 
 function ErrorBoundary({errorMessage, children}: Omit<BaseErrorBoundaryProps, 'logError'>) {

@@ -51,8 +51,13 @@ function TrackTrainingPage() {
                 />
                 <FeatureTraining.Body>
                     <FeatureTraining.DismissOption />
-                    <FeatureTraining.HelpButton onPress={onHelp}>{translate('common.learnMore')}</FeatureTraining.HelpButton>
-                    <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
+                    <FeatureTraining.HelpButton
+                        onPress={onHelp}
+                        sentryLabel={CONST.SENTRY_LABEL.TRACK_TRAINING.HELP_BUTTON}
+                    >
+                        {translate('common.learnMore')}
+                    </FeatureTraining.HelpButton>
+                    <FeatureTraining.ConfirmButton sentryLabel={CONST.SENTRY_LABEL.TRACK_TRAINING.CONFIRM_BUTTON}>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
                 </FeatureTraining.Body>
             </FeatureTraining>
         </CenteredModalLayout>
