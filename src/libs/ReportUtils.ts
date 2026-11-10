@@ -11567,11 +11567,6 @@ function reasonForReportToBeInOptionList({
         return null;
     }
 
-    // Members and admins are always participants, so this workspace chat is only here for the "From" on a report shared with the user.
-    if (isPolicyExpenseChat(report) && !report.isOwnPolicyExpenseChat && !isReportArchived && !!report.participants && !!currentUserAccountID && !report.participants[currentUserAccountID]) {
-        return null;
-    }
-
     const parentReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
 
     // If this is a transaction thread associated with a report that only has one transaction, omit it
