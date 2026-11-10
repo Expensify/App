@@ -587,9 +587,21 @@ function getCombinedCardFeedsFromAllFeeds(
                 }
             }
 
+            // Use the local reimbursable value during pending or failed saves. The OAuth value may be stale.
+            const hasLocalReimbursableChange = !!feedSettings?.pendingFields?.forceReimbursable || !!feedSettings?.errorFields?.forceReimbursable;
+            const reimbursableOverrides: Partial<CombinedCardFeed> =
+                oAuthAccountDetails && hasLocalReimbursableChange
+                    ? {
+                          forceReimbursable: feedSettings?.forceReimbursable ?? oAuthAccountDetails.forceReimbursable,
+                          pendingFields: {...oAuthAccountDetails.pendingFields, ...feedSettings?.pendingFields},
+                          errorFields: {...oAuthAccountDetails.errorFields, ...feedSettings?.errorFields},
+                      }
+                    : {};
+
             const combinedCardFeed: CombinedCardFeed = {
                 ...feedSettings,
                 ...oAuthAccountDetails,
+                ...reimbursableOverrides,
                 customFeedName: customFeedName ?? feedSettings?.uploadLayoutSettings?.layoutName,
                 domainID,
                 feed: feedName,

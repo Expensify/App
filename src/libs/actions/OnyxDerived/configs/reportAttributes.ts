@@ -3,6 +3,7 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
+import computeReportName from '@libs/computeReportName';
 import {convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {translate as translateForLocale} from '@libs/Localize';
@@ -11,7 +12,6 @@ import {format, formatToParts} from '@libs/NumberFormatUtils';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isPolicyFieldListEmpty} from '@libs/PolicyUtils';
 import {getLinkedTransactionID, isActionableCardFraudAlert, isDeletedAction} from '@libs/ReportActionsUtils';
-import {computeReportName} from '@libs/ReportNameUtils';
 import {
     generateIsEmptyReport,
     generateReportAttributes,
@@ -667,10 +667,18 @@ export default createOnyxDerivedValueConfig({
                     currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     currentUserLogin: session?.email ?? '',
                     isOffline,
+                    reportsTransactions,
                 });
 
                 const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-                const hasFieldViolations = hasVisibleReportFieldViolations(report, policy, session?.accountID, rules, reportNameValuePair);
+                const hasFieldViolations = hasVisibleReportFieldViolations(
+                    report,
+                    policy,
+                    session?.accountID,
+                    rules,
+                    getLoginByAccountID(report.ownerAccountID, personalDetails),
+                    reportNameValuePair,
+                );
 
                 let brickRoadStatus;
                 let actionBadge;
@@ -678,6 +686,7 @@ export default createOnyxDerivedValueConfig({
                 let needsParentChatErrorPropagation = false;
                 const reasonAndReportAction = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                     report,
+                    policy,
                     chatReport,
                     reportActions: reportActionsList,
                     hasViolations: hasAnyViolations || hasFieldViolations,

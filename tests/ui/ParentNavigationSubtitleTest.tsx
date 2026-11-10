@@ -1,7 +1,13 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
+import type * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportActionVisible} from '@libs/ReportActionsUtils';
+
+import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
+import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
+import type {Report} from '@src/types/onyx';
 
 import type {RouteProp} from '@react-navigation/native';
 
@@ -14,6 +20,11 @@ import ONYXKEYS from '../../src/ONYXKEYS';
 import SCREENS from '../../src/SCREENS';
 import createMock from '../utils/createMock';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+const mockTranslate = <TPath extends TranslationPaths>(key: TPath, ...parameters: TranslationParameters<TPath>) =>
+    jest.requireActual<typeof Localize>('@libs/Localize').translate(CONST.LOCALES.EN, key, ...parameters);
+
+jest.mock('@hooks/useLocalize', () => () => ({translate: mockTranslate}));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
@@ -90,6 +101,10 @@ function getMockRootStateWithReportsSplitStack(parentReportID: string, expenseRe
 }
 
 describe('ParentNavigationSubtitle', () => {
+    beforeAll(async () => {
+        await IntlStore.load(CONST.LOCALES.EN);
+    });
+
     beforeEach(() => {
         jest.clearAllMocks();
         jest.mocked(isReportActionVisible).mockReturnValue(false);
@@ -410,6 +425,85 @@ describe('ParentNavigationSubtitle', () => {
 
             // Then the visibility check uses the new parent's slice, because the selector is rebuilt for the new parentReportID
             expect(jest.mocked(isReportActionVisible).mock.calls.at(0)?.at(3)).toEqual({[otherReportID]: {[parentReportActionID]: false}});
+        });
+    });
+
+    describe('bill subtitle', () => {
+        const billReportID = 'bill-report';
+        const subtitleData = {workspaceName: 'Receiver Policy'};
+
+        beforeAll(() => {
+            Onyx.init({keys: ONYXKEYS});
+        });
+
+        beforeEach(async () => {
+            await Onyx.clear();
+            mockUseRoute.mockReturnValue(createMock<AnyRoute>({name: SCREENS.REPORT}));
+            mockUseRootNavigationState.mockImplementation((selector?: (state: unknown) => unknown) => selector?.({routes: []}));
+        });
+
+        it('shows the status and policy name without a parent link or connecting words', async () => {
+            // Given a bill has no parent chat to open.
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${billReportID}`, createMock<Report>({reportID: billReportID, type: CONST.REPORT.UNSUPPORTED_TYPE.BILL}));
+
+            // When the subtitle renders with only the policy name.
+            render(
+                <ParentNavigationSubtitle
+                    parentNavigationSubtitleData={subtitleData}
+                    reportID={billReportID}
+                    statusText="Approved"
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            // Then the subtitle keeps the status without suggesting that the bill belongs to a chat.
+            expect(screen.getByText('Approved')).toBeTruthy();
+            expect(screen.getByText(subtitleData.workspaceName, {exact: true})).toBeTruthy();
+            expect(screen.queryByText(/From|\bin\b/)).toBeNull();
+            expect(screen.queryByTestId('parent-navigation-subtitle-link')).toBeNull();
+        });
+
+        it('keeps hiding the subtitle of a report that is not a bill when only the policy name is known', async () => {
+            // Given a thread whose parent chat the user cannot access, so its subtitle has a policy name but no parent name.
+            const threadReportID = 'thread-report';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, createMock<Report>({reportID: threadReportID, type: CONST.REPORT.TYPE.CHAT, hasParentAccess: false}));
+
+            // When the subtitle renders.
+            render(
+                <ParentNavigationSubtitle
+                    parentNavigationSubtitleData={{reportName: '', ...subtitleData}}
+                    reportID={threadReportID}
+                    parentReportID="parent-chat"
+                    statusText="Open"
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            // Then nothing renders, because only bills show the policy name without a parent chat.
+            expect(screen.queryByText('Open')).toBeNull();
+            expect(screen.queryByText(subtitleData.workspaceName)).toBeNull();
+        });
+
+        it('keeps the parent link and connecting words for an expense report', async () => {
+            // Given an expense report belongs to a policy expense chat.
+            const expenseReportID = 'expense-report';
+            const parentReportID = 'policy-expense-chat';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {reportID: expenseReportID, hasParentAccess: true});
+
+            // When its subtitle renders with a chat and a policy name.
+            render(
+                <ParentNavigationSubtitle
+                    parentNavigationSubtitleData={{reportName: "bob's expenses", ...subtitleData}}
+                    reportID={expenseReportID}
+                    parentReportID={parentReportID}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            // Then expense reports still show where the request came from.
+            expect(screen.getByTestId('parent-navigation-subtitle-link')).toBeTruthy();
+            expect(screen.getByText('From ')).toBeTruthy();
+            expect(screen.getByText(` in ${subtitleData.workspaceName}`)).toBeTruthy();
         });
     });
 });

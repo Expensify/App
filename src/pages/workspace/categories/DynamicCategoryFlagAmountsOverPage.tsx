@@ -2,7 +2,7 @@ import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 
@@ -111,13 +111,13 @@ function DynamicCategoryFlagAmountsOverPage({
                         />
                         <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.rules.categoryRules.flagAmountsOverSubtitle')}</Text>
                     </View>
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        title={translate(`workspace.rules.categoryRules.expenseLimitTypes.${expenseLimitType}`)}
-                        description={translate('common.type')}
-                        onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSE_LIMIT_TYPE_SELECTOR.path))}
-                        wrapperStyle={[styles.ph5, styles.mt3]}
-                    />
+                    <View style={styles.mt3}>
+                        <MenuItemField
+                            name={translate('common.type')}
+                            value={translate(`workspace.rules.categoryRules.expenseLimitTypes.${expenseLimitType}`)}
+                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSE_LIMIT_TYPE_SELECTOR.path))}
+                        />
+                    </View>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

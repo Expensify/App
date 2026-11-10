@@ -60,18 +60,19 @@ describe('Wise business onboarding dynamic routes', () => {
         expect(focusedRoute.params).not.toHaveProperty('subPage');
     });
 
-    it.each(ENTRY_POINTS)('opens the terms on top of the confirmation page from %s', (_label, basePath) => {
-        // Given the terms suffix appended to the onboarding's confirmation page
-        const confirmationPath = createDynamicRoute(DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute(CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY), getIntroPath(basePath));
-        const route = createDynamicRoute(DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path, confirmationPath);
+    it.each([
+        ['the terms', DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path, SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ACCEPT_TERMS],
+        ['the status', DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path, SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ONBOARDING_STATUS],
+    ] as const)('opens %s on top of the intro, since each page after the form replaces the one before', (_label, suffix, screen) => {
+        // Given the page's suffix appended to the intro, where the replaced form leaves it
+        const route = createDynamicRoute(suffix, getIntroPath(ROUTES.SETTINGS_WALLET));
 
-        // When the URL is parsed into navigation state
+        // When the URL is parsed into navigation state, as on a refresh
         const focusedRoute = getFocusedRoute(getStateFromPath(route));
 
-        // Then the terms screen is focused, and going back strips one layer to land on the confirmation page
-        expect(focusedRoute.name).toBe(SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ACCEPT_TERMS);
+        // Then the page is focused with the bank account from the intro underneath
+        expect(focusedRoute.name).toBe(screen);
         expect(focusedRoute.params).toMatchObject({bankAccountID: String(BANK_ACCOUNT_ID)});
-        expect(stripDynamicRouteSuffixFromPath(route, DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path)).toBe(confirmationPath);
     });
 
     it.each(ENTRY_POINTS)('goes back from the onboarding to the intro from %s', (_label, basePath) => {

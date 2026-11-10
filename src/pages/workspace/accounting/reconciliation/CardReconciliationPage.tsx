@@ -1,7 +1,7 @@
 import CardFeedIcon from '@components/CardFeedIcon';
 import FeedSelector from '@components/FeedSelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -182,6 +182,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                         subtitle={translate('workspace.accounting.saveHoursOnReconciliation')}
                         shouldPlaceSubtitleBelowSwitch
                         switchAccessibilityLabel={translate('workspace.accounting.continuousReconciliation')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CONTINUOUS_RECONCILIATION_SWITCH}
                         disabled={!autoSync}
                         isActive={!!continuousReconciliation}
                         onToggle={handleToggleContinuousReconciliation}
@@ -201,13 +202,13 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                     )}
                     <OfflineWithFeedback pendingAction={continuousReconciliationPendingAction}>
                         {!!paymentBankAccountID && !!continuousReconciliation && (
-                            <MenuItemWithTopDescription
-                                style={styles.mt5}
-                                title={bankAccountTitle}
-                                description={translate('workspace.accounting.reconciliationAccount')}
-                                shouldShowRightIcon
-                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path))}
-                            />
+                            <View style={styles.mt5}>
+                                <MenuItemField
+                                    name={translate('workspace.accounting.reconciliationAccount')}
+                                    value={bankAccountTitle}
+                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path))}
+                                />
+                            </View>
                         )}
                     </OfflineWithFeedback>
                 </ScrollView>

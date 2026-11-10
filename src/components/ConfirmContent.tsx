@@ -88,6 +88,9 @@ type ConfirmContentProps = {
     /** Whether the confirm button is loading */
     isConfirmLoading?: boolean;
 
+    /** Whether the confirm button is disabled */
+    isConfirmDisabled?: boolean;
+
     /** Whether to show a loading indicator next to the title */
     isTitleLoading?: boolean;
 
@@ -131,6 +134,7 @@ function ConfirmContent({
     shouldReverseStackedButtons = false,
     isVisible,
     isConfirmLoading,
+    isConfirmDisabled = false,
     isTitleLoading = false,
     shouldEnablePromptScroll = false,
     shouldUseSuccessStyleForConfirm = false,
@@ -234,8 +238,9 @@ function ConfirmContent({
                             onPress={onConfirm}
                             size={CONST.BUTTON_SIZE.LARGE}
                             accessibilityLabel={confirmText || translate('common.yes')}
-                            isDisabled={isOffline && shouldDisableConfirmButtonWhenOffline}
+                            isDisabled={(isOffline && shouldDisableConfirmButtonWhenOffline) || isConfirmDisabled}
                             isLoading={isConfirmLoading}
+                            sentryLabel={CONST.SENTRY_LABEL.CONFIRM_CONTENT.CONFIRM_BUTTON}
                         >
                             <Button.KeyboardShortcut isPressOnEnterActive={isVisible} />
                             <Button.Text>{confirmText || translate('common.yes')}</Button.Text>
@@ -264,8 +269,9 @@ function ConfirmContent({
                             variant={confirmButtonVariant}
                             style={[styles.flex1]}
                             onPress={onConfirm}
-                            isDisabled={isOffline && shouldDisableConfirmButtonWhenOffline}
+                            isDisabled={(isOffline && shouldDisableConfirmButtonWhenOffline) || isConfirmDisabled}
                             isLoading={isConfirmLoading}
+                            sentryLabel={CONST.SENTRY_LABEL.CONFIRM_CONTENT.CONFIRM_BUTTON}
                         >
                             <Button.KeyboardShortcut isPressOnEnterActive={isVisible} />
                             <Button.Text>{confirmText || translate('common.yes')}</Button.Text>

@@ -85,6 +85,7 @@ function useConfirmationTransactionPager(initialTransaction: OnyxEntry<Transacti
         transactions,
         transaction,
         existingTransaction,
+        optimisticTransaction,
         currentTransactionID,
         currentTransactionIndex,
         setCurrentTransactionID,

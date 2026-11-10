@@ -1,7 +1,3 @@
-import type {FlashListRef} from '@shopify/flash-list';
-import type {RefObject} from 'react';
+import type ActionListRefType from '@pages/inbox/ActionListTypes';
 
-/** Ref to the underlying list instance attached via `ref={}`. */
-type FlatListRefType = RefObject<FlashListRef<unknown> | null> | null;
-
-export default FlatListRefType;
+export default ActionListRefType;

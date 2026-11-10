@@ -9,8 +9,11 @@ import {advancedSearchPoliciesSelector, useAdvancedSearchFiltersWorkspaces} from
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
+import filterPolicies from '@libs/filterPolicies';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy} from '@src/types/onyx';
 
 import React, {useState} from 'react';
 
@@ -26,9 +29,17 @@ type InsightsWorkspacePopupProps = {
 
     onChange: (policyIDs: string[]) => void;
     closeOverlay: () => void;
+
+    /** Limits the list to the workspaces the dashboard reports on */
+    isPolicyAvailable?: (policy: Policy) => boolean;
 };
 
-function InsightsWorkspacePopup({label, value, onChange, closeOverlay}: InsightsWorkspacePopupProps) {
+type InsightsWorkspaceControlProps = InsightsControlProps<string[]> & {
+    /** Limits the list to the workspaces the dashboard reports on, or lists every workspace when absent */
+    isPolicyAvailable?: (policy: Policy) => boolean;
+};
+
+function InsightsWorkspacePopup({label, value, onChange, closeOverlay, isPolicyAvailable}: InsightsWorkspacePopupProps) {
     const [selectedPolicyIDs, setSelectedPolicyIDs] = useState(value);
 
     const applyChanges = () => {
@@ -46,25 +57,26 @@ function InsightsWorkspacePopup({label, value, onChange, closeOverlay}: Insights
             label={label}
             onApply={applyChanges}
             onReset={resetChanges}
-            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_MULTI_SELECT}
-            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_MULTI_SELECT}
+            applySentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_APPLY.WORKSPACE}
+            resetSentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_RESET.WORKSPACE}
         >
             <ListFilterHeightContextProvider>
                 <WorkspaceSelector
                     value={selectedPolicyIDs}
                     onChange={(policyIDs) => setSelectedPolicyIDs(policyIDs ?? [])}
+                    isPolicyAvailable={isPolicyAvailable}
                 />
             </ListFilterHeightContextProvider>
         </BasePopup>
     );
 }
 
-function InsightsWorkspaceControl({value, onChange}: InsightsControlProps<string[]>) {
+function InsightsWorkspaceControl({value, onChange, isPolicyAvailable}: InsightsWorkspaceControlProps) {
     const {translate} = useLocalize();
     const workspaceNames = useFilterWorkspaceValue(value);
     const label = translate('workspace.common.workspace');
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: advancedSearchPoliciesSelector});
-    const {workspaces} = useAdvancedSearchFiltersWorkspaces(policies);
+    const {workspaces} = useAdvancedSearchFiltersWorkspaces(filterPolicies(policies, isPolicyAvailable));
 
     const workspacePopover = ({closeOverlay}: PopoverComponentProps) => (
         <InsightsWorkspacePopup
@@ -72,6 +84,7 @@ function InsightsWorkspaceControl({value, onChange}: InsightsControlProps<string
             value={value}
             onChange={onChange}
             closeOverlay={closeOverlay}
+            isPolicyAvailable={isPolicyAvailable}
         />
     );
 

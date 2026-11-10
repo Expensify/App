@@ -46,8 +46,8 @@ If a report is in **Draft** status, clicking the export button may load an empty
 
 Sage Intacct uses Web Services credentials (company ID, user ID, and password) that may need to be updated periodically. You can proactively update your credentials at any time. 
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces** > **[Workspace Name]** > **Accounting**.
-2. Select the three dots **(⋮)** next to the Sage Intacct connection.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**, then select **Configure** next to Sage Intacct.
+2. Select **More (⋮)**.
 3. Click **Update credentials**.
 4. Enter your updated credentials.
 5. Click **Confirm**.
@@ -58,8 +58,8 @@ Sage Intacct uses Web Services credentials (company ID, user ID, and password) t
 
 If you need to disconnect the integration:
 
-1. Go to **Workspace > [Workspace Name] > Accounting**.  
-2. Click the three-dot icon to the right of the connection.  
+1. Select **Workspaces > [workspace name] > Connections**, then select **Configure** next to Sage Intacct.  
+2. Select **More (⋮)**.  
 3. Click **Disconnect** from the dropdown.  
 4. Confirm the disconnection.  
 
