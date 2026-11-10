@@ -5663,6 +5663,7 @@ function peg$parse(input, options) {
     year: "groupyear",
     quarter: "groupquarter",
     approver: "groupApprover",
+    violation: null,
   };
 
   const GROUP_BY_DEFAULT_SORT_ORDER = {
