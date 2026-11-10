@@ -273,6 +273,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         value: updatedExpenseReport,
     });
 
+    // An approver without parent access never receives the server reset of hasOutstandingChildRequest, so skip the optimistic update. undefined means access is unknown, so the update still runs.
     if (chatReport && expenseReport.hasParentAccess !== false) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -451,9 +452,14 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             rules,
         });
 
-        optimisticData.push(...holdReportOnyxData.optimisticData);
-        successData.push(...holdReportOnyxData.successData);
-        failureData.push(...holdReportOnyxData.failureData);
+        const parentChatKeys = new Set<string>([`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`]);
+        const shouldSkipParentChatUpdates = expenseReport.hasParentAccess === false;
+        const filterParentChatUpdates = <TUpdate extends {key: string}>(updates: TUpdate[]) =>
+            shouldSkipParentChatUpdates ? updates.filter((update) => !parentChatKeys.has(update.key)) : updates;
+
+        optimisticData.push(...filterParentChatUpdates(holdReportOnyxData.optimisticData));
+        successData.push(...filterParentChatUpdates(holdReportOnyxData.successData));
+        failureData.push(...filterParentChatUpdates(holdReportOnyxData.failureData));
         optimisticHoldReportID = holdReportOnyxData.optimisticHoldReportID;
         optimisticHoldActionID = holdReportOnyxData.optimisticHoldActionID;
         optimisticCreatedReportForUnapprovedTransactionsActionID = holdReportOnyxData.optimisticCreatedReportForUnapprovedTransactionsActionID;
