@@ -7,6 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import {isChatRoom as isChatRoomUtil, isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -31,6 +32,7 @@ function ReportDetailsMenuGoToRoomItem({reportID}: ReportDetailsMenuGoToRoomItem
 
     return (
         <MenuItemNavigation
+            sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.GO_TO_ROOM}
             title={translate('reportDetailsPage.goToRoom')}
             icon={expensifyIcons.Hashtag}
             onPress={() => {

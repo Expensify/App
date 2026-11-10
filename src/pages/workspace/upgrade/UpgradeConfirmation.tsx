@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 
 import ROUTES from '@src/ROUTES';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
@@ -19,6 +20,7 @@ type Props = {
     /** Friendly name of the plan the workspace was upgraded to (e.g. Collect or Control) */
     planName?: string;
     afterUpgradeAcknowledged: () => void;
+    confirmSentryLabel: SentryLabel;
     /** Whether is categorizing the expense */
     isCategorizing?: boolean;
     /** Whether is adding an unreported expense to a report */
@@ -29,7 +31,7 @@ type Props = {
     buttonText?: string;
 };
 
-function UpgradeConfirmation({policyName, planName, afterUpgradeAcknowledged, isReporting, isCategorizing, isTravelUpgrade, isDistanceRateUpgrade, buttonText}: Props) {
+function UpgradeConfirmation({policyName, planName, afterUpgradeAcknowledged, confirmSentryLabel, isReporting, isCategorizing, isTravelUpgrade, isDistanceRateUpgrade, buttonText}: Props) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
@@ -70,6 +72,7 @@ function UpgradeConfirmation({policyName, planName, afterUpgradeAcknowledged, is
             </ConfirmationPage.Content>
             <FixedFooter>
                 <ConfirmationPage.PrimaryButton
+                    sentryLabel={confirmSentryLabel}
                     text={buttonText ?? translate('workspace.upgrade.completed.gotIt')}
                     onPress={afterUpgradeAcknowledged}
                 />
