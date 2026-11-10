@@ -73,6 +73,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}
                 switchAccessibilityLabel={translate('workspace.qbo.locations')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.IMPORT_LOCATIONS_SWITCH}
                 isActive={isSwitchOn}
                 onToggle={() =>
                     updateQuickbooksOnlineSyncLocations(

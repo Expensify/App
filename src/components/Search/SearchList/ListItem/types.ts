@@ -22,6 +22,8 @@ import type {
 } from '@src/types/onyx';
 import type {Errors, Icon} from '@src/types/onyx/OnyxCommon';
 import type {
+    SearchApproverGroup,
+    SearchViolationGroup,
     SearchCardGroup,
     SearchCategoryGroup,
     SearchDataTypes,
@@ -30,9 +32,12 @@ import type {
     SearchMerchantGroup,
     SearchMonthGroup,
     SearchQuarterGroup,
+    SearchReport,
     SearchTagGroup,
     SearchTask,
+    SearchTransaction,
     SearchTransactionAction,
+    SearchTrip,
     SearchWeekGroup,
     SearchWithdrawalIDGroup,
     SearchYearGroup,
@@ -71,7 +76,7 @@ type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
     };
 
 type TransactionListItemType = ListItem &
-    Transaction & {
+    SearchTransaction & {
         /** Report to which the transaction belongs */
         report: Report | undefined;
 
@@ -220,6 +225,15 @@ type TransactionGroupListItemType = ListItem & {
 
     transactionsQueryJSON?: SearchQueryJSON;
 
+    /** Expenses the group's own search returned that the list no longer shows, because they stopped matching it after it ran */
+    hiddenTransactionIDs?: string[];
+
+    /** Whether the group's own search has expenses it has not returned yet, which its Show more link loads */
+    hasMoreTransactions?: boolean;
+
+    /** Where the group's own search last started reading, which only its Show more link moves past the first page */
+    transactionsOffset?: number;
+
     /** Whether the report has visible violations for user */
     hasVisibleViolations?: boolean;
 
@@ -235,7 +249,7 @@ type TransactionGroupListItemType = ListItem & {
 
 type ExpenseReportListItemType = TransactionReportGroupListItemType;
 
-type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} & Report & {
+type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} & SearchReport & {
         /** The personal details of the user requesting money */
         from: PersonalDetails;
 
@@ -404,6 +418,26 @@ type TaskListItemType = ListItem &
         shouldShowYear: boolean;
     };
 
+type TripListItemType = ListItem &
+    SearchTrip & {
+        /** The personal details of the traveler */
+        traveler: PersonalDetails;
+
+        /** Final and formatted "traveler" value used for displaying and sorting */
+        formattedTraveler: string;
+
+        /** The trip room's name, used as the trip name */
+        tripName: string;
+
+        /** Key used internally by React */
+        keyForList: string;
+    };
+
+type TripListItemProps = ListItemProps<TripListItemType> & {
+    /** Columns to show */
+    columns?: SearchColumnType[];
+};
+
 type ReportActionListItemType = ListItem &
     ReportAction & {
         /** The personal details of the user posting comment */
@@ -421,7 +455,7 @@ type ReportActionListItemType = ListItem &
         reportName: string;
     };
 
-type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType | ExpenseReportListItemType;
+type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType | ExpenseReportListItemType | TripListItemType;
 
 type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARD} & PersonalDetails &
     SearchCardGroup & {
@@ -507,6 +541,17 @@ type TransactionQuarterGroupListItemType = TransactionGroupListItemType & {group
         sortKey: number;
     };
 
+type TransactionApproverGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.APPROVER} & PersonalDetails &
+    SearchApproverGroup & {
+        /** Final and formatted approver name used for displaying and sorting */
+        formattedApprover?: string;
+    };
+
+type TransactionViolationGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.VIOLATION} & SearchViolationGroup & {
+        /** Violation name translated for display and sorting */
+        formattedViolation: string;
+    };
+
 type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
     SearchListActionProps & {
         /** Whether the item's action is loading */
@@ -579,6 +624,8 @@ type GroupHeaderItemType =
     | (TransactionWeekGroupListItemType & GroupHeaderListItemType)
     | (TransactionYearGroupListItemType & GroupHeaderListItemType)
     | (TransactionQuarterGroupListItemType & GroupHeaderListItemType)
+    | (TransactionApproverGroupListItemType & GroupHeaderListItemType)
+    | (TransactionViolationGroupListItemType & GroupHeaderListItemType)
     | (TransactionGroupListItemType & GroupHeaderListItemType);
 
 type GroupChildrenContainerItemType = TransactionGroupListItemType & {
@@ -624,6 +671,8 @@ export type {
     SearchListItem,
     TaskListItemProps,
     TaskListItemType,
+    TripListItemProps,
+    TripListItemType,
     TransactionGroupListItemType,
     TransactionListItemType,
     TransactionCardGroupListItemType,
@@ -636,6 +685,8 @@ export type {
     TransactionWeekGroupListItemType,
     TransactionYearGroupListItemType,
     TransactionQuarterGroupListItemType,
+    TransactionApproverGroupListItemType,
+    TransactionViolationGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionGroupListItemProps,
     TransactionGroupListExpandedProps,

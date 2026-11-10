@@ -9,6 +9,7 @@ import ScrollView from '@components/ScrollView';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openExternalLink} from '@libs/actions/Link';
@@ -17,11 +18,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 function DynamicAppDownloadLinksPage() {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const icons = useMemoizedLazyExpensifyIcons(['Android', 'Apple']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -45,7 +49,7 @@ function DynamicAppDownloadLinksPage() {
             />
 
             <ScrollView style={[styles.mt3]}>
-                <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => openExternalLink(CONST.APP_DOWNLOAD_LINKS.ANDROID))}>
+                <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => openExternalLink(CONST.APP_DOWNLOAD_LINKS.ANDROID), false, session)}>
                     <MenuItem.Row>
                         <MenuItem.Leading>
                             <MenuItem.Icon src={icons.Android} />
@@ -58,7 +62,7 @@ function DynamicAppDownloadLinksPage() {
                         </MenuItem.Trailing>
                     </MenuItem.Row>
                 </MenuItem.Root>
-                <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => openExternalLink(CONST.APP_DOWNLOAD_LINKS.IOS, true))}>
+                <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => openExternalLink(CONST.APP_DOWNLOAD_LINKS.IOS, true), false, session)}>
                     <MenuItem.Row>
                         <MenuItem.Leading>
                             <MenuItem.Icon src={icons.Apple} />

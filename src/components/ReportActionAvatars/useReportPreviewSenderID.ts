@@ -3,7 +3,7 @@ import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginPro
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
-import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 
 import {convertAttendeesToArray} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -289,6 +289,32 @@ function getReportPreviewSenderID({
     return singleAvatarAccountID;
 }
 
+type UseReportPreviewTransactionsParams = {
+    shouldFetchData: boolean;
+    childReportID: string | undefined;
+    iouActions: ReportAction[] | undefined;
+    activeMoneyRequestCount: number;
+};
+
+// React Compiler does not cache values computed between hook calls, so the filtering lives after this hook's only hook call.
+function useReportPreviewTransactions({shouldFetchData, childReportID, iouActions, activeMoneyRequestCount}: UseReportPreviewTransactionsParams): Transaction[] | undefined {
+    const reportTransactions = useReportTransactionsCollection(shouldFetchData ? childReportID : undefined);
+    if (!shouldFetchData) {
+        return undefined;
+    }
+
+    const allReportTransactions = Object.values(reportTransactions ?? {}).filter((transaction): transaction is Transaction => !!transaction);
+    const nonDeletedTransactionsIncludingOrphans = getAllNonDeletedTransactions(reportTransactions, iouActions ?? [], false, true);
+    const filteredTransactions =
+        nonDeletedTransactionsIncludingOrphans.length < allReportTransactions.length
+            ? getAllNonDeletedTransactions(reportTransactions, iouActions ?? [])
+            : nonDeletedTransactionsIncludingOrphans;
+    if (filteredTransactions.length < allReportTransactions.length && filteredTransactions.length < activeMoneyRequestCount) {
+        return nonDeletedTransactionsIncludingOrphans;
+    }
+    return filteredTransactions;
+}
+
 function useReportPreviewSenderID({iouReport, action, chatReport}: {action: OnyxEntry<ReportAction>; chatReport: OnyxEntry<Report>; iouReport: OnyxEntry<Report>}): number | undefined {
     const isOptimisticReportPreview = action?.isOptimisticAction && action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isIOUReport(iouReport);
 
@@ -306,24 +332,12 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
     });
     const hasFinishedInitialReportActionsLoad = hasOnceLoadedReportActions === true || isLoadingInitialReportActions === false;
 
-    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(shouldFetchData ? action?.childReportID : undefined);
-    let transactions;
-    if (!shouldFetchData) {
-        transactions = undefined;
-    } else {
-        const activeMoneyRequestCount = iouReport?.transactionCount ?? action?.childMoneyRequestCount ?? 0;
-        const allReportTransactions = Object.values(reportTransactions ?? {}).filter((transaction): transaction is Transaction => !!transaction);
-        const nonDeletedTransactionsIncludingOrphans = getAllNonDeletedTransactions(reportTransactions, iouActions ?? [], false, true);
-        const filteredTransactions =
-            nonDeletedTransactionsIncludingOrphans.length < allReportTransactions.length
-                ? getAllNonDeletedTransactions(reportTransactions, iouActions ?? [])
-                : nonDeletedTransactionsIncludingOrphans;
-        if (filteredTransactions.length < allReportTransactions.length && filteredTransactions.length < activeMoneyRequestCount) {
-            transactions = nonDeletedTransactionsIncludingOrphans;
-        } else {
-            transactions = filteredTransactions;
-        }
-    }
+    const transactions = useReportPreviewTransactions({
+        shouldFetchData,
+        childReportID: action?.childReportID,
+        iouActions,
+        activeMoneyRequestCount: iouReport?.transactionCount ?? action?.childMoneyRequestCount ?? 0,
+    });
 
     // Only pending scans read the chat's last actor, so other previews skip a subscription that changes on every message.
     const hasPendingScan = !!transactions?.some(hasPendingScanStateAndUnknownDirection);

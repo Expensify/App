@@ -10,7 +10,7 @@ Every request runs the Worker first (`run_worker_first: true`), which reads the 
 
 | Request | Response |
 | --- | --- |
-| Any path | Security headers: HSTS, CSP, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Document-Policy` |
+| Any path | Security headers: HSTS, CSP, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Cross-Origin-Opener-Policy`, `Document-Policy` |
 | HTML (`/`, `/index.html`, any SPA deep link) | Each `<script nonce="nonce-random-value">` gets a per-request nonce that matches the CSP. `Cache-Control: no-cache`, with no `ETag` or `Last-Modified`, since a 304 would pair a cached body with a new nonce |
 | Content-hashed files (`main-<16 hex>.bundle.js`, `name.<10 hex>.css`) | `Cache-Control: public, max-age=31536000, immutable` |
 | Files with fixed names (`version.json`, `service-worker.js`, `manifest.json`, ...) | Default `public, max-age=0, must-revalidate`, with an `ETag` |

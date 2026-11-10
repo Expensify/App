@@ -1,12 +1,14 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import FormHelpMessage from '@components/FormHelpMessage';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import useTravelBillingFundID from '@hooks/useTravelBillingFundID';
 
 import {getCardSettings} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -41,8 +43,8 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
     // invalid the moment the new sync completes.
     const isVendorFeatureAvailable = isXeroVendorMatchingActive(policy);
     const defaultVendorName = getXeroSupplierByID(policy, defaultVendor)?.name ?? '';
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(workspaceAccountID));
+    const travelBillingFundID = useTravelBillingFundID(policyID);
+    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(travelBillingFundID));
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
     const isTravelBillingEnabled = getIsTravelBillingEnabled(travelSettings);
 
@@ -61,8 +63,6 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
         {
             description: translate('workspace.accounting.exportOutOfPocket'),
             title: translate('workspace.xero.purchaseBill'),
-            interactive: false,
-            shouldShowRightIcon: false,
             helperText: translate('workspace.xero.exportExpensesDescription'),
         },
         {
@@ -80,8 +80,6 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
         {
             description: translate('workspace.xero.exportInvoices'),
             title: translate('workspace.xero.salesInvoice'),
-            interactive: false,
-            shouldShowRightIcon: false,
             helperText: translate('workspace.xero.exportInvoicesDescription'),
         },
         ...(isTravelBillingEnabled
@@ -97,8 +95,6 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
         {
             description: translate('workspace.accounting.exportCompanyCard'),
             title: translate('workspace.xero.bankTransactions'),
-            shouldShowRightIcon: false,
-            interactive: false,
             helperText: translate('workspace.xero.exportDeepDiveCompanyCard'),
         },
         {
@@ -142,15 +138,21 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
                     key={menuItem.description}
                     pendingAction={settingsPendingAction(menuItem?.subscribedSettings ?? [], pendingFields)}
                 >
-                    <MenuItemWithTopDescription
-                        title={menuItem.title}
-                        interactive={menuItem?.interactive ?? true}
-                        description={menuItem.description}
-                        shouldShowRightIcon={menuItem?.shouldShowRightIcon ?? true}
+                    <MenuItemField
+                        name={menuItem.description}
                         onPress={menuItem?.onPress}
-                        brickRoadIndicator={areSettingsInErrorFields(menuItem?.subscribedSettings ?? [], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        helperText={menuItem?.helperText}
-                    />
+                        value={menuItem.title}
+                    >
+                        {areSettingsInErrorFields(menuItem?.subscribedSettings ?? [], errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                    </MenuItemField>
+                    {!!menuItem?.helperText && (
+                        <FormHelpMessage
+                            isError={false}
+                            shouldShowRedDotIndicator={false}
+                            message={menuItem.helperText}
+                            style={[styles.mt0, styles.mb0, styles.ph5, styles.pb5]}
+                        />
+                    )}
                 </OfflineWithFeedback>
             ))}
         </ConnectionLayout>
