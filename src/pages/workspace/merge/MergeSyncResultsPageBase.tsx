@@ -48,6 +48,7 @@ const PAGE_CONFIG = {
         dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_HR_SYNC_RESULTS.path,
         testID: 'DynamicHRSyncResultsPage',
         skippedEmployeesSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MERGE.SKIPPED_EMPLOYEES_TOGGLE_HR,
+        confirmSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MERGE.SYNC_RESULTS_CONFIRM.HR,
         getProviderDisplayName: (policy: OnyxEntry<Policy>) => getConnectedHRProvider(policy)?.displayName ?? '',
         shouldBeBlocked: () => false,
     },
@@ -56,6 +57,7 @@ const PAGE_CONFIG = {
         dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_RECRUITING_SYNC_RESULTS.path,
         testID: 'DynamicRecruitingSyncResultsPage',
         skippedEmployeesSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MERGE.SKIPPED_EMPLOYEES_TOGGLE_RECRUITING,
+        confirmSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MERGE.SYNC_RESULTS_CONFIRM.RECRUITING,
         getProviderDisplayName: (policy: OnyxEntry<Policy>) => getConnectedATSProvider(policy)?.displayName ?? '',
         shouldBeBlocked: (isBetaEnabled: (beta: Beta) => boolean) => !isBetaEnabled(CONST.BETAS.MERGE_ATS),
     },
@@ -78,7 +80,7 @@ function MergeSyncResultsPageBase({policyID, category}: MergeSyncResultsPageBase
     const illustrations = useMemoizedLazyIllustrations(['SyncUsers']);
     const [isSkippedSectionExpanded, setIsSkippedSectionExpanded] = useState(false);
 
-    const {featureName, dynamicRoutePath, testID, skippedEmployeesSentryLabel, shouldBeBlocked, getProviderDisplayName} = PAGE_CONFIG[category];
+    const {featureName, dynamicRoutePath, testID, skippedEmployeesSentryLabel, confirmSentryLabel, shouldBeBlocked, getProviderDisplayName} = PAGE_CONFIG[category];
     const backPath = useDynamicBackPath(dynamicRoutePath);
 
     const [providerDisplayName = ''] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
@@ -165,7 +167,7 @@ function MergeSyncResultsPageBase({policyID, category}: MergeSyncResultsPageBase
                 </ScrollView>
                 <FixedFooter addBottomSafeAreaPadding>
                     <Button
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MERGE.SYNC_RESULTS_CONFIRM}
+                        sentryLabel={confirmSentryLabel}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         onPress={goBack}

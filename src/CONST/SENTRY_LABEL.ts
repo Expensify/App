@@ -1737,7 +1737,10 @@ const SENTRY_LABEL = {
         MERGE: {
             SKIPPED_EMPLOYEES_TOGGLE_HR: 'WorkspaceMerge-SkippedEmployeesToggle-HR',
             SKIPPED_EMPLOYEES_TOGGLE_RECRUITING: 'WorkspaceMerge-SkippedEmployeesToggle-Recruiting',
-            SYNC_RESULTS_CONFIRM: 'WorkspaceMerge-SyncResultsConfirm',
+            SYNC_RESULTS_CONFIRM: {
+                HR: 'WorkspaceMerge-SyncResultsConfirm-HR',
+                RECRUITING: 'WorkspaceMerge-SyncResultsConfirm-Recruiting',
+            },
         },
         RULES: {
             ENABLE_CATEGORIES: 'WorkspaceRules-EnableCategories',
@@ -1840,6 +1843,7 @@ const SENTRY_LABEL = {
             BILLING_SETTLEMENT_FREQUENCY: 'WorkspaceTravel-BillingSettlementFrequency',
             BILLING_SET_UP_NEW_FEED: 'WorkspaceTravel-BillingSetUpNewFeed',
             BILLING_VIEW_ON_SPEND: 'WorkspaceTravel-BillingViewOnSpend',
+            EXPORT: 'WorkspaceTravel-Export',
             MORE_DROPDOWN: 'WorkspaceTravel-MoreDropdown',
             GET_STARTED_BUTTON: 'WorkspaceTravel-GetStartedButton',
             AUTO_ADD_TRIP_NAME_SWITCH: 'WorkspaceTravel-AutoAddTripNameSwitch',
@@ -1861,14 +1865,26 @@ const SENTRY_LABEL = {
             PAY_AND_DOWNGRADE: 'WorkspaceDowngrade-PayAndDowngrade',
         },
         HR: {
-            APPROVAL_MODE_SAVE: 'WorkspaceHR-ApprovalModeSave',
+            APPROVAL_MODE_SAVE: {
+                GUSTO: 'WorkspaceHR-ApprovalModeSave-Gusto',
+                MERGE: 'WorkspaceHR-ApprovalModeSave-Merge',
+                ZENEFITS: 'WorkspaceHR-ApprovalModeSave-Zenefits',
+            },
             MERGE_GROUPS_SAVE: 'WorkspaceHR-MergeGroupsSave',
         },
         UPGRADE: {
             CONFIRMATION_GOT_IT: 'WorkspaceUpgrade-ConfirmationGotIt',
             GENERIC_FEATURES_GO_TO_WORKSPACES: 'WorkspaceUpgrade-GenericFeaturesGoToWorkspaces',
-            GENERIC_FEATURES_UPGRADE: 'WorkspaceUpgrade-GenericFeaturesUpgrade',
-            INTRO_UPGRADE: 'WorkspaceUpgrade-IntroUpgrade',
+            UPGRADE_PLAN: {
+                COLLECT: 'WorkspaceUpgrade-UpgradePlan-Collect',
+                CONTROL: 'WorkspaceUpgrade-UpgradePlan-Control',
+            },
+            TRAVEL_UPGRADE: 'WorkspaceUpgrade-TravelUpgrade',
+            TRAVEL_CONFIRMATION_GOT_IT: 'WorkspaceUpgrade-TravelConfirmationGotIt',
+            EXPENSE_UPGRADE: 'WorkspaceUpgrade-ExpenseUpgrade',
+            EXPENSE_CONFIRMATION_GOT_IT: 'WorkspaceUpgrade-ExpenseConfirmationGotIt',
+            COPY_SETTINGS_UPGRADE: 'WorkspaceUpgrade-CopySettingsUpgrade',
+            COPY_SETTINGS_CONFIRMATION_CONTINUE: 'WorkspaceUpgrade-CopySettingsConfirmationContinue',
         },
         MORE_FEATURES: {
             CATEGORIES_SWITCH: 'WorkspaceMoreFeatures-FeatureSwitch-Categories',

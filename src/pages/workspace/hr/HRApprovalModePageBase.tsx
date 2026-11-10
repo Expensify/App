@@ -25,6 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type Policy from '@src/types/onyx/Policy';
 import type {MergeApprovalMode, PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 import type Rule from '@src/types/onyx/Rule';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -48,6 +49,7 @@ type HRApprovalModeProviderConfig<T extends ApprovalModeValue = ApprovalModeValu
         rules: OnyxCollection<Rule>;
         connectionSyncProgress?: OnyxEntry<PolicyConnectionSyncProgress>;
     }) => void;
+    saveSentryLabel: SentryLabel;
 };
 
 type ApprovalModeListItem<T extends ApprovalModeValue = ApprovalModeValue> = ListItem & {
@@ -166,7 +168,7 @@ function HRApprovalModePageBase<T extends ApprovalModeValue>({policyID, config}:
                         addBottomSafeAreaPadding
                     >
                         <Button
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.HR.APPROVAL_MODE_SAVE}
+                            sentryLabel={config.saveSentryLabel}
                             size={CONST.BUTTON_SIZE.LARGE}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={confirmSaveApprovalMode}
