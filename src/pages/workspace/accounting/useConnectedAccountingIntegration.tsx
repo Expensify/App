@@ -99,6 +99,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'DigitsSquare',
         'BusinessCentralSquare',
         'ZohoBooksSquare',
     ]);
@@ -490,7 +491,9 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
             connectionMessage = translate('workspace.accounting.lastSync', datetimeToRelative);
         }
 
-        const configurationOptions = canWriteAccounting
+        // Digits import, export, and advanced screens are added in a later release, so hide their entry points until then.
+        const shouldShowConfigurationOptions = canWriteAccounting && connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.DIGITS;
+        const configurationOptions = shouldShowConfigurationOptions
             ? [
                   {
                       icon: icons.Pencil,
@@ -556,7 +559,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
 
     let qboTokenExpiryHint;
     if (qboTokenExpiryDate && canWriteAccounting) {
-        const formattedExpiryDate = DateUtils.formatWithUTCTimeZone(qboTokenExpiryDate.toISOString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale);
+        const formattedExpiryDate = DateUtils.formatToLongDateInUTC(qboTokenExpiryDate.toISOString(), dateFnsLocale);
         qboTokenExpiryHint = (
             <>
                 {translate(

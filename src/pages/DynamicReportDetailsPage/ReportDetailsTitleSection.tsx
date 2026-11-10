@@ -113,6 +113,7 @@ function ReportDetailsTitleSectionContent({report}: ReportDetailsTitleSectionCon
             >
                 <View style={[styles.flex1]}>
                     <MenuItemWithTopDescription
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.TITLE}
                         shouldShowRightIcon={shouldShowEditableTitleField && !isFieldDisabled}
                         interactive={shouldShowEditableTitleField && !isFieldDisabled}
                         title={reportName}

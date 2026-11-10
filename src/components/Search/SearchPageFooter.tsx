@@ -170,9 +170,9 @@ function SearchPageFooter({
     // wait inside the menu.
     const footerButton = (props: ButtonComponentProps) => (
         <Button
+            sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_BUTTON}
             ref={props.ref}
             accessibilityLabel={footerAccessibilityLabel}
-            sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_BUTTON}
             style={styles.flexShrink1}
             innerStyles={[styles.bgTransparent, styles.mnh0, styles.ph0, styles.pv0, styles.flexShrink1]}
             size={CONST.BUTTON_SIZE.SMALL}
