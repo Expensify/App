@@ -351,10 +351,11 @@ describe('UserUtils', () => {
                     created: '2024-01-01',
                     accountID: 1,
                     partnerID: 201,
+                    partnerUserID: '',
                     lastLogin: '2024-01-02',
                     validatedDate: null,
                 },
-            } as unknown as Logins;
+            };
 
             // When the Integration Server logins are selected
             const result = UserUtils.integrationServerLoginsSelector(logins);

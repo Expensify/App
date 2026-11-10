@@ -64,8 +64,9 @@ type DynamicContactMethodDetailsPageProps = PlatformStackScreenProps<SettingsNav
 
 function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPageProps) {
     const contactMethod = useMemo(() => addSMSDomainIfPhoneNumber(route.params.contactMethod), [route.params.contactMethod]);
+    const integrationServerLoginByContactMethodSelector = useMemo(() => integrationServerLoginSelector(contactMethod), [contactMethod]);
     const [loginList, loginListResult] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
-    const [integrationServerLogin] = useOnyx(ONYXKEYS.LOGINS, {selector: integrationServerLoginSelector(contactMethod)});
+    const [integrationServerLogin] = useOnyx(ONYXKEYS.LOGINS, {selector: integrationServerLoginByContactMethodSelector});
     const [session, sessionResult] = useOnyx(ONYXKEYS.SESSION);
     const {securityGroup, isLoadingSecurityGroup} = useUserSecurityGroup();
     const [isLoadingReportData = true, isLoadingReportDataResult] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
