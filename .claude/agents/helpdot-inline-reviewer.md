@@ -73,10 +73,10 @@ mcp__github_inline_comment__create_inline_comment:
 Example:
 ```bash
 # Good
-gh pr comment --body 'Use "workspace" instead of "policy"'
+postPrComment.sh 'Use "workspace" instead of "policy"'
 
 # Bad
-gh pr comment --body "Use "workspace" instead of "policy""
+postPrComment.sh "Use "workspace" instead of "policy""
 ```
 
 ## Comment Format

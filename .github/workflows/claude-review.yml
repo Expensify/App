@@ -84,6 +84,9 @@ jobs:
         run: |
           addPrReaction.sh "$PR_NUMBER" "eyes"
 
+      - name: Add review scripts to PATH
+        run: echo "$GITHUB_WORKSPACE/.claude/scripts" >> "$GITHUB_PATH"
+
       - name: Setup Node
         if: steps.skip.outputs.skip != 'true' && (steps.filter.outputs.code == 'true' || steps.filter.outputs.docs == 'true')
         uses: ./.github/actions/composite/setupNode
@@ -123,7 +126,7 @@ jobs:
           claude_args: |
             --model claude-opus-4-8
             --effort high
-            --allowedTools "Task,Glob(./**),Grep(./**),Read(./**),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),mcp__github_inline_comment__create_inline_comment" --disallowedTools "Read(//proc/**),Grep(//proc/**),Glob(//proc/**),Bash(gh pr comment *-F*),Bash(gh pr comment *--body-file*)"
+            --allowedTools "Task,Glob(./**),Grep(./**),Read(./**),Bash(postPrComment.sh:*),Bash(gh pr diff:*),Bash(gh pr view:*),mcp__github_inline_comment__create_inline_comment" --disallowedTools "Read(//proc/**),Grep(//proc/**),Glob(//proc/**)"
 
       - name: Record review completion
         if: steps.code-review.outcome == 'success' || steps.docs-review.outcome == 'success'

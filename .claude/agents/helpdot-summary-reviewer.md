@@ -69,5 +69,5 @@ Provide your assessment as a **top-level PR comment** using this format:
 3. **Look for patterns and overall quality trends** within the diff
 4. **Provide balanced feedback** (both positive and areas for improvement) — only for the proposed changes
 5. **Focus on the big picture** rather than individual line issues
-6. **Use Bash(gh pr comment:*) tool** to post the summary comment
+6. **Use Bash(postPrComment.sh:*) tool** to post the summary comment, passing the body as the only argument: `postPrComment.sh '<summary>'`
 7. **Reference that inline comments provide specific details**
