@@ -14,7 +14,7 @@ import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
 
 import {resetSignInFlow} from './HybridApp';
-import {getAllIncludingOngoing as getAllPersistedRequestsIncludingOngoing} from './PersistedRequests';
+import {canPersistRequest, getAllIncludingOngoing as getAllPersistedRequestsIncludingOngoing} from './PersistedRequests';
 
 let currentShouldForceOffline: boolean | undefined;
 let currentIsUsingImportedState: boolean | undefined;
@@ -126,7 +126,9 @@ function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: st
         keysToPreserve.push(ONYXKEYS.REQUESTS_KEPT_ON_SAML_SIGN_OUT);
         keysToPreserve.push(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
         if (currentSessionAccountID) {
-            Onyx.set(ONYXKEYS.REQUESTS_KEPT_ON_SAML_SIGN_OUT, {accountID: currentSessionAccountID, requests: getAllPersistedRequestsIncludingOngoing()});
+            // A request holding a file can't be stored on web, and it would fail the whole write
+            const requests = getAllPersistedRequestsIncludingOngoing().filter(canPersistRequest);
+            Onyx.set(ONYXKEYS.REQUESTS_KEPT_ON_SAML_SIGN_OUT, {accountID: currentSessionAccountID, requests});
         }
     }
 

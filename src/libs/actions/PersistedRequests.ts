@@ -387,7 +387,7 @@ function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Reque
     });
 }
 
-function shouldPersistOngoingRequest(request: AnyRequest | null): boolean {
+function canPersistRequest(request: AnyRequest | null): boolean {
     if (!request?.data) {
         return true;
     }
@@ -407,7 +407,7 @@ function updateOngoingRequest<TKey extends OnyxKey>(newRequest: Request<TKey>) {
     if (ongoingRequestIndex != null) {
         knownOngoingRequestIDs.add(ongoingRequestIndex);
     }
-    if (shouldPersistOngoingRequest(ongoingRequest)) {
+    if (canPersistRequest(ongoingRequest)) {
         trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, newRequest as AnyRequest));
         return;
     }
@@ -465,7 +465,7 @@ function processNextRequest(): AnyRequest | null {
     // (e.g. File objects in data.file or data.receipt). IndexedDB cannot clone
     // native File objects (DataCloneError). These requests cannot survive a crash
     // anyway since File references are lost on restart.
-    if (shouldPersistOngoingRequest(ongoingRequest)) {
+    if (canPersistRequest(ongoingRequest)) {
         trackOnyxWrite(
             Onyx.multiSet({
                 [ONYXKEYS.PERSISTED_REQUESTS]: persistedRequests,
@@ -563,6 +563,7 @@ export {
     save,
     getAll,
     getAllIncludingOngoing,
+    canPersistRequest,
     getClientRequestIndex,
     getCommands,
     endRequestAndRemoveFromQueue,
