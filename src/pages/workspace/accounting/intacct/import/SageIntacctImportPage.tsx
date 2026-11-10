@@ -46,7 +46,6 @@ const checkForUserDimensionWithError = (config?: SageIntacctConnectionsConfig) =
 const checkForUserDimensionWithPendingAction = (config?: SageIntacctConnectionsConfig) =>
     config?.mappings?.dimensions?.some((dimension) => !!config?.pendingFields?.[`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${dimension.dimension}`]);
 
-/** Sentry labels for the mapping rows, one variant per mapping */
 const MAPPING_ROW_SENTRY_LABELS = {
     [CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.IMPORT_MAPPING_ROW.DEPARTMENTS,
     [CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CLASSES]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.IMPORT_MAPPING_ROW.CLASSES,

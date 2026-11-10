@@ -43,7 +43,6 @@ type NetSuiteImportCustomFieldViewProps = WithPolicyConnectionsProps & {
     };
 };
 
-/** Sentry labels for the custom field property rows, one variant per property */
 const ROW_SENTRY_LABELS = {
     [INPUT_IDS.LIST_NAME]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CUSTOM_FIELD_VIEW_ROW.LIST_NAME,
     [INPUT_IDS.TRANSACTION_FIELD_ID]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CUSTOM_FIELD_VIEW_ROW.TRANSACTION_FIELD_ID,

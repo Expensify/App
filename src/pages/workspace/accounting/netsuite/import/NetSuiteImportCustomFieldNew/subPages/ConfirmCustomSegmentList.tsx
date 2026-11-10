@@ -17,7 +17,6 @@ import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import React from 'react';
 import {View} from 'react-native';
 
-/** Sentry labels for the confirmation rows, one variant per field */
 const ROW_SENTRY_LABELS = {
     [INPUT_IDS.SEGMENT_NAME]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CONFIRM_CUSTOM_SEGMENT_ROW.SEGMENT_NAME,
     [INPUT_IDS.INTERNAL_ID]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CONFIRM_CUSTOM_SEGMENT_ROW.INTERNAL_ID,
