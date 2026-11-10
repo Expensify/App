@@ -128,6 +128,14 @@ jobs:
             --effort high
             --allowedTools "Task,Glob(./**),Grep(./**),Read(./**),Bash(postPrComment.sh:*),Bash(gh pr diff:*),Bash(gh pr view:*),mcp__github_inline_comment__create_inline_comment" --disallowedTools "Read(//proc/**),Grep(//proc/**),Glob(//proc/**)"
 
+      - name: Upload docs transcript
+        if: always() && steps.docs-review.outputs.execution_file != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-transcript
+          path: ${{ steps.docs-review.outputs.execution_file }}
+          retention-days: 1
+
       - name: Record review completion
         if: steps.code-review.outcome == 'success' || steps.docs-review.outcome == 'success'
         env:
