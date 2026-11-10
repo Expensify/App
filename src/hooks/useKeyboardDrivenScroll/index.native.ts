@@ -198,7 +198,19 @@ const useKeyboardDrivenScroll: UseKeyboardDrivenScroll = (scrollableRef) => {
         return true;
     };
 
-    return scrollWithKeyboard;
+    // Runs on the UI thread after any earlier request, so it can't drop a target set after it
+    const cancelScrollWithKeyboard = () => {
+        scheduleOnUI(() => {
+            'worklet';
+
+            if (!pendingTarget.get()) {
+                return;
+            }
+            finishTarget();
+        });
+    };
+
+    return {scrollWithKeyboard, cancelScrollWithKeyboard};
 };
 
 export default useKeyboardDrivenScroll;

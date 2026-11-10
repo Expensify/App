@@ -64,7 +64,8 @@ function renderKeyboardDrivenScroll(scrollableRef: RefObject<KeyboardScrollable 
     const {result} = renderHook(() => useKeyboardDrivenScroll(scrollableRef));
     const handlers = jest.mocked(useKeyboardHandler).mock.lastCall?.[0] ?? {};
     return {
-        scrollWithKeyboard: (target: KeyboardScrollTarget) => result.current(target),
+        scrollWithKeyboard: (target: KeyboardScrollTarget) => result.current.scrollWithKeyboard(target),
+        cancelScrollWithKeyboard: () => result.current.cancelScrollWithKeyboard(),
         startKeyboard: (height: number) => handlers.onStart?.(createKeyboardEvent(height)),
         moveKeyboard: (height: number) => handlers.onMove?.(createKeyboardEvent(height)),
         endKeyboard: (height: number) => handlers.onEnd?.(createKeyboardEvent(height)),
@@ -192,6 +193,44 @@ describe('useKeyboardDrivenScroll', () => {
 
         // Then it stops scrolling, since the user left the input
         expect(mockScrollTo).not.toHaveBeenCalled();
+    });
+
+    it('drops the target when the input blurs while the keyboard stays open', () => {
+        // Given a target applied once the keyboard opened, with its settle still pending
+        const {scrollWithKeyboard, cancelScrollWithKeyboard, startKeyboard, moveKeyboard, endKeyboard, runFrame} = renderKeyboardDrivenScroll();
+        scrollWithKeyboard({offset: 120});
+        startKeyboard(KEYBOARD_HEIGHT);
+        endKeyboard(KEYBOARD_HEIGHT);
+        mockScrollTo.mockClear();
+
+        // When the user moves to another input, which keeps the keyboard open but may change its height and resize the view
+        cancelScrollWithKeyboard();
+        startKeyboard(KEYBOARD_HEIGHT + 40);
+        moveKeyboard(KEYBOARD_HEIGHT + 40);
+        endKeyboard(KEYBOARD_HEIGHT + 40);
+        mockVisibleHeight = 300;
+        jest.advanceTimersByTime(400);
+        runFrame();
+
+        // Then nothing scrolls back to the input that blurred
+        expect(mockScrollTo).not.toHaveBeenCalled();
+    });
+
+    it('applies a target set right after a blur', () => {
+        // Given an input blurs while the keyboard is open
+        const {scrollWithKeyboard, cancelScrollWithKeyboard, startKeyboard, endKeyboard} = renderKeyboardDrivenScroll();
+        startKeyboard(KEYBOARD_HEIGHT);
+        endKeyboard(KEYBOARD_HEIGHT);
+        scrollWithKeyboard({offset: 120});
+        mockScrollTo.mockClear();
+        cancelScrollWithKeyboard();
+
+        // When the next input sets its own target
+        scrollWithKeyboard({offset: 200});
+
+        // Then the new target is applied, as the cancel only covers targets set before it
+        expect(mockScrollTo).toHaveBeenCalledTimes(1);
+        expect(mockScrollTo).toHaveBeenCalledWith(mockAnimatedRef, 0, 200, true);
     });
 
     it('applies the target once more, animated, after the keyboard has settled', () => {
@@ -384,6 +423,22 @@ describe('useKeyboardDrivenScroll', () => {
         expect(mockSetFrameCallbackActive).toHaveBeenLastCalledWith(false);
     });
 
+    it('stops the watcher once the input blurs', () => {
+        // Given a target followed while the keyboard opens
+        const {scrollWithKeyboard, cancelScrollWithKeyboard, startKeyboard, runReaction, flushJS} = renderKeyboardDrivenScroll();
+        scrollWithKeyboard({offset: 120});
+        startKeyboard(KEYBOARD_HEIGHT);
+        runReaction();
+
+        // When the input blurs and the stop reaches JS
+        cancelScrollWithKeyboard();
+        runReaction();
+        flushJS();
+
+        // Then the watcher stops, so no frames run for an input that lost focus
+        expect(mockSetFrameCallbackActive).toHaveBeenLastCalledWith(false);
+    });
+
     it('keeps the watcher running when a new target is set before an old stop reaches JS', () => {
         // Given an expired target whose stop is still queued for JS
         const {scrollWithKeyboard, startKeyboard, runFrame, runReaction, flushJS} = renderKeyboardDrivenScroll();
@@ -422,7 +477,8 @@ describe('useKeyboardDrivenScroll', () => {
         const {result} = renderHook(() => useKeyboardDrivenScrollWeb(createScrollableRef()));
 
         // When a target is set
-        const isHandled = result.current({offset: 120});
+        const isHandled = result.current.scrollWithKeyboard({offset: 120});
+        result.current.cancelScrollWithKeyboard();
 
         // Then the caller scrolls on its own
         expect(isHandled).toBe(false);

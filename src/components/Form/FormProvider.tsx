@@ -534,6 +534,8 @@ function FormProvider({
                             }
                         }, VALIDATE_DELAY);
                     }
+                    // A scroll for the input that just blurred must not pull the content back while the next input is focused
+                    formWrapperRef.current?.cancelScrollTo();
                     inputProps.onBlur?.(event);
                     if (isSafari()) {
                         blurTransitionHandle.current?.cancel();
