@@ -4119,7 +4119,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             enabled?: boolean;
 
             /** Countries (keyed by ISO code) where the company has a withdrawal account it can reimburse from */
-            countries?: Record<string, ReimbursementCountryAccount>;
+            countries?: Record<string, unknown>;
         };
 
         /** The set reimburser for the policy */
@@ -4524,6 +4524,7 @@ export type {
     FinancialForceFFAExportStatus,
     FinancialForceReportExportStatus,
     ACHAccount,
+    ReimbursementCountryAccount,
     ApprovalRule,
     ExpenseRule,
     CodingRule,

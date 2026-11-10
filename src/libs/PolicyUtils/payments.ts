@@ -6,6 +6,7 @@ import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
 import type {OnyxInputOrEntry, Policy} from '@src/types/onyx';
+import type {ReimbursementCountryAccount} from '@src/types/onyx/Policy';
 
 import type {NullishDeep, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -137,10 +138,21 @@ function shouldLoadPayViaABAData(policy: OnyxInputOrEntry<Policy>, isPayViaABABe
 }
 
 /**
+ * Gets the workspace's AU withdrawal account if it has one.
+ */
+function getAUWithdrawalAccount(policy: OnyxInputOrEntry<Policy>): ReimbursementCountryAccount | undefined {
+    const account = policy?.reimbursement?.countries?.[CONST.COUNTRY.AU];
+    if (typeof account !== 'object' || account === null || Array.isArray(account)) {
+        return undefined;
+    }
+    return account;
+}
+
+/**
  * Whether the current user can pay the workspace's reports via ABA
  */
 function canPayViaABA(policy: OnyxInputOrEntry<Policy>, isPayViaABABetaEnabled: boolean): boolean {
-    const withdrawalAccount = policy?.reimbursement?.countries?.[CONST.COUNTRY.AU];
+    const withdrawalAccount = getAUWithdrawalAccount(policy);
 
     // Accounts set up through Corpay don't have the bank user ID and company name that the ABA file needs
     const isCorpayAccount = !!withdrawalAccount?.additionalData?.verifications?.corpay;
