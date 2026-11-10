@@ -9,7 +9,7 @@ import {getCategoryDefaultTaxRate} from '@libs/CategoryUtils';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {translateLocal} from '@libs/Localize';
-import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, isSelectableTaxCode, resolveCurrentTaxCode} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, isSelectableTaxCode, isTaxCodeCustomized, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import type {Policy, TaxRate, TaxRates, Transaction} from '@src/types/onyx';
@@ -21,7 +21,14 @@ import getDistanceInMeters from './getDistanceInMeters';
 // This cycle import is safe because this file was extracted from TransactionUtils/index.ts, which re-exports it.
 // The functions imported here are pure helpers that aren't called at initialization time.
 // eslint-disable-next-line import/no-cycle
-import {getAmount, getCurrency, getRateID, getTaxCode, isDistanceRequest} from './index';
+import {getAmount, getCurrency, getRateID, getTaxCode, isDistanceRequest, isPerDiemRequest, isTimeRequest} from './index';
+
+function getTaxCodeForDisplay(transaction: Transaction, policy: OnyxEntry<Policy>): string {
+    if (isPerDiemRequest(transaction) || isTimeRequest(transaction) || !isTaxCodeCustomized(transaction.taxCode, policy)) {
+        return '';
+    }
+    return getTaxCode(transaction);
+}
 
 /**
  * Calculates tax amount from the given expense amount and tax percentage
@@ -308,6 +315,7 @@ export {
     getDefaultTaxCode,
     getDistanceRateTaxUpdates,
     getEnabledTaxRateCount,
+    getTaxCodeForDisplay,
     getTaxName,
     getTaxRateTitle,
     getTaxValue,

@@ -172,6 +172,7 @@ import {View} from 'react-native';
 import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import MoneyRequestReceiptView from './MoneyRequestReceiptView';
+import MoneyRequestViewAdditionalFields from './MoneyRequestViewAdditionalFields';
 
 type MoneyRequestViewProps = {
     transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
@@ -1889,6 +1890,18 @@ function MoneyRequestView({
                             isTitleSelectable={!!reportCopyValue}
                         />
                     </OfflineWithFeedback>
+                )}
+                {!!parentReport && isExpenseReport(parentReport) && !isFromReviewDuplicates && !isFromMergeTransaction && (
+                    <MoneyRequestViewAdditionalFields
+                        transaction={transaction}
+                        report={parentReport}
+                        reportActions={parentReportActions}
+                        policy={policy}
+                        policyCategories={policyCategories}
+                        policyTags={reportPolicyTags}
+                        visibleAttendeeCount={shouldShowAttendees ? transactionAttendees.length : 0}
+                        isVendorColumnAvailable={hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING))}
+                    />
                 )}
                 {shouldShowTripRoomLink && (
                     <>
