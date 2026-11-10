@@ -1,5 +1,4 @@
 import Badge from '@components/Badge';
-import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
@@ -13,7 +12,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail, usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -53,18 +51,16 @@ function PaymentDetailsPage({route}: PaymentDetailsPageProps) {
     const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {isBetaEnabled} = usePermissions();
     const [purchases] = useOnyx(ONYXKEYS.PURCHASES);
 
     const purchaseID = Number(route.params.purchaseID);
-    const isBetaOn = isBetaEnabled(CONST.BETAS.PAYMENT_HISTORY);
 
     useEffect(() => {
-        if (!isBetaOn || isOffline) {
+        if (isOffline) {
             return;
         }
         openPaymentDetailsPage(purchaseID);
-    }, [isBetaOn, isOffline, purchaseID]);
+    }, [isOffline, purchaseID]);
 
     const purchase = purchases?.[String(purchaseID)];
     const billedToAccountID = purchase?.billedToAccountID;
@@ -73,7 +69,7 @@ function PaymentDetailsPage({route}: PaymentDetailsPageProps) {
     const activeUserAccountIDs = getActiveUserAccountIDs(purchase);
     const [activeUserPersonalDetails] = usePersonalDetailsByIDs(activeUserAccountIDs);
 
-    if (!isBetaOn || (purchases !== undefined && !row)) {
+    if (purchases !== undefined && !row) {
         return <NotFoundPage />;
     }
 
@@ -181,16 +177,14 @@ function PaymentDetailsPage({route}: PaymentDetailsPageProps) {
             shouldShowOfflineIndicatorInWideScreen
             shouldEnableMaxHeight
         >
-            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                <HeaderWithBackButtonAndTitle title={translate('subscription.paymentHistory.details')} />
-                <View style={[styles.w100, styles.flex1]}>
-                    <PaymentActivityTable
-                        activeUsers={activeUsers}
-                        countsMembers={!!row?.countsMembers}
-                        headerComponent={detailsContent}
-                    />
-                </View>
-            </DelegateNoAccessWrapper>
+            <HeaderWithBackButtonAndTitle title={translate('subscription.paymentHistory.details')} />
+            <View style={[styles.w100, styles.flex1]}>
+                <PaymentActivityTable
+                    activeUsers={activeUsers}
+                    countsMembers={!!row?.countsMembers}
+                    headerComponent={detailsContent}
+                />
+            </View>
         </ScreenWrapper>
     );
 }

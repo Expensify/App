@@ -1,12 +1,15 @@
 import useEnvironment from '@hooks/useEnvironment';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openLink as openLinkUtil} from '@userActions/Link';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {StyleProp, TextStyle} from 'react-native';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 /**
  * TextLinkBlock component splits a given text into individual words and displays
  * each word within a TextLink component so the link text wraps naturally.
@@ -35,13 +38,14 @@ function TextLinkBlock({text, style, prefixIcon, ...rest}: TextLinkBlockProps) {
     const words = text.match(/(\S+\s*)/g) ?? [];
 
     const {environmentURL} = useEnvironment();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
 
     const openLink = () => {
         if (!rest.href) {
             return;
         }
-        openLinkUtil(rest.href, environmentURL);
+        openLinkUtil(rest.href, environmentURL, false, session);
     };
 
     return (

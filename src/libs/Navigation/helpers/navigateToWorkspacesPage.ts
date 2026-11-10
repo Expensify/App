@@ -7,9 +7,10 @@ import {isPendingDeletePolicy, shouldShowPolicy as shouldShowPolicyUtil} from '@
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Domain, Policy} from '@src/types/onyx';
+import type {Domain, Policy, Session} from '@src/types/onyx';
 
 import type {NavigationState, PartialState} from '@react-navigation/native';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {findFocusedRoute, StackActions, TabActions} from '@react-navigation/native';
 
@@ -32,9 +33,10 @@ type Params = {
     domain?: Domain;
     lastWorkspacesTabNavigatorRoute?: RouteType;
     lastTabNavigatorRoute?: RouteType;
+    session: OnyxEntry<Session>;
 };
 
-const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, policy, domain, lastWorkspacesTabNavigatorRoute, lastTabNavigatorRoute}: Params) => {
+const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, policy, domain, lastWorkspacesTabNavigatorRoute, lastTabNavigatorRoute, session}: Params) => {
     const rootState = navigationRef.getRootState();
     const focusedRoute = rootState ? findFocusedRoute(rootState) : undefined;
     const isOnWorkspacesList = focusedRoute?.name === SCREENS.WORKSPACES_LIST;
@@ -121,7 +123,7 @@ const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, poli
 
         // Fallback: any other state, go to the list.
         Navigation.navigate(ROUTES.WORKSPACES_LIST.route);
-    });
+    }, session);
 };
 
 export default navigateToWorkspacesPage;

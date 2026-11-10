@@ -2,6 +2,7 @@ import BookTravelButton from '@components/BookTravelButton';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import type {EmptyStateButton, HeaderMedia} from '@components/EmptyStateComponent/types';
 import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
+import {useRegisterSearchScrollView, useSearchListScrollLockStyle} from '@components/Search/SearchListScrollLockContext';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
@@ -27,8 +28,8 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {canSendInvoice, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
+import {TODO_SEARCH_KEYS} from '@libs/SearchKeyUtils';
 import {getAllPolicyValues, getFilterFromQuery, isDefaultExpenseReportsQuery, isDefaultExpensesQuery, isSearchBeforeViolationsSnapshotStarted} from '@libs/SearchQueryUtils';
-import {TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -137,6 +138,8 @@ function EmptySearchViewContent({
     const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
     const tabRootScrollProps = useTabRootScrollProps([styles.flexGrow1, styles.flexShrink0, contentContainerStyle], {fillsVisibleArea: true});
+    const scrollLockStyle = useSearchListScrollLockStyle();
+    const scrollViewRef = useRegisterSearchScrollView();
 
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateTravel']);
     const {isBetaEnabled} = usePermissions();
@@ -268,6 +271,7 @@ function EmptySearchViewContent({
                         <View style={[styles.mt6, styles.alignSelfCenter]}>
                             <SearchScopeProvider isOnSearch={false}>
                                 <BookTravelButton
+                                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.EMPTY_STATE.BOOK_TRAVEL}
                                     text={translate('search.searchResults.emptyTripResults.buttonText')}
                                     activePolicyID={activePolicy?.id}
                                 />
@@ -299,6 +303,7 @@ function EmptySearchViewContent({
                                 ? [
                                       {
                                           buttonText: translate('emptySearchView.takeATestDrive'),
+                                          sentryLabel: CONST.SENTRY_LABEL.SEARCH.EMPTY_STATE.TAKE_TEST_DRIVE,
                                           buttonAction: startTestDriveAction,
                                       },
                                   ]
@@ -307,6 +312,7 @@ function EmptySearchViewContent({
                                 ? [
                                       {
                                           buttonText: translate('quickAction.createReport'),
+                                          sentryLabel: CONST.SENTRY_LABEL.SEARCH.EMPTY_STATE.CREATE_REPORT,
                                           buttonAction: createReport,
                                           buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                       },
@@ -340,12 +346,14 @@ function EmptySearchViewContent({
                                     ? [
                                           {
                                               buttonText: translate('emptySearchView.takeATestDrive'),
+                                              sentryLabel: CONST.SENTRY_LABEL.SEARCH.EMPTY_STATE.TAKE_TEST_DRIVE,
                                               buttonAction: startTestDriveAction,
                                           },
                                       ]
                                     : []),
                                 {
                                     buttonText: translate('iou.createExpense'),
+                                    sentryLabel: CONST.SENTRY_LABEL.SEARCH.EMPTY_STATE.CREATE_EXPENSE,
                                     buttonAction: () => handleCreateMoneyRequest(CONST.IOU.TYPE.CREATE),
                                     buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                 },
@@ -375,6 +383,7 @@ function EmptySearchViewContent({
                                 ? [
                                       {
                                           buttonText: translate('emptySearchView.takeATestDrive'),
+                                          sentryLabel: CONST.SENTRY_LABEL.SEARCH.EMPTY_STATE.TAKE_TEST_DRIVE,
                                           buttonAction: startTestDriveAction,
                                       },
                                   ]
@@ -383,6 +392,7 @@ function EmptySearchViewContent({
                                 ? [
                                       {
                                           buttonText: translate('workspace.invoices.sendInvoice'),
+                                          sentryLabel: CONST.SENTRY_LABEL.SEARCH.EMPTY_STATE.SEND_INVOICE,
                                           buttonAction: () => handleCreateMoneyRequest(CONST.IOU.TYPE.INVOICE),
                                           buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                       },
@@ -417,7 +427,9 @@ function EmptySearchViewContent({
 
     return (
         <Animated.ScrollView
+            ref={scrollViewRef}
             showsVerticalScrollIndicator={false}
+            style={scrollLockStyle}
             {...tabRootScrollProps}
             scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
             onScroll={onScroll}

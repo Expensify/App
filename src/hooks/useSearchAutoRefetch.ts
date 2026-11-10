@@ -9,6 +9,7 @@ import {isReportActionEntry} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {MemberCustomFieldsByPolicyID} from '@src/selectors/Policy';
 import type {ReportActions, SearchResults, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -16,6 +17,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
 
+import useIsInPreloadedTab from './useIsInPreloadedTab';
 import useNetwork from './useNetwork';
 import useShouldReturnTripRooms from './useShouldReturnTripRooms';
 
@@ -34,6 +36,12 @@ type UseSearchAutoRefetch = {
 
     /** Previous report actions collection, compared against `reportActions` to detect new entries */
     previousReportActions: OnyxCollection<ReportActions>;
+
+    /** Member custom fields of the policies the results display, keyed by policy ID then member login */
+    memberCustomFields: MemberCustomFieldsByPolicyID | undefined;
+
+    /** Previous member custom fields, compared against `memberCustomFields` to detect edits */
+    previousMemberCustomFields: MemberCustomFieldsByPolicyID | undefined;
 
     /** Parsed search query the refetch is issued for */
     queryJSON: SearchQueryJSON;
@@ -58,6 +66,8 @@ function useSearchAutoRefetch({
     previousTransactions,
     reportActions,
     previousReportActions,
+    memberCustomFields,
+    previousMemberCustomFields,
     queryJSON,
     searchKey,
     offset,
@@ -65,6 +75,7 @@ function useSearchAutoRefetch({
 }: UseSearchAutoRefetch) {
     const isFocused = useIsFocused();
     const {isOffline} = useNetwork();
+    const isInPreloadedTab = useIsInPreloadedTab();
     const searchTriggeredRef = useRef(false);
     const hasPendingSearchRef = useRef(false);
     const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
@@ -90,8 +101,13 @@ function useSearchAutoRefetch({
             return;
         }
 
+        // A preloaded tab refreshes its whole snapshot on first open, so a refetch deferred while hidden would only repeat it.
+        if (isInPreloadedTab) {
+            return;
+        }
+
         // Snapshot and focus updates re-run this effect with unchanged collections, which would diff a collection against itself.
-        if (transactions === previousTransactions && reportActions === previousReportActions && !hasPendingSearchRef.current) {
+        if (transactions === previousTransactions && reportActions === previousReportActions && memberCustomFields === previousMemberCustomFields && !hasPendingSearchRef.current) {
             return;
         }
 
@@ -119,9 +135,10 @@ function useSearchAutoRefetch({
         // server, so those edits only become visible after a refetch.
         const hasChangedResultTransaction =
             !isChat && !hasTransactionsIDsChange && hasChangedTransactionInSearchResults(transactions, transactionsIDs, previousTransactions, previousTransactionsIDsSet, searchResultsData);
+        const hasChangedResultMemberCustomField = !isChat && hasChangedMemberCustomField(memberCustomFields, previousMemberCustomFields);
 
         // Check if there is a change in the transactions or report actions list
-        if ((isChat ? hasReportActionsIDsChange : hasTransactionsIDsChange || hasChangedResultTransaction) || hasPendingSearchRef.current) {
+        if ((isChat ? hasReportActionsIDsChange : hasTransactionsIDsChange || hasChangedResultTransaction || hasChangedResultMemberCustomField) || hasPendingSearchRef.current) {
             // Skip if offline, or if the user has navigated to a different fullscreen page entirely.
             // An RHP layered on top of Search makes `isFocused` false but keeps Search as the topmost
             // fullscreen route, so we still want to refetch — otherwise the snapshot can't reflect
@@ -159,7 +176,7 @@ function useSearchAutoRefetch({
 
             // Only skip search if there are no new items AND search results aren't empty
             // This ensures deletions that result in empty data still trigger search
-            if (!hasAGenuinelyNewID && !hasChangedResultTransaction && !hadPendingSearch && currentSearchResultIDs.length > 0) {
+            if (!hasAGenuinelyNewID && !hasChangedResultTransaction && !hasChangedResultMemberCustomField && !hadPendingSearch && currentSearchResultIDs.length > 0) {
                 const currentIDsSet = new Set(isChat ? reportActionsIDs : currentTransactionIDs);
                 const hasDeletedID = currentSearchResultIDs.some((id) => !currentIDsSet.has(id));
                 if (!hasDeletedID) {
@@ -187,11 +204,14 @@ function useSearchAutoRefetch({
         shouldCalculateTotals,
         reportActions,
         previousReportActions,
+        memberCustomFields,
+        previousMemberCustomFields,
         isChat,
         searchResultsData,
         isOffline,
         searchResults?.search?.isLoading,
         shouldReturnTripRooms,
+        isInPreloadedTab,
     ]);
 
     useEffect(() => {
@@ -224,6 +244,12 @@ function hasNestedTransactions(entry: unknown): entry is {transactions: Array<Pa
 /**
  * Helper function to extract transaction IDs from search results data.
  */
+function getPolicyIDsFromSearchResults(searchResultsData: Partial<SearchResults['data']> | undefined): string[] {
+    return Object.keys(searchResultsData ?? {})
+        .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.POLICY))
+        .map((key) => key.slice(ONYXKEYS.COLLECTION.POLICY.length));
+}
+
 function extractTransactionIDsFromSearchResults(searchResultsData: Partial<SearchResults['data']>): string[] {
     const transactionIDs: string[] = [];
 
@@ -304,5 +330,28 @@ function hasChangedTransactionInSearchResults(
     return changedTransactionIDs.some((transactionID) => searchResultIDs.has(transactionID));
 }
 
+function hasChangedMemberCustomField(memberCustomFields: MemberCustomFieldsByPolicyID | undefined, previousMemberCustomFields: MemberCustomFieldsByPolicyID | undefined): boolean {
+    if (!memberCustomFields || !previousMemberCustomFields) {
+        return false;
+    }
+
+    const customFieldKeys = Object.values(CONST.CUSTOM_FIELD_KEYS);
+    for (const [policyID, customFieldsByLogin] of Object.entries(memberCustomFields)) {
+        const previousCustomFieldsByLogin = previousMemberCustomFields[policyID];
+        if (!previousCustomFieldsByLogin) {
+            continue;
+        }
+        for (const [login, customFields] of Object.entries(customFieldsByLogin)) {
+            const previousCustomFields = previousCustomFieldsByLogin[login];
+            if (previousCustomFields && customFieldKeys.some((key) => customFields[key] !== previousCustomFields[key])) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 export default useSearchAutoRefetch;
+export {getPolicyIDsFromSearchResults};
 export type {UseSearchAutoRefetch};

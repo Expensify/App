@@ -12,7 +12,7 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {PersonalDetailsList} from '@src/types/onyx';
+import type {PersonalDetailsList, Session} from '@src/types/onyx';
 import type OnyxReport from '@src/types/onyx/Report';
 
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -22,6 +22,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import type {ThreeDotsMenuItem} from './HeaderWithBackButton/types';
+import type {PersonalDetailsByLogin} from './PersonalDetailsByLoginProvider';
 
 import Button from './Button';
 
@@ -31,13 +32,14 @@ type PromotedAction = {
 
 type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN;
 
-type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => PromotedAction> & {
+type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport, session: OnyxEntry<Session>) => PromotedAction> & {
     [CONST.PROMOTED_ACTIONS.SHARE]: (report: OnyxReport) => PromotedAction;
 } & {
     [CONST.PROMOTED_ACTIONS.MESSAGE]: (params: {
         reportID?: string;
         accountID?: number;
         login?: string;
+        personalDetailsByLogin: PersonalDetailsByLogin;
         currentUserAccountID: number;
         introSelected: OnyxEntry<IntroSelected>;
         personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -48,7 +50,7 @@ type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => P
         isSupportalSession: boolean;
     }) => PromotedAction;
 } & {
-    [CONST.PROMOTED_ACTIONS.JOIN]: (report: OnyxReport, currentUserAccountID: number) => PromotedAction;
+    [CONST.PROMOTED_ACTIONS.JOIN]: (report: OnyxReport, currentUserAccountID: number, session: OnyxEntry<Session>) => PromotedAction;
 };
 
 type PromotedActionsBarProps = {
@@ -57,11 +59,11 @@ type PromotedActionsBarProps = {
 };
 
 const PromotedActions = {
-    pin: (report) => ({
+    pin: (report, session) => ({
         key: CONST.PROMOTED_ACTIONS.PIN,
         icon: 'Pin',
         translationKey: report.isPinned ? 'common.unPin' : 'common.pin',
-        onSelected: callFunctionIfActionIsAllowed(() => togglePinnedState(report.reportID, !!report.isPinned)),
+        onSelected: callFunctionIfActionIsAllowed(() => togglePinnedState(report.reportID, !!report.isPinned), false, session),
     }),
     share: () => ({
         key: CONST.PROMOTED_ACTIONS.SHARE,
@@ -69,19 +71,24 @@ const PromotedActions = {
         translationKey: 'common.share',
         onSelected: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.path)),
     }),
-    join: (report, currentUserAccountID) => ({
+    join: (report, currentUserAccountID, session) => ({
         key: CONST.PROMOTED_ACTIONS.JOIN,
         icon: 'ChatBubbles',
         translationKey: 'common.join',
-        onSelected: callFunctionIfActionIsAllowed(() => {
-            Navigation.dismissModal();
-            joinRoom(report, currentUserAccountID);
-        }),
+        onSelected: callFunctionIfActionIsAllowed(
+            () => {
+                Navigation.dismissModal();
+                joinRoom(report, currentUserAccountID);
+            },
+            false,
+            session,
+        ),
     }),
     message: ({
         reportID,
         accountID,
         login,
+        personalDetailsByLogin,
         personalDetails,
         currentUserAccountID,
         introSelected,
@@ -102,7 +109,8 @@ const PromotedActions = {
 
             if (login) {
                 navigateToAndOpenReport({
-                    userLogins: [login],
+                    login,
+                    personalDetailsByLogin,
                     personalDetails,
                     currentUserAccountID,
                     introSelected,
