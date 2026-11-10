@@ -63,9 +63,6 @@ type InsightsDashboardSpec = {
     /** The dashboard's charts are replaced by the Control upsell when no workspace in scope is on Control */
     requiresControlPlan?: boolean;
 
-    /** Shows AI insight cards above the headline chart */
-    hasAIInsights?: boolean;
-
     /** Chart across the top of the page, the only one the group-by filter applies to */
     headlineChart: InsightsChartSpec;
 
@@ -77,7 +74,6 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
     [CONST.INSIGHTS.DASHBOARD.SPEND]: {
         searchKey: CONST.INSIGHTS.SEARCH_KEY.SPEND,
         labelKey: 'common.spend',
-        hasAIInsights: true,
         headlineChart: {
             graphKey: CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME,
             titleKey: 'search.spendOverTime',

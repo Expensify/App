@@ -19,7 +19,7 @@ type InsightsExplainButtonProps = {
     insightsScope: InsightsScope;
 };
 
-/** Asks Concierge to explain an AI insight or chart, sending along the dashboard filters so the answer covers the data on screen. */
+/** Button that asks Concierge to explain an AI insight or chart, sending along the dashboard filters so the answer covers the data on screen. */
 function InsightsExplainButton({explainPrompt, insightsScope}: InsightsExplainButtonProps) {
     const styles = useThemeStyles();
     const theme = useTheme();

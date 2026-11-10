@@ -33,7 +33,7 @@ type InsightsAICardRowProps = {
     hasFailedToLoad: boolean;
 };
 
-/** Shows the AI insights, with placeholders while the dashboard loads. */
+/** Row of AI insight cards, with placeholders while the insights load. */
 function InsightsAICardRow({insights, insightsScope, hasFailedToLoad}: InsightsAICardRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();

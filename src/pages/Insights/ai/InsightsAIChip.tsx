@@ -18,7 +18,7 @@ type InsightsAIChipProps = {
     chip: AIInsightChip;
 };
 
-/** Shows the stat at the top of an AI insight card. Increases are red and decreases green, because more spend is bad news. */
+/** Stat at the top of an AI insight card, colored by whether the change is good or bad rather than which way it went. */
 function InsightsAIChip({chip}: InsightsAIChipProps) {
     const styles = useThemeStyles();
     const theme = useTheme();

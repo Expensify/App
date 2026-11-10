@@ -235,7 +235,7 @@ function InsightsDashboardContent({
                     collapsable={false}
                     style={[styles.insightsDashboardLayout(shouldUseNarrowLayout), shouldScrollMainHeader && pageGutter]}
                 >
-                    {isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && INSIGHTS_DASHBOARD_SPECS[dashboardID].hasAIInsights && (
+                    {isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && (
                         <InsightsAICardRow
                             insights={aiInsights}
                             insightsScope={insightsScope}
