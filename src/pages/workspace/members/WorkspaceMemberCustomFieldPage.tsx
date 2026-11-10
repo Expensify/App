@@ -7,7 +7,6 @@ import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
-import useRedirectOnWorkspaceMemberRemoval from '@hooks/useRedirectOnWorkspaceMemberRemoval';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceMemberFromRoute from '@hooks/useWorkspaceMemberFromRoute';
 
@@ -48,7 +47,6 @@ function WorkspaceMemberCustomFieldPage({policy, route, personalDetails}: Worksp
     const policyID = params.policyID;
     const {memberLogin} = useWorkspaceMemberFromRoute(policy, personalDetails, accountID);
     const member = policy?.employeeList?.[memberLogin];
-    const shouldRedirectToMembers = useRedirectOnWorkspaceMemberRemoval(policyID, accountID, !!member?.role);
     const customFieldKey = CONST.CUSTOM_FIELD_KEYS[customFieldType];
     const [customField, setCustomField] = useState(member?.[customFieldKey ?? ''] ?? '');
     const customFieldText = translate(`workspace.common.${customFieldType}`);
@@ -56,10 +54,6 @@ function WorkspaceMemberCustomFieldPage({policy, route, personalDetails}: Worksp
     const goBack = () => {
         Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
     };
-
-    if (shouldRedirectToMembers) {
-        return null;
-    }
 
     return (
         <AccessOrNotFoundWrapper

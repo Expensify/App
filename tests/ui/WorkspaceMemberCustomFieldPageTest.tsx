@@ -13,7 +13,7 @@ import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {addMembersToWorkspace} from '@libs/actions/Policy/Member';
-import {updateMemberCustomField} from '@libs/actions/Policy/Policy';
+import {dismissAddedWithPrimaryLoginMessages, updateMemberCustomField} from '@libs/actions/Policy/Policy';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
@@ -233,14 +233,15 @@ describe('WorkspaceMemberCustomFieldPage', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        // Then mapped members keep the unsaved draft, unresolved members return to Members, and failures remain editable
+        // Then mapped members keep the unsaved draft, while an unresolved member cannot be edited or silently saved
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE, 1);
-        expect(screen.queryByTestId('NotFoundPage')).not.toBeOnTheScreen();
         expect(updateMemberCustomFieldMock).not.toHaveBeenCalled();
         if (responseType === 'unmapped') {
-            expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBERS.getRoute(policy.id));
+            expect(Navigation.goBack).not.toHaveBeenCalled();
+            expect(screen.getByTestId('NotFoundPage')).toBeOnTheScreen();
             expect(screen.queryByTestId('WorkspaceMemberCustomFieldPage')).not.toBeOnTheScreen();
         } else {
+            expect(screen.queryByTestId('NotFoundPage')).not.toBeOnTheScreen();
             expect(screen.getByDisplayValue('TEST-123')).toBeOnTheScreen();
             expect(Navigation.goBack).not.toHaveBeenCalled();
             if (responseType === 'mapped') {
@@ -271,5 +272,169 @@ describe('WorkspaceMemberCustomFieldPage', () => {
         expect(updateMemberCustomFieldMock).not.toHaveBeenCalled();
         unmount();
         await waitForBatchedUpdatesWithAct();
+    });
+
+    describe('identity reconciliation', () => {
+        const secondaryEmail = 'secondary@example.com';
+        const primaryEmail = 'primary@example.com';
+        const primaryAccountID = 7777;
+        const optimisticAccountID = generateAccountID(secondaryEmail);
+        const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policy.id}` as const;
+
+        const openEditor = async (routeAccountID = optimisticAccountID) => {
+            await act(async () => {
+                await Onyx.merge(policyKey, {employeeList: {[secondaryEmail]: {email: secondaryEmail, role: CONST.POLICY.ROLE.USER}}});
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [routeAccountID]: {...TestHelper.buildPersonalDetails(secondaryEmail, routeAccountID, 'Secondary'), isOptimisticPersonalDetail: routeAccountID === optimisticAccountID},
+                });
+            });
+            const renderedPage = renderPage({policyID: policy.id, accountID: String(routeAccountID), customFieldType: 'customField1'});
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.changeText(screen.getByDisplayValue(''), 'TEST-123');
+            return renderedPage;
+        };
+
+        const syncMappedMember = async () => {
+            await act(async () => {
+                await Onyx.update([
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: policyKey,
+                        value: {
+                            employeeList: {[secondaryEmail]: null, [primaryEmail]: {email: primaryEmail, role: CONST.POLICY.ROLE.USER}},
+                            primaryLoginsInvited: {[secondaryEmail]: primaryEmail},
+                        },
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {[optimisticAccountID]: null, [primaryAccountID]: TestHelper.buildPersonalDetails(primaryEmail, primaryAccountID, 'Primary')},
+                    },
+                ]);
+            });
+            await waitForBatchedUpdatesWithAct();
+        };
+
+        it('preserves the draft when the primary mapping arrives in a later delivery', async () => {
+            // Given a mounted editor for a member invited by secondary email while offline
+            const {unmount} = await openEditor();
+
+            // When one committed delivery removes the optimistic identity before another supplies the mapping
+            await act(async () => {
+                await Onyx.merge(policyKey, {employeeList: {[secondaryEmail]: null, [primaryEmail]: {email: primaryEmail, role: CONST.POLICY.ROLE.USER}}});
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [optimisticAccountID]: null,
+                    [primaryAccountID]: TestHelper.buildPersonalDetails(primaryEmail, primaryAccountID, 'Primary'),
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+            expect(Navigation.goBack).not.toHaveBeenCalled();
+            expect(screen.getByTestId('NotFoundPage')).toBeOnTheScreen();
+            expect(updateMemberCustomFieldMock).not.toHaveBeenCalled();
+            await act(async () => {
+                await Onyx.merge(policyKey, {primaryLoginsInvited: {[secondaryEmail]: primaryEmail}});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then resolution restores the original draft on the same page, and Save targets the primary member
+            expect(screen.getByDisplayValue('TEST-123')).toBeOnTheScreen();
+            expect(screen.queryByTestId('NotFoundPage')).not.toBeOnTheScreen();
+            expect(Navigation.goBack).not.toHaveBeenCalled();
+            fireEvent.press(screen.getByText('Save'));
+            await waitForBatchedUpdatesWithAct();
+            expect(updateMemberCustomFieldMock).toHaveBeenCalledWith(policy.id, primaryEmail, 'customField1', 'TEST-123', undefined);
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it.each(['policy', 'personalDetails'])('preserves a real-account draft when %s arrives first without an alias mapping', async (firstDelivery) => {
+            // Given the route already identifies the real account, even though its login is still secondary
+            const {unmount} = await openEditor(primaryAccountID);
+            const updatePolicy = () => Onyx.merge(policyKey, {employeeList: {[secondaryEmail]: null, [primaryEmail]: {email: primaryEmail, role: CONST.POLICY.ROLE.USER}}});
+            const updatePersonalDetails = () =>
+                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[primaryAccountID]: TestHelper.buildPersonalDetails(primaryEmail, primaryAccountID, 'Primary')});
+
+            // When the login and employee replacement are separate committed deliveries in either order
+            await act(async () => {
+                await (firstDelivery === 'policy' ? updatePolicy() : updatePersonalDetails());
+            });
+            await waitForBatchedUpdatesWithAct();
+            expect(Navigation.goBack).not.toHaveBeenCalled();
+            await act(async () => {
+                await (firstDelivery === 'policy' ? updatePersonalDetails() : updatePolicy());
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the real account resolves the primary login and the draft survives without any guessed relationship
+            expect(screen.getByDisplayValue('TEST-123')).toBeOnTheScreen();
+            expect(Navigation.goBack).not.toHaveBeenCalled();
+            fireEvent.press(screen.getByText('Save'));
+            await waitForBatchedUpdatesWithAct();
+            expect(updateMemberCustomFieldMock).toHaveBeenCalledWith(policy.id, primaryEmail, 'customField1', 'TEST-123', undefined);
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('retains an established primary identity when its informational mapping is dismissed', async () => {
+            // Given an optimistic route that has already resolved the canonical member after a successful invite
+            const {unmount} = await openEditor();
+            await syncMappedMember();
+            expect(screen.getByDisplayValue('TEST-123')).toBeOnTheScreen();
+
+            // When dismissing the invitation message removes primaryLoginsInvited
+            await act(async () => {
+                dismissAddedWithPrimaryLoginMessages(policy.id);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the current primary employee remains editable and saves under the primary login
+            expect(screen.getByDisplayValue('TEST-123')).toBeOnTheScreen();
+            expect(Navigation.goBack).not.toHaveBeenCalled();
+            fireEvent.press(screen.getByText('Save'));
+            await waitForBatchedUpdatesWithAct();
+            expect(updateMemberCustomFieldMock).toHaveBeenCalledWith(policy.id, primaryEmail, 'customField1', 'TEST-123', undefined);
+            expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policy.id, optimisticAccountID));
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('does not cache the viewing user permissions along with member identity', async () => {
+            // Given an editor with a retained canonical member identity
+            const {unmount} = await openEditor();
+            await syncMappedMember();
+
+            // When the current user loses workspace admin access but the edited member still exists
+            await act(async () => {
+                await Onyx.merge(policyKey, {role: CONST.POLICY.ROLE.USER, employeeList: {[selfEmail]: {role: CONST.POLICY.ROLE.USER}}});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then retaining the member identity does not retain permission to edit it
+            expect(screen.getByTestId('NotFoundPage')).toBeOnTheScreen();
+            expect(screen.queryByDisplayValue('TEST-123')).not.toBeOnTheScreen();
+            expect(updateMemberCustomFieldMock).not.toHaveBeenCalled();
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('blocks a genuinely deleted member instead of reusing cached membership', async () => {
+            // Given the editor has retained the real member identity
+            const {unmount} = await openEditor();
+            await syncMappedMember();
+
+            // When the primary employee is deleted and the informational mapping is cleared
+            await act(async () => {
+                await Onyx.merge(policyKey, {employeeList: {[primaryEmail]: null}, primaryLoginsInvited: null});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then cached identity cannot bypass the live membership guard or send a custom-field write
+            expect(screen.getByTestId('NotFoundPage')).toBeOnTheScreen();
+            expect(screen.queryByDisplayValue('TEST-123')).not.toBeOnTheScreen();
+            expect(updateMemberCustomFieldMock).not.toHaveBeenCalled();
+            expect(Navigation.goBack).not.toHaveBeenCalled();
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
     });
 });
