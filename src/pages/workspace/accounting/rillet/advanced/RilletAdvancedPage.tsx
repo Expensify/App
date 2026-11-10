@@ -104,6 +104,7 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.ACCOUNTING_METHOD], rilletConfig?.pendingFields)}>
                     <MenuItem.Root
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RILLET.ACCOUNTING_METHOD}
                         onPress={callFunctionIfActionIsAllowed(
                             () => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT_METHOD.getRoute(policyID)) : undefined),
                             false,
@@ -143,6 +144,7 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.BILL_PAYMENT_ACCOUNT_CODE], rilletConfig?.pendingFields)}>
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RILLET.ACH_PAYMENT_ACCOUNT}
                         name={translate('workspace.rillet.achPaymentAccount.label')}
                         onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_ACH_PAYMENT_ACCOUNT.getRoute(policyID)) : undefined)}
                         value={achPaymentAccount ? `${achPaymentAccount?.code} ${achPaymentAccount?.name}` : undefined}
@@ -155,6 +157,7 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 {canConfigureCurrencyConversionFees && (
                     <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.FX_EXPENSE_ACCOUNT_CODE], rilletConfig?.pendingFields)}>
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RILLET.FX_EXPENSE_ACCOUNT}
                             name={translate('workspace.rillet.fxExpenseAccount.label')}
                             onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_FX_EXPENSE_ACCOUNT.getRoute(policyID)) : undefined)}
                             value={fxExpenseAccount ? `${fxExpenseAccount.code} ${fxExpenseAccount.name}` : undefined}
@@ -187,6 +190,7 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     >
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID], rilletConfig?.pendingFields)}>
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RILLET.SETTLEMENT_ACCOUNT}
                                 name={translate('workspace.rillet.settlementAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT.getRoute(policyID)) : undefined)}
                                 value={settlementsBankAccount ? `${settlementsBankAccount?.accountCode} ${settlementsBankAccount?.name}` : undefined}
@@ -220,6 +224,7 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     >
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID], rilletConfig?.pendingFields)}>
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RILLET.TRAVEL_BILLING_SETTLEMENT_ACCOUNT}
                                 name={translate('workspace.rillet.travelBillingSettlementAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_TRAVEL_BILLING_SETTLEMENT_ACCOUNT.getRoute(policyID)) : undefined)}
                                 value={travelBillingSettlementsBankAccount ? `${travelBillingSettlementsBankAccount?.accountCode} ${travelBillingSettlementsBankAccount?.name}` : undefined}

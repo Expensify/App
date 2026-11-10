@@ -119,6 +119,7 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
         <FixedFooter style={[styles.mtAuto, styles.gap3]}>
             {!!config.claimOfferLink && (
                 <ButtonDisabledWhenOffline
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CLAIM_OFFER}
                     onPress={handleClaimOffer}
                     size={CONST.BUTTON_SIZE.LARGE}
                 >
@@ -126,6 +127,7 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
                 </ButtonDisabledWhenOffline>
             )}
             <ButtonDisabledWhenOffline
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CLAIM_OFFER_CONNECT}
                 onPress={handleConnect}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.LARGE}

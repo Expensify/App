@@ -76,6 +76,7 @@ function RilletCardAccount({policy}: WithPolicyConnectionsProps) {
                             pendingAction={getCardsCustomExportPendingAction(cardFeeds ?? {}, cardLists ?? {}, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT, feedKey)}
                         >
                             <MenuItem.Root
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RILLET.CARD_ACCOUNT_FEED_ROW}
                                 onPress={callFunctionIfActionIsAllowed(
                                     () => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_CARD_ACCOUNT_CARD_LIST.getRoute(policyID, feedWithDomainID)) : undefined),
                                     false,

@@ -53,6 +53,7 @@ function DynamicQuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPol
         {
             title: nonReimbursable ? translate(`workspace.qbd.accounts.${nonReimbursable}`) : undefined,
             description: translate('workspace.accounting.exportAs'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.EXPORT_COMPANY_CARD_ROW.EXPORT_AS,
             onPress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_CARD_SELECT.path)),
             hintText: nonReimbursable ? translate(`workspace.qbd.accounts.${nonReimbursable}Description`) : undefined,
             subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE],
@@ -61,6 +62,7 @@ function DynamicQuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPol
         {
             title: accountName,
             description: getQBDNonReimbursableExportAccountType(translate, nonReimbursable),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.EXPORT_COMPANY_CARD_ROW.ACCOUNT,
             onPress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.path)),
             subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_ACCOUNT],
             keyForList: getQBDNonReimbursableExportAccountType(translate, nonReimbursable),
@@ -85,7 +87,10 @@ function DynamicQuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPol
                     key={section.keyForList}
                     pendingAction={settingsPendingAction(section.subscribedSettings, qbdConfig?.pendingFields)}
                 >
-                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(section.onPress, false, session)}>
+                    <MenuItem.Root
+                        onPress={callFunctionIfActionIsAllowed(section.onPress, false, session)}
+                        sentryLabel={section.sentryLabel}
+                    >
                         <MenuItemField.Row
                             name={section.description}
                             value={section.title}
@@ -137,6 +142,7 @@ function DynamicQuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPol
                             )}
                         >
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.BILL_DEFAULT_VENDOR}
                                 name={translate('workspace.accounting.defaultVendor')}
                                 onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT.getRoute(policyID))}
                                 value={nonReimbursableBillDefaultVendorObject?.name}

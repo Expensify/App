@@ -106,6 +106,7 @@ function ZohoBooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.ZOHO_BOOKS_CONFIG.ACCOUNTING_METHOD], zohoBooksConfig?.pendingFields)}>
                     <MenuItem.Root
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.ZOHO_BOOKS.ACCOUNTING_METHOD}
                         onPress={callFunctionIfActionIsAllowed(
                             () => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_EXPORT_METHOD.getRoute(policyID)) : undefined),
                             false,
@@ -145,6 +146,7 @@ function ZohoBooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.ZOHO_BOOKS_CONFIG.BILL_PAYMENT_ACCOUNT_ID], zohoBooksConfig?.pendingFields)}>
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.ZOHO_BOOKS.BILL_PAYMENT_ACCOUNT}
                         name={translate('workspace.zohoBooks.billPaymentAccount.label')}
                         onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_BILL_PAYMENT_ACCOUNT.getRoute(policyID)) : undefined)}
                         value={billPaymentAccount?.name}
@@ -176,6 +178,7 @@ function ZohoBooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     >
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.ZOHO_BOOKS_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID], zohoBooksConfig?.pendingFields)}>
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.ZOHO_BOOKS.SETTLEMENT_ACCOUNT}
                                 name={translate('workspace.zohoBooks.settlementAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT.getRoute(policyID)) : undefined)}
                                 value={settlementsBankAccount?.name}
@@ -209,6 +212,7 @@ function ZohoBooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     >
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.ZOHO_BOOKS_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID], zohoBooksConfig?.pendingFields)}>
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.ZOHO_BOOKS.TRAVEL_BILLING_SETTLEMENT_ACCOUNT}
                                 name={translate('workspace.zohoBooks.travelBillingSettlementAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_TRAVEL_BILLING_SETTLEMENT_ACCOUNT.getRoute(policyID)) : undefined)}
                                 value={travelInvoicingSettlementsBankAccount?.name}
@@ -220,6 +224,7 @@ function ZohoBooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         </OfflineWithFeedback>
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.ZOHO_BOOKS_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT_ID], zohoBooksConfig?.pendingFields)}>
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.ZOHO_BOOKS.TRAVEL_BILLING_PAYABLE_ACCOUNT}
                                 name={translate('workspace.zohoBooks.travelBillingPayableAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_TRAVEL_BILLING_PAYABLE_ACCOUNT.getRoute(policyID)) : undefined)}
                                 value={travelInvoicingPayableAccount?.name}

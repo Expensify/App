@@ -93,6 +93,7 @@ function TravelBillingContinuousReconciliationSection({policy, connectionName, i
             {!!travelBillingContinuousReconciliation && (
                 <OfflineWithFeedback pendingAction={travelBillingContinuousReconciliationPendingAction}>
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.TRAVEL_BILLING_RECONCILIATION_ACCOUNT}
                         name={translate('workspace.accounting.reconciliationAccount')}
                         onPress={navigateToTravelBillingReconciliationAccountSettings}
                         value={travelBillingReconciliationBankAccount?.name}
