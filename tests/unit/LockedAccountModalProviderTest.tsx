@@ -32,11 +32,13 @@ describe('LockedAccountModalProvider', () => {
         });
 
         // Then the primary CTA opens Concierge, while dismissing stays on the current screen.
-        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({
-            confirmText: 'unlockAccountPage.chatWithConcierge',
-            cancelText: 'common.dismiss',
-            shouldShowCancelButton: true,
-        }));
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(
+            expect.objectContaining({
+                confirmText: 'unlockAccountPage.chatWithConcierge',
+                cancelText: 'common.dismiss',
+                shouldShowCancelButton: true,
+            }),
+        );
         if (action === ModalActions.CONFIRM) {
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.CONCIERGE);
         } else {
