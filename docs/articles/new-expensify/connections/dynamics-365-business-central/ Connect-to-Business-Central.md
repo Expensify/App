@@ -5,8 +5,6 @@ keywords: [New Expensify, Dynamics 365 Business Central, Business Central, D365,
 internalScope: Audience is workspace admins connecting Dynamics 365 Business Central as an accounting integration. Covers prerequisites, extension setup, authentication, subsidiary selection, and disconnecting. Does not cover import, export, advanced settings, vendor matching, or Dynamics 365 Finance and Operations.
 contentType: task
 order: 1
-noindex: true
-sitemap: false
 ---
 
 # Connect to Dynamics 365 Business Central
