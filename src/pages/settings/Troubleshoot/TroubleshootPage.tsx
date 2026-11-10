@@ -153,8 +153,8 @@ function TroubleshootPage() {
                       action: () => closeReactNativeApp({shouldSetNVP: true, isTrackingGPS}),
                   }
                 : {
-                      // Classic opens only after the server saves the switch, which can't happen offline
-                      disabled: isOffline || isSwitchingToClassic,
+                      // After a recent exit survey Classic opens only once the server saves the switch, which can't happen offline
+                      disabled: isSwitchingToClassic || (isOffline && surveyCompletedWithinLastMonth),
                       action() {
                           if (surveyCompletedWithinLastMonth) {
                               switchToClassic('');

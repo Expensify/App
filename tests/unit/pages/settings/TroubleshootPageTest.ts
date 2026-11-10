@@ -261,6 +261,18 @@ describe('TroubleshootPage switch to Classic', () => {
         expect(screen.getByRole('button', {name: goToClassicButtonName})).toBeDisabled();
     });
 
+    it('keeps the entry enabled offline when it only opens the exit survey', () => {
+        // Given an offline user who hasn't taken the exit survey recently, so the entry opens the survey instead of switching
+        mockTryNewDot = undefined;
+        jest.mocked(useNetwork).mockReturnValue({isOffline: true});
+
+        // When the page renders
+        render(React.createElement(TroubleshootPage));
+
+        // Then the user can still open the survey, like from Settings
+        expect(screen.getByRole('button', {name: goToClassicButtonName})).toBeEnabled();
+    });
+
     it('disables the entry while a switch is waiting for the server', () => {
         // Given a switch already sent from this page
         arrangeSwitchToClassic(true);
