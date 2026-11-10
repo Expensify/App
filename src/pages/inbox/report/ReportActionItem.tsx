@@ -320,6 +320,7 @@ function ReportActionItem({
                 isOffline,
                 isSingleTransactionView: true,
                 policy: iouPolicy,
+                parentHierarchicalReports: reportsParentHierarchy,
                 chatReportActions: sendMoneyChatReportActions,
             });
             return;
