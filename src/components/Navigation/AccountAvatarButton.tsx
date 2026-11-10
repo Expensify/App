@@ -8,7 +8,6 @@ import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -30,10 +29,9 @@ import React from 'react';
  * the Account tab is not part of the navigation tab bar.
  */
 function AccountAvatarButton() {
-    const {isBetaEnabled} = usePermissions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    if (!shouldUseNarrowLayout || !isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE)) {
+    if (!shouldUseNarrowLayout) {
         return null;
     }
 

@@ -33,6 +33,7 @@ function assertSecurityHeaders(response: Response) {
     assert.equal(response.headers.get('X-Frame-Options'), 'SAMEORIGIN');
     assert.equal(response.headers.get('X-Content-Type-Options'), 'nosniff');
     assert.equal(response.headers.get('Referrer-Policy'), 'origin-when-cross-origin');
+    assert.equal(response.headers.get('Cross-Origin-Opener-Policy'), 'same-origin-allow-popups');
     assert.equal(response.headers.get('Document-Policy'), 'js-profiling');
     assert.match(response.headers.get('Content-Security-Policy') ?? '', /^default-src 'self'/);
 }

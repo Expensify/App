@@ -27,6 +27,7 @@ import startCase from 'lodash/startCase';
 
 import type en from './en';
 import type {CompanyCardBalanceParams} from './params';
+import type {ReportNextStepMessageParams} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -35,6 +36,12 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        billCreated: ({sender}) => `heeft deze factuur aangemaakt namens ${sender}`,
+        billSubmitted: ({receiver}) => `heeft deze factuur verzonden naar ${receiver}`,
+        invoiceCreated: ({sender}) => `heeft deze factuur aangemaakt namens ${sender}`,
+        invoiceSubmitted: ({receiver}) => `heeft deze factuur verzonden naar ${receiver}`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 dag`,
@@ -51,6 +58,8 @@ const translations: TranslationDeepObject<typeof en> = {
         count: 'Aantal',
         cancel: 'Annuleren',
         dismiss: 'Sluiten',
+        resizeColumn: ({columnName}: {columnName: string}) => `Kolom ${columnName} vergroten of verkleinen`,
+        columnWidth: ({width}: {width: number}) => `${width} pixels`,
         proceed: 'Doorgaan',
         unshare: 'Delen stoppen',
         yes: 'Ja',
@@ -114,6 +123,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pay: 'Betalen',
             fix: 'Oplossen',
             task: 'Taak',
+            add: 'Toevoegen',
         },
         success: 'Gelukt',
         group: 'Groep',
@@ -176,6 +186,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dob: 'Geboortedatum',
         currentYear: 'Huidig jaar',
         currentMonth: 'Huidige maand',
+        todayDateLabel: (date: string) => `${date}, vandaag`,
         ssnLast4: 'Laatste 4 cijfers van SSN',
         ssnFull9: 'Volledige 9 cijfers van SSN',
         addressLine: (lineNumber: number) => `Adresregel ${lineNumber}`,
@@ -330,6 +341,8 @@ const translations: TranslationDeepObject<typeof en> = {
         pm: 'PM',
         tbd: 'Nader te bepalen',
         selectCurrency: 'Selecteer een valuta',
+        any: 'Alle',
+        anyCurrency: 'Elke valuta',
         selectSymbolOrCurrency: 'Selecteer een symbool of valuta',
         card: 'Kaart',
         mcc: 'MCC',
@@ -509,7 +522,32 @@ const translations: TranslationDeepObject<typeof en> = {
         quarter: 'Kwartaal',
         vacationDelegate: 'Vertegenwoordiger tijdens vakantie',
         expensifyLogo: 'Expensify-logo',
-        concierge: {greeting: 'Hoi, waarmee kan ik je helpen?', showHistory: 'Geschiedenis weergeven'},
+        concierge: {
+            greeting: 'Hoi, waarmee kan ik je helpen?',
+            showHistory: 'Geschiedenis weergeven',
+            subtitle: 'Je persoonlijke AI-assistent',
+            welcomeDescription: 'Concierge kan vragen beantwoorden, uitgaven bijwerken en meer.',
+            viewChatHistory: 'Chatgeschiedenis weergeven',
+            hideChatHistory: 'Chatgeschiedenis verbergen',
+            askNewQuestion: 'Stel een nieuwe vraag',
+            newChat: 'Nieuwe chat',
+            composerPlaceholders: {
+                spendLastMonth: 'Hoeveel heb ik vorige maand uitgegeven?',
+                topExpenses: 'Laat mijn grootste uitgaven van deze maand zien',
+                spendDrivers: 'Waardoor stegen mijn uitgaven vorig kwartaal?',
+                travelSpendChange: 'Hoe zijn mijn reiskosten veranderd sinds vorige maand?',
+                topSpender: 'Wie heeft deze maand het meest uitgegeven?',
+                missingCategory: 'Welke uitgaven hebben geen categorie?',
+                awaitingApproval: 'Welke rapporten wachten op mijn goedkeuring?',
+                notReimbursed: 'Wat is nog niet aan mij vergoed?',
+                unsubmitted: 'Welke van mijn uitgaven zijn nog niet ingediend?',
+                leftToPay: 'Wat moet er deze maand nog betaald worden?',
+                createExpense: 'Maak een uitgave van $30 voor een lunch',
+                combineExpenses: 'Voeg al mijn open uitgaven samen in één rapport',
+                exportPdf: 'Exporteer mijn laatste rapport naar PDF',
+                exportCsv: 'Geef me een CSV van mijn uitgaven boven $50',
+            },
+        },
         duplicateReport: 'Dubbel rapport',
         approver: 'Fiatteur',
         goToConcierge: 'Ga naar Concierge',
@@ -1033,6 +1071,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             emailDeliveryFailure: {title: 'We kunnen je geen e-mailmeldingen sturen', subtitle: 'Account'},
             upgradeNetSuiteConnection: {title: 'Upgrade je NetSuite-verbinding'},
+            verifyWiseBankAccount: {title: 'Bankrekening verifiëren', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bankrekening eindigend op ${bankAccountLastFour}`},
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -1191,9 +1230,33 @@ const translations: TranslationDeepObject<typeof en> = {
             yearLabel: (year?: number) => (year === undefined ? 'Jaar' : `Jaar ${year}`),
             increase: (percentage: string) => `Gestegen met ${percentage}`,
             decrease: (percentage: string) => `Gedaald met ${percentage}`,
+            dailyAverage: 'Dagelijks gemiddelde',
+            weeklyAverage: 'Wekelijks gemiddelde',
+            monthlyAverage: 'Maandelijks gemiddelde',
+            quarterlyAverage: 'Driemaandelijks gemiddelde',
+            yearlyAverage: 'Jaarlijks gemiddelde',
+            allSpenderAverage: 'Gemiddelde per uitgave',
+            allMerchantAverage: 'Gemiddelde voor alle handelaren',
+            allCategoryAverage: 'Gemiddelde voor alle categorieën',
+            averageValue: (amount: string) => `${amount} gem.`,
         },
         compliance: 'Naleving',
         runningTotal: 'Doorlopend totaal',
+        upsellState: {
+            title: 'Upgrade naar Control voor meer inzichten',
+            subtitle: 'Volg trends in naleving van onkostenbeleid en markeer herhaalde overtreders.',
+            button: 'Upgraden naar Control',
+        },
+        explain: 'Uitleg',
+        explainChartPrompt: (chartTitle: string) => `Leg de gegevens in ${chartTitle} uit.`,
+        violationsOverTime: 'Overtredingen in de loop van de tijd',
+        topViolations: 'Belangrijkste overtredingen',
+        violationsBySubmitter: 'Overtredingen door indiener',
+        violationsByApprover: 'Overtredingen door fiatteur',
+        viewDetails: 'Bekijk details',
+        viewAll: 'Alles bekijken',
+        topExpenses: 'Belangrijkste uitgaven',
+        noExpensesInRange: 'Geen uitgaven in dit bereik',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1226,6 +1289,13 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `Oeps! Je hebt één veld (‘${fieldName}’) aan meerdere kolommen gekoppeld. Controleer dit en probeer het opnieuw.`,
         emptyMappedField: (fieldName: string) => `Oeps! Het veld („${fieldName}”) bevat een of meer lege waarden. Controleer het en probeer het opnieuw.`,
         invalidApprovalLimit: 'Goedkeuringslimieten moeten geldige bedragen in de valuta van de werkruimte zijn.',
+        approverColumn: (position: number) => `Fiatteur ${position}`,
+        approverLimitColumn: (position: number) => `Limiet voor ${position} van goedkeurder`,
+        approverOverLimitApproverColumn: (position: number) => `Fiatteur ${position} bovenlimiet-fiatterer`,
+        approversOutOfOrder: (rowNumber: number) => `Oeps! Rij ${rowNumber} mist een fiatteur. Geef de fiatteurs op in volgorde, beginnend met Fiatteur 1, en probeer het opnieuw.`,
+        approverRepeated: (rowNumber: number) => `Oeps! Rij ${rowNumber} bevat dezelfde fiatteur meer dan één keer. Controleer het en probeer het opnieuw.`,
+        approvalLimitIncomplete: (rowNumber: number) =>
+            `Oeps! Rij ${rowNumber} heeft een goedkeuringslimiet zonder een goedkeurder voor boven de limiet, of een goedkeurder voor boven de limiet zonder een goedkeuringslimiet. Controleer dit en probeer het opnieuw.`,
         fieldValueTooLong: (fieldName: string, limit: number) =>
             `Oeps! Het veld („${fieldName}”) bevat een of meer waarden die langer zijn dan ${limit} tekens. Controleer het en probeer het opnieuw.`,
         importSuccessfulTitle: 'Import geslaagd',
@@ -1495,10 +1565,10 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: 'Als u geen website hebt, kunt u in plaats daarvan het LinkedIn-profiel of een socialmediaprofiel van uw bedrijf opgeven.',
         invalidDomainError: 'Je hebt een ongeldig domein ingevoerd. Voer een geldig domein in om door te gaan.',
         publicDomainError: 'Je hebt een openbaar domein ingevoerd. Voer om door te gaan een privé‑domein in.',
-        expenseCount: () => {
+        expenseCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
             return {
-                one: '1 uitgave',
-                other: (count: number) => `${count} declaraties`,
+                one: (count: number) => `${formattedCount ?? count} uitgave`,
+                other: (count: number) => `${formattedCount ?? count} uitgaven`,
             };
         },
         deleteExpense: () => ({
@@ -1661,6 +1731,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: 'Voer een ander bedrag dan nul in voor je verdeling',
             noParticipantSelected: 'Selecteer een deelnemer',
             other: 'Onverwachte fout. Probeer het later opnieuw.',
+            payFailedExpenseDeleted: 'De betaling is mislukt omdat de declaratie is verwijderd.',
             genericCreateFailureMessage: 'Onverwachte fout bij het indienen van deze uitgave. Probeer het later opnieuw.',
             genericCreateInvoiceFailureMessage: 'Onverwachte fout bij het verzenden van deze factuur. Probeer het later opnieuw.',
             genericHoldExpenseFailureMessage: 'Onverwachte fout bij het vasthouden van deze uitgave. Probeer het later opnieuw.',
@@ -1755,6 +1826,23 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmApprovalWithHeldAmount: 'Het rapport bevat uitgaven in de wacht. Alleen conforme uitgaven goedkeuren, of het hele rapport goedkeuren?',
         confirmApprovalAllHoldAmount: 'Alle uitgaven staan in de wacht. Toch goedkeuren?',
         confirmPay: 'Bevestig betalingsbedrag',
+        wisePaymentSummary: {
+            confirmPayment: 'Betaling bevestigen',
+            reportTotal: 'Rapporttotaal',
+            unheldAmountBeingPaid: 'Te betalen bedrag zonder wachtstand',
+            debitAmount: 'Afschrijvingsbedrag',
+            employeeWillReceive: 'Werknemer ontvangt',
+            totalFees: 'Totale kosten',
+            fxRate: 'Wisselkoers',
+            paymentDetails: 'Betalingsgegevens',
+            debitedAmount: 'Afgeschreven bedrag',
+            employeeReceived: 'Medewerker ontving',
+            payAll: 'Alles betalen',
+            reportCount: ({count}: {count: number}) => ({
+                one: '1 rapport',
+                other: `${count} rapporten`,
+            }),
+        },
         confirmPayAmount: 'Betaal wat niet in de wacht staat, of betaal het volledige rapport.',
         confirmPayAllHoldAmount: () => ({
             one: 'Deze uitgave is gepauzeerd. Wil je toch betalen?',
@@ -2030,205 +2118,158 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     nextStep: {
         message: {
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Wacht tot <strong>jij</strong> uitgaven toevoegt.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Wachten tot <strong>${actor}</strong> uitgaven toevoegt.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Wachten tot een beheerder uitgaven toevoegt.`;
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: ({actor, actorType}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Wachten tot <strong>jij</strong> uitgaven toevoegt.`;
                 }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Er wordt gewacht tot <strong>jij</strong> declaraties indient.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Wachten tot <strong>${actor}</strong> de onkosten indient.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Wachten tot een beheerder de onkosten indient.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Wachten tot <strong>${actor}</strong> onkosten toevoegt.`;
                 }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Er wordt gewacht tot <strong>jij</strong> dit als voltooid markeert.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Wachten tot <strong>${actor}</strong> dit als voltooid markeert.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Wachten tot een beheerder dit als voltooid markeert.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Wachten tot een beheerder onkosten toevoegt.`;
                 }
+                return '';
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
-                _actor: string,
-                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => `Geen verdere actie vereist!`,
-            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (
-                _actor: string,
-                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => `Wijzig de werkruimte van het rapport voor verdere acties.`,
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-                requiredDepositCurrency?: string,
-            ) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: ({actor, actorType}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Wacht tot <strong>jij</strong> onkosten indient.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Wachten tot <strong>${actor}</strong> de declaraties indient.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Wachten tot een beheerder de uitgaven indient.`;
+                }
+                return '';
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: ({actor, actorType}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Wacht tot <strong>jij</strong> dit als voltooid markeert.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Wachten tot <strong>${actor}</strong> dit als voltooid markeert.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Wachten tot een beheerder dit als voltooid markeert.`;
+                }
+                return '';
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (params: ReportNextStepMessageParams) => `Geen verdere actie vereist!`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (params: ReportNextStepMessageParams) => `Wijzig de werkruimte van het rapport voor verdere acties.`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: (params: ReportNextStepMessageParams) =>
+                `Je kunt in deze workspace alleen goedkeuren. Verplaats dit rapport naar een andere om het in te dienen.`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType, requiredDepositCurrency}: ReportNextStepMessageParams) => {
                 const account = requiredDepositCurrency ? `${requiredDepositCurrency} bankrekening` : 'bankrekening';
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Er wordt gewacht tot <strong>jij</strong> een ${account} toevoegt.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Wachten tot <strong>${actor}</strong> een ${account} toevoegt.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Wachten tot een beheerder een ${account} toevoegt.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Wachten tot <strong>jij</strong> een ${account} toevoegt.`;
                 }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Wachten tot <strong>${actor}</strong> een ${account} toevoegt.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Wachten tot een beheerder een ${account} toevoegt.`;
+                }
+                return '';
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                eta?: string,
-                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}: ReportNextStepMessageParams) => {
                 let formattedETA = '';
                 if (eta) {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `op de ${eta} van elke maand` : ` ${eta}`;
                 }
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Wachten tot <strong>jouw</strong> uitgaven automatisch worden ingediend${formattedETA}.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Wachten tot de onkosten van <strong>${actor}</strong> automatisch worden ingediend${formattedETA}.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Wachten tot de onkostendeclaraties van een beheerder automatisch worden ingediend${formattedETA}.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Je uitgaven worden automatisch ingediend${formattedETA}.`;
                 }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `We wachten op <strong>jou</strong> om de problemen op te lossen.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Wachten tot <strong>${actor}</strong> de problemen oplost.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Wachten tot een beheerder de problemen oplost.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Wachten tot de onkosten van <strong>${actor}</strong> automatisch worden ingediend${formattedETA}.`;
                 }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Wacht tot <strong>jij</strong> de onkosten goedkeurt.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Wachten tot <strong>${actor}</strong> de uitgaven goedkeurt.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Wachten op goedkeuring van uitgaven door een beheerder.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Wachten tot de onkostendeclaraties van een beheerder automatisch worden ingediend${formattedETA}.`;
                 }
+                return '';
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `We wachten op <strong>jou</strong> om dit rapport te exporteren.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Wachten tot <strong>${actor}</strong> dit rapport exporteert.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Wachten tot een beheerder dit rapport exporteert.`;
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Wachten tot <strong>jij</strong> de problemen oplost.`;
                 }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Wacht tot <strong>jij</strong> onkosten betaalt.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Wachten tot <strong>${actor}</strong> de declaraties betaalt.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Wachten tot een beheerder de onkosten betaalt.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Wachten tot <strong>${actor}</strong> de problemen oplost.`;
                 }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Wachten tot een beheerder de problemen oplost.`;
+                }
+                return '';
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
-                _actor: string,
-                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                eta?: string,
-                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType, isBill}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return isBill ? `Wachten tot <strong>jij</strong> de rekening goedkeurt.` : `Wachten tot <strong>jij</strong> de uitgaven goedkeurt.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return isBill ? `Wachten tot <strong>${actor}</strong> de rekening goedkeurt.` : `Wachten tot <strong>${actor}</strong> onkosten goedkeurt.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return isBill ? `Wachten tot een beheerder de rekening goedkeurt.` : `Wachten tot een beheerder de declaraties goedkeurt.`;
+                }
+                return '';
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Wachten tot <strong>jij</strong> dit rapport exporteert.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Wachten tot <strong>${actor}</strong> dit rapport exporteert.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Wachten tot een beheerder dit rapport exporteert.`;
+                }
+                return '';
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType, isBill}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return isBill ? `Aan het wachten tot <strong>jij</strong> deze rekening betaalt.` : `Wachten tot <strong>jij</strong> onkostendeclaraties betaalt.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return isBill ? `Wachten tot <strong>${actor}</strong> deze rekening betaalt.` : `Wachten tot <strong>${actor}</strong> de uitgaven betaalt.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return isBill ? `Wachten tot een beheerder deze rekening betaalt.` : `Wachten tot een beheerder de onkosten betaalt.`;
+                }
+                return '';
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: ReportNextStepMessageParams) => {
                 let formattedETA = '';
                 if (eta) {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `vóór ${eta}` : ` ${eta}`;
                 }
                 return `Wachten tot de betaling is voltooid${formattedETA}.`;
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: (
-                _actor: string,
-                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                eta?: string,
-                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: ({eta, etaType}: ReportNextStepMessageParams) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` vóór ${eta}` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `vóór ${eta}` : ` ${eta}`;
                 }
                 return `Wachten tot de geannuleerde betaling is verwerkt${formattedETA}.`;
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
-                _actor: string,
-                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) =>
-                `Oeps! Het lijkt erop dat je deze rapportage naar <strong>jezelf</strong> indient. Het goedkeuren van je eigen rapporten is <strong>verboden</strong> door je werkruimte. Dien dit rapport in bij iemand anders of neem contact op met je admin om de persoon te wijzigen bij wie je indient.`,
-            [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Dit rapport is afgewezen. We wachten op <strong>jou</strong> om de problemen op te lossen en het handmatig opnieuw in te dienen.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Dit rapport is afgewezen. Wachten op <strong>${actor}</strong> om de problemen op te lossen en het handmatig opnieuw in te dienen.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Dit rapport is afgewezen. Wacht tot een beheerder de problemen oplost en het handmatig opnieuw indient.`;
+            [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
+                `Oeps! Het lijkt erop dat je deze indient bij <strong>jezelf</strong>. Het goedkeuren van je eigen rapporten is door je werkruimte <strong>verboden</strong>. Dien dit rapport in bij iemand anders of neem contact op met je beheerder om de persoon te wijzigen bij wie je indient.`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Dit rapport is afgekeurd. We wachten op <strong>jou</strong> om de problemen op te lossen en het handmatig opnieuw in te dienen.`;
                 }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Dit rapport is afgekeurd. Wachten tot <strong>${actor}</strong> de problemen oplost en het handmatig opnieuw indient.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Dit rapport is afgewezen. Wacht op een beheerder om de problemen op te lossen en het handmatig opnieuw in te dienen.`;
+                }
+                return '';
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.STRICT_POLICY_RULE_VIOLATIONS]: (params: ReportNextStepMessageParams) =>
+                `We wachten tot je de problemen oplost. Je beheerders hebben het indienen van onkosten met overtredingen beperkt.`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.DYNAMIC_EXTERNAL_WORKFLOW_SUBMIT_ERROR]: (params: ReportNextStepMessageParams) =>
+                `<alert-text>Dit rapport kan niet worden ingediend. Bekijk de opmerkingen om het op te lossen.</alert-text>`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.DYNAMIC_EXTERNAL_WORKFLOW_APPROVE_ERROR]: (params: ReportNextStepMessageParams) =>
+                `<alert-text>Dit rapport kan niet worden goedgekeurd. Bekijk de opmerkingen om dit op te lossen.</alert-text>`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.DYNAMIC_EXTERNAL_WORKFLOW_OFFLINE]: (params: ReportNextStepMessageParams) => `We wachten tot je weer online bent om de volgende stappen te bepalen.`,
         },
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'binnenkort',
@@ -2238,6 +2279,20 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.ETA_KEY.LAST_BUSINESS_DAY_OF_MONTH]: 'op de laatste werkdag van de maand',
             [CONST.NEXT_STEP.ETA_KEY.LAST_DAY_OF_MONTH]: 'op de laatste dag van de maand',
             [CONST.NEXT_STEP.ETA_KEY.END_OF_TRIP]: 'aan het einde van je reis',
+        },
+        scheduleEta: {
+            weekly: {monday: 'op maandag', tuesday: 'op dinsdag', wednesday: 'op woensdag', thursday: 'op donderdag', friday: 'op vrijdag', saturday: 'op zaterdag', sunday: 'op zondag'},
+            twiceAMonth: ({firstDay, secondDay}: {firstDay: string; secondDay: string}) => `op de ${firstDay} en ${secondDay} van elke maand`,
+            twiceAMonthAndLastDay: ({firstDay}: {firstDay: string}) => `op de ${firstDay} en de laatste dag van elke maand`,
+            monthlyLastWeekday: {
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_MONDAY_OF_MONTH]: 'op de laatste maandag van de maand',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_TUESDAY_OF_MONTH]: 'op de laatste dinsdag van de maand',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_WEDNESDAY_OF_MONTH]: 'op de laatste woensdag van de maand',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_THURSDAY_OF_MONTH]: 'op de laatste donderdag van de maand',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_FRIDAY_OF_MONTH]: 'op de laatste vrijdag van de maand',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH]: 'op de laatste zaterdag van de maand',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'op de laatste zondag van de maand',
+            },
         },
     },
     profilePage: {
@@ -2849,6 +2904,18 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'Bevestig testtransacties alsjeblieft',
             accountRequiresAttention: 'Deze account vereist aandacht',
             unlock: 'Ontgrendelen',
+            plaidBrokenReconnect: 'Herstel je Plaid-verbinding voor een nauwkeurigere limiet op je Expensify Kaart',
+            plaidConnectForLimit: 'Maak verbinding met Plaid voor een nauwkeuriger limiet voor je Expensify Kaart',
+            connect: 'Verbinding maken',
+        },
+        linkPlaid: {
+            title: 'Verbinden met Plaid',
+            successHeading: 'Verbinding geslaagd',
+            successDescription: 'Bedankt dat je verbinding hebt gemaakt met Plaid!',
+            failureHeading: 'Mislukte verbinding',
+            failureDescription: '<muted-text>Probeer het opnieuw of <concierge-link>neem contact op met Concierge</concierge-link>.</muted-text>',
+            wrongAccountHeading: 'Verkeerde bankrekening',
+            wrongAccountDescription: 'Selecteer de overeenkomende bankrekening in Plaid.',
         },
         wiseOnboarding: {
             confirmationTitle: 'Laten we controleren of alles klopt',
@@ -3048,7 +3115,21 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTermsAccessibilityLabel: 'Ik ga akkoord met de algemene voorwaarden en het privacybeleid van Wise.',
                 error: 'Accepteer alle voorwaarden om door te gaan.',
             },
+            moreInfoNeeded: {
+                headerTitle: 'Meer info nodig',
+                title: 'Extra info verifiëren',
+                subtitle: 'Onze betalingspartner heeft rechtstreeks meer info nodig. Dit kost maar een paar minuten.',
+            },
+            inReview: {
+                title: 'In behandeling',
+                heading: 'We hebben wat we nodig hebben.\nJe hoort van ons!',
+                description: 'De meeste controles duren één tot twee dagen. We sturen je een bericht met een update.',
+                chatWithConcierge: 'Chatten met Concierge',
+            },
+            approved: {title: 'Account goedgekeurd', heading: 'Goedgekeurd om wereldwijd te betalen', description: 'Betaal leden, waar ze ook zijn.'},
+            rejected: {title: 'Bankrekening afgewezen', heading: 'Onze partner heeft je bankrekening afgewezen', description: 'Chat met Concierge voor meer informatie.'},
         },
+        wiseSetupInProgress: {message: 'Instellen van wereldwijde terugbetalingen bezig.', continue: 'Doorgaan.'},
         wiseGlobalReimbursementsIntro: {
             title: 'Wereldwijde terugbetalingen instellen?',
             subtitle: 'Betaal leden wereldwijd in hun eigen lokale valuta.',
@@ -3057,6 +3138,8 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: 'De bankrekeningen van het bedrijf en de medewerker gebruiken verschillende valuta.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Betaal mensen wereldwijd', subtitle: 'Schakel wereldwijde terugbetalingen in op je USD-rekening.'},
+        wiseMoreInfoNeeded: 'Meer informatie nodig om wereldwijde terugbetalingen in te schakelen',
+        globalReimbursementsEnabled: 'Wereldwijde terugbetalingen ingeschakeld',
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Kaart toevoegen aan ${walletName}`,
@@ -3211,8 +3294,12 @@ ${amount} voor ${merchant} - ${date}`,
         addApprovalsDescription: 'Extra goedkeuring vereisen voordat je een betaling autoriseert.',
         makeOrTrackPaymentsTitle: 'Betalingen',
         makeOrTrackPaymentsDescription: 'Voeg een gemachtigde betaler toe voor betalingen die in Expensify worden gedaan of volg betalingen die elders zijn gedaan.',
-        collectEmployeeBankDetails: 'Bankgegevens van medewerkers verzamelen',
-        collectEmployeeBankDetailsDescription: 'Verzamel de bankgegevens van medewerkers, zodat je ze buiten Expensify kunt terugbetalen.',
+        collectEmployeeBankDetails: 'Bankrekeninggegevens verzamelen',
+        collectEmployeeBankDetailsDescription: 'Verzamel bankgegevens van werkruimteleden, zodat je ze buiten Expensify kunt terugbetalen.',
+        disablePaymentsTitle: 'Betalingen uitschakelen?',
+        disablePaymentsPrompt: 'Hiermee verwijder je al je betaalinstellingen.',
+        businessBankAccountCountries: 'Landen met zakelijke bankrekeningen',
+        businessBankAccountCountriesDescription: 'Werknemers in deze landen geven lokale overboekingsgegevens op. Iedereen daarbuiten geeft internationale overschrijvingsgegevens op.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Er is een aangepaste goedkeuringsworkflow ingeschakeld voor deze workspace. Neem contact op met je <account-manager-link>Accountmanager</account-manager-link> of <concierge-link>Concierge</concierge-link> om deze workflow te bekijken of te wijzigen.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -3243,11 +3330,19 @@ ${amount} voor ${merchant} - ${date}`,
                 '9': 'Negende',
                 '10': 'Tiende',
             },
+            lastMondayOfMonth: 'Afgelopen maandag',
+            lastTuesdayOfMonth: 'Afgelopen dinsdag',
+            lastWednesdayOfMonth: 'Afgelopen woensdag',
+            lastThursdayOfMonth: 'Afgelopen donderdag',
+            lastFridayOfMonth: 'Afgelopen vrijdag',
+            lastSaturdayOfMonth: 'Afgelopen zaterdag',
+            lastSundayOfMonth: 'Afgelopen zondag',
         },
         approverInMultipleWorkflows: 'Dit lid behoort al tot een andere goedkeuringsworkflow. Alle updates hier worden daar ook doorgevoerd.',
         approverNotWorkspaceMember: 'Deze fiatteur is geen lid meer van de workspace. Kies een nieuwe fiatteur of verwijder deze workflow.',
         defaultWorkflowApproverNotWorkspaceMember: 'Deze fiatteur is geen lid meer van de workspace. Kies een nieuwe fiatteur.',
         overLimitApproverNotWorkspaceMember: 'De extra fiatteur voor rapporten boven de limiet is geen lid meer van de workspace. Kies een nieuwe extra fiatteur.',
+        overLimitApproverInWorkflow: 'De extra fiatteur voor rapporten boven de limiet is al een fiatteur in deze workflow. Kies een andere extra fiatteur.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> keurt al rapporten goed voor <strong>${name2}</strong>. Kies een andere fiatteur om een cirkelstroom te voorkomen.`,
         emptyContent: {
@@ -3263,10 +3358,60 @@ ${amount} voor ${merchant} - ${date}`,
         approverFromProvider: ({provider}: {provider: string}) => `van ${provider}`,
         finalApprover: 'Laatste fiatteur',
         manager: 'Manager',
+        submitFrequency: 'Frequentie van indienen',
+        submitOn: 'Indienen op',
+        dayOfTheWeek: 'Dag van de week',
+        dayOfTheMonth: 'Dag van de maand',
+        firstSubmission: 'Eerste indiening',
+        secondSubmission: 'Tweede indiening',
+        submissionDatesOrderError: 'De eerste indieningsdatum moet vóór de tweede indieningsdatum liggen',
+        daysOfWeek: {monday: 'maandag', tuesday: 'dinsdag', wednesday: 'woensdag', thursday: 'donderdag', friday: 'vrijdag', saturday: 'zaterdag', sunday: 'zondag'},
+        frequencySummary: {
+            weekly: {
+                monday: 'Wekelijks op maandag',
+                tuesday: 'Wekelijks op dinsdag',
+                wednesday: 'Wekelijks op woensdag',
+                thursday: 'Wekelijks op donderdag',
+                friday: 'Wekelijks op vrijdag',
+                saturday: 'Wekelijks op zaterdag',
+                sunday: 'Wekelijks op zondag',
+            },
+            twiceAMonth: ({firstDay, secondDay}: {firstDay: string; secondDay: string}) => `Twee keer per maand op de ${firstDay} en ${secondDay}`,
+            twiceAMonthAndLastDay: ({firstDay}: {firstDay: string}) => `Twee keer per maand op de ${firstDay} en de laatste dag`,
+            monthly: ({day}: {day: string}) => `Maandelijks op de ${day}`,
+            monthlyOffset: {
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH]: 'Maandelijks op de laatste dag',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH]: 'Maandelijks op de laatste werkdag',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_MONDAY_OF_MONTH]: 'Maandelijks op de laatste maandag',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_TUESDAY_OF_MONTH]: 'Maandelijks op de laatste dinsdag',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_WEDNESDAY_OF_MONTH]: 'Maandelijks op de laatste woensdag',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_THURSDAY_OF_MONTH]: 'Maandelijks op de laatste donderdag',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_FRIDAY_OF_MONTH]: 'Maandelijks op de laatste vrijdag',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH]: 'Maandelijks op de laatste zaterdag',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'Maandelijks op de laatste zondag',
+            },
+        },
+        frequencyRowDescription: {
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: 'Declaraties worden ingediend zodra ze zijn aangemaakt',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'Rapporten worden ingediend na twee dagen zonder uitgaven',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: 'Rapporten blijven concept totdat een lid ze indient',
+        },
+        frequencyHelperText: {
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: 'Declaraties worden direct na het aanmaken ingediend.',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: ({timezoneLink}: {timezoneLink: string}) =>
+                `Rapporten worden elke dag automatisch ingediend, op basis van de <a href="${timezoneLink}">werkruimte‑tijdzone</a>.`,
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: ({timezoneLink}: {timezoneLink: string}) =>
+                `Rapporten worden elke week automatisch ingediend, gebaseerd op de <a href="${timezoneLink}">tijdzone van de werkruimte</a>.`,
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: ({timezoneLink}: {timezoneLink: string}) =>
+                `Rapporten worden twee keer per maand automatisch ingediend, op basis van de <a href="${timezoneLink}">tijdzone van de workspace</a>.`,
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: ({timezoneLink}: {timezoneLink: string}) =>
+                `Rapporten worden elke maand automatisch ingediend, gebaseerd op de <a href="${timezoneLink}">tijdzone van de workspace</a>.`,
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'Rapporten worden ingediend na twee volledige dagen zonder nieuwe uitgaven.',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: 'Rapporten blijven concept totdat een lid ze indient.',
+        },
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Indienfrequentie kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met support.',
-        monthlyOffsetErrorMessage: 'Maandelijkse frequentie kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met support.',
     },
     workflowsCurrencyConversionFeesPage: {
         title: 'Valutaomrekeningskosten',
@@ -3516,6 +3661,7 @@ ${amount} voor ${merchant} - ${date}`,
         appSection: {
             title: 'App-voorkeuren',
         },
+        distanceSection: {title: 'Afstandsvoorkeuren'},
         testSection: {
             title: 'Testvoorkeuren',
             subtitle: 'Instellingen om de app te debuggen en testen op staging.',
@@ -3842,7 +3988,7 @@ ${amount} voor ${merchant} - ${date}`,
 
                         1. Klik op *Workspaces*.
                         2. Selecteer je workspace.
-                        3. Klik op *Accounting*.
+                        3. Klik op *Verbindingen*.
                         4. Zoek ${integrationName}.
                         5. Klik op *Connect*.
 
@@ -4217,7 +4363,7 @@ ${amount} voor ${merchant} - ${date}`,
         bankAccountPurposeTitle: 'Wat wil je doen met je bankrekening?',
         getReimbursed: 'Vergoed worden',
         getReimbursedDescription: 'Door werkgever of anderen',
-        makePayments: 'Betalingen doen',
+        makePayments: 'Doe zakelijke betalingen',
         makePaymentsDescription: 'Betaal uitgaven of geef Expensify Kaarten uit',
         hasPhoneLoginError: (contactMethodRoute: string) =>
             `Om een bankrekening te koppelen, <a href="${contactMethodRoute}">voeg eerst een e-mailadres toe als je primaire login</a> en probeer het daarna opnieuw. Je kunt je telefoonnummer toevoegen als secundaire login.`,
@@ -4298,6 +4444,7 @@ ${amount} voor ${merchant} - ${date}`,
         maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} eindigend op ${ending}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'De vragen op deze pagina zijn gewijzigd',
+        onFile: 'In bestand',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC moet 8 of 11 tekens lang zijn, met 6 letters gevolgd door 2 of 5 letters of cijfers.',
@@ -4316,6 +4463,8 @@ ${amount} voor ${merchant} - ${date}`,
         updateSuccessTitle: 'Bankrekening bijgewerkt!',
         updateSuccessHeader: 'Bankrekening bijgewerkt',
         updateSuccessMessage: 'Gefeliciteerd, je bankrekening is ingesteld en klaar om terugbetalingen te ontvangen.',
+        bankDetails: 'Bankgegevens',
+        accountHolderDetails: 'Gegevens rekeninghouder',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Voer Expensify-wachtwoord in',
@@ -4323,6 +4472,8 @@ ${amount} voor ${merchant} - ${date}`,
         chooseAccountLabel: 'Account',
         successTitle: 'Persoonlijke bankrekening toegevoegd!',
         successMessage: 'Gefeliciteerd, je bankrekening is ingesteld en klaar om vergoedingen te ontvangen.',
+        bankAccountAddedTitle: 'Bankrekening toegevoegd!',
+        bankAccountAddedMessage: 'Gefeliciteerd, je persoonlijke bankrekening is ingesteld en klaar om terugbetalingen te ontvangen.',
     },
     attachmentView: {
         unknownFilename: 'Onbekende bestandsnaam',
@@ -4916,6 +5067,7 @@ ${amount} voor ${merchant} - ${date}`,
             roomType: 'Kamertype',
             cancellation: 'Annuleringsbeleid',
             cancellationUntil: 'Gratis annuleren tot',
+            hotelLocalTime: 'lokale tijd van het hotel',
             confirmation: 'Bevestigingsnummer',
             cancellationPolicies: {
                 unknown: 'Onbekend',
@@ -5042,8 +5194,16 @@ ${amount} voor ${merchant} - ${date}`,
                 'Wist je dat je groepsreizen zoals deze direct in Expensify kunt boeken en beheren? Bespaar jezelf de moeite de volgende keer en probeer onze tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reisevenementen</a> eens uit.',
         },
         defaultWorkspaceTravelDisabled: {
-            title: 'Reizen is niet ingeschakeld',
-            message: 'Om te boeken, schakel reizen in op je standaardwerkruimte of stel een standaardwerkruimte in die reizen ondersteunt.',
+            title: 'Je kunt nog geen reizen boeken',
+            message:
+                'Je bent lid van een werkruimte met reizen ingeschakeld, maar dit is niet je standaardwerkruimte. Schakel reizen in op je standaardwerkruimte of stel een werkruimte met reizen als standaardwerkruimte in om te boeken.',
+        },
+        approval: {
+            status: {outstanding: 'Uitstaand', approved: 'Goedgekeurd', rejected: 'Afgewezen', canceled: 'Geannuleerd'},
+            deadline: {
+                softApproval: (time: string) => `Wordt automatisch goedgekeurd over ${time}. Gratis annuleren tot die tijd.`,
+                hardApproval: (time: string) => `Wordt automatisch geannuleerd over ${time} als deze niet is goedgekeurd.`,
+            },
         },
     },
     workspace: {
@@ -5059,6 +5219,11 @@ ${amount} voor ${merchant} - ${date}`,
             archived: 'Gearchiveerd',
             workspaceStatus: 'Werkruimtestatus',
             findRoom: 'Kamer zoeken',
+            emptyRoomsTitle: 'Geen kamers om weer te geven',
+            emptyRoomsSubtitle: 'Ruimtes in deze werkruimte verschijnen hier.',
+            emptyRoomsArchivedTitle: 'Deze rooms zijn gearchiveerd',
+            emptyRoomsArchivedSubtitle: (workspaceOverviewURL: string) =>
+                `<muted-text><centered-text><a href="${workspaceOverviewURL}">Haal deze werkruimte uit het archief</a> om ze opnieuw te gebruiken.</centered-text></muted-text>`,
             edit: 'Werkruimte bewerken',
             enabled: 'Ingeschakeld',
             disabled: 'Uitgeschakeld',
@@ -5171,8 +5336,6 @@ ${amount} voor ${merchant} - ${date}`,
             guestAlternateText: 'Dien rapporten in met beperkte zichtbaarheid.',
             roleName: (role?: string) => {
                 switch (role) {
-                    case CONST.POLICY.ROLE.OWNER:
-                        return 'Eigenaar';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Beheerder van werkruimte';
                     case CONST.POLICY.ROLE.AUDITOR:
@@ -5240,22 +5403,14 @@ ${amount} voor ${merchant} - ${date}`,
             description: 'Geweldig nieuws 🎉. Neem contact met ons op als ze hulp nodig hebben bij de configuratie.',
         },
         mcp: {
-            connectors: 'Connectoren',
-            connectorsSubtitle: 'Verbind een AI-assistent met je Expensify-account.',
-            connect: 'Verbinden',
-            helpPrompt: 'Hulp nodig bij het verbinden?',
-            helpLink: 'Lees onze handleiding.',
             claude: {
                 title: 'Claude',
-                subtitle: 'van Anthropic',
             },
             cursor: {
                 title: 'Cursor',
-                subtitle: 'van Anysphere',
             },
             chatgpt: {
                 title: 'ChatGPT',
-                subtitle: 'van OpenAI',
             },
         },
         connections: {
@@ -5732,9 +5887,6 @@ ${amount} voor ${merchant} - ${date}`,
                     ? `Stel een standaardleverancier in die wordt toegepast op vergoedbare uitgaven waarvoor geen overeenkomende leverancier in Sage Intacct is.`
                     : `Declaraties die niet overeenkomen met je Sage Intacct-leveranciers worden standaard aan deze leverancier toegewezen.`,
             exportDescription: 'Configureer hoe Expensify-gegevens worden geëxporteerd naar Sage Intacct.',
-            exportPreferredExporterNote:
-                'De voorkeurs-exporteur kan elke werkruimtebeheerder zijn, maar moet ook een domeinbeheerder zijn als je in Domeininstellingen verschillende exportrekeningen instelt voor individuele bedrijfskaarten.',
-            exportPreferredExporterSubNote: 'Zodra dit is ingesteld, ziet de voorkeurs‑exporteur de rapporten om te exporteren in hun account.',
             noAccountsFound: 'Geen accounts gevonden',
             noAccountsFoundDescription: `Voeg de rekening toe in Sage Intacct en synchroniseer de verbinding opnieuw`,
             autoSync: 'Automatisch synchroniseren',
@@ -5916,8 +6068,20 @@ ${amount} voor ${merchant} - ${date}`,
                     },
                 },
             },
+            creditCardAccount: 'Creditcardrekening',
+            creditCardAccountHelperText: (isSet: boolean) =>
+                isSet
+                    ? 'We gebruiken deze rekening voor kaarten die geen eigen exportrekening hebben.'
+                    : 'Kies een standaardrekening. We gebruiken deze voor kaarten die geen eigen exportrekening hebben.',
+            creditCardChargeDefaultVendorHelperText: (isSet: boolean) =>
+                isSet ? 'We gebruiken deze leverancier voor uitgaven zonder leverancier.' : 'Kies een standaardleverancier. We gebruiken deze voor uitgaven zonder leverancier.',
             exportDestination: {
                 values: {
+                    [CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE]: {
+                        label: 'Creditcardkosten',
+                        nonReimbursableDescription: 'Uitgaven van bedrijfskaarten worden geëxporteerd naar NetSuite als afzonderlijke creditcardkosten, gedateerd met elke aankoop.',
+                        legacyTaxHelper: 'Creditcardkosten ondersteunen geen NetSuite legacy tax. Als je legacy tax gebruikt, kies dan een ander exporttype.',
+                    },
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: 'Onkostendeclaraties',
                         reimbursableDescription: 'Uit eigen zak betaalde onkosten worden als onkostendeclaraties geëxporteerd naar NetSuite.',
@@ -6036,7 +6200,11 @@ ${amount} voor ${merchant} - ${date}`,
             noSubsidiariesFoundDescription: 'Voeg een dochteronderneming toe in NetSuite en synchroniseer de verbinding opnieuw',
             tokenInput: {
                 title: 'NetSuite-configuratie',
-                connectWithTokenAuthentication: 'In plaats daarvan verbinding maken met token-gebaseerde authenticatie (SOAP)',
+                tokenAuthenticationPrompt: {
+                    beforeLink: 'Of maak in plaats daarvan verbinding met',
+                    link: 'token-gebaseerde authenticatie',
+                    afterLink: '(SOAP).',
+                },
                 formSteps: {
                     installBundle: {
                         title: 'Installeer de Expensify-bundel',
@@ -6301,9 +6469,17 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             noAccountsFound: 'Geen accounts gevonden',
             noAccountsFoundDescription: 'Voeg alsjeblieft rekeningen toe in Rillet en synchroniseer de verbinding opnieuw',
             exportDescription: 'Stel in hoe Expensify-gegevens worden geëxporteerd naar Rillet.',
-            exportReimbursable: {label: 'Vergoedbare uitgaven exporteren als', values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: 'Leveranciersfacturen'}}},
+            exportReimbursable: {
+                label: 'Vergoedbare uitgaven exporteren als',
+                values: {
+                    REIMBURSEMENT: {label: 'Gespecificeerde vergoedingen'},
+                    VENDOR_BILL: {label: 'Gespecificeerde leveranciersfacturen'},
+                },
+                description:
+                    'We maken een gespecificeerde leveranciersfactuur of terugbetaling voor elk Expensify-rapport. Als de periode is afgesloten, boeken we naar de eerstvolgende open periode.',
+            },
             exportDate: {
-                label: 'Factuurdatum leverancier',
+                label: 'Boekdatum grootboek',
                 description: 'Gebruik deze datum bij het exporteren van rapporten naar Rillet.',
                 values: {
                     [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
@@ -6339,8 +6515,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 },
             },
             syncReimbursedReports: 'Vergoede rapporten synchroniseren',
-            syncReimbursedReportsDescription: 'Wanneer een rapport via ACH wordt betaald, wordt er een rekeningbetaling in deze rekening aangemaakt.',
-            billPaymentAccount: {label: 'Rekening voor het betalen van rekeningen', description: 'Kies van waar je rekeningen wilt betalen en we maken de betaling aan in Rillet.'},
+            syncReimbursedReportsDescription: 'Wanneer een rapport via ACH wordt betaald, wordt er een betaling op deze rekening gegenereerd.',
             syncExpensifyCardSettlements: 'Expensify Kaartafrekeningen synchroniseren',
             settlementAccount: {label: 'Rekening voor verrekening van Expensify Kaart', description: 'Kies je vereffeningsrekening en we maken de betaling voor je aan in Rillet.'},
             syncTravelBillingSettlements: 'Geconsolideerde Travel Billing-afrekeningen synchroniseren',
@@ -6382,6 +6557,12 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 description:
                     'Wanneer je bedrijf de kosten voor valutaomrekening dekt voor een betaling in het buitenland, boeken we die kosten in Rillet op deze rekening als een journaalpost.',
             },
+            reimbursementAccount: {
+                label: 'Vergoedingsrekening',
+                description: 'Kies waar je terugbetaalbare uitgaven wilt exporteren.',
+                accountRequiredError: 'Selecteer een Rillet-vergoedingsrekening.',
+            },
+            achPaymentAccount: {label: 'ACH-betaalrekening', description: 'Kies vanwaar je rapporten wilt betalen en wij maken de betaling aan in Rillet.'},
         },
         dualEntry: {
             dualEntrySetup: 'DualEntry-configuratie',
@@ -6523,7 +6704,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             selectCards: 'Kaarten selecteren',
             fromOtherWorkspaces: 'Uit andere workspaces',
             addWorkEmail: 'Voeg je werkmail toe',
-            addWorkEmailDescription: 'Voeg je werkmail toe om bestaande feeds van andere workspaces te gebruiken.',
+            addWorkEmailDescription: 'Voeg je werkmailadres toe en stel het in als je primaire contactmethode om bestaande feeds van andere werkruimtes te gebruiken.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Kaartfeeds konden niet worden geladen',
                 workspaceFeedsCouldNotBeLoadedMessage: 'Er is een fout opgetreden bij het laden van workspacekaartfeeds. Probeer het opnieuw of neem contact op met je beheerder.',
@@ -6650,6 +6831,18 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Laatste dag van de maand',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Laatste werkdag van de maand',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Aangepaste dag van de maand',
+            },
+            reimbursable: {
+                title: 'Vergoedbaar',
+                description: 'Kies hoe kaarttransacties moeten worden aangemaakt. Nieuwe transacties volgen deze regels.',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES]: 'Altijd vergoedbaar',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES}Description`]: 'Wordt altijd aan werknemers terugbetaald',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO]: 'Altijd niet-vergoedbaar',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO}Description`]: 'Wordt nooit aan werknemers terugbetaald',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES]: 'Vergoedbaar',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES}Description`]: 'Wordt meestal aan werknemers terugbetaald',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO]: 'Niet-vergoedbaar',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO}Description`]: 'Wordt af en toe aan werknemers terugbetaald',
             },
             assign: 'Toewijzen',
             assignCard: 'Kaart toewijzen',
@@ -6828,6 +7021,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             updateFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de categorie, probeer het opnieuw',
             createFailureMessage: 'Er is een fout opgetreden bij het aanmaken van de categorie, probeer het opnieuw.',
             addCategory: 'Categorie toevoegen',
+            createCategoryFromSearch: (categoryName: string) => `Categorie „${categoryName}” aanmaken`,
             editCategory: 'Categorie bewerken',
             editCategories: 'Categorieën bewerken',
             findCategory: 'Categorie zoeken',
@@ -6843,6 +7037,15 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             cannotDeleteOrDisableAllCategories: {
                 title: 'Kan niet alle categorieën verwijderen of uitschakelen',
                 description: `Minstens één categorie moet ingeschakeld blijven, omdat je werkruimte categorieën vereist.`,
+            },
+            cannotDisableCategoryForMembers: {
+                title: ({categoryName}: {categoryName: string}) => `Kan ${categoryName} niet uitschakelen`,
+                bulkTitle: 'Deze categorieën kunnen niet worden uitgeschakeld',
+                description: ({count}: {count: number}) => ({
+                    one: '1 lid zou geen categorieën meer hebben om uit te kiezen. Werk de zichtbaarheid van diens categorieën bij en probeer het opnieuw:',
+                    other: `${count} leden zouden geen categorieën meer hebben om uit te kiezen. Werk hun categoriezichtbaarheid bij en probeer het daarna opnieuw:`,
+                }),
+                andMore: ({count}: {count: number}) => `en nog ${count} andere`,
             },
         },
         moreFeatures: {
@@ -6862,10 +7065,6 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             organizeSection: {
                 title: 'Organiseren',
                 subtitle: 'Groepeer en analyseer uitgaven, leg elke betaalde belasting vast.',
-            },
-            integrateSection: {
-                title: 'Integreren',
-                subtitle: 'Koppel Expensify aan populaire financiële producten.',
             },
             distanceRates: {
                 title: 'Kilometertarieven',
@@ -7022,11 +7221,14 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 unassignCard: 'Kaart loskoppelen',
                 unassignCards: 'Kaarten loskoppelen',
                 unassign: 'Toewijzen ongedaan maken',
-                unassignCardDescription: 'Het loskoppelen van deze kaart verwijdert alle niet-ingediende transacties.',
-                unassignCardsDescription: 'Loskoppelen verwijdert alle niet-ingediende transacties van de geselecteerde kaarten.',
+                unassignCardDescription: (transactionsUrl: string) =>
+                    `Het loskoppelen van deze kaart verwijdert alle <a href="${transactionsUrl}">niet-ingediende transacties</a> van deze kaart permanent, inclusief niet-gerapporteerde transacties en transacties in conceptrapporten. Dit kan niet ongedaan worden gemaakt.`,
+                unassignCardsDescription: (transactionsUrl: string) =>
+                    `Loskoppelen verwijdert alle <a href="${transactionsUrl}">niet-ingediende transacties</a> van de geselecteerde kaarten permanent, inclusief niet-gerapporteerde transacties en transacties in conceptrapporten. Dit kan niet ongedaan worden gemaakt.`,
                 removeCard: 'Kaart verwijderen',
                 remove: 'Verwijderen',
-                removeCardDescription: 'Als je deze kaart verwijdert, worden alle niet-ingediende transacties verwijderd.',
+                removeCardDescription: (transactionsUrl: string) =>
+                    `Als je deze kaart verwijdert, worden alle <a href="${transactionsUrl}">niet-ingediende transacties</a> van deze kaart permanent verwijderd, inclusief niet-gerapporteerde transacties en transacties in conceptrapporten. Dit kan niet ongedaan worden gemaakt.`,
                 assignCard: 'Kaart toewijzen',
                 cardFeedName: 'Naam van kaartfeed',
                 cardFeedNameDescription: 'Geef de kaartfeed een unieke naam zodat je deze kunt onderscheiden van de andere.',
@@ -7099,23 +7301,18 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             },
             mcp: {
                 title: 'MCP',
-                subtitle: 'Verbind een AI-assistent met je Expensify-account.',
             },
             receiptPartners: {
                 title: 'Bonpartners',
-                subtitle: 'Automatisch bonnetjes importeren.',
             },
             connectionsWarningModal: {
                 featureEnabledTitle: 'Niet zo snel...',
                 featureEnabledText: 'Om deze functie in of uit te schakelen, moet je je instellingen voor boekhoudkundige import wijzigen.',
-                disconnectText: 'Om de boekhouding uit te schakelen, moet je de boekhoudkoppeling van je werkruimte loskoppelen.',
                 manageSettings: 'Instellingen beheren',
             },
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Verbinding met Uber verbreken',
-                disconnectText: 'Om deze functie uit te schakelen, verbreek eerst de koppeling met de Uber for Business-integratie.',
                 description: 'Weet je zeker dat je deze integratie wilt ontkoppelen?',
-                confirmText: 'Begrepen',
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'Niet zo snel...',
@@ -7132,14 +7329,12 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 subtitle: 'Stel een factureerbaar uurtarief in voor tijdregistratie.',
                 defaultHourlyRate: 'Standaard uurtarief',
             },
-            hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Om HR uit te schakelen, koppel eerst ${integration} los van deze workspace.`},
             vendors: {
                 title: 'Leveranciers',
                 subtitle: 'Koppel kaartuitgaven aan leveranciers die zijn geïmporteerd uit je boekhoudsoftware.',
                 disabledTitle: 'Niet zo snel...',
                 disabledMessage: 'Om deze functie in of uit te schakelen, moet je je boekhoudimportinstellingen wijzigen.',
             },
-            recruitingWarningModal: {disconnectText: ({integration}: {integration: string}) => `Om Werving uit te schakelen, koppel ${integration} eerst los van deze workspace.`},
         },
         reports: {
             reportsCustomTitleExamples: 'Voorbeelden:',
@@ -7412,6 +7607,13 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 continue: 'Doorgaan zonder leden',
                 description: 'Workflows kopiëren zonder leden zal goedkeuringsworkflows niet kopiëren. Instellingen voor indienen en betalen worden nog steeds gekopieerd.',
             },
+            confirmMembers: {
+                title: 'Leden kopiëren',
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `Weet je zeker dat je de leden van ${targetWorkspaceName} wilt vervangen door de leden van deze werkruimte?`,
+                    other: `Weet je zeker dat je de leden van ${count} werkruimtes wilt vervangen door de leden van deze werkruimte?`,
+                }),
+            },
             progress: {
                 copyInProgressTitle: 'Kopie wordt gemaakt...',
                 copyInProgressDescription: 'Je kunt wachten tot het proces is voltooid, of Concierge kan je laten weten wanneer het klaar is.',
@@ -7558,6 +7760,13 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             },
             officeLocation: 'Kantoorlocatie',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            categoryVisibility: 'Categoriezichtbaarheid',
+            allCategories: 'Alle categorieën',
+            categoriesCount: ({count}: {count: number}) => ({
+                one: '1 categorie',
+                other: `${count} categorieën`,
+            }),
+            categoryVisibilityRequiredModal: {title: 'Leden moeten ten minste één categorie hebben', description: 'Selecteer minstens één categorie die dit lid kan gebruiken.'},
             changeOfficeLocation: 'Locatie kantoor wijzigen',
             changeWorkArrangement: 'Werkregeling wijzigen',
             changeRole: 'Rol wijzigen',
@@ -7629,7 +7838,6 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
         accounting: {
             settings: 'instellingen',
             title: 'Verbindingen',
-            subtitle: 'Verbind je boekhoudsoftware voor een automatische synchronisatie.',
             qbo: 'QuickBooks Online',
             intuitEnterpriseSuite: 'Intuit Enterprise Suite',
             qbd: 'QuickBooks Desktop',
@@ -7641,10 +7849,6 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
-            talkYourOnboardingSpecialist: 'Chat met je accountmanager.',
-            talkYourAccountManager: 'Chat met je accountmanager.',
-            talkToConcierge: 'Chat met Concierge.',
-            needAnotherAccounting: 'Nog een boekhoudprogramma nodig?',
             connectionName: (connectionName: AllConnectionName) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -7693,7 +7897,6 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             disconnect: 'Verbinding verbreken',
             reinstall: 'Connector opnieuw installeren',
             disconnectTitle: (connectionName = 'integratie') => `Verbinding met ${connectionName} verbreken`,
-            connectTitle: (connectionName) => `Verbind ${connectionName}`,
             syncError: (connectionName) => `Kan geen verbinding maken met ${connectionName}`,
             accounts: 'Rekeningschema',
             taxes: 'Belastingen',
@@ -7710,12 +7913,10 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'Standaard NetSuite-medewerker',
             },
             disconnectPrompt: (connectionName = 'deze integratie') => `Weet je zeker dat je ${connectionName} wilt ontkoppelen?`,
-            connectPrompt: (connectionName) => `Weet je zeker dat je ${connectionName} wilt koppelen? Hierdoor worden alle bestaande boekhoudkundige koppelingen verwijderd.`,
             enterCredentials: 'Voer je inloggegevens in',
             reconnect: 'Opnieuw verbinden',
             updateCredentials: 'Inloggegevens bijwerken',
             claimOffer: {
-                badgeText: 'Aanbieding beschikbaar!',
                 xero: {
                     headline: 'Krijg Xero 6 maanden gratis!',
                     description: '<muted-text><centered-text>Nieuw bij Xero? Expensify-klanten krijgen 6 maanden gratis. Claim jouw aanbieding hieronder.</centered-text></muted-text>',
@@ -7898,6 +8099,8 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                             return 'Campfire-gegevens synchroniseren';
                         case 'campfireSyncConnection':
                             return 'Verbinding met Campfire initialiseren';
+                        case 'zohoBooksSyncTitle':
+                            return 'Zoho Books-gegevens synchroniseren';
                         case 'zohoBooksSyncConnection':
                             return 'Verbinding met Zoho Books initialiseren';
                         case 'campfireSyncImportData':
@@ -7933,8 +8136,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                 },
             },
             preferredExporter: 'Voorkeurs-exporteur',
-            exportPreferredExporterNote:
-                'De voorkeurs-exporteur kan elke werkruimtebeheerder zijn, maar moet ook een domeinbeheerder zijn als je in Domeininstellingen verschillende exportrekeningen instelt voor individuele bedrijfskaarten.',
+            exportPreferredExporterNote: 'De voorkeurs-exporteur kan elke werkruimtebeheerder zijn.',
             exportPreferredExporterSubNote: 'Zodra dit is ingesteld, ziet de voorkeurs‑exporteur de rapporten om te exporteren in hun account.',
             exportAs: 'Exporteren als',
             exportOutOfPocket: 'Uitgaven uit eigen zak exporteren als',
@@ -8151,6 +8353,9 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             avatarUploadFailureMessage: 'Er is een fout opgetreden bij het uploaden van de avatar. Probeer het opnieuw.',
             addressContext: 'Een werkruimte-adres is vereist om Expensify Travel in te schakelen. Voer een adres in dat bij uw bedrijf hoort.',
             policy: 'Declaratiebeleid',
+            timezoneInputLabel: 'Tijdzone',
+            timezoneInputHelpText: 'Je tijdzone wordt gebruikt voor het automatisch indienen van rapporten',
+            timezoneErrorMessage: 'Tijdzone kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met support.',
         },
         officeLocations: {
             title: 'Kantoorlokaties',
@@ -8340,6 +8545,12 @@ ${reportName}`,
                 description: `Profiteer van automatische synchronisatie en verminder handmatige invoer met de Expensify + Campfire-integratie. Stem uitgavendimensies en belastingsynchronisatie af op je Campfire-configuratie voor helderder financieel inzicht.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Onze Campfire-integratie is alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: {
+                title: 'Digits',
+                description: `Profiteer van automatische synchronisatie en verminder handmatige invoer met de Expensify + Digits-integratie. Stem uitgavendimensies af op je Digits-configuratie voor helderder financieel inzicht.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Onze Digits-integratie is alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
                 title: 'Dynamics 365 Business Central',
@@ -8696,6 +8907,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                     `Automatisch betalen is alleen beschikbaar met het Control-abonnement. [Upgrade](${upgradeLink}) om deze functie te ontgrendelen.`,
                 autoPayReportsUnderTitle: 'Automatisch rapporten betalen onder',
                 autoPayReportsUnderDescription: 'Volledig conforme onkostendeclaraties onder dit bedrag worden automatisch betaald.',
+                autoPayCrossBorderFeesDisclosure:
+                    'Internationale betalingen gebruiken de middenkoers op het moment van betaling. Op alle internationale betalingen geldt een variabele vergoeding van 1%, behalve voor de volgende valuta: CRC (1,32%), KES (1,01%), MAD (1,60%), NPR (1,05%), UGX (1,47%), UYU (1,12%).\n\nExacte koersen en kosten kunnen niet vooraf worden bekeken wanneer een rapport automatisch wordt betaald. Een volledig gespecificeerd overzicht (inclusief de exacte wisselkoers, kosten en het uiteindelijke bedrag) is direct na betaling beschikbaar in het rapport.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Voeg ${featureName} toe om deze functie te ontgrendelen.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Ga naar [meer functies](${moreFeaturesLink}) en schakel ${featureName} in om deze functie te ontgrendelen.`,
@@ -8991,8 +9204,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 gotIt: 'Begrepen',
                 createRule: 'Regel maken',
                 fallbackBanner:
-                    'Dit is geen standaardregel, dus hebben we hem opgesteld als een agentregel. Agentregels treden in werking nadat een uitgave of rapport verandert, bijvoorbeeld door de uitgave vast te houden of het rapport af te wijzen.',
-                fallbackBannerWithExplanation: (explanation: string) => `Dit is geen standaardregel, dus hebben we het opgesteld als een agentregel. ${explanation}`,
+                    'Dit is geen standaardregel, dus hebben we een agentregel opgesteld. Agentregels worden uitgevoerd wanneer een declaratie of rapport wordt aangemaakt of bijgewerkt.',
+                fallbackBannerWithExplanation: (explanation: string) =>
+                    `Dit is geen standaardregel, dus hebben we een agentregel opgesteld. Agentregels worden uitgevoerd wanneer een declaratie of rapport wordt aangemaakt of bijgewerkt. ${explanation}`,
             },
             tabs: {
                 general: 'Algemeen',
@@ -9082,7 +9296,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     missingData: 'Expensify heeft die informatie niet.',
                     retroactive: 'Regels zijn alleen van toepassing op nieuwe activiteit.',
                     historyLimit: 'Regels kunnen niet zo ver terugkijken.',
-                    tryThisInstead: 'Probeer dit in plaats daarvan',
+                    useSuggestion: 'Suggestie gebruiken',
+                    explanationWithSuggestion: (explanation: string) => `${explanation} Probeer in plaats daarvan de suggestie hieronder:`,
+                    quotedSuggestion: (suggestedPrompt: string) => `‘${suggestedPrompt}’`,
+                    createAnyway: 'Toch maken',
                 },
             },
             expenseDefaultsTable: {
@@ -9198,10 +9415,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             subscriptions: 'Abonnementen',
         },
         hr: {
-            title: 'HR',
             connectionsSubtitle:
                 'Verbind met je HR-systeem om werknemersgegevens te synchroniseren, terugbetalingen automatisch aan de juiste personen te koppelen en de uitgaven van je team nauwkeurig te houden zonder handmatig werk.',
-            subtitle: 'Koppel HR-tools en houd goedkeuringen van medewerkers gesynchroniseerd.',
             alreadyConnectedTitle: 'Kan niet met meerdere HR-platformen verbinden',
             alreadyConnectedPrompt: 'Je moet je huidige HR-platform loskoppelen voordat je een ander kunt verbinden.',
             connectionDescription: (providerName: string) => `Verbind ${providerName} om goedkeuringen van werknemers gesynchroniseerd te houden met je werkruimte.`,
@@ -9264,7 +9479,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             },
         },
         recruiting: {
-            title: 'Werving',
             connectionsSubtitle:
                 'Koppel je recruitmentsysteem om kandidaatgegevens te synchroniseren, vergoedingen automatisch aan de juiste personen te koppelen en de uitgaven van je team nauwkeurig te houden zonder handmatig werk.',
             alreadyConnectedTitle: 'Kan niet met meerdere ATS-platformen verbinden',
@@ -9272,7 +9486,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             syncing: 'Kandidaten synchroniseren',
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Verbonden. ${setupLink ? `<a href="${setupLink}">Installatie voltooien</a>` : 'Voltooi installatie'} om kandidaten te importeren.</muted-text-label>`,
-            dontSeeYourATS: `<muted-text-label>Zie je je ATS hier niet? <a href="#">Vraag het aan Concierge</a> en we kunnen het toevoegen.</muted-text-label>`,
             importSettings: 'Importinstellingen',
             defaultApprover: 'Standaardgoedkeurder',
             approverFields: {recruiter: 'Recruiter', recruitingCoordinator: 'Coördinator werving', hiringManager: 'Wervingsmanager'},
@@ -9298,7 +9511,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 },
                 enableJobStagesOrTags: 'Selecteer minstens één functiestap of tag om door te gaan',
             },
-            subtitle: 'Koppel wervingstools en houd kandidaategoedkeuringen gesynchroniseerd.',
             syncResults: {
                 importedCount: () => ({
                     one: '1 kandidaat',
@@ -9322,9 +9534,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             },
         },
         merge: {
-            connections: 'Verbindingen',
-            connect: 'Verbinden',
-            findIntegration: 'Integratie zoeken',
             syncNow: 'Nu synchroniseren',
             disconnect: 'Ontkoppelen',
             disconnectTitle: (providerName: string) => `${providerName} ontkoppelen`,
@@ -9455,8 +9664,98 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 },
             },
         },
+        digits: {
+            updateCurrencyTitle: 'Werkruimtevaluta bijwerken?',
+            updateCurrencyPrompt: 'Digits is momenteel alleen beschikbaar voor in de VS gevestigde bedrijven die in USD werken.',
+        },
         zohoBooks: {
             organization: 'Zoho Books-organisatie',
+            organizationSelectDescription: 'Kies de organisatie in Zoho Books waaruit je gegevens wilt importeren.',
+            noOrganizationsFound: 'Geen organisaties gevonden',
+            noOrganizationsFoundDescription: 'Voeg een organisatie toe in Zoho Books en synchroniseer de verbinding opnieuw',
+            multiLocationNotSupported: 'Organisaties met meerdere locaties worden nog niet ondersteund',
+            importDescription: 'Kies welke boekhoudconfiguraties je wilt importeren uit Zoho Books.',
+            accountTypesDescription: 'Je Zoho Books-rekeningen worden geïmporteerd als categorieën.',
+            enableNewAccountsTitle: 'Nieuw geïmporteerde rekeningen inschakelen',
+            enableNewAccountsDescription: 'Nieuwe Zoho Books-accounts zullen beschikbaar zijn als categorieën.',
+            reportingTagsImport: 'Alle Zoho Books-rapportagetags worden geïmporteerd als tags',
+            exportDescription: 'Stel in hoe Expensify-gegevens worden geëxporteerd naar Zoho Books.',
+            exportReimbursable: {label: 'Vergoedbare uitgaven exporteren als', values: {VENDOR_BILL: {label: 'Leveranciersfacturen'}}},
+            exportDate: {
+                label: 'Factuurdatum leverancier',
+                description: 'Gebruik deze datum bij het exporteren van rapporten naar Zoho Books.',
+                values: {
+                    LAST_EXPENSE: {label: 'Datum van laatste uitgave', description: 'Datum van de meest recente uitgave in het rapport.'},
+                    REPORT_EXPORTED: {label: 'Exportdatum', description: 'Datum waarop het rapport is geëxporteerd naar Zoho Books.'},
+                    REPORT_SUBMITTED: {label: 'Indiendatum', description: 'Datum waarop het rapport ter goedkeuring is ingediend.'},
+                },
+            },
+            exportNonReimbursable: {label: 'Bedrijfspaskosten exporteren als', values: {EXPENSE: {label: 'Uitgaven'}}},
+            defaultCompanyCardVendor: {
+                label: 'Standaardleverancier voor alle bedrijfskaarten',
+                description: 'Kies een standaard Zoho Books-leverancier voor uitgaven die niet automatisch worden gekoppeld.',
+            },
+            companyCardAccount: {label: 'Bedrijfskaartrekening', description: 'Kies waar je transacties van bedrijfskaarten naartoe wilt exporteren.'},
+            exportToMultipleAccounts: 'Export naar meerdere rekeningen instellen',
+            cardProgramAccount: {
+                label: 'Kaartprogramma-account',
+                description: 'Overschrijf de werkruimteaccount voor deze kaartprogramma’s.',
+                descriptionLevel2: 'Overschrijf de workspace-account voor dit kaartprogramma.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Alle programma’s gebruiken de standaardrekening';
+                    }
+                    return {
+                        one: `${count} programma met aangepaste rekening`,
+                        other: `${count} programma’s met aangepaste rekeningen`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'Account per kaart',
+                description: 'Overschrijf de programmarekening voor individuele kaarten.',
+                descriptionLevel2: 'Overschrijf de programmarekening voor deze kaarten.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Alle kaarten gebruiken programmarekeningen';
+                    }
+                    return {
+                        one: `${count} kaart met aangepast account`,
+                        other: `${count} kaarten met aangepaste rekeningen`,
+                    };
+                },
+            },
+            noVendorsFound: 'Geen leveranciers gevonden',
+            noVendorsFoundDescription: 'Voeg leveranciers toe in Zoho Books en synchroniseer de verbinding opnieuw',
+            noAccountsFound: 'Geen accounts gevonden',
+            noAccountsFoundDescription: 'Voeg accounts toe in Zoho Books en synchroniseer de verbinding opnieuw',
+            autoSyncDescription: 'Synchroniseer Zoho Books en Expensify automatisch, elke dag. Rapporten worden in realtime gesynchroniseerd.',
+            accountingMethods: {
+                label: 'Exportmethode',
+                description: 'Kies wanneer je onkosten exporteert.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Toerekening',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Contant',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Uit eigen zak betaalde uitgaven worden geëxporteerd zodra ze definitief zijn goedgekeurd',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Persoonlijke uitgaven worden geëxporteerd zodra ze zijn betaald',
+                },
+            },
+            syncReimbursedReports: 'Terugbetaalde rapporten synchroniseren',
+            syncReimbursedReportsDescription: 'Wanneer een rapport via ACH wordt betaald, wordt er in deze rekening een rekeningbetaling aangemaakt.',
+            billPaymentAccount: {
+                label: 'Rekening voor het betalen van rekeningen',
+                description: 'Kies de tussenrekening waarop Zoho Books crediteert wanneer Expensify een factuur als betaald markeert.',
+            },
+            syncExpensifyCardSettlements: 'Expensify Kaartafwikkelingen synchroniseren',
+            settlementAccount: {label: 'Expensify Kaart-afwikkelingsrekening', description: 'Kies je afwikkelingsrekening en wij maken de betaling aan in Zoho Books.'},
+            syncTravelBillingSettlements: 'Consolidated Travel Billing-afrekeningen synchroniseren',
+            travelBillingSettlementAccount: {
+                label: 'Geconsolideerde reisfactureringsafwikkelingsrekening',
+                description: 'Kies je afwikkelingsrekening en wij maken de betaling aan in Zoho Books.',
+            },
+            travelBillingPayableAccount: {label: 'Verzamelrekening te betalen voor reizen'},
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central-configuratie',
@@ -9610,7 +9909,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         scheduleACall: 'Afspraak plannen',
         questionMarkButtonTooltip: 'Krijg hulp van ons team',
         exploreHelpDocs: 'Bekijk helpdocs',
-        registerForWebinar: 'Registreren voor webinar',
+        registerForWebinar: 'Webinar',
         onboardingHelp: 'Onboardinghulp',
     },
     emojiPicker: {
@@ -10151,6 +10450,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} kaarthouders om kaarttransacties te verwijderen voor kaartfeed "${feedName}"`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `heeft de einddag van de afrekenperiode van kaartfeed "${feedName}" gewijzigd${newValue ? ` naar "${newValue}"` : ''}${previousValue ? ` (voorheen "${previousValue}")` : ''}`,
+        updatedCardFeedReimbursable: (feedName: string, newValue?: string, previousValue?: string) =>
+            `heeft de instelling voor vergoedbaar van kaartfeed "${feedName}"${newValue ? ` naar "${newValue}"` : ''}${previousValue ? ` (eerder "${previousValue}")` : ''}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `heeft ${fieldType}-rapportveld "${fieldName}" toegevoegd${defaultValue ? ` met standaardwaarde "${defaultValue}"` : ''}`,
         updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
@@ -10324,6 +10625,13 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `heeft "Voorkom dat niet-vergoedbare rapporten als betaald worden gemarkeerd" bijgewerkt naar "${newValue === 'true' ? 'Ingeschakeld' : 'Uitgeschakeld'}" (voorheen "${oldValue === 'true' ? 'Ingeschakeld' : 'Uitgeschakeld'}")`,
+        addedExpensifyCardFeed: (feedName: string) => `"${feedName}" Expensify Kaart-feed toegevoegd`,
+        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
+            if (!oldValue) {
+                return `stel de tijdzone van de werkruimte in op "${newValue}"`;
+            }
+            return `heeft de tijdzone van de werkruimte bijgewerkt naar "${newValue}" (voorheen "${oldValue}")`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',
@@ -10518,7 +10826,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nooit',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Vorige maand',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Deze maand',
-                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Jaar tot nu toe',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Dit jaar',
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Laatste 12 maanden',
                     [CONST.SEARCH.DATE_PRESETS.THIS_WEEK]: 'Deze week',
                     [CONST.SEARCH.DATE_PRESETS.LAST_WEEK]: 'Vorige week',
@@ -10603,6 +10911,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Week',
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Jaar',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Kwartaal',
+                [CONST.SEARCH.GROUP_BY.APPROVER]: 'Goedkeurder',
+                [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Overtreding',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -10637,6 +10947,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
         display: {
             label: 'Weergave',
+            labelWithCount: ({count}: {count: number}) => (count > 0 ? `Weergave (${count})` : 'Weergave'),
             sortBy: 'Sorteren op',
             sortOrder: 'Sorteervolgorde',
             groupBy: 'Groeperen op',
@@ -10707,6 +11018,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Weken',
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Jaren',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Kwartalen',
+            [CONST.SEARCH.GROUP_BY.APPROVER]: 'Goedkeurders',
+            [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Overtredingen',
         },
         spendOverTime: 'Uitgaven in de tijd',
         trip: {
@@ -10716,11 +11029,14 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 upcoming: 'Gepland',
                 done: 'Afgerond',
                 canceled: 'Geannuleerd',
+                outstanding: 'Uitstaand',
+                rejected: 'Afgewezen',
             },
         },
         tabs: {
             expenseReports: 'Declaraties',
             reports: 'Rapporten',
+            myReports: 'Mijn rapporten',
             expenses: 'Declaraties',
             submit: 'Concepten',
             approve: 'Moet worden goedgekeurd',
@@ -10742,6 +11058,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         mergeReports: {
             title: 'Rapporten samenvoegen',
             description: 'Selecteer het rapport dat je wilt behouden. Alle uitgaven worden daarheen verplaatst en de andere rapporten worden verwijderd.',
+            exportedWarning:
+                'Een of meer geselecteerde rapporten zijn al geëxporteerd naar een boekhoudintegratie. Deze samenvoegen kan dubbele gegevens veroorzaken als ze opnieuw worden geëxporteerd.',
+            reportFieldsMismatch:
+                '<strong>Deze rapporten hebben verschillende waarden voor rapportvelden.</strong> Om ze te combineren, zorg je er eerst voor dat de rapportvelden in elk rapport overeenkomen.',
             listPage: {noEligibleReportsFound: 'Geen in aanmerking komende rapporten gevonden', noEligibleReportsFoundSubtitle: 'Je hebt geen rapporten die kunnen worden samengevoegd.'},
         },
         periodSoFar: ({period}: {period: string}) => `${period} tot nu toe`,
@@ -10812,6 +11132,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         genericUpdateReportFieldFailureMessage: 'Onverwachte fout bij het bijwerken van het veld. Probeer het later opnieuw.',
         genericUpdateReportNameEditFailureMessage: 'Onverwachte fout bij het hernoemen van het rapport. Probeer het later opnieuw.',
         noActivityYet: 'Nog geen activiteit',
+        collapsedSystemMessages: () => ({
+            one: '1 update tonen',
+            other: (count: number) => `${count} updates tonen`,
+        }),
         connectionSettings: 'Verbindingsinstellingen',
         actions: {
             type: {
@@ -10915,6 +11239,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
                     return `Open de mobiele Expensify-app om je${amountAndMerchantText ? ` ${amountAndMerchantText}-` : ' '}transactie te bekijken`;
                 },
+                autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
+                    `Global Reimbursements is ingeschakeld door ${adminName} op de ${bankName ? `${bankName} ` : ''}rekening die eindigt op ${lastFour}. Exacte wisselkoersen en kosten kunnen niet vooraf worden bekeken wanneer grensoverschrijdende rapporten automatisch worden betaald. Bekijk je <a href="${autoPaySettingsURL}">automatische betaalinstellingen</a> voor meer informatie over tarieven en kosten.`,
             },
             error: {
                 invalidCredentials: 'Ongeldige inloggegevens, controleer de configuratie van je verbinding.',
@@ -11296,6 +11622,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         autoReportedRejectedExpense: 'Deze uitgave is afgewezen.',
         billableExpense: 'Factureerbaar niet langer geldig',
         cashExpenseWithNoReceipt: (formattedLimit?: string) => `Bon vereist${formattedLimit ? `boven ${formattedLimit}` : ''}`,
+        categoryNotAllowed: 'Categorie niet toegestaan',
         categoryOutOfPolicy: 'Categorie niet meer geldig',
         conversionSurcharge: (surcharge: number) => `${surcharge}% omrekeningsopslag toegepast`,
         customUnitOutOfPolicy: 'Tarief niet geldig voor deze werkruimte',
@@ -11466,6 +11793,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         keepThisOne: 'Deze behouden',
         confirmDetails: `Bevestig de details die je bewaart`,
         confirmDuplicatesInfo: `De duplicaten die je niet bewaart, worden vastgehouden zodat de indiener ze kan verwijderen.`,
+        confirmDuplicatesRemovedInfo: `De duplicaten die je niet bewaart, worden verwijderd.`,
         hold: 'Deze uitgave is gepauzeerd',
         resolvedDuplicates: 'dubbeling opgelost',
         companyCardRequired: 'Bedrijfspaskaarten vereist',
@@ -11480,6 +11808,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             autoReportedRejectedExpense: 'Uitgave afgekeurd',
             billableExpense: 'Doorbelastbaar niet langer geldig',
             cashExpenseWithNoReceipt: 'Bon nodig',
+            categoryNotAllowed: 'Categorie niet toegestaan',
             categoryOutOfPolicy: 'Categorie niet meer geldig',
             companyCardRequired: 'Bedrijfskaart vereist',
             conversionSurcharge: 'Toeslag voor omrekening toegepast',
@@ -11560,6 +11889,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} is verplicht`,
         reportContainsExpensesWithViolations: 'Rapport bevat onkosten met overtredingen.',
+        reportHasErrors: 'Rapport bevat fouten.',
     },
     violationDismissal: {
         rter: {
@@ -11901,6 +12231,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 info: 'Als je je werkruimte(s) op basis van betalen-per-gebruik wilt blijven gebruiken, ben je helemaal klaar.',
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `Als je toekomstige activiteit en kosten wilt voorkomen, moet je je <a href="${workspacesListRoute}">werkruimte(s) verwijderen</a>. Let op: wanneer je je werkruimte(s) verwijdert, worden eventuele openstaande activiteiten die in de huidige kalendermaand hebben plaatsgevonden alsnog in rekening gebracht.`,
+                preventFutureActivityWithArchive: (workspacesListRoute: string) =>
+                    `Om toekomstige activiteit en kosten te voorkomen, <a href="${workspacesListRoute}">archiveer al je betaalde werkruimtes</a>. Gearchiveerde werkruimtes met factureerbare activiteit in de huidige maand worden nog steeds in je factuur opgenomen.`,
             },
             requestSubmitted: {
                 title: 'Aanvraag ingediend',
@@ -12035,7 +12367,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             isUnreadWithMention: 'Is ongelezen met vermelding',
             isWaitingForAssigneeToCompleteAction: 'Wacht totdat de verantwoordelijke de actie voltooit',
             hasChildReportAwaitingAction: 'Heeft onderliggend rapport dat op actie wacht',
-            hasMissingInvoiceBankAccount: 'Heeft ontbrekend bankrekeningnummer voor factuur',
             hasUnresolvedCardFraudAlert: 'Heeft onopgeloste kaartfraudewaarschuwing',
             hasDEWApproveFailed: 'DEW-goedkeuring mislukt',
         },
@@ -12049,7 +12380,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             theresAReportWithErrors: 'Er is een rapport met fouten',
             theresAWorkspaceWithCustomUnitsErrors: 'Er is een werkruimte met fouten in aangepaste eenheden',
             theresAProblemWithAWorkspaceMember: 'Er is een probleem met een werkruimtelid',
-            theresAProblemWithAWorkspaceQBOExport: 'Er was een probleem met een exportinstelling voor een workspace-verbinding.',
+            theresAProblemWithAWorkspaceReimbursementExport: 'Er is een probleem opgetreden met een exportinstelling voor een werkruimteverbinding.',
             theresAProblemWithAContactMethod: 'Er is een probleem met een contactmethode',
             aContactMethodRequiresVerification: 'Een contactmethode vereist verificatie',
             theresAProblemWithAPaymentMethod: 'Er is een probleem met een betaalmethode',
@@ -12093,8 +12424,14 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
     },
     productMarketingWindow: {
-        heading: 'Verbind Expensify met Claude',
-        body: 'Zoek, analyseer en vat uitgavengegevens direct samen in Claude.',
+        member: {
+            heading: 'Kilometers op de automatische piloot',
+            body: 'Ga direct naar je veelgebruikte ritten en corrigeer de locatie van een stop zonder opnieuw te beginnen.',
+        },
+        admin: {
+            heading: 'Kilometers automatisch geregeld',
+            body: 'Kilometertarieven die zichzelf actueel houden, plus volledige controle over hoe ritten worden vastgelegd.',
+        },
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Begin <strong>hier!</strong></tooltip>',
@@ -12552,5 +12889,29 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         mobileClaimPrompt: 'Bezoek Expensify in je webbrowser om je verlengingskorting te claimen.',
     },
     bulkActionBar: {label: 'Bulkacties', clearSelection: 'Selectie wissen', loadingSelection: 'Selectie laden'},
+    reportHistoryPage: {
+        title: 'Rapportgeschiedenis',
+        created: 'heeft rapport gemaakt',
+        submitted: 'heeft ingediend',
+        approved: 'heeft goedgekeurd',
+        paid: 'heeft betaald',
+        toSubmit: 'indienen',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'automatisch indienen';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `automatisch indienen op de ${eta} van elke maand` : `${eta} automatisch indienen`;
+        },
+        toApprove: 'goedkeuren',
+        toPay: 'betalen',
+        minutesAgo: (count: number) => `${count} min geleden`,
+        hoursAgo: (count: number) => `${count} u geleden`,
+        daysAgo: () => ({
+            one: '1 d geleden',
+            other: (count: number) => `${count} d geleden`,
+        }),
+        offlineMessage: 'Je bent offline. Rapportgeschiedenis is mogelijk verouderd.',
+        toMarkAsDone: 'markeren als voltooid',
+    },
 };
 export default translations;

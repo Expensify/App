@@ -7,6 +7,7 @@ import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsLists from '@hooks/useCardsLists';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {findMatchingCards, getCardsUsingCustomExportCount} from '@libs/CardFeedUtils';
@@ -20,12 +21,15 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 
 function CampfireCardProgramAccountPage({policy}: WithPolicyConnectionsProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
@@ -73,8 +77,10 @@ function CampfireCardProgramAccountPage({policy}: WithPolicyConnectionsProps) {
                             pendingAction={settingsPendingAction([`${CONST.CAMPFIRE_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`], campfireConfig?.pendingFields)}
                         >
                             <MenuItem.Root
-                                onPress={callFunctionIfActionIsAllowed(() =>
-                                    policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_CARD_PROGRAM_ACCOUNT_SELECTOR.getRoute(policyID, feedWithDomainID)) : undefined,
+                                onPress={callFunctionIfActionIsAllowed(
+                                    () => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_CARD_PROGRAM_ACCOUNT_SELECTOR.getRoute(policyID, feedWithDomainID)) : undefined),
+                                    false,
+                                    session,
                                 )}
                             >
                                 <MenuItemField.Row

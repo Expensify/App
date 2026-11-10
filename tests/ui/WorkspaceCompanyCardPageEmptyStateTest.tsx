@@ -35,13 +35,16 @@ jest.mock('@components/DelegateNoAccessModalProvider', () => ({
 
 jest.mock('@components/FeatureList', () => {
     const {Pressable} = jest.requireActual<{Pressable: React.ComponentType<{testID: string; accessibilityRole: 'button'; onPress: () => void}>}>('react-native');
-    return ({onCtaPress}: {onCtaPress: () => void}) => (
-        <Pressable
-            testID="addCardsCta"
-            accessibilityRole="button"
-            onPress={onCtaPress}
-        />
-    );
+    function FeatureList({onCtaPress}: {onCtaPress: () => void}) {
+        return (
+            <Pressable
+                testID="addCardsCta"
+                accessibilityRole="button"
+                onPress={onCtaPress}
+            />
+        );
+    }
+    return Object.assign(FeatureList, {Item: () => null});
 });
 
 jest.mock('@pages/workspace/companyCards/WorkspaceCompanyCardExpensifyCardPromotionBanner', () => () => null);

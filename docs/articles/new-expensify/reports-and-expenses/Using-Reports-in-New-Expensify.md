@@ -44,7 +44,7 @@ Filter reports by type, status, category, or date to find specific information.
    - **Date:** This month, last month
    - **Status:** Outstanding, Paid
    - **From:** You, or someone else
-   - **Paid by:** The member who paid the report. On the **Expense Report** type, this sits directly below **Paid status**. On the **Expense** type, it sits directly below **Paid**.
+   - **Paid by:** The member who paid the report. On both the **Expense** and **Expense Report** types, this sits directly below **Paid**.
 6. Click **View Results** to see the filtered results.
 
 <!-- SCREENSHOT:
@@ -73,6 +73,7 @@ You can choose from a wide range of columns, including:
 - **Avatar** – The profile image of the report submitter
 - **Date** – When the report or expense was created
 - **Submitted** – The date the report was submitted for approval
+- **Paid** – The date the report was paid
 - **Total** – The total amount of the report or expense
 - **Workspace** – The workspace the report belongs to
 - **Paid status** – The payment stage of a paid report: **Marked as paid**, **Withdrawing**, or **Confirmed**

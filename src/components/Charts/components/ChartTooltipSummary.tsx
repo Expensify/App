@@ -1,30 +1,19 @@
-import formatAmountWithPercentage from '@components/Charts/utils/formatAmountWithPercentage';
+import formatTooltipValue from '@components/Charts/utils/formatTooltipValue';
+import type {TooltipValue} from '@components/Charts/utils/formatTooltipValue';
 import Text from '@components/Text';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import React from 'react';
 
-type ChartTooltipSummaryProps = {
-    /** Formatted amount (e.g., "$1,820.00") */
-    amount: string;
-
-    /** Optional percentage to display (e.g., "12%") */
-    percentage?: string;
-
-    /** Optional translated expense count (e.g., "841 expenses") */
-    expenseCount?: string;
-};
-
-/** Renders a single amount in the chart tooltip, with its share and expense count */
-function ChartTooltipSummary({amount, percentage, expenseCount}: ChartTooltipSummaryProps) {
+/** Renders a single value in the chart tooltip with its percentage, and the secondary value on a line of its own */
+function ChartTooltipSummary({value, percentage, secondaryValue}: TooltipValue) {
     const styles = useThemeStyles();
-    const amountContent = formatAmountWithPercentage(amount, percentage);
 
     return (
         <>
-            {!!amountContent && <Text style={styles.chartTooltipText}>{amountContent}</Text>}
-            {!!expenseCount && <Text style={styles.chartTooltipText}>{expenseCount}</Text>}
+            {!!value && <Text style={styles.chartTooltipText}>{formatTooltipValue({value, percentage})}</Text>}
+            {!!secondaryValue && <Text style={styles.chartTooltipText}>{secondaryValue}</Text>}
         </>
     );
 }

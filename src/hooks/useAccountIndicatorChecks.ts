@@ -6,6 +6,7 @@ import {hasSubscriptionGreenDotInfo, hasSubscriptionRedDotError} from '@libs/Sub
 import {expensifyLoginsSelector, hasDeviceManagementError, hasLoginListError, hasLoginListInfo} from '@libs/UserUtils';
 
 import useTimeSensitiveHomeAddress from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveHomeAddress';
+import useTimeSensitiveWiseMoreInfoNeeded from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveWiseMoreInfoNeeded';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,6 +48,7 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
     } = useCardFeedErrors();
     const {isPolicyAdmin} = usePoliciesWithCardFeedErrors();
     const {shouldShowAddHomeAddress} = useTimeSensitiveHomeAddress();
+    const {wiseMoreInfoNeededBankAccounts} = useTimeSensitiveWiseMoreInfoNeeded();
 
     const accountChecks: Partial<Record<IndicatorStatus, boolean>> = {
         [CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS]: Object.keys(userWallet?.errors ?? {}).length > 0,
@@ -89,6 +91,7 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
             ownerTravelBillingGracePeriodEnd,
         ),
         [CONST.INDICATOR_STATUS.HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO]: hasPartiallySetupBankAccount(bankAccountList) || hasPersonalBankAccountMissingInfo(bankAccountList),
+        [CONST.INDICATOR_STATUS.HAS_WISE_MORE_INFO_NEEDED_INFO]: wiseMoreInfoNeededBankAccounts.length > 0,
     };
 
     const [accountStatus] = Object.entries(accountChecks).find(([, value]) => value) ?? [];
