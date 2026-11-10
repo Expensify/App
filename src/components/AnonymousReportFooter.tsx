@@ -54,7 +54,7 @@ function AnonymousReportFooter({reportID}: AnonymousReportFooterProps) {
                     <Button
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={() => {
-                            signOutAndRedirectToSignIn(undefined, undefined, true, undefined, session);
+                            signOutAndRedirectToSignIn(session, undefined, undefined, true);
                         }}
                     >
                         <Button.Text>{translate('common.signIn')}</Button.Text>

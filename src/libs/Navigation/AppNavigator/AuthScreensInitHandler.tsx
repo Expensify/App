@@ -177,7 +177,7 @@ function AuthScreensInitHandler() {
                 isDelegateSession: Session.isDelegateSession(session),
                 isSupportalTransition,
             });
-            Session.signOutAndRedirectToSignIn(false, isSupportalTransition, true, undefined, session, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
+            Session.signOutAndRedirectToSignIn(session, false, isSupportalTransition, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
             return () => {
                 Session.cleanupSession();
             };

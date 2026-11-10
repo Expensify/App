@@ -278,11 +278,11 @@ describe('AuthScreensInitHandler', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(signOutAndRedirectToSignIn).toHaveBeenCalledWith(
+            expect.objectContaining({accountID: TEST_ACCOUNT_ID, email: 'test@test.com'}),
             false,
             false,
             true,
             undefined,
-            expect.objectContaining({accountID: TEST_ACCOUNT_ID, email: 'test@test.com'}),
             CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER,
         );
     });

@@ -22,7 +22,7 @@ function SignInButton() {
         <PressableWithoutFeedback
             accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
             role={CONST.ROLE.BUTTON}
-            onPress={() => signOutAndRedirectToSignIn(undefined, undefined, true, undefined, session)}
+            onPress={() => signOutAndRedirectToSignIn(session, undefined, undefined, true)}
             sentryLabel={CONST.SENTRY_LABEL.SIDEBAR.SIGN_IN_BUTTON}
         >
             <View style={[styles.signInButtonAvatar, styles.ph2]}>
@@ -30,7 +30,7 @@ function SignInButton() {
                     sentryLabel={CONST.SENTRY_LABEL.SIDEBAR.SIGN_IN_BUTTON}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {
-                        signOutAndRedirectToSignIn(undefined, undefined, true, undefined, session);
+                        signOutAndRedirectToSignIn(session, undefined, undefined, true);
                     }}
                 >
                     <Button.Text>{translate('common.signIn')}</Button.Text>

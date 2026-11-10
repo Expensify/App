@@ -591,7 +591,7 @@ describe('Session', () => {
 
             const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
 
-            signOutAndRedirectToSignIn();
+            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION));
 
             await waitForBatchedUpdates();
 
@@ -615,7 +615,7 @@ describe('Session', () => {
 
             const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
 
-            signOutAndRedirectToSignIn();
+            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION));
 
             await waitForBatchedUpdates();
 
@@ -640,7 +640,7 @@ describe('Session', () => {
 
             await waitForBatchedUpdates();
 
-            signOutAndRedirectToSignIn(false, false, true, true);
+            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), false, false, true, true);
 
             await waitForBatchedUpdates();
 
@@ -674,7 +674,7 @@ describe('Session', () => {
 
             const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
 
-            signOutAndRedirectToSignIn(true, false, true, true);
+            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), true, false, true, true);
 
             await waitForBatchedUpdates();
 

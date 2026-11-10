@@ -85,7 +85,7 @@ function GenericErrorPage({error}: {error?: Error}) {
                                     {isAuthenticated && (
                                         <Button
                                             onPress={() => {
-                                                signOutAndRedirectToSignIn(undefined, undefined, true, undefined, session);
+                                                signOutAndRedirectToSignIn(session, undefined, undefined, true);
                                                 refreshPage();
                                             }}
                                         >

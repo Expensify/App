@@ -97,7 +97,7 @@ function ReportActionItemEmojiReactions({reportAction, reportID, isEditingInline
 
             TransitionTracker.runAfterTransitions({
                 callback: () => {
-                    signOutAndRedirectToSignIn(undefined, undefined, true, undefined, session);
+                    signOutAndRedirectToSignIn(session, undefined, undefined, true);
                 },
             });
             return;

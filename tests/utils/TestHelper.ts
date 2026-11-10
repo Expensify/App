@@ -306,8 +306,10 @@ function signOutTestUser() {
         // Return a Promise that resolves with the mocked response
         return Promise.resolve(mockedResponse);
     });
-    Session.signOutAndRedirectToSignIn();
-    return waitForBatchedUpdates().then(() => (HttpUtils.xhr = originalXhr));
+    return Onyx.get(ONYXKEYS.SESSION)
+        .then((session) => Session.signOutAndRedirectToSignIn(session))
+        .then(waitForBatchedUpdates)
+        .then(() => (HttpUtils.xhr = originalXhr));
 }
 
 /**

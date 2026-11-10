@@ -47,6 +47,7 @@ import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn
 import {setOnboardingErrorMessage} from './Welcome';
 
 let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
+let currentSession: OnyxEntry<Session>;
 const pendingDeepLinkCleanups = new Set<() => void>();
 
 registerSessionCleanupCallback(() => {
@@ -55,11 +56,13 @@ registerSessionCleanupCallback(() => {
     }
 });
 
-// Use connectWithoutView since this is to open an external link and doesn't affect any UI
+// Use connectWithoutView since this is to open an external link and doesn't affect any UI.
+// It also keeps the session live for deep links, which sign out after sign-in finishes, so a value captured when the link was opened would be stale.
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+        currentSession = value;
     },
 });
 
@@ -398,7 +401,7 @@ function openLink(href: string, environmentURL: string, isAttachment: boolean, s
 
     if (reportLinkRoute) {
         if (internalNewExpensifyPath && hasSameOrigin && isAnonymousUser(session) && !canAnonymousUserAccessRoute(internalNewExpensifyPath)) {
-            signOutAndRedirectToSignIn(undefined, undefined, undefined, undefined, session);
+            signOutAndRedirectToSignIn(session);
             return;
         }
         if (focusedSearchReportActionRoute && reportLinkRouteParams?.reportActionID) {
@@ -416,7 +419,7 @@ function openLink(href: string, environmentURL: string, isAttachment: boolean, s
     // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
     if (internalNewExpensifyPath && hasSameOrigin) {
         if (isAnonymousUser(session) && !canAnonymousUserAccessRoute(internalNewExpensifyPath)) {
-            signOutAndRedirectToSignIn(undefined, undefined, undefined, undefined, session);
+            signOutAndRedirectToSignIn(session);
             return;
         }
         if (shouldCloseRHP) {
@@ -527,7 +530,7 @@ function openReportFromDeepLink(
                 // (canAnonymousUserAccessRoute would allow it). Force a real sign-in first; the deep link is re-processed
                 // after sign-in. Without this the user lands on /r/:id?secureKey with no join, stuck loading/404.
                 if (isAnonymousUser()) {
-                    signOutAndRedirectToSignIn(true);
+                    signOutAndRedirectToSignIn(currentSession, true);
                     return;
                 }
                 // On cold launch the report is already the initial route; navigating again would stack a duplicate
@@ -585,7 +588,7 @@ function openReportFromDeepLink(
                     }
 
                     if (route && isAnonymousUser() && !canAnonymousUserAccessRoute(route)) {
-                        signOutAndRedirectToSignIn(true);
+                        signOutAndRedirectToSignIn(currentSession, true);
                         return;
                     }
 
