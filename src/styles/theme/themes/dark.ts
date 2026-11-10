@@ -210,6 +210,10 @@ const darkTheme = {
             backgroundColor: colors.productDark400,
             textColor: colors.productDark900,
         },
+        canceled: {
+            backgroundColor: colors.yellow700,
+            textColor: colors.yellow200,
+        },
     },
 
     statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,

@@ -25,7 +25,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -109,7 +109,7 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
                                 onPress={
                                     isSettlementFrequencyBlocked
                                         ? undefined
-                                        : callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY.getRoute(policyID)), false, session)
+                                        : callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY.getRoute(policyID)), session)
                                 }
                             >
                                 <MenuItemField.Row
@@ -143,6 +143,7 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
                                 title={translate('workspace.expensifyCard.applyCashbackToBill')}
                                 subtitle={translate('workspace.expensifyCard.applyCashbackToBillDescription')}
                                 switchAccessibilityLabel={translate('workspace.expensifyCard.applyCashbackToBill')}
+                                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.APPLY_CASHBACK_TO_BILL_SWITCH}
                                 isActive={shouldApplyCashbackToBill}
                                 shouldPlaceSubtitleBelowSwitch
                                 wrapperStyle={[styles.mv3, styles.mh5]}

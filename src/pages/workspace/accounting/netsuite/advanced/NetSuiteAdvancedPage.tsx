@@ -35,7 +35,7 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -83,7 +83,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 key={item.description}
                 pendingAction={settingsPendingAction(item.subscribedSettings, config?.pendingFields) ?? settingsPendingAction(item.subscribedSettings, autoSyncConfig?.pendingFields)}
             >
-                <MenuItem.Root onPress={item?.onPress ? callFunctionIfActionIsAllowed(item.onPress, false, session) : undefined}>
+                <MenuItem.Root onPress={item?.onPress ? callIfAuthenticated(item.onPress, session) : undefined}>
                     <MenuItemField.Row
                         name={item.description ?? ''}
                         value={item.title}
@@ -123,6 +123,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             subtitle: translate('workspace.netsuite.advancedConfig.reimbursedReportsDescription'),
             isActive: !!config?.syncOptions.syncReimbursedReports,
             switchAccessibilityLabel: translate('workspace.netsuite.advancedConfig.reimbursedReportsDescription'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.SYNC_REIMBURSED_REPORTS_SWITCH,
             shouldPlaceSubtitleBelowSwitch: true,
             onCloseError: () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_REIMBURSED_REPORTS),
             onToggle: (isEnabled) => updateNetSuiteSyncReimbursedReports(policyID, isEnabled),
@@ -166,6 +167,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             subtitle: translate('workspace.netsuite.advancedConfig.inviteEmployeesDescription'),
             isActive: !!config?.syncOptions.syncPeople,
             switchAccessibilityLabel: translate('workspace.netsuite.advancedConfig.inviteEmployeesDescription'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.INVITE_EMPLOYEES_SWITCH,
             shouldPlaceSubtitleBelowSwitch: true,
             shouldParseSubtitle: true,
             onCloseError: () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_PEOPLE),
@@ -178,6 +180,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             title: translate('workspace.netsuite.advancedConfig.autoCreateEntities'),
             isActive: !!config?.autoCreateEntities,
             switchAccessibilityLabel: translate('workspace.netsuite.advancedConfig.autoCreateEntities'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.AUTO_CREATE_ENTITIES_SWITCH,
             onCloseError: () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.AUTO_CREATE_ENTITIES),
             onToggle: (isEnabled) => updateNetSuiteAutoCreateEntities(policyID, isEnabled),
             pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.AUTO_CREATE_ENTITIES], config?.pendingFields),
@@ -192,6 +195,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             title: translate('workspace.netsuite.advancedConfig.enableCategories'),
             isActive: !!config?.syncOptions.enableNewCategories,
             switchAccessibilityLabel: translate('workspace.netsuite.advancedConfig.enableCategories'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.ENABLE_NEW_CATEGORIES_SWITCH,
             onCloseError: () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.ENABLE_NEW_CATEGORIES),
             onToggle: (isEnabled) => updateNetSuiteEnableNewCategories(policyID, isEnabled),
             pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.SYNC_OPTIONS.ENABLE_NEW_CATEGORIES], config?.pendingFields),
@@ -242,6 +246,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             subtitle: translate('workspace.netsuite.advancedConfig.customFormIDDescription'),
             isActive: !!config?.customFormIDOptions?.enabled,
             switchAccessibilityLabel: translate('workspace.netsuite.advancedConfig.customFormIDDescription'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CUSTOM_FORM_ID_SWITCH,
             shouldPlaceSubtitleBelowSwitch: true,
             onCloseError: () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_ENABLED),
             onToggle: (isEnabled) => {

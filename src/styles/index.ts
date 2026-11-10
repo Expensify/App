@@ -561,11 +561,6 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: lineHeightScale.label,
         },
 
-        /** Gives every digit the same advance so a counter doesn't shift sideways as its digits change. */
-        tabularNums: {
-            fontVariant: ['tabular-nums'],
-        },
-
         mutedNormalTextLabel: {
             color: theme.textSupporting,
             fontSize: fontScale.label,
@@ -769,7 +764,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         tabNavigatorBarContainer: {
-            width: variables.navigationTabBarSize + variables.sideBarWithLHBWidth,
             marginRight: -variables.sideBarWithLHBWidth,
             overflow: 'visible',
         },
@@ -795,6 +789,10 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: spacing.p1.padding + variables.floatingTabBarSelectedOverhang,
             // Clips each item's hover and press background to the capsule's rounded ends.
             overflow: 'hidden',
+        },
+
+        navigationTabBarContainerLandscape: {
+            height: variables.floatingTabBarLandscapeHeight,
         },
 
         // A grid item is otherwise never narrower than its label, so the label could not truncate.
@@ -877,6 +875,51 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
             alignItems: 'center',
             paddingHorizontal: 4,
+        },
+
+        flatNavigationBarContainer: {
+            height: '100%',
+            borderRightWidth: 1,
+            borderRightColor: theme.border,
+            backgroundColor: theme.appBG,
+        },
+
+        flatNavigationBarHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            height: variables.flatNavigationBarHeaderHeight,
+            paddingLeft: variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding,
+        },
+
+        flatNavigationBarCreateButtonContainer: {
+            marginHorizontal: variables.flatNavigationBarCreateButtonInset,
+            marginBottom: variables.flatNavigationBarCreateButtonGap,
+        },
+
+        flatNavigationBarCreateButton: {
+            height: variables.flatNavigationBarCreateButtonHeight,
+            minHeight: variables.flatNavigationBarCreateButtonHeight,
+        },
+
+        flatNavigationBarItem: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 12,
+            height: variables.flatNavigationBarItemHeight,
+            paddingHorizontal: variables.flatNavigationBarRowPadding,
+            marginHorizontal: variables.flatNavigationBarRowInset,
+            borderRadius: variables.componentBorderRadiusNormal,
+        },
+
+        flatNavigationBarAccountItem: {
+            height: variables.flatNavigationBarAccountItemHeight,
+        },
+
+        flatNavigationBarDivider: {
+            height: 1,
+            marginHorizontal: variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding,
+            marginVertical: 8,
+            backgroundColor: theme.border,
         },
 
         button: {
@@ -7246,7 +7289,8 @@ const dynamicStyles = (theme: ThemeColors) =>
             }) satisfies ViewStyle,
 
         // Floats the offline indicator above a footer laid over the bottom of a tab root screen, without shrinking the
-        // content that runs under the footer.
+        // content that runs under the footer. Touches pass through to that content, so it still scrolls when the
+        // indicator covers all of it that is left on a short landscape screen.
         offlineIndicatorAboveFooter: (footerHeight: number) =>
             ({
                 position: 'absolute',
@@ -7255,10 +7299,11 @@ const dynamicStyles = (theme: ThemeColors) =>
                 left: 0,
                 zIndex: variables.searchFooterZIndex,
                 backgroundColor: theme.appBG,
+                ...pointerEventsNone,
             }) satisfies ViewStyle,
 
         // Fills the screen from the top of the tab bar down to the bottom edge, so no content shows between the
-        // offline indicator and the bar.
+        // offline indicator and the bar. Touches pass through to the content under it, as above a footer.
         tabBarOfflineIndicator: (tabBarCoveredHeight: number) =>
             ({
                 position: 'absolute',
@@ -7268,6 +7313,7 @@ const dynamicStyles = (theme: ThemeColors) =>
                 height: CONST.OFFLINE_INDICATOR_HEIGHT + tabBarCoveredHeight,
                 paddingBottom: tabBarCoveredHeight,
                 backgroundColor: theme.appBG,
+                ...pointerEventsNone,
             }) satisfies ViewStyle,
 
         // Runs a footer's background down under the tab bar that covers the bottom of a tab root screen, so the

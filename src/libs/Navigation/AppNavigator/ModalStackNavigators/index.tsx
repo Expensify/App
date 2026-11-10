@@ -40,6 +40,7 @@ import type {
     RoomMembersNavigatorParamList,
     ScheduleCallParamList,
     SearchColumnsParamList,
+    InsightsDetailsParamList,
     SearchReportActionsParamList,
     SearchSavedSearchParamList,
     SettingsNavigatorParamList,
@@ -109,6 +110,9 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
         animation: Animations.NONE,
     },
     [SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP]: {
+        animation: Animations.NONE,
+    },
+    [SCREENS.SEARCH.SEARCH_CHANGE_WORKSPACE_RHP]: {
         animation: Animations.NONE,
     },
     [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: {
@@ -281,7 +285,6 @@ const SplitDetailsModalStackNavigator = createModalStackNavigator<SplitDetailsNa
 
 const ProfileModalStackNavigator = createModalStackNavigator<ProfileNavigatorParamList>({
     [SCREENS.DYNAMIC_PROFILE]: () => require<ReactComponentModule>('../../../../pages/ProfilePage').default,
-    [SCREENS.DYNAMIC_PROFILE_DISPLAY_NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberDisplayNamePage').default,
 });
 
 const NewReportWorkspaceSelectionModalStackNavigator = createModalStackNavigator<NewReportWorkspaceSelectionNavigatorParamList>({
@@ -514,8 +517,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_BUSINESS_ONBOARDING]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseBusinessOnboardingPage').default,
     [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ACCEPT_TERMS]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseAcceptTermsPage').default,
-    [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_MORE_INFO_NEEDED]: () =>
-        require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseMoreInfoNeededPage').default,
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_KYC_REVIEW]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseKYCReviewPage').default,
     [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ONBOARDING_STATUS]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseOnboardingStatusPage').default,
     [SCREENS.SETTINGS.WALLET.DYNAMIC_BANK_ACCOUNT_LINK_PLAID]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/LinkPlaidToBankAccountPage').default,
@@ -633,8 +635,10 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_DOWNGRADE]: () => require<ReactComponentModule>('../../../../pages/workspace/downgrade/DynamicWorkspaceDowngradePage').default,
     [SCREENS.WORKSPACE.DYNAMIC_PAY_AND_DOWNGRADE]: () => require<ReactComponentModule>('../../../../pages/workspace/downgrade/DynamicPayAndDowngradePage').default,
     [SCREENS.WORKSPACE.MEMBER_DETAILS]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberDetailsPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_MEMBER_DISPLAY_NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberDisplayNamePage').default,
     [SCREENS.WORKSPACE.ROOM_CREATE]: () => require<ReactComponentModule>('../../../../pages/workspace/rooms/WorkspaceRoomCreatePage').default,
     [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberDetailsRolePage').default,
+    [SCREENS.WORKSPACE.MEMBER_DETAILS_CATEGORY_VISIBILITY]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberCategoryVisibilityPage').default,
     [SCREENS.WORKSPACE.MEMBERS_ROLE]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMembersRolePage').default,
     [SCREENS.WORKSPACE.MEMBER_WORK_ARRANGEMENT]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkArrangementPage').default,
     [SCREENS.WORKSPACE.MEMBER_OFFICE_LOCATION]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberOfficeLocationPage').default,
@@ -843,6 +847,13 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/export/ZohoBooksDefaultCompanyCardVendorPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_COMPANY_CARD_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/export/ZohoBooksCompanyCardAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_CARD_PROGRAM_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/export/ZohoBooksCardProgramAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_CARD_PROGRAM_ACCOUNT_SELECTOR]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/export/ZohoBooksCardProgramAccountSelectorPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_CARD_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/export/ZohoBooksCardAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_CARD_ACCOUNT_CARD_LIST]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/export/ZohoBooksCardAccountCardListPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_EXISTING_CONNECTIONS]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/ZohoBooksExistingConnectionsPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_ORGANIZATION_SELECTOR]: () =>
@@ -1072,6 +1083,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_SETUP]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/CampfireSetupPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_EXISTING_CONNECTIONS]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/CampfireExistingConnectionsPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_OAUTH]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/digits/DigitsOAuthPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_EXISTING_CONNECTIONS]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/digits/DigitsExistingConnectionsPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_SUBSIDIARY_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/CampfireSubsidiarySelector').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/import/CampfireImportPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_EXPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/export/CampfireExportPage').default,
@@ -1150,6 +1163,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/DynamicReconciliationFeedSelectorPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_CURRENCY_CONVERSION_FEES]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceWorkflowsCurrencyConversionFeesPage').default,
+    [SCREENS.WORKSPACE.WORKFLOWS_REIMBURSEMENT_COUNTRIES]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceReimbursementCountrySelectorPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceAutoReportingMonthlyOffsetPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_WEEKLY_OFFSET]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceAutoReportingWeeklyOffsetPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_SEMI_MONTHLY_OFFSET]: () =>
@@ -1485,6 +1499,7 @@ const SearchReportActionsModalStackNavigator = createModalStackNavigator<SearchR
     [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchHoldReasonPage').default,
     [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_SEARCH]: () => require<ReactComponentModule>('../../../../pages/Search/SearchHoldReasonPage').default,
     [SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchRejectReasonPage').default,
+    [SCREENS.SEARCH.SEARCH_CHANGE_WORKSPACE_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchChangeWorkspacePage').default,
     [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchTransactionsChangeReport').default,
     [SCREENS.SEARCH.MERGE_REPORTS_SEARCH_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchReportsMergeReports').default,
     [SCREENS.SEARCH.CHANGE_APPROVER.ROOT]: () => require<ReactComponentModule>('../../../../pages/Search/SearchChangeApproverPage').default,
@@ -1531,6 +1546,10 @@ const RestrictedActionModalStackNavigator = createModalStackNavigator<Restricted
 
 const SearchColumnsModalStackNavigator = createModalStackNavigator<SearchColumnsParamList>({
     [SCREENS.SEARCH.COLUMNS_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchColumnsPage').default,
+});
+
+const InsightsDetailsModalStackNavigator = createModalStackNavigator<InsightsDetailsParamList>({
+    [SCREENS.INSIGHTS_DETAILS]: () => require<ReactComponentModule>('../../../../pages/Insights/details/InsightsDetailsPage').default,
 });
 
 const ShareModalStackNavigator = createModalStackNavigator<ShareNavigatorParamList>({
@@ -1595,6 +1614,7 @@ export {
     EnablePaymentsStackNavigator,
     ExpensifyCardModalStackNavigator,
     FlagCommentStackNavigator,
+    InsightsDetailsModalStackNavigator,
     MergeATSFiltersModalStackNavigator,
     MergeATSApprovalModalStackNavigator,
     MergeTransactionStackNavigator,

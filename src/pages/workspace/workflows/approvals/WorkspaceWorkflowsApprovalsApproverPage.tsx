@@ -6,9 +6,9 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
+import useShouldUseApprovalWorkflowRules from '@hooks/useShouldUseApprovalWorkflowRules';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearApprovalWorkflowApprover, clearApprovalWorkflowApprovers, setApprovalWorkflowApprover, setApprovalWorkflowIsInitialFlow} from '@libs/actions/Workflow';
@@ -46,8 +46,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const isApprovalWorkflowLoading = isLoadingOnyxValue(approvalWorkflowMetadata);
     const personalDetailsByEmail = usePersonalDetailsByEmail();
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
-    const {isBetaEnabled} = usePermissions();
-    const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
+    const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules(policy);
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const approverIndex = Number(route.params.approverIndex) ?? 0;
     const rhpRoutes = useNavigationState((state) => state.routes);
@@ -103,7 +102,9 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                     return null;
                 }
 
-                if (!isMultipleApproversBetaEnabled && !isDefault && approverIndex === 0 && defaultApprover === email) {
+                // On employeeList a workflow is identified by its first approver, and everyone who submits to the default
+                // approver is in the default workflow, so no other workflow can start with them. Rules store each workflow separately.
+                if (!shouldUseApprovalWorkflowRules && !isDefault && approverIndex === 0 && defaultApprover === email) {
                     return null;
                 }
                 const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, employeePersonalDetails);

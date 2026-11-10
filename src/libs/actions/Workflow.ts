@@ -769,17 +769,19 @@ type SaveFastEditApprovalWorkflowParams = {
     approvalWorkflow: ApprovalWorkflowOnyx;
     policy: OnyxEntry<Policy>;
     rules: OnyxCollection<Rule>;
-    isMultipleApproversBetaEnabled: boolean;
+
+    /** Whether the workflow is saved as approval workflow rules rather than on `employeeList` */
+    shouldUseApprovalWorkflowRules: boolean;
 };
 
 /** Saves the member changes made through the "+N more" shortcut and discards the draft, since no edit page will. */
-function saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules, isMultipleApproversBetaEnabled}: SaveFastEditApprovalWorkflowParams) {
+function saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules, shouldUseApprovalWorkflowRules}: SaveFastEditApprovalWorkflowParams) {
     // A workflow with everyone in it leaves every other workflow empty, so it becomes the default one
     const isDefault = approvalWorkflow.isDefault || includesEveryWorkspaceMember(getWorkflowMemberEmails(approvalWorkflow.members), policy?.employeeList);
     const workflow: ApprovalWorkflow = {...approvalWorkflow, isDefault, approvers: approvalWorkflow.approvers.filter((approver): approver is Approver => !!approver)};
     const originalMembers = approvalWorkflow.originalMembers ?? [];
 
-    if (isMultipleApproversBetaEnabled) {
+    if (shouldUseApprovalWorkflowRules) {
         updateApprovalWorkflowRules({
             approvalWorkflow: workflow,
             initialApprovalWorkflow: {...workflow, members: originalMembers},

@@ -643,7 +643,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                                 return;
                             }
 
-                            removeTransaction(transaction.transactionID);
+                            removeTransaction(transaction.transactionID, {isDeleted: true});
                         };
                     }
                     if (isInNarrowPaneModal) {
