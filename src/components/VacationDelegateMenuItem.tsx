@@ -16,6 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ValueOf} from 'type-fest';
 
@@ -79,7 +80,7 @@ function VacationDelegateMenuItemRow({label, displayName, avatar, accountID, log
     );
 }
 
-type VacationDelegateSectionProps = {
+type VacationDelegateSectionProps = WithRequiredSentryLabel & {
     vacationDelegate?: BaseVacationDelegate;
 
     /** Text above the delegate. Defaults to "Vacation delegate" */
@@ -106,7 +107,7 @@ type VacationDelegateSectionProps = {
     onPress: () => void;
 };
 
-function VacationDelegateMenuItemPreset({vacationDelegate, label, timezone, errors, pendingAction, onCloseError, onPress}: VacationDelegateSectionProps) {
+function VacationDelegateMenuItemPreset({vacationDelegate, label, timezone, errors, pendingAction, onCloseError, onPress, sentryLabel}: VacationDelegateSectionProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
@@ -133,6 +134,7 @@ function VacationDelegateMenuItemPreset({vacationDelegate, label, timezone, erro
         >
             {hasVacationDelegate ? (
                 <MenuItem.Root
+                    sentryLabel={sentryLabel}
                     onPress={callFunctionIfActionIsAllowed(onPress, false, session)}
                     accessibilityLabel={[rowLabel, delegateDisplayName, untilText].filter(Boolean).join(', ')}
                 >
@@ -147,6 +149,7 @@ function VacationDelegateMenuItemPreset({vacationDelegate, label, timezone, erro
                 </MenuItem.Root>
             ) : (
                 <MenuItemField
+                    sentryLabel={sentryLabel}
                     name={rowLabel}
                     onPress={onPress}
                 />

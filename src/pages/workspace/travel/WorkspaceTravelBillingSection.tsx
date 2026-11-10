@@ -393,6 +393,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                         onRetry={() => retryTravelCardsProvisioning(policyID, travelBillingFundID, travelProvisioningErrors ?? {})}
                         variant={CONST.BUTTON_VARIANT.DANGER}
                         shouldAlignButtonToMessage
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.RETRY_CARDS_PROVISIONING}
                     />
                 </View>
             )}

@@ -164,6 +164,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
             <VacationDelegateMenuItem
                 vacationDelegate={vacationDelegate}
                 timezone={personalDetails?.timezone?.selected}
+                sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.VACATION_DELEGATE}
                 onPress={() => {
                     clearDraftValues(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM);
                     Navigation.navigate(ROUTES.DOMAIN_VACATION_DELEGATE.getRoute(domainAccountID, accountID));

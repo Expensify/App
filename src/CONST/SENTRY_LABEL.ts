@@ -19,9 +19,16 @@ const SENTRY_LABEL = {
         CONFIRM: 'ConfirmationStep-Confirm',
     },
     NUMBER_WITH_SYMBOL_FORM: {
+        FLIP_BUTTON: 'NumberWithSymbolForm-FlipButton',
+        CURRENCY_BUTTON: 'NumberWithSymbolForm-CurrencyButton',
         INPUT: 'NumberWithSymbolForm-Input',
     },
     TEST_TOOL_MENU: {
+        INVALIDATE_AUTH_TOKEN: 'TestToolMenu-InvalidateAuthToken',
+        DESTROY_CREDENTIALS: 'TestToolMenu-DestroyCredentials',
+        INVALIDATE_WITH_DELAY: 'TestToolMenu-InvalidateWithDelay',
+        CLEAR_LHN_CACHE: 'TestToolMenu-ClearLHNCache',
+        BETA_OVERRIDES: 'TestToolMenu-BetaOverrides',
         SERVER: 'TestToolMenu-Server',
         DEBUG_MODE_SWITCH: 'TestToolMenu-DebugModeSwitch',
         SHOW_BRANCH_NAME_SWITCH: 'TestToolMenu-ShowBranchNameSwitch',
@@ -205,6 +212,7 @@ const SENTRY_LABEL = {
         TOGGLE: 'AccordionSection-Toggle',
     },
     VIDEO_PLAYER: {
+        CONTAINER: 'VideoPlayer-Container',
         PLAY_PAUSE_BUTTON: 'VideoPlayer-PlayPauseButton',
         FULLSCREEN_BUTTON: 'VideoPlayer-FullscreenButton',
         MORE_BUTTON: 'VideoPlayer-MoreButton',
@@ -212,6 +220,102 @@ const SENTRY_LABEL = {
         THUMBNAIL: 'VideoPlayer-Thumbnail',
         MUTE_BUTTON: 'VideoPlayer-MuteButton',
         VIDEO: 'VideoPlayer-Video',
+    },
+    ADDRESS_SEARCH: {
+        CURRENT_LOCATION_BUTTON: 'AddressSearch-CurrentLocationButton',
+    },
+    ATTACHMENT_PICKER: {
+        TAKE_PHOTO: 'AttachmentPicker-TakePhoto',
+        CHOOSE_FROM_GALLERY: 'AttachmentPicker-ChooseFromGallery',
+        CHOOSE_DOCUMENT: 'AttachmentPicker-ChooseDocument',
+    },
+    IMPORT_SPREADSHEET: {
+        CHOOSE_FILE: 'ImportSpreadsheet-ChooseFile',
+        COLUMN_DROPDOWN: 'ImportSpreadsheet-ColumnDropdown',
+        IMPORT_BUTTON: 'ImportSpreadsheet-ImportButton',
+    },
+    IMPORTED_STATE_INDICATOR: {
+        RESET: 'ImportedStateIndicator-Reset',
+    },
+    MIGRATED_USER_WELCOME_MODAL: {
+        HELP_BUTTON: 'MigratedUserWelcomeModal-HelpButton',
+        CONFIRM_BUTTON: 'MigratedUserWelcomeModal-ConfirmButton',
+    },
+    SUBMIT_PLAN_WELCOME_MODAL: {
+        DISMISS_BUTTON: 'SubmitPlanWelcomeModal-DismissButton',
+        CONFIRM_BUTTON: 'SubmitPlanWelcomeModal-ConfirmButton',
+    },
+    FILE_DOWNLOAD_MODAL: {
+        DOWNLOAD: 'FileDownloadModal-Download',
+        CLOSE: 'FileDownloadModal-Close',
+    },
+    DEBUG_TAB_VIEW: {
+        VIEW_BUTTON: 'DebugTabView-ViewButton',
+    },
+    DEBUG_TAB_NAVIGATOR: {
+        DETAILS: 'DebugTabNavigator-Details',
+        JSON: 'DebugTabNavigator-JSON',
+        REPORT_ACTIONS: 'DebugTabNavigator-ReportActions',
+        REPORT_ACTION_PREVIEW: 'DebugTabNavigator-ReportActionPreview',
+        TRANSACTION_VIOLATIONS: 'DebugTabNavigator-TransactionViolations',
+    },
+    OPEN_APP_FAILURE_MODAL: {
+        REFRESH_AND_TRY_AGAIN: 'OpenAppFailureModal-RefreshAndTryAgain',
+        CLOSE: 'OpenAppFailureModal-Close',
+    },
+    PROACTIVE_APP_REVIEW_MODAL: {
+        POSITIVE: 'ProactiveAppReviewModal-Positive',
+        NEGATIVE: 'ProactiveAppReviewModal-Negative',
+    },
+    PROMOTED_ACTIONS_BAR: {
+        PIN: 'PromotedActionsBar-Pin',
+        UNPIN: 'PromotedActionsBar-Unpin',
+        SHARE: 'PromotedActionsBar-Share',
+        JOIN: 'PromotedActionsBar-Join',
+        MESSAGE: 'PromotedActionsBar-Message',
+    },
+    SETTLEMENT_ACCOUNT_SELECTOR: {
+        ADD_NEW_BANK_ACCOUNT: 'SettlementAccountSelector-AddNewBankAccount',
+    },
+    STATE_PICKER: {
+        OPEN: 'StatePicker-Open',
+    },
+    STATE_SELECTOR: {
+        OPEN: 'StateSelector-Open',
+    },
+    SUBSCRIPTION_PLAN_DOWNGRADE_BLOCKED: {
+        CLOSE: 'SubscriptionPlanDowngradeBlocked-Close',
+    },
+    SYMBOL_BUTTON: {
+        SELECT_CURRENCY: 'SymbolButton-SelectCurrency',
+    },
+    TEST_DRIVE: {
+        BANNER_GET_STARTED: 'TestDrive-BannerGetStarted',
+    },
+    TEXT_LINK_BLOCK: {
+        LINK: 'TextLinkBlock-Link',
+    },
+    TEXT_PICKER: {
+        OPEN: 'TextPicker-Open',
+    },
+    TIME_MODAL_PICKER: {
+        OPEN: 'TimeModalPicker-Open',
+    },
+    TIME_PICKER: {
+        AM: 'TimePicker-AM',
+        PM: 'TimePicker-PM',
+        SAVE_BUTTON: 'TimePicker-SaveButton',
+    },
+    TRIAL_PAYMENT_REMINDER_MODAL: {
+        ADD_PAYMENT_CARD: 'TrialPaymentReminderModal-AddPaymentCard',
+        CLOSE: 'TrialPaymentReminderModal-Close',
+    },
+    VACATION_DELEGATE: {
+        CHOOSE_DELEGATE: 'VacationDelegate-ChooseDelegate',
+        REMOVE: 'VacationDelegate-Remove',
+    },
+    NAVIGATION_OVERLAY: {
+        CLOSE: 'NavigationOverlay-Close',
     },
     CHART_TOOLTIP: {
         PRESS: 'ChartTooltip-Press',
@@ -677,6 +781,13 @@ const SENTRY_LABEL = {
             REMOVE_HOLD: 'Report-MoneyReportHeaderPrimaryAction-RemoveHold',
             REVIEW_DUPLICATES: 'Report-MoneyReportHeaderPrimaryAction-ReviewDuplicates',
         },
+        MONEY_REQUEST_HEADER_PRIMARY_ACTION: {
+            REMOVE_HOLD: 'Report-MoneyRequestHeaderPrimaryAction-RemoveHold',
+            MARK_AS_RESOLVED: 'Report-MoneyRequestHeaderPrimaryAction-MarkAsResolved',
+            REVIEW_DUPLICATES: 'Report-MoneyRequestHeaderPrimaryAction-ReviewDuplicates',
+            KEEP_THIS_ONE: 'Report-MoneyRequestHeaderPrimaryAction-KeepThisOne',
+            MARK_AS_CASH: 'Report-MoneyRequestHeaderPrimaryAction-MarkAsCash',
+        },
         MONEY_REPORT_HEADER_SELECTION_DROPDOWN: 'Report-MoneyReportHeaderSelectionDropdown',
         SELECTION_TOOLBAR_DROPDOWN: 'Report-SelectionToolbarDropdown',
         COLUMNS_BUTTON: 'Report-ColumnsButton',
@@ -735,6 +846,7 @@ const SENTRY_LABEL = {
         },
     },
     REPORT_DETAILS: {
+        VIEW_AVATAR: 'ReportDetails-ViewAvatar',
         GO_TO_WORKSPACE: 'ReportDetails-GoToWorkspace',
         GO_TO_ROOM: 'ReportDetails-GoToRoom',
         DESCRIPTION: 'ReportDetails-Description',
@@ -919,9 +1031,12 @@ const SENTRY_LABEL = {
         ARROW_RIGHT: 'TransactionItemRow-ArrowRight',
     },
     PDF_VIEW: {
+        PASSWORD_CONFIRM: 'PDFView-PasswordConfirm',
         DOCUMENT: 'PDFView-Document',
     },
     AVATAR_CROP_MODAL: {
+        ROTATE_BUTTON: 'AvatarCropModal-RotateButton',
+        SAVE_BUTTON: 'AvatarCropModal-SaveButton',
         ZOOM_SLIDER: 'AvatarCropModal-ZoomSlider',
     },
     PAYMENT_METHOD_LIST_ITEM: {
@@ -963,6 +1078,8 @@ const SENTRY_LABEL = {
         NEW_TASK_CONFIRM_BUTTON: 'Task-NewTaskConfirmButton',
     },
     SUPPORT_TICKET: {
+        RESOLVED_CHECKBOX: 'SupportTicket-ResolvedCheckbox',
+        REOPEN_BUTTON: 'SupportTicket-ReopenButton',
         PREVIEW_CARD: 'SupportTicket-PreviewCard',
         PREVIEW_CHECKBOX: 'SupportTicket-PreviewCheckbox',
         VIEW_CHECKBOX: 'SupportTicket-ViewCheckbox',
@@ -1213,6 +1330,7 @@ const SENTRY_LABEL = {
         BULK_ACTIONS_DROPDOWN: 'WorkspaceExpensifyCard-BulkActionsDropdown',
     },
     WORKSPACE: {
+        CONFIRMATION_FORM_AVATAR: 'WorkspaceConfirmationForm-Avatar',
         APPROVAL_WORKFLOW_SECTION: 'Workspace-ApprovalWorkflowSection',
         TOGGLE_SETTINGS_ROW: 'Workspace-ToggleSettingsRow',
         CONFIRMATION_FORM_KEEP_ME_AS_ADMIN_SWITCH: 'WorkspaceConfirmationForm-KeepMeAsAdminSwitch',
@@ -1524,6 +1642,8 @@ const SENTRY_LABEL = {
             SKIPPED_EMPLOYEES_TOGGLE_RECRUITING: 'WorkspaceMerge-SkippedEmployeesToggle-Recruiting',
         },
         RULES: {
+            ENABLE_CATEGORIES: 'WorkspaceRules-EnableCategories',
+            ENABLE_TAXES: 'WorkspaceRules-EnableTaxes',
             INDIVIDUAL_EXPENSES_MENU_ITEM: 'WorkspaceRules-IndividualExpensesMenuItem',
             SPEND_RULE_ITEM: 'WorkspaceRules-SpendRuleItem',
             MERCHANT_RULE_ITEM: 'WorkspaceRules-MerchantRuleItem',
@@ -1605,6 +1725,7 @@ const SENTRY_LABEL = {
             BULK_ACTIONS_DROPDOWN: 'WorkspacePerDiem-BulkActionsDropdown',
         },
         TRAVEL: {
+            RETRY_CARDS_PROVISIONING: 'WorkspaceTravel-RetryCardsProvisioning',
             BOOK_TRAVEL_BUTTON: 'WorkspaceTravel-BookTravelButton',
             GET_STARTED_BUTTON: 'WorkspaceTravel-GetStartedButton',
             AUTO_ADD_TRIP_NAME_SWITCH: 'WorkspaceTravel-AutoAddTripNameSwitch',
@@ -1657,6 +1778,8 @@ const SENTRY_LABEL = {
         SUBMIT_BUTTON: 'Form-SubmitButton',
     },
     ONBOARDING: {
+        HELP_DROPDOWN: 'Onboarding-HelpDropdown',
+        MERGING_ACCOUNT_BLOCKED_CONFIRM: 'Onboarding-MergingAccountBlockedConfirm',
         INTERESTED_FEATURES_ITEM: {
             CATEGORIES: 'Onboarding-InterestedFeaturesItem-Categories',
             CONNECTIONS: 'Onboarding-InterestedFeaturesItem-Connections',
@@ -1716,6 +1839,7 @@ const SENTRY_LABEL = {
         CLEAR_AFTER_TIME: 'CustomStatus-OpenClearAfter-Time',
     },
     TWO_FACTOR_AUTH: {
+        REQUIRED_MODAL_ENABLE_BUTTON: 'TwoFactorAuth-RequiredModalEnableButton',
         RESEND_CODE: 'TwoFactorAuth-ResendCode',
         SWITCH_BETWEEN_METHODS: 'TwoFactorAuth-SwitchBetweenMethods',
         COPY: 'TwoFactorAuth-Copy',
@@ -1774,9 +1898,12 @@ const SENTRY_LABEL = {
         CHECKBOX: 'UserListItem-Checkbox',
     },
     UPLOAD_FILE: {
+        UPLOAD_BUTTON: 'UploadFile-UploadButton',
         REMOVE_BUTTON: 'UploadFile-RemoveButton',
     },
     LIST_FIELD: {
+        EDIT_BUTTON: 'ListField-EditButton',
+        ADD_BUTTON: 'ListField-AddButton',
         REMOVE_BUTTON: 'ListField-RemoveButton',
     },
     BANK_ACCOUNT: {
@@ -1792,6 +1919,10 @@ const SENTRY_LABEL = {
         INVITE_RESEND_BUTTON: 'ReceiptPartners-InviteResendButton',
     },
     SIGN_IN: {
+        PROVIDER_BUTTON: {
+            APPLE: 'SignIn-ProviderButton-Apple',
+            GOOGLE: 'SignIn-ProviderButton-Google',
+        },
         CONTINUE: 'SignIn-Continue',
         SIGN_IN_BUTTON: 'SignIn-SignInButton',
         JOIN: 'SignIn-Join',
@@ -2007,11 +2138,20 @@ const SENTRY_LABEL = {
             CREATE_EXPENSIFY_CARD_PREFERRED_WORKSPACE_SWITCH: 'DomainGroups-CreateExpensifyCardPreferredWorkspaceSwitch',
         },
         MEMBERS: {
+            VACATION_DELEGATE: 'DomainMembers-VacationDelegate',
             ROW: 'DomainMembers-Row',
             FORCE_TWO_FACTOR_AUTH_SWITCH: 'DomainMembers-ForceTwoFactorAuthSwitch',
             MEMBER_FORCE_TWO_FACTOR_AUTH_SWITCH: 'DomainMembers-MemberForceTwoFactorAuthSwitch',
         },
+        VERIFY: {
+            RETRY_VALIDATION_CODE: 'DomainVerify-RetryValidationCode',
+        },
+        COPYABLE_TEXT_FIELD: {
+            SHOW_MORE_TOGGLE: 'DomainCopyableTextField-ShowMoreToggle',
+        },
         SAML: {
+            RETRY_SETTINGS: 'DomainSaml-RetrySettings',
+            RETRY_SCIM_TOKEN: 'DomainSaml-RetryScimToken',
             ENABLE_SWITCH: 'DomainSaml-EnableSwitch',
             REQUIRE_SWITCH: 'DomainSaml-RequireSwitch',
         },
