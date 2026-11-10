@@ -1264,7 +1264,12 @@ const SENTRY_LABEL = {
         OVERVIEW: {
             AVATAR: 'WorkspaceOverview-Avatar',
             CLIENT_ID: 'WorkspaceOverview-ClientID',
-            PLAN_TYPE_SAVE: 'WorkspaceOverview-PlanTypeSave',
+            PLAN_TYPE_SAVE: {
+                UPGRADE: 'WorkspaceOverview-PlanTypeSave-Upgrade',
+                DOWNGRADE: 'WorkspaceOverview-PlanTypeSave-Downgrade',
+                DOWNGRADE_BLOCKED: 'WorkspaceOverview-PlanTypeSave-DowngradeBlocked',
+                NO_CHANGE: 'WorkspaceOverview-PlanTypeSave-NoChange',
+            },
             RULES_DOCUMENT_CHOOSE_FILE: 'WorkspaceOverview-RulesDocumentChooseFile',
             RULES_DOCUMENT_MENU: 'WorkspaceOverview-RulesDocumentMenu',
             SHARE_COPY: 'WorkspaceOverview-ShareCopy',
@@ -1328,7 +1333,11 @@ const SENTRY_LABEL = {
             SETTINGS_GL_CODE: 'WorkspaceCategories-SettingsGLCode',
             SETTINGS_NAME: 'WorkspaceCategories-SettingsName',
             SETTINGS_PAYROLL_CODE: 'WorkspaceCategories-SettingsPayrollCode',
-            SETTINGS_RULE_ROW: 'WorkspaceCategories-SettingsRuleRow',
+            SETTINGS_RULE_ROW: {
+                FLAG_FOR_REVIEW: 'WorkspaceCategories-SettingsRuleRow-FlagForReview',
+                REQUIRE_FIELDS: 'WorkspaceCategories-SettingsRuleRow-RequireFields',
+                TAX: 'WorkspaceCategories-SettingsRuleRow-Tax',
+            },
             ADD_BUTTON: 'WorkspaceCategories-AddButton',
             MORE_DROPDOWN: 'WorkspaceCategories-MoreDropdown',
             BULK_ACTIONS_DROPDOWN: 'WorkspaceCategories-BulkActionsDropdown',

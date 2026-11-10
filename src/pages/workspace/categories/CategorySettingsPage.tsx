@@ -397,7 +397,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     pendingAction={rule.pendingAction}
                                 >
                                     <MenuItem
-                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_RULE_ROW}
+                                        sentryLabel={rule.sentryLabel}
                                         icon={expensifyIcons.Bolt}
                                         title={rule.summary}
                                         numberOfLinesTitle={3}
