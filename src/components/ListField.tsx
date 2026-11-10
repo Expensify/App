@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Accessibility from '@libs/Accessibility';
 import {getLetterAvatarURLForName} from '@libs/UserAvatarUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -184,7 +184,7 @@ function ListField({rows, addTitle, addDescription, canAddMore = true, errorText
                 <MenuItem.Root
                     sentryLabel={CONST.SENTRY_LABEL.LIST_FIELD.ADD_BUTTON}
                     ref={addRowRef}
-                    onPress={callFunctionIfActionIsAllowed(onAdd, false, session)}
+                    onPress={callIfAuthenticated(onAdd, session)}
                 >
                     <AddRowErrorAnnouncement errorText={errorText} />
                     <MenuItem.Row>
