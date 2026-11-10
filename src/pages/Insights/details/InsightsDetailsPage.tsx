@@ -17,7 +17,7 @@ import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import INSIGHTS_DASHBOARD_SPECS from '@pages/Insights/dashboardSpecs';
 import {getQueryGroupBy} from '@pages/Insights/insightsGroupByUtils';
-import {applyInsightsFilters} from '@pages/Insights/insightsQueries';
+import {applyInsightsFilters, buildTopExpensesQueryJSON} from '@pages/Insights/insightsQueries';
 import useInsightsFilters from '@pages/Insights/useInsightsFilters';
 
 import CONST from '@src/CONST';
@@ -27,7 +27,9 @@ import type SCREENS from '@src/SCREENS';
 import React from 'react';
 import {View} from 'react-native';
 
+import buildInsightsDetailsQuery from './buildInsightsDetailsQuery';
 import {resolveInsightsDetailsItem} from './insightsDetailsItem';
+import InsightsSummary from './InsightsSummary';
 import InsightsTopExpenses from './InsightsTopExpenses';
 
 type InsightsDetailsPageProps = PlatformStackScreenProps<InsightsDetailsParamList, typeof SCREENS.INSIGHTS_DETAILS>;
@@ -62,6 +64,11 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
               })
             : undefined;
     const drillDownQuery = chartQueryJSON && item ? buildChartDrillDownQuery(chartQueryJSON, item.filterQuery) : undefined;
+    const topExpensesSnapshotHash = drillDownQuery ? buildTopExpensesQueryJSON(drillDownQuery)?.hash : undefined;
+    const detailsQuery =
+        chartSpec && topExpensesSnapshotHash !== undefined
+            ? buildInsightsDetailsQuery({graphKey: chartSpec.graphKey, filters, itemGroupBy: chartSpec.groupBy, itemKey, periodEnd, topExpensesSnapshotHash})
+            : undefined;
 
     if (!isBetaEnabled(CONST.BETAS.INSIGHTS_AI) || !chartSpec || (isResolved && !item)) {
         return (
@@ -95,6 +102,13 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                         </Text>
                         <Text variant="h1">{item.title}</Text>
                     </View>
+                    {!!detailsQuery && (
+                        <InsightsSummary
+                            query={detailsQuery}
+                            graphKey={chartSpec.graphKey}
+                            currency={filters.groupCurrency}
+                        />
+                    )}
                     <InsightsTopExpenses query={drillDownQuery} />
                 </ScrollView>
             )}

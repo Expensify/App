@@ -9,7 +9,8 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import {search} from '@libs/actions/Search';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
-import useInsightsTopExpenses, {TOP_EXPENSES_STATE} from '@pages/Insights/details/useInsightsTopExpenses';
+import {INSIGHTS_DETAILS_SECTION_STATE} from '@pages/Insights/details/insightsDetailsSectionState';
+import useInsightsTopExpenses from '@pages/Insights/details/useInsightsTopExpenses';
 import {buildTopExpensesQueryJSON} from '@pages/Insights/insightsQueries';
 
 import CONST from '@src/CONST';
@@ -181,7 +182,7 @@ describe('useInsightsTopExpenses', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then it shows the skeleton with no rows
-            expect(result.current.state).toBe(TOP_EXPENSES_STATE.LOADING);
+            expect(result.current.state).toBe(INSIGHTS_DETAILS_SECTION_STATE.LOADING);
             expect(result.current.expenses).toEqual([]);
         });
 
@@ -194,7 +195,7 @@ describe('useInsightsTopExpenses', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then it lists the 10 largest remaining expenses in order, since optimistic writes can add rows beyond the limit
-            expect(result.current.state).toBe(TOP_EXPENSES_STATE.READY);
+            expect(result.current.state).toBe(INSIGHTS_DETAILS_SECTION_STATE.READY);
             expect(result.current.expenses.map((expense) => expense.transactionID)).toEqual(['12', '10', '9', '8', '7', '6', '5', '4', '3', '2']);
         });
 
@@ -220,7 +221,7 @@ describe('useInsightsTopExpenses', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then it asks the user to refresh rather than reporting an error
-            expect(result.current.state).toBe(TOP_EXPENSES_STATE.STALE);
+            expect(result.current.state).toBe(INSIGHTS_DETAILS_SECTION_STATE.STALE);
         });
 
         it('is an error when the server rejected the request', async () => {
@@ -232,7 +233,7 @@ describe('useInsightsTopExpenses', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then it shows the error state
-            expect(result.current.state).toBe(TOP_EXPENSES_STATE.ERROR);
+            expect(result.current.state).toBe(INSIGHTS_DETAILS_SECTION_STATE.ERROR);
         });
 
         it('is offline when offline and nothing is stored for the query', async () => {
@@ -244,7 +245,7 @@ describe('useInsightsTopExpenses', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then it shows the offline state instead of a skeleton that would never resolve
-            expect(result.current.state).toBe(TOP_EXPENSES_STATE.OFFLINE);
+            expect(result.current.state).toBe(INSIGHTS_DETAILS_SECTION_STATE.OFFLINE);
         });
 
         it('keeps showing stored expenses while offline', async () => {
@@ -257,7 +258,7 @@ describe('useInsightsTopExpenses', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the stored expenses stay visible, since they are still accurate as of the last load
-            expect(result.current.state).toBe(TOP_EXPENSES_STATE.READY);
+            expect(result.current.state).toBe(INSIGHTS_DETAILS_SECTION_STATE.READY);
             expect(result.current.expenses.map((expense) => expense.transactionID)).toEqual(['2', '1']);
         });
     });
