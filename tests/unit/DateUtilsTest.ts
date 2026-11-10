@@ -633,15 +633,15 @@ describe('DateUtils', () => {
 
         it('formats every branch with the given locale clock', () => {
             // `translate` stays English so the assertion isolates what `dateFnsLocale` controls: German uses a
-            // 24-hour clock, so each branch loses its meridiem while the surrounding copy is untouched.
+            // 24-hour clock, so each branch loses its meridiem, and it writes a numeric date day first with periods.
             const sameDay = tzFormat(toZonedTime(new Date('2025-10-19T22:34:00Z'), currentTimeZone), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: currentTimeZone});
             expect(DateUtils.getStatusUntilDate(translateLocal, de, sameDay, currentTimeZone, currentTimeZone)).toBe('Until 15:34');
 
             const sameYear = tzFormat(toZonedTime(new Date('2025-12-02T20:15:00Z'), currentTimeZone), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: currentTimeZone});
-            expect(DateUtils.getStatusUntilDate(translateLocal, de, sameYear, currentTimeZone, currentTimeZone)).toBe('Until 12-02 12:15');
+            expect(DateUtils.getStatusUntilDate(translateLocal, de, sameYear, currentTimeZone, currentTimeZone)).toBe('Until 02.12. 12:15');
 
             const otherYear = tzFormat(toZonedTime(new Date('2026-03-02T20:15:00Z'), currentTimeZone), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: currentTimeZone});
-            expect(DateUtils.getStatusUntilDate(translateLocal, de, otherYear, currentTimeZone, currentTimeZone)).toBe('Until 2026-03-02 12:15');
+            expect(DateUtils.getStatusUntilDate(translateLocal, de, otherYear, currentTimeZone, currentTimeZone)).toBe('Until 02.03.2026 12:15');
         });
 
         it('returns empty string when input date is empty', () => {
@@ -684,7 +684,7 @@ describe('DateUtils', () => {
             expect(result).toBe(`Until ${expectedLabel}`);
         });
 
-        it('returns "Until MM-dd h:mm a" for future date within the same year in a different timezone', () => {
+        it('returns "Until MM/dd h:mm a" for future date within the same year in a different timezone', () => {
             const twoDaysLaterLA = addDays(set(toZonedTime(new Date(), currentTimeZone), {hours: 15, minutes: 0, seconds: 0, milliseconds: 0}), 2);
             const inputDateStrParis = tzFormat(twoDaysLaterLA, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: inputTimeZoneParis});
 
@@ -692,13 +692,14 @@ describe('DateUtils', () => {
 
             const date = fromZonedTime(inputDateStrParis, inputTimeZoneParis);
             const converted = toZonedTime(date, currentTimeZone);
+            // With no locale the date falls back to en-US, which writes a short numeric date as MM/dd.
             // eslint-disable-next-line rulesdir/require-locale-for-localized-date-format -- mirrors the undefined locale passed to getStatusUntilDate above, so the expectation matches what it produces.
-            const expectedLabel = tzFormat(converted, `${CONST.DATE.SHORT_DATE_FORMAT} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {timeZone: currentTimeZone});
+            const expectedLabel = tzFormat(converted, `MM/dd ${CONST.DATE.LOCAL_TIME_FORMAT}`, {timeZone: currentTimeZone});
 
             expect(result).toBe(`Until ${expectedLabel}`);
         });
 
-        it('returns "Until MM-dd h:mm a" when "until today" crosses into next day in current timezone', () => {
+        it('returns "Until MM/dd h:mm a" when "until today" crosses into next day in current timezone', () => {
             const endOfTodayTokyo = endOfDay(toZonedTime(new Date(), inputTimeZoneTokyo));
             const inputDateStrTokyo = tzFormat(endOfTodayTokyo, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: inputTimeZoneTokyo});
 
@@ -707,13 +708,14 @@ describe('DateUtils', () => {
             const date = fromZonedTime(inputDateStrTokyo, inputTimeZoneTokyo);
             const converted = toZonedTime(date, currentTimeZone);
 
+            // With no locale the date falls back to en-US, which writes a short numeric date as MM/dd.
             // eslint-disable-next-line rulesdir/require-locale-for-localized-date-format -- mirrors the undefined locale passed to getStatusUntilDate above, so the expectation matches what it produces.
-            const expectedLabel = tzFormat(converted, `${CONST.DATE.SHORT_DATE_FORMAT} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {timeZone: currentTimeZone});
+            const expectedLabel = tzFormat(converted, `MM/dd ${CONST.DATE.LOCAL_TIME_FORMAT}`, {timeZone: currentTimeZone});
 
             expect(result).toBe(`Until ${expectedLabel}`);
         });
 
-        it('returns "Until yyyy-MM-dd h:mm a" for a date in a different year across timezones', () => {
+        it('returns "Until MM/dd/yyyy h:mm a" for a date in a different year across timezones', () => {
             const laFutureDateStr = '2026-01-02 09:15:00';
             const inputDateStrTokyo = tzFormat(fromZonedTime(laFutureDateStr, currentTimeZone), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: inputTimeZoneTokyo});
 
@@ -721,8 +723,9 @@ describe('DateUtils', () => {
 
             const date = fromZonedTime(inputDateStrTokyo, inputTimeZoneTokyo);
             const converted = toZonedTime(date, currentTimeZone);
+            // With no locale the date falls back to en-US, which writes a numeric date with a year as MM/dd/yyyy.
             // eslint-disable-next-line rulesdir/require-locale-for-localized-date-format -- mirrors the undefined locale passed to getStatusUntilDate above, so the expectation matches what it produces.
-            const expectedLabel = tzFormat(converted, `${CONST.DATE.FNS_FORMAT_STRING} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {timeZone: currentTimeZone});
+            const expectedLabel = tzFormat(converted, `MM/dd/yyyy ${CONST.DATE.LOCAL_TIME_FORMAT}`, {timeZone: currentTimeZone});
 
             expect(result).toBe(`Until ${expectedLabel}`);
         });
@@ -926,9 +929,21 @@ describe('DateUtils', () => {
             expect(DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20', undefined, undefined)).toBe('');
         });
 
-        it('should format a date-only value in the target timezone', () => {
+        it('should format a date-only value as its calendar date', () => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             const result = DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20', UTC as SelectedTimezone, undefined);
+            expect(result).toBe('June 20th, 2026');
+        });
+
+        it('should keep a date-only value on its own day in a timezone behind UTC', () => {
+            // Given a date-only snapshot boundary and a user whose timezone is behind UTC
+            const americaNewYork: SelectedTimezone = 'America/New_York';
+
+            // When the boundary is formatted for that user
+            const result = DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20', americaNewYork, undefined);
+
+            // Then the stored day is shown. A date-only value is a calendar boundary, so moving it into the user's
+            // timezone as if it were midnight UTC would wrongly show June 19.
             expect(result).toBe('June 20th, 2026');
         });
 
@@ -1293,6 +1308,101 @@ describe('DateUtils', () => {
                 expect(DateUtils.formatToReadableString('2026-06-20', undefined)).toBe('June 20, 2026');
                 expect(DateUtils.formatToReadableString('2026-06-20', de)).toBe('20. Juni 2026');
             });
+        });
+    });
+
+    describe('ordinal long date', () => {
+        // cspell:ignore Juni junio
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- 'UTC' is a valid IANA zone but is not in the SelectedTimezone union
+        const UTC_TIMEZONE = 'UTC' as SelectedTimezone;
+
+        // A UTC instant at midday, so the displayed day is the same in every timezone the test can run in.
+        const SNAPSHOT_STARTED_AT = '2026-06-20 12:00:00';
+
+        it('keeps the English ordinal date unchanged', () => {
+            // Given a violation snapshot date and no locale, which falls back to en-US
+            // When it is formatted for display
+            // Then English keeps the ordinal day the hand-written pattern produced, so switching to a localized token is
+            // invisible to English users
+            expect(DateUtils.formatViolationSnapshotStartedAtDate(SNAPSHOT_STARTED_AT, UTC_TIMEZONE, undefined)).toBe('June 20th, 2026');
+        });
+
+        it('orders the date the way each language does', () => {
+            // Given languages that do not write a long date in the US order
+            // When the same date is formatted in each
+            // Then the day comes before the month in German and Spanish, and Japanese leads with the year. A hand-written
+            // pattern kept the US order for every language, which produced forms like `Juni 20., 2026`.
+            expect(DateUtils.formatViolationSnapshotStartedAtDate(SNAPSHOT_STARTED_AT, UTC_TIMEZONE, de)).toBe('20. Juni 2026');
+            expect(DateUtils.formatViolationSnapshotStartedAtDate(SNAPSHOT_STARTED_AT, UTC_TIMEZONE, es)).toBe('20 de junio de 2026');
+            expect(DateUtils.formatViolationSnapshotStartedAtDate(SNAPSHOT_STARTED_AT, UTC_TIMEZONE, ja)).toBe('2026年6月20日');
+        });
+    });
+
+    describe('formatToLongDateInUTC', () => {
+        // cspell:ignore Juni junio juin
+        it('keeps the English long date unchanged', () => {
+            // Given a date and no locale, which falls back to en-US
+            // When it is formatted as a long date
+            // Then English keeps the `MMMM d, yyyy` shape it had before
+            expect(DateUtils.formatToLongDateInUTC('2026-06-20', undefined)).toBe('June 20, 2026');
+        });
+
+        it('orders the date the way each language does', () => {
+            // Given languages that do not write a long date in the US order
+            // When the same date is formatted in each
+            // Then German puts the day first, Spanish adds its `de` between the parts and Japanese leads with the year.
+            // The hand-written pattern produced `Juni 20, 2026` and `junio 20, 2026` instead.
+            expect(DateUtils.formatToLongDateInUTC('2026-06-20', de)).toBe('20. Juni 2026');
+            expect(DateUtils.formatToLongDateInUTC('2026-06-20', es)).toBe('20 de junio de 2026');
+            expect(DateUtils.formatToLongDateInUTC('2026-06-20', ja)).toBe('2026年6月20日');
+        });
+
+        it('does not move the day for a UTC midnight timestamp', () => {
+            // Given a renewal or due date sent as UTC midnight, on a device in Los Angeles where that is still the
+            // previous evening. Jest runs in UTC, where the day could never move, and setting `process.env.TZ` inside a
+            // test has no effect, so `Intl` is made to default to Los Angeles instead. French is formatted nowhere else
+            // in UTC, so its cached formatter is first built here.
+            const OriginalDateTimeFormat = Intl.DateTimeFormat;
+            const dateTimeFormatSpy = jest
+                .spyOn(Intl, 'DateTimeFormat')
+                .mockImplementation((locales, options) => new OriginalDateTimeFormat(locales, {...options, timeZone: options?.timeZone ?? 'America/Los_Angeles'}));
+
+            // When it is formatted
+            const formattedDates = [DateUtils.formatToLongDateInUTC('2026-06-20T00:00:00.000Z', fr), DateUtils.formatToLongDateInUTC('2026-06-20', fr)];
+            dateTimeFormatSpy.mockRestore();
+
+            // Then the UTC day is shown, matching the date the server meant
+            expect(formattedDates).toEqual(['20 juin 2026', '20 juin 2026']);
+        });
+
+        it('returns an empty string for an invalid date', () => {
+            // Given a value that is not a date
+            // When it is formatted
+            // Then nothing is shown, so callers that fall back to the raw value (such as payment history) still can
+            expect(DateUtils.formatToLongDateInUTC('not a date', undefined)).toBe('');
+        });
+    });
+
+    describe('custom status date', () => {
+        it('shows a custom clear-after date as a numeric date in English', () => {
+            // Given a custom status that clears at a specific date and time, and no locale, which falls back to en-US
+            // When its clear-after description is built
+            // Then the date uses the English numeric date order instead of the machine `yyyy-MM-dd` format
+            expect(DateUtils.getLocalizedTimePeriodDescription(translateLocal, undefined, '2026-06-20 17:34:00')).toBe('06/20/2026 5:34 PM');
+        });
+
+        it('orders the numeric date the way the language does', () => {
+            // Given the same custom status date in German
+            // When its clear-after description is built
+            // Then the day comes first with the separators German uses, and the time follows the German 24-hour clock
+            expect(DateUtils.getLocalizedTimePeriodDescription(translateLocal, de, '2026-06-20 17:34:00')).toBe('20.06.2026 17:34');
+        });
+
+        it('returns an empty string for a date that cannot be read', () => {
+            // Given a custom clear-after value that is not a date
+            // When its description is built
+            // Then nothing is shown instead of `Intl` throwing a RangeError into the status page
+            expect(DateUtils.getLocalizedTimePeriodDescription(translateLocal, undefined, 'not a date')).toBe('');
         });
     });
 
