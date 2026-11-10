@@ -1,9 +1,9 @@
-import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 /**
- * On the HybridWeb host (expensify.com), a router serves New Expensify or Expensify Classic based on the `experience` cookie.
- * Web-Expensify's ExperienceCookie writes it on every PHP page, but switching to Classic and signing out happen in New Expensify,
- * whose API requests don't carry cookies, so New Expensify writes the same cookie (name, domain, path, flags and lifetime) for those two flows.
+ * expensify.com serves New Expensify or Expensify Classic based on the `experience` cookie. Expensify Classic pages keep the cookie in sync
+ * with the user's choice, but switching to Classic and signing out happen in New Expensify, whose API requests don't carry cookies,
+ * so New Expensify writes the cookie itself for those two flows.
  */
+import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import type Environment from '@libs/Environment/getEnvironment/types';
 import Log from '@libs/Log';
 
@@ -14,7 +14,7 @@ import type {ClearExperienceCookie, WriteExperienceCookie} from './types';
 
 const WWW_PREFIX = 'www.';
 
-// Matches the attributes Web-Expensify sets. The cookie is not HttpOnly so the client can read and update it.
+// The server writes the same cookie, so the attributes must match or the browser keeps two copies. It's not HttpOnly so New Expensify can update it.
 const COOKIE_ATTRIBUTES = 'Path=/; Secure; SameSite=Lax';
 
 function getHostnameWithoutWWW(url: string): string {
@@ -23,7 +23,7 @@ function getHostnameWithoutWWW(url: string): string {
 }
 
 /**
- * Web-Expensify sets the cookie on the parent domain of its own host, for example `.expensify.com` for `www.expensify.com`.
+ * The cookie is shared by the Expensify Classic host and its subdomains, so its domain is that host without `www.`, for example `.expensify.com`.
  */
 function getExperienceCookieDomain(): string {
     return `.${getHostnameWithoutWWW(CONFIG.EXPENSIFY.EXPENSIFY_URL)}`;
@@ -34,9 +34,9 @@ function isEnvironment(value: string): value is Environment {
 }
 
 /**
- * The HybridWeb host is the Expensify Classic host of the build's environment without `www.`, for example `expensify.com` in production.
+ * The host that serves both products is the Expensify Classic host of the build's environment without `www.`, for example `expensify.com` in production.
  */
-function getHybridWebHost(): string | undefined {
+function getSharedProductHost(): string | undefined {
     if (!isEnvironment(CONFIG.ENVIRONMENT)) {
         return undefined;
     }
@@ -44,12 +44,12 @@ function getHybridWebHost(): string | undefined {
 }
 
 /**
- * New Expensify on its own hosts (new.expensify.com, dev.new.expensify.com) must keep its current behavior, so the host has to match exactly.
+ * New Expensify on its own hosts (new.expensify.com, dev.new.expensify.com) doesn't use the cookie, so the host has to match exactly.
  * The cookie domain check stops a build with a mismatched EXPENSIFY_URL from writing a cookie for a different environment's domain.
  */
-function isHybridWebHost(): boolean {
+function isSharedProductHost(): boolean {
     const hostname = window.location.hostname;
-    if (hostname !== getHybridWebHost()) {
+    if (hostname !== getSharedProductHost()) {
         return false;
     }
 
@@ -57,7 +57,7 @@ function isHybridWebHost(): boolean {
 
     // The leading dot lets the apex host match its own cookie domain, the same way browsers match a cookie's Domain attribute
     if (!`.${hostname}`.endsWith(cookieDomain)) {
-        Log.hmmm('[ExperienceCookie] The HybridWeb host does not match the configured cookie domain', {hostname, cookieDomain});
+        Log.hmmm('[ExperienceCookie] The shared product host does not match the configured cookie domain', {hostname, cookieDomain});
         return false;
     }
     return true;
@@ -72,11 +72,11 @@ function deleteCookie(domain?: string) {
 }
 
 const writeExperienceCookie: WriteExperienceCookie = (value) => {
-    if (!isHybridWebHost()) {
+    if (!isSharedProductHost()) {
         return false;
     }
 
-    // A host-only cookie with the same name would shadow the shared one for this host, so it's removed first like Web-Expensify does
+    // A host-only cookie with the same name would shadow the shared one for this host, so it's removed first
     deleteCookie();
     document.cookie = `${CONST.EXPERIENCE_COOKIE.NAME}=${value}; Max-Age=${CONST.EXPERIENCE_COOKIE.MAX_AGE_SECONDS}; Domain=${getExperienceCookieDomain()}; ${COOKIE_ATTRIBUTES}`;
     Log.info('[ExperienceCookie] Wrote the experience cookie', false, {value});
@@ -84,7 +84,7 @@ const writeExperienceCookie: WriteExperienceCookie = (value) => {
 };
 
 const clearExperienceCookie: ClearExperienceCookie = () => {
-    if (!isHybridWebHost()) {
+    if (!isSharedProductHost()) {
         return false;
     }
 

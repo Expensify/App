@@ -1,5 +1,5 @@
 /**
- * Opens Expensify Classic and marks the HybridWeb experience cookie first when the account may use it, so the router keeps serving Classic.
+ * Opens Expensify Classic, first setting the `experience` cookie to `classic` when the account uses it, so expensify.com keeps serving Classic on later visits.
  */
 import {writeExperienceCookie} from '@libs/ExperienceCookie';
 
@@ -19,7 +19,7 @@ function useOpenClassic(): () => void {
     const isSupportalSession = useIsSupportalSession();
     const [isDelegateSession = false] = useOnyx(ONYXKEYS.SESSION, {selector: isDelegateSessionSelector});
 
-    // Agents share the browser with their own account, so a Supportal or Copilot session must not overwrite the agent's cookie, matching Web-Expensify
+    // A Supportal or Copilot session runs in the agent's own browser, so it must not overwrite the cookie that belongs to the agent's account
     const shouldMarkExperienceClassic = isBetaEnabled(CONST.BETAS.HYBRID_WEB) && !isSupportalSession && !isDelegateSession;
 
     return () => {

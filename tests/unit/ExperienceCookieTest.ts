@@ -66,19 +66,19 @@ afterEach(() => {
 
 describe('ExperienceCookie', () => {
     it('writes the cookie on the shared domain after deleting the host-only cookie', () => {
-        // Given the dev build served from the HybridWeb host
+        // Given the dev build served from the shared product host
         arrangeHostname('expensify.com.dev');
 
         // When the user switches to Classic
         const didWrite = writeExperienceCookie(CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC);
 
-        // Then the cookie matches the one Web-Expensify writes, and a host-only cookie can't shadow it
+        // Then the cookie has the shared domain and attributes, and a host-only cookie can't shadow it
         expect(didWrite).toBe(true);
         expect(getCookieWrites()).toEqual([HOST_ONLY_DELETE, 'experience=classic; Max-Age=31536000; Domain=.expensify.com.dev; Path=/; Secure; SameSite=Lax']);
     });
 
     it('clears both the host-only and the shared-domain cookie', () => {
-        // Given the dev build served from the HybridWeb host
+        // Given the dev build served from the shared product host
         arrangeHostname('expensify.com.dev');
 
         // When the user signs out
@@ -90,7 +90,7 @@ describe('ExperienceCookie', () => {
     });
 
     it.each(['dev.new.expensify.com', 'new.expensify.com', 'www.expensify.com.dev'])('does nothing on %s', (hostname) => {
-        // Given New Expensify served from a host other than the HybridWeb host, where its behavior must not change
+        // Given New Expensify served from a host other than the shared product host, where its behavior must not change
         arrangeHostname(hostname);
 
         // When the user switches to Classic and signs out
@@ -107,7 +107,7 @@ describe('ExperienceCookie', () => {
         [CONST.ENVIRONMENT.PRODUCTION, 'expensify.com'],
         [CONST.ENVIRONMENT.STAGING, 'staging.expensify.com'],
     ])('writes the .expensify.com cookie for the %s build on %s', (environment, hostname) => {
-        // Given a build whose Expensify Classic URL is www.expensify.com, served from that environment's HybridWeb host
+        // Given a build whose Expensify Classic URL is www.expensify.com, served from that environment's shared product host
         mockEnvironment = environment;
         mockExpensifyURL = 'https://www.expensify.com/';
         arrangeHostname(hostname);
@@ -115,11 +115,11 @@ describe('ExperienceCookie', () => {
         // When the user switches to Classic
         writeExperienceCookie(CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC);
 
-        // Then the cookie uses the domain Web-Expensify uses for www.expensify.com
+        // Then the cookie uses the shared .expensify.com domain
         expect(getCookieWrites().at(-1)).toBe('experience=classic; Max-Age=31536000; Domain=.expensify.com; Path=/; Secure; SameSite=Lax');
     });
 
-    it('does nothing and logs when the cookie domain does not cover the HybridWeb host', () => {
+    it('does nothing and logs when the cookie domain does not cover the shared product host', () => {
         // Given a dev build misconfigured with the production Expensify Classic URL
         mockExpensifyURL = 'https://www.expensify.com/';
         arrangeHostname('expensify.com.dev');
@@ -134,7 +134,7 @@ describe('ExperienceCookie', () => {
     });
 
     it('never writes a cookie on native', () => {
-        // Given the native implementation, which can't run on the HybridWeb host
+        // Given the native implementation, which can't run on the shared product host
         arrangeHostname('expensify.com.dev');
 
         // When the user switches to Classic and signs out
