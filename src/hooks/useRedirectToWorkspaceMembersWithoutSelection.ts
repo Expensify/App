@@ -1,3 +1,7 @@
+/**
+ * Returns to the workspace members list when a bulk-edit page has no members selected. The selection only lives in
+ * memory, so a page opened from a link or after a refresh has nothing to act on.
+ */
 import Navigation from '@libs/Navigation/Navigation';
 
 import ROUTES from '@src/ROUTES';
@@ -10,10 +14,6 @@ type UseRedirectToWorkspaceMembersWithoutSelectionParams = {
     selectedMemberCount: number;
 };
 
-/**
- * Returns to the workspace members list when a bulk-edit page has no members selected. The selection only lives in
- * memory, so a page opened from a link or after a refresh has nothing to act on.
- */
 function useRedirectToWorkspaceMembersWithoutSelection({policyID, selectedMemberCount}: UseRedirectToWorkspaceMembersWithoutSelectionParams): void {
     useEffect(() => {
         if (selectedMemberCount > 0) {
