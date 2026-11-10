@@ -1213,10 +1213,10 @@ const ContextMenuActions: ContextMenuAction[] = [
                         bankAccountList,
                         getPolicyReimburserAccountID(policy, personalDetails),
                     );
-                    if (displayMessage === Parser.htmlToText(displayMessage, {accountIDToName})) {
+                    if (displayMessage === Parser.htmlToText(displayMessage)) {
                         Clipboard.setString(displayMessage);
                     } else {
-                        setClipboardMessage(displayMessage);
+                        setClipboardMessage(displayMessage, reportIDToName, accountIDToName);
                     }
                 } else if (isCreatedTaskReportAction(reportAction)) {
                     const taskPreviewMessage = getTaskCreatedMessage(translate, reportAction, childReport, true);
@@ -1434,7 +1434,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = translate('workspaceActions.upgradedWorkspace');
                     Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE) {
-                    const displayMessage = Parser.htmlToText(translate('workspaceActions.forcedCorporateUpgrade'), {accountIDToName});
+                    const displayMessage = Parser.htmlToText(translate('workspaceActions.forcedCorporateUpgrade'));
                     Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
                     Clipboard.setString(translate('workspaceActions.downgradedWorkspace'));

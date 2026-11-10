@@ -1,7 +1,7 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
-import {getAccountIDToNameMapForMentionsInHTML} from '@hooks/useAccountIDToNameMap';
+import {getAccountIDToNameMapForMentionsInMarkdown} from '@hooks/useAccountIDToNameMap';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import {getReportIDToNameMapForRoomsInMarkdown} from '@hooks/useReportIDToNameMap';
 
@@ -4053,7 +4053,7 @@ function editReportComment(
             isOriginalReportArchived,
             videoAttributeCache,
             reportIDToName: getReportIDToNameMapForRoomsInMarkdown(reportIDToName, textForNewComment),
-            accountIDToName: getAccountIDToNameMapForMentionsInHTML(accountIDToName, htmlForNewComment),
+            accountIDToName: getAccountIDToNameMapForMentionsInMarkdown(accountIDToName, textForNewComment),
         };
         deferAttachmentEdit(reportActionID, deferredEdit);
         return;

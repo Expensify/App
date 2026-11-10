@@ -43,24 +43,23 @@ function useMentionedAccountIDToNameMap(htmlString: string | undefined): Account
     return buildAccountIDToNameMap(personalDetailsList, getMentionedAccountIDs(htmlString));
 }
 
-/** Scopes an accountID-to-name map to only the accountIDs mentioned in the given HTML, keeping Onyx storage small. */
-function getAccountIDToNameMapForMentionsInHTML(accountIDToName: AccountIDToNameMap | undefined, html: string): AccountIDToNameMap | undefined {
-    if (!accountIDToName) {
-        return undefined;
-    }
-    const mentionedIDs = getMentionedAccountIDs(html);
-    if (mentionedIDs.length === 0) {
+/**
+ * Scopes an accountID-to-name map to the users mentioned as @login in the given markdown, keeping Onyx storage small.
+ * A draft only has @login mentions, while the synced copy of the message stores them by accountID, so we match on the
+ * name to know which accountIDs the synced copy can contain.
+ */
+function getAccountIDToNameMapForMentionsInMarkdown(accountIDToName: AccountIDToNameMap | undefined, markdown: string): AccountIDToNameMap | undefined {
+    if (!accountIDToName || !markdown.includes('@')) {
         return undefined;
     }
     const map: AccountIDToNameMap = {};
-    for (const id of mentionedIDs) {
-        const name = accountIDToName[id];
-        if (name) {
-            map[id] = name;
+    for (const [accountID, name] of Object.entries(accountIDToName)) {
+        if (name && markdown.includes(`@${name}`)) {
+            map[accountID] = name;
         }
     }
     return Object.keys(map).length > 0 ? map : undefined;
 }
 
 export default useAccountIDToNameMap;
-export {buildAccountIDToNameMap, useMentionedAccountIDToNameMap, getAccountIDToNameMapForMentionsInHTML};
+export {buildAccountIDToNameMap, useMentionedAccountIDToNameMap, getAccountIDToNameMapForMentionsInMarkdown};

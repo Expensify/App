@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import useAccountIDToNameMap, {getAccountIDToNameMapForMentionsInHTML, useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
+import useAccountIDToNameMap, {getAccountIDToNameMapForMentionsInMarkdown, useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
@@ -153,7 +153,7 @@ describe('useMentionedAccountIDToNameMap', () => {
     });
 });
 
-describe('getAccountIDToNameMapForMentionsInHTML', () => {
+describe('getAccountIDToNameMapForMentionsInMarkdown', () => {
     const ALICE_ID = '1001';
     const BOB_ID = '1002';
     const CAROL_ID = '1003';
@@ -161,54 +161,52 @@ describe('getAccountIDToNameMapForMentionsInHTML', () => {
     const fullMap = {
         [ALICE_ID]: 'alice@expensify.com',
         [BOB_ID]: 'bob@expensify.com',
-        [CAROL_ID]: 'Carol',
+        [CAROL_ID]: 'carol@expensify.com',
     };
 
     it('returns undefined when accountIDToName is undefined', () => {
         // Given accountIDToName is undefined
-        // When filtering by HTML with mentions
-        // Then it should return undefined
-        expect(getAccountIDToNameMapForMentionsInHTML(undefined, '<mention-user accountID="1001"/>')).toBeUndefined();
+        // When filtering by markdown with a mention
+        // Then it should return undefined, because there are no names to scope
+        expect(getAccountIDToNameMapForMentionsInMarkdown(undefined, 'Hi @alice@expensify.com')).toBeUndefined();
     });
 
-    it('returns undefined when HTML has no mention-user tags', () => {
+    it('returns undefined when the markdown has no mentions', () => {
         // Given a full accountIDToName map
-        // When the HTML contains no mention-user tags
-        // Then it should return undefined
-        expect(getAccountIDToNameMapForMentionsInHTML(fullMap, 'Plain text with no mentions')).toBeUndefined();
+        // When the markdown contains no @ mentions
+        // Then it should return undefined, so nothing extra is saved with the deferred edit
+        expect(getAccountIDToNameMapForMentionsInMarkdown(fullMap, 'Plain text with no mentions')).toBeUndefined();
     });
 
-    it('returns only entries for mentioned accountIDs', () => {
-        // Given a full accountIDToName map with three entries
-        const html = 'Hello <mention-user accountID="1001"></mention-user> and <mention-user accountID="1003"/>';
+    it('returns only entries for users mentioned as @login', () => {
+        // Given a draft, as typed in the composer, that mentions Alice and Carol by login
+        const markdown = 'Hello @alice@expensify.com and @carol@expensify.com';
 
-        // When filtering by HTML that mentions only accountIDs 1001 and 1003
-        const result = getAccountIDToNameMapForMentionsInHTML(fullMap, html);
+        // When filtering the full map by that draft
+        const result = getAccountIDToNameMapForMentionsInMarkdown(fullMap, markdown);
 
-        // Then the result should contain only those two entries
+        // Then only Alice and Carol are kept, so the replay can turn their accountID mentions in the synced copy back into @login
         expect(result).toEqual({
             [ALICE_ID]: 'alice@expensify.com',
-            [CAROL_ID]: 'Carol',
+            [CAROL_ID]: 'carol@expensify.com',
         });
     });
 
-    it('returns undefined when mentioned accountIDs are not in the map', () => {
-        // Given a map that does not contain accountID 9999
-        const html = '<mention-user accountID="9999"/>';
+    it('ignores a login that appears without a leading @', () => {
+        // Given a draft that contains Bob's login as plain text, not as a mention
+        const markdown = 'Email bob@expensify.com for details';
 
-        // When filtering by HTML that mentions only accountID 9999
-        // Then it should return undefined since no matching entry exists
-        expect(getAccountIDToNameMapForMentionsInHTML(fullMap, html)).toBeUndefined();
+        // When filtering the full map by that draft
+        // Then nothing is kept, because only @login is a user mention
+        expect(getAccountIDToNameMapForMentionsInMarkdown(fullMap, markdown)).toBeUndefined();
     });
 
-    it('deduplicates when the same accountID is mentioned multiple times', () => {
-        // Given HTML that mentions accountID 1002 twice
-        const html = '<mention-user accountID="1002"></mention-user> said hi to <mention-user accountID="1002"/>';
+    it('returns undefined when the mentioned users are not in the map', () => {
+        // Given a draft that mentions a user who is not in the map
+        const markdown = 'Hi @dave@expensify.com';
 
-        // When filtering the map
-        const result = getAccountIDToNameMapForMentionsInHTML(fullMap, html);
-
-        // Then the result should contain a single entry for 1002
-        expect(result).toEqual({[BOB_ID]: 'bob@expensify.com'});
+        // When filtering the full map by that draft
+        // Then it should return undefined, since no matching entry exists
+        expect(getAccountIDToNameMapForMentionsInMarkdown(fullMap, markdown)).toBeUndefined();
     });
 });
