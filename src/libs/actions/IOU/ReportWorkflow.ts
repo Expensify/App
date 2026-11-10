@@ -454,7 +454,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             rules,
         });
 
-        const parentChatKeys = new Set<string>([`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`]);
+        const parentChatKeys = new Set<string>([`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`]);
         const shouldSkipParentChatUpdates = expenseReport.hasParentAccess === false;
         const filterParentChatUpdates = <TUpdate extends {key: string}>(updates: TUpdate[]) =>
             shouldSkipParentChatUpdates ? updates.filter((update) => !parentChatKeys.has(update.key)) : updates;
