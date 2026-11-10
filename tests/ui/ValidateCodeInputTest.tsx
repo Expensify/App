@@ -1,6 +1,7 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ValidateCodeInput from '@components/ValidateCodeInput';
+
 import getHadTabNavigation, {resetForTests, setupHadTabNavigation, teardownHadTabNavigation} from '@libs/hadTabNavigation';
 
 import CONST from '@src/CONST';
