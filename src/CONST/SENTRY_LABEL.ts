@@ -1,6 +1,7 @@
 const SENTRY_LABEL = {
     TEXT_INPUT: {
         CLEAR_BUTTON: 'TextInput-ClearButton',
+        PASSWORD_VISIBILITY_TOGGLE: 'TextInput-PasswordVisibilityToggle',
     },
     DATE_PICKER: {
         CLEAR_BUTTON: 'DatePicker-ClearButton',
@@ -19,9 +20,16 @@ const SENTRY_LABEL = {
         CONFIRM: 'ConfirmationStep-Confirm',
     },
     NUMBER_WITH_SYMBOL_FORM: {
+        FLIP_BUTTON: 'NumberWithSymbolForm-FlipButton',
+        CURRENCY_BUTTON: 'NumberWithSymbolForm-CurrencyButton',
         INPUT: 'NumberWithSymbolForm-Input',
     },
     TEST_TOOL_MENU: {
+        INVALIDATE_AUTH_TOKEN: 'TestToolMenu-InvalidateAuthToken',
+        DESTROY_CREDENTIALS: 'TestToolMenu-DestroyCredentials',
+        INVALIDATE_WITH_DELAY: 'TestToolMenu-InvalidateWithDelay',
+        CLEAR_LHN_CACHE: 'TestToolMenu-ClearLHNCache',
+        BETA_OVERRIDES: 'TestToolMenu-BetaOverrides',
         SERVER: 'TestToolMenu-Server',
         DEBUG_MODE_SWITCH: 'TestToolMenu-DebugModeSwitch',
         SHOW_BRANCH_NAME_SWITCH: 'TestToolMenu-ShowBranchNameSwitch',
@@ -30,6 +38,8 @@ const SENTRY_LABEL = {
         SIMULATE_FAILING_REQUESTS_SWITCH: 'TestToolMenu-SimulateFailingRequestsSwitch',
         SENTRY_SEND_SWITCH: 'TestToolMenu-SentrySendSwitch',
         SENTRY_DEBUG_SWITCH: 'TestToolMenu-SentryDebugSwitch',
+        BIOMETRICS_TEST: 'TestToolMenu-BiometricsTest',
+        BIOMETRICS_REVOKE: 'TestToolMenu-BiometricsRevoke',
     },
     BILLING_BANNER: {
         RIGHT_ICON: 'BillingBanner-RightIcon',
@@ -46,6 +56,9 @@ const SENTRY_LABEL = {
     },
     HIGH_CONTRAST_MODE_SWITCHER: {
         TOGGLE: 'HighContrastModeSwitcher-Toggle',
+    },
+    NEW_WORKSPACE_ROLES_BANNER: {
+        DISMISS: 'NewWorkspaceRolesBanner-Dismiss',
     },
     TEST_TOOLS_MODAL_NAVIGATOR: {
         DISMISS: 'TestToolsModalNavigator-Dismiss',
@@ -71,6 +84,7 @@ const SENTRY_LABEL = {
     },
     POPOVER_MENU: {
         DISMISS_BUTTON: 'PopoverMenu-DismissButton',
+        BACK_BUTTON: 'PopoverMenu-BackButton',
     },
     DISTANCE_REQUEST_FOOTER: {
         ADD_STOP: 'DistanceRequestFooter-AddStop',
@@ -205,6 +219,7 @@ const SENTRY_LABEL = {
         TOGGLE: 'AccordionSection-Toggle',
     },
     VIDEO_PLAYER: {
+        CONTAINER: 'VideoPlayer-Container',
         PLAY_PAUSE_BUTTON: 'VideoPlayer-PlayPauseButton',
         FULLSCREEN_BUTTON: 'VideoPlayer-FullscreenButton',
         MORE_BUTTON: 'VideoPlayer-MoreButton',
@@ -212,6 +227,102 @@ const SENTRY_LABEL = {
         THUMBNAIL: 'VideoPlayer-Thumbnail',
         MUTE_BUTTON: 'VideoPlayer-MuteButton',
         VIDEO: 'VideoPlayer-Video',
+    },
+    ADDRESS_SEARCH: {
+        CURRENT_LOCATION_BUTTON: 'AddressSearch-CurrentLocationButton',
+    },
+    ATTACHMENT_PICKER: {
+        TAKE_PHOTO: 'AttachmentPicker-TakePhoto',
+        CHOOSE_FROM_GALLERY: 'AttachmentPicker-ChooseFromGallery',
+        CHOOSE_DOCUMENT: 'AttachmentPicker-ChooseDocument',
+    },
+    IMPORT_SPREADSHEET: {
+        CHOOSE_FILE: 'ImportSpreadsheet-ChooseFile',
+        COLUMN_DROPDOWN: 'ImportSpreadsheet-ColumnDropdown',
+        IMPORT_BUTTON: 'ImportSpreadsheet-ImportButton',
+    },
+    IMPORTED_STATE_INDICATOR: {
+        RESET: 'ImportedStateIndicator-Reset',
+    },
+    MIGRATED_USER_WELCOME_MODAL: {
+        HELP_BUTTON: 'MigratedUserWelcomeModal-HelpButton',
+        CONFIRM_BUTTON: 'MigratedUserWelcomeModal-ConfirmButton',
+    },
+    SUBMIT_PLAN_WELCOME_MODAL: {
+        DISMISS_BUTTON: 'SubmitPlanWelcomeModal-DismissButton',
+        CONFIRM_BUTTON: 'SubmitPlanWelcomeModal-ConfirmButton',
+    },
+    FILE_DOWNLOAD_MODAL: {
+        DOWNLOAD: 'FileDownloadModal-Download',
+        CLOSE: 'FileDownloadModal-Close',
+    },
+    DEBUG_TAB_VIEW: {
+        VIEW_BUTTON: 'DebugTabView-ViewButton',
+    },
+    DEBUG_TAB_NAVIGATOR: {
+        DETAILS: 'DebugTabNavigator-Details',
+        JSON: 'DebugTabNavigator-JSON',
+        REPORT_ACTIONS: 'DebugTabNavigator-ReportActions',
+        REPORT_ACTION_PREVIEW: 'DebugTabNavigator-ReportActionPreview',
+        TRANSACTION_VIOLATIONS: 'DebugTabNavigator-TransactionViolations',
+    },
+    OPEN_APP_FAILURE_MODAL: {
+        REFRESH_AND_TRY_AGAIN: 'OpenAppFailureModal-RefreshAndTryAgain',
+        CLOSE: 'OpenAppFailureModal-Close',
+    },
+    PROACTIVE_APP_REVIEW_MODAL: {
+        POSITIVE: 'ProactiveAppReviewModal-Positive',
+        NEGATIVE: 'ProactiveAppReviewModal-Negative',
+    },
+    PROMOTED_ACTIONS_BAR: {
+        PIN: 'PromotedActionsBar-Pin',
+        UNPIN: 'PromotedActionsBar-Unpin',
+        SHARE: 'PromotedActionsBar-Share',
+        JOIN: 'PromotedActionsBar-Join',
+        MESSAGE: 'PromotedActionsBar-Message',
+    },
+    SETTLEMENT_ACCOUNT_SELECTOR: {
+        ADD_NEW_BANK_ACCOUNT: 'SettlementAccountSelector-AddNewBankAccount',
+    },
+    STATE_PICKER: {
+        OPEN: 'StatePicker-Open',
+    },
+    STATE_SELECTOR: {
+        OPEN: 'StateSelector-Open',
+    },
+    SUBSCRIPTION_PLAN_DOWNGRADE_BLOCKED: {
+        CLOSE: 'SubscriptionPlanDowngradeBlocked-Close',
+    },
+    SYMBOL_BUTTON: {
+        SELECT_CURRENCY: 'SymbolButton-SelectCurrency',
+    },
+    TEST_DRIVE: {
+        BANNER_GET_STARTED: 'TestDrive-BannerGetStarted',
+    },
+    TEXT_LINK_BLOCK: {
+        LINK: 'TextLinkBlock-Link',
+    },
+    TEXT_PICKER: {
+        OPEN: 'TextPicker-Open',
+    },
+    TIME_MODAL_PICKER: {
+        OPEN: 'TimeModalPicker-Open',
+    },
+    TIME_PICKER: {
+        AM: 'TimePicker-AM',
+        PM: 'TimePicker-PM',
+        SAVE_BUTTON: 'TimePicker-SaveButton',
+    },
+    TRIAL_PAYMENT_REMINDER_MODAL: {
+        ADD_PAYMENT_CARD: 'TrialPaymentReminderModal-AddPaymentCard',
+        CLOSE: 'TrialPaymentReminderModal-Close',
+    },
+    VACATION_DELEGATE: {
+        CHOOSE_DELEGATE: 'VacationDelegate-ChooseDelegate',
+        REMOVE: 'VacationDelegate-Remove',
+    },
+    NAVIGATION_OVERLAY: {
+        CLOSE: 'NavigationOverlay-Close',
     },
     CHART_TOOLTIP: {
         PRESS: 'ChartTooltip-Press',
@@ -511,6 +622,7 @@ const SENTRY_LABEL = {
             CREATE_EXPENSE: 'Search-EmptyState-CreateExpense',
             CREATE_REPORT: 'Search-EmptyState-CreateReport',
             SEND_INVOICE: 'Search-EmptyState-SendInvoice',
+            RESET_FILTERS: 'Search-EmptyState-ResetFilters',
             BOOK_TRAVEL: 'Search-EmptyState-BookTravel',
         },
         EXPENSE_REPORT_CHECKBOX: 'Search-ExpenseReportCheckbox',
@@ -668,14 +780,21 @@ const SENTRY_LABEL = {
             ADD_EXISTING_EXPENSE: 'Report-ListFooterAddExpenseMenu-AddExistingExpense',
         },
         MONEY_REPORT_HEADER_PRIMARY_ACTION: {
-            SUBMIT: 'Report-MoneyReportHeaderPrimaryAction-Submit',
-            APPROVE: 'Report-MoneyReportHeaderPrimaryAction-Approve',
-            PAY: 'Report-MoneyReportHeaderPrimaryAction-Pay',
-            EXPORT: 'Report-MoneyReportHeaderPrimaryAction-Export',
-            MARK_AS_CASH: 'Report-MoneyReportHeaderPrimaryAction-MarkAsCash',
-            MARK_AS_RESOLVED: 'Report-MoneyReportHeaderPrimaryAction-MarkAsResolved',
-            REMOVE_HOLD: 'Report-MoneyReportHeaderPrimaryAction-RemoveHold',
-            REVIEW_DUPLICATES: 'Report-MoneyReportHeaderPrimaryAction-ReviewDuplicates',
+            SUBMIT: 'Report-MoneyReportHeaderPrimaryActionSubmit',
+            APPROVE: 'Report-MoneyReportHeaderPrimaryActionApprove',
+            PAY: 'Report-MoneyReportHeaderPrimaryActionPay',
+            EXPORT: 'Report-MoneyReportHeaderPrimaryActionExport',
+            MARK_AS_CASH: 'Report-MoneyReportHeaderPrimaryActionMarkAsCash',
+            MARK_AS_RESOLVED: 'Report-MoneyReportHeaderPrimaryActionMarkAsResolved',
+            REMOVE_HOLD: 'Report-MoneyReportHeaderPrimaryActionRemoveHold',
+            REVIEW_DUPLICATES: 'Report-MoneyReportHeaderPrimaryActionReviewDuplicates',
+        },
+        MONEY_REQUEST_HEADER_PRIMARY_ACTION: {
+            REMOVE_HOLD: 'Report-MoneyRequestHeaderPrimaryActionRemoveHold',
+            MARK_AS_RESOLVED: 'Report-MoneyRequestHeaderPrimaryActionMarkAsResolved',
+            REVIEW_DUPLICATES: 'Report-MoneyRequestHeaderPrimaryActionReviewDuplicates',
+            KEEP_THIS_ONE: 'Report-MoneyRequestHeaderPrimaryActionKeepThisOne',
+            MARK_AS_CASH: 'Report-MoneyRequestHeaderPrimaryActionMarkAsCash',
         },
         MONEY_REPORT_HEADER_SELECTION_DROPDOWN: 'Report-MoneyReportHeaderSelectionDropdown',
         SELECTION_TOOLBAR_DROPDOWN: 'Report-SelectionToolbarDropdown',
@@ -735,6 +854,7 @@ const SENTRY_LABEL = {
         },
     },
     REPORT_DETAILS: {
+        VIEW_AVATAR: 'ReportDetails-ViewAvatar',
         GO_TO_WORKSPACE: 'ReportDetails-GoToWorkspace',
         GO_TO_ROOM: 'ReportDetails-GoToRoom',
         DESCRIPTION: 'ReportDetails-Description',
@@ -772,6 +892,8 @@ const SENTRY_LABEL = {
         BASE_LIST_ITEM: 'SelectionList-BaseListItem',
         SPLIT_LIST_ITEM_EDIT_BUTTON: 'SplitListItem-EditButton',
         LIST_HEADER_SELECT_ALL: 'SelectionList-ListHeaderSelectAll',
+        SPEND_RULE_LIST_ITEM_CHECKBOX: 'SpendRuleListItem-Checkbox',
+        CONFIRM_BUTTON: 'SelectionList-ConfirmButton',
     },
     CONTEXT_MENU: {
         REPLY_IN_THREAD: 'ContextMenu-ReplyInThread',
@@ -919,9 +1041,12 @@ const SENTRY_LABEL = {
         ARROW_RIGHT: 'TransactionItemRow-ArrowRight',
     },
     PDF_VIEW: {
+        PASSWORD_CONFIRM: 'PDFView-PasswordConfirm',
         DOCUMENT: 'PDFView-Document',
     },
     AVATAR_CROP_MODAL: {
+        ROTATE_BUTTON: 'AvatarCropModal-RotateButton',
+        SAVE_BUTTON: 'AvatarCropModal-SaveButton',
         ZOOM_SLIDER: 'AvatarCropModal-ZoomSlider',
     },
     PAYMENT_METHOD_LIST_ITEM: {
@@ -963,6 +1088,8 @@ const SENTRY_LABEL = {
         NEW_TASK_CONFIRM_BUTTON: 'Task-NewTaskConfirmButton',
     },
     SUPPORT_TICKET: {
+        RESOLVED_CHECKBOX: 'SupportTicket-ResolvedCheckbox',
+        REOPEN_BUTTON: 'SupportTicket-ReopenButton',
         PREVIEW_CARD: 'SupportTicket-PreviewCard',
         PREVIEW_CHECKBOX: 'SupportTicket-PreviewCheckbox',
         VIEW_CHECKBOX: 'SupportTicket-ViewCheckbox',
@@ -985,7 +1112,68 @@ const SENTRY_LABEL = {
         INSIGHT_TITLE_DROPDOWN: 'HomePage-InsightTitleDropdown',
         RECENTLY_ADDED_ROW: 'HomePage-RecentlyAddedRow',
         RECENTLY_ADDED_OVERFLOW_MENU: 'HomePage-RecentlyAddedOverflowMenu',
-        WIDGET_ITEM: 'HomePage-WidgetItem',
+        FREE_TRIAL_WIDGET: 'HomePage-FreeTrialWidget',
+        INSIGHTS_WIDGET: 'HomePage-InsightsWidget',
+        FOR_YOU_ITEM: {
+            REVIEW_EXPENSES: 'HomePage-ForYouItem-ReviewExpenses',
+            SUBMIT: 'HomePage-ForYouItem-Submit',
+            APPROVE: 'HomePage-ForYouItem-Approve',
+            PAY: 'HomePage-ForYouItem-Pay',
+            EXPORT: 'HomePage-ForYouItem-Export',
+            REVIEW_DOMAIN_ADMIN_REQUESTS: 'HomePage-ForYouItem-ReviewDomainAdminRequests',
+        },
+        FOR_YOU_ITEM_BUTTON: {
+            REVIEW_EXPENSES: 'HomePage-ForYouItemButton-ReviewExpenses',
+            SUBMIT: 'HomePage-ForYouItemButton-Submit',
+            APPROVE: 'HomePage-ForYouItemButton-Approve',
+            PAY: 'HomePage-ForYouItemButton-Pay',
+            EXPORT: 'HomePage-ForYouItemButton-Export',
+            REVIEW_DOMAIN_ADMIN_REQUESTS: 'HomePage-ForYouItemButton-ReviewDomainAdminRequests',
+        },
+        TIME_SENSITIVE_ITEM: {
+            ACTIVATE_CARD: 'HomePage-TimeSensitiveItem-ActivateCard',
+            ADD_BANK_ACCOUNT: 'HomePage-TimeSensitiveItem-AddBankAccount',
+            ADD_DEPOSIT_ACCOUNT: 'HomePage-TimeSensitiveItem-AddDepositAccount',
+            ADD_HOME_ADDRESS: 'HomePage-TimeSensitiveItem-AddHomeAddress',
+            ADD_PAYMENT_CARD: 'HomePage-TimeSensitiveItem-AddPaymentCard',
+            ADD_SHIPPING_ADDRESS: 'HomePage-TimeSensitiveItem-AddShippingAddress',
+            ADD_VIRTUAL_CARD_PERSONAL_DETAILS: 'HomePage-TimeSensitiveItem-AddVirtualCardPersonalDetails',
+            CONFIRM_DIGITAL_WALLET_ADDITION: 'HomePage-TimeSensitiveItem-ConfirmDigitalWalletAddition',
+            ENTER_SIGNER_INFO: 'HomePage-TimeSensitiveItem-EnterSignerInfo',
+            FIX_COMPANY_CARD_CONNECTION: 'HomePage-TimeSensitiveItem-FixCompanyCardConnection',
+            FIX_EMAIL_DELIVERY: 'HomePage-TimeSensitiveItem-FixEmailDelivery',
+            FIX_FAILED_BILLING: 'HomePage-TimeSensitiveItem-FixFailedBilling',
+            FIX_PERSONAL_CARD_CONNECTION: 'HomePage-TimeSensitiveItem-FixPersonalCardConnection',
+            FIX_POLICY_CONNECTION: 'HomePage-TimeSensitiveItem-FixPolicyConnection',
+            PAY_OVERDUE_INVOICE: 'HomePage-TimeSensitiveItem-PayOverdueInvoice',
+            RENEW_SUBSCRIPTION: 'HomePage-TimeSensitiveItem-RenewSubscription',
+            REVIEW_CARD_FRAUD: 'HomePage-TimeSensitiveItem-ReviewCardFraud',
+            UNLOCK_BANK_ACCOUNT: 'HomePage-TimeSensitiveItem-UnlockBankAccount',
+            UPGRADE_NETSUITE_CONNECTION: 'HomePage-TimeSensitiveItem-UpgradeNetSuiteConnection',
+            VERIFY_WISE_BANK_ACCOUNT: 'HomePage-TimeSensitiveItem-VerifyWiseBankAccount',
+        },
+        TIME_SENSITIVE_ITEM_BUTTON: {
+            ACTIVATE_CARD: 'HomePage-TimeSensitiveItemButton-ActivateCard',
+            ADD_BANK_ACCOUNT: 'HomePage-TimeSensitiveItemButton-AddBankAccount',
+            ADD_DEPOSIT_ACCOUNT: 'HomePage-TimeSensitiveItemButton-AddDepositAccount',
+            ADD_HOME_ADDRESS: 'HomePage-TimeSensitiveItemButton-AddHomeAddress',
+            ADD_PAYMENT_CARD: 'HomePage-TimeSensitiveItemButton-AddPaymentCard',
+            ADD_SHIPPING_ADDRESS: 'HomePage-TimeSensitiveItemButton-AddShippingAddress',
+            ADD_VIRTUAL_CARD_PERSONAL_DETAILS: 'HomePage-TimeSensitiveItemButton-AddVirtualCardPersonalDetails',
+            CONFIRM_DIGITAL_WALLET_ADDITION: 'HomePage-TimeSensitiveItemButton-ConfirmDigitalWalletAddition',
+            ENTER_SIGNER_INFO: 'HomePage-TimeSensitiveItemButton-EnterSignerInfo',
+            FIX_COMPANY_CARD_CONNECTION: 'HomePage-TimeSensitiveItemButton-FixCompanyCardConnection',
+            FIX_EMAIL_DELIVERY: 'HomePage-TimeSensitiveItemButton-FixEmailDelivery',
+            FIX_FAILED_BILLING: 'HomePage-TimeSensitiveItemButton-FixFailedBilling',
+            FIX_PERSONAL_CARD_CONNECTION: 'HomePage-TimeSensitiveItemButton-FixPersonalCardConnection',
+            FIX_POLICY_CONNECTION: 'HomePage-TimeSensitiveItemButton-FixPolicyConnection',
+            PAY_OVERDUE_INVOICE: 'HomePage-TimeSensitiveItemButton-PayOverdueInvoice',
+            RENEW_SUBSCRIPTION: 'HomePage-TimeSensitiveItemButton-RenewSubscription',
+            REVIEW_CARD_FRAUD: 'HomePage-TimeSensitiveItemButton-ReviewCardFraud',
+            UNLOCK_BANK_ACCOUNT: 'HomePage-TimeSensitiveItemButton-UnlockBankAccount',
+            UPGRADE_NETSUITE_CONNECTION: 'HomePage-TimeSensitiveItemButton-UpgradeNetSuiteConnection',
+            VERIFY_WISE_BANK_ACCOUNT: 'HomePage-TimeSensitiveItemButton-VerifyWiseBankAccount',
+        },
         GETTING_STARTED_ROW: {
             CREATE_WORKSPACE: 'HomePage-GettingStartedRow-CreateWorkspace',
             CREATE_EXPENSE: 'HomePage-GettingStartedRow-CreateExpense',
@@ -1089,6 +1277,8 @@ const SENTRY_LABEL = {
     MAP_VIEW: {
         COMPASS: 'MapView-Compass',
         TOGGLE_DISTANCE_UNIT: 'MapView-ToggleDistanceUnit',
+        CENTER_BUTTON: 'MapView-CenterButton',
+        GPS_CENTER_BUTTON: 'MapView-GPSCenterButton',
     },
     NEW_CHAT: {
         IMPORT_CONTACTS_ITEM: 'NewChat-ImportContacts',
@@ -1213,6 +1403,7 @@ const SENTRY_LABEL = {
         BULK_ACTIONS_DROPDOWN: 'WorkspaceExpensifyCard-BulkActionsDropdown',
     },
     WORKSPACE: {
+        CONFIRMATION_FORM_AVATAR: 'WorkspaceConfirmationForm-Avatar',
         APPROVAL_WORKFLOW_SECTION: 'Workspace-ApprovalWorkflowSection',
         TOGGLE_SETTINGS_ROW: 'Workspace-ToggleSettingsRow',
         CONFIRMATION_FORM_KEEP_ME_AS_ADMIN_SWITCH: 'WorkspaceConfirmationForm-KeepMeAsAdminSwitch',
@@ -1232,6 +1423,8 @@ const SENTRY_LABEL = {
             IMPORT_FROM_FILE_TEMPLATE_LINK: 'WorkspaceCompanyCards-ImportFromFileTemplateLink',
             IMPORT_FROM_FILE_HELP_GUIDE_LINK: 'WorkspaceCompanyCards-ImportFromFileHelpGuideLink',
             PERSONAL_LIABILITY_SWITCH: 'WorkspaceCompanyCards-PersonalLiabilitySwitch',
+            ASSIGN_BUTTON: 'WorkspaceCompanyCards-AssignButton',
+            FEED_ERROR_TRY_AGAIN: 'WorkspaceCompanyCards-FeedErrorTryAgain',
         },
         LIST: {
             NEW_WORKSPACE_BUTTON: 'WorkspaceList-NewWorkspaceButton',
@@ -1284,6 +1477,7 @@ const SENTRY_LABEL = {
             BULK_ACTIONS_DROPDOWN: 'WorkspaceMembers-BulkActionsDropdown',
             MORE_DROPDOWN: 'WorkspaceMembers-MoreDropdown',
             LIST_ROW: 'WorkspaceMembers-ListRow',
+            ROLE_SAVE_BUTTON: 'WorkspaceMembers-RoleSaveButton',
             CATEGORY_VISIBILITY: 'WorkspaceMemberDetails-CategoryVisibility',
         },
         CATEGORIES: {
@@ -1366,6 +1560,8 @@ const SENTRY_LABEL = {
         ACCOUNTING: {
             EXACT_ONLINE_WAITLIST_BUTTON: 'WorkspaceAccounting-ExactOnlineWaitlistButton',
             CARD_SECTION_ADD_BUTTON: 'WorkspaceAccounting-CardSectionAddButton',
+            CREATE_NEW_CONNECTION: 'WorkspaceAccounting-CreateNewConnection',
+            COPY_EXISTING_CONNECTION: 'WorkspaceAccounting-CopyExistingConnection',
             TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_SWITCH: 'WorkspaceAccounting-TravelBillingContinuousReconciliationSwitch',
             CONTINUOUS_RECONCILIATION_SWITCH: 'WorkspaceAccounting-ContinuousReconciliationSwitch',
             QBO: {
@@ -1522,6 +1718,8 @@ const SENTRY_LABEL = {
             SKIPPED_EMPLOYEES_TOGGLE_RECRUITING: 'WorkspaceMerge-SkippedEmployeesToggle-Recruiting',
         },
         RULES: {
+            ENABLE_CATEGORIES: 'WorkspaceRules-EnableCategories',
+            ENABLE_TAXES: 'WorkspaceRules-EnableTaxes',
             INDIVIDUAL_EXPENSES_MENU_ITEM: 'WorkspaceRules-IndividualExpensesMenuItem',
             SPEND_RULE_ITEM: 'WorkspaceRules-SpendRuleItem',
             MERCHANT_RULE_ITEM: 'WorkspaceRules-MerchantRuleItem',
@@ -1586,6 +1784,13 @@ const SENTRY_LABEL = {
             REQUIRE_TAG_LEVEL_SWITCH: 'WorkspaceRules-RequireTagLevelSwitch',
             REQUIRE_TAG_SWITCH: 'WorkspaceRules-RequireTagSwitch',
             TRACK_BILLABLE_SWITCH: 'WorkspaceRules-TrackBillableSwitch',
+            SPEND_RULE_ADD_MERCHANT: 'WorkspaceRules-SpendRuleAddMerchant',
+            SPEND_RULE_CATEGORIES_SAVE: 'WorkspaceRules-SpendRuleCategoriesSave',
+            SPEND_RULE_CURRENCIES_SAVE: 'WorkspaceRules-SpendRuleCurrenciesSave',
+            SPEND_RULE_MERCHANTS_SAVE: 'WorkspaceRules-SpendRuleMerchantsSave',
+        },
+        ROOMS: {
+            ROW: 'WorkspaceRooms-Row',
         },
         EXPENSIFY_CARD: {
             ROW: 'WorkspaceExpensifyCard-Row',
@@ -1603,6 +1808,7 @@ const SENTRY_LABEL = {
             BULK_ACTIONS_DROPDOWN: 'WorkspacePerDiem-BulkActionsDropdown',
         },
         TRAVEL: {
+            RETRY_CARDS_PROVISIONING: 'WorkspaceTravel-RetryCardsProvisioning',
             BOOK_TRAVEL_BUTTON: 'WorkspaceTravel-BookTravelButton',
             GET_STARTED_BUTTON: 'WorkspaceTravel-GetStartedButton',
             AUTO_ADD_TRIP_NAME_SWITCH: 'WorkspaceTravel-AutoAddTripNameSwitch',
@@ -1655,6 +1861,8 @@ const SENTRY_LABEL = {
         SUBMIT_BUTTON: 'Form-SubmitButton',
     },
     ONBOARDING: {
+        HELP_DROPDOWN: 'Onboarding-HelpDropdown',
+        MERGING_ACCOUNT_BLOCKED_CONFIRM: 'Onboarding-MergingAccountBlockedConfirm',
         INTERESTED_FEATURES_ITEM: {
             CATEGORIES: 'Onboarding-InterestedFeaturesItem-Categories',
             CONNECTIONS: 'Onboarding-InterestedFeaturesItem-Connections',
@@ -1714,6 +1922,7 @@ const SENTRY_LABEL = {
         CLEAR_AFTER_TIME: 'CustomStatus-OpenClearAfter-Time',
     },
     TWO_FACTOR_AUTH: {
+        REQUIRED_MODAL_ENABLE_BUTTON: 'TwoFactorAuth-RequiredModalEnableButton',
         RESEND_CODE: 'TwoFactorAuth-ResendCode',
         SWITCH_BETWEEN_METHODS: 'TwoFactorAuth-SwitchBetweenMethods',
         COPY: 'TwoFactorAuth-Copy',
@@ -1741,6 +1950,11 @@ const SENTRY_LABEL = {
     CONFIRM_CONTENT: {
         DISMISS_BUTTON: 'ConfirmContent-DismissButton',
         CONFIRM_BUTTON: 'ConfirmContent-ConfirmButton',
+        CANCEL_BUTTON: 'ConfirmContent-CancelButton',
+    },
+    DECISION_MODAL: {
+        FIRST_OPTION: 'DecisionModal-FirstOption',
+        SECOND_OPTION: 'DecisionModal-SecondOption',
     },
     COPY_TEXT_TO_CLIPBOARD: {
         COPY_BUTTON: 'CopyTextToClipboard-CopyButton',
@@ -1772,9 +1986,12 @@ const SENTRY_LABEL = {
         CHECKBOX: 'UserListItem-Checkbox',
     },
     UPLOAD_FILE: {
+        UPLOAD_BUTTON: 'UploadFile-UploadButton',
         REMOVE_BUTTON: 'UploadFile-RemoveButton',
     },
     LIST_FIELD: {
+        EDIT_BUTTON: 'ListField-EditButton',
+        ADD_BUTTON: 'ListField-AddButton',
         REMOVE_BUTTON: 'ListField-RemoveButton',
     },
     BANK_ACCOUNT: {
@@ -1790,6 +2007,10 @@ const SENTRY_LABEL = {
         INVITE_RESEND_BUTTON: 'ReceiptPartners-InviteResendButton',
     },
     SIGN_IN: {
+        PROVIDER_BUTTON: {
+            APPLE: 'SignIn-ProviderButton-Apple',
+            GOOGLE: 'SignIn-ProviderButton-Google',
+        },
         CONTINUE: 'SignIn-Continue',
         SIGN_IN_BUTTON: 'SignIn-SignInButton',
         JOIN: 'SignIn-Join',
@@ -2005,13 +2226,26 @@ const SENTRY_LABEL = {
             CREATE_EXPENSIFY_CARD_PREFERRED_WORKSPACE_SWITCH: 'DomainGroups-CreateExpensifyCardPreferredWorkspaceSwitch',
         },
         MEMBERS: {
+            VACATION_DELEGATE: 'DomainMembers-VacationDelegate',
             ROW: 'DomainMembers-Row',
             FORCE_TWO_FACTOR_AUTH_SWITCH: 'DomainMembers-ForceTwoFactorAuthSwitch',
             MEMBER_FORCE_TWO_FACTOR_AUTH_SWITCH: 'DomainMembers-MemberForceTwoFactorAuthSwitch',
         },
+        VERIFY: {
+            RETRY_VALIDATION_CODE: 'DomainVerify-RetryValidationCode',
+        },
+        COPYABLE_TEXT_FIELD: {
+            SHOW_MORE_TOGGLE: 'DomainCopyableTextField-ShowMoreToggle',
+        },
         SAML: {
+            RETRY_SETTINGS: 'DomainSaml-RetrySettings',
+            RETRY_SCIM_TOKEN: 'DomainSaml-RetryScimToken',
             ENABLE_SWITCH: 'DomainSaml-EnableSwitch',
             REQUIRE_SWITCH: 'DomainSaml-RequireSwitch',
+        },
+        LIST: {
+            ROW: 'DomainList-Row',
+            THREE_DOT_MENU: 'DomainList-ThreeDotMenu',
         },
     },
     FEATURE_TRAINING: {
@@ -2020,6 +2254,84 @@ const SENTRY_LABEL = {
     },
     TOOLTIP: {
         OVERLAY: 'Tooltip-Overlay',
+        EDUCATION_TOOLTIP: 'Tooltip-EducationTooltip',
+    },
+    ADD_EXISTING_EXPENSE: {
+        CONFIRM_BUTTON: 'AddExistingExpense-ConfirmButton',
+    },
+    ANONYMOUS_REPORT_FOOTER: {
+        SIGN_IN_BUTTON: 'AnonymousReportFooter-SignInButton',
+    },
+    AUTO_SUBMIT_MODAL: {
+        CONFIRM_BUTTON: 'AutoSubmitModal-ConfirmButton',
+    },
+    HOLD_OR_REJECT_EDUCATIONAL_MODAL: {
+        CONFIRM_BUTTON: 'HoldOrRejectEducationalModal-ConfirmButton',
+    },
+    HOLD_SUBMITTER_EDUCATIONAL_MODAL: {
+        CONFIRM_BUTTON: 'HoldSubmitterEducationalModal-ConfirmButton',
+    },
+    AVATAR_PAGE_FOOTER: {
+        SAVE_BUTTON: 'AvatarPageFooter-SaveButton',
+    },
+    AVATAR_SELECTOR: {
+        PRESET_AVATAR: 'AvatarSelector-PresetAvatar',
+        LETTER_AVATAR: 'AvatarSelector-LetterAvatar',
+    },
+    BANK_ACCOUNT_VERIFICATION_VIEW: {
+        GO_TO_CONCIERGE: 'BankAccountVerificationView-GoToConcierge',
+        VERIFIED_BUTTON: 'BankAccountVerificationView-VerifiedButton',
+    },
+    BIG_NUMBER_PAD: {
+        KEY: 'BigNumberPad-Key',
+        BACKSPACE: 'BigNumberPad-Backspace',
+    },
+    BULK_ACTION_STATUS_MODAL: {
+        SEND_FROM_CONCIERGE: 'BulkActionStatusModal-SendFromConcierge',
+        GO_TO_CONCIERGE: 'BulkActionStatusModal-GoToConcierge',
+        VIEW_FAILED_REPORTS: 'BulkActionStatusModal-ViewFailedReports',
+        CLOSE: 'BulkActionStatusModal-Close',
+    },
+    EXPORT_DOWNLOAD_STATUS_MODAL: {
+        SEND_FROM_CONCIERGE: 'ExportDownloadStatusModal-SendFromConcierge',
+        GO_TO_CONCIERGE: 'ExportDownloadStatusModal-GoToConcierge',
+        DOWNLOAD_FILE: 'ExportDownloadStatusModal-DownloadFile',
+        CLOSE: 'ExportDownloadStatusModal-Close',
+    },
+    CHECKBOX_WITH_LABEL: {
+        CHECKBOX: 'CheckboxWithLabel-Checkbox',
+    },
+    COLUMNS_SETTINGS_LIST: {
+        SAVE_BUTTON: 'ColumnsSettingsList-SaveButton',
+    },
+    COUNTRY_SELECTOR: {
+        OPEN: 'CountrySelector-Open',
+    },
+    CURRENCY_PICKER: {
+        OPEN: 'CurrencyPicker-Open',
+    },
+    CURRENCY_SELECTOR: {
+        OPEN: 'CurrencySelector-Open',
+    },
+    DOT_INDICATOR_MESSAGE: {
+        RETRY_RECEIPT_UPLOAD: 'DotIndicatorMessage-RetryReceiptUpload',
+        DOWNLOAD_RECEIPT: 'DotIndicatorMessage-DownloadReceipt',
+    },
+    FEEDBACK_SURVEY: {
+        SUBMIT_BUTTON: 'FeedbackSurvey-SubmitButton',
+    },
+    FROZEN_CARD_HEADER: {
+        UNFREEZE: 'FrozenCardHeader-Unfreeze',
+        ASK_TO_UNFREEZE: 'FrozenCardHeader-AskToUnfreeze',
+    },
+    FULLSCREEN_LOADING_INDICATOR: {
+        GO_BACK: 'FullscreenLoadingIndicator-GoBack',
+    },
+    GOVERNMENT_RATE_COUNTRY_SELECTOR: {
+        SAVE_BUTTON: 'GovernmentRateCountrySelector-SaveButton',
+    },
+    DOCUSIGN_FULL_STEP: {
+        OPEN_DOCUSIGN: 'DocusignFullStep-OpenDocusign',
     },
     // Components that require a label get this one when rendered in tests. Tests send nothing to Sentry, so one shared label is enough.
     TEST: {

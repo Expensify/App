@@ -1,5 +1,7 @@
+import getShouldShowBrokenConnectionError from '@components/Tables/WorkspaceCompanyCardsTable/getShouldShowBrokenConnectionError';
+
 import type {DerivedValueContext} from '@libs/actions/OnyxDerived/types';
-import {getCardFeedWithDomainID} from '@libs/CardUtils';
+import {getCardFeedWithDomainID, hasCardConnectionIssue} from '@libs/CardUtils';
 
 import CONST from '@src/CONST';
 import cardFeedErrorsConfig from '@src/libs/actions/OnyxDerived/configs/cardFeedErrors';
@@ -93,6 +95,54 @@ describe('CardFeedErrors Derived Value', () => {
         });
 
         describe('broken feed connection detection', () => {
+            describe.each(['cardList', 'workspaceCards'] as const)('individual card issues from %s', (source) => {
+                it.each([
+                    {reverseOrder: false, dismissed: false},
+                    {reverseOrder: true, dismissed: false},
+                    {reverseOrder: false, dismissed: true},
+                    {reverseOrder: true, dismissed: true},
+                ])('does not show a feed warning for healthy and 434 cards (%j)', ({reverseOrder, dismissed}) => {
+                    // Given a healthy card and an individual account-not-found error on the same direct feed
+                    const cardFeed = CARD_FEEDS[CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE];
+                    const healthyCard = createCard({
+                        cardID: CARD_IDS.card1,
+                        bank: cardFeed.feedName,
+                        fundID: String(cardFeed.policyAccountID),
+                        lastScrapeResult: 200,
+                    });
+                    const affectedCard = createCard({
+                        cardID: CARD_IDS.card2,
+                        bank: cardFeed.feedName,
+                        fundID: String(cardFeed.policyAccountID),
+                        lastScrapeResult: 434,
+                        errors: dismissed ? undefined : {accountNotFound: 'Account not found'},
+                    });
+                    const cards: CardList = reverseOrder ? {card2: affectedCard, card1: healthyCard} : {card1: healthyCard, card2: affectedCard};
+                    const workspaceCards = {
+                        [`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${cardFeed.policyAccountID}_${cardFeed.feedNameWithDomainID}`]: createWorkspaceCardsList(cards),
+                    };
+
+                    // When the real derived configuration aggregates either source and the banner reads its result
+                    const result = cardFeedErrorsConfig.compute(
+                        [source === 'cardList' ? cards : {}, source === 'workspaceCards' ? workspaceCards : {}, {}, undefined],
+                        DERIVED_VALUE_CONTEXT,
+                    );
+                    const feedErrors = result.cardFeedErrors[cardFeed.feedNameWithDomainID];
+
+                    // Then only the affected card retains its issue, without falsely reporting a broken feed
+                    expect(feedErrors?.isFeedConnectionBroken).toBe(false);
+                    expect(feedErrors?.hasFeedErrors).toBe(false);
+                    expect(feedErrors?.hasFeedConnectionIssue).toBe(true);
+                    expect(feedErrors?.shouldPromptBrokenConnection).toBe(false);
+                    expect(getShouldShowBrokenConnectionError(cardFeed.feedNameWithDomainID, feedErrors)).toBe(false);
+                    expect(result.cardsWithBrokenFeedConnection).toEqual({});
+                    expect(feedErrors?.cardErrors?.[CARD_IDS.card1]).toBeUndefined();
+                    expect(feedErrors?.cardErrors?.[CARD_IDS.card2]?.errors).toEqual(affectedCard.errors);
+                    expect(hasCardConnectionIssue(affectedCard)).toBe(true);
+                    expect(hasCardConnectionIssue(healthyCard)).toBe(false);
+                });
+            });
+
             it('should detect broken connection when lastScrapeResult is not in ignored statuses', () => {
                 const cardFeed = CARD_FEEDS[CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE];
                 const card = createCard({

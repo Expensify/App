@@ -5464,6 +5464,7 @@ const CONST = {
             AUTOREPORTING_OFFSET: 'autoReportingOffset',
             GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY: 'globalReimbursementFXPreferCompany',
             IS_COLLECT_DEPOSIT_ACCOUNTS_ENABLED: 'isCollectDepositAccountsEnabled',
+            REIMBURSEMENT_COUNTRIES: 'reimbursementCountries',
             GENERAL_SETTINGS: 'generalSettings',
             TIME_ZONE: 'timeZone',
         },
@@ -5644,6 +5645,7 @@ const CONST = {
                 netsuite:
                     'https://help.expensify.com/articles/expensify-classic/connections/netsuite/Netsuite-Troubleshooting#expensierror-ns0109-failed-to-login-to-netsuite-please-verify-your-credentials',
                 businessCentral: 'https://help.expensify.com/new-expensify/hubs/connections/',
+                digits: 'https://help.expensify.com/new-expensify/hubs/connections/',
             },
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT_QBO: 'startingImportQBO',
@@ -5816,6 +5818,7 @@ const CONST = {
         'Sage Intacct': 'https://help.expensify.com/articles/new-expensify/connections/sage-intacct/Configure-Sage-Intacct',
         Certinia: 'https://help.expensify.com/articles/expensify-classic/connections/certinia/Connect-To-Certinia',
         MERGE_EXPENSES: 'https://help.expensify.com/articles/new-expensify/reports-and-expenses/Merging-expenses',
+        WORKSPACE_ROLES_AND_PERMISSIONS: 'https://help.expensify.com/articles/new-expensify/workspaces/Understand-Workspace-Roles-and-Permissions',
     },
 
     CUSTOM_UNITS: {
@@ -8305,6 +8308,7 @@ const CONST = {
             DUPLICATE: 'duplicate',
             DUPLICATE_REPORT: 'duplicateReport',
             UNDELETE: 'undelete',
+            CHANGE_WORKSPACE: 'changeWorkspace',
         },
         BULK_DUPLICATE_LIMIT: 50,
         TRANSACTION_TYPE: {
@@ -9504,6 +9508,14 @@ const CONST = {
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.CAMPFIRE}.description` as const,
                 icon: 'CampfireSquare',
             },
+            [this.POLICY.CONNECTIONS.NAME.DIGITS]: {
+                id: this.POLICY.CONNECTIONS.NAME.DIGITS,
+                alias: 'digits',
+                name: this.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.digits,
+                title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.DIGITS}.title` as const,
+                description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.DIGITS}.description` as const,
+                icon: 'DigitsSquare',
+            },
             [this.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
                 id: this.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL,
                 alias: 'businessCentral',
@@ -10062,6 +10074,7 @@ const CONST = {
     INBOX_TAB_STALE_UNREAD_MONTHS: 3,
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     AGENTS_RULES_BANNER: 'agentsRulesBanner',
+    NEW_WORKSPACE_ROLES_BANNER: 'newWorkspaceRolesBanner',
     WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER: 'wiseGlobalReimbursementsWalletBanner',
     WISE_GLOBAL_REIMBURSEMENTS_WORKSPACE_BANNER: 'wiseGlobalReimbursementsWorkspaceBanner',
     SMART_BANNER_HEIGHT: 152,
