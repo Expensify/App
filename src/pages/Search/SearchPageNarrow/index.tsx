@@ -2,6 +2,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import CollapsibleHeaderOnKeyboardGroup from '@components/CollapsibleHeaderOnKeyboard/Group';
 import CollapsibleHeaderOnKeyboardGroupMember from '@components/CollapsibleHeaderOnKeyboard/GroupMember';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {useHorizontalSafeAreaClipBleed} from '@components/HorizontalSafeArea/useHorizontalSafeAreaReach';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import useTabBarCoveredHeight from '@components/Navigation/TabBarBottomContent/useTabBarCoveredHeight';
 import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
@@ -114,6 +115,7 @@ function SearchPageNarrow({
     // The footer is shown and hidden by its own selection state, so its height is read from layout.
     const [footerHeight, setFooterHeight] = useState(0);
     const StyleUtils = useStyleUtils();
+    const horizontalSafeAreaClipBleedStyle = useHorizontalSafeAreaClipBleed();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {shouldUseLiveData} = useSearchResultsContext();
     const {isOffline} = useNetwork();
@@ -354,7 +356,7 @@ function SearchPageNarrow({
                     {...tabRootScreenWrapperProps}
                     offlineIndicatorStyle={[styles.mtAuto, footerHeight > 0 ? styles.offlineIndicatorAboveFooter(footerHeight) : tabRootScreenWrapperProps.offlineIndicatorStyle]}
                 >
-                    <View style={[styles.flex1, styles.overflowHidden]}>
+                    <View style={[styles.flex1, styles.overflowHidden, horizontalSafeAreaClipBleedStyle]}>
                         {!shouldScrollMainHeader && !isMobileSelectionModeEnabled && (
                             <View style={[StyleUtils.getSearchPageNarrowHeaderStyles(), styles.mh100]}>
                                 <CollapsibleHeaderOnKeyboardGroup>

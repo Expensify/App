@@ -8,6 +8,8 @@ const HORIZONTAL_SAFE_AREA_PLACEMENT = {
     OUTSIDE: 'outside',
     /** Right inside the screen's insets: a vertical scroll view here is the screen's own and may reach the screen edge through them (see useHorizontalSafeAreaBleed). */
     SCREEN: 'screen',
+    /** Inside the screen's own scroll view, which reaches the screen edge: a horizontal scroll view here may reach it too. */
+    SCREEN_SCROLL_CONTENT: 'screenScrollContent',
     /** Inside a box within the screen, like a scroll view or a modal: a scroll view here stays inside the box. */
     BOX: 'box',
 } as const;

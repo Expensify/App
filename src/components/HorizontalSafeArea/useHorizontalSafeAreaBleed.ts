@@ -4,6 +4,9 @@
  * insets are added to the caller's own margins and paddings, because a later style entry replaces a side's spacing
  * rather than adding to it.
  *
+ * A horizontal scroll view is a row that would otherwise be cut off at the safe area, so it reaches the edge from inside
+ * the screen's own scroll view too.
+ *
  * Only a narrow-layout screen offers its edge: a wide one lays its panes out side by side, and a scroll view in one
  * pane would reach into the next.
  */
@@ -15,9 +18,16 @@ import type {ScrollViewProps, ViewStyle} from 'react-native';
 import {useContext} from 'react';
 import {StyleSheet} from 'react-native';
 
+import type {HorizontalSafeAreaPlacement} from './HorizontalSafeAreaContext';
+
 import HorizontalSafeAreaContext, {HORIZONTAL_SAFE_AREA_PLACEMENT} from './HorizontalSafeAreaContext';
 
 type ScrollViewStyles = Pick<ScrollViewProps, 'style' | 'contentContainerStyle'>;
+
+type HorizontalSafeAreaBleed = ScrollViewStyles & {
+    /** Where the scroll view's content sits, for the scroll views nested in it. */
+    contentPlacement: HorizontalSafeAreaPlacement;
+};
 
 type HorizontalSafeAreaBleedProps = ScrollViewStyles & Pick<ScrollViewProps, 'horizontal'>;
 
@@ -34,14 +44,14 @@ function getSpacing(style: ViewStyle, keys: SpacingKey[]): number {
     return 0;
 }
 
-function useHorizontalSafeAreaBleed({style, contentContainerStyle, horizontal}: HorizontalSafeAreaBleedProps): ScrollViewStyles {
-    const isScreenScrollView = useContext(HorizontalSafeAreaContext) === HORIZONTAL_SAFE_AREA_PLACEMENT.SCREEN;
+function useHorizontalSafeAreaBleed({style, contentContainerStyle, horizontal}: HorizontalSafeAreaBleedProps): HorizontalSafeAreaBleed {
+    const placement = useContext(HorizontalSafeAreaContext);
     const {left, right} = useSafeAreaInsets();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    // A horizontal scroll view is a row within the screen, not the screen's own scroller.
-    const shouldBleed = isScreenScrollView && !horizontal;
+    const isScreenScrollView = placement === HORIZONTAL_SAFE_AREA_PLACEMENT.SCREEN;
+    const shouldBleed = isScreenScrollView || (!!horizontal && placement === HORIZONTAL_SAFE_AREA_PLACEMENT.SCREEN_SCROLL_CONTENT);
     if (!shouldBleed || !shouldUseNarrowLayout || (!left && !right)) {
-        return {style, contentContainerStyle};
+        return {style, contentContainerStyle, contentPlacement: HORIZONTAL_SAFE_AREA_PLACEMENT.BOX};
     }
 
     const margins = StyleSheet.flatten(style) ?? {};
@@ -62,6 +72,7 @@ function useHorizontalSafeAreaBleed({style, contentContainerStyle, horizontal}: 
                 paddingRight: getSpacing(paddings, ['paddingRight', 'paddingHorizontal', 'padding']) + right,
             },
         ],
+        contentPlacement: isScreenScrollView && !horizontal ? HORIZONTAL_SAFE_AREA_PLACEMENT.SCREEN_SCROLL_CONTENT : HORIZONTAL_SAFE_AREA_PLACEMENT.BOX,
     };
 }
 

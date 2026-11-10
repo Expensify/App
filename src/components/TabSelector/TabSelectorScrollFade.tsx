@@ -1,3 +1,5 @@
+import useHorizontalSafeAreaReach from '@components/HorizontalSafeArea/useHorizontalSafeAreaReach';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,11 +21,13 @@ function TabSelectorScrollFade({side}: TabSelectorScrollFadeProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const gradientID = useId();
+    // The tab row reaches the screen edge through the horizontal safe area, so the fade sits at that edge too.
+    const reach = useHorizontalSafeAreaReach();
 
     return (
         <View
             pointerEvents="none"
-            style={[styles.pAbsolute, styles.t0, styles.b0, side === 'left' ? styles.l0 : styles.r0, StyleUtils.getWidthStyle(variables.tabSelectorScrollFadeWidth)]}
+            style={[styles.pAbsolute, styles.t0, styles.b0, side === 'left' ? {left: -reach.left} : {right: -reach.right}, StyleUtils.getWidthStyle(variables.tabSelectorScrollFadeWidth)]}
         >
             <Svg
                 width="100%"

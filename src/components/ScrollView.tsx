@@ -7,7 +7,7 @@ import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {ScrollView as RNScrollView} from 'react-native';
 
-import HorizontalSafeAreaContext, {HORIZONTAL_SAFE_AREA_PLACEMENT} from './HorizontalSafeArea/HorizontalSafeAreaContext';
+import HorizontalSafeAreaContext from './HorizontalSafeArea/HorizontalSafeAreaContext';
 import useHorizontalSafeAreaBleed from './HorizontalSafeArea/useHorizontalSafeAreaBleed';
 
 type ScrollViewProps = RNScrollViewProps & {
@@ -30,14 +30,14 @@ function ScrollView({
         addOfflineIndicatorBottomSafeAreaPadding,
         style: contentContainerStyleProp,
     });
-    const {style, contentContainerStyle} = useHorizontalSafeAreaBleed({
+    const {style, contentContainerStyle, contentPlacement} = useHorizontalSafeAreaBleed({
         style: styleProp,
         contentContainerStyle: bottomSafeAreaContentContainerStyle,
         horizontal: props.horizontal,
     });
 
     return (
-        <HorizontalSafeAreaContext.Provider value={HORIZONTAL_SAFE_AREA_PLACEMENT.BOX}>
+        <HorizontalSafeAreaContext.Provider value={contentPlacement}>
             <RNScrollView
                 ref={ref}
                 style={style}
