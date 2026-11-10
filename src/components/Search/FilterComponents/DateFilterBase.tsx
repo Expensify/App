@@ -258,6 +258,7 @@ function DateFilterBase({
                 <>
                     {!selectedDateModifier && (
                         <Button
+                            sentryLabel={CONST.SENTRY_LABEL.DATE_FILTER.RESET_BUTTON}
                             onPress={reset}
                             style={[styles.mh4, styles.mt4]}
                             size={CONST.BUTTON_SIZE.LARGE}
@@ -266,6 +267,7 @@ function DateFilterBase({
                         </Button>
                     )}
                     <FormAlertWithSubmitButton
+                        sentryLabel={CONST.SENTRY_LABEL.DATE_FILTER.SAVE_BUTTON}
                         buttonText={translate('common.save')}
                         containerStyles={[styles.m4, styles.mt3, styles.mb5]}
                         onSubmit={save}

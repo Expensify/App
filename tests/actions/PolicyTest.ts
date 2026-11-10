@@ -1600,7 +1600,7 @@ describe('actions/Policy', () => {
             });
         });
 
-        it('create a new workspace with enabled workflows if the onboarding choice is newDotTrackWorkspace', async () => {
+        it('create a new workspace with disabled workflows if the onboarding choice is newDotTrackWorkspace', async () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to TRACK_WORKSPACE
             Policy.createWorkspace({
@@ -1625,8 +1625,8 @@ describe('actions/Policy', () => {
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 callback: (policy) => {
-                    // Then workflows is enabled
-                    expect(policy?.areWorkflowsEnabled).toBeTruthy();
+                    // Then workflows is disabled.
+                    expect(policy?.areWorkflowsEnabled).toBeFalsy();
                 },
             });
         });
@@ -1656,7 +1656,7 @@ describe('actions/Policy', () => {
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 callback: (policy) => {
-                    // Then workflows are not enabled
+                    // Then workflows are not enabled.
                     expect(policy?.areWorkflowsEnabled).toBeFalsy();
                 },
             });
@@ -4210,6 +4210,7 @@ describe('actions/Policy', () => {
                 transactionViolations: {},
                 isASAPSubmitBetaEnabled: false,
                 personalDetailsList: {},
+                personalDetailsByLogins: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -4274,6 +4275,7 @@ describe('actions/Policy', () => {
                 transactionViolations: {},
                 isASAPSubmitBetaEnabled: undefined,
                 personalDetailsList: {},
+                personalDetailsByLogins: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -4321,6 +4323,7 @@ describe('actions/Policy', () => {
                 transactionViolations: {},
                 isASAPSubmitBetaEnabled: false,
                 personalDetailsList: {},
+                personalDetailsByLogins: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -5120,6 +5123,74 @@ describe('actions/Policy', () => {
             });
 
             expect(activePolicyID).toBe(mostRecentlyCreatedGroupPolicy.id);
+        });
+
+        it('should not pick a workspace the member cannot create expenses on as the new active policy', async () => {
+            // Given a default workspace to delete, a newer approve-only workspace, and an older regular workspace
+            // When the deletion optimistically picks the new active workspace
+            // Then the approve-only workspace is skipped, so it never shows the Default label
+            const personalPolicy = createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL);
+            personalPolicy.created = '2020-01-01 10:00:00';
+            personalPolicy.pendingAction = null;
+
+            const activePolicy = createRandomPolicy(2, CONST.POLICY.TYPE.TEAM);
+            activePolicy.created = '2021-01-01 10:00:00';
+            activePolicy.role = CONST.POLICY.ROLE.USER;
+            activePolicy.pendingAction = null;
+
+            const approveOnlyPolicy = createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE);
+            approveOnlyPolicy.created = '3000-01-01 10:00:00';
+            approveOnlyPolicy.role = CONST.POLICY.ROLE.APPROVE_ONLY;
+            approveOnlyPolicy.pendingAction = null;
+
+            const regularGroupPolicy = createRandomPolicy(4, CONST.POLICY.TYPE.CORPORATE);
+            regularGroupPolicy.created = '2022-01-01 10:00:00';
+            regularGroupPolicy.role = CONST.POLICY.ROLE.USER;
+            regularGroupPolicy.pendingAction = null;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`, personalPolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${activePolicy.id}`, activePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${approveOnlyPolicy.id}`, approveOnlyPolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${regularGroupPolicy.id}`, regularGroupPolicy);
+            await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, activePolicy.id);
+            await waitForBatchedUpdates();
+
+            Policy.deleteWorkspace({
+                policies: {
+                    [`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`]: personalPolicy,
+                    [`${ONYXKEYS.COLLECTION.POLICY}${activePolicy.id}`]: activePolicy,
+                    [`${ONYXKEYS.COLLECTION.POLICY}${approveOnlyPolicy.id}`]: approveOnlyPolicy,
+                    [`${ONYXKEYS.COLLECTION.POLICY}${regularGroupPolicy.id}`]: regularGroupPolicy,
+                },
+                policyID: activePolicy.id,
+                personalPolicyID: personalPolicy.id,
+                activePolicyID: activePolicy.id,
+                policyName: activePolicy.name,
+                lastAccessedWorkspacePolicyID: undefined,
+                policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
+                reportsToArchive: [],
+                transactionViolations: undefined,
+                reimbursementAccountError: undefined,
+                lastUsedPaymentMethods: undefined,
+                localeCompare: TestHelper.localeCompare,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                accountIDToLogin: {},
+            });
+            await waitForBatchedUpdates();
+
+            const activePolicyID: OnyxEntry<string> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+                    callback: (policyID) => {
+                        connection.unsubscribe();
+                        resolve(policyID);
+                    },
+                });
+            });
+
+            expect(activePolicyID).toBe(regularGroupPolicy.id);
         });
 
         it('should clear reimbursement account errors when no admin group workspace remains after deleting a workspace', async () => {

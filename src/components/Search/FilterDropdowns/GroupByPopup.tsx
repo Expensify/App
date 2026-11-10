@@ -73,8 +73,8 @@ function GroupByPopup({value, sections, onBackButtonPress, closeOverlay, onChang
             onApply={applyChanges}
             onBackButtonPress={onBackButtonPress}
             label={translate('search.display.groupBy')}
-            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_SINGLE_SELECT}
-            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_SINGLE_SELECT}
+            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.DISPLAY_POPUP_RESET.GROUP_BY}
+            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.DISPLAY_POPUP_APPLY.GROUP_BY}
         >
             <ListFilterWrapper
                 itemCount={itemCount}
