@@ -83,7 +83,10 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 key={item.description}
                 pendingAction={settingsPendingAction(item.subscribedSettings, config?.pendingFields) ?? settingsPendingAction(item.subscribedSettings, autoSyncConfig?.pendingFields)}
             >
-                <MenuItem.Root onPress={item?.onPress ? callFunctionIfActionIsAllowed(item.onPress, false, session) : undefined}>
+                <MenuItem.Root
+                    onPress={item?.onPress ? callFunctionIfActionIsAllowed(item.onPress, false, session) : undefined}
+                    sentryLabel={item.sentryLabel}
+                >
                     <MenuItemField.Row
                         name={item.description ?? ''}
                         value={item.title}
@@ -102,6 +105,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             type: 'menuitem',
             title: autoSync ? translate('common.enabled') : translate('common.disabled'),
             description: translate('workspace.accounting.autoSync'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.ADVANCED_ROW.AUTO_SYNC,
             onPress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NETSUITE_AUTO_SYNC.path)),
             hintText: (() => {
                 if (!autoSync) {
@@ -134,6 +138,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
         {
             type: 'menuitem',
             description: translate('workspace.netsuite.advancedConfig.reimbursementsAccount'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.ADVANCED_ROW.REIMBURSEMENTS_ACCOUNT,
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_REIMBURSEMENT_ACCOUNT_SELECT.getRoute(policyID)),
             title: selectedReimbursementAccount ? selectedReimbursementAccount.name : undefined,
             subscribedSettings: [CONST.NETSUITE_CONFIG.REIMBURSEMENT_ACCOUNT_ID],
@@ -142,6 +147,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
         {
             type: 'menuitem',
             description: translate('workspace.netsuite.advancedConfig.collectionsAccount'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.ADVANCED_ROW.COLLECTIONS_ACCOUNT,
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_COLLECTION_ACCOUNT_SELECT.getRoute(policyID)),
             title: selectedCollectionAccount ? selectedCollectionAccount.name : undefined,
             subscribedSettings: [CONST.NETSUITE_CONFIG.COLLECTION_ACCOUNT],
@@ -150,6 +156,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
         {
             type: 'menuitem',
             description: translate('workspace.netsuite.advancedConfig.fxExpenseAccount'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.ADVANCED_ROW.FX_EXPENSE_ACCOUNT,
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_FX_EXPENSE_ACCOUNT_SELECT.getRoute(policyID)),
             title: selectedFxExpenseAccount ? selectedFxExpenseAccount.name : undefined,
             subscribedSettings: [CONST.NETSUITE_CONFIG.FX_EXPENSE_ACCOUNT],
@@ -208,6 +215,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
         {
             type: 'menuitem',
             description: translate('workspace.netsuite.advancedConfig.exportReportsTo.label'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.ADVANCED_ROW.EXPORT_REPORTS_TO,
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPENSE_REPORT_APPROVAL_LEVEL_SELECT.getRoute(policyID)),
             title: config?.syncOptions.exportReportsTo ? translate(`workspace.netsuite.advancedConfig.exportReportsTo.values.${config.syncOptions.exportReportsTo}`) : undefined,
             subscribedSettings: [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_REPORTS_TO],
@@ -216,6 +224,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
         {
             type: 'menuitem',
             description: translate('workspace.netsuite.advancedConfig.exportVendorBillsTo.label'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.ADVANCED_ROW.EXPORT_VENDOR_BILLS_TO,
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_VENDOR_BILL_APPROVAL_LEVEL_SELECT.getRoute(policyID)),
             title: config?.syncOptions.exportVendorBillsTo ? translate(`workspace.netsuite.advancedConfig.exportVendorBillsTo.values.${config.syncOptions.exportVendorBillsTo}`) : undefined,
             subscribedSettings: [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_VENDOR_BILLS_TO],
@@ -224,6 +233,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
         {
             type: 'menuitem',
             description: translate('workspace.netsuite.advancedConfig.exportJournalsTo.label'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.ADVANCED_ROW.EXPORT_JOURNALS_TO,
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_JOURNAL_ENTRY_APPROVAL_LEVEL_SELECT.getRoute(policyID)),
             title: config?.syncOptions.exportJournalsTo ? translate(`workspace.netsuite.advancedConfig.exportJournalsTo.values.${config.syncOptions.exportJournalsTo}`) : undefined,
             subscribedSettings: [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_JOURNALS_TO],
@@ -232,6 +242,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
         {
             type: 'menuitem',
             description: translate('workspace.netsuite.advancedConfig.approvalAccount'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.ADVANCED_ROW.APPROVAL_ACCOUNT,
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_APPROVAL_ACCOUNT_SELECT.getRoute(policyID)),
             title: selectedApprovalAccount ? selectedApprovalAccount.name : undefined,
             subscribedSettings: [CONST.NETSUITE_CONFIG.APPROVAL_ACCOUNT],
@@ -263,6 +274,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 {
                     type: 'menuitem',
                     description: translate('workspace.netsuite.advancedConfig.customFormIDReimbursable'),
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.ADVANCED_ROW.CUSTOM_FORM_ID_REIMBURSABLE,
                     onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_CUSTOM_FORM_ID.getRoute(policyID, CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE)),
                     title: config?.customFormIDOptions?.reimbursable?.[CONST.NETSUITE_MAP_EXPORT_DESTINATION[config.reimbursableExpensesExportDestination]],
                     subscribedSettings: [CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_TYPE.REIMBURSABLE],
@@ -271,6 +283,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 {
                     type: 'menuitem',
                     description: translate('workspace.netsuite.advancedConfig.customFormIDNonReimbursable'),
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.ADVANCED_ROW.CUSTOM_FORM_ID_NON_REIMBURSABLE,
                     onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_CUSTOM_FORM_ID.getRoute(policyID, CONST.NETSUITE_EXPENSE_TYPE.NON_REIMBURSABLE)),
                     title: config?.customFormIDOptions?.nonReimbursable?.[CONST.NETSUITE_MAP_EXPORT_DESTINATION[config.nonreimbursableExpensesExportDestination]],
                     subscribedSettings: [CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_TYPE.NON_REIMBURSABLE],

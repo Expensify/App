@@ -115,6 +115,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
         >
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED, CONST.SAGE_INTACCT_CONFIG.ACCOUNTING_METHOD], config?.pendingFields)}>
                 <MenuItem.Root
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.AUTO_SYNC}
                     onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC.path)), false, session)}
                 >
                     <MenuItemField.Row
@@ -156,6 +157,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                     pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID], pendingFields)}
                 >
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.PAYMENT_ACCOUNT}
                         name={translate('workspace.sageIntacct.paymentAccount')}
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT.getRoute(policyID))}
                         value={getReimbursedAccountName(data?.bankAccounts ?? [], sync?.reimbursementAccountID)}
@@ -171,6 +173,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                         pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.FX_EXPENSE_ACCOUNT], pendingFields)}
                     >
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.FX_EXPENSE_ACCOUNT}
                             name={translate('workspace.sageIntacct.fxExpenseAccount')}
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_FX_EXPENSE_ACCOUNT.getRoute(policyID))}
                             value={data?.expenseAccounts?.find((account) => account.id === config?.fxExpenseAccount)?.name}

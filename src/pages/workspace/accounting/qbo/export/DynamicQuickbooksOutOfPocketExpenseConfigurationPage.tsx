@@ -23,6 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ValueOf} from 'type-fest';
 
@@ -39,6 +40,7 @@ type QBOSectionType = {
     pendingAction?: PendingAction;
     errors?: Errors;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+    sentryLabel: SentryLabel;
 };
 
 const account = [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT];
@@ -80,6 +82,7 @@ function DynamicQuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPoli
         {
             title: qboConfig?.reimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${qboConfig?.reimbursableExpensesExportDestination}`) : undefined,
             description: translate('workspace.accounting.exportAs'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.EXPORT_OUT_OF_POCKET_ROW.EXPORT_AS,
             onPress: () => {
                 if (!policyID) {
                     return;
@@ -94,6 +97,7 @@ function DynamicQuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPoli
         {
             title: qboConfig?.reimbursableExpensesAccount?.name,
             description: accountDescription,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.EXPORT_OUT_OF_POCKET_ROW.ACCOUNT,
             onPress: () => {
                 if (!policyID) {
                     return;
@@ -136,7 +140,10 @@ function DynamicQuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPoli
                     errors={section.errors}
                     errorRowStyles={[styles.ph5]}
                 >
-                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(section.onPress, false, session)}>
+                    <MenuItem.Root
+                        onPress={callFunctionIfActionIsAllowed(section.onPress, false, session)}
+                        sentryLabel={section.sentryLabel}
+                    >
                         <MenuItemField.Row
                             name={section.description ?? ''}
                             value={section.title}
