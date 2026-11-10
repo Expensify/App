@@ -53,6 +53,17 @@ describe('sanitizeLogParams', () => {
         });
     });
 
+    it('redacts the inputs of a Wise onboarding page, which can hold an SSN', () => {
+        // Given the parameters of a page save whose inputs carry an SSN, which the API logs before sending
+        const params = {command: 'UpdateWiseOnboardingAdditionalData', step: 'representative', inputs: JSON.stringify({ssn: '123456789'})};
+
+        // When they are sanitized for the logs
+        const result = sanitizeLogParams(params);
+
+        // Then the inputs are redacted, so the SSN never reaches the server logs, and the rest stays readable
+        expect(result).toEqual({command: 'UpdateWiseOnboardingAdditionalData', step: 'representative', inputs: '<redacted>'});
+    });
+
     it('leaves non-sensitive keys untouched', () => {
         const result = sanitizeLogParams({policyID: '1', currency: 'USD'});
         expect(result).toEqual({policyID: '1', currency: 'USD'});

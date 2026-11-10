@@ -114,6 +114,16 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/edit/split-expense/overview/123/456/789?backTo=/r/123')).toBe('/create/split-expense/overview/123/456/0/split-expense/edit/123/789?backTo=/r/123');
     });
 
+    it('does not rewrite the split expense edit route opened from the Date tab of the Search split overview', () => {
+        // Given a split edit URL built on top of the Search split overview while the Date tab is active
+        const splitEditPath = '/search/split-expense-overview-search/date/split-expense/edit/123/456';
+
+        // When it is matched against the legacy routes
+        // Then it comes back unchanged, so the legacy `/*/*/date/*/*/*` pattern can't turn it into a broken expense-date route
+        expect(getMatchingNewRoute(splitEditPath)).toBe(splitEditPath);
+        expect(getMatchingNewRoute(`${splitEditPath}?backTo=/search`)).toBe(`${splitEditPath}?backTo=/search`);
+    });
+
     it('redirects old card reconciliation account path with two wildcards', () => {
         expect(getMatchingNewRoute('/workspaces/abc/accounting/xero/card-reconciliation/account')).toBe(
             '/workspaces/abc/accounting/xero/card-reconciliation/account-reconciliation-settings',

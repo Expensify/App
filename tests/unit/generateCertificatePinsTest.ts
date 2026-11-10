@@ -26,11 +26,24 @@ jest.setTimeout(120000);
 const repoRoot = path.resolve(__dirname, '../..');
 const scriptPath = path.join(repoRoot, 'scripts/generateCertificatePins.sh');
 const pinsJsonPath = path.join(repoRoot, 'config/certificatePinning/pins.json');
+/**
+ * Keep the HybridApp pin lists used in store builds in sync with pins.json.
+ * Include each Mobile-Expensify file that exists when this suite runs.
+ * Missing files are skipped so the suite can run without the submodule.
+ * CI does not check out the submodule, so these files are only checked locally.
+ */
+const hybridAppPinFiles = [
+    'Mobile-Expensify/Android/res/xml/network_security_config_enforce.xml',
+    'Mobile-Expensify/Android/src/yapl/android/http/ExpensifyCertificatePinner.java',
+    'Mobile-Expensify/iOS/Expensify/ExpensifyAppDelegate.m',
+].filter((relativePath) => fs.existsSync(path.join(repoRoot, relativePath)));
+
 const nativePinFiles = [
     'android/app/src/main/java/com/expensify/chat/CertificatePinning.kt',
     'android/app/src/main/res/xml/network_security_config_enforce.xml',
     'ios/CertificatePinning.swift',
     'patches/react-native-nitro-fetch/react-native-nitro-fetch+1.6.2+001+certificate-pinning.patch',
+    ...hybridAppPinFiles,
 ];
 
 const CLOUDFLARE_GROUP_HEADER = '=== Groups A-D: Cloudflare-fronted expensify.com hosts ===';

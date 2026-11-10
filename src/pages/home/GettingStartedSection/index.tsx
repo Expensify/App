@@ -31,7 +31,7 @@ function GettingStartedSection() {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
     const [guideDetails] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountGuideDetailsSelector});
-    const hasGuide = !!guideDetails?.email;
+    const hasAccountExecutive = !!guideDetails?.email && guideDetails.email.toLowerCase() !== CONST.EMAIL.CONCIERGE;
     const {shouldShowSection, items} = useGettingStartedItems();
 
     const openAdminsRoom = () => {
@@ -50,7 +50,7 @@ function GettingStartedSection() {
         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: adminsRoomReportID, backTo: ROUTES.HOME}));
     };
 
-    const helpLinkText = translate(hasGuide ? 'homePage.gettingStartedSection.talkToAccountExecutive' : 'homePage.gettingStartedSection.talkToConcierge');
+    const helpLinkText = translate(hasAccountExecutive ? 'homePage.gettingStartedSection.talkToAccountExecutive' : 'homePage.gettingStartedSection.talkToConcierge');
     const footerHelpText = `${translate('homePage.gettingStartedSection.needHelp')} ${helpLinkText} ${translate('homePage.gettingStartedSection.forGuidedSetup')}`;
 
     if (!shouldShowSection) {

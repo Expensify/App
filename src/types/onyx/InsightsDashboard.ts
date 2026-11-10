@@ -24,8 +24,20 @@ type InsightsGraph = {
     /** Hash of the snapshot holding the data for the "Average" compare mode */
     averageSnapshotHash?: number;
 
-    /** Average group total over the selected period, in the same units as the snapshot's totals, which the "Average" compare mode draws */
-    average?: number;
+    /** Average group total over the selected period, in the same units as the snapshot's totals, which the "Average" compare mode draws on amount charts */
+    averageAmount?: number;
+
+    /** Average number of expenses per group over the selected period, which the "Average" compare mode draws on count charts */
+    averageCount?: number;
+};
+
+/** AI-written insight about the dashboard's data */
+type AIInsight = {
+    /** Narration shown on the card */
+    text: string;
+
+    /** Message sent to Concierge when the user asks it to explain the card */
+    explainPrompt: string;
 };
 
 /** What the backend returns for one dashboard and set of filters */
@@ -36,6 +48,9 @@ type InsightsDashboard = {
     /** Whether the account has any expenses at all, regardless of the query, so an empty account can be told apart from filters that matched nothing */
     hasResults?: boolean;
 
+    /** Cards drawn above the headline chart */
+    aiInsights?: AIInsight[];
+
     /** Query the stored graphs answer */
     inputQuery?: string;
 
@@ -45,5 +60,5 @@ type InsightsDashboard = {
     responseJsonCode?: number;
 };
 
-export type {InsightsDashboardID, InsightsGraphKey, InsightsSearchKey};
+export type {AIInsight, InsightsDashboardID, InsightsGraphKey, InsightsSearchKey};
 export default InsightsDashboard;

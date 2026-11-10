@@ -13,6 +13,7 @@ import useNetwork from '@hooks/useNetwork';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
+import * as Member from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 
@@ -388,7 +389,7 @@ describe('WorkspaceMembers', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -613,8 +614,26 @@ describe('WorkspaceMembers', () => {
         });
     });
 
-    describe('Role display on Submit workspaces', () => {
-        it('should show the workspace owner as Editor instead of Owner', async () => {
+    describe('Owner role display', () => {
+        const getOwnerRowLabel = () => new RegExp(`^Owner User, ${TestHelper.translateLocal('common.owner')}, ${ownerEmail}`);
+
+        it('should show the owner as Workspace admin with an Owner badge on Control workspaces', async () => {
+            // Given a Control workspace, whose owner is a workspace admin in employeeList
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            // When the members list renders the owner row
+            const ownerRow = await screen.findByLabelText(getOwnerRowLabel());
+
+            // Then the Role column matches the member details page, and ownership is a badge next to the name
+            const adminLabel = TestHelper.translateLocal('workspace.common.roleName', CONST.POLICY.ROLE.ADMIN);
+            expect(within(ownerRow).getByText(adminLabel)).toBeOnTheScreen();
+            expect(within(ownerRow).getByText(TestHelper.translateLocal('common.owner'))).toBeOnTheScreen();
+
+            unmount();
+        });
+
+        it('should show the workspace owner as Editor with an Owner badge on Submit workspaces', async () => {
             // Given a Submit workspace, where every member (including the owner) uses the flat Editor role
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {type: CONST.POLICY.TYPE.SUBMIT});
@@ -624,13 +643,36 @@ describe('WorkspaceMembers', () => {
             await waitForBatchedUpdatesWithAct();
 
             // When the members list renders the owner row
-            const ownerRow = await screen.findByLabelText(new RegExp(`^Owner User, ${ownerEmail}`));
+            const ownerRow = await screen.findByLabelText(getOwnerRowLabel());
 
-            // Then the owner's role is displayed as Editor, not Owner
+            // Then the owner's role stays Editor, and ownership is still a badge next to the name
             const editorLabel = TestHelper.translateLocal('workspace.common.roleName', CONST.POLICY.ROLE.EDITOR);
-            const ownerLabel = TestHelper.translateLocal('workspace.common.roleName', CONST.POLICY.ROLE.OWNER);
             expect(within(ownerRow).getByText(editorLabel)).toBeOnTheScreen();
-            expect(within(ownerRow).queryByText(ownerLabel)).not.toBeOnTheScreen();
+            expect(within(ownerRow).getByText(TestHelper.translateLocal('common.owner'))).toBeOnTheScreen();
+
+            unmount();
+        });
+
+        it('should put the real role in the narrow subtitle and keep the Owner badge next to the name', async () => {
+            // Given a Control workspace on a narrow layout, where the Role column is hidden and the subtitle carries it
+            jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
+                createMock<ResponsiveLayoutResult>({
+                    isSmallScreenWidth: true,
+                    shouldUseNarrowLayout: true,
+                    isMediumScreenWidth: false,
+                }),
+            );
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            // When the members list renders the owner row
+            const ownerRow = await screen.findByLabelText(getOwnerRowLabel());
+            const adminLabel = TestHelper.translateLocal('workspace.common.roleName', CONST.POLICY.ROLE.ADMIN);
+
+            // Then the subtitle shows the real role with the email, and the badge still sits next to the name
+            expect(within(ownerRow).getByText(`${adminLabel} • ${ownerEmail}`)).toBeOnTheScreen();
+            expect(within(ownerRow).getByText(TestHelper.translateLocal('common.owner'))).toBeOnTheScreen();
 
             unmount();
         });
@@ -660,7 +702,9 @@ describe('WorkspaceMembers', () => {
 
             expect(screen.getByLabelText(approverHeaderLabel())).toBeOnTheScreen();
 
-            const ownerRow = await screen.findByLabelText(new RegExp(`^Owner User, ${ownerEmail}, ${TestHelper.translateLocal('common.approver')}: Admin User`));
+            const ownerRow = await screen.findByLabelText(
+                new RegExp(`^Owner User, ${TestHelper.translateLocal('common.owner')}, ${ownerEmail}, ${TestHelper.translateLocal('common.approver')}: Admin User`),
+            );
             expect(ownerRow).toBeOnTheScreen();
 
             const adminRow = screen.getByLabelText(new RegExp(`^Admin User, ${adminEmail}, ${TestHelper.translateLocal('common.approver')}: Admin User`));
@@ -689,7 +733,9 @@ describe('WorkspaceMembers', () => {
             const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
             await waitForBatchedUpdatesWithAct();
 
-            const ownerRow = await screen.findByLabelText(new RegExp(`^Owner User, ${ownerEmail}, ${TestHelper.translateLocal('common.approver')}: Admin User`));
+            const ownerRow = await screen.findByLabelText(
+                new RegExp(`^Owner User, ${TestHelper.translateLocal('common.owner')}, ${ownerEmail}, ${TestHelper.translateLocal('common.approver')}: Admin User`),
+            );
 
             // Only the approver is mid-change, so the dim belongs to that cell. Dimming the row instead would read
             // as the whole member being mid-change, and it would come and go with the column's own layout rules.
@@ -791,7 +837,7 @@ describe('WorkspaceMembers', () => {
             expect(await screen.findByLabelText(new RegExp(`^Auditor User, ${auditorEmail}, ${approverLabel}: Admin User`))).toBeOnTheScreen();
 
             // The owner falls back to the default approver rather than keeping the auditor the downgrade dropped.
-            expect(screen.getByLabelText(new RegExp(`^Owner User, ${ownerEmail}, ${approverLabel}: Admin User`))).toBeOnTheScreen();
+            expect(screen.getByLabelText(new RegExp(`^Owner User, ${TestHelper.translateLocal('common.owner')}, ${ownerEmail}, ${approverLabel}: Admin User`))).toBeOnTheScreen();
 
             unmount();
         });
@@ -822,7 +868,7 @@ describe('WorkspaceMembers', () => {
             expect(screen.getByLabelText(new RegExp(`^Admin User, ${adminEmail}, ${approverLabel}: Owner User`))).toBeOnTheScreen();
 
             // The owner is the default approver, so they approve their own expenses and show as their own approver.
-            expect(screen.getByLabelText(new RegExp(`^Owner User, ${ownerEmail}, ${approverLabel}: Owner User`))).toBeOnTheScreen();
+            expect(screen.getByLabelText(new RegExp(`^Owner User, ${TestHelper.translateLocal('common.owner')}, ${ownerEmail}, ${approverLabel}: Owner User`))).toBeOnTheScreen();
 
             unmount();
         });
@@ -1079,6 +1125,38 @@ describe('WorkspaceMembers', () => {
             });
 
             unmount();
+        });
+    });
+
+    describe('Spreadsheet download', () => {
+        it('should download the approvers of each member with multiple approvers', async () => {
+            // Given multiple approvers, where the members spreadsheet lists every approver of each member's workflow
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.MULTIPLE_APPROVERS]);
+            });
+            const downloadMembersCSVSpy = jest.spyOn(Member, 'downloadMembersCSV').mockImplementation(() => {});
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+            await waitFor(() => {
+                expect(screen.getByText(USER_OPTION)).toBeOnTheScreen();
+            });
+
+            // When the admin downloads the CSV from the page's More menu
+            fireEvent.press(screen.getByText(TestHelper.translateLocal('common.more')));
+            await waitForBatchedUpdatesWithAct();
+            const downloadMenuItem = screen.getByText(TestHelper.translateLocal('spreadsheet.downloadCSV'));
+            fireEvent.press(downloadMenuItem, {nativeEvent: {}, type: 'press', target: downloadMenuItem, currentTarget: downloadMenuItem});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the download asks for the approvers too
+            await waitFor(() => {
+                expect(downloadMembersCSVSpy).toHaveBeenCalledWith(policy.id, true, expect.any(Function), expect.any(Function));
+            });
+
+            downloadMembersCSVSpy.mockRestore();
+            unmount();
+            await waitForBatchedUpdatesWithAct();
         });
     });
 });
