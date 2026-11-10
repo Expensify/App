@@ -1,6 +1,29 @@
 import getMatchingNewRoute from '@navigation/helpers/getMatchingNewRoute';
 
 describe('getBestMatchingPath', () => {
+    it.each([
+        ['/insights', '/insights/spend'],
+        ['/insights/', '/insights/spend'],
+        ['/insights?backTo=/home', '/insights/spend?backTo=/home'],
+        ['/insights/?backTo=/home', '/insights/spend?backTo=/home'],
+    ])('redirects %s to the Spend dashboard', (path, expectedPath) => {
+        // Given an Insights link without a dashboard, which would otherwise show Not Found
+        // When resolving the link through the existing redirects
+        const redirectedPath = getMatchingNewRoute(path);
+
+        // Then Spend is selected without losing the link's query parameters
+        expect(redirectedPath).toBe(expectedPath);
+    });
+
+    it.each(['/insights/spend', '/insights/compliance', '/insights/spend/details/topSpenders', '/insights-other'])('does not redirect %s to the default dashboard', (path) => {
+        // Given an explicit dashboard, a detail link, or a different route sharing the Insights prefix
+        // When checking for a default-dashboard redirect
+        const redirectedPath = getMatchingNewRoute(path);
+
+        // Then the original destination remains responsible for handling the link
+        expect(redirectedPath).toBeUndefined();
+    });
+
     it('returns mapped base path when input matches the exact pattern', () => {
         expect(getMatchingNewRoute('/settings/workspaces/')).toBe('/workspaces/');
     });
