@@ -2,6 +2,8 @@ import {render, screen} from '@testing-library/react-native';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
+import CONST from '@src/CONST';
+
 import type ReactNative from 'react-native';
 
 import React from 'react';
@@ -21,6 +23,7 @@ function renderRow(shouldParseSubtitle: boolean) {
             subtitleStyle={SUBTITLE_STYLE}
             parsedSubtitleContainerStyle={SUBTITLE_STYLE}
             switchAccessibilityLabel="Auto-pay approved reports"
+            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.AUTO_PAY_APPROVED_REPORTS_SWITCH}
             shouldPlaceSubtitleBelowSwitch
             shouldParseSubtitle={shouldParseSubtitle}
             isActive={false}
@@ -54,5 +57,16 @@ describe('ToggleSettingOptionRow', () => {
 
         // Then its wrapper gets the same custom style as the plain-text subtitle
         expect(subtitleWrapper).toHaveStyle(SUBTITLE_STYLE);
+    });
+
+    it('reports switch taps to Sentry with the label its caller passed', () => {
+        // Given a row rendered by a feature that passes its own Sentry label
+        renderRow(false);
+
+        // When Sentry reads the label of the tapped switch
+        const switchElement = screen.getByRole(CONST.ROLE.SWITCH);
+
+        // Then it gets the feature's label, so different toggles aren't grouped under one label
+        expect(switchElement).toHaveProp('sentryLabel', CONST.SENTRY_LABEL.WORKSPACE.RULES.AUTO_PAY_APPROVED_REPORTS_SWITCH);
     });
 });

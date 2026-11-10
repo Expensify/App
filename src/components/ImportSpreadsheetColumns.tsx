@@ -92,6 +92,7 @@ function ImportSpreadsheetColumns({
                             </Text>
                             <Switch
                                 accessibilityLabel={translate('spreadsheet.fileContainsHeader')}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.IMPORT_SPREADSHEET_FILE_CONTAINS_HEADER_SWITCH}
                                 isOn={containsHeader}
                                 // eslint-disable-next-line @typescript-eslint/no-misused-promises
                                 onToggle={setContainsHeader}

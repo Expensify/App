@@ -38,6 +38,7 @@ import ExpenseFieldRow from './ExpenseFieldRow';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {taxSliceSelector} from './selectors';
 import TaxFieldDropdown from './TaxFieldDropdown';
+import useSplitDraftBaseTransaction from './useSplitDraftBaseTransaction';
 import useTransactionSelector from './useTransactionSelector';
 
 type TaxFieldsProps = {
@@ -63,9 +64,8 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     const {isEditingSplitBill, onTaxAmountEmptyChange} = useConfirmationFields();
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
 
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-
     const taxSlice = useTransactionSelector(transactionID, taxSliceSelector);
+    const {baseTransaction} = useSplitDraftBaseTransaction(transactionID);
 
     const transactionForHelpers = taxSlice as OnyxEntry<OnyxTypes.Transaction>;
 
@@ -106,7 +106,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
         // When editing a split expense, persist directly to the split draft so that
         // SplitBillDetailsPage and completeSplitBill read the latest value.
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {taxAmount: taxAmountInSmallestCurrencyUnits}, getCurrencyDecimals, getCurrencySymbol);
+            setDraftSplitTransaction(transactionID, baseTransaction, {taxAmount: taxAmountInSmallestCurrencyUnits}, getCurrencyDecimals, getCurrencySymbol);
             return;
         }
 

@@ -119,6 +119,7 @@ function WorkspaceEditTaxPage({
                                 <Switch
                                     isOn={!currentTaxRate?.isDisabled}
                                     accessibilityLabel={translate('workspace.taxes.actions.enable')}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.EDIT_ENABLE_SWITCH}
                                     onToggle={toggleTaxRate}
                                     disabled={!canDisableOrDeleteTaxRate}
                                     disabledAction={withReadOnlyFallback()}

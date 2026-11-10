@@ -180,7 +180,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const privateIsArchivedMap = usePrivateIsArchivedMap();
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`);
     const [memberBankAccounts] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_BANK_ACCOUNTS}${policyID}`);
-    const {approvalWorkflows, enforcedApprovalWorkflows, approverPendingActionByMemberEmail} = useApprovalWorkflows(policy);
+    const {approvalWorkflows, enforcedApprovalWorkflows, approverPendingActionByMemberEmail, shouldUseApprovalWorkflowRules} = useApprovalWorkflows(policy);
 
     const shouldShowMemberBankAccounts = isPolicyAdmin(policy) && arePaymentsEnabled(policy);
     const getWorkspaceMembersEvent = useEffectEvent(() => getWorkspaceMembers());
@@ -246,7 +246,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
-    const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
     const currentUserLogin = currentUserPersonalDetails.login;
     const canEditWorkspaceSettings = canEditWorkspaceSettingsUtil(policy, currentUserLogin);
     const canWriteMembers = canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS);
@@ -697,7 +696,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         return;
                     }
                     close(() => {
-                        downloadMembersCSV(policyID, isMultipleApproversBetaEnabled, showDownloadErrorModal, translate);
+                        downloadMembersCSV(policyID, shouldUseApprovalWorkflowRules, showDownloadErrorModal, translate);
                     });
                 },
                 value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,

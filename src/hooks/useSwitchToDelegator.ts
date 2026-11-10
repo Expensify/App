@@ -7,13 +7,14 @@ import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
-import type {Account} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
 
 import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
-import useOnyx from './useOnyx';
 
 /**
  * Encapsulates the safety checks needed before switching to a delegator account:
@@ -29,15 +30,6 @@ function useSwitchToDelegator() {
     const {showConfirmModal} = useConfirmModal();
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-
-    const [delegatedAccess] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account: Account | undefined) => account?.delegatedAccess});
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
-    const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
-    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
 
     const showOfflineModal = () => {
         showConfirmModal({
@@ -60,30 +52,48 @@ function useSwitchToDelegator() {
             return;
         }
 
+        const gpsDraftDetails = await Onyx.get(ONYXKEYS.GPS_DRAFT_DETAILS);
         await stopGpsTrip(false, getGpsPoints(gpsDraftDetails), true);
         switchAccount();
     };
 
-    const switchToDelegator = (email: string) => {
+    const switchToDelegator = async (email: string, routeAfterSwitch?: Route) => {
         if (isOffline) {
             modalClose(() => showOfflineModal());
             return;
         }
+        // Register before the first await: once the press handler returns, React hides the menu and unregisters it,
+        // so a later modalClose would open the next modal over the closing menu, which freezes iOS.
+        const menuClosed = new Promise<void>((resolve) => {
+            modalClose(resolve);
+        });
+        const [account, credentials, stashedCredentials, session, stashedSession, activePolicyID, gpsDraftDetails] = await Onyx.multiGet([
+            ONYXKEYS.ACCOUNT,
+            ONYXKEYS.CREDENTIALS,
+            ONYXKEYS.STASHED_CREDENTIALS,
+            ONYXKEYS.SESSION,
+            ONYXKEYS.STASHED_SESSION,
+            ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+            ONYXKEYS.GPS_DRAFT_DETAILS,
+        ]);
+        const delegatedAccess = account?.delegatedAccess;
         const isReturningToOriginalUser = isActingAsDelegate && email === stashedSession?.email;
-        // Chained delegation isn't supported by the backend — if we're already acting as a delegate,
+        // Chained delegation isn't supported by the backend: if we're already acting as a delegate,
         // the only legal switch is back to the original user. Anything else triggers the "Not so fast" modal.
         if (isActingAsDelegate && !isReturningToOriginalUser) {
-            modalClose(() => showDelegateNoAccessModal());
+            await menuClosed;
+            showDelegateNoAccessModal();
             return;
         }
-        const switchAction = isReturningToOriginalUser
-            ? () => disconnect({stashedCredentials, stashedSession})
-            : () => connect({email, delegatedAccess, credentials, session, activePolicyID});
-        if (isTrackingGPS) {
-            modalClose(() => showGpsInProgressModal(switchAction));
+        const switchAccount = isReturningToOriginalUser
+            ? () => disconnect({stashedCredentials: stashedCredentials ?? CONST.EMPTY_OBJECT, stashedSession})
+            : () => connect({email, delegatedAccess, credentials, session, activePolicyID, routeAfterSwitch});
+        if (isTrackingSelector(gpsDraftDetails)) {
+            await menuClosed;
+            showGpsInProgressModal(switchAccount);
             return;
         }
-        switchAction();
+        switchAccount();
     };
 
     return switchToDelegator;
