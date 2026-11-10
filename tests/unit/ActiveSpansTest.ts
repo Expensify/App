@@ -15,6 +15,7 @@ const mockStartInactiveSpan = jest.fn<MockInactiveSpan, [StartSpanOptions]>(() =
     setStatus: jest.fn<void, Parameters<Span['setStatus']>>(),
     end: jest.fn<void, Parameters<Span['end']>>(),
 }));
+const mockSpanToJSON = jest.fn(() => ({data: {}}));
 
 jest.mock('@libs/telemetry/logBenchmarkSpanEnd', () => ({
     __esModule: true,
@@ -23,12 +24,17 @@ jest.mock('@libs/telemetry/logBenchmarkSpanEnd', () => ({
 }));
 jest.mock('@sentry/react-native', () => ({
     startInactiveSpan: (options: StartSpanOptions) => mockStartInactiveSpan(options),
-    spanToJSON: () => ({data: {}}),
+    spanToJSON: () => mockSpanToJSON(),
 }));
 
+const originalDev = __DEV__;
+
 afterEach(() => {
+    // eslint-disable-next-line no-underscore-dangle -- __DEV__ is the React Native global the code under test reads
+    (global as Record<string, unknown>).__DEV__ = originalDev;
     jest.restoreAllMocks();
     mockStartInactiveSpan.mockClear();
+    mockSpanToJSON.mockClear();
 });
 
 describe('activeSpans', () => {
@@ -47,6 +53,29 @@ describe('activeSpans', () => {
         endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP_NETWORK_REQUEST);
 
         expect(consoleDebugSpy).toHaveBeenLastCalledWith(expect.stringContaining('Ending span (750ms)'), expect.objectContaining({durationMs: 750, timestamp: 1_786_362_201_750}));
+    });
+    it('does not log to the console in a production build', () => {
+        // Given a production build, because release bundles keep console.debug and React Native serializes every argument before logging it natively
+        // eslint-disable-next-line no-underscore-dangle -- __DEV__ is the React Native global the code under test reads
+        (global as Record<string, unknown>).__DEV__ = false;
+        const consoleDebugSpy = jest.spyOn(console, 'debug').mockImplementation(() => {});
+        consoleDebugSpy.mockClear();
+        const span: MockInactiveSpan = {
+            setAttribute: jest.fn<void, Parameters<Span['setAttribute']>>(),
+            setStatus: jest.fn<void, Parameters<Span['setStatus']>>(),
+            end: jest.fn<void, Parameters<Span['end']>>(),
+        };
+        mockStartInactiveSpan.mockReturnValueOnce(span);
+
+        // When a span is started and ended, as every measured navigation does
+        startSpan(CONST.TELEMETRY.SPAN_APP_STARTUP_NETWORK_REQUEST, {name: CONST.TELEMETRY.SPAN_APP_STARTUP_NETWORK_REQUEST});
+        endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP_NETWORK_REQUEST);
+
+        // Then nothing is logged and the span is not read back, because both would add their cost to the duration being measured,
+        // while the span itself still ends so Sentry receives it
+        expect(consoleDebugSpy).not.toHaveBeenCalled();
+        expect(mockSpanToJSON).not.toHaveBeenCalled();
+        expect(span.end).toHaveBeenCalledTimes(1);
     });
     describe('span parenting', () => {
         beforeEach(() => {

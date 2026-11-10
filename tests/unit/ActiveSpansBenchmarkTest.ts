@@ -1,4 +1,4 @@
-import {endSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
 
 import CONST from '@src/CONST';
 
@@ -33,7 +33,11 @@ jest.mock('@sentry/react-native', () => ({
     spanToJSON: () => ({data: {}}),
 }));
 
+const originalDev = __DEV__;
+
 afterEach(() => {
+    // eslint-disable-next-line no-underscore-dangle -- __DEV__ is the React Native global the code under test reads
+    (global as Record<string, unknown>).__DEV__ = originalDev;
     jest.restoreAllMocks();
     mockLogBenchmarkSpanEnd.mockClear();
     mockIsBenchmarkSpanEnabled.mockReset().mockReturnValue(false);
@@ -67,5 +71,22 @@ describe('activeSpans benchmark logging', () => {
         startSpan('ManualOpenReport', {name: 'ManualOpenReport'});
 
         expect(mockStartInactiveSpan).not.toHaveBeenCalled();
+    });
+
+    it('still logs the benchmark line only for spans that were not canceled when logging is off', () => {
+        // Given a production build, where endSpan skips the console log and never reads the span's attributes,
+        // so the canceled state has to come from the tracked entry
+        // eslint-disable-next-line no-underscore-dangle -- __DEV__ is the React Native global the code under test reads
+        (global as Record<string, unknown>).__DEV__ = false;
+        startSpan('ManualOpenReport', {name: 'ManualOpenReport'});
+        startSpan('ManualOpenSearchRouter', {name: 'ManualOpenSearchRouter'});
+
+        // When one span ends normally and the other is canceled, as a navigation the user abandons is
+        endSpan('ManualOpenReport');
+        cancelSpan('ManualOpenSearchRouter');
+
+        // Then only the ended span reaches the benchmark log, because a canceled span's duration does not measure a finished navigation
+        expect(mockLogBenchmarkSpanEnd).toHaveBeenCalledTimes(1);
+        expect(mockLogBenchmarkSpanEnd).toHaveBeenCalledWith('ManualOpenReport', expect.any(Number));
     });
 });
