@@ -32,7 +32,7 @@ Follow these steps to create a new workspace based on an existing one:
    - Taxes  
    - Workflows  
    - Rules  
-   - **Expense defaults**
+   - Expense defaults
    - Distance Rates  
    - Per Diem  
    - Invoices
