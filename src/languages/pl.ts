@@ -6786,7 +6786,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     mastercard: 'Mamy globalne integracje z Mastercard, choć kwalifikowalność zależy od banku i programu kart.\n\nAby rozpocząć, po prostu:',
                     vcf: `1. Odwiedź [ten artykuł pomocy](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}), aby uzyskać szczegółowe instrukcje dotyczące konfiguracji kart Visa Commercial.
 
-2. [Skontaktuj się ze swoim bankiem](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}), aby potwierdzić, że obsługuje on firmowy kanał danych dla Twojego programu, i poproś o jego włączenie.
+2. Skontaktuj się ze swoim bankiem, aby potwierdzić, że obsługuje on firmowy kanał danych dla Twojego programu, i poproś o jego włączenie.
 
 3. *Gdy kanał zostanie włączony i będziesz mieć jego dane, przejdź do następnego ekranu.*`,
                     gl1025: `1. Odwiedź [ten artykuł pomocy](${CONST.COMPANY_CARDS_AMEX_COMMERCIAL_CARD_HELP}), aby sprawdzić, czy American Express może włączyć komercyjny kanał dla Twojego programu.
@@ -6796,7 +6796,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
 3. *Gdy masz już informacje o kanale, przejdź do następnego ekranu.*`,
                     cdf: `1. Odwiedź [ten artykuł pomocy](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}), aby uzyskać szczegółowe instrukcje dotyczące konfiguracji kart Mastercard Commercial Cards.
 
-2. [Skontaktuj się ze swoim bankiem](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}), aby potwierdzić, że obsługuje on firmowy kanał danych dla Twojego programu i poprosić o jego włączenie.
+2. Skontaktuj się ze swoim bankiem, aby potwierdzić, że obsługuje on firmowy kanał danych dla Twojego programu i poprosić o jego włączenie.
 
 3. *Gdy kanał danych zostanie włączony i będziesz mieć jego szczegóły, przejdź do następnego ekranu.*`,
                     stripe: `1. Odwiedź pulpit Stripe i przejdź do [Ustawienia](${CONST.COMPANY_CARDS_STRIPE_HELP}).
