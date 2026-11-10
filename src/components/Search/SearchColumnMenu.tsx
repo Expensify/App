@@ -52,7 +52,7 @@ function SearchColumnMenuTrigger() {
     // An end-aligned label with no room for the caret before it is laid out as start-aligned, so hovering never moves it.
     const [hasRoomForCaretBeforeLabel, setHasRoomForCaretBeforeLabel] = useState(true);
     // Reserves the sort arrow, so sorting never flips the layout. `null` on native, which can't measure text.
-    const labelWidth = alignment === 'end' ? measureSearchHeaderLabelWidth(label, styles.gap1.gap) : null;
+    const labelWidth = alignment === CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END ? measureSearchHeaderLabelWidth(label, styles.gap1.gap) : null;
     const updateCaretRoom =
         labelWidth === null
             ? undefined
@@ -60,9 +60,9 @@ function SearchColumnMenuTrigger() {
                   const caretWidth = variables.iconSizeExtraSmall + styles.mr1.marginRight;
                   setHasRoomForCaretBeforeLabel(event.nativeEvent.layout.width >= labelWidth + caretWidth);
               };
-    const layoutAlignment = alignment === 'end' && !hasRoomForCaretBeforeLabel ? 'start' : alignment;
+    const layoutAlignment = alignment === CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END && !hasRoomForCaretBeforeLabel ? CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.START : alignment;
     // The caret goes on the side away from the edge the label is pinned to, so revealing it on hover doesn't move the label.
-    const isCaretBeforeLabel = layoutAlignment === 'end';
+    const isCaretBeforeLabel = layoutAlignment === CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END;
 
     return (
         <PopoverMenu.Trigger>
@@ -105,7 +105,7 @@ function SearchColumnMenuTrigger() {
                         </View>
                     );
 
-                    if (layoutAlignment !== 'center') {
+                    if (layoutAlignment !== CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER) {
                         return labelRow;
                     }
 

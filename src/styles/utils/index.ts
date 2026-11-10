@@ -63,7 +63,7 @@ import getSearchPageNarrowHeaderStyles from './searchPageNarrowHeaderStyles';
 import splitPercentageInputStyles from './splitPercentageInputStyles';
 
 /** Where a Search table column places its content. */
-type SearchColumnAlignment = 'start' | 'center' | 'end';
+type SearchColumnAlignment = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_ALIGNMENT>;
 
 type ReportTableColumnLayout = {
     width: ViewStyle;
@@ -1589,30 +1589,30 @@ function getReportTableColumnLayout(styles: ThemeStyles, columnName: string, opt
     } = options;
 
     let columnWidth;
-    let alignment: SearchColumnAlignment = 'start';
+    let alignment: SearchColumnAlignment = CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.START;
     switch (columnName) {
         case CONST.SEARCH.TABLE_COLUMNS.COMMENTS:
             columnWidth = {...getWidthStyle(variables.w36)};
-            alignment = 'center';
+            alignment = CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER;
             break;
         case CONST.SEARCH.TABLE_COLUMNS.RECEIPT:
             columnWidth = {...getWidthStyle(variables.w28)};
-            alignment = 'center';
+            alignment = CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER;
             break;
         case CONST.SEARCH.TABLE_COLUMNS.AVATAR:
             columnWidth = {...getWidthStyle(variables.w28)};
-            alignment = 'center';
+            alignment = CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER;
             break;
         case CONST.SEARCH.TABLE_COLUMNS.STATUS:
             columnWidth = {...getWidthStyle(variables.w80)};
-            alignment = 'center';
+            alignment = CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER;
             break;
         case CONST.SEARCH.TABLE_COLUMNS.PAID_STATUS:
             columnWidth = {...getWidthStyle(variables.w130)};
             break;
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS:
             columnWidth = {...getWidthStyle(variables.w130)};
-            alignment = 'center';
+            alignment = CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER;
             break;
         case CONST.SEARCH.TABLE_COLUMNS.SUBMITTED:
             columnWidth = {...getWidthStyle(isSubmittedColumnWide ? variables.w102 : variables.w62)};
@@ -1667,7 +1667,7 @@ function getReportTableColumnLayout(styles: ThemeStyles, columnName: string, opt
             break;
         case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
             columnWidth = {...getWidthStyle(isTaxAmountColumnWide ? variables.w130 : variables.w96)};
-            alignment = 'end';
+            alignment = CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END;
             break;
         case CONST.SEARCH.TABLE_COLUMNS.EXPENSES:
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES:
@@ -1679,7 +1679,7 @@ function getReportTableColumnLayout(styles: ThemeStyles, columnName: string, opt
         case CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED:
             // Fixed width: wide enough for the long headers these columns carry, so no amount-based widening is needed.
             columnWidth = {...getWidthStyle(variables.w130)};
-            alignment = 'end';
+            alignment = CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END;
             break;
         case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL:
         case CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL:
@@ -1692,11 +1692,11 @@ function getReportTableColumnLayout(styles: ThemeStyles, columnName: string, opt
                 ...getWidthStyle(isAmountColumnWide ? variables.w130 : variables.w96),
                 ...(!shouldRemoveTotalColumnFlex && styles.flex1),
             };
-            alignment = 'end';
+            alignment = CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END;
             break;
         case CONST.SEARCH.TABLE_COLUMNS.TYPE:
             columnWidth = {...getWidthStyle(variables.w16)};
-            alignment = 'center';
+            alignment = CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER;
             break;
         case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
         case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
@@ -1717,11 +1717,11 @@ function getReportTableColumnLayout(styles: ThemeStyles, columnName: string, opt
             break;
         case CONST.SEARCH.TABLE_COLUMNS.ACTION:
             columnWidth = {...getWidthStyle(isActionColumnWide ? variables.w80 : variables.w68)};
-            alignment = 'center';
+            alignment = CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER;
             break;
         case CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO:
             columnWidth = {...getWidthStyle(variables.w72)};
-            alignment = 'center';
+            alignment = CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER;
             break;
         case CONST.SEARCH.TABLE_COLUMNS.ATTENDEES:
             columnWidth = {...getWidthStyle(variables.w72)};
@@ -1765,9 +1765,9 @@ function getReportTableColumnLayout(styles: ThemeStyles, columnName: string, opt
  */
 function getSearchColumnAlignmentStyle(alignment: SearchColumnAlignment): ViewStyle | undefined {
     switch (alignment) {
-        case 'center':
+        case CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER:
             return flex.alignItemsCenter;
-        case 'end':
+        case CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END:
             return flex.alignItemsEnd;
         default:
             return undefined;

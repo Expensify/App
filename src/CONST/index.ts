@@ -8850,6 +8850,11 @@ const CONST = {
             // Approval statuses only show as badges, so the Status filter keeps to where the trip is in time
             return [this.TRIP_STATUS.UPCOMING, this.TRIP_STATUS.DONE, this.TRIP_STATUS.CANCELED] as const;
         },
+        TABLE_COLUMN_ALIGNMENT: {
+            START: 'start',
+            CENTER: 'center',
+            END: 'end',
+        },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
             DATE: 'date',
