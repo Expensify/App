@@ -224,16 +224,8 @@ function AmountFilterContent({baseFilterKey, value, autoFocus, buttonSize, style
         }
 
         const inputValues = inputRef.current.getValue();
-        const formValues = getAmountFilterFormValues(baseFilterKey);
-
-        // A raw query can constrain the same side with both operators, even in different currencies.
-        // Keep the strict comparison that the selected inclusive input does not edit.
-        if (inputValues[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN_OR_EQUAL_TO}`] !== undefined) {
-            formValues[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`] = value[CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN];
-        }
-        if (inputValues[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN_OR_EQUAL_TO}`] !== undefined) {
-            formValues[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`] = value[CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN];
-        }
+        // Keep constraints outside the active input so confirming a raw query cannot broaden it.
+        const formValues = getAmountFilterFormValues(baseFilterKey, selectedModifier === getInitialSelectedAmountModifier() ? value : undefined);
         onChange({...formValues, ...inputValues});
     };
 

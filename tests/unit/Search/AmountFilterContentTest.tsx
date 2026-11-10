@@ -48,6 +48,62 @@ beforeEach(() => {
 });
 
 describe('AmountFilterContent currency selection', () => {
+    it.each([
+        {EqualTo: '5000', GreaterThanOrEqualTo: '4000', LessThanOrEqualTo: undefined},
+        {EqualTo: '5000', GreaterThanOrEqualTo: undefined, LessThanOrEqualTo: '6000'},
+        {EqualTo: '5000', GreaterThanOrEqualTo: '4000', LessThanOrEqualTo: '6000'},
+    ])('preserves equality alongside inclusive bounds when confirming $GreaterThanOrEqualTo / $LessThanOrEqualTo', (value) => {
+        // Given a raw query combines equality with an inclusive comparison or range.
+        const onChange = jest.fn();
+        render(
+            <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
+                value={value}
+                onChange={onChange}
+            />,
+        );
+
+        // When the user confirms the selected comparison without changes.
+        fireEvent.press(screen.getByRole('button'));
+
+        // Then equality remains active so the confirmation cannot broaden the search.
+        expect(onChange).toHaveBeenCalledWith({
+            amountEqualTo: value.EqualTo,
+            amountGreaterThan: undefined,
+            amountLessThan: undefined,
+            amountGreaterThanOrEqualTo: value.GreaterThanOrEqualTo,
+            amountLessThanOrEqualTo: value.LessThanOrEqualTo,
+        });
+    });
+
+    it('clears equality and inclusive bounds when choosing a replacement comparison', () => {
+        // Given a raw query combines equality with an inclusive lower bound.
+        const onChange = jest.fn();
+        render(
+            <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
+                value={{EqualTo: '5000', GreaterThanOrEqualTo: '4000'}}
+                onChange={onChange}
+            />,
+        );
+
+        // When the user replaces the active comparison with a strict lower bound.
+        fireEvent.press(screen.getByTestId('base-list-item-GreaterThan'), {nativeEvent: {}});
+        act(() => jest.mocked(NumberWithSymbolForm).mock.lastCall?.[0].onInputChange?.('60'));
+        fireEvent.press(screen.getByRole('button'));
+
+        // Then the replacement does not retain hidden constraints from the original query.
+        expect(onChange).toHaveBeenCalledWith({
+            amountEqualTo: undefined,
+            amountGreaterThan: '60.00 USD',
+            amountLessThan: undefined,
+            amountGreaterThanOrEqualTo: undefined,
+            amountLessThanOrEqualTo: undefined,
+        });
+    });
+
     it('retains both operators when a raw query constrains the same side twice', () => {
         // Given the strict bound is stronger than the inclusive bound selected by the editor.
         const onChange = jest.fn();
