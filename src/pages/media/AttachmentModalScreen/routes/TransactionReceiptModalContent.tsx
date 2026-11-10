@@ -46,6 +46,7 @@ import {
     hasReceiptSource,
     isOdometerDistanceRequest,
     isReceiptBeingScanned,
+    isReceiptScanBlockingEdit,
 } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 
@@ -217,7 +218,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [cropRect, setCropRect] = useState<CropRect | null>(null);
     const styles = useThemeStyles();
     const {canTranslate, isTranslateDisabled, isTranslating, translatedReceiptRows, startTranslation, showOriginal} = useReceiptTranslation(transaction);
-    const shouldShowTranslateButton = canTranslate && !isDraftTransaction && !isOdometerImage;
+    const shouldShowTranslateButton = canTranslate && !isDraftTransaction && !isOdometerImage && !isReceiptScanBlockingEdit(transaction);
 
     // Every visit starts on the original receipt
     useEffect(

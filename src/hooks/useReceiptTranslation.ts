@@ -1,7 +1,7 @@
 import {showOriginalReceipt, showReceiptTranslation, translateReceipt} from '@libs/actions/ReceiptTranslation';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Growl from '@libs/Growl';
-import {hasReceiptSource, isDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
+import {hasReceiptSource, isDistanceRequest, isPerDiemRequest, isReceiptScanBlockingEdit} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -68,7 +68,7 @@ function useReceiptTranslation(transaction: OnyxEntry<Transaction>) {
 
     return {
         canTranslate: isBetaEnabled(CONST.BETAS.RECEIPT_TRANSLATION) && hasReceiptSource(transaction) && !isGeneratedReceipt,
-        isTranslateDisabled: (isOffline && !savedTranslationRows) || isTranslating || !receiptID || !!transaction?.pendingFields?.receipt,
+        isTranslateDisabled: (isOffline && !savedTranslationRows) || isTranslating || !receiptID || !!transaction?.pendingFields?.receipt || isReceiptScanBlockingEdit(transaction),
         isTranslating,
         translatedReceiptRows,
         startTranslation,
