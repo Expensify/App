@@ -31,14 +31,26 @@ function findLinkedTravelBillingFundID(cardSettings: OnyxCollection<ExpensifyCar
 }
 
 /**
+ * True when the settings' TRAVEL_US program has a linkedPolicyIDs list that leaves out the policy, including the empty list left after the last policy deactivates.
+ * A program without the list is a legacy feed, so it doesn't count.
+ */
+function isTravelBillingLinkedOnlyToOtherPolicies(settings: OnyxEntry<ExpensifyCardSettings>, policyID: string | undefined): boolean {
+    const linkedPolicyIDs = settings?.[CONST.TRAVEL.PROGRAM_TRAVEL_US]?.linkedPolicyIDs;
+    return !!policyID && Array.isArray(linkedPolicyIDs) && !isPolicyIDInLinkedExpensifyCardPolicyList(linkedPolicyIDs, policyID);
+}
+
+/**
  * Hook to get the fundID that holds Consolidated Travel Billing for a given policyID.
  * Like the backend, it prefers a domain whose TRAVEL_US program lists the policy, then the workspace account's TRAVEL_US program,
- * independently of the last selected Expensify Card feed. Without either it returns the default fundID.
+ * independently of the last selected Expensify Card feed. Without either it returns the default fundID, or the workspace account
+ * when the default fund's TRAVEL_US program lists only other workspaces.
  */
 function useTravelBillingFundID(policyID: string | undefined) {
     const defaultFundID = useDefaultFundID(policyID);
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [workspaceCardSettings] = useOnyx(getTravelBillingCardSettingsKey(workspaceAccountID));
+    const otherPoliciesTravelBillingSelector = (settings: OnyxEntry<ExpensifyCardSettings>) => isTravelBillingLinkedOnlyToOtherPolicies(settings, policyID);
+    const [isDefaultFundTravelBillingForOtherPolicies] = useOnyx(getTravelBillingCardSettingsKey(defaultFundID), {selector: otherPoliciesTravelBillingSelector});
 
     const linkedFundSelector = (cardSettings: OnyxCollection<ExpensifyCardSettings>) => findLinkedTravelBillingFundID(cardSettings, policyID, workspaceAccountID);
     const [linkedFundID] = useOnyx(ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS, {selector: linkedFundSelector});
@@ -49,6 +61,12 @@ function useTravelBillingFundID(policyID: string | undefined) {
 
     // Setup falls back to the workspace account when the domain already has a card program.
     if (getCardSettings(workspaceCardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US)) {
+        return workspaceAccountID;
+    }
+
+    // The default fund can be a domain linked to this policy only through its card program, with a travel feed listing other workspaces.
+    // The backend sets this policy up on its workspace account in that case, and reading that feed here would show their spend and settings as this policy's.
+    if (isDefaultFundTravelBillingForOtherPolicies) {
         return workspaceAccountID;
     }
 
