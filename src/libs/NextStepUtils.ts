@@ -665,7 +665,6 @@ export {
     buildNextStepMessage,
     getNextStepETA,
     buildOptimisticNextStep,
-    buildOptimisticFixIssueNextStep,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     shouldShowDynamicExternalWorkflowApproveErrorNextStep,
     getUpcomingStepActionForNextStep,
