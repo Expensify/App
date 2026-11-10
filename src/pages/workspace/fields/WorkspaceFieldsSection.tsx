@@ -77,11 +77,7 @@ type WorkspaceFieldsSectionProps = {
     syncErrorConnectionNames?: readonly PolicyConnectionName[];
     titleAccessibilityRole?: typeof CONST.ROLE.HEADER;
     switchSentryLabel: SentryLabel;
-
-    /** Sentry label for each field row */
     rowSentryLabel: SentryLabel;
-
-    /** Sentry label for the add field button */
     addFieldSentryLabel: SentryLabel;
 };
 

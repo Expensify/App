@@ -1300,7 +1300,10 @@ const SENTRY_LABEL = {
             CHANGE_OFFICE_LOCATION_CONFIRM: 'WorkspaceMembers-ChangeOfficeLocationConfirm',
             CHANGE_WORK_ARRANGEMENT_CONFIRM: 'WorkspaceMembers-ChangeWorkArrangementConfirm',
             DETAILS_APPROVER: 'WorkspaceMemberDetails-Approver',
-            DETAILS_CARD_ROW: 'WorkspaceMemberDetails-CardRow',
+            DETAILS_CARD_ROW: {
+                EXPENSIFY_CARD: 'WorkspaceMemberDetails-CardRow-ExpensifyCard',
+                COMPANY_CARD: 'WorkspaceMemberDetails-CardRow-CompanyCard',
+            },
             DETAILS_CHAT_HISTORY: 'WorkspaceMemberDetails-ChatHistory',
             DETAILS_CUSTOM_FIELD_1: 'WorkspaceMemberDetails-CustomField1',
             DETAILS_CUSTOM_FIELD_2: 'WorkspaceMemberDetails-CustomField2',

@@ -690,7 +690,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                 pendingAction={memberCard.pendingAction}
                                             >
                                                 <MenuItem
-                                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_CARD_ROW}
+                                                    sentryLabel={
+                                                        memberCard.bank === CONST.EXPENSIFY_CARD.BANK
+                                                            ? CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_CARD_ROW.EXPENSIFY_CARD
+                                                            : CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_CARD_ROW.COMPANY_CARD
+                                                    }
                                                     key={memberCard.cardID}
                                                     pressableTestID={`card-${memberCard.cardID}`}
                                                     title={cardTitle ?? customCardNames?.[memberCard.cardID] ?? maskCardNumber(memberCard?.cardName ?? '', memberCard.bank)}
