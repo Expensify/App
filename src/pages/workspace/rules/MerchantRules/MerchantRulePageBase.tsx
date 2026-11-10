@@ -807,6 +807,7 @@ function MerchantRulePageBase({
                         </Text>
                         <Switch
                             accessibilityLabel={translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_APPLY_TO_EXISTING_SWITCH}
                             isOn={!isCategoryRule && shouldUpdateMatchingTransactions}
                             onToggle={setShouldUpdateMatchingTransactions}
                             disabled={isCategoryRule}

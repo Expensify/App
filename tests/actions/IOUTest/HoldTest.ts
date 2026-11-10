@@ -341,6 +341,43 @@ describe('actions/IOU/Hold', () => {
                     });
                 });
         });
+
+        test.each([
+            [CONST.REPORT.STATUS_NUM.OPEN, true],
+            [CONST.REPORT.STATUS_NUM.SUBMITTED, false],
+            [CONST.REPORT.STATUS_NUM.APPROVED, false],
+            [CONST.REPORT.STATUS_NUM.REIMBURSED, false],
+        ])('should build the optimistic next step only for an open report (statusNum %p, builds next step: %p)', (statusNum, shouldBuildNextStep) => {
+            // Given an expense report with the given status
+            const iouReport: Report = {...buildOptimisticIOUReport(1, 2, 100, '1', 'USD', getCurrencyDecimalsLocal), statusNum};
+            const transaction = buildOptimisticTransaction({transactionParams: {amount: 100, currency: 'USD', reportID: iouReport.reportID}});
+            const request = jest.spyOn(jest.requireActual<{write: typeof write}>('@libs/API'), 'write').mockResolvedValue(undefined);
+
+            // When an expense in that report is put on hold
+            putOnHold({
+                transactionID: transaction.transactionID,
+                transaction,
+                comment: 'hold reason',
+                initialReportID: 'existing-thread',
+                initialReport: undefined,
+                transactionReport: iouReport,
+                transactionReportActions: undefined,
+                isOffline: true,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                transactionViolations: undefined,
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
+                rules: undefined,
+            });
+
+            // Then the next step is only rebuilt for an open report, because holding doesn't change the next step of a report past the open status
+            const nextStepUpdate = request.mock.calls
+                .at(0)?.[2]
+                ?.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}` && isObject(update.value) && 'nextStep' in update.value);
+            expect(!!nextStepUpdate).toBe(shouldBuildNextStep);
+            request.mockRestore();
+        });
     });
 
     describe('putTransactionsOnHold', () => {
@@ -1282,6 +1319,43 @@ describe('actions/IOU/Hold', () => {
             const syncedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
             expect(syncedTransaction?.pendingAction).toBeFalsy();
             expect(syncedTransaction?.comment?.hold).toBeFalsy();
+        });
+
+        test.each([
+            [CONST.REPORT.STATUS_NUM.OPEN, true],
+            [CONST.REPORT.STATUS_NUM.SUBMITTED, false],
+            [CONST.REPORT.STATUS_NUM.APPROVED, false],
+            [CONST.REPORT.STATUS_NUM.REIMBURSED, false],
+        ])('should build the optimistic next step only for an open report (statusNum %p, builds next step: %p)', (statusNum, shouldBuildNextStep) => {
+            // Given a held expense in an expense report with the given status
+            const policy: Policy = createRandomPolicy(577);
+            const iouReport: Report = {...buildOptimisticIOUReport(1, 2, 100, '1', 'USD', getCurrencyDecimalsLocal), policyID: policy.id, statusNum};
+            const transaction = buildOptimisticTransaction({transactionParams: {amount: 100, currency: 'USD', reportID: iouReport.reportID}});
+            const request = jest.spyOn(jest.requireActual<{write: typeof write}>('@libs/API'), 'write').mockResolvedValue(undefined);
+
+            // When the hold is removed
+            unholdRequest({
+                transactionID: transaction.transactionID,
+                transaction,
+                reportID: 'existing-thread',
+                transactionReport: iouReport,
+                report: undefined,
+                policy,
+                isOffline: false,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                transactionViolations: [{name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
+                rules: undefined,
+            });
+
+            // Then the next step is only rebuilt for an open report, because unholding doesn't change the next step of a report past the open status
+            const nextStepUpdate = request.mock.calls
+                .at(0)?.[2]
+                ?.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}` && isObject(update.value) && 'nextStep' in update.value);
+            expect(!!nextStepUpdate).toBe(shouldBuildNextStep);
+            request.mockRestore();
         });
     });
 

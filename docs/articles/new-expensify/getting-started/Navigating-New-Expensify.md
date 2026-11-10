@@ -114,7 +114,7 @@ From **Workspaces**, workspace admins can:
 - Manage members under **Members**
 - Enable features under **More features**
 - Configure workflows
-- Connect accounting integrations under **Accounting**
+- Connect accounting integrations under **Connections**
 - Manage categories and tags
 
 Learn how to [create and set up a company workspace](/articles/new-expensify/getting-started/Create-a-company-workspace). 

@@ -290,6 +290,7 @@ function WorkspaceDistanceRatesTableRow({
                             showLockIcon={item.isLocked}
                             disabled={item.disabled}
                             accessibilityLabel={rateDisplayName}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.ROW_ENABLE_SWITCH}
                             onToggle={item.onToggleEnabled}
                         />
                     </View>

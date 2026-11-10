@@ -762,17 +762,19 @@ type SaveFastEditApprovalWorkflowParams = {
     approvalWorkflow: ApprovalWorkflowOnyx;
     policy: OnyxEntry<Policy>;
     rules: OnyxCollection<Rule>;
-    isMultipleApproversBetaEnabled: boolean;
+
+    /** Whether the workflow is saved as approval workflow rules rather than on `employeeList` */
+    shouldUseApprovalWorkflowRules: boolean;
 };
 
 /** Saves the member changes made through the "+N more" shortcut and discards the draft, since no edit page will. */
-function saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules, isMultipleApproversBetaEnabled}: SaveFastEditApprovalWorkflowParams) {
+function saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules, shouldUseApprovalWorkflowRules}: SaveFastEditApprovalWorkflowParams) {
     // A workflow with everyone in it leaves every other workflow empty, so it becomes the default one
     const isDefault = approvalWorkflow.isDefault || includesEveryWorkspaceMember(getWorkflowMemberEmails(approvalWorkflow.members), policy?.employeeList);
     const workflow: ApprovalWorkflow = {...approvalWorkflow, isDefault, approvers: approvalWorkflow.approvers.filter((approver): approver is Approver => !!approver)};
     const originalMembers = approvalWorkflow.originalMembers ?? [];
 
-    if (isMultipleApproversBetaEnabled) {
+    if (shouldUseApprovalWorkflowRules) {
         updateApprovalWorkflowRules({
             approvalWorkflow: workflow,
             initialApprovalWorkflow: {...workflow, members: originalMembers},
@@ -793,10 +795,10 @@ type ApprovalWorkflowOnyxValidated = Omit<ApprovalWorkflowOnyx, 'approvers'> & {
 /**
  * Validates the approval workflow and sets the errors on the approval workflow
  * @param approvalWorkflow the approval workflow to validate
- * @param isMultipleApproversBetaEnabled whether the `MULTIPLE_APPROVERS` beta is enabled, which saves the workflow as approval workflow rules
+ * @param shouldUseApprovalWorkflowRules whether the workflow is saved as approval workflow rules rather than on `employeeList`
  * @returns true if the approval workflow is valid, false otherwise
  */
-function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx, isMultipleApproversBetaEnabled: boolean): approvalWorkflow is ApprovalWorkflowOnyxValidated {
+function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx, shouldUseApprovalWorkflowRules: boolean): approvalWorkflow is ApprovalWorkflowOnyxValidated {
     const errors: Record<string, TranslationPaths> = {};
 
     for (const [approverIndex, approver] of approvalWorkflow.approvers.entries()) {
@@ -815,7 +817,7 @@ function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx, isMult
 
         // Someone who already approves in this workflow approves every report anyway, so the limit can't add them
         if (
-            isMultipleApproversBetaEnabled &&
+            shouldUseApprovalWorkflowRules &&
             approver?.overLimitForwardsTo &&
             approvalWorkflow.approvers.some((workflowApprover) => workflowApprover?.email === approver.overLimitForwardsTo)
         ) {

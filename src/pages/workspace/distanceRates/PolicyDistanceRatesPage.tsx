@@ -77,7 +77,7 @@ function PolicyDistanceRatesPage({
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {canWrite: canWriteDistanceRates, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES);
 
-    const customUnit = getDistanceRateCustomUnit(policy);
+    const [customUnit] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: getDistanceRateCustomUnit});
     const customUnitID = customUnit?.customUnitID;
     const customUnitRates: Record<string, Rate> = customUnit?.rates ?? {};
     const isDistanceRateTaxEnabled = isTaxTrackingEnabled(true, policy, true);
