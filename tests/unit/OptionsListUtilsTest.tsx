@@ -7167,13 +7167,18 @@ describe('OptionsListUtils', () => {
                 participants,
             };
             const iouAction: ReportAction = {
-                ...buildAction(CONST.REPORT.ACTIONS.TYPE.IOU, CURRENT_USER_ACCOUNT_ID, {
-                    IOUTransactionID: 'txn9300',
-                    IOUReportID: EXPENSE_REPORT_ID,
-                    amount: 100,
-                    currency: 'USD',
-                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                }),
+                ...buildAction(
+                    CONST.REPORT.ACTIONS.TYPE.IOU,
+                    CURRENT_USER_ACCOUNT_ID,
+                    {
+                        IOUTransactionID: 'txn9300',
+                        IOUReportID: EXPENSE_REPORT_ID,
+                        amount: 100,
+                        currency: 'USD',
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    },
+                    'parent IOU action',
+                ),
                 reportActionID: '9401',
                 reportID: EXPENSE_REPORT_ID,
                 created: '2024-01-01 10:00:00.000',
@@ -7216,8 +7221,8 @@ describe('OptionsListUtils', () => {
             // When the alternate text is built without a one-transaction thread ID for the report
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({transactionThreadIDs: {}}));
 
-            // Then the thread comment is not used, because the thread ID is no longer read from a module-level cache
-            expect(result).not.toContain('thread comment');
+            // Then the last action comes from the parent report only, because resolveLastActionContext no longer falls back to the module-level cache
+            expect(result).toBe('parent IOU action');
         });
     });
 
