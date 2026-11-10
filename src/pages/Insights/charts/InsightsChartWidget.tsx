@@ -238,7 +238,7 @@ function InsightsChartWidget({
                             shouldShowRunningTotal={shouldShowRunningTotal}
                             chartContainerStyle={cardPaddingHorizontal}
                             shouldShowSinglePointAsBar
-                            shouldShowGroupLabels={false}
+                            shouldShowGroupLabels={isTimeGrouped}
                             onGroupPress={openDetails}
                             tooltipFooter={openDetails ? <Text style={[styles.chartTooltipText, styles.link, styles.mt2]}>{translate('insightsPage.viewDetails')}</Text> : undefined}
                             renderDetails={
