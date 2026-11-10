@@ -244,6 +244,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
         <View style={[pageGutter, styles.w100]}>
             {shouldShowBulkActionsButton ? (
                 <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT.PARTICIPANTS_SELECTION_DROPDOWN}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     shouldAlwaysShowDropdownMenu
                     pressOnEnter
@@ -257,6 +258,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                 />
             ) : (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT.PARTICIPANTS_INVITE_BUTTON}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_INVITE.path))}
                     innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}

@@ -2,7 +2,6 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {
-    formatDate,
     getActiveUserAccountIDs,
     getBadgeText,
     getPaymentDetailsBadge,
@@ -364,7 +363,7 @@ describe('getBadgeText', () => {
             JSON.stringify({
                 key: 'subscription.paymentHistory.badge.refundedAmountOn',
                 amount: convertAmountToDisplayString(500, CONST.CURRENCY.USD),
-                date: formatDate('2026-03-01', undefined),
+                date: 'March 1, 2026',
             }),
         );
     });
