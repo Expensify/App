@@ -4,6 +4,7 @@ import {LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/letterAvatarPalette';
 import {isMobile, isMobileChrome} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import {hashText} from '@libs/UserUtils';
+import {toDimensionValue, toViewStyle} from '@libs/WebOnlyStyleUtils';
 
 import colors from '@styles/theme/colors';
 import type {ThemeColors} from '@styles/theme/types';
@@ -15,7 +16,7 @@ import type {Dimensions} from '@src/types/utils/Layout';
 import type Nullable from '@src/types/utils/Nullable';
 
 // eslint-disable-next-line no-restricted-imports
-import type {AnimatableNumericValue, Animated, ColorValue, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {AnimatableNumericValue, Animated, ColorValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
@@ -478,41 +479,41 @@ function getZoomSizingStyle({imageSize, containerSize, zoomScale, isZoomed, isLo
     if (isZoomed) {
         // When both width and height are smaller than container(modal) size, set the height by multiplying zoomScale if it is zoomed in.
         if (zoomScale >= 1) {
-            return {
+            return toViewStyle({
                 height: `${imageSize.height * zoomScale}px`,
                 width: `${imageSize.width * zoomScale}px`,
-            };
+            });
         }
 
         // If image height and width are bigger than container size, display image with original size because original size is bigger and position absolute.
-        return {
+        return toViewStyle({
             height: `${imageSize.height}px`,
             width: `${imageSize.width}px`,
             top,
             left,
-        };
+        });
     }
 
     // If image is not zoomed in and image size is smaller than container size, display with original size based on offset and position absolute.
     if (zoomScale > 1) {
-        return {
+        return toViewStyle({
             height: `${imageSize.height}px`,
             width: `${imageSize.width}px`,
             top,
             left,
-        };
+        });
     }
 
     // If image is bigger than container size, display full image in the screen with scaled size (fit by container size) and position absolute.
     // top, left offset should be different when displaying long or wide image.
     const scaledTop = `${Math.max((containerSize.height - imageSize.height * zoomScale) / 2, 0)}px`;
     const scaledLeft = `${Math.max((containerSize.width - imageSize.width * zoomScale) / 2, 0)}px`;
-    return {
+    return toViewStyle({
         height: `${imageSize.height * zoomScale}px`,
         width: `${imageSize.width * zoomScale}px`,
         top: scaledTop,
         left: scaledLeft,
-    };
+    });
 }
 
 /**
@@ -520,8 +521,7 @@ function getZoomSizingStyle({imageSize, containerSize, zoomScale, isZoomed, isLo
  */
 function getWidthStyle(width: number | string): ViewStyle & ImageStyle {
     return {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- `DimensionValue` can't type CSS expressions like `calc()`, which react-native-web passes through
-        width: width as DimensionValue,
+        width: toDimensionValue(width),
     };
 }
 
@@ -920,8 +920,7 @@ function getMinimumHeight(minHeight: number): ViewStyle {
  */
 function getMinimumWidth(minWidth: number | string): ViewStyle & ImageStyle {
     return {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- `DimensionValue` can't type CSS expressions like `calc()`, which react-native-web passes through
-        minWidth: minWidth as DimensionValue,
+        minWidth: toDimensionValue(minWidth),
     };
 }
 
@@ -2346,9 +2345,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         // Forces scroll on modal when keyboard is open and the modal larger than remaining screen height.
         return {
             style: isMobileChrome()
-                ? {
+                ? toViewStyle({
                       maxHeight: '100dvh',
-                  }
+                  })
                 : {},
             containerStyle: {paddingBottom},
         };
@@ -2549,11 +2548,12 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         paddingBottom: variables.floatingTabBarBottomInset + safeAreaPaddingBottom,
     }),
 
-    getStyleWithEnvSafeAreaPadding: (style: ViewStyle): ViewStyle => ({
-        ...style,
-        paddingLeft: 'env(safe-area-inset-left)',
-        paddingRight: 'env(safe-area-inset-right)',
-    }),
+    getStyleWithEnvSafeAreaPadding: (style: ViewStyle): ViewStyle =>
+        toViewStyle({
+            ...style,
+            paddingLeft: 'env(safe-area-inset-left)',
+            paddingRight: 'env(safe-area-inset-right)',
+        }),
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;

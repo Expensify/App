@@ -3,6 +3,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
+import type {DimensionValue} from 'react-native';
+
 import React from 'react';
 import {View} from 'react-native';
 
@@ -10,7 +12,7 @@ import SkeletonRect from './SkeletonRect';
 import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
 type TransactionPreviewSkeletonViewProps = {
-    transactionPreviewWidth: number | string;
+    transactionPreviewWidth: DimensionValue;
 };
 
 function TransactionPreviewSkeletonView({transactionPreviewWidth}: TransactionPreviewSkeletonViewProps) {

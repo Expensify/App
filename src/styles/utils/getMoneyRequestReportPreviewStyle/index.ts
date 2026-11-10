@@ -1,5 +1,7 @@
 import type {MoneyRequestReportPreviewStyleType} from '@components/ReportActionItem/MoneyRequestReportPreview/types';
 
+import {toDimensionValue, toViewStyle} from '@libs/WebOnlyStyleUtils';
+
 // eslint-disable-next-line no-restricted-imports
 import sizing from '@styles/utils/sizing';
 // eslint-disable-next-line no-restricted-imports
@@ -40,8 +42,8 @@ const desktopStyle = (currentWrapperWidth: number, transactionsCount: number) =>
     const carouselExactMaxWidth = Math.min(minimalWrapperWidth + (TRANSACTION_WIDTH_WIDE + CAROUSEL_GAP) * (spaceForTransactions - 1), CAROUSEL_MAX_WIDTH_WIDE);
     return {
         transactionPreviewCarouselStyle: {width: currentWrapperWidth > minimalWrapperWidth || currentWrapperWidth === 0 ? TRANSACTION_WIDTH_WIDE : transactionPreviewWidth},
-        transactionPreviewStandaloneStyle: {width: `min(100%, ${TRANSACTION_WIDTH_WIDE}px)`, maxWidth: `min(100%, ${TRANSACTION_WIDTH_WIDE}px)`},
-        componentStyle: [{maxWidth: `min(${carouselExactMaxWidth}px, 100%)`}, {width: currentWrapperWidth > minimalWrapperWidth ? 'min-content' : '100%'}],
+        transactionPreviewStandaloneStyle: {width: toDimensionValue(`min(100%, ${TRANSACTION_WIDTH_WIDE}px)`), maxWidth: toDimensionValue(`min(100%, ${TRANSACTION_WIDTH_WIDE}px)`)},
+        componentStyle: [toViewStyle({maxWidth: `min(${carouselExactMaxWidth}px, 100%)`}), toViewStyle({width: currentWrapperWidth > minimalWrapperWidth ? 'min-content' : '100%'})],
         expenseCountVisible: transactionPreviewWidth >= TRANSACTION_WIDTH_WIDE,
     };
 };

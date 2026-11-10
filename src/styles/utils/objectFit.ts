@@ -1,4 +1,4 @@
-import type {ViewStyle} from 'react-native';
+import type {ImageStyle} from 'react-native';
 
 export default {
     oFCover: {
@@ -13,4 +13,4 @@ export default {
     oFNone: {
         objectFit: 'none',
     },
-} satisfies Record<string, ViewStyle>;
+} satisfies Record<string, ImageStyle>;

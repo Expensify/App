@@ -1,3 +1,5 @@
+import {toViewStyle} from '@libs/WebOnlyStyleUtils';
+
 import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
@@ -21,6 +23,9 @@ type AccordionProps = {
 
     isToggleTriggered: SharedValue<boolean>;
 };
+
+// Built outside the animated style because a worklet can't call a JS-thread function
+const EXPANDED_WEB_STYLE = toViewStyle({display: 'inline', maxHeight: 'none'});
 
 function Accordion({isExpanded, children, duration = 300, isToggleTriggered, style}: AccordionProps) {
     const height = useSharedValue(0);
@@ -70,14 +75,14 @@ function Accordion({isExpanded, children, duration = 300, isToggleTriggered, sty
             };
         }
 
-        let display = 'inline';
+        let display = EXPANDED_WEB_STYLE.display;
         if (!isExpanded.get() && !isAnimating.get()) {
             display = 'none';
         }
 
         return {
             height: !isToggleTriggered.get() ? 'auto' : derivedHeight.get(),
-            maxHeight: !isToggleTriggered.get() ? 'none' : derivedHeight.get(),
+            maxHeight: !isToggleTriggered.get() ? EXPANDED_WEB_STYLE.maxHeight : derivedHeight.get(),
             opacity: derivedOpacity.get(),
             overflow: isAnimating.get() ? 'hidden' : 'visible',
             display,

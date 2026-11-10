@@ -1,3 +1,5 @@
+import {toViewStyle} from '@libs/WebOnlyStyleUtils';
+
 import type {ViewStyle} from 'react-native';
 
 /**
@@ -19,9 +21,9 @@ export default {
         display: 'none',
     },
 
-    dInlineBlock: {
+    dInlineBlock: toViewStyle({
         display: 'inline-block',
-    },
+    }),
 
     /**
      * display: 'contents' - Supported in React Native 0.77+
@@ -34,28 +36,28 @@ export default {
     /**
      * Web-only style.
      */
-    dInline: {
+    dInline: toViewStyle({
         display: 'inline',
-    },
+    }),
 
     /**
      * Web-only style.
      */
-    dInlineFlex: {
+    dInlineFlex: toViewStyle({
         display: 'inline-flex',
-    },
+    }),
 
     /**
      * Web-only style.
      */
-    dBlock: {
+    dBlock: toViewStyle({
         display: 'block',
-    },
+    }),
 
     /**
      * Web-only style.
      */
-    dGrid: {
+    dGrid: toViewStyle({
         display: 'grid',
-    },
+    }),
 } satisfies Record<string, ViewStyle>;
