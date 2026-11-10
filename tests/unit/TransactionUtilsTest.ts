@@ -5220,9 +5220,11 @@ describe('TransactionUtils', () => {
             });
 
             it('should force reimbursable to false and not show the step when the reviewing (kept) transaction is a managed card', () => {
+                // Given a company card expense imported with a forced non-reimbursable restriction
                 const managedCardTransaction = generateTransaction({
                     reimbursable: false,
                     managedCard: true,
+                    comment: {forceReimbursable: false},
                 });
 
                 const duplicates = [
@@ -5232,29 +5234,37 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
+                // When duplicates with different reimbursable values are compared
                 const result = TransactionUtils.compareDuplicateTransactionFields({}, managedCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
+                // Then duplicate resolution preserves the restriction without offering a choice
                 expect(result.keep.reimbursable).toBe(false);
                 expect(result.change.reimbursable).toBeUndefined();
             });
 
             it('should preserve an imported reimbursable=true value when the kept transaction is a managed card', () => {
-                const managedCardTransaction = generateTransaction({reimbursable: true, managedCard: true});
+                // Given a company card expense imported with a forced reimbursable restriction
+                const managedCardTransaction = generateTransaction({reimbursable: true, managedCard: true, comment: {forceReimbursable: true}});
                 const duplicates = [generateTransaction({reimbursable: false, managedCard: false})];
 
+                // When duplicates with different reimbursable values are compared
                 const result = TransactionUtils.compareDuplicateTransactionFields({}, managedCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
+                // Then the forced reimbursable value survives duplicate resolution
                 expect(result.keep.reimbursable).toBe(true);
                 expect(result.change.reimbursable).toBeUndefined();
             });
 
             it('should default reimbursable to false when the kept managed card has no reimbursable value', () => {
-                const managedCardTransaction = generateTransaction({managedCard: true});
+                // Given a locked company card expense with an absent reimbursable value
+                const managedCardTransaction = generateTransaction({managedCard: true, comment: {forceReimbursable: false}});
                 delete managedCardTransaction.reimbursable;
                 const duplicates = [generateTransaction({reimbursable: true, managedCard: false})];
 
+                // When the expense is kept during duplicate resolution
                 const result = TransactionUtils.compareDuplicateTransactionFields({}, managedCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
+                // Then the missing value still defaults to non-reimbursable
                 expect(result.keep.reimbursable).toBe(false);
             });
 
@@ -5280,7 +5290,7 @@ describe('TransactionUtils', () => {
             });
 
             it('should force reimbursable to false when the selected (kept) transaction is a managed card, even though the reviewing transaction is a cash expense', () => {
-                // Reproduces the back-navigation bug: the Review* pages recompute the step list from the thread's cash
+                // Given the back-navigation bug: the Review* pages recompute the step list from the thread's cash
                 // transaction (reviewingTransaction) while the kept transaction is the managed card (selectedTransactionID).
                 const managedCardTransactionID = 'managed-card-1';
                 const reviewingCashTransaction = generateTransaction({
@@ -5294,11 +5304,14 @@ describe('TransactionUtils', () => {
                         transactionID: managedCardTransactionID,
                         reimbursable: false,
                         managedCard: true,
+                        comment: {forceReimbursable: false},
                     }),
                 ];
 
+                // When navigating back with the locked company card still selected
                 const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingCashTransaction, duplicates, mockReport, managedCardTransactionID, mockPolicy, undefined);
 
+                // Then the reimbursable step stays hidden
                 expect(result.keep.reimbursable).toBe(false);
                 expect(result.change.reimbursable).toBeUndefined();
             });
@@ -5330,7 +5343,7 @@ describe('TransactionUtils', () => {
                 const companyCardTransaction = generateTransaction({
                     reimbursable: true,
                     managedCard: true,
-                    comment: {forceReimbursable: CONST.COMPANY_CARD.FORCE_REIMBURSABLE.FORCE_YES},
+                    comment: {forceReimbursable: true},
                 });
                 const duplicates = [generateTransaction({reimbursable: false, managedCard: false})];
 
@@ -5347,7 +5360,7 @@ describe('TransactionUtils', () => {
                 const companyCardTransaction = generateTransaction({
                     reimbursable: true,
                     managedCard: true,
-                    comment: {forceReimbursable: CONST.COMPANY_CARD.FORCE_REIMBURSABLE.DEFAULT_YES},
+                    comment: {forceReimbursable: null},
                 });
                 const duplicates = [generateTransaction({reimbursable: false, managedCard: false})];
 
@@ -5359,7 +5372,7 @@ describe('TransactionUtils', () => {
                 expect(result.change.reimbursable).toEqual(expect.arrayContaining([true, false]));
             });
 
-            it('should keep the value of a company card expense with no stamped value and not show the step', () => {
+            it('should show the reimbursable step for a company card expense with no stamped restriction', () => {
                 // Given a kept company card expense with no stamped value, and a non-reimbursable duplicate
                 const companyCardTransaction = generateTransaction({reimbursable: true, managedCard: true});
                 const duplicates = [generateTransaction({reimbursable: false, managedCard: false})];
@@ -5367,9 +5380,9 @@ describe('TransactionUtils', () => {
                 // When the duplicate fields are compared
                 const result = TransactionUtils.compareDuplicateTransactionFields({}, companyCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
-                // Then the expense keeps its value and the step is hidden, because an expense with no stamped value behaves as "Force No"
-                expect(result.keep.reimbursable).toBe(true);
-                expect(result.change.reimbursable).toBeUndefined();
+                // Then the user can choose, because a missing restriction means "Do Not Force"
+                expect(result.keep.reimbursable).toBeUndefined();
+                expect(result.change.reimbursable).toEqual(expect.arrayContaining([true, false]));
             });
 
             it('should force reimbursable to false when the kept transaction is an Expensify Card expense', () => {
@@ -6633,44 +6646,55 @@ describe('isTransactionSubmittable', () => {
 });
 
 describe('isCardTransactionReimbursableEditable', () => {
-    const {FORCE_YES, FORCE_NO, DEFAULT_YES, DEFAULT_NO, NONE} = CONST.COMPANY_CARD.FORCE_REIMBURSABLE;
-
     it('returns true for a cash expense', () => {
         // Given a cash expense, which follows the workspace cash expense rules instead of a card feed
         const transaction = generateTransaction();
 
+        // When checking whether the card restriction permits editing
+        const isEditable = TransactionUtils.isCardTransactionReimbursableEditable(transaction);
+
         // Then the reimbursable value can be changed
-        expect(TransactionUtils.isCardTransactionReimbursableEditable(transaction)).toBe(true);
+        expect(isEditable).toBe(true);
     });
 
     it('returns false for an Expensify Card expense', () => {
         // Given an Expensify Card expense, which can never be reimbursable, even with a "Do Not Force" value
-        const transaction = generateTransaction({managedCard: true, bank: CONST.EXPENSIFY_CARD.BANK, comment: {forceReimbursable: DEFAULT_YES}});
+        const transaction = generateTransaction({managedCard: true, bank: CONST.EXPENSIFY_CARD.BANK, comment: {forceReimbursable: null}});
+
+        // When checking whether the card restriction permits editing
+        const isEditable = TransactionUtils.isCardTransactionReimbursableEditable(transaction);
 
         // Then the reimbursable value can't be changed
-        expect(TransactionUtils.isCardTransactionReimbursableEditable(transaction)).toBe(false);
+        expect(isEditable).toBe(false);
     });
 
     it.each([
-        [DEFAULT_YES, true],
-        [DEFAULT_NO, true],
-        [NONE, true],
-        [FORCE_YES, false],
-        [FORCE_NO, false],
+        [null, true],
+        [undefined, true],
+        [true, false],
+        [false, false],
     ])('uses the stamped %s value of a company card expense', (forceReimbursable, expected) => {
         // Given a company card expense stamped with the feed setting at import
         const transaction = generateTransaction({managedCard: true, comment: {forceReimbursable}});
 
-        // Then only the "Do Not Force" stamped values allow changing the reimbursable value
-        expect(TransactionUtils.isCardTransactionReimbursableEditable(transaction)).toBe(expected);
+        // When checking whether the card restriction permits editing
+        const isEditable = TransactionUtils.isCardTransactionReimbursableEditable(transaction);
+
+        // Then either boolean locks the value, while null and missing restrictions allow changes
+        expect(isEditable).toBe(expected);
     });
 
-    it('returns false for a company card expense with no stamped value', () => {
+    it('returns true for a company card expense with no comment', () => {
         // Given a company card expense with no stamped value. The current feed setting is ignored, because feed changes only affect new expenses
         const transaction = generateTransaction({managedCard: true});
 
-        // Then the reimbursable value can't be changed, matching the "Force No" default
-        expect(TransactionUtils.isCardTransactionReimbursableEditable(transaction)).toBe(false);
+        delete transaction.comment;
+
+        // When checking whether the card restriction permits editing
+        const isEditable = TransactionUtils.isCardTransactionReimbursableEditable(transaction);
+
+        // Then the absent comment does not introduce a restriction
+        expect(isEditable).toBe(true);
     });
 });
 

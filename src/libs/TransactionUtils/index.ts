@@ -993,9 +993,8 @@ function isManagedCardTransaction(transaction: OnyxEntry<Pick<Transaction, 'mana
 
 /**
  * Determine whether the reimbursable value of a transaction can be changed by the user.
- * Company card transactions follow their feed's reimbursable setting: only the "Do Not Force" options allow changes.
- * Only the value stamped on the transaction at import is used, so changing the feed setting only affects expenses imported afterward.
- * A transaction without a stamped value behaves as "Force No".
+ * Company card transactions use the restriction saved at import so later feed changes don't affect existing expenses.
+ * A boolean locks the expense to that value; null or a missing value means "Do Not Force".
  */
 function isCardTransactionReimbursableEditable(transaction: OnyxEntry<Pick<Transaction, 'managedCard' | 'bank' | 'comment'>>): boolean {
     if (!isManagedCardTransaction(transaction)) {
@@ -1006,13 +1005,7 @@ function isCardTransactionReimbursableEditable(transaction: OnyxEntry<Pick<Trans
         return false;
     }
 
-    const forceReimbursable = transaction?.comment?.forceReimbursable;
-
-    return (
-        forceReimbursable === CONST.COMPANY_CARD.FORCE_REIMBURSABLE.DEFAULT_YES ||
-        forceReimbursable === CONST.COMPANY_CARD.FORCE_REIMBURSABLE.DEFAULT_NO ||
-        forceReimbursable === CONST.COMPANY_CARD.FORCE_REIMBURSABLE.NONE
-    );
+    return typeof transaction?.comment?.forceReimbursable !== 'boolean';
 }
 
 /**

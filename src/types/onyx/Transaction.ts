@@ -117,8 +117,8 @@ type Comment = {
 
     liabilityType?: ValueOf<typeof CONST.TRANSACTION.LIABILITY_TYPE>;
 
-    /** The card feed's reimbursable setting, stamped on company card transactions at import */
-    forceReimbursable?: ValueOf<typeof CONST.COMPANY_CARD.FORCE_REIMBURSABLE>;
+    /** Restriction saved at import: true/false locks reimbursability; null or missing allows changes regardless of later feed settings */
+    forceReimbursable?: boolean | null;
 
     /**
      * Accounting-system vendor matched to this expense.

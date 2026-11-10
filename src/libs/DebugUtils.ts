@@ -1313,7 +1313,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 source: 'string',
                 originalTransactionID: 'string',
                 liabilityType: CONST.TRANSACTION.LIABILITY_TYPE,
-                forceReimbursable: CONST.COMPANY_CARD.FORCE_REIMBURSABLE,
+                forceReimbursable: 'boolean',
                 vendor: 'object',
                 splits: 'array',
                 dismissedViolations: 'object',
