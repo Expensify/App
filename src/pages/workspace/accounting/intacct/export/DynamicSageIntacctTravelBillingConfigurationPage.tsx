@@ -53,6 +53,7 @@ function DynamicSageIntacctTravelBillingConfigurationPage({policy}: WithPolicyCo
                 errorRowStyles={[styles.ph5]}
             >
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.TRAVEL_BILLING_CREDIT_CARD_ACCOUNT}
                     name={translate('workspace.sageIntacct.creditCardAccount')}
                     onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT.path))}
                     value={travelPayableAccount?.name}

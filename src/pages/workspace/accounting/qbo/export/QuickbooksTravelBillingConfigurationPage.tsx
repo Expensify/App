@@ -55,6 +55,7 @@ function QuickbooksTravelBillingConfigurationPage({policy}: WithPolicyConnection
                 errorRowStyles={[styles.ph5]}
             >
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.TRAVEL_BILLING_CREDIT_CARD_ACCOUNT}
                     name={translate('workspace.qbo.creditCardAccount')}
                     onPress={() => {
                         if (!policyID) {

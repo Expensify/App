@@ -62,6 +62,7 @@ function DynamicXeroTravelBillingConfigurationPage({policy}: WithPolicyConnectio
                 errorRowStyles={[styles.ph5]}
             >
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.TRAVEL_BILLING_PAYABLE_ACCOUNT}
                     name={translate('workspace.common.travelBillingPayableAccount')}
                     onPress={() => {
                         if (!policyID) {
