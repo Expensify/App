@@ -3721,8 +3721,8 @@ type ACHAccount = {
     sharees?: string[];
 };
 
-/** A country a policy collects employee deposit accounts for */
-type ReimbursementCountry = OnyxCommon.OnyxValueWithOfflineFeedback<{
+/** Reimbursement info for a specific country in a policy */
+type ReimbursementCountryInfo = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** ID of the withdrawal account the policy reimburses from in this country, when one is connected */
     bankAccountID?: number;
 }>;
@@ -4110,7 +4110,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             enabled?: boolean;
 
             /** Countries (keyed by ISO code) where the company has a withdrawal account it can reimburse from */
-            countries?: Record<string, ReimbursementCountry>;
+            countries?: Record<string, ReimbursementCountryInfo>;
         };
 
         /** The set reimburser for the policy */
