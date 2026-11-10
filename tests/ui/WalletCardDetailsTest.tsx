@@ -35,7 +35,11 @@ describe('Wallet card details composition', () => {
         // When the revealed card details are rendered using the real field preset.
         render(
             <LocaleContextProvider>
-                <CardDetails pan={values[0]} expiration={values[1]} cvv={values[2]} />
+                <CardDetails
+                    pan={values[0]}
+                    expiration={values[1]}
+                    cvv={values[2]}
+                />
             </LocaleContextProvider>,
         );
 

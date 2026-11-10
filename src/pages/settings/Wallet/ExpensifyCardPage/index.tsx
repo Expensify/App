@@ -601,7 +601,9 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                     <MenuItem.Trailing>
                                                         <Button
                                                             sentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.REVEAL_CVV}
-                                                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_REVEAL_VALIDATE_CODE.getRoute(String(card.cardID))))}
+                                                            onPress={() =>
+                                                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_REVEAL_VALIDATE_CODE.getRoute(String(card.cardID))))
+                                                            }
                                                             isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
                                                             isLoading={isCardDetailsLoading[card.cardID]}
                                                         >
