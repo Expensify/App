@@ -350,12 +350,12 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         >
     > = [];
 
-    if (expenseReport.hasParentAccess !== false) {
+    if (chatReport && expenseReport.hasParentAccess !== false) {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}`,
             value: {
-                hasOutstandingChildRequest: chatReport?.hasOutstandingChildRequest,
+                hasOutstandingChildRequest: chatReport.hasOutstandingChildRequest,
             },
         });
     }
@@ -454,7 +454,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             rules,
         });
 
-        const parentChatKeys = new Set<string>([`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`]);
+        const parentChatKeys = new Set<string>(chatReport ? [`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`] : []);
         const shouldSkipParentChatUpdates = expenseReport.hasParentAccess === false;
         const filterParentChatUpdates = <TUpdate extends {key: string}>(updates: TUpdate[]) =>
             shouldSkipParentChatUpdates ? updates.filter((update) => !parentChatKeys.has(update.key)) : updates;
