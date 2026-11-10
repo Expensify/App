@@ -35,6 +35,7 @@ function SelectAllCheckbox({isSelectAllChecked, isIndeterminate, hasAnySelected,
     return (
         <View style={[styles.userSelectNone, styles.flexRow, styles.alignItemsCenter, isInLandscapeMode ? undefined : [styles.pt6, styles.ph8, styles.pb3]]}>
             <Checkbox
+                sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL}
                 accessibilityLabel={translate('accessibilityHints.selectAllItems')}
                 isChecked={isSelectAllChecked}
                 isIndeterminate={isIndeterminate}

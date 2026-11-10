@@ -15,6 +15,7 @@ import {hasFlexColumn} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import React from 'react';
@@ -113,6 +114,7 @@ function MoneyRequestReportTableHeaderRow({
                     ]}
                 >
                     <Checkbox
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT.TABLE_HEADER_SELECT_ALL}
                         onPress={onToggleAll}
                         accessibilityLabel={translate('accessibilityHints.selectAllTransactions')}
                         isIndeterminate={selectedTransactionIDs.length > 0 && !isSelectAllChecked}
