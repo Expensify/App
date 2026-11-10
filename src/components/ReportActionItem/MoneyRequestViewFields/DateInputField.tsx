@@ -60,7 +60,7 @@ function DateInputField({transaction, transactionThreadReport, isTrackExpense, l
                 onInputChange={saveDate}
                 errorText={errorText}
                 shouldDeferShowUntilPositioned
-                clearButtonSentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.DATE_FIELD_CLEAR_BUTTON}
+                clearButtonSentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.DATE_FIELD_CLEAR_BUTTON}
                 onPickerVisibilityChange={(isVisible) => {
                     // Closing the calendar without a pick brings the saved date back.
                     if (isVisible || !isCleared) {

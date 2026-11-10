@@ -173,7 +173,12 @@ function BaseGenericTooltip({
 
     return ReactDOM.createPortal(
         <>
-            {shouldUseOverlay && <TransparentOverlay onPress={onHideTooltip} />}
+            {shouldUseOverlay && (
+                <TransparentOverlay
+                    onPress={onHideTooltip}
+                    sentryLabel={CONST.SENTRY_LABEL.TOOLTIP.OVERLAY}
+                />
+            )}
             {isEducationTooltip ? (
                 <AnimatedPressableWithoutFeedback
                     ref={viewRef(rootWrapper)}

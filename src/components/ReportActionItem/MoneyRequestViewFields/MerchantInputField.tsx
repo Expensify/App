@@ -78,7 +78,7 @@ function MerchantInputField({transaction, transactionThreadReport, errorText = '
                 label={translate('common.merchant')}
                 accessibilityLabel={translate('common.merchant')}
                 errorText={inputError || errorText}
-                sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.MERCHANT_INPUT}
+                sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.MERCHANT_FIELD}
             />
             {!!children && <View style={styles.mt2}>{children}</View>}
         </View>

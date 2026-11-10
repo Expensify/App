@@ -69,7 +69,7 @@ function TagFieldRow({transactionID, policy, tagListIndex, name, value, errorTex
                     tagListIndex={tagListIndex}
                 />
             )}
-            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.TAG_FIELD}
+            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.TAG_FIELD}
         />
     );
 }

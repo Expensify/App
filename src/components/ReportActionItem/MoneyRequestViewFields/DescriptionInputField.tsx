@@ -88,7 +88,7 @@ function DescriptionInputField({transaction, transactionThreadReport, isReportIn
                 excludedMarkdownStyles={!isReportInGroupPolicy ? ['mentionReport'] : []}
                 hint={hint}
                 errorText={inputError || errorText}
-                sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.DESCRIPTION_INPUT}
+                sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.DESCRIPTION_FIELD}
             />
         </View>
     );

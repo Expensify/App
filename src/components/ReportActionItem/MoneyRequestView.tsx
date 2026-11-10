@@ -1275,7 +1275,7 @@ function MoneyRequestView({
                     onPress={openDistancePage}
                     copyValue={distanceCopyValue}
                     isInteractive={canEditDistance}
-                    sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.DISTANCE_FIELD}
+                    sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.DISTANCE_FIELD}
                 />
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={getPendingFieldAction('customUnitRateID')}>
@@ -1287,7 +1287,7 @@ function MoneyRequestView({
                     onPress={openDistanceRatePage}
                     copyValue={distanceRateCopyValue}
                     isInteractive={canEditDistanceRate}
-                    sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.RATE_FIELD}
+                    sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.RATE_FIELD}
                 />
             </OfflineWithFeedback>
         </>
@@ -1507,7 +1507,7 @@ function MoneyRequestView({
                         onPress={openAmountPage}
                         copyValue={amountCopyValue}
                         isInteractive={canEditAmount}
-                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.AMOUNT_FIELD}
+                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.AMOUNT_FIELD}
                     />
                 )}
             </OfflineWithFeedback>
@@ -1530,6 +1530,7 @@ function MoneyRequestView({
                             copyValue={descriptionCopyValue}
                             errorText={getErrorForField('comment')}
                             isInteractive={false}
+                            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.DESCRIPTION_FIELD}
                         />
                     )}
                 </OfflineWithFeedback>
@@ -1555,6 +1556,7 @@ function MoneyRequestView({
                                 copyValue={merchantCopyValue || undefined}
                                 errorText={getErrorForField('merchant')}
                                 isInteractive={false}
+                                sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.MERCHANT_FIELD}
                             />
                             {shouldShowGoogleMerchantSearchLink && <View style={[styles.mh4, styles.mb2]}>{renderGoogleMerchantSearchLink()}</View>}
                         </>
@@ -1577,6 +1579,7 @@ function MoneyRequestView({
                         copyValue={dateCopyValue || undefined}
                         errorText={dateError}
                         isInteractive={false}
+                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.DATE_FIELD}
                     />
                 )}
             </OfflineWithFeedback>
@@ -1604,7 +1607,7 @@ function MoneyRequestView({
                                 canAddCategory={canAddCategory}
                             />
                         )}
-                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.CATEGORY_FIELD}
+                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.CATEGORY_FIELD}
                     />
                 </OfflineWithFeedback>
             )}
@@ -1618,7 +1621,7 @@ function MoneyRequestView({
                         onPress={openVendorPage}
                         copyValue={vendorCopyValue}
                         isInteractive={canEdit}
-                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.VENDOR_FIELD}
+                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.VENDOR_FIELD}
                     />
                 </OfflineWithFeedback>
             )}
@@ -1631,6 +1634,7 @@ function MoneyRequestView({
                         numberOfLinesValue={2}
                         copyValue={cardCopyValue}
                         isInteractive={false}
+                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.CARD_FIELD}
                     />
                 </OfflineWithFeedback>
             )}
@@ -1655,7 +1659,7 @@ function MoneyRequestView({
                                 selectedTaxRate={getTaxRateTitle(policy, transaction, false)}
                             />
                         )}
-                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.TAX_RATE_FIELD}
+                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.TAX_RATE_FIELD}
                     />
                 </OfflineWithFeedback>
             )}
@@ -1678,7 +1682,7 @@ function MoneyRequestView({
                             onPress={openTaxAmountPage}
                             copyValue={taxAmountCopyValue}
                             isInteractive={canEditTaxFields}
-                            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.TAX_AMOUNT_FIELD}
+                            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.TAX_AMOUNT_FIELD}
                         />
                     )}
                 </OfflineWithFeedback>
@@ -1703,7 +1707,7 @@ function MoneyRequestView({
                                 iouType={iouType}
                             />
                         )}
-                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.ATTENDEES_FIELD}
+                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.ATTENDEES_FIELD}
                     />
                 </OfflineWithFeedback>
             )}
@@ -1726,7 +1730,7 @@ function MoneyRequestView({
                                 transactionID={transaction.transactionID}
                             />
                         )}
-                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.REPORT_FIELD}
+                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.REPORT_FIELD}
                     />
                 </OfflineWithFeedback>
             )}
@@ -1793,6 +1797,7 @@ function MoneyRequestView({
             {shouldShowTripRoomLink && (
                 <>
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.TRIP_FIELD}
                         value={tripRoomName}
                         name={translate('travel.trip')}
                         numberOfLinesValue={2}
@@ -1806,6 +1811,7 @@ function MoneyRequestView({
             {/* Note: "View trip details" should be always the last item */}
             {shouldShowViewTripDetails && (
                 <MenuItemAction
+                    sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.VIEW_TRIP_DETAILS_BUTTON}
                     title={translate('travel.viewTripDetails')}
                     icon={icons.Suitcase}
                     onPress={() => {

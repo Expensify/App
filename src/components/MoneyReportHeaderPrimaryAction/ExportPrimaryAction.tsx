@@ -37,6 +37,7 @@ function ExportPrimaryAction({reportID, onExportModalOpen, isDisabled}: ExportPr
 
     return (
         <Button
+            sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_PRIMARY_ACTION.EXPORT}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             isDisabled={isDisabled}
             onPress={() => {
