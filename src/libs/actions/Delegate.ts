@@ -967,6 +967,11 @@ function updateDelegateRole({email, role, validateCode, delegatedAccess}: Update
             value: {
                 isLoading: false,
                 delegatedAccess: {
+                    errorFields: {
+                        updateDelegateRole: {
+                            [email]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('delegate.genericError'),
+                        },
+                    },
                     delegates: delegatedAccess.delegates.map((delegate) =>
                         delegate.email === email
                             ? {

@@ -52,6 +52,8 @@ function UpdateDelegateValidateCodePage({route}: UpdateDelegateValidateCodePageP
         <ValidateCodeActionContent
             clearError={clearError}
             validateCodeActionErrorField="updateDelegateRole"
+            // Closing the code page must keep the failure so the copilot's row on CopilotPage can show it
+            shouldClearErrorOnClose={false}
             onClose={() => Navigation.goBack(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(login, currentDelegate?.role ?? ''))}
             validateError={updateDelegateErrors}
             title={translate('delegate.makeSureItIsYou')}
