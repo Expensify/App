@@ -1404,15 +1404,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const handleExportCurrentView = useCallback((isGroupsOnly = false) => handleCSVExport(false, isGroupsOnly), [handleCSVExport]);
 
     const handleApproveWithDEWCheck = useCallback(async () => {
-        if (isOffline) {
-            showOfflineModal();
-            return;
-        }
-
-        if (!hash) {
-            return;
-        }
-
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return;
@@ -1420,6 +1411,15 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         if (isAccountLocked) {
             showLockedAccountModal();
+            return;
+        }
+
+        if (isOffline) {
+            showOfflineModal();
+            return;
+        }
+
+        if (!hash) {
             return;
         }
 
