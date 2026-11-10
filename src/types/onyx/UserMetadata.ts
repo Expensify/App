@@ -25,6 +25,9 @@ type UserMetadata = {
 
     /** When the user gave their most recent NPS score, in ISO 8601 */
     npsResponseDate?: string;
+
+    /** When the user was nudged to New Expensify, as a UTC `YYYY-MM-DD HH:MM:SS` timestamp. Only set for nudged users */
+    nudgedDate?: string;
 };
 
 export default UserMetadata;
