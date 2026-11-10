@@ -99,7 +99,6 @@ import {
     getRemovedConnectionMessage,
     getRenamedAction,
     getRenamedCardFeedMessage,
-    getReportAction,
     getReportActionMessageText,
     getRequireCompanyCardsEnabledMessage,
     getRequiresCategoryMessage,
@@ -332,6 +331,8 @@ type ShouldShow = (args: {
     areHoldRequirementsMet: boolean;
     isDebugModeEnabled: OnyxEntry<boolean>;
     iouTransaction: OnyxEntry<Transaction>;
+    /** The action that put `iouTransaction` on hold, read from the thread of `moneyRequestAction` */
+    holdReportAction: OnyxEntry<ReportAction>;
     transactions?: OnyxCollection<Transaction>;
     moneyRequestReport?: OnyxEntry<ReportType>;
     moneyRequestPolicy?: OnyxEntry<Policy>;
@@ -354,6 +355,10 @@ type ContextMenuActionPayload = {
     originalReportID: string | undefined;
     currentUserAccountID: number;
     report: OnyxEntry<ReportType>;
+
+    /** The action in the parent report that `report` is a thread of */
+    reportParentAction: OnyxEntry<ReportAction>;
+
     policy?: OnyxEntry<Policy>;
 
     /** The lastModified of the full policy snapshot for the report's policy */
@@ -745,6 +750,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             moneyRequestPolicy,
             areHoldRequirementsMet,
             iouTransaction,
+            holdReportAction,
             currentUserAccountID,
             rules,
             moneyRequestReportOwnerLogin,
@@ -752,7 +758,6 @@ const ContextMenuActions: ContextMenuAction[] = [
             if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || !areHoldRequirementsMet) {
                 return false;
             }
-            const holdReportAction = getReportAction(moneyRequestAction?.childReportID, `${iouTransaction?.comment?.hold ?? ''}`);
             return canHoldUnholdReportAction(
                 moneyRequestReport,
                 moneyRequestAction,
@@ -837,6 +842,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             moneyRequestPolicy,
             areHoldRequirementsMet,
             iouTransaction,
+            holdReportAction,
             currentUserAccountID,
             rules,
             moneyRequestReportOwnerLogin,
@@ -844,7 +850,6 @@ const ContextMenuActions: ContextMenuAction[] = [
             if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || !areHoldRequirementsMet) {
                 return false;
             }
-            const holdReportAction = getReportAction(moneyRequestAction?.childReportID, `${iouTransaction?.comment?.hold ?? ''}`);
             return canHoldUnholdReportAction(
                 moneyRequestReport,
                 moneyRequestAction,
@@ -1127,6 +1132,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 transaction,
                 selection,
                 report,
+                reportParentAction,
                 card,
                 originalReport,
                 isHarvestReport,
@@ -1652,9 +1658,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isDynamicExternalWorkflowApproveFailedAction(reportAction)) {
                     setClipboardMessage(getDynamicExternalWorkflowApproveFailedActionMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {
-                    const iouAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
                     const missingFields = getOriginalMessage(reportAction)?.missingFields;
-                    setClipboardMessage(translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction, currentUserAccountID), missingFields}));
+                    setClipboardMessage(translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(reportParentAction, currentUserAccountID), missingFields}));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.AUTO_PAY_FEE_DISCLOSURE)) {
                     setClipboardMessage(getAutoPayFeeDisclosureMessage(translate, reportAction, getPersonalDetailsByID(getOriginalMessage(reportAction)?.accountID, personalDetails)));
                 } else if (content) {

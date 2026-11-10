@@ -15,7 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {isGroupPolicyByType} from '@libs/PolicyUtils';
-import {getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditMoneyRequest} from '@libs/ReportUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
@@ -62,7 +62,7 @@ function DynamicHoldReasonPage({route}: DynamicHoldReasonPageProps) {
     // For personal requests, we need to allow both users to put the request on hold
     const isWorkspaceRequest = isGroupPolicyByType(policyType);
     const isSubmitter = parentReportOwnerAccountID === currentUserAccountID;
-    const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+    const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();

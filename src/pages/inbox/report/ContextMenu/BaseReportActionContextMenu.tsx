@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
+import useParentReportAction from '@hooks/useParentReportAction';
 import useReportAttributes, {useDerivedIsEmptyReport, useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIDToNameMap from '@hooks/useReportIDToNameMap';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -35,7 +36,6 @@ import {
     getOneTransactionThreadReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
-    getReportAction,
     getTransactionThreadReportIDFromAction,
     isActionOfType,
     isMemberChangeAction,
@@ -69,6 +69,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
+import {getReportActionByIDSelector} from '@selectors/ReportAction';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -193,6 +194,7 @@ function BaseReportActionContextMenu({
         : undefined;
     const originalReportOfUnapprovedTransaction = useReportOrReportDraft(unapprovedOriginalID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const reportParentAction = useParentReportAction(report);
     // Needed to compute the one-transaction thread for the context menu's report so isUnreadChat is correct
     // for expense/IOU reports shown directly in the LHN (where unread state is based on the thread's lastVisibleActionCreated).
     const [reportChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
@@ -218,7 +220,7 @@ function BaseReportActionContextMenu({
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction?.childReportID}`);
     const [childReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction?.childReportID}`);
     const [childChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${childReport?.chatReportID}`);
-    const parentReportAction = getReportAction(childReport?.parentReportID, childReport?.parentReportActionID);
+    const parentReportAction = useParentReportAction(childReport);
     const {reportActions: paginatedReportActions} = usePaginatedReportActions(childReport?.reportID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const transactionThreadReportAction = useMemo(
@@ -238,6 +240,9 @@ function BaseReportActionContextMenu({
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [iouTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [iouTransactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(iouTransaction?.reportID)}`);
+    // The hold action is posted in the expense's thread, and the transaction keeps its ID in comment.hold
+    const [moneyRequestActionChildReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestAction?.childReportID)}`);
+    const holdReportAction = getReportActionByIDSelector(moneyRequestActionChildReportActions, iouTransaction?.comment?.hold);
     const [moneyRequestActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestAction?.childReportID)}`);
     const iouReportID = (moneyRequestAction ?? reportAction)?.reportID;
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
@@ -312,6 +317,7 @@ function BaseReportActionContextMenu({
                 areHoldRequirementsMet,
                 isDebugModeEnabled,
                 iouTransaction,
+                holdReportAction,
                 transactions,
                 isHarvestReport,
                 currentUserAccountID: currentUserPersonalDetails?.accountID,
@@ -414,6 +420,7 @@ function BaseReportActionContextMenu({
                                 reportID,
                                 originalReportID,
                                 report,
+                                reportParentAction,
                                 selection,
                                 close: () => setShouldKeepOpen(false),
                                 transitionActionSheetState,
