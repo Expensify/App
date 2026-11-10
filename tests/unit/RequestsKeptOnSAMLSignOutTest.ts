@@ -53,6 +53,37 @@ describe('requests kept on a SAML sign-out', () => {
         expect(await getOnyxValue(DRAFT_KEY)).toBe('Lunch with the team');
     });
 
+    it('keeps what another tab set aside when this tab has no session left', async () => {
+        // Given another tab already set the requests aside and cleared the session
+        const requestsKeptOnSAMLSignOut = {accountID: ACCOUNT_ID, requests: [uploadingReceipt, queuedComment]};
+        await Onyx.set(ONYXKEYS.REQUESTS_KEPT_ON_SAML_SIGN_OUT, requestsKeptOnSAMLSignOut);
+        await Onyx.set(ONYXKEYS.SESSION, null);
+        await waitForBatchedUpdates();
+
+        // When SAML signs this tab out too
+        await redirectToSignIn(CONST.SIGN_OUT_REASON.SAML_REQUIRED, undefined, true);
+        await waitForBatchedUpdates();
+
+        // Then its clear doesn't delete what the first tab set aside
+        expect(await getOnyxValue(ONYXKEYS.REQUESTS_KEPT_ON_SAML_SIGN_OUT)).toEqual(requestsKeptOnSAMLSignOut);
+        expect(await getOnyxValue(DRAFT_KEY)).toBe('Lunch with the team');
+    });
+
+    it('leaves out a request holding a file so the rest are still kept', async () => {
+        // Given a receipt that holds the file itself, as on web, and a comment waiting in the queue
+        const receiptWithFile: AnyRequest = {command: 'RequestMoney', data: {transactionID: '3', receipt: new File(['receipt'], 'receipt.jpg')}, requestIndex: 3};
+        PersistedRequests.save(receiptWithFile);
+        PersistedRequests.save(queuedComment);
+        await waitForBatchedUpdates();
+
+        // When SAML signs the person out
+        await redirectToSignIn(CONST.SIGN_OUT_REASON.SAML_REQUIRED, undefined, true);
+        await waitForBatchedUpdates();
+
+        // Then only the comment is kept, since a file can't be stored on web
+        expect(await getOnyxValue(ONYXKEYS.REQUESTS_KEPT_ON_SAML_SIGN_OUT)).toEqual({accountID: ACCOUNT_ID, requests: [queuedComment]});
+    });
+
     it('keeps nothing when the person signs out themselves', async () => {
         // Given queued requests and a typed comment
         await queueRequestsWithOneUploading();
