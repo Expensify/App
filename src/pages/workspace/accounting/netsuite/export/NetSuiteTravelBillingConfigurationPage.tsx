@@ -115,6 +115,8 @@ function NetSuiteTravelBillingConfigurationPage({policy}: WithPolicyConnectionsP
             <TravelBillingContinuousReconciliationSection
                 policy={policy}
                 connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_SWITCH.NETSUITE}
+                reconciliationAccountSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.TRAVEL_BILLING_RECONCILIATION_ACCOUNT.NETSUITE}
                 isAutoSyncEnabled={!!policy?.connections?.netsuite?.config?.autoSync?.enabled}
                 isPayableAccountSet={!!config?.travelInvoicingPayableAccountID}
             />

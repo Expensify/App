@@ -1567,11 +1567,21 @@ const SENTRY_LABEL = {
                 XERO: 'WorkspaceAccounting-ClaimOfferConnect-Xero',
                 UBER: 'WorkspaceAccounting-ClaimOfferConnect-Uber',
             },
-            TRAVEL_BILLING_RECONCILIATION_ACCOUNT: 'WorkspaceAccounting-TravelBillingReconciliationAccount',
+            TRAVEL_BILLING_RECONCILIATION_ACCOUNT: {
+                QBO: 'WorkspaceAccounting-TravelBillingReconciliationAccount-QBO',
+                XERO: 'WorkspaceAccounting-TravelBillingReconciliationAccount-Xero',
+                NETSUITE: 'WorkspaceAccounting-TravelBillingReconciliationAccount-NetSuite',
+                SAGE_INTACCT: 'WorkspaceAccounting-TravelBillingReconciliationAccount-SageIntacct',
+            },
             CARD_SECTION_ADD_BUTTON: 'WorkspaceAccounting-CardSectionAddButton',
             CREATE_NEW_CONNECTION: 'WorkspaceAccounting-CreateNewConnection',
             COPY_EXISTING_CONNECTION: 'WorkspaceAccounting-CopyExistingConnection',
-            TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_SWITCH: 'WorkspaceAccounting-TravelBillingContinuousReconciliationSwitch',
+            TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_SWITCH: {
+                QBO: 'WorkspaceAccounting-TravelBillingContinuousReconciliationSwitch-QBO',
+                XERO: 'WorkspaceAccounting-TravelBillingContinuousReconciliationSwitch-Xero',
+                NETSUITE: 'WorkspaceAccounting-TravelBillingContinuousReconciliationSwitch-NetSuite',
+                SAGE_INTACCT: 'WorkspaceAccounting-TravelBillingContinuousReconciliationSwitch-SageIntacct',
+            },
             CONTINUOUS_RECONCILIATION_SWITCH: 'WorkspaceAccounting-ContinuousReconciliationSwitch',
             QBO: {
                 AUTO_SYNC_SWITCH: 'WorkspaceAccountingQBO-AutoSyncSwitch',

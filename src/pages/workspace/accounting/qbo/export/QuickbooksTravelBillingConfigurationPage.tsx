@@ -70,6 +70,8 @@ function QuickbooksTravelBillingConfigurationPage({policy}: WithPolicyConnection
             <TravelBillingContinuousReconciliationSection
                 policy={policy}
                 connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_SWITCH.QBO}
+                reconciliationAccountSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.TRAVEL_BILLING_RECONCILIATION_ACCOUNT.QBO}
                 isAutoSyncEnabled={!!qboConfig?.autoSync?.enabled}
                 isPayableAccountSet={!!qboConfig?.travelInvoicingPayableAccountID}
             />
