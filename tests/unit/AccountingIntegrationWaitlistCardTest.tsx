@@ -106,6 +106,24 @@ describe('AccountingIntegrationWaitlistCard', () => {
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
     });
 
+    it('offers Join waitlist again when the request succeeds without the server saving this workspace', async () => {
+        // Given the admin pressed Join waitlist and the request is pending
+        renderCard();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByRole('button', {name: 'Join waitlist'}));
+        await act(() => Onyx.set(ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS, {policy: {[SAGE_ACCOUNTING]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}}}));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the request succeeds but the waitlist doesn't come back with this workspace
+        await act(() => Onyx.set(ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS, {policy: {[SAGE_ACCOUNTING]: null}}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then there is no confirmation, and pressing Join waitlist tries again instead of doing nothing
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        fireEvent.press(screen.getByRole('button', {name: 'Join waitlist'}));
+        expect(joinAccountingIntegrationWaitlist).toHaveBeenCalledTimes(2);
+    });
+
     it('queues the signup while offline and confirms it once the server saves it', async () => {
         // Given the user is offline
         await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
@@ -180,7 +198,7 @@ describe('AccountingIntegrationWaitlistCard', () => {
 
     it('shows the waitlist card in the Connections grid only when there is a workspace to join for', async () => {
         // Given a Sage Accounting listing that offers its waitlist instead of connecting
-        const listing = {key: SAGE_ACCOUNTING, category: CONST.TAB.CONNECTIONS.ACCOUNTING, title: 'Sage Accounting', waitlistConnectionName: SAGE_ACCOUNTING};
+        const listing = {key: SAGE_ACCOUNTING, category: CONST.TAB.CONNECTIONS.ACCOUNTING, title: 'Sage Accounting'};
 
         // When the grid renders it for a workspace
         const {rerender} = render(
