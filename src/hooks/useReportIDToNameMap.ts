@@ -71,4 +71,3 @@ function useReportIDToNameMap(): ReportIDToNameMap {
 
 export default useReportIDToNameMap;
 export {buildReportIDToNameMap, getMentionedReportIDs, getReportIDToNameMapForRoomsInMarkdown};
-export type {ReportIDToNameMap};
