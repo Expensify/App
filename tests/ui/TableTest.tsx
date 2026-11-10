@@ -197,7 +197,7 @@ jest.mock('@components/ActivityIndicator', () => {
 jest.mock('@components/withNavigationFallback', () => (Component: React.ComponentType) => Component);
 
 jest.mock('@userActions/Session', () => ({
-    callFunctionIfActionIsAllowed: <TCallback extends ((...args: never[]) => unknown) | undefined>(callback: TCallback) => callback,
+    callIfAuthenticated: <TCallback extends ((...args: never[]) => unknown) | undefined>(callback: TCallback) => callback,
 }));
 
 jest.mock('@shopify/flash-list', () => {

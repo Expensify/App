@@ -47,6 +47,9 @@ const SENTRY_LABEL = {
     HIGH_CONTRAST_MODE_SWITCHER: {
         TOGGLE: 'HighContrastModeSwitcher-Toggle',
     },
+    NEW_WORKSPACE_ROLES_BANNER: {
+        DISMISS: 'NewWorkspaceRolesBanner-Dismiss',
+    },
     TEST_TOOLS_MODAL_NAVIGATOR: {
         DISMISS: 'TestToolsModalNavigator-Dismiss',
     },
@@ -511,6 +514,7 @@ const SENTRY_LABEL = {
             CREATE_EXPENSE: 'Search-EmptyState-CreateExpense',
             CREATE_REPORT: 'Search-EmptyState-CreateReport',
             SEND_INVOICE: 'Search-EmptyState-SendInvoice',
+            RESET_FILTERS: 'Search-EmptyState-ResetFilters',
             BOOK_TRAVEL: 'Search-EmptyState-BookTravel',
         },
         EXPENSE_REPORT_CHECKBOX: 'Search-ExpenseReportCheckbox',
@@ -1284,6 +1288,7 @@ const SENTRY_LABEL = {
             BULK_ACTIONS_DROPDOWN: 'WorkspaceMembers-BulkActionsDropdown',
             MORE_DROPDOWN: 'WorkspaceMembers-MoreDropdown',
             LIST_ROW: 'WorkspaceMembers-ListRow',
+            ROLE_SAVE_BUTTON: 'WorkspaceMembers-RoleSaveButton',
             CATEGORY_VISIBILITY: 'WorkspaceMemberDetails-CategoryVisibility',
         },
         CATEGORIES: {
@@ -1366,6 +1371,8 @@ const SENTRY_LABEL = {
         ACCOUNTING: {
             EXACT_ONLINE_WAITLIST_BUTTON: 'WorkspaceAccounting-ExactOnlineWaitlistButton',
             CARD_SECTION_ADD_BUTTON: 'WorkspaceAccounting-CardSectionAddButton',
+            CREATE_NEW_CONNECTION: 'WorkspaceAccounting-CreateNewConnection',
+            COPY_EXISTING_CONNECTION: 'WorkspaceAccounting-CopyExistingConnection',
             TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_SWITCH: 'WorkspaceAccounting-TravelBillingContinuousReconciliationSwitch',
             CONTINUOUS_RECONCILIATION_SWITCH: 'WorkspaceAccounting-ContinuousReconciliationSwitch',
             QBO: {
