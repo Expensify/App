@@ -15,7 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
 import Navigation from '@libs/Navigation/Navigation';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,7 +50,7 @@ function DynamicAppDownloadLinksPage() {
 
             <ScrollView style={[styles.mt3]}>
                 <MenuItem.Root
-                    onPress={callFunctionIfActionIsAllowed(() => openExternalLink(CONST.APP_DOWNLOAD_LINKS.ANDROID), false, session)}
+                    onPress={callIfAuthenticated(() => openExternalLink(CONST.APP_DOWNLOAD_LINKS.ANDROID), session)}
                     sentryLabel={CONST.SENTRY_LABEL.APP_DOWNLOAD_LINKS.ANDROID}
                 >
                     <MenuItem.Row>
@@ -66,7 +66,7 @@ function DynamicAppDownloadLinksPage() {
                     </MenuItem.Row>
                 </MenuItem.Root>
                 <MenuItem.Root
-                    onPress={callFunctionIfActionIsAllowed(() => openExternalLink(CONST.APP_DOWNLOAD_LINKS.IOS, true), false, session)}
+                    onPress={callIfAuthenticated(() => openExternalLink(CONST.APP_DOWNLOAD_LINKS.IOS, true), session)}
                     sentryLabel={CONST.SENTRY_LABEL.APP_DOWNLOAD_LINKS.IOS}
                 >
                     <MenuItem.Row>

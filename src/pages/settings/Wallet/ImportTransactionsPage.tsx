@@ -15,7 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -68,7 +68,7 @@ function ImportTransactionsPage() {
                 <View>
                     <Text style={[styles.textNormal, styles.mh5, styles.mb5]}>{translate('workspace.companyCards.importTransactions.description')}</Text>
                     <MenuItem.Root
-                        onPress={callFunctionIfActionIsAllowed(navigateToCardNameSelection, false, session)}
+                        onPress={callIfAuthenticated(navigateToCardNameSelection, session)}
                         sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.IMPORT_TRANSACTIONS_CARD_NAME}
                     >
                         <MenuItemField.Row
