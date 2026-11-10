@@ -3868,17 +3868,7 @@ startDeferredAttachmentEditReplays((deferredEdit, syncedAction) => {
 
     // Off the current stack so the replay does not re-enter Onyx from inside its own subscriber.
     Promise.resolve().then(() =>
-        editReportComment(
-            originalReport,
-            syncedAction,
-            textForNewComment,
-            isOriginalReportArchived,
-            currentUserLogin,
-            getAllPersonalDetails(),
-            currentUserAccountID,
-            videoAttributeCache,
-            reportIDToName,
-        ),
+        editReportComment(originalReport, syncedAction, textForNewComment, isOriginalReportArchived, currentUserLogin, currentUserAccountID, videoAttributeCache, reportIDToName),
     );
     return true;
 });
@@ -3890,7 +3880,6 @@ function editReportComment(
     textForNewComment: string,
     isOriginalReportArchived: boolean | undefined,
     currentUserLogin: string,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
     currentUserAccountID: number,
     videoAttributeCache?: Record<string, string>,
     reportIDToName?: Record<string, string>,
@@ -3916,7 +3905,7 @@ function editReportComment(
     }
     const htmlForNewComment = restoreAttachmentAnchorLabels(
         restoreAttachmentAnchorAttributes(
-            handleUserDeletedLinksInHtml(draftForNewComment, originalCommentMarkdown, currentUserLogin, personalDetails, videoAttributeCache),
+            handleUserDeletedLinksInHtml(draftForNewComment, originalCommentMarkdown, currentUserLogin, getAllPersonalDetails(), videoAttributeCache),
             originalCommentHTML,
         ),
         draftForNewComment,

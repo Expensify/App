@@ -14,8 +14,7 @@ type EditMessageProps = Parameters<typeof useEditMessage>[0];
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({email: 'user@test.com'}));
 jest.mock('@hooks/useOnyx', () => () => [undefined]);
-jest.mock('@hooks/usePersonalDetails', () => ({useAllPersonalDetails: () => [undefined]}));
-jest.mock('@hooks/useReportIDToNameMap', () => () => ({}));
+jest.mock('@hooks/useReportIDToNameMap', () => ({useMentionedReportIDToNameMap: () => ({})}));
 jest.mock('@hooks/useReportIsArchived', () => () => false);
 jest.mock('@hooks/useReportScrollManager', () => () => ({
     scrollToIndex: jest.fn<
