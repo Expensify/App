@@ -33,7 +33,7 @@ import BaseDomainMemberDetailsComponent from '@pages/domain/BaseDomainMemberDeta
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import {clearVacationDelegateError} from '@userActions/Domain';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -176,6 +176,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                 <ToggleSettingOptionRow
                     wrapperStyle={[styles.mv3, styles.ph5]}
                     switchAccessibilityLabel={translate('domain.common.forceTwoFactorAuth')}
+                    switchSentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.MEMBER_FORCE_TWO_FACTOR_AUTH_SWITCH}
                     isActive={!domainSettings?.twoFactorAuthExemptEmails?.includes(memberLogin)}
                     onToggle={(value) => {
                         if (!personalDetails?.login) {
@@ -217,7 +218,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
             ) : (
                 <MenuItem.Root
                     key="ReportSuspiciousActivity"
-                    onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.DOMAIN_LOCK_ACCOUNT.getRoute(domainAccountID, accountID)), false, session)}
+                    onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.DOMAIN_LOCK_ACCOUNT.getRoute(domainAccountID, accountID)), session)}
                 >
                     <MenuItem.Row>
                         <MenuItem.Leading>

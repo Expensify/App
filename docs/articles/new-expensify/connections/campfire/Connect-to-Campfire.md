@@ -30,8 +30,8 @@ To connect Campfire, you must:
 ## How to connect Campfire to Expensify
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
-2. Select **Accounting**.
-3. In the **Connections** section next to **Campfire**, select **Connect**.
+2. Select **Connections**.
+3. Select **Campfire**.
 4. On the **Campfire setup** page, follow the on-screen instructions to generate an API key in Campfire.
 5. Paste the key into the **API key** field.
 6. Select **Confirm**.
@@ -44,7 +44,7 @@ Expensify validates the API key and starts the first sync with Campfire.
 
 ## What happens after you connect to Campfire
 
-After the connection is established, the **Connections** section updates to show your connected Campfire integration, including:
+After the connection is established, Campfire appears as connected on the **Connections** page. Select **Configure** next to Campfire to see:
 
 - The connection status and last sync timestamp.
 - The selected entity.
@@ -61,8 +61,8 @@ After the first sync, you can configure how data imports and exports. Learn how 
 If the saved API key becomes invalid, Expensify displays an error on the Campfire connection. To reconnect to Campfire:
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
-2. Select **Accounting**.
-3. Next to **Campfire**, select the three dots **(⋮)**.
+2. Select **Connections**, then select **Fix** next to Campfire.
+3. Select **More (⋮)**.
 4. Select **Enter your credentials**.
 5. Create a new API key in Campfire and paste it into the **API key** field.
 6. Select **Confirm**.
@@ -74,8 +74,8 @@ Expensify syncs again with the new key.
 ## How to disconnect Campfire
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
-2. Select **Accounting**.
-3. Next to **Campfire**, select the three dots **(⋮)**.
+2. Select **Connections**, then select **Configure** next to Campfire.
+3. Select **More (⋮)**.
 4. Select **Disconnect**.
 5. Select **Disconnect** again to confirm.
 

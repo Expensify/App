@@ -4,7 +4,6 @@ on:
   workflow_call:
   pull_request:
     types: [opened, synchronize]
-    branches-ignore: [production]
     paths: ['src/**', '.github/workflows/unused-styles.yml', 'scripts/findUnusedStyles.ts']
 
 concurrency:

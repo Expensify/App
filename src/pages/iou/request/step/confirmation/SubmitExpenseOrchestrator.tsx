@@ -225,20 +225,19 @@ function SubmitExpenseOrchestrator({
     // Fast-path handlers defer createTransaction until after the dismiss animation completes
     // via dismissModal's afterTransition callback (backed by TransitionTracker). This prevents
     // heavy optimistic Onyx writes from blocking the JS thread during the RHP slide-out animation.
-    const handleSearchPreInsert = (locationPermissionGranted = false) => {
+    const handleSearchPreInsert = (locationPermissionGranted: boolean) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.SEARCH_PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
         markPendingSearchWrite();
         revealPreMountDestination(() => {
-            // shouldHandleNavigation defaults to true here (other fast paths pass false). The Search screen was
-            // pre-inserted before the modal opened, so the nav stack is already correct and createTransaction's
-            // post-create cleanup (navigateAfterExpenseCreate) finishes the flow.
-            createTransaction({locationPermissionGranted});
+            // The Search screen was pre-inserted before the modal opened, so the nav stack is already correct and
+            // createTransaction's post-create cleanup (navigateAfterExpenseCreate) finishes the flow.
+            createTransaction({locationPermissionGranted, shouldHandleNavigation: true});
             setIsConfirming(false);
         });
     };
 
-    const handleReportPreInsert = (locationPermissionGranted = false) => {
+    const handleReportPreInsert = (locationPermissionGranted: boolean) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.REPORT_PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, destinationReportID);
         // Armed before the reveal, so the barrier attaches to the transition that reveal starts. The pending-write
@@ -258,7 +257,7 @@ function SubmitExpenseOrchestrator({
         revealPreMountDestination(afterTransition);
     };
 
-    const handleDismissModalFastPath = (locationPermissionGranted = false) => {
+    const handleDismissModalFastPath = (locationPermissionGranted: boolean) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_MODAL, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         const shouldPreserveSearchWithPlaceholder = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK) && isSearchTopmostFullScreenRoute();
 
@@ -298,7 +297,7 @@ function SubmitExpenseOrchestrator({
     // Wide: always the handler
     // Narrow: only runs if the user submitted before the pre-insert timer (300ms)
     // elapsed - SEARCH_PRE_INSERT is the primary narrow handler.
-    const handleSearchDismiss = (locationPermissionGranted = false) => {
+    const handleSearchDismiss = (locationPermissionGranted: boolean) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.SEARCH_DISMISS, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         const searchType = getSubmitExpenseSearchType(iouType);
         const isSameType = getCurrentSearchQueryJSON()?.type === searchType;
@@ -361,7 +360,7 @@ function SubmitExpenseOrchestrator({
         });
     };
 
-    const handleDismissToReport = (locationPermissionGranted = false) => {
+    const handleDismissToReport = (locationPermissionGranted: boolean) => {
         if (!destinationReportID) {
             // Tracking already started in onSubmit; just override the fast path label.
             Log.warn('[SubmitExpenseOrchestrator] handleDismissToReport reached without destinationReportID - falling back to default submit');
@@ -373,7 +372,7 @@ function SubmitExpenseOrchestrator({
             // is intentionally the same approach used in handleDefaultSubmit so
             // this fallback behaves identically to the standard submit path.
             requestAnimationFrame(() => {
-                createTransaction({locationPermissionGranted});
+                createTransaction({locationPermissionGranted, shouldHandleNavigation: true});
                 requestAnimationFrame(() => {
                     setIsConfirming(false);
                 });
@@ -402,11 +401,11 @@ function SubmitExpenseOrchestrator({
         });
     };
 
-    const handleDefaultSubmit = (locationPermissionGranted = false) => {
+    const handleDefaultSubmit = (locationPermissionGranted: boolean) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
         markPendingWriteForSearchPage(isFromGlobalCreateForNavigation);
         requestAnimationFrame(() => {
-            createTransaction({locationPermissionGranted});
+            createTransaction({locationPermissionGranted, shouldHandleNavigation: true});
             requestAnimationFrame(() => {
                 setIsConfirming(false);
             });
@@ -420,7 +419,7 @@ function SubmitExpenseOrchestrator({
     //
     // Deliberately no transition barrier here: this handler's write executes immediately, so gating it
     // on a transition would only delay it.
-    const handleReportInRHPDismiss = (locationPermissionGranted = false) => {
+    const handleReportInRHPDismiss = (locationPermissionGranted: boolean) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.REPORT_IN_RHP_DISMISS, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         const rootState = navigationRef.getRootState();
 
@@ -453,7 +452,7 @@ function SubmitExpenseOrchestrator({
         handleDefaultSubmit(locationPermissionGranted);
     };
 
-    const dispatchSubmitHandler = (locationPermissionGranted = false) => {
+    const dispatchSubmitHandler = (locationPermissionGranted: boolean) => {
         startSubmitSpans();
         const rootState = navigationRef.getRootState();
         const snapshot = buildNavigationSnapshot(rootState);
@@ -479,7 +478,7 @@ function SubmitExpenseOrchestrator({
     const onConfirm = () => {
         setIsConfirming(true);
         if (!gpsRequired) {
-            dispatchSubmitHandler();
+            dispatchSubmitHandler(false);
             return;
         }
         hasLocationPermission().then((isGranted) => dispatchSubmitHandler(isGranted));

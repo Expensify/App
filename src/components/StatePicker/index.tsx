@@ -6,7 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import type {Option} from '@libs/searchOptions';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -46,7 +46,7 @@ function StatePicker({value, errorText, onInputChange = () => {}}: StatePickerPr
 
     return (
         <>
-            <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => setIsPickerVisible(true), false, session)}>
+            <MenuItem.Root onPress={callIfAuthenticated(() => setIsPickerVisible(true), session)}>
                 <MenuItemField.Row
                     name={translate('common.state')}
                     value={value ? translate(`allStates.${value as State}.stateName`) : undefined}

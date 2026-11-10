@@ -15,7 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -67,7 +67,7 @@ function ImportTransactionsPage() {
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween]}>
                 <View>
                     <Text style={[styles.textNormal, styles.mh5, styles.mb5]}>{translate('workspace.companyCards.importTransactions.description')}</Text>
-                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(navigateToCardNameSelection, false, session)}>
+                    <MenuItem.Root onPress={callIfAuthenticated(navigateToCardNameSelection, session)}>
                         <MenuItemField.Row
                             name={translate('workspace.companyCards.importTransactions.cardDisplayName')}
                             value={cardDisplayName || undefined}
@@ -92,6 +92,7 @@ function ImportTransactionsPage() {
                         <ToggleSettingOptionRow
                             title={translate('workspace.companyCards.importTransactions.transactionsAreReimbursable')}
                             switchAccessibilityLabel={translate('workspace.companyCards.importTransactions.transactionsAreReimbursable')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.IMPORT_TRANSACTIONS_REIMBURSABLE_SWITCH}
                             onToggle={setIsReimbursable}
                             isActive={isReimbursable}
                         />
@@ -100,6 +101,7 @@ function ImportTransactionsPage() {
                         <ToggleSettingOptionRow
                             title={translate('workspace.companyCards.importTransactions.flipAmountSign')}
                             switchAccessibilityLabel={translate('workspace.companyCards.importTransactions.flipAmountSign')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.IMPORT_TRANSACTIONS_FLIP_AMOUNT_SIGN_SWITCH}
                             onToggle={setFlipAmountSign}
                             isActive={flipAmountSign}
                         />

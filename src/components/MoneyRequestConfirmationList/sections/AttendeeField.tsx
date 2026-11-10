@@ -15,7 +15,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {getAttendeesListDisplayString} from '@libs/TransactionUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -120,7 +120,7 @@ function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, a
 
     return (
         <MenuItem.Root
-            onPress={isReadOnly ? undefined : callFunctionIfActionIsAllowed(openAttendeePage, false, session)}
+            onPress={isReadOnly ? undefined : callIfAuthenticated(openAttendeePage, session)}
             accessibilityLabel={attendeesAccessibilityLabel}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.ATTENDEES_FIELD}
         >

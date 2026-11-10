@@ -3,6 +3,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getGroupItemAccessibilityLabel from '@libs/Accessibility/getGroupItemAccessibilityLabel';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
+import CONST from '@src/CONST';
+
 import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
@@ -79,7 +81,7 @@ function RadioButtonWithLabel({
                     hasError={hasError}
                 />
                 <PressableWithFeedback
-                    sentryLabel="RadioButtonWithLabel"
+                    sentryLabel={CONST.SENTRY_LABEL.RADIO_BUTTON_WITH_LABEL.LABEL}
                     tabIndex={-1}
                     accessible={false}
                     onPress={onPress}
