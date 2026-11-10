@@ -9,7 +9,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import {getTagNamesFromTagsLists} from './PolicyUtils';
 import {parse} from './SearchParser/autocompleteParser';
-import {getUserFriendlyKey, getUserFriendlyValue} from './SearchQueryUtils';
+import {getUserFriendlyKey, getUserFriendlyValue, isGroupBySupportedBySearch} from './SearchQueryUtils';
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS: SearchFilterKey[] = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
@@ -183,12 +183,16 @@ function getAutocompleteQueryWithComma(prevQuery: string, newQuery: string) {
 const userFriendlyExpenseTypeList = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
 const userFriendlyReceiptTypeList = Object.values(CONST.SEARCH.RECEIPT_TYPE).map((value) => getUserFriendlyValue(value));
 const userFriendlyTransactionStatusList = Object.values(CONST.SEARCH.TRANSACTION_STATUS).map((value) => getUserFriendlyValue(value));
-const userFriendlyGroupByList = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
+// Insights-only group-bys aren't highlighted because Search can't group by them
+const userFriendlyGroupByList = Object.values(CONST.SEARCH.GROUP_BY)
+    .filter(isGroupBySupportedBySearch)
+    .map((value) => getUserFriendlyValue(value));
 const userFriendlyViewList = Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
 const userFriendlyStatusList = Object.values({
     ...CONST.SEARCH.STATUS.EXPENSE,
     ...CONST.SEARCH.STATUS.INVOICE,
     ...CONST.SEARCH.STATUS.TRIP,
+    ...CONST.SEARCH.TRIP_STATUS,
     ...CONST.SEARCH.STATUS.TASK,
 }).map((value) => getUserFriendlyValue(value));
 
@@ -202,7 +206,14 @@ const userFriendlyColumnList = new Set(
  * @private
  * Determines if a specific value in the search syntax can/should be highlighted as valid or not
  */
-function filterOutRangesWithCorrectValue(range: AutocompleteParserRange, substitutionMap: SubstitutionMap, knownValues: KnownFilterValues, currentType: string, hasExplicitType: boolean) {
+function filterOutRangesWithCorrectValue(
+    range: AutocompleteParserRange,
+    substitutionMap: SubstitutionMap,
+    knownValues: KnownFilterValues,
+    currentType: string,
+    hasExplicitType: boolean,
+    shouldReturnTripRooms: boolean,
+) {
     'worklet';
 
     const typeList = Object.values(CONST.SEARCH.DATA_TYPES) as string[];
@@ -285,6 +296,9 @@ function filterOutRangesWithCorrectValue(range: AutocompleteParserRange, substit
             if (currentType !== CONST.SEARCH.DATA_TYPES.EXPENSE && currentType !== CONST.SEARCH.DATA_TYPES.INVOICE && currentType !== CONST.SEARCH.DATA_TYPES.TRIP) {
                 return false;
             }
+            if (shouldReturnTripRooms) {
+                return false;
+            }
             return groupByList.includes(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW:
             return viewList.includes(range.value);
@@ -338,7 +352,7 @@ function filterOutRangesWithCorrectValue(range: AutocompleteParserRange, substit
  * Parses input string using the autocomplete parser and returns array of markdown ranges that can be used by RNMarkdownTextInput.
  * It is a simpler version of search parser that can be run on UI thread.
  */
-function parseForLiveMarkdown(input: string, currentUserName: string, map: SubstitutionMap, knownValues: KnownFilterValues): MarkdownRange[] {
+function parseForLiveMarkdown(input: string, currentUserName: string, map: SubstitutionMap, knownValues: KnownFilterValues, isTravelApprovalBetaEnabled = false): MarkdownRange[] {
     'worklet';
 
     const parsedAutocomplete: unknown = parse(input);
@@ -350,9 +364,10 @@ function parseForLiveMarkdown(input: string, currentUserName: string, map: Subst
     // The search parser applies repeated `type:` filters in order, so the last one decides the query type.
     const typeRange = ranges.findLast((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
     const currentType = typeRange?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
+    const shouldReturnTripRooms = currentType === CONST.SEARCH.DATA_TYPES.TRIP && isTravelApprovalBetaEnabled;
 
     return ranges
-        .filter((range) => filterOutRangesWithCorrectValue(range, map, knownValues, currentType, !!typeRange))
+        .filter((range) => filterOutRangesWithCorrectValue(range, map, knownValues, currentType, !!typeRange, shouldReturnTripRooms))
         .map((range) => {
             const isCurrentUserMention = knownValues.userLogins.has(range.value) || range.value === currentUserName || range.value === CONST.SEARCH.ME;
             const type = isCurrentUserMention ? 'mention-here' : 'mention-user';

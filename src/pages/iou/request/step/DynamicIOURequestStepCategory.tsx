@@ -31,7 +31,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {canCreateCategoryInSitu, canEditWorkspaceSettings, isGroupPolicy} from '@libs/PolicyUtils';
-import {getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
+import {getTransactionDetails, isCurrentUserSubmitter, isSelfDM} from '@libs/ReportUtils';
 import {getRequestType} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -95,13 +95,17 @@ function DynamicIOURequestStepCategory({
     const currentTransaction = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const transactionCategory = getTransactionDetails(currentTransaction)?.category ?? '';
     useRestartOnReceiptFailure(transaction, routeReportID, iouType, action);
-    const currentUserEmailParam = useCurrentUserPersonalDetails().login ?? '';
+    const {login: currentUserEmailParam = '', accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const isOwnExpense = !isEditing || !transactionReport || isCurrentUserSubmitter(transactionReport, currentUserAccountID);
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
 
     const categoryForDisplay = isCategoryMissing(transactionCategory) ? '' : transactionCategory;
 
     const canCreateCategory = canCreateCategoryInSitu(policy, currentUserEmailParam);
+    // Creating a category requires a real workspace. Writing to a draft would clear its default categories.
+    const isDraftOnlyPolicy = !policyData.policy?.id || policyData.policy.id !== policyID;
+    const canCreateSearchedCategory = canCreateCategory && !isDraftOnlyPolicy;
     const createCategoryMenuItems = canCreateCategory
         ? [
               {
@@ -249,7 +253,8 @@ function DynamicIOURequestStepCategory({
                     selectedCategory={categoryForDisplay}
                     policyID={policyID ?? report?.policyID}
                     onSubmit={updateCategory}
-                    onCreateCategory={canCreateCategory ? createSearchedCategory : undefined}
+                    onCreateCategory={canCreateSearchedCategory ? createSearchedCategory : undefined}
+                    ownerAccountID={isOwnExpense ? currentUserAccountID : undefined}
                 />
             )}
         </StepScreenWrapper>

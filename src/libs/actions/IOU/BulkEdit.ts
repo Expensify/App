@@ -528,6 +528,7 @@ function updateMultipleMoneyRequests({
             policy: transactionPolicy,
             policies: allPolicies,
             personalPolicyOutputCurrency,
+            getCurrencyDecimals,
             getCurrencySymbol,
         });
         const isTransactionOnHold = isOnHold(transaction);

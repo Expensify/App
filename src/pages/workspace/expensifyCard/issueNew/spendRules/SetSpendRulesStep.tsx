@@ -285,6 +285,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                             showLockIcon={isSpendRuleLocked}
                             disabledAction={isSpendRuleLocked ? promptSpendRuleUpgrade : undefined}
                             switchAccessibilityLabel={translate('workspace.card.issueNewCard.addSpendRule')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_ADD_SPEND_RULE_SWITCH}
                             wrapperStyle={[styles.mv3]}
                         />
                         {!isSpendRuleLocked && spendRuleEnabled && (
@@ -372,6 +373,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                             isActive={expirationToggled}
                             onToggle={setExpirationToggled}
                             switchAccessibilityLabel={translate('workspace.card.issueNewCard.addExpirationDate')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_ADD_EXPIRATION_DATE_SWITCH}
                             shouldPlaceSubtitleBelowSwitch
                             wrapperStyle={[styles.mv3]}
                         />

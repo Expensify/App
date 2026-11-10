@@ -1,12 +1,14 @@
 import {
     clearPersonalBankAccount,
     connectBankAccountWithPlaid,
+    createWiseBankAccount,
     enableGlobalReimbursementsForUSDBankAccount,
+    getWiseBankAccountFields,
     initiateBankAccountUnlock,
     openPersonalBankAccountSetupView,
     updateBankAccountName,
 } from '@libs/actions/BankAccounts';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -49,6 +51,8 @@ describe('actions/BankAccounts', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
+            // Registered as the app does, so the Wise form tests see it only in memory
+            ramOnlyKeys: [ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS],
         });
     });
 
@@ -396,6 +400,97 @@ describe('actions/BankAccounts', () => {
             const reportAction = reportActions?.[optimisticReportActionID];
             expect(reportAction?.pendingAction).toBeFalsy();
             expect(reportAction?.isOptimisticAction).toBeFalsy();
+        });
+    });
+
+    describe('getWiseBankAccountFields', () => {
+        test('sends the answers only when there are some, so the first fetch asks for the default form', async () => {
+            // Given the server answers with the fields it got the request for
+            const requests: Array<Record<string, unknown>> = [];
+            mockFetch.mockAPICommand(READ_COMMANDS.GET_WISE_BANK_ACCOUNT_FIELDS, (params) => {
+                requests.push({...params});
+                return {onyxData: []};
+            });
+
+            // When the form is fetched for a country, then again after the user changed the currency
+            getWiseBankAccountFields('GB');
+            await waitForBatchedUpdates();
+            getWiseBankAccountFields('GB', 'USD', {currency: 'USD'});
+            await waitForBatchedUpdates();
+
+            // Then the first request carries no inputs and the second one carries them as JSON
+            expect(requests.at(0)).toEqual(expect.objectContaining({country: 'GB'}));
+            expect(requests.at(0)).not.toHaveProperty('inputs');
+            expect(requests.at(1)).toEqual(expect.objectContaining({country: 'GB', currency: 'USD', inputs: JSON.stringify({currency: 'USD'})}));
+        });
+
+        test('shows an error and stops loading when the fetch fails', async () => {
+            // Given the server rejects the request
+            mockFetch.fail?.();
+
+            // When the form is fetched
+            getWiseBankAccountFields('GB');
+            await waitForBatchedUpdates();
+
+            // Then the screen can leave its loader and show why
+            const fields = await getOnyxValue(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS);
+            expect(fields?.isLoading).toBe(false);
+            expect(Object.keys(fields?.errors ?? {})).toHaveLength(1);
+        });
+    });
+
+    describe('createWiseBankAccount', () => {
+        test('leaves out confirmVerificationOfPayee when the caller does not confirm it', async () => {
+            // Given the server records what it got
+            const requests: Array<Record<string, unknown>> = [];
+            mockFetch.mockAPICommand(WRITE_COMMANDS.CREATE_WISE_BANK_ACCOUNT, (params) => {
+                requests.push({...params});
+                return {onyxData: []};
+            });
+
+            // When an account is created without a verification of payee confirmation
+            createWiseBankAccount('GB', 'GBP', {sortCode: '403020', accountNumber: '12345678'});
+            await waitForBatchedUpdates();
+
+            // Then the flag is not sent at all, so the server does not read it as a confirmation, and the form reports success
+            expect(requests.at(0)).toEqual(expect.objectContaining({country: 'GB', currency: 'GBP', inputs: JSON.stringify({sortCode: '403020', accountNumber: '12345678'})}));
+            expect(requests.at(0)).not.toHaveProperty('confirmVerificationOfPayee');
+            const form = await getOnyxValue(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
+            expect(form?.isSuccess).toBe(true);
+            expect(form?.isLoading).toBe(false);
+        });
+
+        test('sends confirmVerificationOfPayee only when the caller confirms it', async () => {
+            // Given the server records what it got
+            const requests: Array<Record<string, unknown>> = [];
+            mockFetch.mockAPICommand(WRITE_COMMANDS.CREATE_WISE_BANK_ACCOUNT, (params) => {
+                requests.push({...params});
+                return {onyxData: []};
+            });
+
+            // When one account is created with an explicit false and another with a confirmation
+            createWiseBankAccount('GB', 'GBP', {}, false);
+            await waitForBatchedUpdates();
+            createWiseBankAccount('GB', 'GBP', {}, true);
+            await waitForBatchedUpdates();
+
+            // Then false is left out, since the request would send it as the string "false", and the confirmation is sent
+            expect(requests.at(0)).not.toHaveProperty('confirmVerificationOfPayee');
+            expect(requests.at(1)).toEqual(expect.objectContaining({confirmVerificationOfPayee: 'true'}));
+        });
+
+        test('shows an error on the form when the request fails', async () => {
+            // Given the server rejects the request
+            mockFetch.fail?.();
+
+            // When an account is created
+            createWiseBankAccount('GB', 'GBP', {sortCode: '403020', accountNumber: '12345678'});
+            await waitForBatchedUpdates();
+
+            // Then the confirmation page has an error to show and its button stops loading
+            const form = await getOnyxValue(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
+            expect(form?.isLoading).toBe(false);
+            expect(Object.keys(form?.errors ?? {})).toHaveLength(1);
         });
     });
 });
