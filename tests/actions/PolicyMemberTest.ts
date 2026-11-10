@@ -2026,4 +2026,30 @@ describe('actions/PolicyMember', () => {
             expect(await getOnyxValue(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE)).toBeFalsy();
         });
     });
+
+    describe('checkBulkTransferPolicyBillingOwner', () => {
+        it('resolves to the workspaces the backend allows a billing transfer for', async () => {
+            // Given the backend allows one of the two workspaces and skips the other
+            mockFetch?.mockAPICommand(SIDE_EFFECT_REQUEST_COMMANDS.CHECK_BULK_TRANSFER_POLICY_BILLING_OWNER, () => ({jsonCode: CONST.JSON_CODE.SUCCESS, policyIDs: ['allowed']}));
+
+            // When both workspaces are checked
+            const transferablePolicyIDs = await Member.checkBulkTransferPolicyBillingOwner(['allowed', 'skipped']);
+
+            // Then both were sent as one list, and only the allowed one comes back, so the confirmation can name the skipped one
+            const body = TestHelper.getFetchMockCalls(SIDE_EFFECT_REQUEST_COMMANDS.CHECK_BULK_TRANSFER_POLICY_BILLING_OWNER).at(0)?.[1]?.body;
+            expect(body instanceof FormData ? body.get('policyIDList') : undefined).toBe('allowed,skipped');
+            expect(transferablePolicyIDs).toEqual(['allowed']);
+        });
+
+        it('resolves to undefined when the check fails', async () => {
+            // Given the request fails, as it does while offline
+            mockFetch?.fail?.();
+
+            // When the workspaces are checked
+            const transferablePolicyIDs = await Member.checkBulkTransferPolicyBillingOwner(['allowed']);
+
+            // Then there is no result, so the page shows an error instead of a confirmation
+            expect(transferablePolicyIDs).toBeUndefined();
+        });
+    });
 });

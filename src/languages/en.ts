@@ -5553,6 +5553,7 @@ const translations = {
             }),
             bulkActionAppliesTo: (count: number, total: number) => `This applies to ${count} of the ${total} selected workspaces.`,
             bulkActionSkippedWorkspaces: (workspaceNames: string) => `These will be skipped: ${workspaceNames}.`,
+            bulkTransferOwnerNoneEligible: 'None of the selected workspaces can be transferred together. Select one workspace at a time to transfer it.',
             deleteWorkspaceTitle: (workspaceName: string) => `Delete ${workspaceName}?`,
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             deleteWithCardsConfirmation: 'Are you sure you want to delete this workspace? This will remove all card feeds and assigned cards.',

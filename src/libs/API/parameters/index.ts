@@ -589,6 +589,7 @@ export type {default as ImportMerchantRulesSpreadsheetParams} from './ImportMerc
 export type {default as ExportMembersSpreadsheetParams} from './ExportMembersSpreadsheetParams';
 export type {default as QueueBulkExportPolicyMembersParams} from './QueueBulkExportPolicyMembersParams';
 export type {default as QueueBulkTransferPolicyBillingOwnerParams} from './QueueBulkTransferPolicyBillingOwnerParams';
+export type {default as CheckBulkTransferPolicyBillingOwnerParams} from './CheckBulkTransferPolicyBillingOwnerParams';
 export type {default as ImportTagsSpreadsheetParams} from './ImportTagsSpreadsheet';
 export type {default as ExportCategoriesSpreadsheetParams} from './ExportCategoriesSpreadsheet';
 export type {default as ExportTagsSpreadsheetParams} from './ExportTagsSpreadsheet';

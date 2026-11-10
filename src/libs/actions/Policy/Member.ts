@@ -7,6 +7,7 @@ import type {
     DeleteMembersFromWorkspaceParams,
     OpenPolicyMemberProfilePageParams,
     OpenWorkspaceMembersPageParams,
+    CheckBulkTransferPolicyBillingOwnerParams,
     QueueBulkExportPolicyMembersParams,
     QueueBulkTransferPolicyBillingOwnerParams,
     RequestWorkspaceOwnerChangeParams,
@@ -828,7 +829,26 @@ function requestWorkspaceOwnerChange(policy: OnyxEntry<Policy>, currentUserAccou
     API.write(WRITE_COMMANDS.REQUEST_WORKSPACE_OWNER_CHANGE, params, {optimisticData, successData, failureData});
 }
 
-// TODO: Run CheckBulkTransferPolicyBillingOwner first and show its result in the confirmation, once its response shape is known.
+/**
+ * Asks the backend which of the workspaces can have their billing transferred to the current user.
+ * Resolves to undefined when the check could not run, such as while offline.
+ */
+async function checkBulkTransferPolicyBillingOwner(policyIDs: string[]): Promise<string[] | undefined> {
+    const params: CheckBulkTransferPolicyBillingOwnerParams = {policyIDList: policyIDs.join(',')};
+
+    try {
+        // The confirmation names the workspaces the transfer would skip, so it needs the result before it opens.
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CHECK_BULK_TRANSFER_POLICY_BILLING_OWNER, params);
+        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+            return undefined;
+        }
+        return response.policyIDs ?? [];
+    } catch {
+        return undefined;
+    }
+}
+
 function queueBulkTransferPolicyBillingOwner(policyIDs: string[]) {
     const params: QueueBulkTransferPolicyBillingOwnerParams = {policyIDList: policyIDs.join(',')};
 
@@ -1694,6 +1714,7 @@ export {
     buildUpdateWorkspaceMembersRoleOnyxData,
     updateWorkspaceMembersRole,
     requestWorkspaceOwnerChange,
+    checkBulkTransferPolicyBillingOwner,
     queueBulkTransferPolicyBillingOwner,
     clearWorkspaceOwnerChangeFlow,
     buildAddMembersToWorkspaceOnyxData,

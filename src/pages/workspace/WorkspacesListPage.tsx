@@ -28,8 +28,9 @@ import useSearchBackPress from '@hooks/useSearchBackPress';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {close} from '@libs/actions/Modal';
 import {clearCopyPolicySettings} from '@libs/actions/Policy/CopyPolicySettings';
-import {queueBulkExportPolicyMembers, queueBulkTransferPolicyBillingOwner} from '@libs/actions/Policy/Member';
+import {checkBulkTransferPolicyBillingOwner, queueBulkExportPolicyMembers, queueBulkTransferPolicyBillingOwner} from '@libs/actions/Policy/Member';
 import {queueBulkArchivePolicy, clearDuplicateWorkspace, dismissWorkspaceError, queueBulkLeavePolicy} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -123,6 +124,7 @@ function WorkspacesListPage() {
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
     const [policyIDToArchive, setPolicyIDToArchive] = useState<string>();
     const [activeFlow, setActiveFlow] = useState<ActiveWorkspaceFlow>();
+    const [isCheckingTransfer, setIsCheckingTransfer] = useState(false);
     const [selectedPolicyIDs, setSelectedPolicyIDs] = useState<string[]>([]);
     const clearSelection = () => setSelectedPolicyIDs([]);
 
@@ -272,11 +274,11 @@ function WorkspacesListPage() {
     }, [workspaceRows.length, isFocused]);
 
     useEffect(() => {
-        if (isLoadingBill) {
+        if (isLoadingBill || isCheckingTransfer) {
             return;
         }
         bulkActionsDropdownRef.current?.setIsMenuVisible(false);
-    }, [isLoadingBill]);
+    }, [isLoadingBill, isCheckingTransfer]);
 
     const selectedRows = workspaceRows.filter((row) => selectedPolicyIDs.includes(row.policyID));
 
@@ -305,6 +307,41 @@ function WorkspacesListPage() {
             }
             onConfirm();
             clearSelection();
+        });
+    };
+
+    const showBulkActionNotice = (title: string, prompt: string) => {
+        showConfirmModal({
+            title,
+            prompt,
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+    };
+
+    // The backend skips workspaces whose transfer needs extra steps, like a balance or subscription change, so the
+    // confirmation is built from its check rather than from the selection alone.
+    const confirmBulkTransfer = (policyIDs: string[]) => {
+        setIsCheckingTransfer(true);
+        checkBulkTransferPolicyBillingOwner(policyIDs).then((transferablePolicyIDs) => {
+            setIsCheckingTransfer(false);
+            close(() => {
+                if (!transferablePolicyIDs) {
+                    showBulkActionNotice(translate('workspace.people.transferOwner'), translate('common.genericErrorMessage'));
+                    return;
+                }
+                if (transferablePolicyIDs.length === 0) {
+                    showBulkActionNotice(translate('workspace.people.transferOwner'), translate('workspace.common.bulkTransferOwnerNoneEligible'));
+                    return;
+                }
+                confirmBulkAction(
+                    transferablePolicyIDs,
+                    translate('workspace.common.transferOwnerWorkspacesTitle', {count: transferablePolicyIDs.length}),
+                    translate('workspace.people.transferOwner'),
+                    () => queueBulkTransferPolicyBillingOwner(transferablePolicyIDs),
+                    CONST.BUTTON_VARIANT.SUCCESS,
+                );
+            });
         });
     };
 
@@ -342,18 +379,15 @@ function WorkspacesListPage() {
                     text: translate('workspace.people.transferOwner'),
                     icon: icons.Transfer,
                     shouldSkipFocusRestore: true,
+                    disabled: isCheckingTransfer,
+                    shouldShowLoadingSpinnerIcon: isCheckingTransfer,
+                    shouldCloseModalOnSelect: isSingleSelection,
                     onSelected: () => {
                         if (isSingleSelection) {
                             setActiveFlow({type, policyID: firstPolicyID});
                             return;
                         }
-                        confirmBulkAction(
-                            policyIDs,
-                            translate('workspace.common.transferOwnerWorkspacesTitle', {count: policyIDs.length}),
-                            translate('workspace.people.transferOwner'),
-                            () => queueBulkTransferPolicyBillingOwner(policyIDs),
-                            CONST.BUTTON_VARIANT.SUCCESS,
-                        );
+                        confirmBulkTransfer(policyIDs);
                     },
                 };
             case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.COPY_SETTINGS:
