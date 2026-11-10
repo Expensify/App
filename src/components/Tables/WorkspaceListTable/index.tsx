@@ -50,6 +50,7 @@ type WorkspaceRowData = TableData & {
     type: ValueOf<typeof CONST.POLICY.TYPE>;
     role: ValueOf<typeof CONST.POLICY.ROLE>;
     isEligibleToCopy: boolean;
+    isReimburser: boolean;
     iconType: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_ICON;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;

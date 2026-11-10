@@ -53,7 +53,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {createDisplayDetailsByAccountIDsSelector} from '@src/selectors/PersonalDetails';
-import {createCopySettingsEligibleTargetsSelector, createWorkspaceListPoliciesSelector} from '@src/selectors/Policy';
+import {createCopySettingsEligibleTargetsSelector, createReimburserPolicyIDsSelector, createWorkspaceListPoliciesSelector} from '@src/selectors/Policy';
 
 import type {ValueOf} from 'type-fest';
 
@@ -102,6 +102,7 @@ function WorkspacesListPage() {
 
     // IDs of every workspace eligible as a copy-settings target. Derived once per policy write (not per row) so each row can cheaply decide whether to offer "Copy settings".
     const [copySettingsEligibleTargets] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createCopySettingsEligibleTargetsSelector(session?.email)});
+    const [reimburserPolicyIDs] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createReimburserPolicyIDsSelector(session?.email)});
 
     // A workspace can copy its settings when there is at least one other eligible target.
     const isWorkspaceEligibleToCopy = (policyID: string) =>
@@ -167,6 +168,7 @@ function WorkspacesListPage() {
                 isArchived: false,
                 isJoinRequestPending: true,
                 isEligibleToCopy: false,
+                isReimburser: false,
                 isDefault: activePolicyID === policyID,
                 shouldAnimateInHighlight: duplicateWorkspace?.policyID === policyID,
                 ownerAccountID,
@@ -197,6 +199,7 @@ function WorkspacesListPage() {
                 isJoinRequestPending: false,
                 isArchived: policy.isArchived,
                 isEligibleToCopy,
+                isReimburser: !!reimburserPolicyIDs?.includes(policyID),
                 shouldAnimateInHighlight: duplicateWorkspace?.policyID === policyID,
                 isDefault: activePolicyID === policyID,
                 isDeleted: policy.isPendingDelete,

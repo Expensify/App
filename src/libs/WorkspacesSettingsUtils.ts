@@ -153,6 +153,7 @@ type WorkspacesBulkActionRow = {
     isDefault: boolean;
     isJoinRequestPending: boolean;
     isEligibleToCopy: boolean;
+    isReimburser: boolean;
 };
 
 type WorkspacesBulkActionContext = {
@@ -190,7 +191,7 @@ const SINGLE_WORKSPACE_BULK_ACTIONS = new Set<WorkspacesBulkActionType>([
     CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.UNARCHIVE,
 ]);
 
-function canApplyWorkspacesBulkAction(type: WorkspacesBulkActionType, row: WorkspacesBulkActionRow, context: WorkspacesBulkActionContext): boolean {
+function canApplyWorkspacesBulkAction(type: WorkspacesBulkActionType, row: WorkspacesBulkActionRow, context: WorkspacesBulkActionContext, isSingleSelection: boolean): boolean {
     const isOwner = row.ownerAccountID === context.currentUserAccountID;
     const isAdmin = row.role === CONST.POLICY.ROLE.ADMIN;
 
@@ -213,7 +214,8 @@ function canApplyWorkspacesBulkAction(type: WorkspacesBulkActionType, row: Works
         case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.UNARCHIVE:
             return canUnarchivePolicy(row.isArchived, row.ownerAccountID, context.currentUserAccountID, context.canArchivePolicies);
         case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.LEAVE:
-            return !row.isArchived && !isOwner && (row.policyID !== context.preferredPolicyID || !context.isRestrictedToPreferredPolicy);
+            // A single reimburser workspace still offers Leave so the leave flow can explain why it is blocked.
+            return !row.isArchived && !isOwner && (row.policyID !== context.preferredPolicyID || !context.isRestrictedToPreferredPolicy) && (isSingleSelection || !row.isReimburser);
         default:
             return false;
     }
@@ -225,13 +227,14 @@ function canApplyWorkspacesBulkAction(type: WorkspacesBulkActionType, row: Works
  */
 function getWorkspacesBulkActions(selectedRows: WorkspacesBulkActionRow[], context: WorkspacesBulkActionContext): WorkspacesBulkAction[] {
     const actions: WorkspacesBulkAction[] = [];
+    const isSingleSelection = selectedRows.length === 1;
 
     for (const type of WORKSPACES_BULK_ACTIONS_ORDER) {
-        if (SINGLE_WORKSPACE_BULK_ACTIONS.has(type) && selectedRows.length !== 1) {
+        if (SINGLE_WORKSPACE_BULK_ACTIONS.has(type) && !isSingleSelection) {
             continue;
         }
 
-        const policyIDs = selectedRows.filter((row) => canApplyWorkspacesBulkAction(type, row, context)).map((row) => row.policyID);
+        const policyIDs = selectedRows.filter((row) => canApplyWorkspacesBulkAction(type, row, context, isSingleSelection)).map((row) => row.policyID);
         if (policyIDs.length > 0) {
             actions.push({type, policyIDs});
         }

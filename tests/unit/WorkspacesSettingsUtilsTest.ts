@@ -306,6 +306,7 @@ describe('WorkspacesSettingsUtils', () => {
             isDefault: false,
             isJoinRequestPending: false,
             isEligibleToCopy: true,
+            isReimburser: false,
             ...overrides,
         });
         const ownedWorkspace = buildRow({});
@@ -383,6 +384,21 @@ describe('WorkspacesSettingsUtils', () => {
 
             // Then only the Control workspace is exported, matching who sees Download CSV on the Members page
             expect(exportAction?.policyIDs).toEqual(['control']);
+        });
+
+        it('skips the workspaces the user reimburses when leaving several at once', () => {
+            // Given two workspaces owned by someone else, and the user is the reimburser on one of them
+            const reimbursedWorkspace = buildRow({policyID: 'reimbursed', ownerAccountID: 2, isReimburser: true});
+
+            // When both are selected, and then only the reimbursed one
+            const multipleLeaveAction = getWorkspacesBulkActions([otherOwnersWorkspace, reimbursedWorkspace], context).find(
+                (action) => action.type === CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.LEAVE,
+            );
+            const singleSelectionTypes = getWorkspacesBulkActions([reimbursedWorkspace], context).map((action) => action.type);
+
+            // Then the bulk leave skips the reimbursed workspace, while selecting it alone keeps Leave so its flow can explain the block
+            expect(multipleLeaveAction?.policyIDs).toEqual(['other']);
+            expect(singleSelectionTypes).toContain(CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.LEAVE);
         });
 
         it('hides Set as default and Leave for the preferred workspace when the user is restricted to it', () => {

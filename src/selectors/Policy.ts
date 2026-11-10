@@ -109,6 +109,14 @@ const createCopySettingsEligibleTargetsSelector =
             .filter((policy): policy is Policy => !!policy && isPaidGroupPolicy(policy) && isPolicyAdmin(policy, currentUserLogin) && !isPendingDeletePolicy(policy))
             .map((policy) => policy.id);
 
+/** IDs of the workspaces whose reimburser is the current user, who can't leave them */
+const createReimburserPolicyIDsSelector =
+    (currentUserLogin: string | undefined) =>
+    (policies: OnyxCollection<Policy>): string[] =>
+        Object.values(policies ?? {})
+            .filter((policy): policy is Policy => !!policy && !!currentUserLogin && policy.achAccount?.reimburser === currentUserLogin)
+            .map((policy) => policy.id);
+
 type WorkspaceListPolicy = Pick<Policy, 'id' | 'name' | 'type' | 'role' | 'ownerAccountID' | 'avatarURL' | 'pendingAction' | 'errors'> & {
     /** Whether the policy is optimistically pending deletion */
     isPendingDelete: boolean;
@@ -705,6 +713,7 @@ export {
     createFilteredPoliciesInfoSelector,
     billingRestrictionPolicySelector,
     createWorkspaceListPoliciesSelector,
+    createReimburserPolicyIDsSelector,
     activeAdminPoliciesSelector,
     hasActiveAdminPoliciesSelector,
     canEditAnyWorkspaceSettingsSelector,
