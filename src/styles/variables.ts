@@ -161,6 +161,10 @@ export default {
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
     sidePanelWidth: 375,
+    // A resizable side panel opens wider than sidePanelWidth and can still be dragged down to it.
+    resizableSidePanelDefaultWidth: 400,
+    // A docked side panel never grows past the point where it would squeeze the central pane beside it below this.
+    centralPaneMinWidth: 400,
     rhpFloatingCardMargin: 12,
     // The frame width compensates for this border.
     rhpFloatingCardBorderWidth: 1,
@@ -175,7 +179,7 @@ export default {
     conciergeAskColumnMaxWidth: 720,
     centeredContentMaxWidth: 1200,
     insightsEmptyStateIllustrationSize: 136,
-    insightsAICardTextWidth: 250,
+    insightsAICardWidth: 250,
     minScanTooltipWidth: 320,
     chartTooltipMinWidth: 200,
     uploadViewMargin: 20,

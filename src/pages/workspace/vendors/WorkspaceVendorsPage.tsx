@@ -128,7 +128,7 @@ function VendorBulkActions({options, selectedVendorsCount}: VendorBulkActionsBut
             isSplitButton={false}
             style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
             isDisabled={selectedVendorsCount === 0 || options.length === 0}
-            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.INITIAL.VENDORS}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.VENDORS.BULK_ACTIONS_DROPDOWN}
             testID="WorkspaceVendorsPage-header-dropdown-menu-button"
         />
     );

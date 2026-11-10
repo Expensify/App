@@ -171,7 +171,10 @@ function SubscriptionSettings() {
                     }}
                 >
                     <View style={styles.mt5}>
-                        <MenuItemSectionRoot onPress={onSubscriptionSizePress}>
+                        <MenuItemSectionRoot
+                            onPress={onSubscriptionSizePress}
+                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.SUBSCRIPTION_SIZE}
+                        >
                             <MenuItemField.Row
                                 name={translate('subscription.details.subscriptionSize')}
                                 value={privateSubscription?.userCount ? String(privateSubscription.userCount) : undefined}
@@ -339,7 +342,10 @@ function SubscriptionSettings() {
                     </>
                 )}
                 <View style={styles.mt5}>
-                    <MenuItemSectionRoot onPress={isExpensifyCodeApplied ? undefined : onExpensifyCodePress}>
+                    <MenuItemSectionRoot
+                        onPress={isExpensifyCodeApplied ? undefined : onExpensifyCodePress}
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.EXPENSIFY_CODE}
+                    >
                         <MenuItemField.Row
                             name={translate('subscription.expensifyCode.title')}
                             value={isSecretPromoCode ? undefined : privatePromoCode}
@@ -363,6 +369,7 @@ function SubscriptionSettings() {
                 )}
                 <View style={styles.mb5}>
                     <MenuItemSectionRoot
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.TAX_EXEMPT}
                         onPress={() => {
                             requestTaxExempt();
                             navigateToConciergeChat({
