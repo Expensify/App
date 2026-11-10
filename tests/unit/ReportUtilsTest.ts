@@ -10,6 +10,9 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import type {TaskForParameters} from '@libs/actions/Report';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
+// Testing only so it's okay to import computeReportName
+// eslint-disable-next-line no-restricted-imports
+import computeReportNameOriginal from '@libs/computeReportName';
 import DateUtils from '@libs/DateUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {compute} from '@libs/Formula';
@@ -24,9 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, getSortedReportActions, getSystemMessageDisplayState, isActionOfType, isWhisperAction} from '@libs/ReportActionsUtils';
-// Testing only so it's okay to import computeReportName
-// eslint-disable-next-line no-restricted-imports
-import {buildReportNameFromParticipantNames, computeReportName as computeReportNameOriginal, getGroupChatName, getPolicyExpenseChatName, getReportName} from '@libs/ReportNameUtils';
+import {buildReportNameFromParticipantNames, getGroupChatName, getPolicyExpenseChatName, getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
     applyLabelToUploadingAttachmentHtml,
@@ -3723,6 +3724,35 @@ describe('ReportUtils', () => {
                     expect(reportName).toBe(
                         "The Regions Bank cards connection has been broken for 30 days. Log into your bank to fix it or remove the connection if it's no longer in use. You won't lose any submitted expenses if you remove it.",
                     );
+                });
+
+                test('should name a company card feed without a custom name by its bank name', () => {
+                    // Given a broken connection message for a feed with no custom name, so the saved feed name is the bank itself
+                    const companyCardConnectionBrokenAction: ReportAction = {
+                        ...baseParentReportAction,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN,
+                        originalMessage: {
+                            feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE,
+                            bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE,
+                            policyID: '1',
+                        },
+                    };
+                    const threadReport: Report = {
+                        ...baseExpenseReport,
+                        parentReportID: baseChatReport.reportID,
+                        parentReportActionID: companyCardConnectionBrokenAction.reportActionID,
+                    };
+                    const reportActions = {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReport.parentReportID}`]: {
+                            [companyCardConnectionBrokenAction.reportActionID]: companyCardConnectionBrokenAction,
+                        },
+                    };
+
+                    // When the thread name is computed
+                    const reportName = computeReportName(threadReport, undefined, undefined, undefined, undefined, participantsPersonalDetails, reportActions);
+
+                    // Then it uses the bank name the company cards page shows instead of the bank
+                    expect(reportName).toBe('The Capital One connection is broken. To restore card imports, log into your bank.');
                 });
 
                 test('should handle automatically paid with Expensify action', () => {
@@ -9826,6 +9856,56 @@ describe('ReportUtils', () => {
             ).toBeTruthy();
         });
 
+        it('should return false for a workspace chat the user is not a participant of', () => {
+            // Given the workspace chat behind a report shared with the user, which they are not a participant of
+            const report: Report = {...LHNTestUtils.getFakeReport([1, 2]), chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID: '1'};
+
+            // When checking if it should show in the inbox or search
+            const shouldShow = shouldReportBeInOptionList({
+                report,
+                chatReport: mockedChatReport,
+                currentReportId: undefined,
+                isInFocusMode: false,
+                isDefaultRoomsBetaEnabled: true,
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                draftComment: '',
+                isReportArchived: undefined,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
+                currentUserAccountID,
+            });
+
+            // Then it is left out, since opening it only returns report not found
+            expect(shouldShow).toBe(false);
+        });
+
+        it('should return true for a workspace chat the user is a participant of', () => {
+            // Given a workspace chat the user is a participant of
+            const report: Report = {...LHNTestUtils.getFakeReport([1, currentUserAccountID]), chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID: '1'};
+
+            // When checking if it should show in the inbox or search
+            const shouldShow = shouldReportBeInOptionList({
+                report,
+                chatReport: mockedChatReport,
+                currentReportId: undefined,
+                isInFocusMode: false,
+                isDefaultRoomsBetaEnabled: true,
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                draftComment: '',
+                isReportArchived: undefined,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
+                currentUserAccountID,
+            });
+
+            // Then it still shows
+            expect(shouldShow).toBe(true);
+        });
+
         it('should return true for empty submitted report if it is the current focused report', async () => {
             const report: Report = {...LHNTestUtils.getFakeReport(), total: 0, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, stateNum: CONST.REPORT.STATE_NUM.SUBMITTED};
             const currentReportId = report.reportID;
@@ -11612,6 +11692,32 @@ describe('ReportUtils', () => {
     });
 
     describe('canDeleteReportAction', () => {
+        it.each([
+            {childType: CONST.REPORT.TYPE.SUPPORT_TICKET, reportType: CONST.REPORT.TYPE.CHAT, isActionOwner: true, expected: false},
+            {childType: CONST.REPORT.TYPE.SUPPORT_TICKET, reportType: CONST.REPORT.TYPE.CHAT, isActionOwner: false, expected: false},
+            {childType: CONST.REPORT.TYPE.CHAT, reportType: CONST.REPORT.TYPE.CHAT, isActionOwner: true, expected: true},
+            {childType: undefined, reportType: CONST.REPORT.TYPE.CHAT, isActionOwner: true, expected: true},
+            {childType: undefined, reportType: CONST.REPORT.TYPE.SUPPORT_TICKET, isActionOwner: true, expected: true},
+        ])('comment deletion with childType $childType in reportType $reportType (owner: $isActionOwner): $expected', async ({childType, reportType, isActionOwner, expected}) => {
+            // Given a comment owned by the current user or another member of a workspace they administer
+            const adminPolicy = {...LHNTestUtils.getFakePolicy(), type: CONST.POLICY.TYPE.CORPORATE, role: CONST.POLICY.ROLE.ADMIN};
+            const report = {...LHNTestUtils.getFakeReport(), type: reportType, policyID: adminPolicy.id};
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(89021),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: isActionOwner ? currentUserAccountID : currentUserAccountID + 1,
+                childType,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${adminPolicy.id}`, adminPolicy);
+
+            // When checking the shared Delete permission used by the context menu
+            const canDelete = canDeleteReportAction(reportAction, report.reportID, undefined, undefined, undefined, currentUserAccountID, undefined, undefined, undefined);
+
+            // Then neither authors nor admins can delete ticket previews, while ordinary comments remain deletable
+            expect(canDelete).toBe(expected);
+        });
+
         it('should not allow an Expensify Card transaction to be deleted when managedCard is missing', () => {
             // Given an Expensify Card transaction whose managed-card metadata is unavailable
             const transaction = {
@@ -14341,7 +14447,7 @@ describe('ReportUtils', () => {
             it('should keep DEW precedence over IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION for an approver without parent access', async () => {
                 // Given the hasParentAccess=false fixture that otherwise yields IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION with an
                 // APPROVE badge, plus a DEW approve failure. The bare DEW dot is intentional: it deep-links to the failure message,
-                // and useOptimisticNextStep keys the "fix the issues" next step off this reason.
+                // and useNextStep keys the "fix the issues" next step off this reason.
                 const policyID = 'testPolicyDEW123';
                 const fakePolicy: Policy = {
                     ...createRandomPolicy(1),
@@ -16893,6 +16999,30 @@ describe('ReportUtils', () => {
             await Onyx.clear();
         });
 
+        it.each([CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.PAY])('preserves Leave for joined %s transaction threads', async (type) => {
+            // Given a joined transaction thread that is not a tracked expense
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.CHAT,
+                parentReportID: '12345',
+                parentReportActionID: '67890',
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1234]),
+            };
+            const parentReportAction: ReportAction = {
+                ...createRandomReportAction(67890),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                message: [{type: 'COMMENT', html: 'requested $10.00', text: 'requested $10.00', whisperedTo: []}],
+                originalMessage: {type, IOUTransactionID: '123', IOUDetails: {amount: 1000, currency: CONST.CURRENCY.USD, comment: ''}},
+            };
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+
+            // When checking membership actions with the parent action supplied
+            const canLeave = canLeaveChat(report, undefined, currentUserAccountID, false, false, parentReportAction);
+
+            // Then the tracked expense restriction does not remove existing Leave behavior for other transaction threads
+            expect(canLeave).toBe(true);
+        });
+
         it('should return true for root group chat', () => {
             const report: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.GROUP);
 
@@ -17050,6 +17180,33 @@ describe('ReportUtils', () => {
 
             await Onyx.clear();
         });
+
+        it.each([CONST.IOU.REPORT_ACTION_TYPE.TRACK, CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.PAY])(
+            'does not offer Join for a %s transaction thread without its parent report',
+            async (type) => {
+                // Given a hidden transaction thread whose private parent is not available to the current user
+                const report: Report = {
+                    ...createRandomReport(1, undefined),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    parentReportID: '12345',
+                    parentReportActionID: '67890',
+                    participants: {[currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN}},
+                };
+                const parentReportAction: ReportAction = {
+                    ...createRandomReportAction(67890),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    message: [{type: 'COMMENT', html: 'tracked $10.00', text: 'tracked $10.00', whisperedTo: []}],
+                    originalMessage: {type, IOUTransactionID: '123', IOUDetails: {amount: 1000, currency: CONST.CURRENCY.USD, comment: ''}},
+                };
+                await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+
+                // When checking whether the user can join using only the retained parent action
+                const canJoin = canJoinChat(report, parentReportAction, undefined, undefined);
+
+                // Then a transaction thread is not mistaken for an ordinary chat thread
+                expect(canJoin).toBe(false);
+            },
+        );
 
         it('should return false if the parent report action is a whisper action', () => {
             const report: Report = {
@@ -27311,9 +27468,9 @@ describe('ReportUtils', () => {
         const mockIcons = createMock<Record<'Location' | 'ReceiptPlus' | 'Plus', IconAsset>>({Location: jest.fn(), ReceiptPlus: jest.fn(), Plus: jest.fn()});
         const mockIouReportID = '12345';
         const mockSentryLabels = {
-            createExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE,
-            trackDistance: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE,
-            addExistingExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_EXISTING,
+            createExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_MENU.CREATE_EXPENSE,
+            trackDistance: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_MENU.TRACK_DISTANCE,
+            addExistingExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_MENU.ADD_EXISTING_EXPENSE,
         };
 
         it('should return exactly 3 dropdown options', () => {
@@ -27381,9 +27538,9 @@ describe('ReportUtils', () => {
                 ownerBillingGracePeriodEnd: undefined,
                 currentUserAccountID,
             });
-            expect(result.at(0)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE);
-            expect(result.at(1)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE);
-            expect(result.at(2)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_EXISTING);
+            expect(result.at(0)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_MENU.CREATE_EXPENSE);
+            expect(result.at(1)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_MENU.TRACK_DISTANCE);
+            expect(result.at(2)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_MENU.ADD_EXISTING_EXPENSE);
         });
 
         it('should pass amountOwed to shouldRestrictUserBillableActions when onSelected is called', () => {
@@ -27977,9 +28134,9 @@ describe('ReportUtils', () => {
         const mockTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(CONST.LOCALES.EN, path, ...params);
         const mockIcons = createMock<Record<'Location' | 'ReceiptPlus' | 'Plus', IconAsset>>({Location: jest.fn(), ReceiptPlus: jest.fn(), Plus: jest.fn()});
         const mockSentryLabels = {
-            createExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE,
-            trackDistance: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE,
-            addExistingExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_EXISTING,
+            createExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_MENU.CREATE_EXPENSE,
+            trackDistance: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_MENU.TRACK_DISTANCE,
+            addExistingExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_MENU.ADD_EXISTING_EXPENSE,
         };
         const policyID = '5001';
         const iouReportID = 'reportABC';

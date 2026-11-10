@@ -1,4 +1,5 @@
 import {useReportChartCaptureLoading} from '@components/Charts/context/ChartCaptureContext';
+import type {ChartAverage} from '@components/Search/buildChartSeries';
 import {buildViewOnSpendQuery} from '@components/Search/chartDrillDown';
 import ChartEmptyState from '@components/Search/ChartEmptyState';
 import ChartErrorState from '@components/Search/ChartErrorState';
@@ -63,8 +64,8 @@ type InsightsChartWidgetProps = {
     averageQueryJSON?: Readonly<SearchQueryJSON>;
     averageSnapshot?: OnyxEntry<SearchResults>;
 
-    /** Average group total the backend returned for the chart, drawn in the Average compare mode */
-    averageTotal: number | undefined;
+    /** Average the backend returned for the chart's metric, drawn in the Average compare mode */
+    average: ChartAverage | undefined;
 
     /** Whether GetInsights answered the dashboard's query */
     isDashboardLoaded: boolean | undefined;
@@ -94,7 +95,7 @@ function InsightsChartWidget({
     previousPeriodSnapshot,
     averageQueryJSON,
     averageSnapshot,
-    averageTotal,
+    average,
     isDashboardLoaded,
     filters,
     insightsScope,
@@ -110,7 +111,7 @@ function InsightsChartWidget({
     const {getCurrencyDecimals} = useCurrencyListActions();
 
     const {data, state, comparison} = useInsightsChartData(
-        {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, averageTotal, isDashboardLoaded},
+        {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, average, isDashboardLoaded},
         filters,
     );
     const groupBy = chart.groupBy ?? getQueryGroupBy(filters);

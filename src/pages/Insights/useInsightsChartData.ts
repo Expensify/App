@@ -17,6 +17,7 @@ import type {InsightsFilters} from './insightsFilters';
 import type {InsightsDashboardChart} from './resolveDashboardState';
 
 import resolveComparisonPeriods from './insightsCompare';
+import normalizeInsightsSnapshot from './normalizeInsightsSnapshot';
 
 type InsightsChartState = ValueOf<typeof INSIGHTS_CHART_STATE>;
 
@@ -35,12 +36,12 @@ const BLOCKING_STATES = new Set<InsightsChartState>([INSIGHTS_CHART_STATE.LOADIN
 
 /** Resolves a chart's rows, and what it is compared against when the page compares. */
 function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: InsightsFilters): InsightsChartData {
-    const {queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, averageTotal, isDashboardLoaded} = dashboardChart;
+    const {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, average, isDashboardLoaded} = dashboardChart;
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
-    const sortedData = useGroupedItems(snapshot, queryJSON);
+    const sortedData = useGroupedItems(normalizeInsightsSnapshot(snapshot, queryJSON?.groupBy), queryJSON);
     const current = resolveInsightsChartData({snapshot, queryJSON, sortedData, isOffline});
 
     const compare = filters.compare;
@@ -51,7 +52,7 @@ function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: I
         comparedSnapshot = averageSnapshot;
     }
     // Keeps every compared group, so each plotted group finds its own and not only the top ones.
-    const comparedSortedData = useGroupedItems(comparedSnapshot, queryJSON && {...queryJSON, limit: undefined});
+    const comparedSortedData = useGroupedItems(normalizeInsightsSnapshot(comparedSnapshot, queryJSON?.groupBy), queryJSON && {...queryJSON, limit: undefined});
 
     if (current.state !== INSIGHTS_CHART_STATE.READY) {
         return current;
@@ -70,10 +71,10 @@ function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: I
             if (!isDashboardLoaded) {
                 return {data: current.data, state: isOffline ? INSIGHTS_CHART_STATE.OFFLINE : INSIGHTS_CHART_STATE.LOADING};
             }
-            if (averageTotal === undefined) {
+            if (average?.[chart.metric ?? CONST.SEARCH.CHART_METRIC.AMOUNT] === undefined) {
                 return current;
             }
-            return {...current, comparison: {total: averageTotal}};
+            return {...current, comparison: average};
         }
         case CONST.SEARCH.COMPARE.PREVIOUS_PERIOD: {
             const periods = resolveComparisonPeriods(filters.date);

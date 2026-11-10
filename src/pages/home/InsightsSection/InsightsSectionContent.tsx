@@ -3,12 +3,14 @@ import ChartEmptyState from '@components/Search/ChartEmptyState';
 import ChartErrorState from '@components/Search/ChartErrorState';
 import ChartOfflineState from '@components/Search/ChartOfflineState';
 import SearchChartView from '@components/Search/SearchChartView';
+import Text from '@components/Text';
 import WidgetContainer from '@components/WidgetContainer';
 import WidgetHeaderMenu from '@components/WidgetHeaderMenu';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setNameValuePair} from '@libs/actions/User';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -16,6 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {INSIGHTS_CHART_STATE} from '@libs/resolveInsightsChartData';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 
+import getInsightsDateLabel from '@pages/Insights/getInsightsDateLabel';
 import InsightsTagPolicyLoader from '@pages/Insights/InsightsTagPolicyLoader';
 
 import CONST from '@src/CONST';
@@ -31,11 +34,12 @@ import useInsightChartPaddingStyle from './useInsightChartPaddingStyle';
 import useInsightData from './useInsightData';
 
 function InsightsSectionContent() {
+    const styles = useThemeStyles();
     const chartPaddingStyle = useInsightChartPaddingStyle();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Expand']);
 
-    const {configs: insightConfigs, isResolved: isConfigResolved, shouldShowRunningTotal, tagPolicyIDs} = useHomeInsightConfigs();
+    const {configs: insightConfigs, date, isResolved: isConfigResolved, shouldShowRunningTotal, tagPolicyIDs} = useHomeInsightConfigs();
     const [selectedKey, selectedKeyMetadata] = useOnyx(ONYXKEYS.NVP_HOME_SELECTED_INSIGHT);
 
     // The persisted key can name an insight the user is no longer eligible for, so fall back to the first option.
@@ -60,11 +64,20 @@ function InsightsSectionContent() {
     const widget = (
         <WidgetContainer
             titleContent={
-                <InsightTitleDropdown
-                    configs={insightConfigs}
-                    selectedKey={config.key}
-                    onSelect={onSelectInsight}
-                />
+                <>
+                    <InsightTitleDropdown
+                        configs={insightConfigs}
+                        selectedKey={config.key}
+                        onSelect={onSelectInsight}
+                    />
+                    <Text
+                        variant="label"
+                        style={styles.textSupporting}
+                        numberOfLines={1}
+                    >
+                        {getInsightsDateLabel(date, translate, dateFnsLocale)}
+                    </Text>
+                </>
             }
             titleRightContent={
                 state === INSIGHTS_CHART_STATE.READY || state === INSIGHTS_CHART_STATE.EMPTY || state === INSIGHTS_CHART_STATE.ERROR ? (
@@ -117,7 +130,7 @@ function InsightsSectionContent() {
         <PressableWithoutFeedback
             accessible={false}
             onPress={navigateToInsights}
-            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.WIDGET_ITEM}
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.INSIGHTS_WIDGET}
         >
             <InsightsTagPolicyLoader policyIDs={tagPolicyIDs} />
             {widget}

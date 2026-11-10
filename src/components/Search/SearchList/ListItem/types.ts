@@ -23,6 +23,7 @@ import type {
 import type {Errors, Icon} from '@src/types/onyx/OnyxCommon';
 import type {
     SearchApproverGroup,
+    SearchViolationGroup,
     SearchCardGroup,
     SearchCategoryGroup,
     SearchDataTypes,
@@ -549,6 +550,11 @@ type TransactionApproverGroupListItemType = TransactionGroupListItemType & {grou
         formattedApprover?: string;
     };
 
+type TransactionViolationGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.VIOLATION} & SearchViolationGroup & {
+        /** Violation name translated for display and sorting */
+        formattedViolation: string;
+    };
+
 type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
     SearchListActionProps & {
         /** Whether the item's action is loading */
@@ -622,6 +628,7 @@ type GroupHeaderItemType =
     | (TransactionYearGroupListItemType & GroupHeaderListItemType)
     | (TransactionQuarterGroupListItemType & GroupHeaderListItemType)
     | (TransactionApproverGroupListItemType & GroupHeaderListItemType)
+    | (TransactionViolationGroupListItemType & GroupHeaderListItemType)
     | (TransactionGroupListItemType & GroupHeaderListItemType);
 
 type GroupChildrenContainerItemType = TransactionGroupListItemType & {
@@ -682,6 +689,7 @@ export type {
     TransactionYearGroupListItemType,
     TransactionQuarterGroupListItemType,
     TransactionApproverGroupListItemType,
+    TransactionViolationGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionGroupListItemProps,
     TransactionGroupListExpandedProps,

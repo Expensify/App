@@ -69,6 +69,7 @@ type SearchTypeMenuItem = {
     emptyState?: {
         title: TranslationPaths;
         subtitle: TranslationPaths;
+        shouldShowResetFilters?: boolean;
         buttons?: Array<{
             buttonText: TranslationPaths;
             buttonAction: () => void;

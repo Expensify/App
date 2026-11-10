@@ -59,6 +59,7 @@ const SCREENS = {
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
         TRANSACTION_HOLD_REASON_SEARCH: 'Search_Transaction_Hold_Reason_Search',
         SEARCH_REJECT_REASON_RHP: 'Search_Reject_Reason_RHP',
+        SEARCH_CHANGE_WORKSPACE_RHP: 'Search_Change_Workspace_RHP',
         EDIT_MULTIPLE_TRANSACTIONS_RHP: 'Search_Edit_Multiple_Transactions_RHP',
         EDIT_MULTIPLE_AMOUNT_RHP: 'Search_Edit_Multiple_Amount_RHP',
         EDIT_MULTIPLE_DESCRIPTION_RHP: 'Search_Edit_Multiple_Description_RHP',
@@ -973,6 +974,7 @@ const SCREENS = {
         WORKFLOWS_AUTO_REPORTING_WEEKLY_OFFSET: 'Workspace_Workflows_Auto_Reporting_Weekly_Offset',
         WORKFLOWS_AUTO_REPORTING_SEMI_MONTHLY_OFFSET: 'Workspace_Workflows_Auto_Reporting_Semi_Monthly_Offset',
         WORKFLOWS_CURRENCY_CONVERSION_FEES: 'Workspace_Workflows_Currency_Conversion_Fees',
+        WORKFLOWS_REIMBURSEMENT_COUNTRIES: 'Workspace_Workflows_Reimbursement_Countries',
         DESCRIPTION: 'Workspace_Overview_Description',
         SHARE: 'Workspace_Overview_Share',
         NAME: 'Workspace_Overview_Name',
@@ -1199,6 +1201,7 @@ const SCREENS = {
     DYNAMIC_PROFILE: 'Dynamic_Profile_Root',
     AUTO_SUBMIT_ROOT: 'AutoSubmit_Modal_Root',
     DYNAMIC_CHANGE_POLICY_EDUCATIONAL_ROOT: 'DynamicChangePolicyEducational_Root',
+    DYNAMIC_PAYMENT_DETAILS_ROOT: 'DynamicPaymentDetails_Root',
     REPORT_DESCRIPTION_ROOT: 'Report_Description_Root',
     CHRONOS_SCHEDULE_OOO_ROOT: 'Chronos_Schedule_OOO_Root',
     REPORT_PARTICIPANTS: {

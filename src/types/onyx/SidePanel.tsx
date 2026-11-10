@@ -28,7 +28,15 @@ type InsightsScope = Pick<InsightsFilters, 'policyIDs' | 'date' | 'groupCurrency
  * Describes the context of what the user was viewing when they sent a message from the Side Panel.
  * Sent to the backend so Concierge can tailor its response to the user's current context.
  */
-type SidePanelContext = {reportID?: string; selectedTransactionIDs?: string; selectedReportIDs?: string; insightsScope?: InsightsScope};
+type SidePanelContext = {
+    reportID?: string;
+    selectedTransactionIDs?: string;
+    selectedReportIDs?: string;
+    insightsScope?: InsightsScope;
+
+    /** The workspace whose page the user has open. Sent only when no report is on screen, since a report carries its own workspace. */
+    policyID?: string;
+};
 
 export default SidePanel;
 export type {InsightsScope, SidePanelContext};

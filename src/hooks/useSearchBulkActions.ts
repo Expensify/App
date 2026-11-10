@@ -14,6 +14,7 @@ import {getExpensifyCardStatementPDF} from '@libs/actions/CompanyCards';
 import {exportReceiptsToZip, exportReportsToPDF} from '@libs/actions/Export';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {getBankAccountToSetUpBeforePaying, payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
+import type {PayMoneyRequestFunctionParams} from '@libs/actions/IOU/PayMoneyRequest';
 import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {deleteAppReport, exportReportToPDF, markAsManuallyExported, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
@@ -46,6 +47,8 @@ import {
 } from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
+import {getWiseQuote} from '@libs/actions/Wise';
+import {shouldConfirmWiseQuoteBeforePaying, shouldGetWiseQuote} from '@libs/BankAccountUtils';
 import {canResolveTransactionCard} from '@libs/CardUtils';
 import {getConnectionCompanyID} from '@libs/CopyPolicySettingsUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
@@ -81,10 +84,19 @@ import {
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
-import {buildSearchQueryJSON, buildSearchQueryString, getFilterFromQuery, isDefaultExpensesQuery, queryHasViolationFilter, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
+import {
+    buildSearchQueryJSON,
+    buildSearchQueryString,
+    getAllMatchingReportQuery,
+    getFilterFromQuery,
+    isDefaultExpensesQuery,
+    queryHasViolationFilter,
+    serializeQueryJSONForBackend,
+} from '@libs/SearchQueryUtils';
 import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
 import type {SearchGroupKey} from '@libs/SearchUIUtils';
 import {
+    canChangeWorkspaceOfSearchReport,
     getColumnsToShow,
     getSearchColumnTranslationKey,
     getSelectedGroupFilterEntry,
@@ -181,6 +193,7 @@ import useSplitEffectivePolicy from './useSplitEffectivePolicy';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
 import useUndeleteTransactions from './useUndeleteTransactions';
+import useWiseQuoteConfirmModal from './useWiseQuoteConfirmModal';
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
@@ -440,25 +453,6 @@ function getExportableColumns(columns: SearchColumnType[]): SearchColumnType[] {
     return columns.filter((column) => !NON_EXPORTABLE_COLUMNS.has(column));
 }
 
-function getAllMatchingReportQuery(queryJSON: SearchQueryJSON, excludedTransactions: SelectedTransactions): SearchQueryJSON | undefined {
-    const excludedEntries = Object.values(excludedTransactions);
-    if (excludedEntries.some((transaction) => !transaction.reportID)) {
-        return undefined;
-    }
-    const excludedReportIDs = [...new Set(excludedEntries.map((transaction) => transaction.reportID).filter((reportID): reportID is string => !!reportID))];
-    if (excludedReportIDs.length === 0) {
-        return queryJSON;
-    }
-
-    const flatFilters = queryJSON.flatFilters.map((filter) => ({...filter, filters: [...filter.filters]}));
-    flatFilters.push({
-        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
-        filters: excludedReportIDs.map((reportID) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: reportID})),
-    });
-
-    return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters}));
-}
-
 /**
  * The query an action on whole reports, such as Pay or Mark as exported, sends under Select all, or undefined when the unchecked rows cannot be left out of it.
  * The Reports view leaves out the report of each unchecked expense. An expense search has no report to leave out for one unchecked expense, so it needs nothing unchecked.
@@ -695,6 +689,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResultsRef.current;
 
     const {showConfirmModal} = useConfirmModal();
+    const {showWiseQuoteCarouselModal} = useWiseQuoteConfirmModal();
     const {showDecisionModal} = useDecisionModal();
 
     const showOfflineModal = useCallback(() => {
@@ -782,6 +777,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'Pencil',
         'Workflows',
         'Document',
+        'Buildings',
     ]);
 
     const {getCurrencyDecimals, getCurrencySymbol, convertToDisplayString} = useCurrencyListActions();
@@ -1220,7 +1216,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     }, [policies, bankAccountList]);
 
     const exportSearchData = searchResults?.data;
-    const exportSearchType = searchResults?.search.type ?? queryJSON?.type;
+    const exportSearchType = searchResults?.search?.type ?? queryJSON?.type;
 
     const getCSVExportParameters = useCallback(
         (isBasicExport: boolean, queryJSONToExport: SearchQueryJSON | undefined) => {
@@ -1825,6 +1821,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                       });
 
             let paidReportCount = 0;
+            const expensePayments: PayMoneyRequestFunctionParams[] = [];
             for (const item of itemsToPay) {
                 if (!item.reportID) {
                     Log.info('[BulkPay] Skipping report: item has no reportID');
@@ -1932,7 +1929,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                 const methodID =
                     paymentItem.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? (paymentItem.bankAccountID ?? workspaceMethodID ?? reportPolicy?.achAccount?.bankAccountID) : undefined;
-                payMoneyRequest({
+                const payMoneyRequestParams: PayMoneyRequestFunctionParams = {
                     bankAccountList,
                     isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                     getCurrencyDecimals,
@@ -1961,23 +1958,40 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     conciergeChat,
                     isFallbackChatReport,
                     rules,
-                });
+                };
 
-                // payMoneyRequest opens the global reimbursements onboarding instead of paying, so this report stays unpaid
-                if (
-                    getBankAccountToSetUpBeforePaying({
-                        paymentType: paymentItem.paymentType as PaymentMethodType,
-                        methodID,
-                        bankAccountList,
-                        isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
-                    })
-                ) {
-                    continue;
-                }
-                paidReportCount += 1;
+                expensePayments.push(payMoneyRequestParams);
             }
 
-            if (paidReportCount < itemsToPay.length) {
+            const payExpenseReports = (wiseQuoteIDsByReportID: Record<string, string> = {}) => {
+                let count = 0;
+                for (const params of expensePayments) {
+                    const reportID = params.iouReport?.reportID;
+                    payMoneyRequest({...params, wiseQuoteID: reportID ? wiseQuoteIDsByReportID[reportID] : undefined});
+
+                    // payMoneyRequest opens the global reimbursements onboarding instead of paying, so this report stays unpaid
+                    if (
+                        getBankAccountToSetUpBeforePaying({
+                            paymentType: params.paymentType,
+                            methodID: params.methodID,
+                            bankAccountList,
+                            isWiseReimbursementsBetaEnabled: params.isWiseReimbursementsBetaEnabled,
+                        })
+                    ) {
+                        continue;
+                    }
+                    count += 1;
+                }
+                return count;
+            };
+
+            // One report with an expense in another currency than the bank account is enough to show every report with its quote before paying
+            const shouldConfirmWiseQuotes = expensePayments.some((params) => shouldConfirmWiseQuoteBeforePaying(params));
+            if (!shouldConfirmWiseQuotes) {
+                paidReportCount += payExpenseReports();
+            }
+
+            if (paidReportCount + (shouldConfirmWiseQuotes ? expensePayments.length : 0) < itemsToPay.length) {
                 Log.info('[BulkPay] Bulk pay finished with skipped reports', false, {paidReportCount, selectedCount: itemsToPay.length});
             }
 
@@ -1985,9 +1999,34 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 playSound(SOUNDS.SUCCESS);
                 clearSelectedTransactions();
             }
+
+            if (shouldConfirmWiseQuotes) {
+                const reports = expensePayments.flatMap((params) => (params.iouReport?.reportID ? [params.iouReport] : []));
+                const quotedReports = expensePayments.flatMap((params) => (params.iouReport?.reportID && shouldGetWiseQuote(params) ? [params.iouReport] : []));
+                for (const report of quotedReports) {
+                    // Search results don't hold the quote, which the server merges into the report in Onyx
+                    getWiseQuote({...report, ...allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]}, true);
+                }
+                const quotedReportIDs = quotedReports.map((report) => report.reportID);
+                // Bulk pay runs while the pay popover is still dismissing, and iOS can't present a modal until it's gone
+                deferModalPresentationAfterPopoverDismiss(() => {
+                    showWiseQuoteCarouselModal({
+                        reports,
+                        quotedReportIDs,
+                        onConfirm: (wiseQuoteIDsByReportID) => {
+                            if (payExpenseReports(wiseQuoteIDsByReportID) === 0) {
+                                return;
+                            }
+                            playSound(SOUNDS.SUCCESS);
+                            clearSelectedTransactions();
+                        },
+                    });
+                });
+            }
         },
         [
             hash,
+            showWiseQuoteCarouselModal,
             showOfflineModal,
             areAllMatchingItemsSelected,
             queryJSON,
@@ -2931,7 +2970,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             },
         };
 
-        const isExpenseReportSearch = isExpenseReportType || searchResults?.search.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+        const isExpenseReportSearch = isExpenseReportType || searchResults?.search?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
         const downloadPDFOption: DropdownOption<SearchHeaderOptionValue> = {
             icon: expensifyIcons.Download,
@@ -2979,6 +3018,27 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             },
         };
 
+        // The same rules as Change workspace on a single report, so exported or settled reports stay put.
+        const transactionsByReportID = getTransactionsByReportID(searchResults?.data ?? {});
+        const canChangeWorkspaceOfReport = (selectedReport: SelectedReports) =>
+            canChangeWorkspaceOfSearchReport({
+                report: getReportFromSearchSnapshot(selectedReport.reportID, searchResults?.data, allReports),
+                liveReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`],
+                reportTransactions: selectedReport.reportID ? transactionsByReportID.get(selectedReport.reportID) : undefined,
+                currentSearchResults: searchResults?.data,
+                allReportActions,
+                policies,
+                currentUserLogin,
+                personalDetails,
+            });
+        const changeWorkspaceOption: DropdownOption<SearchHeaderOptionValue> = {
+            icon: expensifyIcons.Buildings,
+            text: translate('iou.changeWorkspace'),
+            value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE,
+            shouldCloseModalOnSelect: true,
+            onSelected: () => Navigation.navigate(ROUTES.SEARCH_CHANGE_WORKSPACE_RHP),
+        };
+
         if (areAllMatchingItemsSelected) {
             // Approve and Submit are report actions, and the backend skips the matching reports the user can't act on.
             const shouldShowApproveOptionForAllMatchingItems =
@@ -3000,6 +3060,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
             if (shouldShowPayOption) {
                 allMatchingOptions.push(payButtonOption);
+            }
+            // The backend only moves the matching reports the user can move, so one movable loaded report is enough to offer it.
+            if (!isOffline && isExpenseReportType && selectedReports.some(canChangeWorkspaceOfReport)) {
+                allMatchingOptions.push(changeWorkspaceOption);
             }
             allMatchingOptions.push(exportButtonOption);
             if (isExpenseReportSearch) {
@@ -3151,6 +3215,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
+        // The same as Select all, the reports that can't move are skipped and listed in the status modal.
+        if (!isOffline && isExpenseReportType && selectedReports.some(canChangeWorkspaceOfReport)) {
+            options.push(changeWorkspaceOption);
+        }
+
         const uniqueSelectedReportIDsFromTransactions = new Set(
             selectedTransactionsKeys.map((id) => selectedTransactions[id]?.reportID).filter((reportID): reportID is string => !!reportID),
         );
@@ -3235,7 +3304,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
-        const isExpenseSearch = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE || searchResults?.search.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
+        const isExpenseSearch = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE || searchResults?.search?.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
         // Only export transactions that have a downloadable receipt. Drop group_ keys (a group selected before its
         // children load is not a real transaction ID) and deleted transactions so ExportReceiptsToZip gets a clean set.
         const transactionIDs = selectedTransactionsKeys.filter((key) => {
@@ -3354,7 +3423,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
-        if (!hasGroupEntrySelected && selectedTransactionsKeys.length < 3 && searchResults?.search.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && searchResults?.data) {
+        if (!hasGroupEntrySelected && selectedTransactionsKeys.length < 3 && searchResults?.search?.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && searchResults?.data) {
             const {transactions: searchedTransactions, reports, policies: transactionPolicies} = getTransactionsAndReportsFromSearch(searchResults, selectedTransactionsKeys);
 
             if (isMergeActionForSelectedTransactions(searchedTransactions, reports, transactionPolicies, rules, personalDetails, accountID)) {
