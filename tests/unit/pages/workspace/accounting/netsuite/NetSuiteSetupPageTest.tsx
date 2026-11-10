@@ -89,13 +89,13 @@ describe('NetSuiteSetupPage', () => {
         expect(await screen.findByTestId('netsuite-webview')).toBeOnTheScreen();
     });
 
-    it('returns to the accounting page on back, skipping the token input wizard underneath', async () => {
+    it('returns to the Connections page on back, skipping the token input wizard underneath', async () => {
         renderNetSuiteSetupPage(ACCOUNT_ID);
         expect(await screen.findByTestId('netsuite-webview')).toBeOnTheScreen();
 
         mockHeaderProps.current?.onBackButtonPress?.();
 
-        expect(mockedGoBack).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING.getRoute(POLICY_ID));
+        expect(mockedGoBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_CONNECTIONS.getRoute(POLICY_ID));
     });
 
     it('renders nothing when the account ID is missing from the route', () => {

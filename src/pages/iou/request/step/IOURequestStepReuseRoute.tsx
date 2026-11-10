@@ -34,7 +34,7 @@ import type {ReusableDistanceRoute, Transaction} from '@src/types/onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 
 import type {ReuseRouteListItemData} from './ReuseRouteListItem';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -75,10 +75,7 @@ function IOURequestStepReuseRoute({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [reusableDistanceRoutes] = useOnyx(ONYXKEYS.REUSABLE_DISTANCE_ROUTES);
-    const availableRoutesSelector = useCallback(
-        (transactions: OnyxCollection<Transaction>) => getAvailableReusableDistanceRoutes(reusableDistanceRoutes, transactions, isOffline),
-        [reusableDistanceRoutes, isOffline],
-    );
+    const availableRoutesSelector = (transactions: OnyxCollection<Transaction>) => getAvailableReusableDistanceRoutes(reusableDistanceRoutes, transactions, isOffline);
     const [availableRoutes] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: availableRoutesSelector,
     });
@@ -114,13 +111,11 @@ function IOURequestStepReuseRoute({
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or
     // this is a workspace request and the workspace requires a category or a tag
-    const shouldSkipConfirmation: boolean = useMemo(() => {
-        if (!skipConfirmation || !report?.reportID) {
-            return false;
-        }
-
-        return iouType !== CONST.IOU.TYPE.SPLIT && !isArchived && !(isPolicyExpenseChatUtil(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
-    }, [report, skipConfirmation, policy?.requiresCategory, policy?.requiresTag, isArchived, iouType]);
+    const shouldSkipConfirmation: boolean =
+        !(!skipConfirmation || !report?.reportID) &&
+        iouType !== CONST.IOU.TYPE.SPLIT &&
+        !isArchived &&
+        !(isPolicyExpenseChatUtil(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
 
     const navigateToNextStep = useDistanceNavigation({
         iouType,

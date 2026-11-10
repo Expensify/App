@@ -11,6 +11,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useIsVendorColumnAvailable from '@hooks/useIsVendorColumnAvailable';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {close} from '@libs/actions/Modal';
@@ -55,6 +56,7 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
     const isVendorColumnAvailable = useIsVendorColumnAvailable();
 
     const searchDataType = shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type;
+    const shouldReturnTripRooms = useShouldReturnTripRooms(searchDataType);
     const currentColumns = !searchResults?.data
         ? []
         : getColumnsToShow({
@@ -66,6 +68,7 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
               sortBy: queryJSON.sortBy,
               shouldShowViolationsColumn: queryHasViolationFilter(queryJSON),
               isVendorColumnAvailable,
+              shouldReturnTripRooms,
           });
     const sortableColumns = getSortByOptions(currentColumns, translate, searchDataType);
     const sortOrder = queryJSON.sortOrder;
@@ -112,8 +115,8 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
             onReset={resetChanges}
             onApply={applyChanges}
             onBackButtonPress={onBackButtonPress}
-            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_SINGLE_SELECT}
-            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_SINGLE_SELECT}
+            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.DISPLAY_POPUP_RESET.SORT_BY}
+            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.DISPLAY_POPUP_APPLY.SORT_BY}
         >
             <ListFilterWrapper
                 itemCount={sortableColumns.length}
@@ -121,6 +124,7 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
                 extraHeight={variables.optionRowHeight + DIVIDER_HEIGHT}
             >
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.SORT_ORDER_FIELD}
                     name={translate('search.display.sortOrder')}
                     onPress={onSortOrderPress}
                     value={sortOrder ? translate(`search.filters.sortOrder.${sortOrder}`) : undefined}

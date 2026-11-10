@@ -17,6 +17,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMembersNeedCategoryModal from '@hooks/useMembersNeedCategoryModal';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
@@ -24,11 +25,12 @@ import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getCategoryContextualRules from '@libs/CategoryContextualRulesUtils';
-import {getCategoryApproverRule, getDecodedCategoryName} from '@libs/CategoryUtils';
+import {getCategoryApproverRule, getDecodedCategoryName, getMembersWithoutVisibleCategories} from '@libs/CategoryUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -66,6 +68,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const {convertToDisplayString} = useCurrencyListActions();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan', 'Plus', 'Bolt']);
     const {showConfirmModal} = useConfirmModal();
+    const {policyMemberAccountIDs, showMembersNeedCategoryModal} = useMembersNeedCategoryModal(policyID);
     const policyData = usePolicyData(policyID);
     const {policy, categories: policyCategories} = policyData;
     const {canWrite: canWriteCategories, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
@@ -113,6 +116,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
 
     const policyHasTags = hasTags(policyTags);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
 
     const navigateBack = () => {
         Navigation.goBack(isQuickSettingsFlow ? settingsBackPath : undefined);
@@ -145,6 +149,13 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
             showCannotDeleteOrDisableLastCategoryModal();
             return;
         }
+        if (!value) {
+            const membersWithoutVisibleCategories = getMembersWithoutVisibleCategories(policyCategories, [policyCategory.name], policyMemberAccountIDs);
+            if (membersWithoutVisibleCategories.length > 0) {
+                showMembersNeedCategoryModal(membersWithoutVisibleCategories, [policyCategory.name]);
+                return;
+            }
+        }
         setWorkspaceCategoryEnabled({
             isVendorMatchingBetaEnabled,
             policyData,
@@ -161,6 +172,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
             setupCategoriesAndTagsHasOutstandingChildTask,
             setupCategoriesAndTagsParentReportAction,
             policyHasTags,
+            reviewWorkspaceSettingsTaskData: getReviewWorkspaceSettingsTaskCompletion(),
         });
     };
 
@@ -179,6 +191,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
             hasOutstandingChildTask,
             parentReportAction,
             isVendorMatchingBetaEnabled,
+            getReviewWorkspaceSettingsTaskCompletion(),
         );
         navigateBack();
     };
@@ -238,6 +251,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                 <Switch
                                     isOn={policyCategory.enabled}
                                     accessibilityLabel={translate('workspace.categories.enableCategory')}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_ENABLE_SWITCH}
                                     onToggle={updateWorkspaceCategoryEnabled}
                                     disabled={!canWriteCategories}
                                     disabledAction={withReadOnlyFallback()}

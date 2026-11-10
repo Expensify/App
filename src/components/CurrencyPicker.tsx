@@ -1,5 +1,6 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -7,9 +8,11 @@ import Navigation from '@libs/Navigation/Navigation';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ReactNode} from 'react';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {Fragment, useState} from 'react';
 
 import type {CurrencyListItem} from './CurrencySelectionList/types';
@@ -25,6 +28,15 @@ import ScreenWrapper from './ScreenWrapper';
 type CurrencyPickerProps = {
     /** Label for the input */
     label: string;
+
+    /** Title of the picker's modal, when it differs from the label */
+    modalHeaderTitle?: string;
+
+    /** Name read by screen readers instead of the label, for a picker whose label alone does not say which value it belongs to */
+    accessibilityLabel?: string;
+
+    /** Whether screen readers hear the error with the row's name, since the row hides the error line from them on native */
+    shouldReadErrorWithLabel?: boolean;
 
     value?: string;
     headerContent?: ReactNode;
@@ -44,7 +56,20 @@ type CurrencyPickerProps = {
     shouldShowFullPageOfflineView?: boolean;
 };
 
-function CurrencyPicker({label, value, errorText, headerContent, excludeCurrencies, disabled = false, shouldShowFullPageOfflineView = false, onInputChange = () => {}}: CurrencyPickerProps) {
+function CurrencyPicker({
+    label,
+    modalHeaderTitle,
+    accessibilityLabel,
+    shouldReadErrorWithLabel,
+    value,
+    errorText,
+    headerContent,
+    excludeCurrencies,
+    disabled = false,
+    shouldShowFullPageOfflineView = false,
+    onInputChange = () => {},
+}: CurrencyPickerProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -64,8 +89,9 @@ function CurrencyPicker({label, value, errorText, headerContent, excludeCurrenci
     return (
         <>
             <MenuItem.Root
-                onPress={callFunctionIfActionIsAllowed(() => setIsPickerVisible(true))}
+                onPress={callFunctionIfActionIsAllowed(() => setIsPickerVisible(true), false, session)}
                 isDisabled={disabled}
+                accessibilityLabel={accessibilityLabel ? [accessibilityLabel, value ? `${value} - ${getCurrencySymbol(value)}` : undefined].filter(Boolean).join(', ') : undefined}
             >
                 <MenuItemField.Row
                     name={label}
@@ -78,6 +104,7 @@ function CurrencyPicker({label, value, errorText, headerContent, excludeCurrenci
                     <MenuItem.HelpText
                         isError
                         message={errorText}
+                        shouldReadErrorWithLabel={shouldReadErrorWithLabel}
                     />
                 )}
             </MenuItem.Root>
@@ -99,7 +126,7 @@ function CurrencyPicker({label, value, errorText, headerContent, excludeCurrenci
                     enableEdgeToEdgeBottomSafeAreaPadding
                 >
                     <HeaderWithBackButton
-                        title={label}
+                        title={modalHeaderTitle ?? label}
                         shouldShowBackButton
                         onBackButtonPress={hidePickerModal}
                     />

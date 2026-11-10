@@ -59,6 +59,9 @@ type AncestorReportActionItemProps = {
     /** Whether the user has viewed the self-guided tour */
     isSelfTourViewed: boolean | undefined;
 
+    /** Whether the user has completed the guided setup (onboarding) flow */
+    hasCompletedGuidedSetupFlow: boolean | undefined;
+
     linkedTransactionRouteError: Errors | undefined;
     parentReportAction: OnyxEntry<ReportAction>;
     shouldUseThreadDividerLine: boolean;
@@ -80,6 +83,7 @@ function AncestorReportActionItem({
     isFirstVisibleReportAction,
     isReportArchived,
     isSelfTourViewed,
+    hasCompletedGuidedSetupFlow,
     linkedTransactionRouteError,
     parentReportAction,
     shouldUseThreadDividerLine,
@@ -143,6 +147,7 @@ function AncestorReportActionItem({
             currentUserAccountID,
             introSelected,
             isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
             reportOwnerPersonalDetail,
             currentUserPersonalDetail,
             conciergePersonalDetail,
@@ -154,7 +159,7 @@ function AncestorReportActionItem({
             shouldDisableOpacity={!!reportAction?.pendingAction}
             pendingAction={report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat}
             errors={report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat}
-            errorRowStyles={[styles.ml10, styles.mr2]}
+            errorRowStyles={styles.ml10}
             onClose={deleteAncestorReportAndNavigateToConcierge}
         >
             {shouldDisplayThreadDivider && (

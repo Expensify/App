@@ -1,4 +1,5 @@
 import spendDataSignatureConfig from '@libs/actions/OnyxDerived/configs/spendDataSignature';
+import DateUtils from '@libs/DateUtils';
 
 import CONST from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
@@ -32,6 +33,10 @@ function seedBaseline(transactions: OnyxCollection<Transaction>) {
 }
 
 describe('spendDataSignature', () => {
+    beforeEach(() => {
+        spendDataSignatureConfig.onReset?.();
+    });
+
     it('starts at zero when there is nothing to count', () => {
         // Given no transactions and no previous value
 
@@ -54,8 +59,9 @@ describe('spendDataSignature', () => {
     });
 
     it('moves the expense counter when an expense changes', () => {
-        // Given one changed expense that is not on a card
-        const changed = {[transactionKey('1')]: makeTransaction('1')};
+        // Given a seen expense that is not on a card, whose amount then changes
+        seedBaseline({[transactionKey('1')]: makeTransaction('1')});
+        const changed = {[transactionKey('1')]: {...makeTransaction('1'), amount: 9999}};
 
         // When the value is computed with that delta
         const result = spendDataSignatureConfig.compute([changed, cardList], {
@@ -68,8 +74,9 @@ describe('spendDataSignature', () => {
     });
 
     it('moves both counters when the expense is on one of the user`s cards', () => {
-        // Given a changed expense charged to a card the user holds
-        const changed = {[transactionKey('1')]: makeTransaction('1', CARD_ID)};
+        // Given a seen expense charged to a card the user holds, whose amount then changes
+        seedBaseline({[transactionKey('1')]: makeTransaction('1', CARD_ID)});
+        const changed = {[transactionKey('1')]: {...makeTransaction('1', CARD_ID), amount: 9999}};
 
         // When the value is computed with that delta
         const result = spendDataSignatureConfig.compute([changed, cardList], {
@@ -82,8 +89,9 @@ describe('spendDataSignature', () => {
     });
 
     it('leaves the card counter alone for a card the user does not hold', () => {
-        // Given a changed expense on someone else's card
-        const changed = {[transactionKey('1')]: makeTransaction('1', OTHER_CARD_ID)};
+        // Given a seen expense on someone else's card, whose amount then changes
+        seedBaseline({[transactionKey('1')]: makeTransaction('1', OTHER_CARD_ID)});
+        const changed = {[transactionKey('1')]: {...makeTransaction('1', OTHER_CARD_ID), amount: 9999}};
 
         // When the value is computed with that delta
         const result = spendDataSignatureConfig.compute([changed, cardList], {
@@ -97,11 +105,12 @@ describe('spendDataSignature', () => {
 
     it('reads the card from the stored transaction when the delta omits it', () => {
         // Given a partial update to an expense whose card is only known from the stored collection
-        const stored: OnyxCollection<Transaction> = {[transactionKey('1')]: makeTransaction('1', CARD_ID)};
+        seedBaseline({[transactionKey('1')]: makeTransaction('1', CARD_ID)});
         const changed = {[transactionKey('1')]: {...makeTransaction('1'), cardID: undefined, amount: 500}};
+        const merged: OnyxCollection<Transaction> = {[transactionKey('1')]: {...makeTransaction('1', CARD_ID), amount: 500}};
 
-        // When the value is computed with that delta
-        const result = spendDataSignatureConfig.compute([stored, cardList], {
+        // When the value is computed with that delta, against the collection Onyx has merged it into
+        const result = spendDataSignatureConfig.compute([merged, cardList], {
             currentValue: {expenses: 0, cardExpenses: 0},
             sourceValues: {[ONYXKEYS.COLLECTION.TRANSACTION]: changed},
         });
@@ -300,18 +309,97 @@ describe('spendDataSignature', () => {
     });
 
     it('drops its baseline when Onyx is cleared', () => {
-        // Given a stored expense the derived value has already seen
+        // Given a stored expense the derived value has already seen, and then Onyx is cleared
         const stored: OnyxCollection<Transaction> = {[transactionKey('1')]: makeTransaction('1', CARD_ID)};
         seedBaseline(stored);
-
-        // When Onyx is cleared and the same expense is written again as the data comes back
         spendDataSignatureConfig.onReset?.();
-        const result = spendDataSignatureConfig.compute([stored, cardList], {
+
+        // When the edited expense comes back after the clear
+        const edited: OnyxCollection<Transaction> = {[transactionKey('1')]: {...makeTransaction('1', CARD_ID), amount: 9999}};
+        const result = spendDataSignatureConfig.compute([edited, cardList], {
             currentValue: {expenses: 0, cardExpenses: 0},
-            sourceValues: {[ONYXKEYS.COLLECTION.TRANSACTION]: stored},
+            sourceValues: {[ONYXKEYS.COLLECTION.TRANSACTION]: edited},
         });
 
-        // Then it counts as a change, because the fingerprints from before the clear are gone
+        // Then it reads as a first load rather than an edit, because the fingerprints from before the clear are gone
+        expect(result).toEqual({expenses: 0, cardExpenses: 0});
+    });
+
+    it('does not move the counters when an expense is loaded for the first time', () => {
+        // Given an expense the cards only know from their snapshot, so it was never in the collection
+        const loaded: OnyxCollection<Transaction> = {[transactionKey('1')]: makeTransaction('1', CARD_ID)};
+
+        // When opening it in the RHP writes it to Onyx for the first time
+        const result = spendDataSignatureConfig.compute([loaded, cardList], {
+            currentValue: {expenses: 0, cardExpenses: 0},
+            sourceValues: {[ONYXKEYS.COLLECTION.TRANSACTION]: loaded},
+        });
+
+        // Then nothing moves, so closing the RHP costs no search
+        expect(result).toEqual({expenses: 0, cardExpenses: 0});
+    });
+
+    it('moves the counters when an expense loaded for the first time is later edited', () => {
+        // Given an expense that was first loaded by opening it
+        const loaded: OnyxCollection<Transaction> = {[transactionKey('1')]: makeTransaction('1', CARD_ID)};
+        spendDataSignatureConfig.compute([loaded, cardList], {
+            currentValue: {expenses: 0, cardExpenses: 0},
+            sourceValues: {[ONYXKEYS.COLLECTION.TRANSACTION]: loaded},
+        });
+
+        // When its amount is then edited
+        const edited: OnyxCollection<Transaction> = {[transactionKey('1')]: {...makeTransaction('1', CARD_ID), amount: 9999}};
+        const result = spendDataSignatureConfig.compute([edited, cardList], {
+            currentValue: {expenses: 0, cardExpenses: 0},
+            sourceValues: {[ONYXKEYS.COLLECTION.TRANSACTION]: edited},
+        });
+
+        // Then both counters move, because the first load was recorded as the baseline for that expense
         expect(result).toEqual({expenses: 1, cardExpenses: 1});
+    });
+
+    it('moves the counters when the user creates an expense', () => {
+        // Given a new card expense created on this device, which Onyx writes with a pending add
+        const created: OnyxCollection<Transaction> = {
+            [transactionKey('1')]: {...makeTransaction('1', CARD_ID), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+        };
+
+        // When the value is computed with that delta
+        const result = spendDataSignatureConfig.compute([created, cardList], {
+            currentValue: {expenses: 0, cardExpenses: 0},
+            sourceValues: {[ONYXKEYS.COLLECTION.TRANSACTION]: created},
+        });
+
+        // Then both counters move, so the new expense shows up on the cards
+        expect(result).toEqual({expenses: 1, cardExpenses: 1});
+    });
+    it('moves the counters when an expense the server just stored arrives for the first time', () => {
+        // Given a new card expense pushed from the server, like a statement import or a member's expense, with no pending add
+        const pushed: OnyxCollection<Transaction> = {[transactionKey('1')]: {...makeTransaction('1', CARD_ID), inserted: DateUtils.getDBTime()}};
+
+        // When the value is computed with that delta
+        const result = spendDataSignatureConfig.compute([pushed, cardList], {
+            currentValue: {expenses: 0, cardExpenses: 0},
+            sourceValues: {[ONYXKEYS.COLLECTION.TRANSACTION]: pushed},
+        });
+
+        // Then both counters move, so the new expense shows up on the cards
+        expect(result).toEqual({expenses: 1, cardExpenses: 1});
+    });
+
+    it('does not move the counters when an older expense is loaded for the first time', () => {
+        // Given an expense the server stored a day ago, so opening it is only a load
+        const loaded: OnyxCollection<Transaction> = {
+            [transactionKey('1')]: {...makeTransaction('1', CARD_ID), inserted: DateUtils.getDBTime(Date.now() - 24 * 60 * 60 * 1000)},
+        };
+
+        // When it is written to Onyx for the first time
+        const result = spendDataSignatureConfig.compute([loaded, cardList], {
+            currentValue: {expenses: 0, cardExpenses: 0},
+            sourceValues: {[ONYXKEYS.COLLECTION.TRANSACTION]: loaded},
+        });
+
+        // Then nothing moves
+        expect(result).toEqual({expenses: 0, cardExpenses: 0});
     });
 });

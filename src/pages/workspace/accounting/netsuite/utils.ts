@@ -3,7 +3,7 @@ import {canUseProvincialTaxNetSuite, canUseTaxNetSuite} from '@libs/NetSuiteUtil
 import {isArchivedPolicy} from '@libs/PolicyUtils/policyType';
 
 import CONST from '@src/CONST';
-import type {NetSuiteConnectionConfig, NetSuiteSubsidiary} from '@src/types/onyx/Policy';
+import type {NetSuiteConnection, NetSuiteConnectionConfig, NetSuiteSubsidiary} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -39,8 +39,28 @@ function exportExpensesDestinationSettingName(isReimbursable: boolean) {
     return isReimbursable ? CONST.NETSUITE_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION : CONST.NETSUITE_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION;
 }
 
+function getNetSuiteConnectionAuthType(config?: Pick<NetSuiteConnectionConfig, 'authType'>, connection?: {config?: Pick<NetSuiteConnection['config'], 'authType'>}) {
+    return config?.authType ?? connection?.config?.authType;
+}
+
+function isNetSuiteRestConnection(config?: Pick<NetSuiteConnectionConfig, 'authType'>, connection?: {config?: Pick<NetSuiteConnection['config'], 'authType'>}) {
+    return getNetSuiteConnectionAuthType(config, connection) === CONST.NETSUITE_CONFIG.AUTH_TYPE.OAUTH2;
+}
+
+function isNonReimbursableCreditCardChargeExport(config?: NetSuiteConnectionConfig) {
+    return config?.nonreimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE;
+}
+
 function shouldHideReimbursableDefaultVendor(isReimbursable: boolean, config?: NetSuiteConnectionConfig) {
-    return isReimbursable || config?.nonreimbursableExpensesExportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL;
+    if (isReimbursable) {
+        return true;
+    }
+    const destination = config?.nonreimbursableExpensesExportDestination;
+    return destination !== CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL && destination !== CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE;
+}
+
+function shouldHideNonReimbursableCreditCardAccount(isReimbursable: boolean, config?: NetSuiteConnectionConfig) {
+    return isReimbursable || !isNonReimbursableCreditCardChargeExport(config);
 }
 
 function shouldHideNonReimbursableJournalPostingAccount(isReimbursable: boolean, config?: NetSuiteConnectionConfig) {
@@ -92,6 +112,15 @@ function getInitialSubPageForNetsuiteTokenInput(policy: OnyxEntry<Policy>) {
     return CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.INSTALL;
 }
 
+function getNonReimbursableNetSuiteExportDestinations(config?: Pick<NetSuiteConnectionConfig, 'authType'>, connection?: {config?: Pick<NetSuiteConnection['config'], 'authType'>}) {
+    // Credit card charges must render first in the list, which relies on CREDIT_CARD_CHARGE being the first key in NETSUITE_EXPORT_DESTINATION
+    const destinations = Object.values(CONST.NETSUITE_EXPORT_DESTINATION);
+    if (isNetSuiteRestConnection(config, connection)) {
+        return destinations;
+    }
+    return destinations.filter((destination) => destination !== CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE);
+}
+
 type NetSuiteOAuthMigrationSeverity = 'info' | 'warning' | 'danger';
 
 const NETSUITE_OAUTH_DEADLINE = new Date('2027-02-01');
@@ -111,18 +140,21 @@ function hasSimpleNetSuiteSyncConfiguration(policy?: Policy): boolean {
     );
 }
 
+function shouldShowNetSuiteOAuthMigrationOption(policy: Policy | undefined): boolean {
+    const netsuite = policy?.connections?.netsuite;
+    return (
+        !!netsuite &&
+        netsuite.verified !== false &&
+        netsuite.config?.authType !== CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.OAUTH2 &&
+        !!netsuite.accountID &&
+        !!netsuite.tokenID &&
+        !!netsuite.tokenSecret
+    );
+}
+
 function shouldShowNetSuiteOAuthMigrationNudge(policy: Policy | undefined, allPolicies: OnyxCollection<Policy> | undefined): boolean {
     const netsuite = policy?.connections?.netsuite;
-    if (
-        !netsuite ||
-        netsuite.verified === false ||
-        netsuite.config?.authType === CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.OAUTH2 ||
-        !netsuite.accountID ||
-        !netsuite.tokenID ||
-        !netsuite.tokenSecret ||
-        !hasSimpleNetSuiteSyncConfiguration(policy) ||
-        !allPolicies
-    ) {
+    if (!netsuite || !shouldShowNetSuiteOAuthMigrationOption(policy) || !hasSimpleNetSuiteSyncConfiguration(policy) || !allPolicies) {
         return false;
     }
 
@@ -160,7 +192,10 @@ export {
     shouldHideExportJournalsTo,
     shouldHideCustomFormIDOptions,
     exportExpensesDestinationSettingName,
+    isNetSuiteRestConnection,
+    isNonReimbursableCreditCardChargeExport,
     shouldHideReimbursableDefaultVendor,
+    shouldHideNonReimbursableCreditCardAccount,
     shouldHideNonReimbursableJournalPostingAccount,
     shouldHideReimbursableJournalPostingAccount,
     shouldHideJournalPostingPreference,
@@ -168,8 +203,10 @@ export {
     shouldHideProvincialTaxPostingAccountSelect,
     shouldHideTaxPostingAccountSelect,
     shouldHideExportForeignCurrencyAmount,
+    getNonReimbursableNetSuiteExportDestinations,
     getImportCustomFieldsSettings,
     getInitialSubPageForNetsuiteTokenInput,
+    shouldShowNetSuiteOAuthMigrationOption,
     shouldShowNetSuiteOAuthMigrationNudge,
     getNetSuiteOAuthMigrationSeverity,
 };

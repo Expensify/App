@@ -76,7 +76,7 @@ function DynamicReportDetailsShareReportPage({report, policy}: DynamicReportDeta
         startWithLoading(() => {
             shareReport(report.reportID, selectedLogin);
             Navigation.goBack(backPath);
-            Growl.success(translate('common.reportShared'));
+            Growl.success({bodyText: translate('common.reportShared')});
         });
     };
 
@@ -116,6 +116,7 @@ function DynamicReportDetailsShareReportPage({report, policy}: DynamicReportDeta
 
     const footerContent = (
         <FormAlertWithSubmitButton
+            sentryLabel={CONST.SENTRY_LABEL.REPORT.SHARE_REPORT_BUTTON}
             isDisabled={!selectedLogin}
             isAlertVisible={false}
             buttonText={translate('common.shareReport')}

@@ -33,7 +33,6 @@ const CONST_RUNTIME: ConstRuntime = {
     },
     STYLE_VARIABLES: {
         componentSizeNormal: variables.componentSizeNormal,
-        navigationTabBarSize: variables.navigationTabBarSize,
         receiptPreviewMaxWidth: variables.receiptPreviewMaxWidth,
     },
     EXPENSIFY_ACCOUNT_IDS: {
@@ -75,6 +74,8 @@ const CONST_RUNTIME: ConstRuntime = {
         SCREENS.SUBMIT_PLAN_WELCOME_MODAL.DYNAMIC_ROOT,
         SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SCAN,
         SCREENS.DOMAIN.MEMBERS_MOVE_TO_GROUP,
+        SCREENS.WORKSPACE.MEMBERS_CHANGE_OFFICE_LOCATION,
+        SCREENS.WORKSPACE.MEMBERS_CHANGE_WORK_ARRANGEMENT,
         SCREENS.WORKSPACE.MEMBERS_ROLE,
         SCREENS.PRE_MOUNT_BUFFER,
         ...Object.values(SCREENS.MULTIFACTOR_AUTHENTICATION),

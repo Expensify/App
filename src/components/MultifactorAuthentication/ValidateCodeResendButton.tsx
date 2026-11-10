@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
-import React, {useCallback, useImperativeHandle, useRef, useState} from 'react';
+import React, {useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type MultifactorAuthenticationValidateCodeResendButtonHandle = {
@@ -41,9 +41,9 @@ function MultifactorAuthenticationValidateCodeResendButton({
     const [isCountdownRunning, setIsCountdownRunning] = useState(true);
     const countdownRef = useRef<ValidateCodeCountdownHandle>(null);
 
-    const handleCountdownFinish = useCallback(() => {
+    const handleCountdownFinish = () => {
         setIsCountdownRunning(false);
-    }, []);
+    };
 
     useImperativeHandle(ref, () => ({
         resetCountdown: () => {

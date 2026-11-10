@@ -13,6 +13,7 @@ import type FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadA
 import type InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
 import type ListFieldAdapter from '@components/DynamicForm/adapters/ListFieldAdapter';
 import type TabsAdapter from '@components/DynamicForm/adapters/TabsAdapter';
+import type ToggleLinkAdapter from '@components/DynamicForm/adapters/ToggleLinkAdapter';
 import type YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
 import type EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
 import type NumberWithSymbolForm from '@components/NumberWithSymbolForm';
@@ -101,6 +102,7 @@ type ValidInputs =
     | typeof CurrencyInlineListAdapter
     | typeof YesNoAdapter
     | typeof TabsAdapter
+    | typeof ToggleLinkAdapter
     | typeof ListFieldAdapter;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country' | 'stringList' | 'disabledListValues' | 'files' | 'listItems';
@@ -178,6 +180,9 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = ForwardedFSClassProp
         /** The visual variant of the submit button, which controls its color scheme */
         buttonVariant?: ButtonVariant;
 
+        /** Whether the submit button has the neutral color in place of `buttonVariant`, so that a button in `footerContent` can be the suggested action */
+        isSubmitButtonNeutral?: boolean;
+
         /** Should fix the errors alert be displayed when there is an error in the form */
         shouldHideFixErrorsAlert?: boolean;
 
@@ -209,6 +214,9 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = ForwardedFSClassProp
          * If `true`, the form will smoothly scroll to the bottom after interactions have completed.
          */
         shouldScrollToEnd?: boolean;
+
+        /** Whether the scroll view moves a focused input into view on Android. Set it to false when the form scrolls to the input itself. */
+        shouldScrollChildToFocus?: boolean;
     };
 
 type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {

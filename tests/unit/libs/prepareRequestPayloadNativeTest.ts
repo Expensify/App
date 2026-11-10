@@ -8,8 +8,9 @@ jest.mock('@libs/fileDownload/checkFileExists', () => ({
     checkFileExistsWithReason: mockCheckFileExists,
 }));
 
+const mockReadFileAsync = jest.fn<Promise<unknown>, unknown[]>(() => Promise.resolve(null));
 jest.mock('@libs/fileDownload/FileUtils', () => ({
-    readFileAsync: jest.fn(() => Promise.resolve(null)),
+    readFileAsync: (...args: unknown[]) => mockReadFileAsync(...args),
 }));
 
 const mockValidateFormDataParameter = jest.fn();
@@ -145,6 +146,40 @@ describe('prepareRequestPayload (native)', () => {
         expect(formData.get('amount')).toBe('100');
     });
 
+    it('should append a queued offline file as a plain part that carries its own name and type', async () => {
+        // Given a file read back for an offline request as a React Native File, whose name and type are prototype getters
+        const uri = 'file:///data/user/0/app/files/Download/Receipts-Upload/report_123.csv';
+        class NativeFile {
+            uri = uri;
+
+            private readonly data = {name: 'report.csv', type: 'text/csv'};
+
+            get name() {
+                return this.data.name;
+            }
+
+            get type() {
+                return this.data.type;
+            }
+        }
+        mockReadFileAsync.mockResolvedValueOnce(new NativeFile());
+        const appendSpy = jest.spyOn(FormData.prototype, 'append');
+
+        // When the payload is prepared for a request that was queued offline
+        await prepareRequestPayload('AddTextAndAttachment', {file: {uri, source: uri, name: 'report.csv', type: 'text/csv'}}, true);
+
+        // Then the appended part carries the name and type as its own properties, which is what the multipart body is built from
+        const [, part] = appendSpy.mock.calls.find(([key]) => key === 'file') ?? [];
+        expect(Object.entries(part ?? {})).toEqual(
+            expect.arrayContaining([
+                ['uri', uri],
+                ['name', 'report.csv'],
+                ['type', 'text/csv'],
+            ]),
+        );
+        appendSpy.mockRestore();
+    });
+
     it('should handle non-receipt data normally', async () => {
         const formData = await prepareRequestPayload('SomeCommand', {amount: '100', currency: 'USD'}, false);
 
@@ -157,6 +192,24 @@ describe('prepareRequestPayload (native)', () => {
 
         expect(formData.get('amount')).toBe('100');
         expect(formData.has('undefinedField')).toBe(false);
+    });
+
+    it('should read every attachment of a message sent offline', async () => {
+        // Given a message with two attachments queued while offline
+        mockReadFileAsync.mockImplementation((_source, fileName) => Promise.resolve(new File([], String(fileName))));
+        const firstAttachment = {source: 'file:///tmp/first.jpg', uri: 'file:///tmp/first.jpg', name: 'first.jpg', type: 'image/jpeg'};
+        const secondAttachment = {source: 'file:///tmp/second.jpg', uri: 'file:///tmp/second.jpg', name: 'second.jpg', type: 'image/jpeg'};
+
+        // When the queued request is sent
+        // eslint-disable-next-line @typescript-eslint/naming-convention -- `file_1` is the API parameter name for the second attachment.
+        const formData = await prepareRequestPayload('AddAttachment', {file: firstAttachment, file_1: secondAttachment}, true);
+
+        // Then both attachments are read from disk and sent
+        expect(mockReadFileAsync).toHaveBeenCalledWith(firstAttachment.source, 'first.jpg', expect.any(Function), undefined, 'image/jpeg');
+        expect(mockReadFileAsync).toHaveBeenCalledWith(secondAttachment.source, 'second.jpg', expect.any(Function), undefined, 'image/jpeg');
+        expect(formData.has('file')).toBe(true);
+        expect(formData.has('file_1')).toBe(true);
+        mockReadFileAsync.mockImplementation(() => Promise.resolve(null));
     });
 
     describe('a receipt sent as a file object without a source, as a request queued by an older app version sends it', () => {

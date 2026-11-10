@@ -6,8 +6,6 @@ import type {InvoiceReceiverType} from '@src/types/onyx/Report';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import {useMemo} from 'react';
-
 import useOnyx from './useOnyx';
 
 function getParticipantsInvoiceReport(
@@ -44,10 +42,7 @@ function useParticipantsInvoiceReport(receiverID: string | number | undefined, r
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
 
-    const invoiceReport = useMemo(
-        () => getParticipantsInvoiceReport(allReports, reportNameValuePairs, receiverID, receiverType, policyID),
-        [allReports, reportNameValuePairs, receiverID, receiverType, policyID],
-    );
+    const invoiceReport = getParticipantsInvoiceReport(allReports, reportNameValuePairs, receiverID, receiverType, policyID);
 
     return invoiceReport;
 }

@@ -2,8 +2,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useShouldShowReportBulkActionBar from '@components/MoneyRequestReportView/useShouldShowReportBulkActionBar';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
-import {ReportSubmitToPopoverMeasurableAnchor, ReportSubmitToPopoverRoot} from '@components/ReportSubmitToPopoverAnchor';
+import {ReportSubmitToPopoverAnchor} from '@components/ReportSubmitToPopoverAnchor';
 import BulkDuplicateHandler from '@components/Search/BulkDuplicateHandler';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 
@@ -192,16 +191,6 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
         handleWorkspaceSelected,
         primaryAction,
         kycWallRef,
-        isHoldMenuVisible,
-        requestType,
-        paymentType,
-        selectedVBBAToPayFromHoldMenu,
-        handleHoldMenuClose,
-        handleHoldMenuConfirm,
-        hasOnlyHeldExpenses,
-        nonHeldAmount,
-        fullAmount,
-        hasValidNonHeldAmount,
     } = useSelectionModeReportActions({
         report,
         chatReport,
@@ -277,7 +266,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                     <View
                         style={[isInLandscapeMode ? [styles.flexRowReverse, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap6, styles.pb3, styles.ph5] : styles.flexColumn]}
                     >
-                        <ReportSubmitToPopoverMeasurableAnchor>
+                        <ReportSubmitToPopoverAnchor reportID={reportID}>
                             <SelectionDropdown
                                 hasPayInSelectionMode={hasPayInSelectionMode}
                                 chatReport={chatReport}
@@ -291,7 +280,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                                 kycWallRef={kycWallRef}
                                 shouldPopoverUseScrollView={popoverUseScrollView}
                             />
-                        </ReportSubmitToPopoverMeasurableAnchor>
+                        </ReportSubmitToPopoverAnchor>
 
                         <SelectAllCheckbox
                             isSelectAllChecked={isSelectAllChecked}
@@ -316,21 +305,6 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                     onClearSelection={() => clearSelectedTransactions(true)}
                 />
             )}
-            {isHoldMenuVisible && requestType !== undefined && (
-                <ProcessMoneyReportHoldMenu
-                    nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
-                    fullAmount={fullAmount}
-                    onClose={handleHoldMenuClose}
-                    isVisible={isHoldMenuVisible}
-                    paymentType={paymentType}
-                    methodID={paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? selectedVBBAToPayFromHoldMenu : undefined}
-                    chatReport={chatReport}
-                    moneyRequestReport={report}
-                    hasNonHeldExpenses={!hasOnlyHeldExpenses}
-                    onConfirm={handleHoldMenuConfirm}
-                    transactionCount={transactions.length}
-                />
-            )}
         </>
     );
 }
@@ -352,16 +326,12 @@ function SelectionToolbarGate({reportID, transactions, reportActions}: Selection
         return null;
     }
 
-    // The toolbar's own hooks open the submit-to popover for bulk Submit, so its provider has to sit above the toolbar.
-    // The bulk action bar and the selection dropdown mark themselves as its anchor.
     return (
-        <ReportSubmitToPopoverRoot reportID={reportID}>
-            <SelectionToolbar
-                reportID={reportID}
-                transactions={transactions}
-                reportActions={reportActions}
-            />
-        </ReportSubmitToPopoverRoot>
+        <SelectionToolbar
+            reportID={reportID}
+            transactions={transactions}
+            reportActions={reportActions}
+        />
     );
 }
 

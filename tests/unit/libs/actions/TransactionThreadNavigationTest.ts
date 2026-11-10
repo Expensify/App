@@ -48,7 +48,7 @@ describe('TransactionThreadNavigation carousel ownership', () => {
                 const connection = Onyx.connect({
                     key,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });

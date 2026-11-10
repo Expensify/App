@@ -68,7 +68,7 @@ function QuickbooksDesktopImportPage({policy}: WithPolicyProps) {
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
-            onBackButtonPress={() => Navigation.goBack()}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))}
         >
             {sections.map((section) => (
                 <OfflineWithFeedback

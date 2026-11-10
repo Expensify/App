@@ -28,6 +28,7 @@ import {
     getDeletedApprovalRuleMessage,
     getDeletedBudgetMessage,
     getDeletedOfficeLocationMessage,
+    getUpdatedEmployeeOfficeLocationMessage,
     getForeignCurrencyDefaultTaxUpdateMessage,
     getForwardsToUpdateMessage,
     getInvoiceCompanyNameUpdateMessage,
@@ -65,6 +66,7 @@ import {
     getUpdatedBudgetMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
+    getUpdatedCardFeedReimbursableMessage,
     getUpdatedCommuterExclusionsMessage,
     getUpdatedMemberWorkArrangementMessage,
     getUpdatedDefaultTitleMessage,
@@ -131,6 +133,8 @@ const copySettingsResolver: ResolverFn = (translate, action) => ({
 
 const POLICY_CHANGE_LOG_RESOLVERS: Record<string, ResolverFn> = {
     // Simple string translations
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ARCHIVE_POLICY]: (translate) => translate('workspaceActions.archivedWorkspace'),
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNARCHIVE_POLICY]: (translate) => translate('workspaceActions.unarchivedWorkspace'),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE]: (translate) => translate('workspaceActions.upgradedWorkspace'),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE]: (translate) => translate('workspaceActions.downgradedWorkspace'),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_TAGS]: (translate) => translate('workspaceActions.importTags'),
@@ -209,7 +213,8 @@ const POLICY_CHANGE_LOG_RESOLVERS: Record<string, ResolverFn> = {
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_REIMBURSABLE]: (translate, action) => getPolicyChangeLogDefaultReimbursableMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED]: (translate, action) => getPolicyChangeLogDefaultTitleEnforcedMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE]: (translate, action) => getPolicyChangeLogAddEmployeeMessage(translate, action),
-    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE]: (translate, action) => getPolicyChangeLogUpdateEmployee(translate, action),
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE]: (translate, action, policy, convertToDisplayString) =>
+        getPolicyChangeLogUpdateEmployee(translate, action, convertToDisplayString),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_DISPLAY_NAME]: (translate, action) => ({
         html: `<comment><muted-text>${getUpdateEmployeeDisplayNameMessage(translate, action)}</muted-text></comment>`,
     }),
@@ -232,6 +237,7 @@ const POLICY_CHANGE_LOG_RESOLVERS: Record<string, ResolverFn> = {
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNASSIGN_COMPANY_CARD]: (translate, action) => getUnassignedCompanyCardMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_LIABILITY]: (translate, action) => getUpdatedCardFeedLiabilityMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD]: (translate, action) => getUpdatedCardFeedStatementPeriodMessage(translate, action),
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_REIMBURSABLE]: (translate, action) => getUpdatedCardFeedReimbursableMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUDIT_RATE]: (translate, action) => getUpdatedAuditRateMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD]: (translate, action, policy, convertToDisplayString) =>
         getUpdatedManualApprovalThresholdMessage(translate, action, convertToDisplayString),
@@ -245,6 +251,7 @@ const POLICY_CHANGE_LOG_RESOLVERS: Record<string, ResolverFn> = {
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_OFFICE_LOCATION]: (translate, action) => getAddedOfficeLocationMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OFFICE_LOCATION]: (translate, action) => getUpdatedOfficeLocationMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_OFFICE_LOCATION]: (translate, action) => getDeletedOfficeLocationMessage(translate, action),
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION]: (translate, action) => getUpdatedEmployeeOfficeLocationMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_CHOICE]: (translate, action) => getUpdatedReimbursementChoiceMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_AUTO_JOIN]: (translate, action) => getSetAutoJoinMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE]: (translate, action) => getUpdatedDefaultTitleMessage(translate, action),
