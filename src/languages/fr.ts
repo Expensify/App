@@ -569,6 +569,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: 'Aucun résultat. Veuillez essayer de modifier vos filtres ou votre requête de recherche',
         unableToDisplayChart: 'Impossible d’afficher le graphique',
         webGLNotSupported: 'Votre navigateur ne prend pas en charge WebGL. Veuillez l’activer ou changer de navigateur.',
+        webAssemblyNotSupported: 'WebAssembly n’est pas disponible dans votre navigateur. Essayez un autre navigateur pour afficher les graphiques.',
         chartFailedToLoad: 'Le graphique n’a pas pu être chargé. Veuillez actualiser la page et réessayer.',
         apiKey: 'Clé API',
         exportsTo: 'Exports vers',

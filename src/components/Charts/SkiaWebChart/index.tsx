@@ -22,7 +22,7 @@ import React, {useRef, useState} from 'react';
 import {ErrorBoundary} from 'react-error-boundary';
 import {View} from 'react-native';
 
-import isSkiaWebSupported from './isSkiaWebSupported';
+import getSkiaWebUnsupportedReason from './getSkiaWebUnsupportedReason';
 import useIsSkiaSurfaceUnavailable from './useIsSkiaSurfaceUnavailable';
 
 type SkiaWebChartProps<TProps> = {
@@ -99,7 +99,7 @@ const logSkiaLoadError = (error: Error, info: {componentStack?: string | null}) 
 /**
  * Shared web wrapper around `WithSkiaWeb` for the chart entry points (Pie/Line/Bar and the Victory
  * renderer). When the environment can't provide a usable WebGL/Skia surface it shows an "unable to
- * display chart" empty state instead of mounting Skia, avoiding the CanvasKit GL-init crash (see `isSkiaWebSupported`).
+ * display chart" empty state instead of mounting Skia, avoiding the CanvasKit GL-init crash (see `getSkiaWebUnsupportedReason`).
  * If CanvasKit itself fails to load or link, the error boundary degrades to the same empty state.
  */
 // `object` mirrors WithSkiaWeb's own constraint; `Record<string, unknown>` would reject the
@@ -111,15 +111,15 @@ function SkiaWebChart<TProps extends object>({getComponent, componentProps}: Ski
     const isInsideChartReveal = useIsInsideChartReveal();
 
     // Probed on each mount, so a fresh chart re-checks capability instead of trusting a stale session-wide result.
-    const [isSupported] = useState(() => isSkiaWebSupported());
+    const [unsupportedReason] = useState(() => getSkiaWebUnsupportedReason());
 
     // The probe can pass while the renderer still ends up without a drawing surface, so also listen for the
     // renderer reporting that and degrade to the empty state.
     const isSurfaceUnavailable = useIsSkiaSurfaceUnavailable(containerRef);
 
-    // If unsupported, the device can't give CanvasKit a usable WebGL surface.
-    if (!isSupported || isSurfaceUnavailable) {
-        return <ChartUnavailable />;
+    // Missing WebAssembly needs a different explanation from an unavailable drawing surface.
+    if (unsupportedReason || isSurfaceUnavailable) {
+        return <ChartUnavailable description={unsupportedReason} />;
     }
 
     const fallback = isInsideChartReveal ? (

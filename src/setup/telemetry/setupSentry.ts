@@ -2,6 +2,7 @@ import {isDevelopment} from '@libs/Environment/Environment';
 import {
     breadcrumbsIntegration,
     browserProfilingIntegration,
+    canvasKitNoiseFilterIntegration,
     classCallCheckNoiseFilterIntegration,
     consoleIntegration,
     googleTranslateRecursionNoiseFilterIntegration,
@@ -33,7 +34,12 @@ const EXTENSION_DENY_URLS = [/^chrome-extension:\/\//i, /^moz-extension:\/\//i, 
  * filter goes inert with no type error to catch it - hence one constant that reorders as a unit, with the order
  * pinned by `tests/unit/setupSentryIntegrationOrderTest.ts`.
  */
-const THIRD_PARTY_NOISE_INTEGRATIONS = [thirdPartyErrorFilterIntegration, classCallCheckNoiseFilterIntegration, googleTranslateRecursionNoiseFilterIntegration];
+const THIRD_PARTY_NOISE_INTEGRATIONS = [
+    thirdPartyErrorFilterIntegration,
+    classCallCheckNoiseFilterIntegration,
+    googleTranslateRecursionNoiseFilterIntegration,
+    canvasKitNoiseFilterIntegration,
+];
 
 function setupSentry(): void {
     const {semanticVersion, buildNumber} = getAppVersion(pkg.version);
