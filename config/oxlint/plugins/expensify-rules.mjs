@@ -4,7 +4,7 @@
  * quiet in files React Compiler memoizes, and prefer-locale-compare-from-context is swapped for a copy that needs no type
  * info.
  */
-import {rules as expensifyRules} from 'eslint-config-expensify/oxlint/plugins/rulesdir.mjs';
+import {rules as expensifyRules} from 'eslint-config-expensify/oxlint/plugins/rulesdir';
 import fs from 'node:fs';
 import {createRequire} from 'node:module';
 import path from 'node:path';

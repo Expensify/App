@@ -1,9 +1,9 @@
 /**
- * The App's `hosted` plugin: the package's hosted rules (eslint-config-expensify/oxlint/plugins/hosted.mjs) plus the
+ * The App's `hosted` plugin: the package's hosted rules (eslint-config-expensify/oxlint/plugins/hosted) plus the
  * rules only the App enables, the React Compiler gates (reactCompilerGate.mjs) and the App's own
  * no-deprecated-self-closing-jsx.
  */
-import {rules as presetRules} from 'eslint-config-expensify/oxlint/plugins/hosted.mjs';
+import {rules as presetRules} from 'eslint-config-expensify/oxlint/plugins/hosted';
 import {hostRule, withEslintDirectiveIDs} from 'eslint-config-expensify/oxlint/utils';
 import {createRequire} from 'node:module';
 
