@@ -1992,7 +1992,10 @@ const SENTRY_LABEL = {
         JSON_COPY: 'Debug-JSONCopy',
         TAG_PICKER_SAVE: 'Debug-TagPickerSave',
         REPORT_ACTIONS_CREATE: 'Debug-ReportActionsCreate',
-        REPORT_REASON_VIEW: 'Debug-ReportReasonView',
+        REPORT_REASON_VIEW: {
+            GBR: 'Debug-ReportReasonView-GBR',
+            RBR: 'Debug-ReportReasonView-RBR',
+        },
         REPORT_VIEW_REPORT: 'Debug-ReportViewReport',
         REPORT_VIEW_TRANSACTION: 'Debug-ReportViewTransaction',
         REPORT_ACTION_CREATE_SAVE: 'Debug-ReportActionCreateSave',
