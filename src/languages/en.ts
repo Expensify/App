@@ -5608,6 +5608,12 @@ const translations = {
             peopleAdminAlternateText: 'Manage members and approval workflows.',
             paymentsAdminAlternateText: 'Manage workflow payments.',
             approveOnlyAlternateText: 'Approve reports only.',
+            newRoles: 'New roles',
+            adminRoles: 'Admin roles',
+            otherRoles: 'Other roles',
+            roleSelectorDescription: `Assign a role to manage a member's workspace permissions. <a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">Compare workspace roles</a>.`,
+            roleSelectorFeedback: 'Not seeing the role you need?',
+            roleSelectorFeedbackLink: 'Let us know',
             reimbursementChoice: {
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES]: 'Direct',
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO]: 'None',
@@ -8391,6 +8397,10 @@ const translations = {
             addedWithPrimary: 'Some members were added with their primary logins.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Added by secondary login ${secondaryLogin}.`,
             workspaceMembersCount: (count: number) => `Total workspace members: ${count}`,
+            newRolesBanner: {
+                title: 'New roles available',
+                subtitle: '<label-text>Give members just the access they need with new <strong>Approve-only</strong> and <strong>Guest</strong> roles.</label-text>',
+            },
             configureHRSync: (providerName: string) => `Configure ${providerName} sync.`,
             syncWithHR: (providerName: string) => `Sync with ${providerName}`,
             allMembers: 'All members',
