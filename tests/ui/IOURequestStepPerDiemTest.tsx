@@ -4,13 +4,18 @@ import {CurrencyListContextProvider} from '@components/CurrencyListContextProvid
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import type * as TextModule from '@components/Text';
 
-import IOURequestStepPerDiem from '@pages/iou/request/step/IOURequestStepPerDiem';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
+
+import {IOURequestStepPerDiemContent as IOURequestStepPerDiem} from '@pages/iou/request/step/IOURequestStepPerDiem';
 
 import {setCustomUnitID, setMoneyRequestCategory, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import {setTransactionReport} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
+import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
@@ -18,10 +23,10 @@ import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type {ReactNode} from 'react';
 
 import React from 'react';
-import {Text} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
+import createMock from '../utils/createMock';
 import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -29,17 +34,21 @@ type MockConfirmationProps = {
     route: {params: {iouType: string}};
 };
 
-// The report and transaction come in as props here, so the HOCs that would load them from Onyx are passed through.
-jest.mock('@pages/iou/request/step/withWritableReportOrNotFound', () => <T,>(component: T) => component);
-jest.mock('@pages/iou/request/step/withFullTransactionOrNotFound', () => <T,>(component: T) => component);
-
 // The rates are covered by PerDiemRatesGateTest, so this test only looks at what the page does around them.
-jest.mock('@pages/iou/request/step/PerDiemRatesGate', () => ({children}: {children: ReactNode}) => children);
+jest.mock(
+    '@pages/iou/request/step/PerDiemRatesGate',
+    () =>
+        ({children}: {children: ReactNode}) =>
+            children,
+);
 
 // The expense form is heavy and has its own tests. The stub shows which iouType it was handed.
-jest.mock('@pages/iou/request/step/IOURequestStepConfirmation', () => ({
-    IOURequestStepConfirmationContentWithWritableReportOrNotFound: ({route}: MockConfirmationProps) => <Text>{`confirmation:${route.params.iouType}`}</Text>,
-}));
+jest.mock('@pages/iou/request/step/IOURequestStepConfirmation', () => {
+    const Text = jest.requireActual<typeof TextModule>('@components/Text').default;
+    return {
+        IOURequestStepConfirmationContentWithWritableReportOrNotFound: ({route}: MockConfirmationProps) => <Text>{`confirmation:${route.params.iouType}`}</Text>,
+    };
+});
 
 jest.mock('@userActions/IOU/MoneyRequest', () => ({
     ...jest.requireActual<Record<string, unknown>>('@userActions/IOU/MoneyRequest'),
@@ -87,27 +96,30 @@ function createDraft(overrides: Partial<Transaction> = {}): Transaction {
         merchant: '',
         iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
         ...overrides,
-    } as Transaction;
+    };
 }
 
-const navigation = {setParams: jest.fn()};
+type PerDiemScreenProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE>;
 
-function renderPage({transaction, report, explicitPolicyID, iouType = CONST.IOU.TYPE.CREATE}: {transaction: Transaction; report?: Report; explicitPolicyID?: string; iouType?: string}) {
+const mockSetParams = jest.fn();
+const navigation = createMock<PerDiemScreenProps['navigation']>({setParams: mockSetParams});
+
+function renderPage({transaction, report, explicitPolicyID, iouType = CONST.IOU.TYPE.CREATE}: {transaction: Transaction; report?: Report; explicitPolicyID?: string; iouType?: IOUType}) {
     return render(
         <OnyxListItemProvider>
             <CurrentUserPersonalDetailsProvider>
                 <LocaleContextProvider>
                     <CurrencyListContextProvider>
-                        {/* @ts-expect-error the HOCs are mocked away, so the page takes its report and transaction as plain props */}
                         <IOURequestStepPerDiem
-                            route={{
+                            route={createMock<PerDiemScreenProps['route']>({
                                 key: 'IOURequestStepPerDiem',
                                 name: SCREENS.MONEY_REQUEST.CREATE,
-                                params: {action: CONST.IOU.ACTION.CREATE, iouType, transactionID: TRANSACTION_ID, reportID: REPORT_ID},
-                            }}
+                                params: {iouType, transactionID: TRANSACTION_ID, reportID: REPORT_ID},
+                            })}
                             navigation={navigation}
                             transaction={transaction}
                             report={report}
+                            reportDraft={undefined}
                             explicitPolicyID={explicitPolicyID}
                         />
                     </CurrencyListContextProvider>
@@ -195,6 +207,6 @@ describe('IOURequestStepPerDiem', () => {
 
         // Then the form tracks the expense, while the create route keeps its iouType for the manual and scan tabs
         expect(screen.getByText(`confirmation:${CONST.IOU.TYPE.TRACK}`)).toBeTruthy();
-        expect(navigation.setParams).not.toHaveBeenCalled();
+        expect(mockSetParams).not.toHaveBeenCalled();
     });
 });

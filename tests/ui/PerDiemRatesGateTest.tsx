@@ -2,6 +2,7 @@ import {act, render, screen} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import Text from '@components/Text';
 
 import useNetwork from '@hooks/useNetwork';
 
@@ -12,13 +13,13 @@ import PerDiemRatesGate from '@pages/iou/request/step/PerDiemRatesGate';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
-import type {Rate} from '@src/types/onyx/Policy';
+import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 
 import React from 'react';
-import {Text} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
+import createMock from '../utils/createMock';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -30,6 +31,7 @@ jest.mock('@libs/actions/Policy/PerDiem', () => ({
 }));
 
 jest.mock('@hooks/useLazyAsset', () => ({
+    useMemoizedLazyExpensifyIcons: () => ({OfflineCloud: () => null}),
     useMemoizedLazyIllustrations: () => ({EmptyStateExpenses: () => null}),
 }));
 
@@ -43,8 +45,8 @@ const OTHER_POLICY_ID = 'policy-2';
 const CUSTOM_UNIT_ID = 'per-diem-unit';
 const CONTENT = 'per diem content';
 
-const mockUseNetwork = useNetwork as jest.MockedFunction<typeof useNetwork>;
-const mockFetchPerDiemRates = fetchPerDiemRates as jest.MockedFunction<typeof fetchPerDiemRates>;
+const mockUseNetwork = jest.mocked(useNetwork);
+const mockFetchPerDiemRates = jest.mocked(fetchPerDiemRates);
 
 function createPolicy(id: string, rates?: Record<string, Rate>): Policy {
     return {
@@ -52,14 +54,14 @@ function createPolicy(id: string, rates?: Record<string, Rate>): Policy {
         id,
         role: CONST.POLICY.ROLE.USER,
         customUnits: {
-            [CUSTOM_UNIT_ID]: {
+            [CUSTOM_UNIT_ID]: createMock<CustomUnit>({
                 customUnitID: CUSTOM_UNIT_ID,
                 name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
                 enabled: true,
                 // Missing rates mean they haven't been fetched yet, while an empty object means the workspace has none, so
                 // the unit is stored without them even though the type always expects them.
-                rates: rates as Record<string, Rate>,
-            },
+                rates,
+            }),
         },
     };
 }
@@ -161,6 +163,7 @@ describe('PerDiemRatesGate', () => {
         // Then no request is made and the content stays hidden, since there is nothing to show it with
         expect(mockFetchPerDiemRates).not.toHaveBeenCalled();
         expect(screen.queryByText(CONTENT)).toBeNull();
+        expect(screen.getByText(translateLocal('common.youAppearToBeOffline'))).toBeTruthy();
     });
 
     it('shows the empty state when the workspace has no rates', async () => {

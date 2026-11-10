@@ -1,3 +1,7 @@
+/**
+ * The right docked time picker that time fields open. Kept apart from the field rows so each form can draw the field
+ * the way it needs to while sharing the picker itself.
+ */
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import DateUtils from '@libs/DateUtils';
@@ -6,14 +10,13 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
-import HeaderWithBackButton from './HeaderWithBackButton';
+import Header from './Header';
 import Modal from './Modal';
 import ScreenWrapper from './ScreenWrapper';
 import ScrollView from './ScrollView';
 import TimePicker from './TimePicker/TimePicker';
 
 type TimePickerModalProps = {
-    /** Whether the modal is shown */
     isVisible: boolean;
 
     /** Title of the modal, the name of the field it edits */
@@ -29,10 +32,6 @@ type TimePickerModalProps = {
     onClose: () => void;
 };
 
-/**
- * The right docked time picker that time fields open. Kept apart from the field rows so each form can draw the field
- * the way it needs to while sharing the picker itself.
- */
 function TimePickerModal({isVisible, label, value, onInputChange, onClose}: TimePickerModalProps) {
     const styles = useThemeStyles();
 
@@ -55,10 +54,10 @@ function TimePickerModal({isVisible, label, value, onInputChange, onClose}: Time
                 includeSafeAreaPaddingBottom
                 testID="TimeModalPicker"
             >
-                <HeaderWithBackButton
-                    title={label}
-                    onBackButtonPress={onClose}
-                />
+                <Header>
+                    <Header.BackButton onPress={onClose} />
+                    <Header.Title title={label} />
+                </Header>
                 <ScrollView
                     style={styles.flex1}
                     contentContainerStyle={styles.flexGrow1}

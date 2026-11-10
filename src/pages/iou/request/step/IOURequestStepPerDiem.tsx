@@ -1,3 +1,8 @@
+/**
+ * The per diem tab of the create page when the workspace is already known: the expense form itself, with the
+ * destination, time and subrate fields inline. Before the form shows, it points the draft at the workspace whose
+ * per diem rates it uses, which the destination step used to do once a destination was picked.
+ */
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 
@@ -39,11 +44,6 @@ type IOURequestStepPerDiemProps = WithWritableReportOrNotFoundProps<typeof SCREE
         explicitPolicyID?: string;
     };
 
-/**
- * The per diem tab of the create page when the workspace is already known: the expense form itself, with the
- * destination, time and subrate fields inline. Before the form shows, it points the draft at the workspace whose
- * per diem rates it uses, which the destination step used to do once a destination was picked.
- */
 function IOURequestStepPerDiem({report, route, navigation, transaction, explicitPolicyID}: IOURequestStepPerDiemProps) {
     const {
         params: {action, iouType, transactionID, reportID, backToReport},
@@ -53,10 +53,12 @@ function IOURequestStepPerDiem({report, route, navigation, transaction, explicit
     const {accountID} = useCurrentUserPersonalDetails();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
     const reportPolicyID = getIOURequestPolicyID(transaction, report);
-    const policyID = explicitPolicyID ?? (reportPolicyID === CONST.POLICY.ID_FAKE ? getPolicyByCustomUnitID(transaction, allPolicies)?.id : reportPolicyID);
+    const [customUnitPolicyID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: (policies) => (!explicitPolicyID && reportPolicyID === CONST.POLICY.ID_FAKE ? getPolicyByCustomUnitID(transaction, policies)?.id : undefined),
+    });
+    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
+    const policyID = explicitPolicyID ?? (reportPolicyID === CONST.POLICY.ID_FAKE ? customUnitPolicyID : reportPolicyID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const perDiemUnit = getPerDiemCustomUnit(policy);
 
@@ -118,3 +120,4 @@ function IOURequestStepPerDiem({report, route, navigation, transaction, explicit
 }
 
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepPerDiem));
+export {IOURequestStepPerDiem as IOURequestStepPerDiemContent};

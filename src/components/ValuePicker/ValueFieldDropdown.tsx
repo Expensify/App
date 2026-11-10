@@ -1,7 +1,13 @@
+/**
+ * A form field that picks one item from a list, opening the list in a container anchored to the field instead of on
+ * its own page. When there isn't room around the field for the container, the list opens full page instead, the way
+ * `ValuePicker` opens it.
+ */
 import AnchoredSelectionListPopover from '@components/AnchoredSelectionListPopover';
 import ExpenseFieldDropdown from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
 
 import CONST from '@src/CONST';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, ForwardedRef} from 'react';
 
@@ -13,17 +19,14 @@ import type {ValuePickerItem, ValuePickerListItem} from './types';
 import ValueSelectionList from './ValueSelectionList';
 import ValueSelectorModal from './ValueSelectorModal';
 
-type ValueFieldDropdownProps = {
-    /** Value of the picked item */
+type ValueFieldDropdownProps = WithRequiredSentryLabel & {
     value?: string;
 
     /** Name of the field, shown as its placeholder and above the picked item */
     label: string;
 
-    /** Items the user picks from */
     items?: ValuePickerItem[];
 
-    /** Form error shown below the field */
     errorText?: string;
 
     /** Called with the picked item's value. Not called when the user picks the item already chosen. */
@@ -32,17 +35,9 @@ type ValueFieldDropdownProps = {
     /** Called whenever the field opens its list, e.g. to blur another input so the keyboard doesn't cover the list */
     onOpen?: () => void;
 
-    /** Sentry label for the field's row */
-    sentryLabel?: string;
-
     ref?: ForwardedRef<ComponentRef<typeof View>>;
 };
 
-/**
- * A form field that picks one item from a list, opening the list in a container anchored to the field instead of on
- * its own page. When there isn't room around the field for the container, the list opens full page instead, the way
- * `ValuePicker` opens it.
- */
 function ValueFieldDropdown({value, label, items = [], errorText, onInputChange, onOpen, sentryLabel, ref}: ValueFieldDropdownProps) {
     const [isFullPagePickerVisible, setIsFullPagePickerVisible] = useState(false);
     const selectedItem = items.find((item) => item.value === value);

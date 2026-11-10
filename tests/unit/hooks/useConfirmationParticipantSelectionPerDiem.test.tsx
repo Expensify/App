@@ -44,7 +44,7 @@ const mockTransaction: Transaction = {
             name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
         },
     },
-} as Transaction;
+};
 
 // The hook updates every receipt of a multi-scan batch. A per diem expense is a single one.
 jest.mock('@hooks/useOptimisticDraftTransactions', () => () => [[mockTransaction]]);

@@ -1,10 +1,17 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
+import type * as PressableWithoutFeedbackModule from '@components/Pressable/PressableWithoutFeedback';
+import type * as TextModule from '@components/Text';
 import type {ValuePickerItem, ValuePickerListItem} from '@components/ValuePicker/types';
 import ValueFieldDropdown from '@components/ValuePicker/ValueFieldDropdown';
 
+import CONST from '@src/CONST';
+
+import type {View as NativeView} from 'react-native';
+
 import React from 'react';
-import {Pressable, Text, View} from 'react-native';
+
+const mockSentryLabel = CONST.SENTRY_LABEL.IOU_REQUEST_STEP.PER_DIEM_SUBRATE_FIELD;
 
 type MockSelectorModalProps = {
     isVisible: boolean;
@@ -19,35 +26,45 @@ type MockFieldDropdownProps = {
 
 // The full page list stands in for both ways the field opens: it renders one button per item, so picking an item
 // doesn't depend on how the real selection list lays its rows out.
-jest.mock('@components/ValuePicker/ValueSelectorModal', () => ({isVisible, items, onItemSelected}: MockSelectorModalProps) => {
-    if (!isVisible) {
-        return null;
-    }
-    return (
-        <View>
-            {items.map((item) => (
-                <Pressable
-                    key={item.value}
-                    accessibilityLabel={`pick-${item.value}`}
-                    onPress={() => onItemSelected({...item, keyForList: item.value ?? '', text: item.label ?? ''})}
-                >
-                    <Text>{item.label}</Text>
-                </Pressable>
-            ))}
-        </View>
-    );
+jest.mock('@components/ValuePicker/ValueSelectorModal', () => {
+    const {View} = jest.requireActual<{View: typeof NativeView}>('react-native');
+    const PressableWithoutFeedback = jest.requireActual<typeof PressableWithoutFeedbackModule>('@components/Pressable/PressableWithoutFeedback').default;
+    const Text = jest.requireActual<typeof TextModule>('@components/Text').default;
+    return ({isVisible, items, onItemSelected}: MockSelectorModalProps) => {
+        if (!isVisible) {
+            return null;
+        }
+        return (
+            <View>
+                {items.map((item) => (
+                    <PressableWithoutFeedback
+                        key={item.value}
+                        sentryLabel={mockSentryLabel}
+                        accessibilityLabel={`pick-${item.value}`}
+                        onPress={() => onItemSelected({...item, keyForList: item.value ?? '', text: item.label ?? ''})}
+                    >
+                        <Text>{item.label}</Text>
+                    </PressableWithoutFeedback>
+                ))}
+            </View>
+        );
+    };
 });
 
 // Pressing the row opens the full page list, the way the field falls back when there is no room for the container.
-jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown', () => ({onPress, onOpen}: MockFieldDropdownProps) => (
-    <Pressable
-        accessibilityLabel="field"
-        onPress={() => {
-            onOpen?.();
-            onPress();
-        }}
-    />
-));
+jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown', () => {
+    const PressableWithoutFeedback = jest.requireActual<typeof PressableWithoutFeedbackModule>('@components/Pressable/PressableWithoutFeedback').default;
+    return ({onPress, onOpen}: MockFieldDropdownProps) => (
+        <PressableWithoutFeedback
+            sentryLabel={mockSentryLabel}
+            accessibilityLabel="field"
+            onPress={() => {
+                onOpen?.();
+                onPress();
+            }}
+        />
+    );
+});
 
 const ITEMS: ValuePickerItem[] = [
     {value: 'breakfast', label: 'Breakfast'},
@@ -61,6 +78,7 @@ describe('ValueFieldDropdown', () => {
         render(
             <ValueFieldDropdown
                 label="Subrate"
+                sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.PER_DIEM_SUBRATE_FIELD}
                 value="breakfast"
                 items={ITEMS}
                 onInputChange={onInputChange}
@@ -81,6 +99,7 @@ describe('ValueFieldDropdown', () => {
         render(
             <ValueFieldDropdown
                 label="Subrate"
+                sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.PER_DIEM_SUBRATE_FIELD}
                 value="breakfast"
                 items={ITEMS}
                 onInputChange={onInputChange}
@@ -101,6 +120,7 @@ describe('ValueFieldDropdown', () => {
         render(
             <ValueFieldDropdown
                 label="Subrate"
+                sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.PER_DIEM_SUBRATE_FIELD}
                 items={ITEMS}
                 onOpen={onOpen}
             />,

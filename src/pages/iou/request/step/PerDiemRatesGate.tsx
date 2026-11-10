@@ -1,3 +1,7 @@
+/**
+ * Holds back per diem content until the workspace's rates are loaded, fetching them when they are missing. Shows a
+ * loader while they load, the offline view when they can't be fetched, and an empty state when the workspace has none.
+ */
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
@@ -36,10 +40,6 @@ type PerDiemRatesGateProps = {
     children: ReactNode;
 };
 
-/**
- * Holds back per diem content until the workspace's rates are loaded, fetching them when they are missing. Shows a
- * loader while they load, the offline view when they can't be fetched, and an empty state when the workspace has none.
- */
 function PerDiemRatesGate({policyID, backToRoute, children}: PerDiemRatesGateProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
