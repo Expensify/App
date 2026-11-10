@@ -10,6 +10,7 @@ import MenuItemChevron from '@components/MenuItem/leaves/trailing/icons/MenuItem
 
 import useOnyx from '@hooks/useOnyx';
 
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import hasRenderableChildren from '@libs/hasRenderableChildren';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
@@ -21,19 +22,21 @@ import type {PropsWithChildren, ReactNode} from 'react';
 import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
-type MenuItemFieldRowProps = PropsWithChildren<{
-    /** Name of the field */
-    name: string;
+type MenuItemFieldRowProps = PropsWithChildren<
+    ForwardedFSClassProps & {
+        /** Name of the field */
+        name: string;
 
-    /** Value the field holds. Omit it, or pass an empty string, for a field not filled in yet */
-    value?: string;
+        /** Value the field holds. Omit it, or pass an empty string, for a field not filled in yet */
+        value?: string;
 
-    /** How many lines the value may take. Defaults to 1, and `0` lets it grow unbounded */
-    numberOfLinesValue?: number;
+        /** How many lines the value may take. Defaults to 1, and `0` lets it grow unbounded */
+        numberOfLinesValue?: number;
 
-    /** Whether the field value can start native browser text selection */
-    isValueSelectable?: boolean;
-}>;
+        /** Whether the field value can start native browser text selection */
+        isValueSelectable?: boolean;
+    }
+>;
 
 type MenuItemFieldProps = Omit<MenuItemRootProps, 'accessibilityLabel'> & Omit<MenuItemFieldRowProps, 'children'>;
 
@@ -69,7 +72,7 @@ function MenuItemFieldContent({name, children}: MenuItemFieldContentProps) {
  * `MenuItemField` preset when the row needs siblings inside the same `Root` (an error or a hint
  * line under the row).
  */
-function MenuItemFieldRow({name, value, numberOfLinesValue, isValueSelectable = false, children}: MenuItemFieldRowProps) {
+function MenuItemFieldRow({name, value, numberOfLinesValue, isValueSelectable = false, forwardedFSClass, children}: MenuItemFieldRowProps) {
     return (
         <MenuItemRow>
             <MenuItemFieldContent name={name}>
@@ -77,6 +80,7 @@ function MenuItemFieldRow({name, value, numberOfLinesValue, isValueSelectable = 
                     <MenuItemFieldValue
                         numberOfLines={numberOfLinesValue}
                         isSelectable={isValueSelectable}
+                        forwardedFSClass={forwardedFSClass}
                     >
                         {value}
                     </MenuItemFieldValue>
@@ -102,6 +106,7 @@ function MenuItemFieldPreset({
     sentryLabel,
     testID,
     shouldAllowTextSelection = isValueSelectable,
+    forwardedFSClass,
 }: MenuItemFieldProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     return (
@@ -118,6 +123,7 @@ function MenuItemFieldPreset({
                 value={value}
                 numberOfLinesValue={numberOfLinesValue}
                 isValueSelectable={isValueSelectable}
+                forwardedFSClass={forwardedFSClass}
             >
                 {children}
                 {!!onPress && <MenuItemChevron />}

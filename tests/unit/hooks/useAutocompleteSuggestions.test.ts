@@ -100,6 +100,7 @@ jest.mock('@libs/SearchQueryUtils', () => ({
     getUserFriendlyKey: jest.fn((key: string) => key),
     getUserFriendlyValue: jest.fn((value: string) => value),
     isFilterSupported: jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils').isFilterSupported,
+    isGroupBySupportedBySearch: jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils').isGroupBySupportedBySearch,
 }));
 
 jest.mock('@libs/SearchUIUtils', () => ({

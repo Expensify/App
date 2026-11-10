@@ -27,6 +27,9 @@ type PushRowWithModalBaseProps = {
     /** Whether the selected option is editable */
     shouldAllowChange?: boolean;
 
+    /** The row cannot be opened for now, such as offline, and shows as dimmed instead of as plain text like a row whose option never changes */
+    disabled?: boolean;
+
     /** Text to display on error message */
     errorText?: string;
 
@@ -58,7 +61,7 @@ type PushRowWithModalMultipleProps = {
 type PushRowWithModalProps = PushRowWithModalBaseProps & (PushRowWithModalSingleProps | PushRowWithModalMultipleProps);
 
 function PushRowWithModal(props: PushRowWithModalProps) {
-    const {optionsList, wrapperStyles, description, modalHeaderTitle, searchInputTitle, shouldAllowChange = true, errorText, onBlur = () => {}} = props;
+    const {optionsList, wrapperStyles, description, modalHeaderTitle, searchInputTitle, shouldAllowChange = true, disabled = false, errorText, onBlur = () => {}} = props;
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [pendingSelection, setPendingSelection] = useState<string[]>([]);
     const shouldBlurOnCloseRef = useRef(true);
@@ -118,6 +121,8 @@ function PushRowWithModal(props: PushRowWithModalProps) {
                 onPress={handleModalOpen}
                 wrapperStyle={wrapperStyles}
                 interactive={shouldAllowChange}
+                disabled={disabled}
+                sentryLabel={CONST.SENTRY_LABEL.PUSH_ROW_WITH_MODAL.OPEN}
                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 errorText={errorText}
             />

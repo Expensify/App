@@ -9,6 +9,7 @@ function TextInputFilterContentPageWrapper({baseFilterKey, value, isNegated, but
     const FilterContent = shouldTextFilterGrow(baseFilterKey) ? TextInputFilterContentFillHeight : TextInputFilterContent;
     return (
         <FilterContent
+            sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SAVE_BUTTON}
             baseFilterKey={baseFilterKey}
             value={value}
             isNegated={isNegated}

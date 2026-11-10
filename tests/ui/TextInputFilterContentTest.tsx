@@ -235,6 +235,7 @@ describe('TextInputFilterContent', () => {
     it('passes the measured height to a populated Search RHP text input', () => {
         render(
             <TextInputFilterContentFillHeight
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SAVE_BUTTON}
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD}
                 value="long value"
                 isNegated={false}
@@ -254,6 +255,7 @@ describe('TextInputFilterContent', () => {
     it('uses a compact fallback without replacing the auto-growing input while it is empty', () => {
         render(
             <TextInputFilterContentFillHeight
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SAVE_BUTTON}
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD}
                 value={undefined}
                 isNegated={false}
@@ -273,6 +275,7 @@ describe('TextInputFilterContent', () => {
     it('preserves negation controls in the fill-height Search RHP layout', () => {
         render(
             <TextInputFilterContentFillHeight
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SAVE_BUTTON}
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}
                 value="Coffee"
                 isNegated
@@ -288,6 +291,7 @@ describe('TextInputFilterContent', () => {
         const onChange = jest.fn<void, [string | undefined, boolean]>();
         render(
             <TextInputFilterContentFillHeight
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SAVE_BUTTON}
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}
                 value="Coffee"
                 isNegated
@@ -316,6 +320,7 @@ describe('TextInputFilterContent', () => {
 
         render(
             <TextInputFilterContentFillHeight
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SAVE_BUTTON}
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD}
                 value="near-cap value"
                 isNegated={false}
@@ -340,6 +345,7 @@ describe('TextInputFilterContent', () => {
 
         render(
             <TextInputFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SAVE_BUTTON}
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD}
                 value="compact"
                 isNegated={false}
@@ -368,6 +374,7 @@ describe('TextInputFilterContent', () => {
             const onChange = jest.fn<void, [string | undefined, boolean]>();
             const filter = () => (
                 <FilterContent
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SAVE_BUTTON}
                     baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}
                     value=""
                     isNegated
@@ -400,6 +407,7 @@ describe('TextInputFilterContent', () => {
             const inputValue = `Acme${lineBreak}Office`;
             render(
                 <FilterContent
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SAVE_BUTTON}
                     baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}
                     value=""
                     isNegated
@@ -421,6 +429,7 @@ describe('TextInputFilterContent', () => {
             const onChange = jest.fn<void, [string | undefined, boolean]>();
             render(
                 <FilterContent
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SAVE_BUTTON}
                     baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}
                     value={value}
                     isNegated={false}
@@ -437,6 +446,7 @@ describe('TextInputFilterContent', () => {
         const prefix = 'a'.repeat(CONST.MERCHANT_NAME_MAX_BYTES - 2);
         render(
             <TextInputFilterContentFillHeight
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SAVE_BUTTON}
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}
                 value=""
                 isNegated={false}
