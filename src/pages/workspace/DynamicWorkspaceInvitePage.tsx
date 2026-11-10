@@ -39,10 +39,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {InvitedEmailsToAccountIDs, Policy} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect, useState} from 'react';
 import {Keyboard} from 'react-native';
@@ -51,12 +49,9 @@ import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 
 type WorkspaceInvitePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE>;
 
-type WorkspaceInvitePageContentProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE> & {
-    policy: OnyxEntry<Policy>;
-    invitedEmailsToAccountIDsDraft: OnyxEntry<InvitedEmailsToAccountIDs>;
-};
-
-function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccountIDsDraft}: WorkspaceInvitePageContentProps) {
+function DynamicWorkspaceInvitePage({route}: WorkspaceInvitePageProps) {
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
+    const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID}`);
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_INVITE.path);
@@ -290,18 +285,6 @@ function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccoun
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
-    );
-}
-
-function DynamicWorkspaceInvitePage(props: WorkspaceInvitePageProps) {
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${props.route.params.policyID}`);
-    const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${props.route.params.policyID}`);
-    return (
-        <DynamicWorkspaceInvitePageContent
-            {...props}
-            policy={policy}
-            invitedEmailsToAccountIDsDraft={invitedEmailsToAccountIDsDraft}
-        />
     );
 }
 
