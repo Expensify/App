@@ -6,7 +6,7 @@ import type {Route} from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -22,7 +22,7 @@ type PaymentActionParams = {
     policyID?: string;
 };
 
-type SettlementButtonProps = WithSentryLabel & {
+type SettlementButtonProps = WithRequiredSentryLabel & {
     /** Callback to execute when this button is pressed. Receives payment action params. */
     onPress: (params: PaymentActionParams) => void | Promise<void>;
 

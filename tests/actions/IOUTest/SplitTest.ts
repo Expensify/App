@@ -45,6 +45,7 @@ import {
 } from '@userActions/IOU/SplitExpenseItems';
 import type {UpdateSplitTransactionsData} from '@userActions/IOU/SplitTransactionUpdate';
 import {getExpenseReportIDsEmptiedBySplitUpdate, updateSplitTransactions, willSplitUpdateEmptyExpenseReport} from '@userActions/IOU/SplitTransactionUpdate';
+import {CAROUSEL_SOURCE, clearActiveTransactionIDs, getActiveTransactionIDs, setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -7233,6 +7234,68 @@ describe('updateSplitTransactions', () => {
         const [splitTransactionID1, splitTransactionID2, splitTransactionID3] = await splitToN(3, expenseReport, originalTransactionID, firstIOU);
         return {splitTransactionID1, splitTransactionID2, splitTransactionID3};
     };
+
+    describe('prev/next carousel', () => {
+        afterEach(() => clearActiveTransactionIDs());
+
+        it('should remove the original expense from a carousel seeded from its report', async () => {
+            // Given an expense opened from its report's transaction list, next to one sibling expense
+            const {expenseReport, originalTransactionID} = await createBaseExpense();
+            if (!originalTransactionID || !expenseReport?.reportID) {
+                throw new Error('Missing original transaction data');
+            }
+            await setActiveTransactionIDs(['carousel-sibling', originalTransactionID], {source: CAROUSEL_SOURCE.reportRow(expenseReport.reportID)});
+
+            // When the expense is split, which moves the original to the hidden split report
+            const iouAction = getIOUActionForReportID(expenseReport.reportID, originalTransactionID);
+            await splitToTwo(expenseReport, originalTransactionID, iouAction);
+
+            // Then the carousel is cleared, because one expense left is nothing to page through and the original can't be opened
+            expect(getActiveTransactionIDs().ids).toBeNull();
+            expect(await getOnyxValue(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS)).toBeFalsy();
+        });
+
+        it('should keep the original expense out of the carousel when the split fails', async () => {
+            // Given an expense opened from its report's transaction list, between two sibling expenses
+            const {expenseReport, originalTransactionID} = await createBaseExpense();
+            if (!originalTransactionID || !expenseReport?.reportID) {
+                throw new Error('Missing original transaction data');
+            }
+            await setActiveTransactionIDs(['carousel-sibling-1', originalTransactionID, 'carousel-sibling-2'], {source: CAROUSEL_SOURCE.reportRow(expenseReport.reportID)});
+
+            // When the expense is split and the server then rejects the request
+            const iouAction = getIOUActionForReportID(expenseReport.reportID, originalTransactionID);
+            mockFetch?.pause?.();
+            await splitToTwo(expenseReport, originalTransactionID, iouAction);
+            mockFetch?.fail?.();
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then the original is back on its report, but the carousel isn't written back, like a failed move. The screen that
+            // owned it may be gone by then, so restoring it could leave a list nothing clears. The next seed brings it back.
+            const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
+            expect(originalTransaction?.reportID).toBe(expenseReport.reportID);
+            expect(getActiveTransactionIDs().ids).toEqual(['carousel-sibling-1', 'carousel-sibling-2']);
+            expect(await getOnyxValue(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS)).toEqual(['carousel-sibling-1', 'carousel-sibling-2']);
+        });
+
+        it('should leave a carousel seeded from search results alone', async () => {
+            // Given an expense opened from search results, which span several reports
+            const {expenseReport, originalTransactionID} = await createBaseExpense();
+            if (!originalTransactionID || !expenseReport?.reportID) {
+                throw new Error('Missing original transaction data');
+            }
+            await setActiveTransactionIDs(['carousel-sibling', originalTransactionID], {source: CAROUSEL_SOURCE.search(unapprovedCashHash)});
+
+            // When the expense is split
+            const iouAction = getIOUActionForReportID(expenseReport.reportID, originalTransactionID);
+            await splitToTwo(expenseReport, originalTransactionID, iouAction);
+
+            // Then the carousel is unchanged, because search refreshes the carousel it owns from its own results
+            expect(getActiveTransactionIDs().ids).toEqual(['carousel-sibling', originalTransactionID]);
+            expect(await getOnyxValue(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS)).toEqual(['carousel-sibling', originalTransactionID]);
+        });
+    });
 
     it('should send reportID and localized failure fallback when updating existing split transactions', async () => {
         const {expenseReport, originalTransactionID} = await createBaseExpense();
