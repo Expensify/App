@@ -116,12 +116,15 @@ async function editWorkflowWithRemovedApprover() {
     await waitForBatchedUpdatesWithAct();
 }
 
-async function renderPage(approverIndex: number) {
+async function renderPage(
+    approverIndex: number,
+    routeName: typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER | typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER_CHANGE = SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER_CHANGE,
+) {
     const result = render(
         <ComposeProviders components={[OnyxListItemProvider, PersonalDetailsByLoginProvider, LocaleContextProvider]}>
             <WorkspaceWorkflowsApprovalsApproverPage
                 // @ts-expect-error - the page only reads route.name and route.params
-                route={{name: SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER_CHANGE, params: {policyID: POLICY_ID, approverIndex}}}
+                route={{name: routeName, params: {policyID: POLICY_ID, approverIndex}}}
             />
         </ComposeProviders>,
     );
@@ -210,6 +213,25 @@ describe('WorkspaceWorkflowsApprovalsApproverPage', () => {
 
         // Then they can't be picked again
         expect(getRows().some((row) => row.login === REMOVED_EMAIL)).toBe(false);
+    });
+
+    it('keeps the reports a place in the workflow gets when its approver is picked again', async () => {
+        // Given Erin only gets the reports over 1,000.00
+        await act(async () => {
+            const approvalWorkflow = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
+            await Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {
+                approvers: approvalWorkflow?.approvers.map((approver, index) => (approver && index === 1 ? {...approver, overLimitAmount: 100000} : approver)),
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the admin opens her place from the workflow and picks the admin instead
+        await renderPage(1, SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER);
+        await tapRow(ADMIN_EMAIL);
+
+        // Then the admin only gets the reports over 1,000.00, since that belongs to the place rather than to Erin
+        const approvalWorkflow = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
+        expect(approvalWorkflow?.approvers.at(1)).toEqual(expect.objectContaining({email: ADMIN_EMAIL, overLimitAmount: 100000}));
     });
 
     it('lists a flagged approver only once when they are back on the workspace', async () => {

@@ -205,7 +205,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 avatar,
                 displayName,
                 // Whether the approver only gets the reports over an amount belongs to their place in the workflow, so it stays when they're changed
-                overLimitAmount: isChangeApproverRoute ? currentApprover?.overLimitAmount : undefined,
+                overLimitAmount: currentApprover?.overLimitAmount,
             },
             approverIndex,
             currentApprovalWorkflow: approvalWorkflow,

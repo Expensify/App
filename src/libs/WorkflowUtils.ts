@@ -174,7 +174,7 @@ type AmountRange = {
  * @param canExtendOver - whether a range can also cover the amounts of the route at an index, which makes it simpler when
  * those amounts don't matter
  */
-function getAmountRanges(routeIndexes: number[], approvalLimits: number[], canExtendOver: (routeIndex: number) => boolean = () => false): AmountRange[] {
+function getAmountRanges(routeIndexes: number[], approvalLimits: number[], canExtendOver: (routeIndex: number) => boolean): AmountRange[] {
     const ranges: AmountRange[] = [];
     let rangeStart: number | undefined;
     let hasCoveredRoute = false;
@@ -708,6 +708,7 @@ function convertApprovalWorkflowToPolicyEmployees({
         const withinLimitRange = withinLimitHop?.amountRanges.length === 1 ? withinLimitHop.amountRanges.at(0) : undefined;
         const overLimitRange = overLimitHop?.amountRanges.length === 1 ? overLimitHop.amountRanges.at(0) : undefined;
         const splitLimit = withinLimitRange?.over === undefined ? withinLimitRange?.upTo : undefined;
+        // The employee fields can only say where the reports up to one limit go, and where the ones over it go
         const isSplitOnLimit = otherHops.length === 0 && !!overLimitHop?.nextEmail && splitLimit !== undefined && overLimitRange?.over === splitLimit && overLimitRange.upTo === undefined;
         const forwardsTo = isRemoving ? '' : (withinLimitHop?.nextEmail ?? approvalWorkflow.approvers.at(index + 1)?.email ?? '');
         const routedApprovalLimit = isSplitOnLimit ? splitLimit : undefined;
