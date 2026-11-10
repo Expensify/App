@@ -2,6 +2,7 @@ import useGeographicalStateAndCountryFromRoute from '@hooks/useGeographicalState
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -21,7 +22,7 @@ import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
 type State = keyof typeof COMMON_CONST.STATES;
 
-type StateSelectorProps = {
+type StateSelectorProps = ForwardedFSClassProps & {
     /** Form error text. e.g when no state is selected */
     errorText?: string;
 
@@ -39,7 +40,7 @@ type StateSelectorProps = {
     ref?: ForwardedRef<ComponentRef<typeof View>>;
 };
 
-function StateSelector({errorText, onBlur, value: stateCode, label, onInputChange, wrapperStyle, ref}: StateSelectorProps) {
+function StateSelector({errorText, onBlur, value: stateCode, label, onInputChange, wrapperStyle, forwardedFSClass, ref}: StateSelectorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {state: stateFromUrl} = useGeographicalStateAndCountryFromRoute();
@@ -91,6 +92,7 @@ function StateSelector({errorText, onBlur, value: stateCode, label, onInputChang
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADDRESS_STATE.getRoute(stateCode, label)));
             }}
             wrapperStyle={wrapperStyle}
+            forwardedFSClass={forwardedFSClass}
         />
     );
 }

@@ -263,9 +263,17 @@ function AddPlaidBankAccount({
                     additionalStyles={iconStyles}
                 />
                 <View>
-                    <Text style={[styles.ml3, styles.textStrong]}>{bankName}</Text>
+                    <Text
+                        fsClass={CONST.FULLSTORY.CLASS.MASK}
+                        style={[styles.ml3, styles.textStrong]}
+                    >
+                        {bankName}
+                    </Text>
                     {selectedPlaidAccountMask.length > 0 && (
-                        <Text style={[styles.ml3, styles.textLabelSupporting]}>{`${translate('bankAccount.accountEnding')} ${selectedPlaidAccountMask}`}</Text>
+                        <Text
+                            fsClass={CONST.FULLSTORY.CLASS.MASK}
+                            style={[styles.ml3, styles.textLabelSupporting]}
+                        >{`${translate('bankAccount.accountEnding')} ${selectedPlaidAccountMask}`}</Text>
                     )}
                 </View>
             </View>
@@ -274,6 +282,7 @@ function AddPlaidBankAccount({
                 items={options}
                 defaultCheckedValue={defaultSelectedPlaidAccountID}
                 onSelect={handleSelectingPlaidAccount}
+                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             />
             <FormHelpMessage
                 style={styles.mh5}
