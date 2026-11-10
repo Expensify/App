@@ -22,3 +22,4 @@ function formatChartCount(count: number, countDimension: SearchChartCountDimensi
 }
 
 export default formatChartCount;
+export {MAX_COUNT_FRACTION_DIGITS};
