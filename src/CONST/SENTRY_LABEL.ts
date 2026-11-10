@@ -1481,7 +1481,6 @@ const SENTRY_LABEL = {
             CATEGORY_VISIBILITY: 'WorkspaceMemberDetails-CategoryVisibility',
         },
         CATEGORIES: {
-            RULE_ROW: 'WorkspaceCategories-RuleRow',
             ROW: 'WorkspaceCategories-Row',
             ADD_BUTTON: 'WorkspaceCategories-AddButton',
             MORE_DROPDOWN: 'WorkspaceCategories-MoreDropdown',
@@ -2069,7 +2068,6 @@ const SENTRY_LABEL = {
         BOT_AVATAR_SELECTOR: 'EditAgentPage-BotAvatarSelector',
     },
     SETTINGS_PROFILE: {
-        CONTACT_METHOD_ROW: 'SettingsProfile-ContactMethodRow',
         AVATAR: 'SettingsProfile-Avatar',
         DISPLAY_NAME: 'SettingsProfile-DisplayName',
         CONTACT_METHODS: 'SettingsProfile-ContactMethods',

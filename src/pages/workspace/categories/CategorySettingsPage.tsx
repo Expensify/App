@@ -394,7 +394,6 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     pendingAction={rule.pendingAction}
                                 >
                                     <MenuItem.Root
-                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.RULE_ROW}
                                         onPress={rule.isDisabled ? undefined : callIfAuthenticated(() => navigateToCategoryRule(rule.dynamicRoutePath), session)}
                                         isDisabled={rule.isDisabled}
                                     >

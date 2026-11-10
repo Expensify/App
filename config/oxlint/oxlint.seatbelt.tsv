@@ -1458,7 +1458,7 @@
 "../../src/pages/settings/Profile/Contacts/DynamicContactMethodDetailsPage.tsx"	"react-hooks/set-state-in-effect"	3
 "../../src/pages/settings/Profile/Contacts/DynamicContactMethodDetailsPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/settings/Profile/Contacts/DynamicContactMethodsPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/Profile/Contacts/DynamicContactMethodsPage.tsx"	"no-restricted-syntax"	1
+"../../src/pages/settings/Profile/Contacts/DynamicContactMethodsPage.tsx"	"no-restricted-syntax"	2
 "../../src/pages/settings/Profile/Contacts/DynamicNewContactMethodPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Profile/CustomStatus/SetDatePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Profile/CustomStatus/SetDatePage.tsx"	"react-hooks/purity"	1
@@ -1978,7 +1978,7 @@
 "../../src/pages/workspace/categories/CategoryGLCodePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/categories/CategoryPayrollCodePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/categories/CategorySettingsPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/categories/CategorySettingsPage.tsx"	"no-restricted-syntax"	7
+"../../src/pages/workspace/categories/CategorySettingsPage.tsx"	"no-restricted-syntax"	8
 "../../src/pages/workspace/categories/DynamicCategoryApproverPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/categories/DynamicCategoryDefaultTaxRatePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/categories/DynamicCategoryDescriptionHintPage.tsx"	"no-restricted-imports"	1
