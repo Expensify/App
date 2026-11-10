@@ -57,7 +57,7 @@ function TranslatedReceiptRowContent({row, hasTopGap}: TranslatedReceiptRowConte
             </View>
             <Text
                 variant={isTotal ? 'textStrong' : 'text'}
-                style={[styles.flexShrink0, styles.textAlignRight]}
+                style={[styles.flexShrink1, styles.mw50, styles.textAlignRight]}
             >
                 {row.right}
             </Text>
