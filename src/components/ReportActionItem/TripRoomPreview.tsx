@@ -178,6 +178,7 @@ function BookingView({booking, bookingApproval, onPress}: BookingViewProps) {
                         text={statusBadge.text}
                         backgroundColor={statusBadge.backgroundColor}
                         textColor={statusBadge.textColor}
+                        badgeStyles={styles.ml3}
                     />
                 )
             }
