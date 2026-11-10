@@ -1,6 +1,7 @@
 import ScrollView from '@components/ScrollView';
 
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
+import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -27,17 +28,20 @@ type InsightsAICardRowProps = {
     /** Dashboard filters the insights were written for, sent to Concierge when the user asks to explain. */
     insightsScope: InsightsScope;
 
-    /** Whether the dashboard has no response for the current filters yet */
-    isLoading: boolean;
+    /** Whether the last request for the dashboard failed, so the insights won't arrive */
+    hasFailedToLoad: boolean;
 };
 
 /** Shows the AI insights, with placeholders while the dashboard loads. */
-function InsightsAICardRow({insights, insightsScope, isLoading}: InsightsAICardRowProps) {
+function InsightsAICardRow({insights, insightsScope, hasFailedToLoad}: InsightsAICardRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {pageGutter, pageGutterEdgeToEdge} = useLayoutSpacing();
+    const {isOffline} = useNetwork();
+
+    const isLoading = insights === undefined && !hasFailedToLoad && !isOffline;
 
     const cards = isLoading
         ? Array.from({length: MAX_CARD_COUNT}, (item, index) => <InsightsAICardSkeleton key={index} />)

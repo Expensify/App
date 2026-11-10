@@ -82,7 +82,7 @@ type InsightsDashboard = {
     /** Whether the account has any expenses at all, regardless of the query, so an empty account can be told apart from filters that matched nothing */
     hasResults?: boolean;
 
-    /** Cards drawn above the headline chart */
+    /** Cards drawn above the headline chart. Missing until they're written, and empty when there are none. */
     aiInsights?: AIInsight[];
 
     /** Query the stored graphs answer */
