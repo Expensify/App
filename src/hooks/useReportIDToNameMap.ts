@@ -23,14 +23,42 @@ function getReportIDToNameMapForRoomsInMarkdown(reportIDToName: ReportIDToNameMa
     return map;
 }
 
-/** Builds a map of reportID to report name from COLLECTION.REPORT. */
-function buildReportIDToNameMap(reports: OnyxCollection<Report> | undefined): ReportIDToNameMap {
+// Same reportID capture as ExpensiMark's reportMentions rule, which accepts the ID with or without quotes
+const MENTION_REPORT_ID_REGEX = /<mention-report reportID="?(\d+)"?/gi;
+
+/** Returns the unique reportIDs of the `<mention-report reportID="...">` tags in the given HTML. */
+function getMentionedReportIDs(html: string | undefined): string[] {
+    if (!html?.includes('<mention-report reportID')) {
+        return [];
+    }
+    return [...new Set(Array.from(html.matchAll(MENTION_REPORT_ID_REGEX), (match) => match[1]))];
+}
+
+function getReportName(report: Report): string {
+    return report.reportName ?? report.reportID;
+}
+
+/**
+ * Builds a map of reportID to report name from COLLECTION.REPORT.
+ *
+ * @param reportIDs - when passed, only these reports are looked up, so callers that know which rooms their HTML mentions avoid a pass over every report
+ */
+function buildReportIDToNameMap(reports: OnyxCollection<Report> | undefined, reportIDs?: string[]): ReportIDToNameMap {
     const map: ReportIDToNameMap = {};
+    if (reportIDs) {
+        for (const reportID of reportIDs) {
+            const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            if (report) {
+                map[report.reportID] = getReportName(report);
+            }
+        }
+        return map;
+    }
     for (const report of Object.values(reports ?? {})) {
         if (!report) {
             continue;
         }
-        map[report.reportID] = report.reportName ?? report.reportID;
+        map[report.reportID] = getReportName(report);
     }
     return map;
 }
@@ -42,4 +70,5 @@ function useReportIDToNameMap(): ReportIDToNameMap {
 }
 
 export default useReportIDToNameMap;
-export {buildReportIDToNameMap, getReportIDToNameMapForRoomsInMarkdown};
+export {buildReportIDToNameMap, getMentionedReportIDs, getReportIDToNameMapForRoomsInMarkdown};
+export type {ReportIDToNameMap};

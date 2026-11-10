@@ -3311,12 +3311,15 @@ function isApprovedOrSubmittedReportAction(action: OnyxEntry<ReportAction>) {
 /**
  * Gets the text version of the message in a report action
  */
-function getReportActionMessageText(reportAction: OnyxEntry<ReportAction>): string {
+/**
+ * @param reportIDToName - names for the rooms the message mentions by reportID, so they aren't shown as #Hidden
+ */
+function getReportActionMessageText(reportAction: OnyxEntry<ReportAction>, reportIDToName?: Record<string, string>): string {
     if (!Array.isArray(reportAction?.message)) {
-        return getReportActionText(reportAction);
+        return getReportActionText(reportAction, reportIDToName);
     }
     // Sometime html can be an empty string
-    return reportAction?.message?.reduce((acc, curr) => `${acc}${getTextFromHtml(curr?.html || curr?.text, reportAction.reportActionID)}`, '') ?? '';
+    return reportAction?.message?.reduce((acc, curr) => `${acc}${getTextFromHtml(curr?.html || curr?.text, reportAction.reportActionID, reportIDToName)}`, '') ?? '';
 }
 
 function getAgentPromptUpdatedMessage(translate: LocalizedTranslate, reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED>): string {

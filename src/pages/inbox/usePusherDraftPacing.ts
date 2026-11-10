@@ -12,9 +12,10 @@ import {getReportActionHtml} from '@libs/ReportActionsUtils';
 import Visibility from '@libs/Visibility';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 
 import type {Dispatch, SetStateAction} from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {useEffect, useRef, useState} from 'react';
 
@@ -45,6 +46,7 @@ type PusherDraftPaceRefs = {
 
 type PusherDraftPacingRuntime = PusherDraftPaceRefs & {
     accountIDToNameRef: MutableRef<Record<string, string>>;
+    reportIDToNameRef: MutableRef<Record<string, string>>;
     completedReportActionIDsRef: MutableRef<Set<string>>;
     currentDraftRef: MutableRef<ConciergeDraft | null>;
     isGroupPolicyReport: boolean;
@@ -54,6 +56,18 @@ type PusherDraftPacingRuntime = PusherDraftPaceRefs & {
 };
 
 const PUSHER_DRAFT_PACE_INTERVAL_MS = 10;
+const EMPTY_REPORT_ID_TO_NAME: Record<string, string> = {};
+
+/** Maps reportID to name for rooms only, because only rooms can be mentioned in a comment and their names start with #. */
+function selectRoomIDToNameMap(reports: OnyxCollection<Report>): Record<string, string> {
+    const map: Record<string, string> = {};
+    for (const report of Object.values(reports ?? {})) {
+        if (report?.reportName?.startsWith('#')) {
+            map[report.reportID] = report.reportName;
+        }
+    }
+    return map;
+}
 const PUSHER_DRAFT_EVENT_TYPES = [
     Pusher.TYPE.CONCIERGE_DRAFT_STARTED,
     Pusher.TYPE.CONCIERGE_DRAFT_UPDATED,
@@ -224,7 +238,8 @@ function publishVisibleEvent(
     status?: ConciergeDraftEvent['status'],
     finalRenderedHTML?: string,
 ) {
-    const {accountIDToNameRef, isGroupPolicyReport, reportID, setDraft, visibleBodyMarkdownRef, visibleSequenceRef, visibleSourceMarkdownRef, visibleSourceOffsetRef} = runtime;
+    const {accountIDToNameRef, reportIDToNameRef, isGroupPolicyReport, reportID, setDraft, visibleBodyMarkdownRef, visibleSequenceRef, visibleSourceMarkdownRef, visibleSourceOffsetRef} =
+        runtime;
 
     if (visibleMarkdown) {
         visibleBodyMarkdownRef.current = visibleMarkdown.bodyMarkdown;
@@ -244,7 +259,7 @@ function publishVisibleEvent(
         status: visibleStatus,
     };
     setDraft((currentDraft) => {
-        const next = applyConciergeDraftEvent(currentDraft, visibleEvent, reportID, isGroupPolicyReport, accountIDToNameRef.current);
+        const next = applyConciergeDraftEvent(currentDraft, visibleEvent, reportID, isGroupPolicyReport, accountIDToNameRef.current, reportIDToNameRef.current);
         return cacheDraftWithPusherPaceState(runtime, next);
     });
 }
@@ -894,6 +909,13 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
     useEffect(() => {
         accountIDToNameRef.current = accountIDToName;
     }, [accountIDToName]);
+    // The draft HTML only arrives in Pusher events, so the rooms it mentions aren't known while rendering.
+    // The selector keeps only room names, so this re-renders when a room is renamed, not on every report update.
+    const [reportIDToName = EMPTY_REPORT_ID_TO_NAME] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: selectRoomIDToNameMap});
+    const reportIDToNameRef = useRef(reportIDToName);
+    useEffect(() => {
+        reportIDToNameRef.current = reportIDToName;
+    }, [reportIDToName]);
     const [pendingLocalReportActionID] = useOnyx(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${reportID}`, {
         selector: (pendingResponse) => pendingResponse?.reportAction.reportActionID,
     });
@@ -901,6 +923,7 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
     const clearDraft = () => {
         clearCachedPusherDraft({
             accountIDToNameRef,
+            reportIDToNameRef,
             completedReportActionIDsRef,
             completedPusherDraftEventRef,
             currentDraftRef,
@@ -942,7 +965,7 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
             visibleSourceOffsetRef,
         });
         setDraft((currentDraft) => {
-            const next = applyConciergeDraftEvent(currentDraft, event, reportID, isGroupPolicyReport, accountIDToNameRef.current);
+            const next = applyConciergeDraftEvent(currentDraft, event, reportID, isGroupPolicyReport, accountIDToNameRef.current, reportIDToNameRef.current);
             currentDraftRef.current = next;
             setCachedDraft(reportID, next);
             return next;
@@ -979,6 +1002,7 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
         startFinalRenderedHTMLReveal(
             {
                 accountIDToNameRef,
+                reportIDToNameRef,
                 completedReportActionIDsRef,
                 completedPusherDraftEventRef,
                 currentDraftRef,
@@ -1017,6 +1041,7 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
     useEffect(() => {
         const runtime = {
             accountIDToNameRef,
+            reportIDToNameRef,
             completedReportActionIDsRef,
             completedPusherDraftEventRef,
             currentDraftRef,

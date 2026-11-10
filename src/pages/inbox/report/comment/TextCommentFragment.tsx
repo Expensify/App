@@ -3,6 +3,7 @@ import Text from '@components/Text';
 import ZeroWidthView from '@components/ZeroWidthView';
 
 import useLocalize from '@hooks/useLocalize';
+import {getMentionedReportIDs} from '@hooks/useReportIDToNameMap';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,6 +33,9 @@ import RenderCommentHTML from './RenderCommentHTML';
 import shouldRenderAsText from './shouldRenderAsText';
 import TextWithEmojiFragment from './TextWithEmojiFragment';
 
+// Any non-empty room name works here: the text is only checked for emojis, and every room name starts with #
+const MENTIONED_ROOM_PLACEHOLDER = '#room';
+
 type TextCommentFragmentProps = {
     /** The reportAction's source */
     source: OriginalMessageSource;
@@ -59,7 +63,10 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     const theme = useTheme();
     const styles = useThemeStyles();
     const {html = ''} = fragment ?? {};
-    const text = getTextFromHtml(html);
+    // `text` only feeds the emoji checks and the plain-text branch, which is never taken when the HTML has a room mention,
+    // so a placeholder name keeps the emoji checks right without subscribing every comment to the report collection.
+    const mentionedRoomPlaceholders = Object.fromEntries(getMentionedReportIDs(html).map((reportID) => [reportID, MENTIONED_ROOM_PLACEHOLDER]));
+    const text = getTextFromHtml(html, undefined, mentionedRoomPlaceholders);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {adjustExpensifyLinksForEnv} = useEnvironmentActions();

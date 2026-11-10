@@ -153,6 +153,20 @@ describe('conciergeDraftState', () => {
         expect(getFirstMessageText(completedDraft)).toBe(bodyMarkdown);
     });
 
+    it('should use the passed room names when the final HTML mentions a room by reportID', () => {
+        // Given a Concierge reply whose final HTML from the server mentions a room by reportID only
+        const mentionedRoomID = '987654';
+        const finalRenderedHTML = `<comment>Ask in <mention-report reportID="${mentionedRoomID}"></mention-report></comment>`;
+
+        // When the completed event is applied with the name of that room
+        const draft = applyConciergeDraftEvent(null, createDraftEvent({status: 'completed', bodyMarkdown: 'Ask in #admins', finalRenderedHTML}), REPORT_ID, false, undefined, {
+            [mentionedRoomID]: '#admins',
+        });
+
+        // Then the draft text has the room name instead of #Hidden
+        expect(getFirstMessageText(draft)).toBe('Ask in #admins');
+    });
+
     it('should ignore stale events from the same stream session', () => {
         const initialDraft = applyConciergeDraftEvent(null, createDraftEvent({sequence: 3}), REPORT_ID, false);
         const staleDraft = applyConciergeDraftEvent(

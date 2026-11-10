@@ -1,9 +1,11 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import useReportIDToNameMap, {getReportIDToNameMapForRoomsInMarkdown} from '@hooks/useReportIDToNameMap';
+import useReportIDToNameMap, {buildReportIDToNameMap, getMentionedReportIDs, getReportIDToNameMapForRoomsInMarkdown} from '@hooks/useReportIDToNameMap';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -138,5 +140,96 @@ describe('getReportIDToNameMapForRoomsInMarkdown', () => {
 
         // Then there is nothing to narrow
         expect(map).toBeUndefined();
+    });
+});
+
+describe('getMentionedReportIDs', () => {
+    it('returns the reportIDs of quoted, unquoted and self-closing room mentions', () => {
+        // Given server HTML that uses every form of the ID-based room mention that ExpensiMark accepts
+        const html = 'a <mention-report reportID="1"></mention-report> b <mention-report reportID=2></mention-report> c <mention-report reportID="3" />';
+
+        // When reading the mentioned reportIDs
+        const reportIDs = getMentionedReportIDs(html);
+
+        // Then all three are found, so none of them is converted to #Hidden for lack of a name
+        expect(reportIDs).toEqual(['1', '2', '3']);
+    });
+
+    it('returns each reportID once when a room is mentioned several times', () => {
+        // Given HTML that mentions the same room twice
+        const html = '<mention-report reportID="1"></mention-report> and again <mention-report reportID="1"></mention-report>';
+
+        // When reading the mentioned reportIDs
+        const reportIDs = getMentionedReportIDs(html);
+
+        // Then the room is only looked up once
+        expect(reportIDs).toEqual(['1']);
+    });
+
+    it('ignores room mentions that already hold the room name', () => {
+        // Given HTML built by the client, where the mention holds the name instead of a reportID
+        const html = 'hello <mention-report>#admins</mention-report>';
+
+        // When reading the mentioned reportIDs
+        const reportIDs = getMentionedReportIDs(html);
+
+        // Then nothing needs to be looked up
+        expect(reportIDs).toEqual([]);
+    });
+
+    it('returns an empty array for missing html', () => {
+        // Given no HTML, like a message without a comment fragment
+        // When reading the mentioned reportIDs
+        const reportIDs = getMentionedReportIDs(undefined);
+
+        // Then nothing needs to be looked up
+        expect(reportIDs).toEqual([]);
+    });
+});
+
+describe('buildReportIDToNameMap', () => {
+    const adminsRoomID = '1';
+    const announceRoomID = '2';
+    const unnamedReportID = '3';
+    const reports: OnyxCollection<Report> = {
+        [`${ONYXKEYS.COLLECTION.REPORT}${adminsRoomID}`]: createReport(adminsRoomID, {reportName: '#admins'}),
+        [`${ONYXKEYS.COLLECTION.REPORT}${announceRoomID}`]: createReport(announceRoomID, {reportName: '#announce'}),
+        [`${ONYXKEYS.COLLECTION.REPORT}${unnamedReportID}`]: createReport(unnamedReportID, {reportName: undefined}),
+    };
+
+    it('maps every report when no reportIDs are passed', () => {
+        // Given a caller that doesn't know which rooms its HTML mentions
+        // When building the map
+        const map = buildReportIDToNameMap(reports);
+
+        // Then every report is mapped, with the reportID as the fallback name
+        expect(map).toEqual({[adminsRoomID]: '#admins', [announceRoomID]: '#announce', [unnamedReportID]: unnamedReportID});
+    });
+
+    it('maps only the passed reportIDs', () => {
+        // Given HTML that mentions only one of the rooms
+        // When building the map for that room
+        const map = buildReportIDToNameMap(reports, [announceRoomID]);
+
+        // Then only that room is looked up, so callers don't pay for a pass over every report
+        expect(map).toEqual({[announceRoomID]: '#announce'});
+    });
+
+    it('skips reportIDs that are not in Onyx', () => {
+        // Given a mention of a room the user can't access, so it isn't in Onyx
+        // When building the map for it
+        const map = buildReportIDToNameMap(reports, [adminsRoomID, '999']);
+
+        // Then the missing room is left out, so ExpensiMark falls back to #Hidden for it
+        expect(map).toEqual({[adminsRoomID]: '#admins'});
+    });
+
+    it('returns an empty map when no reportIDs are passed in the list', () => {
+        // Given HTML that doesn't mention any room
+        // When building the map for an empty list
+        const map = buildReportIDToNameMap(reports, []);
+
+        // Then no report is looked up
+        expect(map).toEqual({});
     });
 });

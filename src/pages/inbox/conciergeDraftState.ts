@@ -36,6 +36,7 @@ type ConciergeDraft = {
 type BuildConciergeDraftReportActionParams = {
     actorAccountID?: number;
     accountIDToName?: Record<string, string>;
+    reportIDToName?: Record<string, string>;
     bodyMarkdown?: string;
     created: string;
     finalRenderedHTML?: string;
@@ -589,6 +590,7 @@ function stripIncompleteMarkdown(markdown: string): string {
 function buildConciergeDraftReportAction({
     actorAccountID,
     accountIDToName,
+    reportIDToName,
     bodyMarkdown,
     created,
     finalRenderedHTML,
@@ -625,7 +627,7 @@ function buildConciergeDraftReportAction({
         actorAccountID: resolvedActorAccountID,
         person: [{style: 'strong', text: CONST.CONCIERGE_DISPLAY_NAME, type: 'TEXT'}],
         created,
-        message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html, text: Parser.htmlToText(html, {accountIDToName})}],
+        message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html, text: Parser.htmlToText(html, {accountIDToName, reportIDToName})}],
         originalMessage: {html, whisperedTo: []},
         shouldShow: true,
     } as ReportAction;
@@ -706,6 +708,7 @@ function applyConciergeDraftEvent(
     reportID: string,
     isGroupPolicyReport: boolean,
     accountIDToName?: Record<string, string>,
+    reportIDToName?: Record<string, string>,
 ): ConciergeDraft | null {
     if (event.reportID !== reportID) {
         return currentDraft;
@@ -729,6 +732,7 @@ function applyConciergeDraftEvent(
         buildConciergeDraftReportAction({
             actorAccountID: event.actorAccountID,
             accountIDToName,
+            reportIDToName,
             bodyMarkdown: event.bodyMarkdown,
             created: event.created,
             finalRenderedHTML: event.finalRenderedHTML,
