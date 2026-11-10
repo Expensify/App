@@ -21,7 +21,6 @@ import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import StringUtils from '@libs/StringUtils';
 import {appendParam} from '@libs/Url';
 
-import type {TranslationPaths} from '@src/languages/types';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -41,9 +40,9 @@ function DynamicStateSelectionPage({route}: DynamicStateSelectionPageProps) {
     const initialSelectedValue = useInitialSelection(currentState ?? undefined, {resetOnFocus: true});
     const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
 
-    const countryStates = Object.keys(COMMON_CONST.STATES).map((state) => {
-        const stateName = translate(`allStates.${state}.stateName` as TranslationPaths);
-        const stateISO = translate(`allStates.${state}.stateISO` as TranslationPaths);
+    const countryStates = Object.values(COMMON_CONST.STATES).map((state) => {
+        const stateName = translate(`allStates.${state.stateISO}.stateName`);
+        const stateISO = translate(`allStates.${state.stateISO}.stateISO`);
         return {
             value: stateISO,
             keyForList: stateISO,

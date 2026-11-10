@@ -41,6 +41,7 @@
     year: "groupyear",
     quarter: "groupquarter",
     approver: "groupApprover",
+    violation: null,
     "paid-by": null,
   };
 

@@ -1,35 +1,47 @@
 import type {SearchCompareMode, SearchGroupBy, SearchQueryJSON, SearchQueryString} from '@components/Search/types';
 
-import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON, getRangeQueryValue} from '@libs/SearchQueryUtils';
+import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString, getRangeQueryValue} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {InsightsDashboard, InsightsDashboardID, InsightsGraphKey} from '@src/types/onyx';
 
-import type {InsightsChartSpec} from './dashboardSpecs';
+import type {InsightsChartSpec, InsightsDateFilterKey} from './dashboardSpecs';
 import type {InsightsFilters} from './insightsFilters';
 
-import INSIGHTS_DASHBOARD_SPECS from './dashboardSpecs';
+import INSIGHTS_DASHBOARD_SPECS, {VIOLATION_HAS_VALUES} from './dashboardSpecs';
 import {getQueryGroupBy} from './insightsGroupByUtils';
 
 /** How many periods before the selected date range the Average mode spans */
 const COMPARE_AVERAGE_PERIOD_COUNT = 1;
 
-/** Builds the date filter in the shape a search query is built from. */
-function buildDateFormValues(date: InsightsFilters['date']): Partial<SearchAdvancedFiltersForm> {
+/** How many expenses the Details panel lists under Top expenses */
+const TOP_EXPENSES_LIMIT = 10;
+
+/** The form fields each date a chart can be narrowed by is written to */
+const DATE_FORM_KEYS = {
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE]: {on: FILTER_KEYS.DATE_ON, range: FILTER_KEYS.DATE_RANGE},
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED]: {on: FILTER_KEYS.SUBMITTED_ON, range: FILTER_KEYS.SUBMITTED_RANGE},
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL]: {on: FILTER_KEYS.ANY_APPROVAL_ON, range: FILTER_KEYS.ANY_APPROVAL_RANGE},
+} as const;
+
+/** Builds the date filter in the shape a search query is built from, on the expense date unless another date is given. */
+function buildDateFormValues(date: InsightsFilters['date'], dateFilterKey: InsightsDateFilterKey = CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE): Partial<SearchAdvancedFiltersForm> {
+    const {on, range} = DATE_FORM_KEYS[dateFilterKey];
     if ('preset' in date) {
-        return {dateOn: date.preset};
+        return {[on]: date.preset};
     }
     if ('on' in date) {
-        return {dateOn: date.on};
+        return {[on]: date.on};
     }
-    return {dateRange: getRangeQueryValue(date.from, date.to)};
+    return {[range]: getRangeQueryValue(date.from, date.to)};
 }
 
 /** Builds the page's filters in the shape a search query is built from. Leaves the workspaces out when none are selected, which reports on all of them. */
-function buildFilterFormValues(filters: InsightsFilters, shouldIncludeDate = true): Partial<SearchAdvancedFiltersForm> {
+function buildFilterFormValues(filters: InsightsFilters, shouldIncludeDate = true, dateFilterKey?: InsightsDateFilterKey): Partial<SearchAdvancedFiltersForm> {
     return {
-        ...(shouldIncludeDate && buildDateFormValues(filters.date)),
+        ...(shouldIncludeDate && buildDateFormValues(filters.date, dateFilterKey)),
         groupCurrency: filters.groupCurrency,
         ...(filters.policyIDs.length > 0 && {policyID: filters.policyIDs}),
     };
@@ -57,7 +69,7 @@ function buildComplianceFilters(filters: InsightsFilters) {
         left: buildStageFilter('anySubmission'),
         right: buildStageFilter('anyApproval'),
     };
-    const commonFilters = buildSearchQueryJSON(buildQueryStringFromFilterFormValues(buildFilterFormValues(filters, false)))?.filters;
+    const commonFilters = buildSearchQueryJSON(buildQueryStringFromFilterFormValues({...buildFilterFormValues(filters, false), has: VIOLATION_HAS_VALUES}))?.filters;
 
     return commonFilters ? {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: commonFilters, right: actionDates} : actionDates;
 }
@@ -77,7 +89,7 @@ function buildInsightsQueryString(filters: InsightsFilters): SearchQueryString {
 /** Builds a chart's query with the page's filters applied. */
 function applyInsightsFilters(chart: InsightsChartSpec, filters: InsightsFilters, compare?: SearchCompareMode): SearchQueryString {
     const query = buildQueryStringFromFilterFormValues(
-        {...buildFilterFormValues(filters), groupBy: chart.groupBy ?? getQueryGroupBy(filters), view: chart.view, compare},
+        {...buildFilterFormValues(filters, true, chart.dateFilterKey), has: chart.has, groupBy: chart.groupBy ?? getQueryGroupBy(filters), view: chart.view, compare},
         {sortBy: chart.sortBy, sortOrder: chart.sortOrder, limit: chart.limit},
     );
     // Appended, since the workflow stage isn't a filter the Search filter form has
@@ -170,6 +182,16 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
     };
 }
 
-export {applyInsightsFilters, buildDateFormValues, buildInsightsQueryString};
+/** Builds a Spend table query for its largest expenses, sorted by amount. */
+function buildTopExpensesQueryJSON(query: SearchQueryString): Readonly<SearchQueryJSON> | undefined {
+    const queryJSON = buildSearchQueryJSON(query);
+    if (!queryJSON) {
+        return undefined;
+    }
+
+    return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, sortBy: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, sortOrder: CONST.SEARCH.SORT_ORDER.DESC, limit: TOP_EXPENSES_LIMIT}));
+}
+
+export {applyInsightsFilters, buildDateFormValues, buildInsightsQueryString, buildTopExpensesQueryJSON, TOP_EXPENSES_LIMIT};
 export type {InsightsChartQuery, InsightsQuery};
 export default buildInsightsJsonQuery;

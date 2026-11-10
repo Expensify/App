@@ -12,9 +12,10 @@ import type {SearchResults} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 /** The field the Search grouping code reads a group's dimension from */
-const GROUP_FIELD_NAMES: Partial<Record<SearchGroupBy, string>> = {
+const GROUP_FIELD_NAMES: Partial<Record<SearchGroupBy, 'accountID' | 'violation'>> = {
     [CONST.SEARCH.GROUP_BY.FROM]: 'accountID',
     [CONST.SEARCH.GROUP_BY.APPROVER]: 'accountID',
+    [CONST.SEARCH.GROUP_BY.VIOLATION]: 'violation',
     [CONST.SEARCH.GROUP_BY.PAID_BY]: 'accountID',
 };
 

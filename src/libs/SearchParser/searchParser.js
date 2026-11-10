@@ -5700,6 +5700,7 @@ function peg$parse(input, options) {
     year: "groupyear",
     quarter: "groupquarter",
     approver: "groupApprover",
+    violation: null,
     "paid-by": null,
   };
 

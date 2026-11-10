@@ -1,6 +1,6 @@
 import {BarChart, LineChart, PieChart} from '@components/Charts';
 import type {ChartDataPoint, ChartValueFormatter} from '@components/Charts/types';
-import formatChartCount from '@components/Charts/utils/formatChartCount';
+import formatChartCount, {MAX_COUNT_FRACTION_DIGITS} from '@components/Charts/utils/formatChartCount';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -130,7 +130,9 @@ function SearchChartView({
     // A count names what it counts, since nothing else in a tooltip or a donut's centre says the number is expenses rather than money.
     // Axis ticks take the bare number instead, to stay short, and `shouldUseWholeNumberTicks` keeps them off fractions of an expense.
     const formatCount: ChartValueFormatter = (value, options) =>
-        options?.shouldUseCompactNotation ? numberFormat(value, {notation: 'compact'}).replace('K', 'k') : formatChartCount(value, countDimension, translate, numberFormat);
+        options?.shouldUseCompactNotation
+            ? numberFormat(value, {notation: 'compact', maximumFractionDigits: MAX_COUNT_FRACTION_DIGITS}).replace('K', 'k')
+            : formatChartCount(value, countDimension, translate, numberFormat);
     const formatValue = isCountMetric ? formatCount : undefined;
 
     // A count says nothing about the money behind it, so a count chart names each group's spend alongside it, in that group's own currency.

@@ -124,8 +124,8 @@ function ChartTooltipLayer({
             ) : (
                 <ChartTooltipSummary
                     value={tooltipData.value}
-                    note={tooltipData.note}
-                    countLabel={tooltipData.countLabel}
+                    percentage={tooltipData.percentage}
+                    secondaryValue={tooltipData.secondaryValue}
                 />
             )}
             {footer}

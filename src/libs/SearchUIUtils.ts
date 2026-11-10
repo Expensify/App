@@ -25,6 +25,7 @@ import type {
     TransactionQuarterGroupListItemType,
     TransactionReportGroupListItemType,
     TransactionTagGroupListItemType,
+    TransactionViolationGroupListItemType,
     TransactionWeekGroupListItemType,
     TransactionPaidByGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
@@ -298,6 +299,7 @@ type TransactionWeekGroupSorting = ColumnSortMapping<TransactionWeekGroupListIte
 type TransactionYearGroupSorting = ColumnSortMapping<TransactionYearGroupListItemType>;
 type TransactionQuarterGroupSorting = ColumnSortMapping<TransactionQuarterGroupListItemType>;
 type TransactionApproverGroupSorting = ColumnSortMapping<TransactionApproverGroupListItemType>;
+type TransactionViolationGroupSorting = ColumnSortMapping<TransactionViolationGroupListItemType>;
 type TransactionPaidByGroupSorting = ColumnSortMapping<TransactionPaidByGroupListItemType>;
 
 type GetReportSectionsParams = {
@@ -497,6 +499,8 @@ const transactionPaidByGroupColumnNamesToSortingProperty: TransactionPaidByGroup
     [CONST.SEARCH.SORT_BY_COLUMNS.AVERAGE_TIME]: 'averageDuration' as const,
     ...transactionGroupBaseSortingProperties,
 };
+
+const transactionViolationGroupColumnNamesToSortingProperty: TransactionViolationGroupSorting = transactionGroupBaseSortingProperties;
 
 type TaskStatusPredicate = (taskReport?: OnyxTypes.Report | SearchTask) => boolean;
 
@@ -3471,6 +3475,31 @@ function getMemberSections(
     return [memberSectionsValues, memberSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
+/** Builds Search list sections grouped by violation type; call only via `getSections()`. */
+function getViolationSections(data: OnyxTypes.SearchResults['data'], translate: LocalizedTranslate): [TransactionViolationGroupListItemType[], number, boolean] {
+    const violationSections: TransactionViolationGroupListItemType[] = [];
+
+    for (const key in data) {
+        if (!isGroupEntry(key)) {
+            continue;
+        }
+        const violationGroup = data[key];
+        if ('violation' in violationGroup) {
+            violationSections.push({
+                groupedBy: CONST.SEARCH.GROUP_BY.VIOLATION,
+                transactions: [],
+                // Search has no violation type filter, so a group has no query of its own
+                transactionsQueryJSON: undefined,
+                ...violationGroup,
+                formattedViolation: getViolationDisplayName(violationGroup.violation, translate),
+                keyForList: key,
+            });
+        }
+    }
+
+    return [violationSections, violationSections.length, hasDeletedTransactionInData(data)];
+}
+
 function formattedCardNameWithDotAndLastFour(formattedCardName: string, lastFour: string): string {
     return `${formattedCardName} ${CONST.DOT_SEPARATOR} ${lastFour}`;
 }
@@ -4055,6 +4084,8 @@ function getSections({
                 return getQuarterSections(data, queryJSON, dateFnsLocale);
             case CONST.SEARCH.GROUP_BY.APPROVER:
                 return getMemberSections(data, queryJSON, formatPhoneNumber, translate, onyxPersonalDetailsList, CONST.SEARCH.GROUP_BY.APPROVER);
+            case CONST.SEARCH.GROUP_BY.VIOLATION:
+                return getViolationSections(data, translate);
             case CONST.SEARCH.GROUP_BY.PAID_BY:
                 return getMemberSections(data, queryJSON, formatPhoneNumber, translate, onyxPersonalDetailsList, CONST.SEARCH.GROUP_BY.PAID_BY);
         }
@@ -4119,6 +4150,9 @@ const groupBySortFunction: Record<SearchGroupBy, GroupBySortFunction> = {
     [CONST.SEARCH.GROUP_BY.QUARTER]: createGroupSortFunction<TransactionQuarterGroupListItemType>(transactionQuarterGroupColumnNamesToSortingProperty, (a, b) => a.sortKey - b.sortKey),
     [CONST.SEARCH.GROUP_BY.APPROVER]: createGroupSortFunction<TransactionApproverGroupListItemType>(transactionApproverGroupColumnNamesToSortingProperty, (a, b, lc) =>
         lc(a.formattedApprover ?? '', b.formattedApprover ?? ''),
+    ),
+    [CONST.SEARCH.GROUP_BY.VIOLATION]: createGroupSortFunction<TransactionViolationGroupListItemType>(transactionViolationGroupColumnNamesToSortingProperty, (a, b, lc) =>
+        lc(a.formattedViolation, b.formattedViolation),
     ),
     [CONST.SEARCH.GROUP_BY.PAID_BY]: createGroupSortFunction<TransactionPaidByGroupListItemType>(transactionPaidByGroupColumnNamesToSortingProperty, (a, b, lc) =>
         lc(a.formattedPaidBy ?? '', b.formattedPaidBy ?? ''),
@@ -5470,6 +5504,7 @@ function isSearchGroupBy(value: string): value is SearchGroupBy {
 }
 
 function getValidGroupBy(groupBy: string | undefined): SearchGroupBy | undefined {
+    // Insights-only group-bys are treated like unknown values because Search can't group by them yet (see https://github.com/Expensify/App/issues/105303)
     return groupBy && isGroupBySupportedBySearch(groupBy) && isSearchGroupBy(groupBy) ? groupBy : undefined;
 }
 
@@ -7254,6 +7289,7 @@ function getColumnsToShow({
             [CONST.SEARCH.GROUP_BY.YEAR]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.YEAR,
             [CONST.SEARCH.GROUP_BY.QUARTER]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.QUARTER,
             [CONST.SEARCH.GROUP_BY.APPROVER]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.APPROVER,
+            [CONST.SEARCH.GROUP_BY.VIOLATION]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.VIOLATION,
             [CONST.SEARCH.GROUP_BY.PAID_BY]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.PAID_BY,
         }[groupBy];
 
@@ -7270,6 +7306,7 @@ function getColumnsToShow({
             [CONST.SEARCH.GROUP_BY.YEAR]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.YEAR,
             [CONST.SEARCH.GROUP_BY.QUARTER]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.QUARTER,
             [CONST.SEARCH.GROUP_BY.APPROVER]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.APPROVER,
+            [CONST.SEARCH.GROUP_BY.VIOLATION]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.VIOLATION,
             [CONST.SEARCH.GROUP_BY.PAID_BY]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.PAID_BY,
         }[groupBy];
 

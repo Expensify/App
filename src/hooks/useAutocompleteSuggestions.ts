@@ -79,7 +79,7 @@ type UseAutocompleteSuggestionsParams = {
 
 // Static autocomplete lists derived from CONST values, computed once at module load
 const DATA_TYPE_VALUES = Object.values(CONST.SEARCH.DATA_TYPES);
-// Insights-only group-bys aren't suggested because Search can't group by them
+// Insights-only group-bys aren't suggested because Search can't group by them (see https://github.com/Expensify/App/issues/105303)
 const GROUP_BY_FRIENDLY_VALUES = Object.values(CONST.SEARCH.GROUP_BY)
     .filter(isGroupBySupportedBySearch)
     .map((value) => getUserFriendlyValue(value));

@@ -29,6 +29,7 @@ import type {
     TransactionQuarterGroupListItemType,
     TransactionTagGroupListItemType,
     TransactionApproverGroupListItemType,
+    TransactionViolationGroupListItemType,
     TransactionPaidByGroupListItemType,
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
@@ -498,6 +499,7 @@ type GroupedItem =
     | TransactionYearGroupListItemType
     | TransactionQuarterGroupListItemType
     | TransactionApproverGroupListItemType
+    | TransactionViolationGroupListItemType
     | TransactionPaidByGroupListItemType;
 
 type SearchChartDataRow = {
