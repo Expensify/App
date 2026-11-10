@@ -13,7 +13,7 @@ import {getExistingTransactionID} from '@libs/IOUUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
-import {canCreateExpensesOnPolicy, getReimbursementChoice, isInstantSubmitEnabled, isPolicyAccessible, isSubmitAndClose} from '@libs/PolicyUtils';
+import {canCreateReportOnPolicy, getReimbursementChoice, isInstantSubmitEnabled, isSubmitAndClose} from '@libs/PolicyUtils';
 import {getIOUActionForReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticCreatedReportAction,
@@ -1588,7 +1588,7 @@ async function bulkDuplicateReports({
         }
 
         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-        const isSourcePolicyValid = !!reportPolicy && isPolicyAccessible(reportPolicy, currentUserLogin) && canCreateExpensesOnPolicy(reportPolicy, currentUserLogin);
+        const isSourcePolicyValid = canCreateReportOnPolicy(reportPolicy, currentUserLogin);
         const chatReportID = report.chatReportID ?? report.parentReportID;
         const chatReport = chatReportID
             ? ((searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] as OnyxTypes.Report | undefined) ?? allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`])

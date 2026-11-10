@@ -549,7 +549,7 @@ describe('createFilteredPoliciesInfoSelector', () => {
         expect(createFilteredPoliciesInfoSelector(userLogin)({})).toEqual({filteredPoliciesCount: 0, firstPolicy: undefined});
     });
 
-    it('reports no workspace when nothing passes the shouldShowPolicy filter', () => {
+    it('reports no workspace when nothing passes the destination filter', () => {
         const policies = {
             [`${P}p1`]: makePolicy({type: CONST.POLICY.TYPE.PERSONAL}),
         };
@@ -598,6 +598,22 @@ describe('createFilteredPoliciesInfoSelector', () => {
 
         expect(result.filteredPoliciesCount).toBe(1);
         expect(result.firstPolicy).toStrictEqual({id: 'p2', ownerAccountID: 2});
+    });
+
+    it('excludes workspaces no flow would pick as a destination', () => {
+        // Given an archived workspace, one pending deletion that has errors, and a regular one
+        const policies = {
+            [`${P}p1`]: makePolicy({id: 'p1', archivedDate: '2024-01-01', ownerAccountID: 1}),
+            [`${P}p2`]: makePolicy({id: 'p2', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, errors: {error: 'Failed'}, ownerAccountID: 2}),
+            [`${P}p3`]: makePolicy({id: 'p3', ownerAccountID: 3}),
+        };
+
+        // When "Submit to my employer" counts the workspaces it can route to
+        const result = createFilteredPoliciesInfoSelector(userLogin)(policies);
+
+        // Then only the regular workspace counts, matching the default workspace every other flow resolves
+        expect(result.filteredPoliciesCount).toBe(1);
+        expect(result.firstPolicy).toStrictEqual({id: 'p3', ownerAccountID: 3});
     });
 });
 

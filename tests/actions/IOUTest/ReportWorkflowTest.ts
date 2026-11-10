@@ -1270,6 +1270,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 lastUsedPaymentMethods: undefined,
                                 localeCompare,
                                 currentUserAccountID: CARLOS_ACCOUNT_ID,
+                                currentUserLogin: CARLOS_EMAIL,
                                 accountIDToLogin: {},
                             });
                         }

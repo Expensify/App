@@ -377,6 +377,49 @@ describe('actions/IOU', () => {
             expect(draftTransaction?.linkedTrackedExpenseReportID).toBe(selfDMReport.reportID);
         });
 
+        it('should categorize into the only workspace that can take expenses when the active workspace cannot', async () => {
+            // Given a tracked expense in the selfDM, an active workspace where the user is approve-only, and one workspace they can submit to
+            const selfDMReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM);
+            const transaction: Transaction = {...createRandomTransaction(1), transactionID: 'tracked-transaction'};
+            const approveOnlyPolicy: Policy = {...createRandomPolicy(10, CONST.POLICY.TYPE.TEAM), id: 'approve-only', role: CONST.POLICY.ROLE.APPROVE_ONLY, pendingAction: null};
+            const eligiblePolicy: BillingRestrictionPolicy = {id: 'eligible', ownerAccountID: RORY_ACCOUNT_ID};
+            const eligiblePolicyExpenseChat: Report = {...createPolicyExpenseChat(2), policyID: eligiblePolicy.id, ownerAccountID: RORY_ACCOUNT_ID};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${eligiblePolicyExpenseChat.reportID}`, eligiblePolicyExpenseChat);
+
+            // When the user categorizes the expense
+            createDraftTransactionAndNavigateToParticipantSelector({
+                reportID: selfDMReport.reportID,
+                reportActions: undefined,
+                actionName: CONST.IOU.ACTION.CATEGORIZE,
+                reportActionID: '1',
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                draftTransactionIDs: [],
+                activePolicy: approveOnlyPolicy,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                transaction,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserEmail: RORY_EMAIL,
+                currentUserLocalCurrency: '',
+                filteredPoliciesCount: 1,
+                firstPolicy: eligiblePolicy,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the expense goes to the workspace the user can submit to, not the approve-only active one
+            let drafts: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+                callback: (val) => {
+                    drafts = val;
+                },
+            });
+            const draft = drafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`];
+            expect(draft?.participants?.at(0)?.policyID).toBe(eligiblePolicy.id);
+        });
+
         it('should not create draft transaction when transaction is undefined', async () => {
             // Given a selfDM report
             const selfDMReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM);

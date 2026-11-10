@@ -9,7 +9,7 @@ import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
-import {shouldShowPolicy} from '@libs/PolicyUtils';
+import {canCreateReportOnPolicy} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getPolicyExpenseChat, getReportOrDraftReport, getTransactionCommentObject, getTransactionDetails} from '@libs/ReportUtils';
 import type {BillingRestrictionPolicy} from '@libs/SubscriptionUtils';
@@ -318,7 +318,9 @@ function createDraftTransactionAndNavigateToParticipantSelector({
             return;
         }
 
-        if (activePolicy && shouldShowPolicy(activePolicy, false, currentUserEmail)) {
+        // Read before the eligibility check: once it fails, its type guard narrows activePolicy to undefined, so the name is lost
+        const activePolicyName = activePolicy?.name;
+        if (canCreateReportOnPolicy(activePolicy, currentUserEmail)) {
             const policyExpenseReportID = getPolicyExpenseChat(currentUserAccountID, activePolicy.id)?.reportID;
             setMoneyRequestParticipants(transactionID, [
                 {
@@ -327,7 +329,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
                     isPolicyExpenseChat: true,
                     reportID: policyExpenseReportID,
                     policyID: activePolicy.id,
-                    searchText: activePolicy?.name,
+                    searchText: activePolicy.name,
                 },
             ]);
             if (policyExpenseReportID) {
@@ -367,7 +369,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
                 isPolicyExpenseChat: true,
                 reportID: policyExpenseReportID,
                 policyID: firstPolicy?.id,
-                searchText: activePolicy?.name,
+                searchText: activePolicyName,
             },
         ]);
         if (policyExpenseReportID) {
@@ -391,8 +393,8 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     }
 
     // "Submit to my employer" routes the expense into a workspace the user can submit to, based on how many they belong to.
-    // Per issue #92704 the count spans every paid workspace the user is a member of (Collect/Control/Submit), so we reuse the
-    // shared shouldShowPolicy-based count (filteredPoliciesCount/firstPolicy) that also backs the workspaces-only picker.
+    // Per issue #92704 the count spans every group workspace the user can submit to (Collect/Control/Submit), so we reuse the
+    // shared canCreateReportOnPolicy-based count (filteredPoliciesCount/firstPolicy) that also backs the workspaces-only picker.
     if (actionName === CONST.IOU.ACTION.SUBMIT && submitDestination === CONST.IOU.SUBMIT_DESTINATION.EMPLOYER) {
         // No accessible workspace: spin up a new Submit (submit2026) workspace and drop the expense into its draft report.
         if (filteredPoliciesCount === 0) {

@@ -20867,6 +20867,17 @@ describe('ReportUtils', () => {
             expect(result).toBe(false);
         });
 
+        it('returns false when the source report workspace is archived', async () => {
+            // Given an open expense report on a workspace that has since been archived, so nothing new can be added to it
+            const sourceReport = await buildOpenSourceReport();
+
+            // When it's checked whether a duplicate can stay on that report
+            const result = canDuplicateExpenseIntoSourceReport(buildParams(sourceReport, {policy: {...sourcePolicy, archivedDate: '2024-01-01'}}));
+
+            // Then the duplicate falls back to the default workspace routing
+            expect(result).toBe(false);
+        });
+
         it('returns false when the member cannot create expenses on the source workspace', async () => {
             // Given an open expense report on a workspace where the current user has the approve-only role
             const sourceReport = await buildOpenSourceReport();

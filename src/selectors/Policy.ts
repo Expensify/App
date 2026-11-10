@@ -2,11 +2,10 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import {hasSynchronizationErrorMessage, isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
-import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 import {getConnectedHRProvider} from '@libs/merge/HRUtils';
 import type {PolicyPaymentAttribution} from '@libs/PolicyPaymentUtils';
 import {
-    canCreateExpensesOnPolicy,
+    canCreateReportOnPolicy,
     canEditWorkspaceSettings,
     canSendInvoice,
     getActiveAdminWorkspaces,
@@ -485,7 +484,7 @@ const createFilteredPoliciesInfoSelector =
         let filteredPoliciesCount = 0;
         let firstPolicy: BillingRestrictionPolicy | undefined;
         for (const policy of Object.values(policies ?? {})) {
-            if (!policy || !shouldShowPolicy(policy, false, email) || isTeachersUnitePolicyID(policy.id) || !canCreateExpensesOnPolicy(policy, email)) {
+            if (!canCreateReportOnPolicy(policy, email)) {
                 continue;
             }
             if (filteredPoliciesCount === 0) {

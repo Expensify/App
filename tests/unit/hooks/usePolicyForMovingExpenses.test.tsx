@@ -27,6 +27,7 @@ jest.mock('@src/types/utils/isLoadingOnyxValue', () => ({
 }));
 
 const CURRENT_USER_LOGIN = 'member@example.com';
+const OTHER_MEMBER_LOGIN = 'someone@example.com';
 const CURRENT_USER_ACCOUNT_ID = 1;
 const POLICY_ID = '1234';
 
@@ -99,6 +100,57 @@ describe('usePolicyForMovingExpenses', () => {
         // Then that workspace is used and the user is not sent to the reports upgrade screen
         expect(result.current.policyForMovingExpensesID).toBe(POLICY_ID);
         expect(result.current.shouldNavigateToUpgradePath).toBe(false);
+    });
+
+    it('resolves a workspace whose employeeList does not list the user but whose role is set', async () => {
+        // Given a group workspace with a partial employeeList that lacks the user, while `policy.role` carries their role
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+            ...groupPolicyWithoutGlobalRole,
+            id: POLICY_ID,
+            pendingAction: undefined,
+            role: CONST.POLICY.ROLE.USER,
+            employeeList: {[OTHER_MEMBER_LOGIN]: {role: CONST.POLICY.ROLE.USER}},
+        });
+        await waitForBatchedUpdates();
+
+        // When the hook resolves a policy for moving expenses
+        const {result} = renderHook(() => usePolicyForMovingExpenses(), {wrapper: Wrapper});
+        await waitFor(() => expect(result.current.arePoliciesLoaded).toBe(true));
+
+        // Then the workspace is used, as it is in every other flow, rather than treated as one the user was removed from
+        expect(result.current.policyForMovingExpensesID).toBe(POLICY_ID);
+    });
+
+    it.each([
+        ['a per diem expense', true, false],
+        ['a time expense', false, true],
+    ])('only moves %s to a workspace that supports it', async (_, isPerDiemRequest, isTimeRequest) => {
+        // Given an otherwise eligible workspace that has neither per diem nor time tracking enabled
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...policyWithRoleOnlyInEmployeeList, customUnits: {}, units: {time: {enabled: false}}});
+        await waitForBatchedUpdates();
+
+        // When the hook resolves a destination for that kind of expense
+        const {result} = renderHook(() => usePolicyForMovingExpenses(isPerDiemRequest, isTimeRequest), {wrapper: Wrapper});
+        await waitFor(() => expect(result.current.arePoliciesLoaded).toBe(true));
+
+        // Then the flow-specific filter still applies on top of the shared rule, so the workspace isn't picked
+        expect(result.current.policyForMovingExpensesID).toBeUndefined();
+        expect(result.current.shouldNavigateToUpgradePath).toBe(true);
+    });
+
+    it("doesn't keep an expense on its own workspace once that workspace is archived", async () => {
+        // Given an expense whose own workspace is archived, and one other workspace the user can submit to
+        const ARCHIVED_POLICY_ID = '5678';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${ARCHIVED_POLICY_ID}`, {...policyWithRoleOnlyInEmployeeList, id: ARCHIVED_POLICY_ID, archivedDate: '2024-01-01'});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policyWithRoleOnlyInEmployeeList);
+        await waitForBatchedUpdates();
+
+        // When the hook resolves a destination, preferring the expense's own workspace
+        const {result} = renderHook(() => usePolicyForMovingExpenses(undefined, undefined, ARCHIVED_POLICY_ID), {wrapper: Wrapper});
+        await waitFor(() => expect(result.current.arePoliciesLoaded).toBe(true));
+
+        // Then the archived workspace is skipped, because nothing new can be created on it, and the other one is used
+        expect(result.current.policyForMovingExpensesID).toBe(POLICY_ID);
     });
 
     it('lets the backend auto-select the policy for an unreported managed card transaction', async () => {
