@@ -118,8 +118,9 @@ describe('getMerchantRuleDraftFromTransaction', () => {
         expect(getMerchantRuleDraftFromTransaction(transaction, [CONST.MERCHANT_RULE_SUGGESTION_FIELDS.CATEGORY], undefined)).toBeUndefined();
     });
 
-    it('seeds the merchant the rule matches on', () => {
+    it('names the rule type itself, so the editor opens rather than the type chooser', () => {
         const draft = getMerchantRuleDraftFromTransaction(buildTransaction(), [], undefined);
+        expect(draft?.ruleType).toBe(CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.MERCHANT);
         expect(draft?.merchantToMatch).toBe('Starbucks');
     });
 

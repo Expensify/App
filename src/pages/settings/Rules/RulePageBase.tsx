@@ -26,8 +26,9 @@ import {getTagArrayFromName} from '@libs/TransactionUtils';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -161,7 +162,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                 <HeaderWithBackButton title={translate(titleKey)} />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <Text style={[styles.textHeadlineH2, styles.reportHorizontalRule, styles.mt4, styles.mb2]}>{translate('expenseRulesPage.addRule.expenseContains')}</Text>
-                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => navigateTo(EXPENSE_RULE_INPUT_IDS.MERCHANT, hash), false, session)}>
+                    <MenuItem.Root onPress={callIfAuthenticated(() => navigateTo(EXPENSE_RULE_INPUT_IDS.MERCHANT, hash), session)}>
                         <MenuItemField.Row
                             name={translate('common.merchant')}
                             value={form?.merchantToMatch}
@@ -234,6 +235,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                                 updateDraftRule({createReport: isEnabled});
                             }}
                             switchAccessibilityLabel={translate('expenseRulesPage.addRule.createReport')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.CREATE_REPORT_SWITCH}
                             title={translate('expenseRulesPage.addRule.createReport')}
                             titleStyle={styles.pv2}
                             wrapperStyle={styles.flex1}
@@ -255,6 +257,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                             isActive={shouldUpdateMatchingTransactions}
                             onToggle={setShouldUpdateMatchingTransactions}
                             switchAccessibilityLabel={translate('expenseRulesPage.addRule.applyToExistingExpenses')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.APPLY_TO_EXISTING_EXPENSES_SWITCH}
                             title={translate('expenseRulesPage.addRule.applyToExistingExpenses')}
                             wrapperStyle={styles.mb4}
                         />

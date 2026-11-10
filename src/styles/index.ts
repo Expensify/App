@@ -6,6 +6,7 @@ import {animatedReceiptPaneRHPWidth, animatedWideRHPWidth} from '@components/Wid
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import RHP_FLOATING_CARD_INSET from '@libs/Navigation/helpers/rhpFloatingCardInset';
+import {getSidePanelWidthStyleValue} from '@libs/Navigation/helpers/sidePanelWidth';
 import {getSingleRHPWidthStyleValue} from '@libs/Navigation/helpers/singleRHPWidth';
 
 import CONST from '@src/CONST';
@@ -561,11 +562,6 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: lineHeightScale.label,
         },
 
-        /** Gives every digit the same advance so a counter doesn't shift sideways as its digits change. */
-        tabularNums: {
-            fontVariant: ['tabular-nums'],
-        },
-
         mutedNormalTextLabel: {
             color: theme.textSupporting,
             fontSize: fontScale.label,
@@ -769,7 +765,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         tabNavigatorBarContainer: {
-            width: variables.navigationTabBarSize + variables.sideBarWithLHBWidth,
             marginRight: -variables.sideBarWithLHBWidth,
             overflow: 'visible',
         },
@@ -795,6 +790,10 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: spacing.p1.padding + variables.floatingTabBarSelectedOverhang,
             // Clips each item's hover and press background to the capsule's rounded ends.
             overflow: 'hidden',
+        },
+
+        navigationTabBarContainerLandscape: {
+            height: variables.floatingTabBarLandscapeHeight,
         },
 
         // A grid item is otherwise never narrower than its label, so the label could not truncate.
@@ -877,6 +876,51 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
             alignItems: 'center',
             paddingHorizontal: 4,
+        },
+
+        flatNavigationBarContainer: {
+            height: '100%',
+            borderRightWidth: 1,
+            borderRightColor: theme.border,
+            backgroundColor: theme.appBG,
+        },
+
+        flatNavigationBarHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            height: variables.flatNavigationBarHeaderHeight,
+            paddingLeft: variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding,
+        },
+
+        flatNavigationBarCreateButtonContainer: {
+            marginHorizontal: variables.flatNavigationBarCreateButtonInset,
+            marginBottom: variables.flatNavigationBarCreateButtonGap,
+        },
+
+        flatNavigationBarCreateButton: {
+            height: variables.flatNavigationBarCreateButtonHeight,
+            minHeight: variables.flatNavigationBarCreateButtonHeight,
+        },
+
+        flatNavigationBarItem: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 12,
+            height: variables.flatNavigationBarItemHeight,
+            paddingHorizontal: variables.flatNavigationBarRowPadding,
+            marginHorizontal: variables.flatNavigationBarRowInset,
+            borderRadius: variables.componentBorderRadiusNormal,
+        },
+
+        flatNavigationBarAccountItem: {
+            height: variables.flatNavigationBarAccountItemHeight,
+        },
+
+        flatNavigationBarDivider: {
+            height: 1,
+            marginHorizontal: variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding,
+            marginVertical: 8,
+            backgroundColor: theme.border,
         },
 
         button: {
@@ -5813,6 +5857,25 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.componentSizeSmall,
         },
 
+        reportHistoryIconContainer: {
+            width: variables.iconSizeXLarge,
+            height: variables.iconSizeXLarge,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        reportHistoryLabel: {
+            marginLeft: variables.reportHistoryLabelGap,
+        },
+
+        reportHistoryConnector: {
+            width: variables.borderTopWidth,
+            height: variables.reportHistoryConnectorHeight,
+            marginVertical: variables.reportHistoryConnectorMarginVertical,
+            marginLeft: variables.iconSizeXLarge / 2,
+            backgroundColor: theme.border,
+        },
+
         // The layer BulkActionBar floats in. It covers its container so the bar can center itself over the table, and
         // passes touches through everywhere except the bar itself.
         bulkActionBarLayer: {
@@ -6942,6 +7005,15 @@ const staticStyles = (theme: ThemeColors) =>
             right: -variables.sideBarWidth,
             backgroundColor: theme.overlay,
         },
+        // Straddles the side panel's left edge, so the line drawn at its centre runs just outside the panel's border.
+        sidePanelResizeHandle: {
+            ...positioning.pAbsolute,
+            top: 0,
+            bottom: 0,
+            left: -CONST.RESIZE_HANDLE.PANE_HIT_WIDTH / 2,
+            width: CONST.RESIZE_HANDLE.PANE_HIT_WIDTH,
+        } satisfies ViewStyle,
+
         sidePanelContent: {
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             top: 0,
@@ -7227,12 +7299,13 @@ const dynamicStyles = (theme: ThemeColors) =>
                 ...positioning.pAbsolute,
                 top: variables.rhpFloatingCardMargin,
                 bottom: variables.rhpFloatingCardMargin,
-                width: CONST.RHP_RESIZE.HANDLE_HIT_WIDTH,
-                right: getSingleRHPWidthStyleValue(singleRHPWidth, RHP_FLOATING_CARD_INSET - CONST.RHP_RESIZE.HANDLE_HIT_WIDTH / 2),
+                width: CONST.RESIZE_HANDLE.PANE_HIT_WIDTH,
+                right: getSingleRHPWidthStyleValue(singleRHPWidth, RHP_FLOATING_CARD_INSET - CONST.RESIZE_HANDLE.PANE_HIT_WIDTH / 2),
             }) satisfies ViewStyle,
 
         // Floats the offline indicator above a footer laid over the bottom of a tab root screen, without shrinking the
-        // content that runs under the footer.
+        // content that runs under the footer. Touches pass through to that content, so it still scrolls when the
+        // indicator covers all of it that is left on a short landscape screen.
         offlineIndicatorAboveFooter: (footerHeight: number) =>
             ({
                 position: 'absolute',
@@ -7241,10 +7314,11 @@ const dynamicStyles = (theme: ThemeColors) =>
                 left: 0,
                 zIndex: variables.searchFooterZIndex,
                 backgroundColor: theme.appBG,
+                ...pointerEventsNone,
             }) satisfies ViewStyle,
 
         // Fills the screen from the top of the tab bar down to the bottom edge, so no content shows between the
-        // offline indicator and the bar.
+        // offline indicator and the bar. Touches pass through to the content under it, as above a footer.
         tabBarOfflineIndicator: (tabBarCoveredHeight: number) =>
             ({
                 position: 'absolute',
@@ -7254,6 +7328,7 @@ const dynamicStyles = (theme: ThemeColors) =>
                 height: CONST.OFFLINE_INDICATOR_HEIGHT + tabBarCoveredHeight,
                 paddingBottom: tabBarCoveredHeight,
                 backgroundColor: theme.appBG,
+                ...pointerEventsNone,
             }) satisfies ViewStyle,
 
         // Runs a footer's background down under the tab bar that covers the bottom of a tab root screen, so the
@@ -7571,8 +7646,8 @@ const dynamicStyles = (theme: ThemeColors) =>
         sidePanelOverlayOpacity: (isOverlayVisible: boolean) => ({
             opacity: isOverlayVisible ? variables.overlayOpacity : 0,
         }),
-        sidePanelContentWidth: (shouldUseNarrowLayout: boolean): ViewStyle => ({
-            width: shouldUseNarrowLayout ? '100%' : variables.sidePanelWidth,
+        sidePanelContentWidth: (shouldUseNarrowLayout: boolean, sidePanelWidth: number): ViewStyle => ({
+            width: shouldUseNarrowLayout ? '100%' : getSidePanelWidthStyleValue(sidePanelWidth),
         }),
         sidePanelContentBorderWidth: (isExtraLargeScreenWidth: boolean): ViewStyle => ({
             borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,

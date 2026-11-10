@@ -11,6 +11,12 @@ function getValueUsingPixelRatio(defaultValue: number, maxValue: number): number
     return PixelRatio.getFontScale() * defaultValue > maxValue ? maxValue : defaultValue * PixelRatio.getFontScale();
 }
 
+/** Rendered width of the Expensify wordmark in the flat navigation bar's header. */
+const flatNavigationBarLogoWidth = 92;
+
+/** expensify-wordmark.svg has a 78x19 viewBox, so deriving the height keeps the wordmark's proportions. */
+const flatNavigationBarLogoHeight = (flatNavigationBarLogoWidth * 19) / 78;
+
 const avatarSizes = {
     avatarSizeXxxxSmall: 12,
     avatarSizeXxxSmall: 16,
@@ -32,6 +38,8 @@ const avatarSizes = {
 export default {
     bottomTabHeight: 72,
     floatingTabBarHeight: 60,
+    /** A phone in landscape has little height to spare, so the bar lays each tab's label beside its icon and is shorter. */
+    floatingTabBarLandscapeHeight: 44,
     floatingTabBarHorizontalInset: 16,
     // How far the selected pill reaches past its tab on each side, whatever the label's length.
     floatingTabBarSelectedOverhang: 4,
@@ -153,6 +161,10 @@ export default {
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
     sidePanelWidth: 375,
+    // A resizable side panel opens wider than sidePanelWidth and can still be dragged down to it.
+    resizableSidePanelDefaultWidth: 400,
+    // A docked side panel never grows past the point where it would squeeze the central pane beside it below this.
+    centralPaneMinWidth: 400,
     rhpFloatingCardMargin: 12,
     // The frame width compensates for this border.
     rhpFloatingCardBorderWidth: 1,
@@ -182,6 +194,21 @@ export default {
     searchSidebarExpandedWidth: 260,
     searchSidebarCollapsedWidth: 76,
     navigationTabBarSize: 72,
+    flatNavigationBarWidth: 232,
+    flatNavigationBarItemHeight: 40,
+    flatNavigationBarAccountItemHeight: 56,
+    // Horizontal inset every row's background sits at, inside the bar's own width.
+    flatNavigationBarRowInset: 8,
+    // Space between a row's background edge and its icon. The header and dividers line up with the icon, at the inset plus this.
+    flatNavigationBarRowPadding: 12,
+    flatNavigationBarHeaderHeight: 72,
+    flatNavigationBarCreateButtonHeight: 32,
+    // Centers the design's 204px wide Create button in the bar.
+    flatNavigationBarCreateButtonInset: 14,
+    // Space between the Create button and the first row below it.
+    flatNavigationBarCreateButtonGap: 16,
+    flatNavigationBarLogoWidth,
+    flatNavigationBarLogoHeight,
     popoverMargin: 18,
     pdfPageMaxWidth: 992,
     tooltipZIndex: 10050,
@@ -499,6 +526,12 @@ export default {
 
     searchAutocompleteInputSkeletonHeight: 8,
     searchAutocompleteInputSkeletonWidth: 145,
+
+    reportHistoryLabelGap: 12,
+    reportHistoryConnectorHeight: 12,
+    reportHistoryConnectorMarginVertical: 4,
+    reportHistorySkeletonLabelHeight: 8,
+    reportHistorySkeletonLabelWidth: 160,
 
     errorPageIconWidth: 116,
     errorPageIconHeight: 168,

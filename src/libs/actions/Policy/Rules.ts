@@ -26,11 +26,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {GeneratedRuleState, GeneratedRuleType} from '@src/types/onyx/GeneratedRule';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type Policy from '@src/types/onyx/Policy';
-import type {AgentRule, CodingRule} from '@src/types/onyx/Policy';
+import type {AgentRule, CodingRule, CodingRuleFilter} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type Rule from '@src/types/onyx/Rule';
 import type {RuleBody} from '@src/types/onyx/Rule';
-import type {RuleFilterNode} from '@src/types/onyx/RuleFilters';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 
@@ -98,15 +97,12 @@ function getRules() {
     API.read(READ_COMMANDS.GET_RULES, {}, {optimisticData, successData, failureData});
 
     // A read that throws, which is what a 5xx, a 429 or a socket error does, applies neither its success nor its
-    // failure data, and `API.read` reports nothing back to the caller. The timer stands in for the failure data
-    // that never ran, so the attempt is recorded as made rather than left looking like one still to send. Marking
-    // only the in-flight flag would have the prefetch hook ask for another fetch the moment it cleared, and a
-    // screen waiting on the collection would wait through every one of them. Writing flags that already hold
-    // these values once the response has landed costs nothing, so the timer runs either way.
+    // failure data, and `API.read` reports nothing back to the caller. Without a bound the in-flight flag would
+    // outlive its request and block every later fetch for the session. Clearing a flag that is already false once
+    // the response has landed costs nothing, so the timer runs either way.
     clearTimeout(staleRulesFetchTimeoutID);
     staleRulesFetchTimeoutID = setTimeout(() => {
         Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_RULES, false);
-        Onyx.set(ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED, true);
     }, RULES_FETCH_TIMEOUT_MS);
 }
 
@@ -273,7 +269,7 @@ async function importMerchantRulesSpreadsheet(policyID: string, rules: Record<st
     }
 }
 
-function getTransactionsMatchingCodingRule(policyID: string, filters: RuleFilterNode) {
+function getTransactionsMatchingCodingRule(policyID: string, filters: CodingRuleFilter) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

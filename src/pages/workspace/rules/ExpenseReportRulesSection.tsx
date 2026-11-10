@@ -18,7 +18,7 @@ import {arePaymentsEnabled, getWorkflowApprovalsUnavailable, isAutoPayApprovedRe
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import {enableAutoApprovalOptions, enablePolicyAutoReimbursementLimit, setPolicyPreventPayoutNonReimbursableReports, setPolicyPreventSelfApproval} from '@userActions/Policy/Policy';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -77,6 +77,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
     const optionItems = [
         {
             title: translate('workspace.rules.expenseReportRules.preventSelfApprovalsTitle'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.PREVENT_SELF_APPROVALS_SWITCH,
             subtitle: workflowApprovalsUnavailable
                 ? renderFallbackSubtitle({featureName: translate('common.approvals').toLowerCase()})
                 : translate('workspace.rules.expenseReportRules.preventSelfApprovalsSubtitle'),
@@ -100,6 +101,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
         },
         {
             title: translate('workspace.rules.expenseReportRules.preventPayoutNonReimbursableReportsTitle'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.PREVENT_PAYOUT_NON_REIMBURSABLE_REPORTS_SWITCH,
             subtitle: translate('workspace.rules.expenseReportRules.preventPayoutNonReimbursableReportsSubtitle'),
             shouldParseSubtitle: false,
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.preventPayoutNonReimbursableReportsTitle'),
@@ -112,6 +114,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
         },
         {
             title: translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsTitle'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.AUTO_APPROVE_COMPLIANT_REPORTS_SWITCH,
             subtitle: workflowApprovalsUnavailable
                 ? renderFallbackSubtitle({featureName: translate('common.approvals').toLowerCase()})
                 : translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsSubtitle'),
@@ -140,11 +143,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                 >
                     <View style={[styles.mt6, styles.mbn3]}>
                         <MenuItemSectionRoot
-                            onPress={
-                                canWriteApprovals
-                                    ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.RULES_AUTO_APPROVE_REPORTS_UNDER.getRoute(policyID)), false, session)
-                                    : undefined
-                            }
+                            onPress={canWriteApprovals ? callIfAuthenticated(() => Navigation.navigate(ROUTES.RULES_AUTO_APPROVE_REPORTS_UNDER.getRoute(policyID)), session) : undefined}
                         >
                             <MenuItemField.Row
                                 name={translate('workspace.rules.expenseReportRules.autoApproveReportsUnderTitle')}
@@ -166,9 +165,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                 >
                     <View style={[styles.mt6, styles.mbn3]}>
                         <MenuItemSectionRoot
-                            onPress={
-                                canWriteApprovals ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.RULES_RANDOM_REPORT_AUDIT.getRoute(policyID)), false, session) : undefined
-                            }
+                            onPress={canWriteApprovals ? callIfAuthenticated(() => Navigation.navigate(ROUTES.RULES_RANDOM_REPORT_AUDIT.getRoute(policyID)), session) : undefined}
                         >
                             <MenuItemField.Row
                                 name={translate('workspace.rules.expenseReportRules.randomReportAuditTitle')}
@@ -183,6 +180,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
         },
         {
             title: translate('workspace.rules.expenseReportRules.autoPayApprovedReportsTitle'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.AUTO_PAY_APPROVED_REPORTS_SWITCH,
             subtitle: getAutoPayApprovedReportsSubtitle(),
             shouldParseSubtitle: autoPayApprovedReportsRequiresUpgrade || autoPayApprovedReportsUnavailable,
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.autoPayApprovedReportsTitle'),
@@ -217,11 +215,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                 >
                     <View style={[styles.mt6, styles.mbn3]}>
                         <MenuItemSectionRoot
-                            onPress={
-                                canWritePayments
-                                    ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.RULES_AUTO_PAY_REPORTS_UNDER.getRoute(policyID)), false, session)
-                                    : undefined
-                            }
+                            onPress={canWritePayments ? callIfAuthenticated(() => Navigation.navigate(ROUTES.RULES_AUTO_PAY_REPORTS_UNDER.getRoute(policyID)), session) : undefined}
                         >
                             <MenuItemField.Row
                                 name={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')}
@@ -248,7 +242,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
             subtitleTextStyles={policy?.pendingAction ? styles.opacitySemiTransparent : undefined}
             subtitleMuted
         >
-            {optionItems.map(({title, subtitle, shouldParseSubtitle, isActive, subMenuItems, showLockIcon, disabled, disabledAction, onToggle, pendingAction}, index) => {
+            {optionItems.map(({title, switchSentryLabel, subtitle, shouldParseSubtitle, isActive, subMenuItems, showLockIcon, disabled, disabledAction, onToggle, pendingAction}, index) => {
                 const showBorderBottom = index !== optionItems.length - 1;
 
                 return (
@@ -257,6 +251,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                         title={title}
                         subtitle={subtitle}
                         switchAccessibilityLabel={title}
+                        switchSentryLabel={switchSentryLabel}
                         wrapperStyle={[styles.pv6, showBorderBottom && styles.borderBottom]}
                         shouldPlaceSubtitleBelowSwitch
                         titleStyle={styles.pv2}

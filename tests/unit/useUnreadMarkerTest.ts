@@ -100,7 +100,7 @@ describe('useUnreadMarker', () => {
     ])('informational $actionName', ({actionName, originalMessage}) => {
         it('does not use the informational action as an automatic unread pagination anchor', () => {
             // Given informational activity selected as the oldest unread by pagination
-            const action = makeAction('informational', {actionName, originalMessage});
+            const action = makeAction('informational', {actionName, message: {...originalMessage, type: 'TEXT', html: 'hey', text: 'test'}});
 
             // When the first page is shown
             const {result} = renderUnreadMarker({sortedVisibleReportActions: [action], oldestUnreadReportActionID: action.reportActionID, hasOnceLoadedReportActions: false});
@@ -112,7 +112,7 @@ describe('useUnreadMarker', () => {
         it('filters offline informational activity without suppressing a real offline message', () => {
             // Given a read chat with informational activity received offline
             const read = makeAction('read', {created: '2023-01-01 09:00:00.000'});
-            const informational = makeAction('informational', {actionName, originalMessage});
+            const informational = makeAction('informational', {actionName, message: {...originalMessage, type: 'TEXT', html: 'hey', text: 'test'}});
             jest.spyOn(ReportActionsUtils, 'wasMessageReceivedWhileOffline').mockImplementation((action) => action.reportActionID !== read.reportActionID);
             const {result, rerender} = renderHook(
                 (actions: OnyxTypes.ReportAction[]) =>

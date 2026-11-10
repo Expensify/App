@@ -33,6 +33,7 @@ import {
     getAddedOfficeLocationMessage,
     getAssignedCompanyCardMessage,
     getAutoPayApprovedReportsEnabledMessage,
+    getAutoPayFeeDisclosureMessage,
     getAutoReimbursementMessage,
     getApprovalLimitUpdateMessage,
     getCardIssuedMessage,
@@ -79,6 +80,7 @@ import {
     getUpdatedCardFeedReimbursableMessage,
     getUpdatedCardFeedStatementPeriodMessage,
     getUpdatedOfficeLocationMessage,
+    getWorkspaceUpdateFieldMessage,
     hasNextActionMadeBySameActor,
     hasReasoning,
     isConsecutiveActionMadeByPreviousActor,
@@ -722,6 +724,29 @@ describe('ReportActionsUtils', () => {
         it('should return the childReportID for a valid single IOU action', () => {
             const result = getOneTransactionThreadReportID(mockedReports[IOUReportID], mockedReports[mockChatReportID], [linkedCreateAction], false, [IOUTransactionID]);
             expect(result).toEqual(linkedCreateAction.childReportID);
+        });
+
+        it('should return the childReportID for a bill with one expense', () => {
+            // Given a bill with one expense, which should look like a one-expense report
+            const billReport = {...mockedReports[IOUReportID], type: CONST.REPORT.UNSUPPORTED_TYPE.BILL, transactionCount: 1};
+
+            // When we look for the bill's only expense thread
+            const result = getOneTransactionThreadReportID(billReport, mockedReports[mockChatReportID], [linkedCreateAction], false, [IOUTransactionID]);
+
+            // Then the bill opens that expense like a one-expense report
+            expect(result).toEqual(linkedCreateAction.childReportID);
+        });
+
+        it.each([0, 2, undefined])('should return undefined for a bill whose expense count from the server is %s', (transactionCount) => {
+            // Given a bill whose loaded actions show one expense, but whose count from the server isn't one,
+            // because the other actions haven't loaded or the count is unknown
+            const billReport = {...mockedReports[IOUReportID], type: CONST.REPORT.UNSUPPORTED_TYPE.BILL, transactionCount};
+
+            // When we look for the bill's only expense thread
+            const result = getOneTransactionThreadReportID(billReport, mockedReports[mockChatReportID], [linkedCreateAction], false, [IOUTransactionID]);
+
+            // Then the bill doesn't merge with one expense, so it never shows a single expense of a bill with several
+            expect(result).toBeUndefined();
         });
 
         it('should return CONST.FAKE_REPORT_ID when action exists but childReportID is undefined', () => {
@@ -1380,7 +1405,7 @@ describe('ReportActionsUtils', () => {
                                 const connection = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
                                     callback: () => {
-                                        Onyx.disconnect(connection);
+                                        connection.unsubscribe();
                                         const res = ReportActionsUtils.getLastVisibleAction(report.reportID);
                                         expect(res).toEqual(action2);
                                         resolve();
@@ -2655,6 +2680,39 @@ describe('ReportActionsUtils', () => {
             };
 
             expect(getJoinRequestMessage(translateLocal, 'Expensify', actionWithoutEmail, undefined)).toBe(' requested to join Expensify');
+        });
+    });
+
+    describe('getAutoPayFeeDisclosureMessage', () => {
+        const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.AUTO_PAY_FEE_DISCLOSURE> = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.AUTO_PAY_FEE_DISCLOSURE,
+            reportActionID: 'auto-pay-fee-disclosure-1',
+            created: '2026-11-03 10:00:00.000',
+            originalMessage: {policyID: 'ABC123', accountID: 2, bankName: 'Bank <&> Trust', lastFour: '1234'},
+        };
+        let autoPaySettingsURL: string;
+
+        beforeAll(async () => {
+            autoPaySettingsURL = `${await getEnvironmentURL()}/${ROUTES.RULES_AUTO_PAY_REPORTS_UNDER.getRoute('ABC123')}`;
+        });
+
+        it('should name the admin and the bank and link to the auto-pay settings', () => {
+            const adminDetails: PersonalDetails = {accountID: 2, displayName: 'Jane Admin', login: 'jane@expensify.com'};
+
+            expect(getAutoPayFeeDisclosureMessage(translateLocal, action, adminDetails)).toBe(
+                `Global Reimbursements was enabled by Jane Admin on the Bank &lt;&amp;&gt; Trust account ending in 1234. Exact exchange rates and fees cannot be previewed prior to payment when cross-border reports are auto-paid. Review your <a href="${autoPaySettingsURL}">auto-pay settings</a> for more information on rates and fees.`,
+            );
+        });
+
+        it('should omit an empty bank name and fall back to hidden when the admin details are missing', () => {
+            const actionWithoutBankName: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.AUTO_PAY_FEE_DISCLOSURE> = {
+                ...action,
+                originalMessage: {policyID: 'ABC123', accountID: 2, bankName: '', lastFour: '1234'},
+            };
+
+            expect(getAutoPayFeeDisclosureMessage(translateLocal, actionWithoutBankName, undefined)).toBe(
+                `Global Reimbursements was enabled by Hidden on the account ending in 1234. Exact exchange rates and fees cannot be previewed prior to payment when cross-border reports are auto-paid. Review your <a href="${autoPaySettingsURL}">auto-pay settings</a> for more information on rates and fees.`,
+            );
         });
     });
 
@@ -5144,6 +5202,49 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getWorkspaceUpdateFieldMessage', () => {
+        it('should return the App message when the workspace timezone changes', () => {
+            // Given a timezone update whose server text would otherwise be shown as is
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD,
+                reportActionID: '1',
+                created: '',
+                message: [{type: 'COMMENT', text: 'updated timeZone from "America/New_York" to "Asia/Kolkata"'}],
+                originalMessage: {
+                    updatedField: CONST.POLICY.COLLECTION_KEYS.TIME_ZONE,
+                    oldValue: 'America/New_York',
+                    newValue: 'Asia/Kolkata',
+                },
+            } as ReportAction;
+
+            // When building the message
+            const result = getWorkspaceUpdateFieldMessage(translateLocal, action);
+
+            // Then App wording is used so the text stays the same whichever server message arrives last
+            expect(result).toBe('updated the workspace timezone to "Asia/Kolkata" (previously "America/New_York")');
+        });
+
+        it('should return the App message when the workspace had no timezone before', () => {
+            // Given a timezone update for a workspace that never had a timezone, so the server sends no old value
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD,
+                reportActionID: '1',
+                created: '',
+                message: [{type: 'COMMENT', text: 'updated timeZone to "Asia/Kolkata"'}],
+                originalMessage: {
+                    updatedField: CONST.POLICY.COLLECTION_KEYS.TIME_ZONE,
+                    newValue: 'Asia/Kolkata',
+                },
+            } as ReportAction;
+
+            // When building the message
+            const result = getWorkspaceUpdateFieldMessage(translateLocal, action);
+
+            // Then App wording is still used instead of falling back to the server text
+            expect(result).toBe('set the workspace timezone to "Asia/Kolkata"');
+        });
+    });
+
     describe('getPolicyChangeLogMaxExpenseAmountNoReceiptMessage', () => {
         it('should return set message when setting from disabled to a value', () => {
             const action = {
@@ -6601,6 +6702,35 @@ describe('ReportActionsUtils', () => {
             await waitForBatchedUpdates();
 
             const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report, undefined, true);
+            expect(actorAccountID).toBe(9999);
+        });
+
+        it.each([
+            [CONST.REPORT.UNSUPPORTED_TYPE.BILL, false, CONST.REPORT.ACTIONS.TYPE.CREATED, 456, 456],
+            [CONST.REPORT.UNSUPPORTED_TYPE.BILL, false, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, undefined, CONST.ACCOUNT_ID.CONCIERGE],
+            [CONST.REPORT.TYPE.INVOICE, true, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, 456, 456],
+            [CONST.REPORT.TYPE.INVOICE, true, CONST.REPORT.ACTIONS.TYPE.CREATED, undefined, CONST.ACCOUNT_ID.CONCIERGE],
+        ] as const)('credits the bill creator for %s %s action %s with processor %s', (type, isInvoiceLinkedToBill, actionName, processorAccountID, expectedAccountID) => {
+            // Given bill intake saved the action with the receiver's or vendor's token.
+            const reportAction: ReportAction = {...createRandomReportAction(0), actionName, actorAccountID: 9999};
+            const iouReport: Report = {...createRandomReport(0, undefined), type};
+
+            // When the history resolves the actor with the creation processor, which is missing for emailed invoices.
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, undefined, undefined, false, {isInvoiceLinkedToBill, processorAccountID});
+
+            // Then it names the person who created the bill, or Concierge, instead of the token's owner.
+            expect(actorAccountID).toBe(expectedAccountID);
+        });
+
+        it('keeps the stored actor on an invoice that is not linked to a bill', () => {
+            // Given an ordinary invoice submission, which bill intake did not create.
+            const reportAction: ReportAction = {...createRandomReportAction(0), actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED, actorAccountID: 9999};
+            const iouReport: Report = {...createRandomReport(0, undefined), type: CONST.REPORT.TYPE.INVOICE};
+
+            // When the history resolves the actor without a linked bill.
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, undefined, undefined, false, {isInvoiceLinkedToBill: false, processorAccountID: 456});
+
+            // Then the vendor who submitted it stays the actor.
             expect(actorAccountID).toBe(9999);
         });
     });
