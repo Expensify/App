@@ -10458,7 +10458,7 @@ const CONST = {
             },
             CHIP_UNIT: {
                 PERCENT: 'percent',
-                CURRENCY: 'currency',
+                AMOUNT: 'amount',
             },
         },
     },

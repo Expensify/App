@@ -16,13 +16,10 @@ import {View} from 'react-native';
 
 type InsightsAIChipProps = {
     chip: AIInsightChip;
-
-    /** Currency of the amounts the chip shows */
-    currency: string;
 };
 
 /** Shows the stat at the top of an AI insight card. Increases are red and decreases green, because more spend is bad news. */
-function InsightsAIChip({chip, currency}: InsightsAIChipProps) {
+function InsightsAIChip({chip}: InsightsAIChipProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -30,8 +27,8 @@ function InsightsAIChip({chip, currency}: InsightsAIChipProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong', 'Coins']);
 
     const value =
-        chip.unit === CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.CURRENCY
-            ? convertToShortDisplayString(chip.value, currency)
+        chip.unit === CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.AMOUNT
+            ? convertToShortDisplayString(chip.value, chip.currency)
             : numberFormat(chip.value / 100, {style: 'percent', maximumFractionDigits: 0});
 
     if (chip.type === CONST.INSIGHTS.AI_INSIGHT.CHIP_TYPE.NEUTRAL) {

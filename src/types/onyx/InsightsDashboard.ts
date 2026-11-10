@@ -34,24 +34,29 @@ type InsightsGraph = {
 /** Kind of signal an AI insight was detected from */
 type AIInsightSignal = ValueOf<typeof CONST.INSIGHTS.AI_INSIGHT.SIGNAL>;
 
-/** Unit of a chip's value. Currency amounts are in the Group currency's cents. */
-type AIInsightChipUnit = ValueOf<typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT>;
+/** A chip's value, either a whole-number percentage or an amount */
+type AIInsightChipValue =
+    | {
+          unit: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.PERCENT;
+          value: number;
+      }
+    | {
+          unit: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.AMOUNT;
 
-/** Chip showing how much an item changed, colored by whether the change is good or bad */
-type AIInsightChangeChip = {
+          /** Amount in cents */
+          value: number;
+          currency: string;
+      };
+
+/** Chip showing how much an item changed, colored by whether the change is good or bad. Its value is the size of the change, without its sign. */
+type AIInsightChangeChip = AIInsightChipValue & {
     type: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_TYPE.CHANGE;
     direction: ValueOf<typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_DIRECTION>;
-    unit: AIInsightChipUnit;
-
-    /** Size of the change, without its sign */
-    value: number;
 };
 
 /** Chip showing a share or amount for signals that have no direction */
-type AIInsightNeutralChip = {
+type AIInsightNeutralChip = AIInsightChipValue & {
     type: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_TYPE.NEUTRAL;
-    unit: AIInsightChipUnit;
-    value: number;
 };
 
 /** Stat shown at the top of an AI insight card */
