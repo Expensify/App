@@ -47,7 +47,9 @@ function DynamicIOURequestStepDestination({
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const reportPolicyID = getIOURequestPolicyID(transaction, report);
-    const policyID = reportPolicyID === CONST.POLICY.ID_FAKE ? getPolicyByCustomUnitID(transaction, allPolicies)?.id : reportPolicyID;
+    // From global create the route report is a placeholder with no policy, and from a self DM it is the fake one. Either
+    // way the per diem form has already pointed the draft at the workspace's custom unit, which identifies the policy.
+    const policyID = !reportPolicyID || reportPolicyID === CONST.POLICY.ID_FAKE ? getPolicyByCustomUnitID(transaction, allPolicies)?.id : reportPolicyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const {accountID} = useCurrentUserPersonalDetails();
     const personalPolicy = usePersonalPolicy();

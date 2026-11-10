@@ -65,7 +65,9 @@ function usePolicyForTransaction({
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
 
     const policyForSelfDMExpense = isPerDiemRequest ? customUnitPolicy : policyForMovingExpenses;
-    const policy = isUnreportedExpense || isCreatingTrackExpense ? policyForSelfDMExpense : (reportPolicy ?? policyDraft);
+    // A per diem draft started from global create has no workspace on its route report, but its custom unit belongs to one.
+    const fallbackPolicy = isPerDiemRequest ? customUnitPolicy : undefined;
+    const policy = isUnreportedExpense || isCreatingTrackExpense ? policyForSelfDMExpense : (reportPolicy ?? policyDraft ?? fallbackPolicy);
 
     return {policy};
 }

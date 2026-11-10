@@ -3,7 +3,6 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import TimeModalPicker from '@components/TimeModalPicker';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
@@ -32,6 +31,7 @@ import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
+import PerDiemTimeField from './PerDiemTimeField';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
@@ -131,8 +131,9 @@ function DynamicIOURequestStepTime({
                 {/* The time rows carry the form's own horizontal margin, which the page padding already provides. */}
                 <View style={styles.mhn4}>
                     <InputWrapper
-                        InputComponent={TimeModalPicker}
+                        InputComponent={PerDiemTimeField}
                         inputID={INPUT_IDS.START_TIME}
+                        sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.PER_DIEM_START_TIME_FIELD}
                         label={translate('iou.startTime')}
                         defaultValue={currentDateAttributes?.start}
                     />
@@ -148,8 +149,9 @@ function DynamicIOURequestStepTime({
                 </View>
                 <View style={styles.mhn4}>
                     <InputWrapper
-                        InputComponent={TimeModalPicker}
+                        InputComponent={PerDiemTimeField}
                         inputID={INPUT_IDS.END_TIME}
+                        sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.PER_DIEM_END_TIME_FIELD}
                         label={translate('iou.endTime')}
                         defaultValue={currentDateAttributes?.end}
                     />

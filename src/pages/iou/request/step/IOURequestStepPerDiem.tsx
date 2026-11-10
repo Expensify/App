@@ -85,12 +85,14 @@ function IOURequestStepPerDiem({report, route, navigation, transaction, explicit
         setMoneyRequestParticipantsFromReport(transactionID, targetReport, accountID, targetIouType !== CONST.IOU.TYPE.TRACK);
         setCustomUnitID(transactionID, perDiemUnit.customUnitID);
         setMoneyRequestCategory(transactionID, perDiemUnit.defaultCategory ?? '', undefined, getCurrencyDecimals);
-        if (targetIouType !== iouType) {
-            navigation.setParams({iouType: targetIouType});
-        }
         // Runs once per draft: the writes above make it ready, which ends the effect on its next run.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transaction?.iouRequestType, perDiemUnit?.customUnitID, isDraftReady]);
+
+    // A draft pointed at the self DM is tracked rather than submitted. The type only goes to the form below: the create
+    // route is shared by every tab, so rewriting its iouType would leak into the manual and scan tabs too.
+    const confirmationIouType = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? CONST.IOU.TYPE.TRACK : iouType;
+    const confirmationRoute = confirmationIouType === iouType ? route : {...route, params: {...route.params, iouType: confirmationIouType}};
 
     return (
         <FullPageNotFoundView shouldShow={isEmptyObject(policy)}>
@@ -100,7 +102,7 @@ function IOURequestStepPerDiem({report, route, navigation, transaction, explicit
             >
                 {isDraftReady ? (
                     <IOURequestStepConfirmationContent
-                        route={route}
+                        route={confirmationRoute}
                         navigation={navigation}
                         shouldHideHeader
                     />

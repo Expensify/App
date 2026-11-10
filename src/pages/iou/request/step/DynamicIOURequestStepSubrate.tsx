@@ -228,7 +228,7 @@ function DynamicIOURequestStepSubrate({
                             value={subrateValue}
                             defaultValue={currentSubrate?.id}
                             items={validOptions}
-                            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.SUBRATE_FIELD}
+                            sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.PER_DIEM_SUBRATE_FIELD}
                             onValueChange={(value) => {
                                 setSubrateValue(value as string);
 
@@ -244,6 +244,8 @@ function DynamicIOURequestStepSubrate({
                                     waitForUpcomingTransition: true,
                                 });
                             }}
+                            // Without this the keyboard from the Quantity input stays up and covers part of the list.
+                            onOpen={() => textInputRef.current?.blur()}
                         />
                     </View>
                     <InputWrapperWithRef

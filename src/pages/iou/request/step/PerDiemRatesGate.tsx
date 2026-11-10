@@ -58,9 +58,10 @@ function PerDiemRatesGate({policyID, backToRoute, children}: PerDiemRatesGatePro
             return;
         }
         fetchPerDiemRates(policyID);
-        // Only refetch when coming back online. The fetch fills in the rates, which must not trigger another one.
+        // Only refetch when coming back online or when the content moves to another workspace. The fetch fills in the
+        // rates, which must not trigger another one.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isOffline]);
+    }, [isOffline, policyID]);
 
     if (isLoading) {
         return (

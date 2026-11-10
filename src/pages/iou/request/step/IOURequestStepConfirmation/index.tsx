@@ -518,8 +518,10 @@ function IOURequestStepConfirmationContent({
                 Navigation.goBack();
                 return;
             }
-            // The standalone per diem confirmation is only reached from the workspace selector on the create page.
-            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE.getRoute(action, iouType, initialTransactionID, reportID, backToReport));
+            // The standalone per diem confirmation is only reached from the workspace selector on the create page, so it
+            // sits right on top of it. Matching that route by params would miss, since its reportID is still the one
+            // global create started with rather than the workspace chat this page was opened with.
+            Navigation.goBack();
             return;
         }
 

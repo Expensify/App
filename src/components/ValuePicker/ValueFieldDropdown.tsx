@@ -29,6 +29,9 @@ type ValueFieldDropdownProps = {
     /** Called with the picked item's value. Not called when the user picks the item already chosen. */
     onInputChange?: (value: string | undefined) => void;
 
+    /** Called whenever the field opens its list, e.g. to blur another input so the keyboard doesn't cover the list */
+    onOpen?: () => void;
+
     /** Sentry label for the field's row */
     sentryLabel?: string;
 
@@ -40,7 +43,7 @@ type ValueFieldDropdownProps = {
  * its own page. When there isn't room around the field for the container, the list opens full page instead, the way
  * `ValuePicker` opens it.
  */
-function ValueFieldDropdown({value, label, items = [], errorText, onInputChange, sentryLabel, ref}: ValueFieldDropdownProps) {
+function ValueFieldDropdown({value, label, items = [], errorText, onInputChange, onOpen, sentryLabel, ref}: ValueFieldDropdownProps) {
     const [isFullPagePickerVisible, setIsFullPagePickerVisible] = useState(false);
     const selectedItem = items.find((item) => item.value === value);
 
@@ -61,6 +64,7 @@ function ValueFieldDropdown({value, label, items = [], errorText, onInputChange,
                 errorText={errorText}
                 shouldOpenInDropdown
                 onPress={() => setIsFullPagePickerVisible(true)}
+                onOpen={onOpen}
                 renderDropdown={({onClose, ...popoverProps}) => (
                     <AnchoredSelectionListPopover
                         {...popoverProps}
