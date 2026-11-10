@@ -38,11 +38,6 @@ type BaseImageProps = {
     /** Identity of the picture for the native view. Defaults to a key derived from the source, which clears the view every
      *  time the same picture changes URI (a fresh attachment goes picker path, cache copy, remote URL). Ignored on web. */
     recyclingKey?: string;
-
-    /** Decode the image at the size of its view instead of decoding it at full size and shrinking it afterwards, which
-     *  spares the full-size bitmap of a large local photo (iOS only). Only for views whose size is fixed by their style:
-     *  the decoded size follows the view, so an image that sizes its view from `onLoad` would shrink itself. */
-    enforceEarlyResizing?: boolean;
 };
 
 type ImageOwnProps = BaseImageProps & {

@@ -200,6 +200,22 @@ describe('processPickedAssetsSequentially', () => {
             expect(mockImageRelease).toHaveBeenCalledTimes(1);
             expect(mockRelease).toHaveBeenCalledTimes(1);
         });
+
+        it('still converts a HEIC at full size when shrinking it fails', async () => {
+            // Given a 24 MP HEIC whose smaller copy fails to render
+            resolveDecodedImage(4284, 5712);
+            mockResizedRenderAsync.mockRejectedValue(new Error('resize failed'));
+
+            const result = await processPickedAssetsSequentially(buildHeicAssets(1), showGeneralAlert, translate);
+
+            // Then the full-size JPEG is saved instead, as before the cap existed, and the photo is not dropped
+            expect(mockSaveAsync).toHaveBeenCalledTimes(1);
+            expect(result).toEqual([{uri: 'file:///photo.jpg', fileName: 'photo-0.jpg', type: 'image/jpeg', width: 100, height: 200}]);
+            expect(showGeneralAlert).not.toHaveBeenCalled();
+            expect(mockResizeRelease).toHaveBeenCalledTimes(1);
+            expect(mockImageRelease).toHaveBeenCalledTimes(1);
+            expect(mockRelease).toHaveBeenCalledTimes(1);
+        });
     });
 
     it('decodes only one image at a time', async () => {

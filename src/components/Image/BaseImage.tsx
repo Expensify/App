@@ -14,8 +14,7 @@ import React, {useContext, useEffect} from 'react';
 import type {BaseImageProps} from './types';
 
 // `recyclingKey` is pulled out so it never reaches the spread below: web keeps the key derived from the source.
-// `enforceEarlyResizing` is iOS-only, so it is pulled out too rather than reaching the web view.
-function BaseImage({onLoad, onLoadStart, source, style, recyclingKey, enforceEarlyResizing, ...props}: BaseImageProps) {
+function BaseImage({onLoad, onLoadStart, source, style, recyclingKey, ...props}: BaseImageProps) {
     const cachedSource = useCachedImageSource(typeof source === 'object' && !Array.isArray(source) ? source : undefined);
     const resolvedSource = cachedSource !== undefined ? cachedSource : source;
 

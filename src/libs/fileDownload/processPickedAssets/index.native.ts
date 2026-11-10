@@ -93,8 +93,12 @@ async function detectFormatToTranscode(asset: Asset & {uri: string}): Promise<Tr
 }
 
 /**
- * The size to shrink a picked photo to so its long edge matches the in-app camera's cap (see `downscalePhoto`), or
- * `undefined` when it already fits. A size the picker left out counts as fitting, since nothing is decoded just to find out.
+ * The size to shrink a picked photo to so its long edge is no longer than the 2880 × 2160 the receipt camera asks for
+ * (see `useReceiptPhotoOutput`), or `undefined` when it already fits. A size the picker left out counts as fitting, since
+ * nothing is decoded just to find out.
+ *
+ * The camera treats that size only as a request: iPhones return the nearest size they support, mostly 2592 or 3264 px on
+ * the long edge, so a capped gallery photo stays within the range of receipts scanned in the app.
  */
 function getCappedSize(width: number | undefined, height: number | undefined) {
     if (!width || !height) {
@@ -104,13 +108,16 @@ function getCappedSize(width: number | undefined, height: number | undefined) {
 }
 
 /**
- * Shrinks a decoded image to the camera's cap and saves it as a JPEG, or returns `undefined` when it already fits.
+ * Shrinks a decoded image to the receipt camera's size (see `getCappedSize`) and saves it as a JPEG, or returns `undefined`
+ * when it already fits.
  *
  * Gallery photos used to keep their full resolution (12–48 MP on current iPhones), and every screen that later showed
  * them, or made a thumbnail of them, had to decode that full-size bitmap again. Capping them here, while the image is
  * decoded anyway and one at a time, makes every later decode a fraction of the size.
  *
- * Sized from the decoded bitmap, which already has the file's orientation applied, as `downscalePhoto` does.
+ * Sized from the decoded bitmap, which already has the file's orientation applied, as `downscalePhoto` does. Saved at
+ * `JPEG_QUALITY`, as `downscalePhoto` and the receipt thumbnails are: at quality 1 the smaller copy comes out two to three
+ * times larger than the full-size original, close to the receipt upload limit.
  */
 async function saveCappedJpeg(decoded: ImageRef): Promise<ImageResult | undefined> {
     const size = getCappedSize(decoded.width, decoded.height);
@@ -143,9 +150,9 @@ function isJpegAsset({type, fileName, uri}: Asset): boolean {
 }
 
 /**
- * Shrinks a picked JPEG that is larger than the camera's cap, or returns `undefined` to keep the asset as picked: when it
- * already fits, when it isn't a JPEG (re-encoding a PNG, GIF or WebP would lose transparency or animation), or when
- * shrinking fails, since this is only an optimization.
+ * Shrinks a picked JPEG that is larger than the receipt camera's size, or returns `undefined` to keep the asset as picked:
+ * when it already fits, when it isn't a JPEG (re-encoding a PNG, GIF or WebP would lose transparency or animation), or
+ * when shrinking fails, since this is only an optimization.
  *
  * iOS only. There, every later display of a local receipt decodes the full-size photo anyway, so decoding it once here
  * just moves that cost earlier and makes the rest cheaper. Android's image loader samples large photos down while it
@@ -197,15 +204,20 @@ async function downscaleOversizedJpeg(asset: Asset & {uri: string}): Promise<Ass
  * Decoding is left to the OS image loader (ImageIO on iOS, BitmapFactory/ImageDecoder on Android), which
  * handles DNG on current OS versions. Where it doesn't, the render fails and the asset is skipped.
  *
- * The image is already decoded in full here on both platforms, so it is also capped to the camera's size before it is
- * saved, which costs only the smaller bitmap on top.
+ * The image is already decoded in full here on both platforms, so it is also capped to the receipt camera's size before
+ * it is saved, which costs only the smaller bitmap on top. The cap is only an optimization, so when it fails the full-size
+ * JPEG is saved instead, as it was before the cap existed.
  */
 async function convertToJpeg(uri: string, formatName: TranscodedFormat['name'], originalFileName: string | undefined): Promise<Asset | undefined> {
     const imageManipulatorContext = ImageManipulator.manipulate(uri);
     try {
         const manipulatedImage = await imageManipulatorContext.renderAsync();
         try {
-            const manipulationResult = (await saveCappedJpeg(manipulatedImage)) ?? (await manipulatedImage.saveAsync({format: SaveFormat.JPEG}));
+            const cappedResult = await saveCappedJpeg(manipulatedImage).catch((error: unknown) => {
+                Log.warn(`Failed to shrink a converted ${formatName} image, saving it at full size`, {error: getErrorMessage(error, 'An unknown error occurred')});
+                return undefined;
+            });
+            const manipulationResult = cappedResult ?? (await manipulatedImage.saveAsync({format: SaveFormat.JPEG}));
             return {
                 uri: manipulationResult.uri,
                 fileName: getConvertedJpegFileName(originalFileName, getFileName(manipulationResult.uri)),

@@ -85,8 +85,6 @@ function ReceiptPreviewItem({item, isInLandscapeMode}: ReceiptPreviewItemProps) 
             <Image
                 source={typeof imageSource === 'string' ? {uri: imageSource} : imageSource}
                 style={[placeholderStyle, styles.overflowHidden]}
-                // A camera capture is shown from the full 2880 px photo itself, and the preview slot has a fixed size, so decode it at the slot's size
-                enforceEarlyResizing
                 loadingIconSize="small"
                 loadingIndicatorStyles={styles.bgTransparent}
             />
