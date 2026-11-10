@@ -98,6 +98,9 @@ type BuildChartSeriesParams = {
     /** Returns whether a group's period starts after today with no expenses of its own, which a running total's count no longer shows */
     isEmptyLaterPeriod?: (item: GroupedItem) => boolean;
 
+    /** First day the data was recorded, as a yyyy-MM-dd string. A compared bucket that ends before it has no data, so it plots nothing instead of 0. */
+    trackedFrom?: string;
+
     /** Formats labels shared by paired time buckets, and the name of an average */
     translate: LocaleContextProps['translate'];
 
@@ -146,6 +149,7 @@ function buildChartSeries({
     getInProgressLabel,
     isLaterPeriod,
     isEmptyLaterPeriod,
+    trackedFrom,
     translate,
     dateFnsLocale,
     colorScheme,
@@ -186,7 +190,8 @@ function buildChartSeries({
         if (periods && isTimeGroupBy(groupBy) && bucketRange) {
             const counterpartRange = getCounterpartBucketRange(bucketRange, periods, groupBy);
             const comparedItem = counterpartRange && comparedByKey.get(counterpartRange.start);
-            const compared = comparedItem ?? (counterpartRange && buildEmptyGroup(item));
+            const isCounterpartTracked = !!counterpartRange && (!trackedFrom || counterpartRange.end >= trackedFrom);
+            const compared = comparedItem ?? (isCounterpartTracked ? buildEmptyGroup(item) : undefined);
             return {
                 value: compared && getValue(compared),
                 percentOfTotal: compared?.percentOfTotal,

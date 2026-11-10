@@ -1,11 +1,8 @@
 /** Note on Spend over time saying how much spend dated after today the dashboard leaves out, with a link to those expenses on the Spend page. */
-import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -16,7 +13,8 @@ import ROUTES from '@src/ROUTES';
 import type {InsightsFutureExpenses} from '@src/types/onyx';
 
 import React from 'react';
-import {View} from 'react-native';
+
+import InsightsChartNote from './InsightsChartNote';
 
 type InsightsFutureExpensesNoteProps = {
     /** Expenses in the date range dated after `asOfDate`, which the charts leave out */
@@ -30,9 +28,7 @@ type InsightsFutureExpensesNoteProps = {
 };
 
 function InsightsFutureExpensesNote({futureExpenses, asOfDate, filters}: InsightsFutureExpensesNoteProps) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {cardPaddingHorizontal, cardPaddingBottom} = useLayoutSpacing();
     const {convertToDisplayString} = useCurrencyListActions();
 
     const openFutureExpenses = () => {
@@ -40,20 +36,15 @@ function InsightsFutureExpensesNote({futureExpenses, asOfDate, filters}: Insight
     };
 
     return (
-        <View style={[cardPaddingHorizontal, cardPaddingBottom]}>
-            <Text
+        <InsightsChartNote>
+            {translate('insightsPage.futureExpensesNotShown', convertToDisplayString(futureExpenses.total, futureExpenses.currency))}{' '}
+            <TextLink
                 variant="label"
-                style={styles.textSupporting}
+                onPress={openFutureExpenses}
             >
-                {translate('insightsPage.futureExpensesNotShown', convertToDisplayString(futureExpenses.total, futureExpenses.currency))}{' '}
-                <TextLink
-                    variant="label"
-                    onPress={openFutureExpenses}
-                >
-                    {translate('common.view')}
-                </TextLink>
-            </Text>
-        </View>
+                {translate('common.view')}
+            </TextLink>
+        </InsightsChartNote>
     );
 }
 

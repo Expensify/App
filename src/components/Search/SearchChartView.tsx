@@ -87,6 +87,9 @@ type SearchChartViewProps = {
 
     /** Style of the view around the chart, which the details below it don't share */
     chartContainerStyle?: StyleProp<ViewStyle>;
+
+    /** First day the data was recorded, as a yyyy-MM-dd string, so compared buckets before it plot nothing instead of 0 */
+    trackedFrom?: string;
 };
 
 /**
@@ -110,6 +113,7 @@ function SearchChartView({
     shouldShowRunningTotal = false,
     renderDetails,
     chartContainerStyle,
+    trackedFrom,
 }: SearchChartViewProps) {
     const theme = useTheme();
     const {preferredLocale, translate, dateFnsLocale, numberFormat} = useLocalize();
@@ -153,6 +157,7 @@ function SearchChartView({
             return !!range && isPeriodAfterToday(range.start, today, dateFilterRange.start);
         },
         isEmptyLaterPeriod: (item) => emptyLaterKeys.has(item.keyForList),
+        trackedFrom,
         translate,
         dateFnsLocale,
         colorScheme: theme.colorScheme,

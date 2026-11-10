@@ -30,6 +30,7 @@ import {getInsightsDetailsItemParams} from '@pages/Insights/details/insightsDeta
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
 import {getInsightsGroupByOptions, getQueryGroupBy, isRunningTotalAvailable} from '@pages/Insights/insightsGroupByUtils';
+import {doesRangeStartBeforeTracking} from '@pages/Insights/insightsTrackedFrom';
 import useInsightsChartData from '@pages/Insights/useInsightsChartData';
 
 import CONST from '@src/CONST';
@@ -44,6 +45,7 @@ import {View} from 'react-native';
 import Animated, {FadeIn} from 'react-native-reanimated';
 
 import InsightsDataTable from './InsightsDataTable';
+import InsightsTrackedFromNote from './InsightsTrackedFromNote';
 
 type InsightsChartWidgetProps = {
     dashboardID: InsightsDashboardID;
@@ -224,6 +226,7 @@ function InsightsChartWidget({
                             comparison={comparison}
                             shouldShowRunningTotal={shouldShowRunningTotal}
                             chartContainerStyle={cardPaddingHorizontal}
+                            trackedFrom={chart.trackedFrom}
                             shouldShowSinglePointAsBar
                             shouldShowGroupLabels={false}
                             onGroupPress={openDetails}
@@ -244,7 +247,12 @@ function InsightsChartWidget({
                     </View>
                 )}
             </Animated.View>
-            {(state === INSIGHTS_CHART_STATE.READY || state === INSIGHTS_CHART_STATE.EMPTY) && children}
+            {(state === INSIGHTS_CHART_STATE.READY || state === INSIGHTS_CHART_STATE.EMPTY) && (
+                <>
+                    {!!chart.trackedFrom && doesRangeStartBeforeTracking(filters, chart.trackedFrom) && <InsightsTrackedFromNote trackedFrom={chart.trackedFrom} />}
+                    {children}
+                </>
+            )}
         </WidgetContainer>
     );
 }
