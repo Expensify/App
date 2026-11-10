@@ -78,10 +78,24 @@ const MIN_CHANGED_POINTS = 3;
 const MAX_BEND = IS_IOS ? 0.25 : 0.12;
 
 const UNLOCK_SPEED = 210;
+
+const HIDE_SPEED = 150;
+const SHOW_SPEED = 80;
 const MISSES_TO_UNLOCK = 3;
 
 // The bend fades in and out, and morphs to a new locked shape, by this share per detection, so the outline never jumps.
 const BEND_FADE = 0.35;
+
+const LONE_CORNER_DISTANCE = 30;
+const LONE_CORNER_STILL_DISTANCE = 10;
+const LONE_CORNER_HOLD_DETECTIONS = 12;
+
+const MIN_CORNER_ANGLE_DEG = 45;
+const MAX_CORNER_ANGLE_DEG = 135;
+const MAX_CORNER_ANGLE_CHANGE_DEG = 35;
+const MAX_SKIPPED_SHAPES = 15;
+
+const SKIPS_BEFORE_SHOWING = 3;
 
 const PREVIEW_CHECK_INTERVAL_MS = 1000;
 
@@ -98,6 +112,7 @@ type OutlineState = {
     agreeingDetections: number;
     missedDetections: number;
     changedDetections: number;
+    heldCornerDetections: number;
     updatedAt: number;
 };
 
@@ -113,10 +128,31 @@ function createFrameState() {
         loggedErrorCount: createSynchronizable(0, {fixedType: true}),
         lastDetectedAt: createSynchronizable(0, {fixedType: true}),
         lastPreviewCheckAt: createSynchronizable(0, {fixedType: true}),
+        skippedShapes: createSynchronizable(0, {fixedType: true}),
         // The smoothed corners, bend and bend share behind the shown outline. Not fixedType, so written with setBlocking.
         outlineState: createSynchronizable<OutlineState | null>(null),
         shownEdge: createSynchronizable<DocumentEdge | null>(null),
     };
+}
+
+function getCornerAngles(corners: QuadPoint[]): number[] {
+    'worklet';
+
+    const angles: number[] = [];
+    for (let corner = 0; corner < corners.length; corner++) {
+        const point = corners.at(corner);
+        const previous = corners.at((corner + corners.length - 1) % corners.length);
+        const next = corners.at((corner + 1) % corners.length);
+        if (!point || !previous || !next) {
+            return [];
+        }
+        const toPreviousX = previous.x - point.x;
+        const toPreviousY = previous.y - point.y;
+        const toNextX = next.x - point.x;
+        const toNextY = next.y - point.y;
+        angles.push((Math.abs(Math.atan2(toPreviousX * toNextY - toPreviousY * toNextX, toPreviousX * toNextX + toPreviousY * toNextY)) * 180) / Math.PI);
+    }
+    return angles;
 }
 
 function getUnchangedPoint(point: QuadPoint): QuadPoint {
@@ -181,7 +217,8 @@ function getTimestamp(): number {
 
 function useDocumentEdgeDetection({cameraRef, isEnabled}: UseDocumentEdgeDetectionParams) {
     const edge = useSharedValue<DocumentEdge | null>(null);
-    const [{lastAnalysisAt, loggedErrorCount, lastDetectedAt, lastPreviewCheckAt, outlineState, shownEdge}] = useState(createFrameState);
+    const isMoving = useSharedValue(false);
+    const [{lastAnalysisAt, loggedErrorCount, lastDetectedAt, lastPreviewCheckAt, skippedShapes, outlineState, shownEdge}] = useState(createFrameState);
 
     const [preview, setPreview] = useState<PreviewView | undefined>(undefined);
     const syncPreview = () => {
@@ -228,18 +265,70 @@ function useDocumentEdgeDetection({cameraRef, isEnabled}: UseDocumentEdgeDetecti
         if (!measured) {
             return;
         }
+        const previousShape = outlineState.getDirty();
+        const measuredAngles = getCornerAngles(measured.corners);
+        const shownQuad: QuadPoint[] = [];
+        for (let index = 0; previousShape && index + 1 < previousShape.corners.length; index += 2) {
+            shownQuad.push({x: previousShape.corners.at(index)?.value ?? 0, y: previousShape.corners.at(index + 1)?.value ?? 0});
+        }
+        const shownAngles = getCornerAngles(shownQuad);
+        // Loops, not array callbacks: React Compiler can hoist a callback out of the worklet, and this runtime can't call it.
+        let isOddShape = false;
+        for (let index = 0; index < measuredAngles.length; index++) {
+            const angle = measuredAngles.at(index) ?? 90;
+            const shownAngle = shownAngles.at(index);
+            if (angle < MIN_CORNER_ANGLE_DEG || angle > MAX_CORNER_ANGLE_DEG || (shownAngle !== undefined && Math.abs(angle - shownAngle) > MAX_CORNER_ANGLE_CHANGE_DEG)) {
+                isOddShape = true;
+            }
+        }
+        if (isOddShape && skippedShapes.getDirty() < MAX_SKIPPED_SHAPES) {
+            skippedShapes.setDirty(skippedShapes.getDirty() + 1);
+            if (previousShape) {
+                lastDetectedAt.setDirty(detectedAt);
+                if (skippedShapes.getDirty() >= SKIPS_BEFORE_SHOWING) {
+                    isMoving.set(false);
+                }
+            }
+            return;
+        }
+        skippedShapes.setDirty(0);
         lastDetectedAt.setDirty(detectedAt);
-        const isWholeReceipt = detectedEdge?.length === edgeGeometry.EDGE_POINT_COUNT;
+        const isDetectedWhole = detectedEdge?.length === edgeGeometry.EDGE_POINT_COUNT;
         const previous = outlineState.getDirty();
-        let hasJumped = !previous;
+        const cornerMoves: number[] = [];
         for (let corner = 0; previous && corner < measured.corners.length; corner++) {
             const point = measured.corners.at(corner);
             const shownX = previous.corners.at(corner * 2)?.value;
             const shownY = previous.corners.at(corner * 2 + 1)?.value;
-            if (point && shownX !== undefined && shownY !== undefined && Math.hypot(point.x - shownX, point.y - shownY) > OUTLINE_SNAP_DISTANCE) {
+            cornerMoves.push(point && shownX !== undefined && shownY !== undefined ? Math.hypot(point.x - shownX, point.y - shownY) : Infinity);
+        }
+        let heldCorner = -1;
+        if (previous && previous.heldCornerDetections < LONE_CORNER_HOLD_DETECTIONS) {
+            let movedCount = 0;
+            let stillCount = 0;
+            for (let corner = 0; corner < cornerMoves.length; corner++) {
+                const move = cornerMoves.at(corner) ?? Infinity;
+                if (move > LONE_CORNER_DISTANCE) {
+                    movedCount++;
+                    heldCorner = corner;
+                } else if (move < LONE_CORNER_STILL_DISTANCE) {
+                    stillCount++;
+                }
+            }
+            if (movedCount !== 1 || stillCount !== cornerMoves.length - 1) {
+                heldCorner = -1;
+            }
+        }
+        let hasJumped = !previous;
+        for (let corner = 0; corner < cornerMoves.length; corner++) {
+            if (corner !== heldCorner && (cornerMoves.at(corner) ?? 0) > OUTLINE_SNAP_DISTANCE) {
                 hasJumped = true;
             }
         }
+        if (hasJumped) {
+            heldCorner = -1;
+        }
+        const isWholeReceipt = isDetectedWhole && heldCorner < 0;
 
         const elapsedSeconds = previous && !hasJumped ? (detectedAt - previous.updatedAt) / 1000 : 0;
         const filteredCorners: OneEuroState[] = [];
@@ -248,6 +337,13 @@ function useDocumentEdgeDetection({cameraRef, isEnabled}: UseDocumentEdgeDetecti
             const point = measured.corners.at(corner);
             if (!point) {
                 return;
+            }
+            const heldX = corner === heldCorner ? previous?.corners.at(corner * 2) : undefined;
+            const heldY = corner === heldCorner ? previous?.corners.at(corner * 2 + 1) : undefined;
+            if (heldX && heldY) {
+                filteredCorners.push(heldX, heldY);
+                shownCorners.push({x: heldX.value, y: heldY.value});
+                continue;
             }
             const x = edgeGeometry.filterOneEuro(
                 hasJumped ? undefined : previous?.corners.at(corner * 2),
@@ -270,6 +366,21 @@ function useDocumentEdgeDetection({cameraRef, isEnabled}: UseDocumentEdgeDetecti
         }
 
         const speed = getCornerSpeed(filteredCorners);
+        let rawSpeed = 0;
+        const rawElapsedSeconds = previous ? (detectedAt - previous.updatedAt) / 1000 : 0;
+        for (let corner = 0; previous && rawElapsedSeconds > 0 && corner < measured.corners.length; corner++) {
+            const point = measured.corners.at(corner);
+            const shownX = previous.corners.at(corner * 2)?.value;
+            const shownY = previous.corners.at(corner * 2 + 1)?.value;
+            if (corner !== heldCorner && point && shownX !== undefined && shownY !== undefined) {
+                rawSpeed += Math.hypot(point.x - shownX, point.y - shownY) / rawElapsedSeconds / measured.corners.length;
+            }
+        }
+        if (rawSpeed > HIDE_SPEED || hasJumped) {
+            isMoving.set(true);
+        } else if (rawSpeed < SHOW_SPEED) {
+            isMoving.set(false);
+        }
 
         const kept = hasJumped ? null : previous;
         let history = kept?.history ?? [];
@@ -289,7 +400,10 @@ function useDocumentEdgeDetection({cameraRef, isEnabled}: UseDocumentEdgeDetecti
             }
             candidate = getMedianBend(history);
         }
-        const missedDetections = isWholeReceipt ? 0 : (kept?.missedDetections ?? 0) + 1;
+        let missedDetections = isWholeReceipt ? 0 : (kept?.missedDetections ?? 0) + 1;
+        if (heldCorner >= 0) {
+            missedDetections = kept?.missedDetections ?? 0;
+        }
         const isSettled = agreeingDetections >= LOCK_DETECTIONS;
 
         let targetBend = kept?.targetBend ?? [];
@@ -337,6 +451,7 @@ function useDocumentEdgeDetection({cameraRef, isEnabled}: UseDocumentEdgeDetecti
             agreeingDetections,
             missedDetections,
             changedDetections,
+            heldCornerDetections: heldCorner >= 0 ? (kept?.heldCornerDetections ?? 0) + 1 : 0,
             updatedAt: detectedAt,
         });
         setOutline(edgeGeometry.buildEdge(shownCorners, bend, bend.length > 0 ? bendShare : 0));
@@ -437,7 +552,7 @@ function useDocumentEdgeDetection({cameraRef, isEnabled}: UseDocumentEdgeDetecti
         },
     });
 
-    return {frameOutput, edge};
+    return {frameOutput, edge, isMoving};
 }
 
 export default useDocumentEdgeDetection;

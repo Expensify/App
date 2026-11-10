@@ -3,7 +3,7 @@ import useTheme from '@hooks/useTheme';
 
 import type {SharedValue} from 'react-native-reanimated';
 
-import {Canvas, LinearGradient, Path, Skia, vec} from '@shopify/react-native-skia';
+import {Canvas, Group, LinearGradient, Path, Skia, vec} from '@shopify/react-native-skia';
 import React from 'react';
 import {StyleSheet} from 'react-native';
 import {useDerivedValue, useFrameCallback, useSharedValue} from 'react-native-reanimated';
@@ -31,14 +31,32 @@ const SETTLED_DISTANCE = 0.25;
 
 const DEFAULT_FRAME_MS = 16;
 
+const FADE_OUT_TIME_CONSTANT_MS = 50;
+const FADE_IN_TIME_CONSTANT_MS = 120;
+
 type DocumentOutlineProps = {
+    /** The receipt's edge in view points, or null when no receipt is found */
     edge: SharedValue<DocumentEdge | null>;
+
+    /** Whether the receipt is moving too fast for the outline to follow it */
+    isHidden?: SharedValue<boolean>;
 };
 
-function DocumentOutline({edge}: DocumentOutlineProps) {
+function DocumentOutline({edge, isHidden}: DocumentOutlineProps) {
     const theme = useTheme();
 
+    const opacity = useSharedValue(1);
     const shownEdge = useSharedValue<DocumentEdge | null>(null);
+    useFrameCallback((frameInfo) => {
+        const target = isHidden?.get() ? 0 : 1;
+        const current = opacity.get();
+        if (current !== target) {
+            const timeConstant = target < current ? FADE_OUT_TIME_CONSTANT_MS : FADE_IN_TIME_CONSTANT_MS;
+            const progress = 1 - Math.exp(-(frameInfo.timeSincePreviousFrame ?? DEFAULT_FRAME_MS) / timeConstant);
+            const next = current + (target - current) * progress;
+            opacity.set(Math.abs(target - next) < 0.01 ? target : next);
+        }
+    });
     useFrameCallback((frameInfo) => {
         const target = edge.get();
         const current = shownEdge.get();
@@ -152,24 +170,26 @@ function DocumentOutline({edge}: DocumentOutlineProps) {
             style={StyleSheet.absoluteFill}
             pointerEvents="none"
         >
-            <Path
-                path={path}
-                opacity={FILL_OPACITY}
-            >
-                <LinearGradient
-                    start={fillGradientStart}
-                    end={fillGradientEnd}
-                    colors={[theme.success, transparentSuccess]}
+            <Group opacity={opacity}>
+                <Path
+                    path={path}
+                    opacity={FILL_OPACITY}
+                >
+                    <LinearGradient
+                        start={fillGradientStart}
+                        end={fillGradientEnd}
+                        colors={[theme.success, transparentSuccess]}
+                    />
+                </Path>
+                <Path
+                    path={path}
+                    color={theme.success}
+                    // eslint-disable-next-line react/style-prop-object -- this is a valid Skia style prop value
+                    style="stroke"
+                    strokeWidth={STROKE_WIDTH}
+                    strokeJoin="round"
                 />
-            </Path>
-            <Path
-                path={path}
-                color={theme.success}
-                // eslint-disable-next-line react/style-prop-object -- this is a valid Skia style prop value
-                style="stroke"
-                strokeWidth={STROKE_WIDTH}
-                strokeJoin="round"
-            />
+            </Group>
         </Canvas>
     );
 }

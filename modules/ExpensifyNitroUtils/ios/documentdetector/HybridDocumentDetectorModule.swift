@@ -32,17 +32,35 @@ final class HybridDocumentDetectorModule: HybridDocumentDetectorModuleSpec {
 
     private static let minEdgeHitShare = 0.7
 
-    private static let sideSnapPoints = 9
+    private static let sideSnapPoints = 13
 
     private static let sideSnapInset = 0.15
 
     private static let minSideSnapHits = 5
+
+    private static let minSideFitSpan = 0.2
+
+    private static let maxInlierShortfall = 2
+
+    private static let maxInwardBend = 0.025
+
+    private static let sideFitCells = 1.5
+
+    private static let minQuadSideShare = 0.1
+
+    private static let minMaskQuadArea = 0.02
+
+    private static let minMaskQuadFill = 0.85
+
+    private static let maxHullPoints = 48
 
     private static let tipSearchShare = 0.15
 
     private static let minTipContrast = 30.0
 
     private static let tipBackingPixels = 8.0
+
+    private static let tipMaskCells = 2.0
 
     // Halfway between background and paper brightness let a pale streak in a light wooden table pass, and a corner jumped
     // onto it.
@@ -69,24 +87,169 @@ final class HybridDocumentDetectorModule: HybridDocumentDetectorModuleSpec {
         }
 
         // Vision's normalized origin is bottom-left; flip y so corners match the buffer's top-left origin.
-        let corners = [document.topLeft, document.topRight, document.bottomRight, document.bottomLeft].map {
+        let visionCorners = [document.topLeft, document.topRight, document.bottomRight, document.bottomLeft].map {
             CGPoint(x: $0.x, y: 1 - $0.y)
         }
         let frameWidth = Double(CVPixelBufferGetWidth(buffer))
         let frameHeight = Double(CVPixelBufferGetHeight(buffer))
         let refined = document.globalSegmentationMask.flatMap { maskObservation in
-            MaskReader.read(maskObservation.pixelBuffer) { mask in
-                LumaReader.read(buffer) { luma -> (corners: [CGPoint], outline: [CGPoint]?)? in
-                    let snapped = Self.snapCorners(corners: corners, mask: mask, luma: luma, frameWidth: frameWidth, frameHeight: frameHeight)
-                    return (snapped, Self.bendOutline(corners: snapped, mask: mask, luma: luma, frameWidth: frameWidth, frameHeight: frameHeight))
+            MaskReader.read(maskObservation.pixelBuffer) { mask -> (corners: [CGPoint], confidence: Double, outline: [CGPoint]?)? in
+                guard let found = Self.findCorners(visionCorners: visionCorners, confidence: Double(document.confidence), mask: mask, frameWidth: frameWidth, frameHeight: frameHeight) else {
+                    return nil
+                }
+                return LumaReader.read(buffer) { luma in
+                    let snapped = Self.snapCorners(corners: found.corners, mask: mask, luma: luma, frameWidth: frameWidth, frameHeight: frameHeight)
+                    return (snapped, found.confidence, Self.bendOutline(corners: snapped, mask: mask, luma: luma, frameWidth: frameWidth, frameHeight: frameHeight))
+                } ?? (found.corners, found.confidence, nil)
+            }
+        }
+        guard let refined else {
+            return Self.isUsableQuad(visionCorners.map { CGPoint(x: Double($0.x) * frameWidth, y: Double($0.y) * frameHeight) })
+                ? DetectedDocument(corners: visionCorners.map { DocumentCorner(x: Double($0.x), y: Double($0.y)) }, confidence: Double(document.confidence), outline: nil)
+                : nil
+        }
+        return DetectedDocument(
+            corners: refined.corners.map { DocumentCorner(x: Double($0.x), y: Double($0.y)) },
+            confidence: refined.confidence,
+            outline: refined.outline?.map { DocumentCorner(x: Double($0.x), y: Double($0.y)) }
+        )
+    }
+
+    // With the receipt turned, Vision often reports no confidence though its mask covers the whole receipt, and from about
+    // 40 degrees its quad collapses two corners into one. A mask that a quad fills, as a receipt does, stands in for the
+    // confidence, and its quad for a collapsed one.
+    private static func findCorners(visionCorners: [CGPoint], confidence: Double, mask: MaskReader, frameWidth: Double, frameHeight: Double) -> (corners: [CGPoint], confidence: Double)? {
+        let isVisionUsable = isUsableQuad(visionCorners.map { CGPoint(x: Double($0.x) * frameWidth, y: Double($0.y) * frameHeight) })
+        guard let found = findQuadInMask(mask: mask, frameWidth: frameWidth, frameHeight: frameHeight) else {
+            return isVisionUsable ? (visionCorners, confidence) : nil
+        }
+        let corners = isVisionUsable ? visionCorners : found.corners.map { CGPoint(x: Double($0.x) / frameWidth, y: Double($0.y) / frameHeight) }
+        return (corners, max(confidence, found.fill))
+    }
+
+    private static func isUsableQuad(_ corners: [CGPoint]) -> Bool {
+        let sides = (0..<4).map { getDistance(corners[$0], corners[($0 + 1) % 4]) }
+        guard let longest = sides.max(), longest > 0, sides.allSatisfy({ $0 >= minQuadSideShare * longest }) else {
+            return false
+        }
+        let turns = (0..<4).map { computeTurn(corners[$0], corners[($0 + 1) % 4], corners[($0 + 2) % 4]) }
+        return turns.allSatisfy { $0 > 0 } || turns.allSatisfy { $0 < 0 }
+    }
+
+    private static func findQuadInMask(mask: MaskReader, frameWidth: Double, frameHeight: Double) -> (corners: [CGPoint], fill: Double)? {
+        let cellWidth = frameWidth / Double(mask.width)
+        let cellHeight = frameHeight / Double(mask.height)
+        let receipt = findLargestPatch(mask: mask)
+        let maskArea = Double(receipt.count) * cellWidth * cellHeight
+        var rowEnds: [CGPoint] = []
+        for row in 0..<mask.height {
+            let y = (Double(row) + 0.5) * cellHeight
+            let columns = (0..<mask.width).filter { receipt.contains(row * mask.width + $0) }
+            if let first = columns.first, let last = columns.last {
+                rowEnds.append(CGPoint(x: Double(first) * cellWidth, y: y))
+                rowEnds.append(CGPoint(x: Double(last + 1) * cellWidth, y: y))
+            }
+        }
+        let hull = getConvexHull(rowEnds)
+        guard hull.count >= 4, maskArea >= minMaskQuadArea * frameWidth * frameHeight else {
+            return nil
+        }
+        let every = max(1, hull.count / maxHullPoints)
+        let points = stride(from: 0, to: hull.count, by: every).map { hull[$0] }
+        let count = points.count
+        guard count >= 4 else {
+            return nil
+        }
+        var best: (indices: [Int], area: Double)?
+        for first in 0..<count {
+            for third in (first + 2)..<max(first + 2, count) {
+                var bestSecond = (index: first + 1, area: 0.0)
+                for second in (first + 1)..<third {
+                    let area = abs(computeTurn(points[first], points[second], points[third])) / 2
+                    if area > bestSecond.area {
+                        bestSecond = (second, area)
+                    }
+                }
+                var bestFourth = (index: -1, area: 0.0)
+                for offset in 1..<(count - third + first) {
+                    let fourth = (third + offset) % count
+                    let area = abs(computeTurn(points[third], points[fourth], points[first])) / 2
+                    if area > bestFourth.area {
+                        bestFourth = (fourth, area)
+                    }
+                }
+                let area = bestSecond.area + bestFourth.area
+                if bestFourth.index >= 0, area > (best?.area ?? 0) {
+                    best = ([first, bestSecond.index, third, bestFourth.index], area)
                 }
             }
         }
-        return DetectedDocument(
-            corners: (refined?.corners ?? corners).map { DocumentCorner(x: Double($0.x), y: Double($0.y)) },
-            confidence: Double(document.confidence),
-            outline: refined?.outline?.map { DocumentCorner(x: Double($0.x), y: Double($0.y)) }
-        )
+        guard let best, best.area >= minMaskQuadFill * maskArea else {
+            return nil
+        }
+        var corners = best.indices.map { points[$0] }
+        let shoelace = (0..<4).map { Double(corners[$0].x * corners[($0 + 1) % 4].y - corners[($0 + 1) % 4].x * corners[$0].y) }.reduce(0, +)
+        if shoelace < 0 {
+            corners.reverse()
+        }
+        let start = corners.indices.min { Double(corners[$0].x + corners[$0].y) < Double(corners[$1].x + corners[$1].y) } ?? 0
+        return ((0..<4).map { corners[(start + $0) % 4] }, min(1, best.area / maskArea))
+    }
+
+    private static func findLargestPatch(mask: MaskReader) -> Set<Int> {
+        var isPaper = [Bool](repeating: false, count: mask.width * mask.height)
+        for row in 0..<mask.height {
+            for column in 0..<mask.width {
+                isPaper[row * mask.width + column] = (mask.value(x: (Double(column) + 0.5) / Double(mask.width), y: (Double(row) + 0.5) / Double(mask.height)) ?? 0) >= maskBorderValue
+            }
+        }
+        var isSeen = [Bool](repeating: false, count: isPaper.count)
+        var largest: [Int] = []
+        for start in isPaper.indices where isPaper[start] && !isSeen[start] {
+            var patch = [start]
+            isSeen[start] = true
+            var next = 0
+            while next < patch.count {
+                let cell = patch[next]
+                next += 1
+                let row = cell / mask.width
+                let column = cell % mask.width
+                for (neighborRow, neighborColumn) in [(row - 1, column), (row + 1, column), (row, column - 1), (row, column + 1)]
+                where neighborRow >= 0 && neighborRow < mask.height && neighborColumn >= 0 && neighborColumn < mask.width {
+                    let neighbor = neighborRow * mask.width + neighborColumn
+                    if isPaper[neighbor] && !isSeen[neighbor] {
+                        isSeen[neighbor] = true
+                        patch.append(neighbor)
+                    }
+                }
+            }
+            if patch.count > largest.count {
+                largest = patch
+            }
+        }
+        return Set(largest)
+    }
+
+    private static func getConvexHull(_ points: [CGPoint]) -> [CGPoint] {
+        let sorted = points.sorted { $0.x == $1.x ? $0.y < $1.y : $0.x < $1.x }
+        guard sorted.count >= 3 else {
+            return sorted
+        }
+        var lower: [CGPoint] = []
+        for point in sorted {
+            while lower.count >= 2, computeTurn(lower[lower.count - 2], lower[lower.count - 1], point) <= 0 {
+                lower.removeLast()
+            }
+            lower.append(point)
+        }
+        var upper: [CGPoint] = []
+        for point in sorted.reversed() {
+            while upper.count >= 2, computeTurn(upper[upper.count - 2], upper[upper.count - 1], point) <= 0 {
+                upper.removeLast()
+            }
+            upper.append(point)
+        }
+        return Array(lower.dropLast() + upper.dropLast())
     }
 
     func detectYuv(frame: YuvFrame) throws -> DetectedDocument? {
@@ -118,8 +281,7 @@ final class HybridDocumentDetectorModule: HybridDocumentDetectorModuleSpec {
                 normalX = -normalX
                 normalY = -normalY
             }
-            var firstHalf: [Double] = []
-            var secondHalf: [Double] = []
+            var samples: [(t: Double, offset: Double)] = []
             for point in 0..<sideSnapPoints {
                 let t = sideSnapInset + (1 - 2 * sideSnapInset) * Double(point) / Double(sideSnapPoints - 1)
                 let x = Double(a.x) + Double(b.x - a.x) * t
@@ -132,24 +294,15 @@ final class HybridDocumentDetectorModule: HybridDocumentDetectorModuleSpec {
                 guard let edge = findLumaEdge(x: x, y: y, normalX: normalX, normalY: normalY, from: found - lumaSearch, to: found + lumaSearch, luma: luma) else {
                     continue
                 }
-                let offset = min(max(edge, -band * outwardSearchShare), band * outwardSearchShare)
-                if t < 0.5 {
-                    firstHalf.append(offset)
-                } else {
-                    secondHalf.append(offset)
-                }
+                samples.append((t, min(max(edge, -band), band)))
             }
-            guard firstHalf.count + secondHalf.count >= minSideSnapHits, !firstHalf.isEmpty, !secondHalf.isEmpty else {
+            guard let fit = fitStraightPart(samples, tolerance: sideFitCells * 2 * step) else {
                 lines.append((a, b))
                 continue
             }
-            let firstOffset = firstHalf.sorted()[firstHalf.count / 2]
-            let secondOffset = secondHalf.sorted()[secondHalf.count / 2]
-            let startOffset = firstOffset - (secondOffset - firstOffset) / 2
-            let endOffset = secondOffset + (secondOffset - firstOffset) / 2
             lines.append((
-                CGPoint(x: Double(a.x) + normalX * startOffset, y: Double(a.y) + normalY * startOffset),
-                CGPoint(x: Double(b.x) + normalX * endOffset, y: Double(b.y) + normalY * endOffset)
+                CGPoint(x: Double(a.x) + normalX * fit.start, y: Double(a.y) + normalY * fit.start),
+                CGPoint(x: Double(b.x) + normalX * fit.end, y: Double(b.y) + normalY * fit.end)
             ))
         }
 
@@ -157,11 +310,45 @@ final class HybridDocumentDetectorModule: HybridDocumentDetectorModuleSpec {
             let original = pixelCorners[corner]
             let previous = lines[(corner + 3) % 4]
             let next = lines[corner]
-            guard let meeting = intersectLines(previous.start, previous.end, next.start, next.end), getDistance(meeting, original) <= band else {
-                return corners[corner]
+            var point = original
+            if let meeting = intersectLines(previous.start, previous.end, next.start, next.end), getDistance(meeting, original) <= 2 * band {
+                point = meeting
             }
-            return CGPoint(x: Double(meeting.x) / frameWidth, y: Double(meeting.y) / frameHeight)
+            return CGPoint(x: Double(point.x) / frameWidth, y: Double(point.y) / frameHeight)
         }
+    }
+
+    private static func fitStraightPart(_ samples: [(t: Double, offset: Double)], tolerance: Double) -> (start: Double, end: Double)? {
+        guard samples.count >= minSideSnapHits else {
+            return nil
+        }
+        var candidates: [(inliers: [(t: Double, offset: Double)], outside: Int, middle: Double)] = []
+        for first in 0..<samples.count {
+            for second in (first + 1)..<max(first + 1, samples.count) {
+                let slope = (samples[second].offset - samples[first].offset) / (samples[second].t - samples[first].t)
+                let residuals = samples.map { $0.offset - samples[first].offset - slope * ($0.t - samples[first].t) }
+                let inliers = samples.indices.filter { abs(residuals[$0]) <= tolerance }.map { samples[$0] }
+                guard inliers.count >= minSideSnapHits, (inliers.map(\.t).max() ?? 0) - (inliers.map(\.t).min() ?? 0) >= minSideFitSpan else {
+                    continue
+                }
+                candidates.append((inliers, residuals.filter { $0 > tolerance }.count, samples[first].offset + slope * (0.5 - samples[first].t)))
+            }
+        }
+        guard let fewestOutside = candidates.map(\.outside).min() else {
+            return nil
+        }
+        let fair = candidates.filter { $0.outside == fewestOutside }
+        let mostInliers = fair.map(\.inliers.count).max() ?? 0
+        guard let best = fair.filter({ $0.inliers.count >= mostInliers - maxInlierShortfall }).max(by: { $0.middle < $1.middle })?.inliers else {
+            return nil
+        }
+        let count = Double(best.count)
+        let meanT = best.map(\.t).reduce(0, +) / count
+        let meanOffset = best.map(\.offset).reduce(0, +) / count
+        let spread = best.map { ($0.t - meanT) * ($0.t - meanT) }.reduce(0, +)
+        let slope = spread > 0 ? best.map { ($0.t - meanT) * ($0.offset - meanOffset) }.reduce(0, +) / spread : 0
+        let start = meanOffset - slope * meanT
+        return (start, start + slope)
     }
 
     private static func intersectLines(_ a: CGPoint, _ b: CGPoint, _ c: CGPoint, _ d: CGPoint) -> CGPoint? {
@@ -205,7 +392,11 @@ final class HybridDocumentDetectorModule: HybridDocumentDetectorModuleSpec {
                 previous: pixelCorners[(index + 3) % 4],
                 next: pixelCorners[(index + 1) % 4],
                 radius: min(band, tipSearchShare * shorterSide),
-                luma: luma
+                luma: luma,
+                isNearMask: { tipX, tipY in
+                    (mask.value(x: tipX / frameWidth, y: tipY / frameHeight) ?? 0) >= maskBorderValue
+                },
+                maskReach: tipMaskCells * maskCell
             ) {
                 return tip
             }
@@ -217,7 +408,7 @@ final class HybridDocumentDetectorModule: HybridDocumentDetectorModuleSpec {
             } ?? 0
             let reach = max(found, 0) + maskCell
             let edge = findLumaEdge(x: Double(corner.x), y: Double(corner.y), normalX: directionX, normalY: directionY, from: -band, to: reach, luma: luma, shouldPreferOutermost: true)
-            let offset = min(max(edge ?? found, -band), reach)
+            let offset = min(max(edge ?? found, -maskCell), reach)
             return CGPoint(x: Double(corner.x) + directionX * offset, y: Double(corner.y) + directionY * offset)
         }
         var outline: [CGPoint] = []
@@ -235,6 +426,7 @@ final class HybridDocumentDetectorModule: HybridDocumentDetectorModuleSpec {
             guard var offsets = bendSide(a: a, b: b, normalX: normalX, normalY: normalY, band: band, step: step, mask: mask, frameWidth: frameWidth, frameHeight: frameHeight) else {
                 return nil
             }
+            let maskOffsets = offsets
             var isOnPaper = [Bool](repeating: false, count: outlinePointsPerSide)
             for point in 1..<outlinePointsPerSide {
                 let t = Double(point) / Double(outlinePointsPerSide)
@@ -250,7 +442,9 @@ final class HybridDocumentDetectorModule: HybridDocumentDetectorModuleSpec {
                 }
                 // Paper the mask stopped short of, like a strip below a fold, is still paper-bright. A shadow is darker, so it
                 // can't pull the point onto the table.
-                if let paperEdge = findPaperBoundary(x: x, y: y, normalX: normalX, normalY: normalY, limit: band * outwardSearchShare, luma: luma), paperEdge > offsets[point] {
+                if let paperEdge = findPaperBoundary(x: x, y: y, normalX: normalX, normalY: normalY, limit: band * outwardSearchShare, luma: luma),
+                   paperEdge > offsets[point],
+                   paperEdge <= maskOffsets[point] + tipMaskCells * maskCell {
                     offsets[point] = paperEdge
                     isOnPaper[point] = true
                 }
@@ -271,7 +465,7 @@ final class HybridDocumentDetectorModule: HybridDocumentDetectorModuleSpec {
             let filtered = offsets
             for point in 1..<outlinePointsPerSide {
                 let next = point + 1 < outlinePointsPerSide ? filtered[point + 1] : 0
-                offsets[point] = (filtered[point - 1] + 2 * filtered[point] + next) / 4
+                offsets[point] = max((filtered[point - 1] + 2 * filtered[point] + next) / 4, -maxInwardBend * shorterSide)
             }
             for point in 0..<outlinePointsPerSide {
                 let t = Double(point) / Double(outlinePointsPerSide)
@@ -315,7 +509,7 @@ final class HybridDocumentDetectorModule: HybridDocumentDetectorModuleSpec {
         let foundOffsets = found.compactMap { $0 }.sorted()
         let pointsBetweenCorners = outlinePointsPerSide - 1
         guard foundOffsets.count * 2 > pointsBetweenCorners else {
-            return nil
+            return found.map { $0 ?? 0 }
         }
         // Unlike Android, the whole side keeps its push: these sides were already straightened onto the paper's edge, so a
         // push shared by the whole side is the paper, not the mask's own error.
@@ -342,9 +536,7 @@ final class HybridDocumentDetectorModule: HybridDocumentDetectorModuleSpec {
         var previousValue = 0.0
         for index in 0...(2 * stepsPerSide) {
             let distance = -band + Double(index) * band / Double(stepsPerSide)
-            guard let value = valueAt(x + normalX * distance, y + normalY * distance) else {
-                return nil
-            }
+            let value = valueAt(x + normalX * distance, y + normalY * distance) ?? -maskBorderValue
             if index > 0 && previousValue > 0 && value <= 0 {
                 let crossing = previousDistance + (distance - previousDistance) * previousValue / (previousValue - value)
                 if nearest.map({ abs(crossing) < abs($0) }) ?? true {
@@ -394,7 +586,15 @@ final class HybridDocumentDetectorModule: HybridDocumentDetectorModuleSpec {
 
     // The paper spot reaching furthest along the corner's bisector. A walk along the line from the receipt's centre missed
     // the tip on a long receipt, where that line runs steeply.
-    private static func findPaperTip(corner: CGPoint, previous: CGPoint, next: CGPoint, radius: Double, luma: LumaReader) -> CGPoint? {
+    private static func findPaperTip(
+        corner: CGPoint,
+        previous: CGPoint,
+        next: CGPoint,
+        radius: Double,
+        luma: LumaReader,
+        isNearMask: (Double, Double) -> Bool,
+        maskReach: Double
+    ) -> CGPoint? {
         let toPreviousLength = getDistance(corner, previous)
         let toNextLength = getDistance(corner, next)
         guard toPreviousLength > 0, toNextLength > 0, radius >= 1 else {
@@ -435,7 +635,8 @@ final class HybridDocumentDetectorModule: HybridDocumentDetectorModuleSpec {
                 guard read(offsetX, offsetY) >= threshold,
                       read(offsetX - outwardX * tipBackingPixels / 4, offsetY - outwardY * tipBackingPixels / 4) >= threshold,
                       read(offsetX - outwardX * tipBackingPixels / 2, offsetY - outwardY * tipBackingPixels / 2) >= threshold,
-                      read(offsetX - outwardX * tipBackingPixels, offsetY - outwardY * tipBackingPixels) >= threshold
+                      read(offsetX - outwardX * tipBackingPixels, offsetY - outwardY * tipBackingPixels) >= threshold,
+                      isNearMask(x + offsetX - outwardX * maskReach, y + offsetY - outwardY * maskReach)
                 else {
                     continue
                 }

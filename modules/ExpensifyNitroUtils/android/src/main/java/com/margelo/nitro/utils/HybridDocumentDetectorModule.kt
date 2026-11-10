@@ -144,8 +144,100 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
         }
         val rowStride = frame.yRowStride.toInt()
         val readLuma = LumaReader(width, height, rowStride, rotation, uprightWidth, uprightHeight)
-        val outline = bendOutline(corners, first, uprightWidth, uprightHeight, readLuma, isSnapped)
-        return DetectedDocument(corners.map(toDocumentCorner).toTypedArray(), confidence, outline?.map(toDocumentCorner)?.toTypedArray())
+        val fitted = fitSidesPastFingers(corners, first, readLuma) ?: corners
+        val outline = bendOutline(fitted, first, uprightWidth, uprightHeight, readLuma, isSnapped)
+        return DetectedDocument(fitted.map(toDocumentCorner).toTypedArray(), confidence, outline?.map(toDocumentCorner)?.toTypedArray())
+    }
+
+    private fun fitSidesPastFingers(corners: Array<DoubleArray>, pass: Pass, readLuma: LumaReader): Array<DoubleArray>? {
+        val shorterSide = (0 until 4).minOf { side -> hypot(corners[(side + 1) % 4][0] - corners[side][0], corners[(side + 1) % 4][1] - corners[side][1]) }
+        if (shorterSide <= 0) {
+            return null
+        }
+        val band = BEND_BAND * shorterSide
+        val step = HEATMAP_STRIDE / pass.scale / 2
+        val maskCell = 2 * step
+        val lumaSearch = LUMA_SEARCH_CELLS * maskCell
+        val centreX = corners.sumOf { it[0] } / 4
+        val centreY = corners.sumOf { it[1] } / 4
+        val starts = Array(4) { corners[it].copyOf() }
+        val directions = Array(4) { DoubleArray(2) }
+        for (side in 0 until 4) {
+            val a = corners[side]
+            val b = corners[(side + 1) % 4]
+            val length = hypot(b[0] - a[0], b[1] - a[1])
+            var normalX = (b[1] - a[1]) / length
+            var normalY = -(b[0] - a[0]) / length
+            if (normalX * ((a[0] + b[0]) / 2 - centreX) + normalY * ((a[1] + b[1]) / 2 - centreY) < 0) {
+                normalX = -normalX
+                normalY = -normalY
+            }
+            val samplesT = ArrayList<Double>()
+            val samplesOffset = ArrayList<Double>()
+            for (sample in 0 until SIDE_FIT_SAMPLES) {
+                val t = SIDE_FIT_INSET + (1 - 2 * SIDE_FIT_INSET) * sample / (SIDE_FIT_SAMPLES - 1)
+                val x = a[0] + (b[0] - a[0]) * t
+                val y = a[1] + (b[1] - a[1]) * t
+                val found = findMaskBorder(x, y, normalX, normalY, band, step, pass) ?: continue
+                val edge = findLumaEdge(x, y, normalX, normalY, found - lumaSearch, found + lumaSearch, readLuma) ?: continue
+                samplesT.add(t)
+                samplesOffset.add(edge.coerceIn(-band, band))
+            }
+            val fit = fitOutermostLine(samplesT, samplesOffset, SIDE_FIT_TOLERANCE_CELLS * maskCell)
+            val startOffset = fit?.get(0) ?: 0.0
+            val endOffset = fit?.get(1) ?: 0.0
+            val start = doubleArrayOf(a[0] + normalX * startOffset, a[1] + normalY * startOffset)
+            val end = doubleArrayOf(b[0] + normalX * endOffset, b[1] + normalY * endOffset)
+            starts[side] = start
+            val length2 = hypot(end[0] - start[0], end[1] - start[1])
+            directions[side] = doubleArrayOf((end[0] - start[0]) / length2, (end[1] - start[1]) / length2)
+        }
+        val fitted = Array(4) { corner ->
+            val previous = (corner + 3) % 4
+            val meeting = intersect(starts[previous], directions[previous], starts[corner], directions[corner]) ?: return null
+            if (hypot(meeting[0] - corners[corner][0], meeting[1] - corners[corner][1]) > 2 * band) {
+                return null
+            }
+            meeting
+        }
+        return if (isClockwiseConvex(fitted)) fitted else null
+    }
+
+    private fun fitOutermostLine(samplesT: List<Double>, samplesOffset: List<Double>, tolerance: Double): DoubleArray? {
+        val count = samplesT.size
+        if (count < MIN_SIDE_FIT_SAMPLES) {
+            return null
+        }
+        var bestInliers: List<Int>? = null
+        var bestMiddle = Double.NEGATIVE_INFINITY
+        val candidates = ArrayList<Triple<List<Int>, Int, Double>>()
+        for (first in 0 until count) {
+            for (second in first + 1 until count) {
+                val slope = (samplesOffset[second] - samplesOffset[first]) / (samplesT[second] - samplesT[first])
+                val residuals = (0 until count).map { samplesOffset[it] - samplesOffset[first] - slope * (samplesT[it] - samplesT[first]) }
+                val inliers = (0 until count).filter { abs(residuals[it]) <= tolerance }
+                if (inliers.size < MIN_SIDE_FIT_SAMPLES || samplesT[inliers.last()] - samplesT[inliers.first()] < MIN_SIDE_FIT_SPAN) {
+                    continue
+                }
+                candidates.add(Triple(inliers, residuals.count { it > tolerance }, samplesOffset[first] + slope * (0.5 - samplesT[first])))
+            }
+        }
+        val fewestOutside = candidates.minOfOrNull { it.second } ?: return null
+        val fair = candidates.filter { it.second == fewestOutside }
+        val mostInliers = fair.maxOf { it.first.size }
+        for (candidate in fair) {
+            if (candidate.first.size >= mostInliers - MAX_SIDE_FIT_SHORTFALL && candidate.third > bestMiddle) {
+                bestMiddle = candidate.third
+                bestInliers = candidate.first
+            }
+        }
+        val inliers = bestInliers ?: return null
+        val meanT = inliers.sumOf { samplesT[it] } / inliers.size
+        val meanOffset = inliers.sumOf { samplesOffset[it] } / inliers.size
+        val spread = inliers.sumOf { (samplesT[it] - meanT) * (samplesT[it] - meanT) }
+        val slope = if (spread > 0) inliers.sumOf { (samplesT[it] - meanT) * (samplesOffset[it] - meanOffset) } / spread else 0.0
+        val start = meanOffset - slope * meanT
+        return doubleArrayOf(start, start + slope)
     }
 
     private fun bendOutline(corners: Array<DoubleArray>, pass: Pass, uprightWidth: Int, uprightHeight: Int, readLuma: LumaReader, isSnapped: Boolean): Array<DoubleArray>? {
@@ -164,13 +256,13 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
             val point = corners[corner]
             // At its tip the paper is only a sliver, too thin for a clear brightness step, so the step search below stops
             // short of it and the corner is drawn rounded.
-            findPaperTip(point, corners[(corner + 3) % 4], corners[(corner + 1) % 4], band, readLuma)?.let { return@Array it }
+            findPaperTip(point, corners[(corner + 3) % 4], corners[(corner + 1) % 4], band, readLuma, pass, TIP_MASK_CELLS * 2 * step)?.let { return@Array it }
             val diagonal = hypot(point[0] - centreX, point[1] - centreY)
             val directionX = (point[0] - centreX) / diagonal
             val directionY = (point[1] - centreY) / diagonal
             val found = findMaskBorder(point[0], point[1], directionX, directionY, band, step, pass) ?: 0.0
             val edge = findLumaEdge(point[0], point[1], directionX, directionY, -band, max(found, 0.0) + lumaSearch, readLuma, shouldPreferOutermost = true)
-            val offset = (edge ?: if (found < 0) min(0.0, found + 2 * step) else found).coerceIn(-band, 2 * step)
+            val offset = (edge ?: if (found < 0) min(0.0, found + 2 * step) else found).coerceIn(-2 * step, 2 * step)
             doubleArrayOf(point[0] + directionX * offset, point[1] + directionY * offset)
         }
         val outline = ArrayList<DoubleArray>(4 * OUTLINE_POINTS_PER_SIDE)
@@ -212,10 +304,10 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
         }
         val foundOffsets = found.filterNotNull().sorted()
         val pointsBetweenCorners = OUTLINE_POINTS_PER_SIDE - 1
-        if (foundOffsets.size * 2 <= pointsBetweenCorners) {
-            return null
-        }
         val maskCell = 2 * step
+        if (foundOffsets.size * 2 <= pointsBetweenCorners) {
+            return DoubleArray(OUTLINE_POINTS_PER_SIDE)
+        }
         val median = foundOffsets[foundOffsets.size / 2]
         // A snapped side already sits on the paper's brightness edge, so a push shared by the whole side is the mask's own
         // error and is removed, all but one cell: snapping lands a little inside a curled side.
@@ -233,6 +325,7 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
             return null
         }
         val lumaSearch = LUMA_SEARCH_CELLS * maskCell
+        val maskOffsets = offsets.copyOf()
         val isOnPaper = BooleanArray(OUTLINE_POINTS_PER_SIDE)
         for (point in 1 until OUTLINE_POINTS_PER_SIDE) {
             val t = point.toDouble() / OUTLINE_POINTS_PER_SIDE
@@ -248,7 +341,7 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
             // pull the point onto the table. Without that, points next to a corner only move out by a cell: a curled
             // corner's shadow runs along both sides there.
             val paperEdge = findPaperBoundary(x, y, normalX, normalY, band, readLuma)
-            if (paperEdge != null && paperEdge > offsets[point]) {
+            if (paperEdge != null && paperEdge > offsets[point] && paperEdge <= maskOffsets[point] + TIP_MASK_CELLS * maskCell) {
                 offsets[point] = paperEdge
                 isOnPaper[point] = true
             } else if (min(point, OUTLINE_POINTS_PER_SIDE - point) <= CORNER_POINTS) {
@@ -271,14 +364,22 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
         val smooth = filtered.copyOf()
         for (point in 1 until OUTLINE_POINTS_PER_SIDE) {
             val next = if (point + 1 < OUTLINE_POINTS_PER_SIDE) filtered[point + 1] else 0.0
-            smooth[point] = (filtered[point - 1] + 2 * filtered[point] + next) / 4
+            smooth[point] = max((filtered[point - 1] + 2 * filtered[point] + next) / 4, -MAX_INWARD_BEND * band / BEND_BAND)
         }
         return smooth
     }
 
     // The paper spot reaching furthest along the corner's bisector. A walk along the line from the receipt's centre missed
     // the tip on a long receipt, where that line runs steeply.
-    private fun findPaperTip(corner: DoubleArray, previous: DoubleArray, next: DoubleArray, radius: Double, readLuma: LumaReader): DoubleArray? {
+    private fun findPaperTip(
+        corner: DoubleArray,
+        previous: DoubleArray,
+        next: DoubleArray,
+        radius: Double,
+        readLuma: LumaReader,
+        pass: Pass,
+        maskReach: Double,
+    ): DoubleArray? {
         val toPreviousLength = hypot(previous[0] - corner[0], previous[1] - corner[1])
         val toNextLength = hypot(next[0] - corner[0], next[1] - corner[1])
         if (toPreviousLength <= 0 || toNextLength <= 0 || radius < 1) {
@@ -319,7 +420,8 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
                 if (read(offsetX, offsetY) < threshold ||
                     read(offsetX - outwardX * TIP_BACKING_PIXELS / 4, offsetY - outwardY * TIP_BACKING_PIXELS / 4) < threshold ||
                     read(offsetX - outwardX * TIP_BACKING_PIXELS / 2, offsetY - outwardY * TIP_BACKING_PIXELS / 2) < threshold ||
-                    read(offsetX - outwardX * TIP_BACKING_PIXELS, offsetY - outwardY * TIP_BACKING_PIXELS) < threshold
+                    read(offsetX - outwardX * TIP_BACKING_PIXELS, offsetY - outwardY * TIP_BACKING_PIXELS) < threshold ||
+                    !(getMaskLogitAt(corner[0] + offsetX - outwardX * maskReach, corner[1] + offsetY - outwardY * maskReach, pass) > 0)
                 ) {
                     continue
                 }
@@ -906,6 +1008,22 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
         private const val MIN_TIP_CONTRAST = 30
 
         private const val TIP_BACKING_PIXELS = 8.0
+
+        private const val TIP_MASK_CELLS = 2.0
+
+        private const val MAX_INWARD_BEND = 0.025
+
+        private const val SIDE_FIT_SAMPLES = 13
+
+        private const val SIDE_FIT_INSET = 0.15
+
+        private const val MIN_SIDE_FIT_SAMPLES = 5
+
+        private const val MIN_SIDE_FIT_SPAN = 0.2
+
+        private const val MAX_SIDE_FIT_SHORTFALL = 2
+
+        private const val SIDE_FIT_TOLERANCE_CELLS = 1.5
 
         // Halfway between background and paper brightness let a pale streak in a light wooden table pass, and a corner
         // jumped onto it.

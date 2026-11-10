@@ -143,7 +143,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
 
     // VisionCamera restarts the session, blanking the preview, whenever an output or the photo size changes.
     const {photoOutput, cameraAspectRatio, updatePhotoResolution} = useReceiptPhotoOutput(cameraPlatformConfig.scanQualityPrioritization, isInLandscapeMode, canUseReceiptEnhancement);
-    const {frameOutput, edge: documentEdge} = useDocumentEdgeDetection({cameraRef: camera, isEnabled: shouldDetectDocument});
+    const {frameOutput, edge: documentEdge, isMoving: isDocumentMoving} = useDocumentEdgeDetection({cameraRef: camera, isEnabled: shouldDetectDocument});
     const outputs = canUseReceiptEnhancement ? [photoOutput, frameOutput] : [photoOutput];
 
     // Blink animation for shutter feedback
@@ -361,7 +361,10 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                             overlay={
                                 shouldDetectDocument && !didCapturePhoto ? (
                                     <>
-                                        <DocumentOutline edge={documentEdge} />
+                                        <DocumentOutline
+                                            edge={documentEdge}
+                                            isHidden={isDocumentMoving}
+                                        />
                                         {isReceiptEnhancementToastVisible && <ReceiptEnhancementToast onHide={hideReceiptEnhancementToast} />}
                                     </>
                                 ) : null
