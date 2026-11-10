@@ -23,6 +23,7 @@ import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -155,6 +156,7 @@ function ReportCardLostPage({
                         <View>
                             <Text style={[styles.textHeadline, styles.mb3, styles.mh5]}>{translate('reportCardLostOrDamaged.confirmAddressTitle')}</Text>
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.REPORT_LOST_ADDRESS}
                                 name={translate('reportCardLostOrDamaged.address')}
                                 value={formattedAddress}
                                 numberOfLinesValue={2}
@@ -168,6 +170,9 @@ function ReportCardLostPage({
                         </View>
                         <View style={styles.mh5}>
                             <FormAlertWithSubmitButton
+                                sentryLabel={
+                                    isDamaged ? CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.REPORT_LOST_SHIP_NEW_CARD : CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.REPORT_LOST_DEACTIVATE_CARD
+                                }
                                 isAlertVisible={shouldShowAddressError}
                                 onSubmit={handleSubmitSecondStep}
                                 message={translate('reportCardLostOrDamaged.addressError')}
@@ -189,6 +194,7 @@ function ReportCardLostPage({
                         </View>
                         <View style={styles.mh5}>
                             <FormAlertWithSubmitButton
+                                sentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.REPORT_LOST_NEXT}
                                 isAlertVisible={shouldShowReasonError}
                                 onSubmit={handleSubmitFirstStep}
                                 message={translate('reportCardLostOrDamaged.reasonError')}

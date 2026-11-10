@@ -162,7 +162,10 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                 <HeaderWithBackButton title={translate(titleKey)} />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <Text style={[styles.textHeadlineH2, styles.reportHorizontalRule, styles.mt4, styles.mb2]}>{translate('expenseRulesPage.addRule.expenseContains')}</Text>
-                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => navigateTo(EXPENSE_RULE_INPUT_IDS.MERCHANT, hash), false, session)}>
+                    <MenuItem.Root
+                        onPress={callFunctionIfActionIsAllowed(() => navigateTo(EXPENSE_RULE_INPUT_IDS.MERCHANT, hash), false, session)}
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.MERCHANT_TO_MATCH}
+                    >
                         <MenuItemField.Row
                             name={translate('common.merchant')}
                             value={form?.merchantToMatch}
@@ -179,12 +182,14 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                     </MenuItem.Root>
                     <Text style={[styles.textHeadlineH2, styles.reportHorizontalRule, styles.mt4, styles.mb2]}>{translate('expenseRulesPage.addRule.applyUpdates')}</Text>
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.RENAME_MERCHANT}
                         name={translate('common.merchant')}
                         value={form?.merchant}
                         onPress={() => navigateTo(EXPENSE_RULE_INPUT_IDS.RENAME_MERCHANT, hash)}
                     />
                     {(!!form?.category || !!hasPolicyCategories) && (
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.CATEGORY}
                             name={translate('common.category')}
                             value={form?.category ? getDecodedCategoryName(form.category) : undefined}
                             onPress={() => navigateTo(EXPENSE_RULE_INPUT_IDS.CATEGORY, hash)}
@@ -194,6 +199,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                         const formTag = formTags.at(orderWeight);
                         return (
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.TAG}
                                 key={`tag-${name}-${orderWeight}`}
                                 name={name}
                                 value={formTag ? getCleanedTagName(formTag) : undefined}
@@ -203,27 +209,32 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                     })}
                     {hasTaxRates && (
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.TAX}
                             name={translate('common.tax')}
                             value={selectedTaxRate ? `${selectedTaxRate.name} (${selectedTaxRate.value})` : undefined}
                             onPress={() => navigateTo(EXPENSE_RULE_INPUT_IDS.TAX, hash)}
                         />
                     )}
                     <MenuItemFieldHTML
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.DESCRIPTION}
                         name={translate('common.description')}
                         value={form?.comment ? Parser.replace(form.comment) : undefined}
                         onPress={() => navigateTo(EXPENSE_RULE_INPUT_IDS.DESCRIPTION, hash)}
                     />
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.REIMBURSABLE}
                         name={translate('common.reimbursable')}
                         value={form?.reimbursable ? translate(form.reimbursable === 'true' ? 'common.yes' : 'common.no') : translate('common.dontChange')}
                         onPress={() => navigateTo(EXPENSE_RULE_INPUT_IDS.REIMBURSABLE, hash)}
                     />
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.BILLABLE}
                         name={translate('common.billable')}
                         value={form?.billable ? translate(form.billable === 'true' ? 'common.yes' : 'common.no') : translate('common.dontChange')}
                         onPress={() => navigateTo(EXPENSE_RULE_INPUT_IDS.BILLABLE, hash)}
                     />
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.ADD_TO_REPORT}
                         name={translate('expenseRulesPage.addRule.addToReport')}
                         value={form?.report}
                         onPress={() => navigateTo(EXPENSE_RULE_INPUT_IDS.REPORT, hash)}
@@ -243,6 +254,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                     </View>
                 </ScrollView>
                 <FormAlertWithSubmitButton
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.SAVE_RULE}
                     buttonText={translate('expenseRulesPage.addRule.saveRule')}
                     containerStyles={[styles.m4, styles.mb5]}
                     isAlertVisible={shouldShowError && !!errorMessage}

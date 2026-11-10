@@ -173,6 +173,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
             </CollapsibleHeaderOnKeyboardGroupMember>
             {summaryItems.map(({id, description, title, interactive, disabled, onPress}) => (
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.INTERNATIONAL_CONFIRMATION_EDIT}
                     key={id}
                     name={description}
                     onPress={interactive === false ? undefined : onPress}

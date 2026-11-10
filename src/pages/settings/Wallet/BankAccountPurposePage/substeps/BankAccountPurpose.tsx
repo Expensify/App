@@ -15,6 +15,7 @@ import variables from '@styles/variables';
 
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
@@ -47,6 +48,7 @@ function BankAccountPurpose({showCountrySelectionStep}: BankAccountPurposeProps)
             <View style={styles.mh5}>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('bankAccount.bankAccountPurposeTitle')}</Text>
                 <MenuItem
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.BANK_ACCOUNT_PURPOSE_GET_REIMBURSED}
                     icon={illustrations.WalletAlt2}
                     title={translate('bankAccount.getReimbursed')}
                     description={translate('bankAccount.getReimbursedDescription')}
@@ -59,6 +61,7 @@ function BankAccountPurpose({showCountrySelectionStep}: BankAccountPurposeProps)
                     wrapperStyle={styles.purposeMenuItem}
                 />
                 <MenuItem
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.BANK_ACCOUNT_PURPOSE_MAKE_PAYMENTS}
                     icon={illustrations.BankCoin}
                     title={translate('bankAccount.makePayments')}
                     description={translate('bankAccount.makePaymentsDescription')}
