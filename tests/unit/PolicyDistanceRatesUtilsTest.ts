@@ -1,5 +1,8 @@
 import {
+    getCurrentGovernmentMileageRate,
+    getDefaultEuroDistanceRateCountry,
     getDistanceExpenseTypeForPolicy,
+    getDistanceRateCountryForCurrency,
     getDistanceRateNameError,
     getDistanceRateValueError,
     getDistanceRateValueErrorMessage,
@@ -7,14 +10,16 @@ import {
     getGovernmentRateCountryForCurrency,
     getGovernmentRateCountryPhraseTranslationKey,
     getGovernmentRateSeries,
+    getNoGovernmentRateNote,
     isCurrencySupportedForAutoUpdate,
+    isGovernmentRateCountry,
     isGovernmentRateUnmodified,
     isMapOrGPSRequired,
     validateTaxClaimableValue,
 } from '@libs/PolicyDistanceRatesUtils';
 
 import CONST from '@src/CONST';
-import type {Policy} from '@src/types/onyx';
+import type {CurrencyList, GovernmentMileageRate, Policy} from '@src/types/onyx';
 import type {GovernmentRateSnapshot, Rate} from '@src/types/onyx/Policy';
 
 import createRandomPolicy from '../utils/collections/policies';
@@ -409,6 +414,113 @@ describe('PolicyDistanceRatesUtils', () => {
             // Then each reason maps to the form's copy, so the two surfaces cannot drift
             expect(getDistanceRateValueErrorMessage(translateLocal, CONST.INPUT_VALIDATION_ERRORS.INVALID)).toBe(translateLocal('common.error.invalidRateError'));
             expect(getDistanceRateValueErrorMessage(translateLocal, CONST.INPUT_VALIDATION_ERRORS.TOO_LOW)).toBe(translateLocal('common.error.lowRateError'));
+        });
+    });
+
+    describe('getDistanceRateCountryForCurrency', () => {
+        const currencyList: CurrencyList = {
+            JPY: {symbol: '¥', name: 'Japanese Yen', ISO4217: '392', countries: ['JP']},
+            XOF: {symbol: 'CFA', name: 'West African CFA Franc', ISO4217: '952', countries: ['BJ', 'BF', 'CI', 'ML', 'NE', 'SN', 'TG']},
+        };
+
+        it('uses the government rate country for a supported currency', () => {
+            // Given a currency Expensify publishes a government rate for
+            // When we look up its country
+            // Then it maps to the publishing country without needing the currency list
+            expect(getDistanceRateCountryForCurrency(CONST.CURRENCY.GBP, undefined)).toBe('GB');
+        });
+
+        it('uses the only country of a single-country currency', () => {
+            // Given a currency used by one country
+            // When we look up its country
+            // Then that country is returned
+            expect(getDistanceRateCountryForCurrency('JPY', currencyList)).toBe('JP');
+        });
+
+        it('returns undefined for a currency shared by several countries', () => {
+            // Given a currency used by several countries
+            // When we look up its country
+            // Then there is no single country, so the page shows "Other country"
+            expect(getDistanceRateCountryForCurrency('XOF', currencyList)).toBeUndefined();
+        });
+    });
+
+    describe('getDefaultEuroDistanceRateCountry', () => {
+        it('keeps the auto-update country when the workspace already has a government rate', () => {
+            // Given an EUR workspace auto-updating German rates with a French company address
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                outputCurrency: CONST.CURRENCY.EUR,
+                shouldAutoUpdateGovernmentDistanceRates: true,
+                autoUpdateGovernmentRateCountry: 'DE',
+                address: {addressStreet: '', city: '', state: '', zipCode: '', country: 'FR'},
+            };
+
+            // When we pick the default country
+            // Then the government rate's country wins, so Add rate matches Settings
+            expect(getDefaultEuroDistanceRateCountry(policy, 'IE')).toBe('DE');
+        });
+
+        it('prefers the company address, then the IP address, then Austria', () => {
+            // Given an EUR workspace without a government rate
+            const policy: Policy = {...createRandomPolicy(1), outputCurrency: CONST.CURRENCY.EUR, shouldAutoUpdateGovernmentDistanceRates: false};
+            const policyInFrance: Policy = {...policy, address: {addressStreet: '', city: '', state: '', zipCode: '', country: 'FR'}};
+            const policyInUS: Policy = {...policy, address: {addressStreet: '', city: '', state: '', zipCode: '', country: 'US'}};
+
+            // When we pick the default country
+            // Then a euro company address wins, a non-euro one falls through to the IP country, and Austria is the last resort
+            expect(getDefaultEuroDistanceRateCountry(policyInFrance, 'IE')).toBe('FR');
+            expect(getDefaultEuroDistanceRateCountry(policyInUS, 'IE')).toBe('IE');
+            expect(getDefaultEuroDistanceRateCountry(policyInUS, 'US')).toBe('AT');
+        });
+    });
+
+    describe('isGovernmentRateCountry', () => {
+        it('only accepts the countries Expensify publishes government rates for', () => {
+            // Given a supported single-currency country, a supported euro country and an unsupported euro country
+            // When we check each one
+            // Then only the supported ones are accepted
+            expect(isGovernmentRateCountry('US')).toBe(true);
+            expect(isGovernmentRateCountry('DE')).toBe(true);
+            expect(isGovernmentRateCountry('IE')).toBe(false);
+            expect(isGovernmentRateCountry(undefined)).toBe(false);
+        });
+    });
+
+    describe('getCurrentGovernmentMileageRate', () => {
+        const rates: GovernmentMileageRate[] = [
+            {sourceRateID: 'GB_2025-04-06', currency: 'GBP', name: '2025 UK', rate: 45, startDate: '2025-04-06'},
+            {sourceRateID: 'GB_2026-04-06', currency: 'GBP', name: '2026 UK', rate: 55, startDate: '2026-04-06'},
+            {sourceRateID: 'GB_2027-04-06', currency: 'GBP', name: '2027 UK', rate: 60, startDate: '2027-04-06'},
+            {sourceRateID: 'GB_PETROL_1400CC_2026-04-06', currency: 'GBP', name: 'UK petrol', rate: 12, startDate: '2026-04-06'},
+            {sourceRateID: 'DE_2026-01-01', currency: 'EUR', name: '2026 Germany', rate: 30, startDate: '2026-01-01'},
+        ];
+
+        it('picks the latest rate that has already started and skips fuel bands', () => {
+            // Given past, current and future UK rates plus a UK fuel band
+            // When we look up the rate in effect on a date in 2026
+            const currentRate = getCurrentGovernmentMileageRate(rates, 'GBP', 'GB', '2026-11-11');
+
+            // Then the 2026 car rate is used, not the future rate or the fuel band
+            expect(currentRate?.sourceRateID).toBe('GB_2026-04-06');
+        });
+
+        it('returns undefined when the country has no loaded rate', () => {
+            // Given rates that were loaded for other countries only
+            // When we look up a euro country with no rate in the list
+            // Then nothing is returned, so the page keeps its skeleton and Save stays disabled
+            expect(getCurrentGovernmentMileageRate(rates, 'EUR', 'NL', '2026-11-11')).toBeUndefined();
+        });
+    });
+
+    describe('getNoGovernmentRateNote', () => {
+        it('explains the missing government rate for each kind of country', () => {
+            // Given a country with its own note, a country without one, and an unknown country
+            // When we build the note
+            // Then each one gets the matching copy
+            expect(getNoGovernmentRateNote(translateLocal, 'FR')).toBe(translateLocal('workspace.distanceRates.addRatePage.noGovernmentRateNotes.FR'));
+            expect(getNoGovernmentRateNote(translateLocal, 'IE')).toBe(translateLocal('workspace.distanceRates.addRatePage.noGovernmentRateForCountry', translateLocal('allCountries.IE')));
+            expect(getNoGovernmentRateNote(translateLocal, undefined)).toBe(translateLocal('workspace.distanceRates.addRatePage.noGovernmentRateForOtherCountry'));
         });
     });
 });

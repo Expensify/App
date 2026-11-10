@@ -3,43 +3,77 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormOnyxValues} from '@components/Form/types';
+import type {FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SkeletonTextLine from '@components/Skeletons/SkeletonTextLine';
+import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
+import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
+import type {TabSelectorBaseItem} from '@components/TabSelector/types';
+import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import ValuePicker from '@components/ValuePicker';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setMoneyRequestDistanceRate} from '@libs/actions/IOU/MoneyRequest';
+import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {validateCreateDistanceRateForm} from '@libs/PolicyDistanceRatesUtils';
-import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+import {
+    getCurrentGovernmentMileageRate,
+    getDefaultEuroDistanceRateCountry,
+    getDistanceRateCountryForCurrency,
+    getEuroDistanceRateCountryOptions,
+    getGovernmentRateAmountForUnit,
+    getNoGovernmentRateNote,
+    isEuroDistanceRateCountry,
+    isGovernmentRateCountry,
+    isSharedGovernmentRateCurrency,
+    validateCreateDistanceRateForm,
+} from '@libs/PolicyDistanceRatesUtils';
+import {getDistanceRateCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
-import {createPolicyDistanceRate} from '@userActions/Policy/DistanceRate';
+import {lineHeightScale} from '@styles/typography';
+import variables from '@styles/variables';
+
+import {createPolicyDistanceRate, openPolicyDistanceRatesPage, setWorkspaceDistanceAutoUpdate} from '@userActions/Policy/DistanceRate';
 import {generateCustomUnitID} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PolicyCreateDistanceRateForm';
 import type {Rate} from '@src/types/onyx/Policy';
 
-import React from 'react';
+import type {ValueOf} from 'type-fest';
+
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type CreateDistanceRatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CREATE_DISTANCE_RATE>;
+
+type DistanceRateKind = ValueOf<typeof CONST.CUSTOM_UNITS.DISTANCE_RATE_KIND>;
+
+const GOVERNMENT_AMOUNT_SKELETON_WIDTH = 64;
 
 function CreateDistanceRatePage({
     route: {
@@ -47,7 +81,9 @@ function CreateDistanceRatePage({
     },
 }: CreateDistanceRatePageProps) {
     const styles = useThemeStyles();
-    const {translate, toLocaleDigit} = useLocalize();
+    const theme = useTheme();
+    const icons = useMemoizedLazyExpensifyIcons(['Bank', 'Pencil', 'Info']);
+    const {translate, toLocaleDigit, localeCompare} = useLocalize();
     const policy = usePolicy(policyID);
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const customUnit = getDistanceRateCustomUnit(policy);
@@ -58,14 +94,86 @@ function CreateDistanceRatePage({
     const {inputCallbackRef} = useAutoFocusInput();
     const isDistanceRateUpgrade = transactionID && reportID;
     const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
+    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
+    const [governmentMileageRates] = useOnyx(ONYXKEYS.GOVERNMENT_MILEAGE_RATES);
+    const formRef = useRef<FormRef>(null);
+
+    // The auto-update toggle is on exactly when the workspace has its government rate, and a workspace has at most one
+    const hasGovernmentRate = !!policy?.shouldAutoUpdateGovernmentDistanceRates;
+    const isEuroWorkspace = isSharedGovernmentRateCurrency(currency);
+
+    // An EUR workspace with a government rate keeps the country chosen in Distance rates > Settings
+    const canPickEuroCountry = isEuroWorkspace && !hasGovernmentRate;
+    const [pickedEuroCountry, setPickedEuroCountry] = useState<Country>();
+    const euroCountry = (canPickEuroCountry ? pickedEuroCountry : undefined) ?? getDefaultEuroDistanceRateCountry(policy, countryByIp);
+    const country = isEuroWorkspace ? euroCountry : getDistanceRateCountryForCurrency(currency, currencyList);
+    const governmentRateCountry = !isDistanceRateUpgrade && isGovernmentRateCountry(country) ? country : undefined;
+    const [pickedKind, setPickedKind] = useState<DistanceRateKind>();
+    const defaultKind = hasGovernmentRate ? CONST.CUSTOM_UNITS.DISTANCE_RATE_KIND.CUSTOM : CONST.CUSTOM_UNITS.DISTANCE_RATE_KIND.GOVERNMENT;
+    const kind = governmentRateCountry ? (pickedKind ?? defaultKind) : CONST.CUSTOM_UNITS.DISTANCE_RATE_KIND.CUSTOM;
+    const isGovernmentKind = kind === CONST.CUSTOM_UNITS.DISTANCE_RATE_KIND.GOVERNMENT;
+    const isGovernmentRateTaken = isGovernmentKind && hasGovernmentRate;
+    const currentGovernmentRate = isGovernmentKind && governmentRateCountry ? getCurrentGovernmentMileageRate(governmentMileageRates, currency, governmentRateCountry) : undefined;
 
     const existingRateNames = Object.values(customUnit?.rates ?? {}).map((r) => r.name ?? '');
 
     const FullPageBlockingView = !customUnitID ? FullPageOfflineBlockingView : View;
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => validateCreateDistanceRateForm(values, toLocaleDigit, translate, existingRateNames);
+    // Deep links can open this page before the rates list page has loaded the government reference rates
+    const fetchDistanceRates = () => {
+        if (isDistanceRateUpgrade) {
+            return;
+        }
+        openPolicyDistanceRatesPage(policyID);
+    };
 
-    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => {
+    useNetwork({onReconnect: fetchDistanceRates});
+
+    useEffect(() => {
+        fetchDistanceRates();
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- the rates only need loading once when the page opens
+    }, []);
+
+    // The custom form is cleared and the kind goes back to the new country's default
+    const selectEuroCountry = (selectedCountry: unknown) => {
+        if (typeof selectedCountry !== 'string' || !isEuroDistanceRateCountry(selectedCountry)) {
+            return;
+        }
+        setPickedEuroCountry(selectedCountry);
+        setPickedKind(undefined);
+        formRef.current?.resetForm({[INPUT_IDS.COUNTRY]: selectedCountry});
+    };
+
+    const navigateToWorkspaceOverview = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID));
+    };
+
+    const navigateToDistanceRateSettings = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID));
+    };
+
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) =>
+        isGovernmentKind ? {} : validateCreateDistanceRateForm(values, toLocaleDigit, translate, existingRateNames);
+
+    const saveGovernmentRate = () => {
+        if (!policy || !currentGovernmentRate) {
+            return;
+        }
+
+        // Only Control can auto-update government rates, so the toggle sends every other workspace to the upgrade flow too
+        if (!isControlPolicy(policy)) {
+            Navigation.navigate(
+                ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.governmentDistanceRates.alias, ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID)),
+            );
+            return;
+        }
+
+        setWorkspaceDistanceAutoUpdate(policy, true, governmentMileageRates ?? [], isEuroWorkspace ? governmentRateCountry : undefined);
+        Navigation.goBack();
+    };
+
+    const saveCustomRate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => {
         // A blocking view is shown when customUnitID is undefined, so this function should never be called
         if (!customUnitID) {
             return;
@@ -99,6 +207,26 @@ function CreateDistanceRatePage({
         Navigation.goBack();
     };
 
+    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => {
+        if (isGovernmentKind) {
+            saveGovernmentRate();
+            return;
+        }
+        saveCustomRate(values);
+    };
+
+    const kindTabs: Array<TabSelectorBaseItem<DistanceRateKind>> = [
+        {key: CONST.CUSTOM_UNITS.DISTANCE_RATE_KIND.GOVERNMENT, title: translate('workspace.distanceRates.addRatePage.government'), icon: icons.Bank},
+        {key: CONST.CUSTOM_UNITS.DISTANCE_RATE_KIND.CUSTOM, title: translate('workspace.distanceRates.addRatePage.custom'), icon: icons.Pencil},
+    ];
+    const authority = governmentRateCountry ? translate(`workspace.distanceRates.addRatePage.governmentRateAuthorities.${governmentRateCountry}`) : '';
+    const kindHint = isGovernmentRateTaken
+        ? translate('workspace.distanceRates.addRatePage.alreadyHasGovernmentRate')
+        : translate('workspace.distanceRates.addRatePage.matchesAuthority', authority);
+    const governmentAmount = currentGovernmentRate
+        ? convertAmountToDisplayString(getGovernmentRateAmountForUnit(currentGovernmentRate.rate, currentGovernmentRate.sourceRateID, distanceUnit), currency)
+        : undefined;
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -114,50 +242,168 @@ function CreateDistanceRatePage({
                 <HeaderWithBackButton title={isDistanceRateUpgrade ? translate('common.rate') : translate('workspace.distanceRates.addRate')} />
                 <FullPageBlockingView style={styles.flexGrow1}>
                     <FormProvider
+                        ref={formRef}
                         formID={ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM}
                         submitButtonText={translate('common.save')}
                         onSubmit={submit}
                         validate={validate}
+                        isSubmitButtonVisible={!isGovernmentRateTaken}
+                        isSubmitDisabled={isGovernmentKind && !currentGovernmentRate}
                         enabledWhenOffline
                         style={[styles.mh5, styles.flex1]}
                         submitButtonStyles={[styles.mt0]}
                         addBottomSafeAreaPadding
                     >
-                        <InputWrapper
-                            ref={inputCallbackRef}
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.NAME}
-                            label={translate('common.name')}
-                            accessibilityLabel={translate('common.name')}
-                            role={CONST.ROLE.PRESENTATION}
-                        />
-                        <View style={styles.mt4}>
-                            <InputWrapper
-                                InputComponent={AmountForm}
-                                inputID={INPUT_IDS.RATE}
-                                decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
-                                currency={currency}
-                                isCurrencyPressable={false}
-                                displayAsTextInput
-                                label={translate('workspace.distanceRates.amountPerUnit', unitLabel)}
-                            />
-                        </View>
-                        <View style={styles.mt2}>
-                            <InputWrapper
-                                InputComponent={DatePicker}
-                                inputID={INPUT_IDS.START_DATE}
-                                label={translate('workspace.distanceRates.startDate')}
-                                shouldDeferShowUntilPositioned
-                                shouldDismissKeyboardBeforeShow
-                            />
-                        </View>
-                        <InputWrapper
-                            InputComponent={DatePicker}
-                            inputID={INPUT_IDS.END_DATE}
-                            label={translate('workspace.distanceRates.endDate')}
-                            shouldDeferShowUntilPositioned
-                            shouldDismissKeyboardBeforeShow
-                        />
+                        {!isDistanceRateUpgrade && (
+                            <>
+                                <View style={styles.mhn5}>
+                                    {canPickEuroCountry ? (
+                                        <InputWrapper
+                                            InputComponent={ValuePicker}
+                                            inputID={INPUT_IDS.COUNTRY}
+                                            label={translate('workspace.distanceRates.addRatePage.whichCountry')}
+                                            value={country}
+                                            items={getEuroDistanceRateCountryOptions(translate, localeCompare)}
+                                            onValueChange={selectEuroCountry}
+                                        />
+                                    ) : (
+                                        <MenuItemField
+                                            name={translate('common.country')}
+                                            value={country ? translate(`allCountries.${country}`) : translate('workspace.distanceRates.addRatePage.otherCountry')}
+                                        />
+                                    )}
+                                </View>
+                                {!canPickEuroCountry && (
+                                    <RenderHTML
+                                        html={translate(
+                                            isEuroWorkspace ? 'workspace.distanceRates.addRatePage.setInDistanceRateSettings' : 'workspace.distanceRates.addRatePage.basedOnDefaultCurrency',
+                                        )}
+                                        onLinkPress={isEuroWorkspace ? navigateToDistanceRateSettings : navigateToWorkspaceOverview}
+                                    />
+                                )}
+                                <View style={[styles.sectionDividerLine, styles.mv5]} />
+                                <Text
+                                    variant="labelStrong"
+                                    style={styles.mb4}
+                                >
+                                    {translate('workspace.distanceRates.addRatePage.whatKindOfRate')}
+                                </Text>
+                                {governmentRateCountry ? (
+                                    <>
+                                        <TabSelectorContextProvider activeTabKey={kind}>
+                                            <TabSelectorBase
+                                                tabs={kindTabs}
+                                                activeTabKey={kind}
+                                                onTabPress={setPickedKind}
+                                                contentContainerStyles={[styles.ph0, styles.pb0]}
+                                                equalWidth
+                                            />
+                                        </TabSelectorContextProvider>
+                                        {isGovernmentKind && <Text style={[styles.textLabelSupporting, styles.mt4]}>{kindHint}</Text>}
+                                    </>
+                                ) : (
+                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                                        <Icon
+                                            src={icons.Info}
+                                            fill={theme.icon}
+                                            width={variables.iconSizeNormal}
+                                            height={variables.iconSizeNormal}
+                                        />
+                                        <Text style={[styles.textLabelSupporting, styles.flex1]}>{getNoGovernmentRateNote(translate, country)}</Text>
+                                    </View>
+                                )}
+                            </>
+                        )}
+                        {!isGovernmentKind && (
+                            <>
+                                {!isDistanceRateUpgrade && (
+                                    <>
+                                        <View style={[styles.sectionDividerLine, styles.mv5]} />
+                                        <Text
+                                            variant="labelStrong"
+                                            style={styles.mb4}
+                                        >
+                                            {translate('common.details')}
+                                        </Text>
+                                    </>
+                                )}
+                                <InputWrapper
+                                    ref={inputCallbackRef}
+                                    InputComponent={TextInput}
+                                    inputID={INPUT_IDS.NAME}
+                                    label={translate('common.name')}
+                                    accessibilityLabel={translate('common.name')}
+                                    role={CONST.ROLE.PRESENTATION}
+                                />
+                                <View style={[styles.flexRow, styles.gap3, styles.mt2]}>
+                                    <View style={styles.flex1}>
+                                        <InputWrapper
+                                            InputComponent={DatePicker}
+                                            inputID={INPUT_IDS.START_DATE}
+                                            label={translate('workspace.distanceRates.startDate')}
+                                            shouldDeferShowUntilPositioned
+                                            shouldDismissKeyboardBeforeShow
+                                        />
+                                    </View>
+                                    <View style={styles.flex1}>
+                                        <InputWrapper
+                                            InputComponent={DatePicker}
+                                            inputID={INPUT_IDS.END_DATE}
+                                            label={translate('workspace.distanceRates.endDate')}
+                                            shouldDeferShowUntilPositioned
+                                            shouldDismissKeyboardBeforeShow
+                                        />
+                                    </View>
+                                </View>
+                                {!isDistanceRateUpgrade && (
+                                    <>
+                                        <View style={[styles.sectionDividerLine, styles.mv5]} />
+                                        <Text
+                                            variant="labelStrong"
+                                            style={styles.mb4}
+                                        >
+                                            {translate('workspace.distanceRates.rate')}
+                                        </Text>
+                                    </>
+                                )}
+                                <InputWrapper
+                                    InputComponent={AmountForm}
+                                    inputID={INPUT_IDS.RATE}
+                                    decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
+                                    currency={currency}
+                                    isCurrencyPressable={false}
+                                    displayAsTextInput
+                                    label={translate('workspace.distanceRates.amountPerUnit', unitLabel)}
+                                />
+                            </>
+                        )}
+                        {isGovernmentKind && !isGovernmentRateTaken && (
+                            <>
+                                <View style={[styles.sectionDividerLine, styles.mv5]} />
+                                <Text
+                                    variant="labelStrong"
+                                    style={styles.mb2}
+                                >
+                                    {translate('workspace.distanceRates.rate')}
+                                </Text>
+                                <View style={styles.mhn5}>
+                                    {governmentAmount ? (
+                                        <MenuItemField
+                                            name={translate('workspace.distanceRates.amountPerUnit', unitLabel)}
+                                            value={governmentAmount}
+                                        />
+                                    ) : (
+                                        <View style={[styles.ph5, styles.pv3]}>
+                                            <Text style={styles.textLabelSupporting}>{translate('workspace.distanceRates.amountPerUnit', unitLabel)}</Text>
+                                            <SkeletonTextLine
+                                                lineHeight={lineHeightScale.text}
+                                                barWidth={GOVERNMENT_AMOUNT_SKELETON_WIDTH}
+                                            />
+                                        </View>
+                                    )}
+                                </View>
+                            </>
+                        )}
                     </FormProvider>
                 </FullPageBlockingView>
             </ScreenWrapper>

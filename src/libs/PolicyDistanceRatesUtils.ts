@@ -2,15 +2,17 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
-import type {GovernmentRateCountry, IOURequestType} from '@src/CONST';
+import type {Country, GovernmentRateCountry, IOURequestType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {GovernmentMileageRate, Policy} from '@src/types/onyx';
+import type {CurrencyList, GovernmentMileageRate, Policy} from '@src/types/onyx';
 import type {CustomUnit, Rate, RateAttributes, Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
-import type {NullishDeep, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {TupleToUnion} from 'type-fest';
 
+import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
 import type {Option} from './searchOptions';
@@ -422,6 +424,108 @@ function getGovernmentRateCountryOptions(translate: LocalizedTranslate, localeCo
     }).sort((a, b) => localeCompare(a.text, b.text));
 }
 
+/** Whether Expensify publishes a government rate for this country. */
+function isGovernmentRateCountry(country?: string): country is GovernmentRateCountry {
+    const governmentRateCountries: readonly string[] = [
+        ...Object.values(CONST.CUSTOM_UNITS.GOVERNMENT_RATE_CURRENCY_TO_COUNTRY),
+        ...CONST.CUSTOM_UNITS.GOVERNMENT_RATE_SUPPORTED_EUR_COUNTRIES,
+    ];
+    return !!country && governmentRateCountries.includes(country);
+}
+
+function isKnownCountry(country?: string): country is Country {
+    return !!country && country in CONST.ALL_COUNTRIES;
+}
+
+function isEuroDistanceRateCountry(country?: string): country is TupleToUnion<typeof CONST.CUSTOM_UNITS.DISTANCE_RATE_EURO_COUNTRIES> {
+    const euroCountries: readonly string[] = CONST.CUSTOM_UNITS.DISTANCE_RATE_EURO_COUNTRIES;
+    return !!country && euroCountries.includes(country);
+}
+
+function isCountryWithNoGovernmentRateNote(country: string): country is TupleToUnion<typeof CONST.CUSTOM_UNITS.DISTANCE_RATE_COUNTRIES_WITH_NO_GOVERNMENT_RATE_NOTE> {
+    const countriesWithNote: readonly string[] = CONST.CUSTOM_UNITS.DISTANCE_RATE_COUNTRIES_WITH_NO_GOVERNMENT_RATE_NOTE;
+    return countriesWithNote.includes(country);
+}
+
+/**
+ * The country a new distance rate is for, based on the workspace currency. Returns undefined when the currency is
+ * used by several countries. EUR workspaces pick the country themselves, see getDefaultEuroDistanceRateCountry.
+ */
+function getDistanceRateCountryForCurrency(currency: string | undefined, currencyList: OnyxEntry<CurrencyList>): Country | undefined {
+    const governmentRateCountry = getGovernmentRateCountryForCurrency(currency);
+    if (governmentRateCountry) {
+        return governmentRateCountry;
+    }
+
+    const countries = currency ? currencyList?.[currency]?.countries : undefined;
+    const onlyCountry = countries?.length === 1 ? countries.at(0) : undefined;
+    return isKnownCountry(onlyCountry) ? onlyCountry : undefined;
+}
+
+/**
+ * The euro country a new distance rate defaults to. A workspace that already auto-updates its government rate keeps that
+ * rate's country. Otherwise we try the company address, then the admin's IP address, then fall back to Austria.
+ */
+function getDefaultEuroDistanceRateCountry(policy: OnyxEntry<Policy>, countryByIp: string | undefined): Country {
+    const autoUpdateCountry = policy?.shouldAutoUpdateGovernmentDistanceRates ? getAutoUpdateGovernmentRateCountry(policy) : undefined;
+    if (autoUpdateCountry) {
+        return autoUpdateCountry;
+    }
+
+    const addressCountry = policy?.address?.country;
+    if (isEuroDistanceRateCountry(addressCountry)) {
+        return addressCountry;
+    }
+
+    if (isEuroDistanceRateCountry(countryByIp)) {
+        return countryByIp;
+    }
+
+    return CONST.CUSTOM_UNITS.DISTANCE_RATE_DEFAULT_EURO_COUNTRY;
+}
+
+/** Sorted options for the countries an EUR workspace can add a distance rate for. */
+function getEuroDistanceRateCountryOptions(translate: LocalizedTranslate, localeCompare: (a: string, b: string) => number): Array<{value: string; label: string}> {
+    return CONST.CUSTOM_UNITS.DISTANCE_RATE_EURO_COUNTRIES.map((countryCode) => ({
+        value: countryCode,
+        label: translate(`allCountries.${countryCode}`),
+    })).sort((a, b) => localeCompare(a.label, b.label));
+}
+
+/**
+ * The government car rate in effect today for the country, which is the one with the latest start date that has already
+ * started. UK fuel bands are skipped because they are only used for tax reclaim.
+ */
+function getCurrentGovernmentMileageRate(
+    governmentMileageRates: OnyxEntry<GovernmentMileageRate[]>,
+    currency: string | undefined,
+    country: GovernmentRateCountry,
+    today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+): GovernmentMileageRate | undefined {
+    let currentRate: GovernmentMileageRate | undefined;
+    for (const governmentMileageRate of governmentMileageRates ?? []) {
+        const {sourceRateID, startDate} = governmentMileageRate;
+        const isForCountry = governmentMileageRate.currency === currency && sourceRateID.split('_').at(0) === country && !isFuelBandGovernmentRate(sourceRateID);
+        if (isForCountry && startDate <= today && (!currentRate || startDate > currentRate.startDate)) {
+            currentRate = governmentMileageRate;
+        }
+    }
+    return currentRate;
+}
+
+/** Explains why the Add rate page offers no government rate for this country. An undefined country means "Other country". */
+function getNoGovernmentRateNote(translate: LocalizedTranslate, country: Country | undefined): string {
+    if (!country) {
+        return translate('workspace.distanceRates.addRatePage.noGovernmentRateForOtherCountry');
+    }
+
+    if (isCountryWithNoGovernmentRateNote(country)) {
+        return translate(`workspace.distanceRates.addRatePage.noGovernmentRateNotes.${country}`);
+    }
+
+    return translate('workspace.distanceRates.addRatePage.noGovernmentRateForCountry', translate(`allCountries.${country}`));
+}
+
 /**
  * Builds the optimistic, success and failure Onyx data for enabling or disabling government rate auto-update,
  * including the optimistic copy of the country's reference rates and the distance unit correction. Shared by the
@@ -695,4 +799,12 @@ export {
     getDistanceRateNameErrorMessage,
     getDistanceRateValueError,
     getDistanceRateValueErrorMessage,
+    isGovernmentRateCountry,
+    getDistanceRateCountryForCurrency,
+    getDefaultEuroDistanceRateCountry,
+    getEuroDistanceRateCountryOptions,
+    getCurrentGovernmentMileageRate,
+    getNoGovernmentRateNote,
+    getGovernmentRateAmountForUnit,
+    isEuroDistanceRateCountry,
 };
