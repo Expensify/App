@@ -25,19 +25,38 @@ if (unknownRcRules.length) {
 
 // eslint-plugin-storybook's own recommended config, run as an oxlint JS plugin. Its `storybook/` rules keep their names,
 // so findings and `eslint-disable` comments use them as they are. oxlint does not read `@(a|b)` globs, so they are
-// rewritten as `{a,b}`, and the config's react-hooks and import-x rules, which only turn checks off, are left out: for
-// stories, `react/rules-of-hooks` is turned off below.
-const storybookOverrides = storybookPlugin.configs['flat/recommended'].flatMap(({files, rules}) =>
-    files && rules
-        ? [
-              {
-                  files: files.flat().map((glob) => glob.replaceAll(/@\(([^)]*)\)/g, (match: string, alternatives: string) => `{${alternatives.split('|').join(',')}}`)),
-                  jsPlugins: ['eslint-plugin-storybook'],
-                  rules: Object.fromEntries(Object.entries(rules).filter(([ruleID]) => ruleID.startsWith('storybook/'))),
-              },
-          ]
-        : [],
-);
+// rewritten as `{a,b}`. The config's `react-hooks/rules-of-hooks` becomes oxlint's `react/rules-of-hooks`. Its `import-x/`
+// rules are left out: they only turn off rules of eslint-plugin-import-x, which the App does not run. Anything else this
+// rewrite does not handle throws, so a plugin upgrade that changes the config fails here instead of linting stories wrongly.
+const STORYBOOK_CONFIG_KEYS = new Set(['name', 'files', 'rules', 'plugins']);
+const storybookOverrides = storybookPlugin.configs['flat/recommended'].flatMap((block) => {
+    const unknownKeys = Object.keys(block).filter((key) => !STORYBOOK_CONFIG_KEYS.has(key));
+    if (unknownKeys.length) {
+        throw new Error(`eslint-plugin-storybook's flat/recommended has keys this config does not handle: ${unknownKeys.join(', ')}`);
+    }
+    const {files, rules} = block;
+    if (!files || !rules) {
+        return [];
+    }
+    const globs = files.flat().map((glob) => glob.replaceAll(/@\(([^)]*)\)/g, (match: string, alternatives: string) => `{${alternatives.split('|').join(',')}}`));
+    const unrewrittenGlobs = globs.filter((glob) => glob.includes('('));
+    if (unrewrittenGlobs.length) {
+        throw new Error(`eslint-plugin-storybook's flat/recommended has globs oxlint cannot read: ${unrewrittenGlobs.join(', ')}`);
+    }
+    const overrideRules = Object.entries(rules).flatMap(([ruleID, entry]): Array<[string, typeof entry]> => {
+        if (ruleID.startsWith('storybook/')) {
+            return [[ruleID, entry]];
+        }
+        if (ruleID === 'react-hooks/rules-of-hooks') {
+            return [['react/rules-of-hooks', entry]];
+        }
+        if (ruleID.startsWith('import-x/')) {
+            return [];
+        }
+        throw new Error(`eslint-plugin-storybook's flat/recommended sets ${ruleID}, which this config does not handle`);
+    });
+    return [{files: globs, jsPlugins: ['eslint-plugin-storybook'], rules: Object.fromEntries(overrideRules)}];
+});
 
 // An oxlint override replaces a rule's options instead of merging them, so every block that sets
 // `no-restricted-imports` restates the full list, built from these.
@@ -771,12 +790,8 @@ export default await buildOxlintConfig({
         ...storybookOverrides,
         {
             files: ['**/*.{stories,story}.{ts,tsx,js,jsx,mjs,cjs}'],
-            rules: {
-                // eslint-plugin-storybook's recommended config turns this off for stories.
-                'react/rules-of-hooks': 'off',
-                // Stories never send anything to Sentry, so they don't need a sentryLabel.
-                'core/no-restricted-syntax': ['error', ...restrictedSyntax],
-            },
+            // Stories never send anything to Sentry, so they don't need a sentryLabel.
+            rules: {'core/no-restricted-syntax': ['error', ...restrictedSyntax]},
         },
         {files: ['src/types/onyx/**/*.ts'], rules: {'hosted/require-jsdoc': ['error', {contexts: ['TSInterfaceDeclaration', 'TSTypeAliasDeclaration']}]}},
         {

@@ -7,7 +7,7 @@ import {rules as presetRules} from 'eslint-config-expensify/oxlint/plugins/hoste
 import {hostRule, withEslintDirectiveIDs} from 'eslint-config-expensify/oxlint/utils';
 
 import {EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN} from '../../reactCompiler/suppressedRules.mjs';
-import {APP_HOSTED_RULE_IDS_BY_NAME, APP_LOCAL_HOSTED_RULES} from '../appHostedRules.mjs';
+import {APP_HOSTED_ESLINT_RULE_IDS, APP_LOCAL_HOSTED_RULES} from '../appHostedRules.mjs';
 import {create as noDeprecatedSelfClosingJsxCreate, meta as noDeprecatedSelfClosingJsxMeta} from '../noDeprecatedSelfClosingJsx.mjs';
 import {withFullGating, withMessageGating} from '../reactCompilerGate.mjs';
 
@@ -18,11 +18,7 @@ const plugin = {
     },
     rules: {
         ...presetRules,
-        ...Object.fromEntries(
-            Object.entries(APP_HOSTED_RULE_IDS_BY_NAME)
-                .filter(([name]) => !(name in APP_LOCAL_HOSTED_RULES))
-                .map(([name, ruleID]) => [name, hostRule(ruleID)]),
-        ),
+        ...Object.fromEntries(APP_HOSTED_ESLINT_RULE_IDS.map((ruleID) => [ruleID.split('/').at(-1), hostRule(ruleID)])),
 
         // In files React Compiler memoizes, reactCompilerGate.mjs drops all jsx-no-constructed-context-values reports and
         // the useCallback/useMemo reports of exhaustive-deps.
