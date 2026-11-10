@@ -346,6 +346,7 @@ type SetWorkspaceApprovalModeAdditionalData = {
     transactionViolations?: OnyxCollection<TransactionViolations>;
     isASAPSubmitBetaEnabled: boolean | undefined;
     personalDetailsList?: OnyxEntry<PersonalDetailsList>;
+    personalDetailsByLogins: PersonalDetailsByLogin | undefined;
 };
 
 /**
@@ -1314,6 +1315,7 @@ function setWorkspaceApprovalMode(
                 predictedNextStatus: report?.statusNum ?? CONST.REPORT.STATUS_NUM.SUBMITTED,
                 isTrackIntentUser,
                 rules,
+                personalDetailsByLogins: additionalData.personalDetailsByLogins,
             });
 
             reportsOptimisticData.push({
@@ -2850,6 +2852,53 @@ function getApprovalModeForNewWorkspace(
     return CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
+type NewWorkspaceWorkflowsOptions = {
+    /** If the workspace type is submit */
+    isSubmitWorkspace: boolean;
+
+    /** The workspace type being created */
+    workspaceType?: ValueOf<typeof CONST.POLICY.TYPE>;
+
+    /** Explicit pick from the workspace creation feature map, when the flow offers one */
+    workflowsFeatureEnabled?: boolean;
+
+    /** The account level onboarding choice */
+    introSelectedChoice?: OnboardingPurpose;
+
+    /** The choice passed for this creation */
+    engagementChoice?: OnboardingPurpose;
+};
+
+/**
+ * Determines whether workflows feature is enabled by default on a workspace
+ */
+function shouldEnableWorkflowsByDefaultForNewWorkspace({
+    isSubmitWorkspace,
+    workspaceType,
+    workflowsFeatureEnabled,
+    introSelectedChoice,
+    engagementChoice,
+}: NewWorkspaceWorkflowsOptions): boolean {
+    if (workflowsFeatureEnabled !== undefined) {
+        return workflowsFeatureEnabled;
+    }
+    if (isSubmitWorkspace) {
+        return true;
+    }
+    if (workspaceType === CONST.POLICY.TYPE.CORPORATE && engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && introSelectedChoice === CONST.ONBOARDING_CHOICES.ADMIN) {
+        return false;
+    }
+    if (engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE || engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL) {
+        return false;
+    }
+    return (
+        !engagementChoice ||
+        engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
+        engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND ||
+        isTrackOnboardingChoice(engagementChoice)
+    );
+}
+
 /**
  * Builds the default title report field (`fieldList`) used when seeding a new policy.
  */
@@ -2958,6 +3007,14 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
 
     const workspaceType = type ?? (isCorporateFeature || isCorporateIntegration || shouldCreateControlPolicy || isAnnualSubscription ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM);
 
+    const isWorkflowFeatureEnabled = shouldEnableWorkflowsByDefaultForNewWorkspace({
+        isSubmitWorkspace,
+        workspaceType,
+        workflowsFeatureEnabled: featuresMap?.find((feature) => feature.id === CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED)?.enabled,
+        introSelectedChoice: introSelected?.choice,
+        engagementChoice,
+    });
+
     const areDistanceRatesEnabled = isSubmitWorkspace || !!featuresMap?.find((feature) => feature.id === CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED && feature.enabled);
 
     // WARNING: The data below should be kept in sync with the API so we create the policy with the correct configuration.
@@ -3006,7 +3063,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                 areCompanyCardsEnabled: !isSubmitWorkspace,
                 areTagsEnabled: isSubmitWorkspace,
                 areDistanceRatesEnabled,
-                areWorkflowsEnabled: shouldEnableWorkflowsByDefault,
+                areWorkflowsEnabled: isWorkflowFeatureEnabled,
                 areReportFieldsEnabled: false,
                 areConnectionsEnabled: false,
                 areExpensifyCardsEnabled: false,
