@@ -1764,7 +1764,7 @@ const translations: TranslationDeepObject<typeof en> = {
             atLeastTwoDifferentWaypoints: 'Veuillez saisir au moins deux adresses différentes',
             splitExpenseMultipleParticipantsErrorMessage: "Une dépense ne peut pas être répartie entre un espace de travail et d'autres membres. Veuillez modifier votre sélection.",
             invalidMerchant: 'Veuillez saisir un commerçant valide',
-            enterRequiredFields: 'Veuillez remplir les champs obligatoires.',
+            enterRequiredFields: 'Veuillez renseigner les champs obligatoires.',
             atLeastOneAttendee: 'Au moins un participant doit être sélectionné',
             invalidQuantity: 'Veuillez saisir une quantité valide',
             quantityGreaterThanZero: 'La quantité doit être supérieure à zéro',

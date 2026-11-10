@@ -1687,7 +1687,7 @@ const translations: TranslationDeepObject<typeof en> = {
             atLeastTwoDifferentWaypoints: '请输入至少两个不同的地址',
             splitExpenseMultipleParticipantsErrorMessage: '无法将一笔报销同时分摊到一个工作区和其他成员。请更新你的选择。',
             invalidMerchant: '请输入有效的商家',
-            enterRequiredFields: '请填写必填字段。',
+            enterRequiredFields: '请输入必填字段。',
             atLeastOneAttendee: '必须选择至少一位参加者',
             invalidQuantity: '请输入有效的数量',
             quantityGreaterThanZero: '数量必须大于零',

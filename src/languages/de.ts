@@ -237,7 +237,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phoneNumber: `Bitte gib eine vollständige Telefonnummer ein
 (z. B. ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Dieses Feld ist erforderlich',
-            fixErrorsBeforeContinuing: 'Bitte behebe die Fehler im Formular, bevor du fortfährst.',
+            fixErrorsBeforeContinuing: 'Bitte beheben Sie die Fehler im Formular, bevor Sie fortfahren.',
             requestModified: 'Diese Anfrage wird gerade von einem anderen Mitglied bearbeitet',
             characterLimitExceedCounter: (length: number, limit: number) => `Zeichenlimit überschritten (${length}/${limit})`,
             dateInvalid: 'Bitte wähle ein gültiges Datum aus',
@@ -1756,7 +1756,7 @@ const translations: TranslationDeepObject<typeof en> = {
             atLeastTwoDifferentWaypoints: 'Bitte gib mindestens zwei verschiedene Adressen ein',
             splitExpenseMultipleParticipantsErrorMessage: 'Eine Ausgabe kann nicht zwischen einem Workspace und anderen Mitgliedern aufgeteilt werden. Bitte aktualisiere deine Auswahl.',
             invalidMerchant: 'Bitte gib einen gültigen Händler ein',
-            enterRequiredFields: 'Bitte fülle die Pflichtfelder aus.',
+            enterRequiredFields: 'Bitte füllen Sie die erforderlichen Felder aus.',
             atLeastOneAttendee: 'Mindestens eine teilnehmende Person muss ausgewählt werden',
             invalidQuantity: 'Bitte gib eine gültige Menge ein',
             quantityGreaterThanZero: 'Die Menge muss größer als null sein',
