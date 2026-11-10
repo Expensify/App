@@ -148,6 +148,39 @@ describe('SearchFiltersSaveButton', () => {
         expect(saveSearch).not.toHaveBeenCalled();
     });
 
+    it.each([ModalActions.CONFIRM, ModalActions.CLOSE, ModalActions.DISMISS])('ignores repeated Save presses until %s resolves and allows a later decision', async (action) => {
+        // Given an existing saved search with a decision that has not finished hiding
+        const decision = Promise.withResolvers<ModalStateChangePayload>();
+        mockShowDecisionModal.mockReturnValue(decision.promise);
+        render(<SearchFiltersSaveButton />);
+
+        // When Save is pressed twice in the same turn before the modal intercepts input
+        await act(async () => {
+            const onPress = jest.mocked(SearchFiltersBarButton).mock.calls.at(-1)?.[0].onPress;
+            onPress?.();
+            onPress?.();
+        });
+
+        // Then only one decision is pending and no action runs before it finishes hiding
+        expect(mockShowDecisionModal).toHaveBeenCalledTimes(1);
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+        expect(saveSearch).not.toHaveBeenCalled();
+        await act(async () => decision.resolve({action}));
+        expect(Navigation.navigate).toHaveBeenCalledTimes(action === ModalActions.CONFIRM ? 1 : 0);
+        expect(saveSearch).toHaveBeenCalledTimes(action === ModalActions.CLOSE ? 1 : 0);
+
+        // When Save is pressed again after the previous decision has completed
+        const nextDecision = Promise.withResolvers<ModalStateChangePayload>();
+        mockShowDecisionModal.mockReturnValue(nextDecision.promise);
+        await pressSave();
+
+        // Then a fresh decision opens instead of leaving Save permanently blocked
+        expect(mockShowDecisionModal).toHaveBeenCalledTimes(2);
+        await act(async () => nextDecision.resolve({action: ModalActions.DISMISS}));
+        expect(Navigation.navigate).toHaveBeenCalledTimes(action === ModalActions.CONFIRM ? 1 : 0);
+        expect(saveSearch).toHaveBeenCalledTimes(action === ModalActions.CLOSE ? 1 : 0);
+    });
+
     it('does not update a saved search when the current query is unavailable', async () => {
         // Given an existing search with no current query data
         mockCurrentSearchQueryJSON = undefined;

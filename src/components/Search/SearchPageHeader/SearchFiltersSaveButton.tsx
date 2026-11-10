@@ -13,7 +13,7 @@ import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import React from 'react';
+import React, {useRef} from 'react';
 
 import SearchFiltersBarButton from './SearchFiltersBarButton';
 
@@ -24,6 +24,7 @@ function SearchFiltersSaveButton() {
     const {currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
     const activeSavedSearch = useActiveSavedSearch();
     const activeSavedSearchID = searchKeyToSavedSearchID(currentSearchKey);
+    const isDecisionPending = useRef(false);
 
     const openSaveSearchPage = () => {
         Navigation.navigate(ROUTES.SEARCH_SAVE);
@@ -35,25 +36,37 @@ function SearchFiltersSaveButton() {
             return;
         }
 
-        const decision = await showDecisionModal({
-            title: translate('search.saveEdits.title'),
-            prompt: translate('search.saveEdits.prompt', {name: activeSavedSearch?.name ?? ''}),
-            firstOptionText: translate('search.saveEdits.createNew'),
-            secondOptionText: translate('search.saveEdits.updateExisting'),
-            shouldRenderPromptAsHTML: false,
-            shouldReportDismiss: true,
-        });
-
-        if (decision.action === ModalActions.CONFIRM) {
-            openSaveSearchPage();
+        // A ref blocks repeated presses before the global modal can intercept input, without waiting for a render.
+        if (isDecisionPending.current) {
             return;
         }
 
-        if (decision.action !== ModalActions.CLOSE || !currentSearchQueryJSON) {
-            return;
-        }
+        isDecisionPending.current = true;
+        try {
+            const decision = await showDecisionModal({
+                title: translate('search.saveEdits.title'),
+                prompt: translate('search.saveEdits.prompt', {name: activeSavedSearch?.name ?? ''}),
+                firstOptionText: translate('search.saveEdits.createNew'),
+                secondOptionText: translate('search.saveEdits.updateExisting'),
+                shouldRenderPromptAsHTML: false,
+                shouldReportDismiss: true,
+            });
 
-        saveSearch({id: activeSavedSearchID, queryJSON: currentSearchQueryJSON, newName: activeSavedSearch?.name});
+            // The first option (create new) resolves as CONFIRM and the second (update existing) as CLOSE.
+            // With shouldReportDismiss, backdrop/Escape/Back resolve as DISMISS, so only CLOSE may overwrite the saved search.
+            if (decision.action === ModalActions.CONFIRM) {
+                openSaveSearchPage();
+                return;
+            }
+
+            if (decision.action !== ModalActions.CLOSE || !currentSearchQueryJSON) {
+                return;
+            }
+
+            saveSearch({id: activeSavedSearchID, queryJSON: currentSearchQueryJSON, newName: activeSavedSearch?.name});
+        } finally {
+            isDecisionPending.current = false;
+        }
     };
 
     return (
