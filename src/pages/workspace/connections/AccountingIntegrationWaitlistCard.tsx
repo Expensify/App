@@ -49,7 +49,9 @@ function AccountingIntegrationWaitlistCard({connectionName, title, icon, policyI
     const [isOnServerWaitlist] = useOnyx(ONYXKEYS.NVP_ACCOUNTING_INTEGRATION_WAITLIST, {
         selector: (waitlist) => !!waitlist?.some((entry) => entry.connectionName === connectionName && entry.policyID === policyID),
     });
-    const [request] = useOnyx(ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS, {selector: (requests) => requests?.[policyID]?.[connectionName]});
+    const [request] = useOnyx(ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS, {
+        selector: (requests) => requests?.[policyID]?.[connectionName],
+    });
     const isOnWaitlist = !!isOnServerWaitlist && !request?.pendingAction;
     const isJoiningWaitlist = useRef(false);
     const comingSoon = translate('workspace.accounting.integrationWaitlist.comingSoon');
@@ -60,11 +62,9 @@ function AccountingIntegrationWaitlistCard({connectionName, title, icon, policyI
         if (!isJoiningWaitlist.current || request?.pendingAction) {
             return;
         }
-        if (request?.errors) {
+        if (request?.errors || !isOnServerWaitlist) {
+            // The request settled without the server saving this workspace, so allow another try
             isJoiningWaitlist.current = false;
-            return;
-        }
-        if (!isOnServerWaitlist) {
             return;
         }
 
@@ -127,27 +127,29 @@ function AccountingIntegrationWaitlistCard({connectionName, title, icon, policyI
                                 <Badge
                                     text={comingSoon}
                                     isCondensed
-                                    badgeStyles={[styles.alignSelfStart, styles.ml0]}
+                                    badgeStyles={[styles.alignSelfStart, styles.ml0, styles.mw100]}
                                 />
                             </View>
                         </MenuItem.Content>
-                        <MenuItem.Trailing>
-                            {isOnWaitlist ? (
-                                <Text style={styles.textSupporting}>{translate('workspace.accounting.integrationWaitlist.onWaitlist')}</Text>
-                            ) : (
-                                <Button
-                                    onPress={joinWaitlist}
-                                    isLoading={!!request?.pendingAction}
-                                    style={styles.justifyContentCenter}
-                                    innerStyles={!canWrite ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
-                                    hoverStyles={!canWrite ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
-                                    size={CONST.BUTTON_SIZE.SMALL}
-                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.JOIN_WAITLIST_BUTTON}
-                                >
-                                    <Button.Text>{translate('workspace.accounting.integrationWaitlist.joinWaitlist')}</Button.Text>
-                                </Button>
-                            )}
-                        </MenuItem.Trailing>
+                        <View style={[isOnWaitlist && styles.flex1, styles.justifyContentCenter]}>
+                            <MenuItem.Trailing>
+                                {isOnWaitlist ? (
+                                    <Text style={[styles.textSupporting, styles.flexShrink1, styles.textAlignRight]}>{translate('workspace.accounting.integrationWaitlist.onWaitlist')}</Text>
+                                ) : (
+                                    <Button
+                                        onPress={joinWaitlist}
+                                        isLoading={!!request?.pendingAction}
+                                        style={styles.justifyContentCenter}
+                                        innerStyles={!canWrite ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
+                                        hoverStyles={!canWrite ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
+                                        size={CONST.BUTTON_SIZE.SMALL}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.JOIN_WAITLIST_BUTTON}
+                                    >
+                                        <Button.Text>{translate('workspace.accounting.integrationWaitlist.joinWaitlist')}</Button.Text>
+                                    </Button>
+                                )}
+                            </MenuItem.Trailing>
+                        </View>
                     </MenuItem.Row>
                 </MenuItem.Root>
             </OfflineWithFeedback>
