@@ -135,31 +135,6 @@
 - E/App issue: https://github.com/Expensify/App/issues/98254
 - PR introducing patch: https://github.com/Expensify/App/pull/100714
 
-### [@shopify+react-native-skia+2.11.2+004+size-backing-store-to-painted-size.patch](@shopify+react-native-skia+2.11.2+004+size-backing-store-to-painted-size.patch)
-
-- Reason:
-
-    ```
-    Fixes soft/blurry text inside inline charts on web. WebGLRenderer sizes its backing
-    store from canvas.clientWidth * devicePixelRatio, which is the canvas's layout size.
-    Charts are laid out at their authored design size (680px wide for every summary chart)
-    and fitted to the chat column with a CSS transform, and clientWidth does not report
-    that transform. So the surface is rasterised for the design box and the browser
-    resamples it onto a smaller area: a chat column narrower than 680px paints a 1360px
-    backing store across 1032 to 1162 device pixels. The glyphs are a resampled bitmap
-    while the surrounding chat text is rasterised at device resolution, which is the
-    visible sharpness gap.
-
-    Fix: fold getBoundingClientRect().width / clientWidth, which is exactly the accumulated
-    CSS transform scale, into the pixel density the renderer already derives in onResize, so
-    the backing store and the canvas.scale() applied before drawing match the painted size.
-    Untransformed canvases keep the previous ratio, so nothing else changes.
-    ```
-
-- Upstream PR/issue: https://github.com/Shopify/react-native-skia/issues/4084 was closed as not a Skia bug: the maintainer considers a canvas painted under a CSS transform an app concern, and said neither https://github.com/Shopify/react-native-skia/pull/4085 (this approach) nor https://github.com/Shopify/react-native-skia/pull/4105 (an opt-in pixelDensity prop) is the way to fix it. No upstream fix is planned, so this patch has to be carried across Skia upgrades unless the charts stop being fitted with a transform.
-- E/App issue: https://github.com/Expensify/App/issues/95221
-- PR introducing patch: https://github.com/Expensify/App/pull/101291
-
 ### [@shopify+react-native-skia+2.11.2+005+load-skia-web-fail-closed.patch](@shopify+react-native-skia+2.11.2+005+load-skia-web-fail-closed.patch)
 
 - Reason:
