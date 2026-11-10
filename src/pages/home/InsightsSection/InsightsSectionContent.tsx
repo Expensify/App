@@ -110,7 +110,7 @@ function InsightsSectionContent() {
         <PressableWithoutFeedback
             accessible={false}
             onPress={navigateToInsights}
-            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.WIDGET_ITEM}
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.INSIGHTS_WIDGET}
         >
             {widget}
         </PressableWithoutFeedback>

@@ -7,6 +7,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel, WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -18,7 +19,7 @@ import Text from './Text';
 
 const ICON_SIZE = variables.iconSizeNormal;
 
-type BaseWidgetItemProps = {
+type BaseWidgetItemProps = WithRequiredSentryLabel & {
     icon: IconAsset;
 
     /** Primary title text */
@@ -34,9 +35,12 @@ type BaseWidgetItemProps = {
 
     /** The visual variant of the CTA button */
     buttonVariant?: ButtonVariant;
+
+    /** Sentry label for the CTA button, which is pressable on its own inside the row */
+    buttonSentryLabel: SentryLabel;
 };
 
-function BaseWidgetItem({icon, title, subtitle, ctaText, onCtaPress, buttonVariant}: BaseWidgetItemProps) {
+function BaseWidgetItem({icon, title, subtitle, ctaText, onCtaPress, buttonVariant, sentryLabel, buttonSentryLabel}: BaseWidgetItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {cardPaddingHorizontal} = useLayoutSpacing();
@@ -46,7 +50,7 @@ function BaseWidgetItem({icon, title, subtitle, ctaText, onCtaPress, buttonVaria
             accessibilityLabel={title}
             onPress={onCtaPress}
             role={CONST.ROLE.BUTTON}
-            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.WIDGET_ITEM}
+            sentryLabel={sentryLabel}
         >
             {({hovered}) => (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv3, cardPaddingHorizontal, hovered && styles.hoveredComponentBG]}>
@@ -63,7 +67,7 @@ function BaseWidgetItem({icon, title, subtitle, ctaText, onCtaPress, buttonVaria
                         <Text style={styles.widgetItemTitle}>{title}</Text>
                     </View>
                     <Button
-                        sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.WIDGET_ITEM}
+                        sentryLabel={buttonSentryLabel}
                         onPress={onCtaPress}
                         size={CONST.BUTTON_SIZE.SMALL}
                         style={styles.widgetItemButton}
