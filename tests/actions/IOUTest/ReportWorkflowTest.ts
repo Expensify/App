@@ -3652,6 +3652,167 @@ describe('actions/IOU/ReportWorkflow', () => {
         });
     });
 
+    describe('approveMoneyRequest parent chat outstanding child request', () => {
+        const policyID = 'parent-chat-policy';
+        const chatReportID = 'parent-chat-report';
+        const approvedReportID = 'approved-expense-report';
+        const otherReportID = 'other-expense-report';
+        const ownerAccountID = 5001;
+        const chatKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}` as const;
+
+        const buildPreviewAction = (reportID: string, created: string) => ({
+            reportActionID: `preview-${reportID}`,
+            actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            created,
+            childReportID: reportID,
+            originalMessage: {linkedReportID: reportID},
+        });
+
+        const setupChat = async (approvalMode: NonNullable<Policy['approvalMode']>, expenseReportOverrides: Partial<Report> = {}, hasOtherReportAwaitingUser = false) => {
+            const policy: Policy = {
+                ...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                approvalMode,
+            };
+            const chatReport: Report = {
+                ...createRandomReport(Number(chatReportID.length), undefined),
+                reportID: chatReportID,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID,
+                ownerAccountID,
+                hasOutstandingChildRequest: true,
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(Number(approvedReportID.length), undefined),
+                reportID: approvedReportID,
+                chatReportID,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID,
+                managerID: CARLOS_ACCOUNT_ID,
+                total: 10000,
+                currency: CONST.CURRENCY.USD,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                ...expenseReportOverrides,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(chatKey, chatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${approvedReportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+                [`preview-${approvedReportID}`]: buildPreviewAction(approvedReportID, '2024-08-08 18:00:00.000'),
+                ...(hasOtherReportAwaitingUser ? {[`preview-${otherReportID}`]: buildPreviewAction(otherReportID, '2024-08-08 19:00:00.000')} : {}),
+            });
+
+            if (hasOtherReportAwaitingUser) {
+                const otherReport: Report = {
+                    ...expenseReport,
+                    reportID: otherReportID,
+                };
+                const otherTransaction = buildOptimisticTransaction({
+                    transactionParams: {
+                        amount: 5000,
+                        currency: CONST.CURRENCY.USD,
+                        reportID: otherReportID,
+                    },
+                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${otherReportID}`, otherReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${otherTransaction.transactionID}`, otherTransaction);
+            }
+
+            const approvedTransaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 10000,
+                    currency: CONST.CURRENCY.USD,
+                    reportID: approvedReportID,
+                },
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${approvedTransaction.transactionID}`, approvedTransaction);
+            await waitForBatchedUpdates();
+
+            return {policy, expenseReport};
+        };
+
+        const approve = (expenseReport: Report, expenseReportPolicy: Policy) => {
+            approveMoneyRequest({
+                personalDetailsByLogins: {},
+                rules: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                expenseReport,
+                expenseReportPolicy,
+                currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                currentUserEmailParam: CARLOS_EMAIL,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                ownerLogin: undefined,
+            });
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
+            const onyxData: AnyOnyxData | undefined = jest.mocked(API.write).mock.calls.at(0)?.[2];
+            return onyxData?.optimisticData?.find((update) => update.key === chatKey);
+        };
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify optimistic data.
+            jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+        });
+
+        it('does not update the parent chat when a DEW approver has no access to the parent chat', async () => {
+            // Given a DEW policy and an approving delegate who cannot read the parent policy expense chat
+            const {policy, expenseReport} = await setupChat(CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, {hasParentAccess: false});
+
+            // When the delegate approves the report
+            const chatUpdate = approve(expenseReport, policy);
+
+            // Then no optimistic update targets the parent chat, so the delegate cannot be left with a flag nothing resets
+            expect(chatUpdate).toBeUndefined();
+        });
+
+        it('does not count the approved report as outstanding on the parent chat of a DEW policy with parent access', async () => {
+            // Given a DEW policy where the approver has access to the parent chat and the approved report is the only report in it
+            const {policy, expenseReport} = await setupChat(CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, {hasParentAccess: true});
+
+            // When the approver approves the report
+            const chatUpdate = approve(expenseReport, policy);
+
+            // Then the parent chat flag is false because DEW keeps the report SUBMITTED with the approver as manager
+            const chatValue: OnyxEntry<Report> = chatUpdate?.value;
+            expect(chatValue?.hasOutstandingChildRequest).toBe(false);
+        });
+
+        it('keeps the parent chat flag true on a DEW policy when another report still awaits the approver', async () => {
+            // Given a DEW policy with parent access and a second submitted report that still awaits the same approver
+            const {policy, expenseReport} = await setupChat(CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, {hasParentAccess: true}, true);
+
+            // When the approver approves the first report
+            const chatUpdate = approve(expenseReport, policy);
+
+            // Then the flag stays true because the other report still needs the approver
+            const chatValue: OnyxEntry<Report> = chatUpdate?.value;
+            expect(chatValue?.hasOutstandingChildRequest).toBe(true);
+        });
+
+        it('still updates the parent chat on a BASIC policy', async () => {
+            // Given a BASIC policy where the approver is the final approver of the only report in the parent chat
+            const {policy, expenseReport} = await setupChat(CONST.POLICY.APPROVAL_MODE.BASIC, {hasParentAccess: true});
+
+            // When the approver approves the report
+            const chatUpdate = approve(expenseReport, policy);
+
+            // Then the parent chat is updated and the flag is false because the approved report no longer awaits the approver
+            const chatValue: OnyxEntry<Report> = chatUpdate?.value;
+            expect(chatUpdate).toBeDefined();
+            expect(chatValue?.hasOutstandingChildRequest).toBe(false);
+        });
+    });
+
     describe('canIOUBePaid', () => {
         it('For invoices from archived workspaces', async () => {
             const {policy, convertedInvoiceChat: chatReport}: InvoiceTestData = InvoiceData;

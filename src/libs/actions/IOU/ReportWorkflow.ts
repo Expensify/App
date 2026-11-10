@@ -273,14 +273,14 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         value: updatedExpenseReport,
     });
 
-    if (chatReport) {
+    if (chatReport && expenseReport.hasParentAccess !== false) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}`,
             value: {
                 hasOutstandingChildRequest: hasOutstandingChildRequest(
                     chatReport,
-                    updatedExpenseReport,
+                    isDEWPolicy ? [updatedExpenseReport] : updatedExpenseReport,
                     currentUserEmailParam,
                     currentUserAccountIDParam,
                     // TODO: https://github.com/Expensify/App/issues/66512
