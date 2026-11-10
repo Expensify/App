@@ -22,7 +22,8 @@ jobs:
   prep:
     uses: ./.github/workflows/validateBuildRequest.yml
     with:
-      REVIEWED_CODE: ${{ inputs.REVIEWED_CODE }}
+      # pull_request runs have no dispatch inputs, and validateBuildRequest only enforces the review on workflow_dispatch.
+      REVIEWED_CODE: ${{ github.event_name == 'pull_request' || inputs.REVIEWED_CODE }}
     secrets:
       OS_BOTIFY_COMMIT_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
 
