@@ -148,6 +148,7 @@ import type MarketingAttribution from './MarketingAttribution';
 import type {StoredMarketingAttribution} from './MarketingAttribution';
 import type MembersNeedCategoryModal from './MembersNeedCategoryModal';
 import type MerchantRuleSuggestion from './MerchantRuleSuggestion';
+import type {MerchantRuleSuggestionConfirmation} from './MerchantRuleSuggestion';
 import type MergeTransaction from './MergeTransaction';
 import type Modal from './Modal';
 import type Network from './Network';
@@ -431,6 +432,7 @@ export type {
     TaxRatesWithDefault,
     Transaction,
     MerchantRuleSuggestion,
+    MerchantRuleSuggestionConfirmation,
     MergeTransaction,
     TransactionViolation,
     TransactionViolations,
