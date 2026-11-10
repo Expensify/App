@@ -23,11 +23,13 @@ function ReportFieldFilterContentPageWrapper({values: initialValues, onChange, b
                 values={values}
                 selectedField={selectedField}
                 size={CONST.BUTTON_SIZE.LARGE}
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_PAGE_APPLY_VALUE.REPORT_FIELD}
                 onFieldSelected={setSelectedField}
                 onChange={(newValues) => setValues((prevValues) => ({...prevValues, ...newValues}))}
             />
             {!selectedField && (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SAVE_BUTTON}
                     style={[styles.ph5, styles.pb5, styles.pt3, styles.mtAuto]}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
