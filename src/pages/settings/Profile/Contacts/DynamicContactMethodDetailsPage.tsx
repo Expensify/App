@@ -41,7 +41,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
-import {expensifyLoginsSelector, integrationServerLoginsSelector} from '@libs/UserUtils';
+import {expensifyLoginsSelector, integrationServerLoginSelector} from '@libs/UserUtils';
 
 import {close} from '@userActions/Modal';
 
@@ -63,8 +63,9 @@ import IntegrationServerLoginDetails from './IntegrationServerLoginDetails';
 type DynamicContactMethodDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHOD_DETAILS>;
 
 function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPageProps) {
+    const contactMethod = useMemo(() => addSMSDomainIfPhoneNumber(route.params.contactMethod), [route.params.contactMethod]);
     const [loginList, loginListResult] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
-    const [integrationServerLogins] = useOnyx(ONYXKEYS.LOGINS, {selector: integrationServerLoginsSelector});
+    const [integrationServerLogin] = useOnyx(ONYXKEYS.LOGINS, {selector: integrationServerLoginSelector(contactMethod)});
     const [session, sessionResult] = useOnyx(ONYXKEYS.SESSION);
     const {securityGroup, isLoadingSecurityGroup} = useUserSecurityGroup();
     const [isLoadingReportData = true, isLoadingReportDataResult] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
@@ -86,11 +87,6 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
     // Threaded through to SETTINGS_CONTACT_METHOD_SET_DEFAULT_CONFIRM and deleteContactMethod, which
     // still use it to rebuild the contact methods list URL via DYNAMIC_ROUTES.CONTACT_METHODS.
     const backTo = getPathWithoutDynamicSuffix(listPath, DYNAMIC_ROUTES.CONTACT_METHODS.path) || ROUTES.SETTINGS_PROFILE.route;
-
-    /**
-     * Gets the current contact method from the route params
-     */
-    const contactMethod: string = useMemo(() => addSMSDomainIfPhoneNumber(route.params.contactMethod), [route.params.contactMethod]);
 
     const loginDataRef = useRef<Login | undefined>(undefined);
     const loginData = useMemo(() => {
@@ -229,8 +225,7 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
         return <FullscreenLoadingIndicator onGoBack={() => Navigation.goBack(listPath)} />;
     }
 
-    const integrationServerLogin = loginData ? undefined : integrationServerLogins?.find((login) => login.partnerUserID === contactMethod);
-    if (integrationServerLogin) {
+    if (!loginData && integrationServerLogin) {
         return (
             <IntegrationServerLoginDetails
                 login={integrationServerLogin}

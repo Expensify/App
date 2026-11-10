@@ -10809,6 +10809,8 @@ const CONST = {
             AVATAR: 'SettingsProfile-Avatar',
             DISPLAY_NAME: 'SettingsProfile-DisplayName',
             CONTACT_METHODS: 'SettingsProfile-ContactMethods',
+            INTEGRATION_SERVER_LOGIN: 'SettingsProfile-IntegrationServerLogin',
+            REMOVE_INTEGRATION_SERVER_LOGIN: 'SettingsProfile-RemoveIntegrationServerLogin',
             STATUS: 'SettingsProfile-Status',
             VACATION_DELEGATE: 'SettingsProfile-VacationDelegate',
             PRONOUNS: 'SettingsProfile-Pronouns',

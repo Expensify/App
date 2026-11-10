@@ -2,7 +2,7 @@ import {hasPaymentMethodError} from '@libs/actions/PaymentMethods';
 import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {hasCardPendingDigitalWalletApproval, hasPendingExpensifyCardAction} from '@libs/CardUtils';
 import {hasSubscriptionGreenDotInfo, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
-import {expensifyLoginsSelector, hasDeviceManagementError, hasLoginListError, hasLoginListInfo} from '@libs/UserUtils';
+import {expensifyLoginsSelector, hasDeviceManagementError, hasIntegrationServerLoginError, hasLoginListError, hasLoginListInfo} from '@libs/UserUtils';
 
 import useTimeSensitiveHomeAddress from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveHomeAddress';
 
@@ -39,6 +39,7 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [hasDeviceManagementErrorValue] = useOnyx(ONYXKEYS.LOGINS, {selector: hasDeviceManagementError});
+    const [hasIntegrationServerError] = useOnyx(ONYXKEYS.LOGINS, {selector: hasIntegrationServerLoginError});
 
     const {
         companyCards: {shouldShowRBR: hasCompanyCardFeedErrors},
@@ -61,7 +62,7 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
             ownerTravelBillingGracePeriodEnd,
         ),
         [CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_ACCOUNT_ERRORS]: Object.keys(reimbursementAccount?.errors ?? {}).length > 0,
-        [CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR]: !!loginList && hasLoginListError(loginList),
+        [CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR]: hasIntegrationServerError || (!!loginList && hasLoginListError(loginList)),
         // Wallet term errors that are not caused by an IOU (we show the red brick indicator for those in the LHN instead)
         [CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS]: Object.keys(walletTerms?.errors ?? {}).length > 0 && !walletTerms?.chatReportID,
         [CONST.INDICATOR_STATUS.HAS_PHONE_NUMBER_ERROR]: !!privatePersonalDetails?.errorFields?.phoneNumber,

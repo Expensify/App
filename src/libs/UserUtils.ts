@@ -97,9 +97,23 @@ function expensifyLoginsSelector(logins: OnyxEntry<Logins>): LoginList | undefin
  * pushed to the client before the server started sending integrationPartnerName only gets the name on the next OpenApp.
  */
 function integrationServerLoginsSelector(logins: OnyxEntry<Logins>) {
-    return Object.values(logins ?? {}).filter(
-        (login) => login.partnerID === CONST.PARTNER_ID.INTEGRATIONS || !!login.integrationPartnerName || login.partnerUserID.startsWith(CONST.INTEGRATION_SERVER_OAUTH_LOGIN_PREFIX),
-    );
+    return Object.values(logins ?? {}).filter(isIntegrationServerLogin);
+}
+
+function integrationServerLoginSelector(partnerUserID: string) {
+    return (logins: OnyxEntry<Logins>) => Object.values(logins ?? {}).find((login) => isIntegrationServerLogin(login) && login.partnerUserID === partnerUserID);
+}
+
+function isIntegrationServerLogin(login: NewLogin): boolean {
+    if (!login.partnerUserID || login.partnerID === CONST.PARTNER_ID.EXPENSIFY) {
+        return false;
+    }
+
+    return login.partnerID === CONST.PARTNER_ID.INTEGRATIONS || !!login.integrationPartnerName || login.partnerUserID.startsWith(CONST.INTEGRATION_SERVER_OAUTH_LOGIN_PREFIX);
+}
+
+function hasIntegrationServerLoginError(logins: OnyxEntry<Logins>): boolean {
+    return Object.values(logins ?? {}).some((login) => isIntegrationServerLogin(login) && !!login.errorFields?.revoke);
 }
 
 /**
@@ -321,7 +335,9 @@ export {
     getDeviceDisplayName,
     hasDeviceManagementError,
     expensifyLoginsSelector,
+    integrationServerLoginSelector,
     integrationServerLoginsSelector,
+    hasIntegrationServerLoginError,
     getIntegrationServerLoginCopy,
 };
 export type {AvatarSource};

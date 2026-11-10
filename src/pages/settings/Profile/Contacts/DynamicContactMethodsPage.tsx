@@ -100,6 +100,7 @@ function DynamicContactMethodsPage() {
                             <MenuItem.Root
                                 onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHOD_DETAILS.getRoute(login.partnerUserID)))}
                                 isDisabled={!!login.pendingAction}
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.INTEGRATION_SERVER_LOGIN}
                                 accessibilityLabel={[title, login.partnerUserID, description].join(', ')}
                             >
                                 <MenuItem.Row>
