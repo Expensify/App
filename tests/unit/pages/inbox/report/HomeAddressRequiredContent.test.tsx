@@ -114,7 +114,12 @@ describe('HomeAddressRequiredContent', () => {
 
     it('opens the address-only home address page from the CTA', () => {
         // Given the prompt for a member who has no home address saved
-        render(<HomeAddressRequiredContent action={action} />);
+        render(
+            <HomeAddressRequiredContent
+                action={action}
+                reportID={CHAT_REPORT_ID}
+            />,
+        );
 
         // When they press its CTA
         fireEvent.press(screen.getByText('homePage.timeSensitiveSection.addHomeAddress.cta'));
