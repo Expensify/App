@@ -300,7 +300,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
 
         const accountID = credentials?.accountID;
         if (accountID) {
-            signInWithValidateCode(accountID, validateCode, preferredLocale, recoveryCodeOr2faCode, credentials?.validateCode, credentials?.authToken, session);
+            signInWithValidateCode(accountID, validateCode, preferredLocale, session, recoveryCodeOr2faCode, credentials?.validateCode, credentials?.authToken);
         } else {
             signIn(validateCode, preferredLocale, recoveryCodeOr2faCode, credentials?.login, credentials?.validateCode, credentials?.authToken, session);
         }

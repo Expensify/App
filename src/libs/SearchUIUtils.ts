@@ -25,6 +25,7 @@ import type {
     TransactionQuarterGroupListItemType,
     TransactionReportGroupListItemType,
     TransactionTagGroupListItemType,
+    TransactionViolationGroupListItemType,
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
@@ -222,6 +223,7 @@ import {
     getQueryHashes,
     isFilterSupported,
     isFilterNegated,
+    isGroupBySupportedBySearch,
     isSearchDatePreset,
     removeNegation,
     sortOptionsWithEmptyValue,
@@ -296,6 +298,7 @@ type TransactionWeekGroupSorting = ColumnSortMapping<TransactionWeekGroupListIte
 type TransactionYearGroupSorting = ColumnSortMapping<TransactionYearGroupListItemType>;
 type TransactionQuarterGroupSorting = ColumnSortMapping<TransactionQuarterGroupListItemType>;
 type TransactionApproverGroupSorting = ColumnSortMapping<TransactionApproverGroupListItemType>;
+type TransactionViolationGroupSorting = ColumnSortMapping<TransactionViolationGroupListItemType>;
 
 type GetReportSectionsParams = {
     data: OnyxTypes.SearchResults['data'];
@@ -486,6 +489,8 @@ const transactionApproverGroupColumnNamesToSortingProperty: TransactionApproverG
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER]: 'formattedApprover' as const,
     ...transactionGroupBaseSortingProperties,
 };
+
+const transactionViolationGroupColumnNamesToSortingProperty: TransactionViolationGroupSorting = transactionGroupBaseSortingProperties;
 
 type TaskStatusPredicate = (taskReport?: OnyxTypes.Report | SearchTask) => boolean;
 
@@ -3452,6 +3457,31 @@ function getMemberSections(
     return [memberSectionsValues, memberSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
+/** Builds Search list sections grouped by violation type; call only via `getSections()`. */
+function getViolationSections(data: OnyxTypes.SearchResults['data'], translate: LocalizedTranslate): [TransactionViolationGroupListItemType[], number, boolean] {
+    const violationSections: TransactionViolationGroupListItemType[] = [];
+
+    for (const key in data) {
+        if (!isGroupEntry(key)) {
+            continue;
+        }
+        const violationGroup = data[key];
+        if ('violation' in violationGroup) {
+            violationSections.push({
+                groupedBy: CONST.SEARCH.GROUP_BY.VIOLATION,
+                transactions: [],
+                // Search has no violation type filter, so a group has no query of its own
+                transactionsQueryJSON: undefined,
+                ...violationGroup,
+                formattedViolation: getViolationDisplayName(violationGroup.violation, translate),
+                keyForList: key,
+            });
+        }
+    }
+
+    return [violationSections, violationSections.length, hasDeletedTransactionInData(data)];
+}
+
 function formattedCardNameWithDotAndLastFour(formattedCardName: string, lastFour: string): string {
     return `${formattedCardName} ${CONST.DOT_SEPARATOR} ${lastFour}`;
 }
@@ -4036,6 +4066,8 @@ function getSections({
                 return getQuarterSections(data, queryJSON, dateFnsLocale);
             case CONST.SEARCH.GROUP_BY.APPROVER:
                 return getMemberSections(data, queryJSON, formatPhoneNumber, translate, onyxPersonalDetailsList, CONST.SEARCH.GROUP_BY.APPROVER);
+            case CONST.SEARCH.GROUP_BY.VIOLATION:
+                return getViolationSections(data, translate);
         }
     }
 
@@ -4098,6 +4130,9 @@ const groupBySortFunction: Record<SearchGroupBy, GroupBySortFunction> = {
     [CONST.SEARCH.GROUP_BY.QUARTER]: createGroupSortFunction<TransactionQuarterGroupListItemType>(transactionQuarterGroupColumnNamesToSortingProperty, (a, b) => a.sortKey - b.sortKey),
     [CONST.SEARCH.GROUP_BY.APPROVER]: createGroupSortFunction<TransactionApproverGroupListItemType>(transactionApproverGroupColumnNamesToSortingProperty, (a, b, lc) =>
         lc(a.formattedApprover ?? '', b.formattedApprover ?? ''),
+    ),
+    [CONST.SEARCH.GROUP_BY.VIOLATION]: createGroupSortFunction<TransactionViolationGroupListItemType>(transactionViolationGroupColumnNamesToSortingProperty, (a, b, lc) =>
+        lc(a.formattedViolation, b.formattedViolation),
     ),
 };
 
@@ -5108,6 +5143,7 @@ type TypeMenuSectionsParams = {
     isTrackIntentUser: boolean;
     hasReportAwaitingApproval?: boolean;
     policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>;
+    session: OnyxEntry<OnyxTypes.Session>;
 };
 
 function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuSection[] {
@@ -5125,6 +5161,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         isTrackIntentUser,
         hasReportAwaitingApproval = false,
         policyCategories,
+        session,
     } = params;
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
@@ -5166,7 +5203,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
                                       buttonAction: () => {
                                           interceptAnonymousUser(() => {
                                               startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN);
-                                          });
+                                          }, session);
                                       },
                                   },
                               ]
@@ -5438,7 +5475,10 @@ function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON:
 }
 
 function getValidGroupBy(groupBy: string | undefined): ValueOf<typeof CONST.SEARCH.GROUP_BY> | undefined {
-    return groupBy && Object.values(CONST.SEARCH.GROUP_BY).includes(groupBy as ValueOf<typeof CONST.SEARCH.GROUP_BY>) ? (groupBy as ValueOf<typeof CONST.SEARCH.GROUP_BY>) : undefined;
+    // Insights-only group-bys are treated like unknown values because Search can't group by them yet (see https://github.com/Expensify/App/issues/105303)
+    return groupBy && isGroupBySupportedBySearch(groupBy) && Object.values(CONST.SEARCH.GROUP_BY).includes(groupBy as ValueOf<typeof CONST.SEARCH.GROUP_BY>)
+        ? (groupBy as ValueOf<typeof CONST.SEARCH.GROUP_BY>)
+        : undefined;
 }
 
 function getStatusOptions(translate: LocalizedTranslate, type: SearchDataTypes, shouldReturnTripRooms = false) {
@@ -7222,6 +7262,7 @@ function getColumnsToShow({
             [CONST.SEARCH.GROUP_BY.YEAR]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.YEAR,
             [CONST.SEARCH.GROUP_BY.QUARTER]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.QUARTER,
             [CONST.SEARCH.GROUP_BY.APPROVER]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.APPROVER,
+            [CONST.SEARCH.GROUP_BY.VIOLATION]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.VIOLATION,
         }[groupBy];
 
         const defaultCustomColumns = {
@@ -7237,6 +7278,7 @@ function getColumnsToShow({
             [CONST.SEARCH.GROUP_BY.YEAR]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.YEAR,
             [CONST.SEARCH.GROUP_BY.QUARTER]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.QUARTER,
             [CONST.SEARCH.GROUP_BY.APPROVER]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.APPROVER,
+            [CONST.SEARCH.GROUP_BY.VIOLATION]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.VIOLATION,
         }[groupBy];
 
         const filteredVisibleColumns = customColumns ? visibleColumns.filter((column) => Object.values(customColumns).includes(column as ValueOf<typeof customColumns>)) : [];
@@ -7691,14 +7733,6 @@ function getSearchTableRowChromeWidths(columnCount: number): RowChromeWidths {
         rowMarginWidth: variables.searchTableRowChromeWidth,
         rowPaddingWidth: 0,
     };
-}
-
-/**
- * One stored layout per data type, since each shows its own columns. Grouped tables don't resize, so the group-by isn't
- * part of it. Not per query, so a filter change keeps the widths.
- */
-function getSearchColumnResizingID(type: SearchDataTypes): string {
-    return `${CONST.TABLES.COLUMN_RESIZING_IDS.SEARCH_PREFIX}:${type}`;
 }
 
 function getTableMinWidth(
@@ -8226,7 +8260,6 @@ export {
     getSearchColumnTranslationKey,
     getSearchTableRowInsetWidth,
     getSearchTableRowChromeWidths,
-    getSearchColumnResizingID,
     getTableMinWidth,
     getGroupColumnWidthFlags,
     getGroupTableScrollLayout,
