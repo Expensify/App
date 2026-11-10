@@ -13,7 +13,7 @@ You can book travel for employees or guests attending an event directly from the
 
 Before booking travel, make sure:
 
-- A [trip template](https://help.expensify.com/articles/travel/event-management/Travel-Event-Management#step-1-create-a-trip-template) and event have been created.
+- An event has been created, either from a [trip template](/articles/travel/event-management/Travel-Event-Management#how-to-create-a-trip-template) or without one if your organization allows it.
 - Travelers are either employees or guests.  
 - Children and infants are not eligible for multi-traveler bookings.  
 - Each traveler’s legal name matches their government-issued ID exactly to avoid airport check-in issues.  

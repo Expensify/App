@@ -4,6 +4,8 @@ import Text from '@components/Text';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
+
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
@@ -15,8 +17,8 @@ type BasePopupProps = React.PropsWithChildren & {
     label?: string;
     showLabel?: boolean;
     shouldShowActionButtons?: boolean;
-    applySentryLabel: string;
-    resetSentryLabel?: string;
+    applySentryLabel: SentryLabel;
+    resetSentryLabel?: SentryLabel;
     style?: StyleProp<ViewStyle>;
     shouldSubmitOnEnter?: boolean;
     onApply: () => void;

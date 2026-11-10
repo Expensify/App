@@ -8,7 +8,9 @@ import type {
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
+import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import Pusher from '@libs/Pusher';
@@ -70,12 +72,19 @@ function clearOnyxForDelegateTransition(extraSeeds?: OnyxMultiSetInput): Promise
     return clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE_DELEGATE_ACCESS, extraSeeds);
 }
 
-/**
- * Navigation state belongs to the account it was built for, so drop it on a delegate-access transition like we do on sign-out.
- * By default the fresh navigation state lands on the Settings tab, where accounts are usually switched.
- */
+/** Never throws: it runs mid-switch, and a failed navigation reset must not abort the account switch. */
 function resetNavigationForDelegateTransition(route: Route = ROUTES.SETTINGS) {
-    Navigation.resetForSessionChange(route);
+    Navigation.clearSessionNavigationState();
+
+    if (!navigationRef.isReady()) {
+        return;
+    }
+    try {
+        // stale: true makes the router rebuild the state against the new account's root screens
+        navigationRef.resetRoot({...getAdaptedStateFromPath(route), stale: true});
+    } catch (error) {
+        Log.hmmm('[Delegate] Failed to reset navigation for delegate transition', {error: ErrorUtils.getErrorMessage(error)});
+    }
 }
 
 type LoadAccountAfterDelegateTransitionParams = {
@@ -199,7 +208,7 @@ type ConnectParams = WithEmail & WithDelegatedAccess & WithCredentials & WithSes
  * Connects the user as a delegate to another account.
  * Returns a Promise that resolves to true on success, false on failure, or undefined if not applicable.
  */
-function connect({email, delegatedAccess, credentials, session, activePolicyID, routeAfterSwitch = ROUTES.SETTINGS}: ConnectParams) {
+function connect({email, delegatedAccess, credentials, session, activePolicyID, routeAfterSwitch}: ConnectParams) {
     if (isConnectedAsDelegate({delegatedAccess})) {
         Log.info('[Delegate] Already connected as a delegate, skipping connect');
         return;

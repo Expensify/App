@@ -11,10 +11,21 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getBankAccountConnectionStatus, getBankAccountState, canLinkPlaid, isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
+import {
+    canLinkPlaid,
+    getBankAccountConnectionStatus,
+    getBankAccountState,
+    isGlobalReimbursementsEnabled,
+    isPersonalBankAccountMissingInfo,
+    isWiseOnboardingAwaitingDecision,
+    isWiseOnboardingMoreInfoNeeded,
+    isWiseOnboardingPendingSubmit,
+    isWiseOnboardingSubmitted,
+} from '@libs/BankAccountUtils';
 import type {BankAccountConnectionStatus} from '@libs/BankAccountUtils';
 import {getAssignedCardFeedAccess, getPolicyIDsNamedByCardFeeds} from '@libs/CardFeedUtils';
 import {
@@ -111,6 +122,9 @@ type PaymentMethodListProps = {
     /** Whether connection statuses and sync details should be shown */
     shouldShowConnectionStatus?: boolean;
 
+    /** Whether bank accounts with a Wise onboarding in progress show the in-progress row */
+    shouldShowWiseSetupInProgress?: boolean;
+
     /** Whether the right icon should be shown in PaymentMethodItem */
     shouldShowRightIcon?: boolean;
 
@@ -160,6 +174,18 @@ function isPaymentMethodActive(actionPaymentMethodType: string, activePaymentMet
     return paymentMethod.accountType === actionPaymentMethodType && paymentMethod.methodID === activePaymentMethodID;
 }
 
+function getWiseSetupInProgress(paymentMethod: PaymentMethod): PaymentMethodItem['wiseSetupInProgress'] {
+    if (paymentMethod.accountType !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
+        return undefined;
+    }
+    const bankAccount = paymentMethod as BankAccount;
+    const bankAccountID = bankAccount.accountData?.bankAccountID;
+    const canContinue = isWiseOnboardingPendingSubmit(bankAccount) || isWiseOnboardingMoreInfoNeeded(bankAccount);
+    return bankAccountID && (canContinue || isWiseOnboardingAwaitingDecision(bankAccount))
+        ? {bankAccountID, canContinue, isOnboardingSubmitted: isWiseOnboardingSubmitted(bankAccount.accountData)}
+        : undefined;
+}
+
 function keyExtractor(item: PaymentMethod | string) {
     if (typeof item === 'string') {
         return item;
@@ -176,6 +202,7 @@ function PaymentMethodList({
     addBankAccountItemStyle,
     shouldShowAssignedCards = false,
     shouldShowConnectionStatus = false,
+    shouldShowWiseSetupInProgress = false,
     shouldSkipDefaultAccountValidation = false,
     onListContentSizeChange = () => {},
     style = {},
@@ -197,6 +224,8 @@ function PaymentMethodList({
     const {translate, datetimeToRelative} = useLocalize();
     const {environmentURL} = useEnvironment();
     const {isOffline} = useNetwork();
+    const {isBetaEnabled} = usePermissions();
+    const isWiseGlobalReimbursementsEnabled = isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'ThreeDots', 'LuggageWithLines']);
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
@@ -637,8 +666,16 @@ function PaymentMethodList({
                     ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.BANK_ACCOUNT_LINK_PLAID.getRoute(methodID.toString())))
                     : undefined;
 
+            // Like the connection status, the Wise prompt belongs to the Wallet page and not to the pickers that reuse this list
+            // Cards share this list, and only a bank account's data carries the bankAccountID the Home task reads too
+            const wiseBankAccountID = paymentMethod.accountData && 'bankAccountID' in paymentMethod.accountData ? paymentMethod.accountData.bankAccountID : undefined;
+            const shouldShowWiseMoreInfoNeeded = shouldShowConnectionStatus && isWiseGlobalReimbursementsEnabled && isWiseOnboardingMoreInfoNeeded(paymentMethod) && !!wiseBankAccountID;
+            // An error or a connection problem on the row is more urgent, so the Wise prompt only adds the green dot when the row has none
+            const wiseMoreInfoNeededBrickRoadIndicator = shouldShowWiseMoreInfoNeeded ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined;
+
             return {
                 ...paymentMethod,
+                wiseMoreInfoNeeded: shouldShowWiseMoreInfoNeeded && wiseBankAccountID ? {bankAccountID: wiseBankAccountID} : undefined,
                 title: paymentMethod.title?.includes(CONST.MASKED_PAN_PREFIX) ? paymentMethod.accountData?.additionalData?.bankName : paymentMethod.title,
                 onPress: paymentMethodPress,
                 onThreeDotsMenuPress: paymentMethodThreeDotsPress,
@@ -648,7 +685,13 @@ function PaymentMethodList({
                 shouldShowRightIcon,
                 canDismissError: true,
                 isMissingPersonalInfo,
-                brickRoadIndicator: shouldShowConnectionStatus ? (bankConnectionStatus?.brickRoadIndicator ?? existingBrickRoadIndicator) : existingBrickRoadIndicator,
+                // The more info prompt already tells the admin what Wise waits on, so the in-progress line would repeat it
+                wiseSetupInProgress: shouldShowWiseSetupInProgress && !shouldShowWiseMoreInfoNeeded ? getWiseSetupInProgress(paymentMethod) : undefined,
+                isGlobalReimbursementsEnabled:
+                    isWiseGlobalReimbursementsEnabled && paymentMethod.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && isGlobalReimbursementsEnabled(paymentMethod),
+                brickRoadIndicator: shouldShowConnectionStatus
+                    ? (bankConnectionStatus?.brickRoadIndicator ?? existingBrickRoadIndicator ?? wiseMoreInfoNeededBrickRoadIndicator)
+                    : existingBrickRoadIndicator,
                 connectionStatus: bankConnectionStatus
                     ? mapBankStatusToRowStatus(
                           bankConnectionStatus,

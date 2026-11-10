@@ -36,6 +36,8 @@ To invite someone to your workspace:
 
 **Note:** Workspace admins and People admins can invite members. People admins can only invite members as **Members**, **Guests**, **Auditors**, or **Approve-only** — they cannot assign admin roles.
 
+**Note:** The search results only include agents you can manage, such as your personal agents and company agents owned by a workspace or domain you admin. To create an agent that belongs to the workspace, [create a company agent](/articles/new-expensify/ai-agents/Create-and-Manage-Company-Agents).
+
 ---
 
 # Filter Workspace Members by Role
@@ -109,8 +111,7 @@ Workspace admins can set a display name for a member who hasn’t added a name o
 
 1. Go to **Workspaces > [Workspace Name] > Members**.
 2. Click the member’s name.
-3. In the right-hand panel, click **Profile**.
-4. Click **Display name**, enter a first and last name, and click **Save**.
+3. Select **Display name**, enter a first and last name, and select **Save**.
 
 The name applies in every workspace the member belongs to. After it’s saved, only the member can change it.
 
