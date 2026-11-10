@@ -413,6 +413,7 @@ function DatePresetFilterBase({
                 )}
                 {shouldShowCustomDate && (
                     <MenuItem
+                        sentryLabel={CONST.SENTRY_LABEL.DATE_FILTER.CUSTOM_DATE_ITEM}
                         shouldShowRightIcon
                         viewMode={CONST.OPTION_MODE.COMPACT}
                         title={customDateTitle}
@@ -421,6 +422,7 @@ function DatePresetFilterBase({
                     />
                 )}
                 <MenuItem
+                    sentryLabel={CONST.SENTRY_LABEL.DATE_FILTER.CUSTOM_RANGE_ITEM}
                     shouldShowRightIcon
                     viewMode={CONST.OPTION_MODE.COMPACT}
                     title={customRangeTitle}

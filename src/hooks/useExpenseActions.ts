@@ -323,9 +323,9 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
         translate,
         icons: useMemoizedLazyExpensifyIcons(['Plus', 'ReceiptPlus', 'Location', 'Feed', 'ArrowRight']),
         sentryLabels: {
-            createExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE,
-            trackDistance: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE,
-            addExistingExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_EXISTING,
+            createExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_MENU.CREATE_EXPENSE,
+            trackDistance: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_MENU.TRACK_DISTANCE,
+            addExistingExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_MENU.ADD_EXISTING_EXPENSE,
         },
         iouReportID: moneyRequestReport?.reportID,
         policy,
@@ -614,7 +614,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                                     return;
                                 }
 
-                                removeTransaction(transaction.transactionID);
+                                removeTransaction(transaction.transactionID, {isDeleted: true});
                             }, CONST.EXPENSE_REPORT_DELETE_DELAY_MS);
                         };
                         if (goBackRoute) {
