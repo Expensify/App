@@ -429,7 +429,15 @@ function sendEvent<EventName extends PusherEventName>(channelName: string, event
         return;
     }
 
-    socket?.trigger({channelName, eventName, data: JSON.stringify(payload)});
+    // Subscription status survives reconnects, but client events need a connected socket.
+    if (!socket || socket.connectionState !== CONST.PUSHER.STATE.CONNECTED) {
+        return;
+    }
+
+    // The socket can disconnect after the check. These broadcasts should not be retried once stale.
+    socket.trigger({channelName, eventName, data: JSON.stringify(payload)}).catch((error: unknown) => {
+        Log.info('[Pusher] Failed to send client event, ignoring', false, {eventName, error: String(error)});
+    });
 }
 
 /**
