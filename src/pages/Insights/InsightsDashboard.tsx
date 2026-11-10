@@ -30,7 +30,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AIInsight, InsightsDashboard as InsightsDashboardRecord, InsightsDashboardID, InsightsScope} from '@src/types/onyx';
+import type {AIInsight, InsightsDashboard as InsightsDashboardRecord, InsightsDashboardID, InsightsFutureExpenses, InsightsScope} from '@src/types/onyx';
 import viewRef from '@src/types/utils/viewRef';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -47,6 +47,7 @@ import type {InsightsDashboardChart, InsightsDashboardState} from './resolveDash
 
 import InsightsAICardRow from './ai/InsightsAICardRow';
 import InsightsChartWidget from './charts/InsightsChartWidget';
+import InsightsFutureExpensesNote from './charts/InsightsFutureExpensesNote';
 import InsightsPageControls from './controls/InsightsPageControls';
 import INSIGHTS_DASHBOARD_SPECS, {getPoliciesInScope, getUpgradeablePolicyIDsInScope, getVisibleCharts, shouldUpsellControlPlan} from './dashboardSpecs';
 import {getQueryGroupBy} from './insightsGroupByUtils';
@@ -66,6 +67,12 @@ type InsightsDashboardContentProps = {
     insightsScope: InsightsScope;
     isLoadingAIInsights: boolean;
     headlineChart: InsightsDashboardChart;
+
+    /** Last day the charts count expenses through, as the backend resolved today */
+    asOfDate: string | undefined;
+
+    /** Expenses in the date range dated after `asOfDate`, which every chart leaves out */
+    futureExpenses: InsightsFutureExpenses | undefined;
 
     /** Charts in the grid below the headline, left out when no workspace in scope is eligible for them */
     supportingCharts: InsightsDashboardChart[];
@@ -96,6 +103,8 @@ function InsightsDashboardContent({
     insightsScope,
     isLoadingAIInsights,
     headlineChart,
+    asOfDate,
+    futureExpenses,
     supportingCharts,
     filters,
     upgradeablePolicyIDs,
@@ -252,7 +261,15 @@ function InsightsDashboardContent({
                         insightsScope={insightsScope}
                         onRetry={onRetry}
                         onGroupByChange={onGroupByChange}
-                    />
+                    >
+                        {!!asOfDate && !!futureExpenses?.count && (
+                            <InsightsFutureExpensesNote
+                                futureExpenses={futureExpenses}
+                                asOfDate={asOfDate}
+                                filters={filters}
+                            />
+                        )}
+                    </InsightsChartWidget>
                     <View style={styles.insightsChartGrid(shouldUseNarrowLayout)}>
                         {columns.map((columnCharts, columnIndex) => (
                             <View
@@ -451,6 +468,8 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                             // Offline no response is coming, so the row hides instead of loading forever
                             isLoadingAIInsights={!hasDashboardResponse(dashboard) && !isOffline}
                             headlineChart={headlineChart}
+                            asOfDate={dashboard?.asOfDate}
+                            futureExpenses={dashboard?.futureExpenses}
                             supportingCharts={supportingCharts}
                             filters={filters}
                             upgradeablePolicyIDs={upgradeablePolicyIDs}

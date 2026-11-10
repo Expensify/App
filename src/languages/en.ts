@@ -1372,6 +1372,7 @@ const translations = {
         violationsBySubmitter: 'Violations by submitter',
         violationsByApprover: 'Violations by approver',
         runningTotal: 'Running total',
+        futureExpensesNotShown: (amount: string) => `Not shown: ${amount} in future expenses.`,
         compare: {
             label: 'Compare',
             previousPeriod: 'Previous period',

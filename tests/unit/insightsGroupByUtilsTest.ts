@@ -19,9 +19,9 @@ describe('insightsGroupByUtils', () => {
 
     describe('getInsightsGroupByOptions', () => {
         it.each<[string, InsightsFilters['date'], Array<InsightsFilters['groupBy']>]>([
-            ['this month', {preset: THIS_MONTH}, [DAY, WEEK]],
+            ['this month', {preset: THIS_MONTH}, [DAY]],
             ['last month', {preset: LAST_MONTH}, [DAY, WEEK]],
-            ['this year', {preset: THIS_YEAR}, [WEEK, MONTH, QUARTER]],
+            ['this year', {preset: THIS_YEAR}, [WEEK, MONTH]],
             ['last 12 months', {preset: LAST_12_MONTHS}, [WEEK, MONTH, QUARTER]],
             ['a range under two weeks', {from: '2026-03-01', to: '2026-03-10'}, [DAY]],
             ['a range of 13 days', {from: '2026-03-01', to: '2026-03-13'}, [DAY]],
@@ -48,8 +48,8 @@ describe('insightsGroupByUtils', () => {
             // When the Group by options are listed for year to date
             const options = getInsightsGroupByOptions({preset: YEAR_TO_DATE});
 
-            // Then they fit the whole year, not just the few weeks so far
-            expect(options).toEqual([WEEK, MONTH, QUARTER]);
+            // Then they fit the whole year, not just the few weeks so far, leaving out Quarter like this year does
+            expect(options).toEqual([WEEK, MONTH]);
         });
     });
 
@@ -65,10 +65,10 @@ describe('insightsGroupByUtils', () => {
         });
 
         it('switches to the nearest offered option when the range rules the selection out', () => {
-            // Given a quarterly chart moved to this month, which only offers Day and Week
+            // Given a quarterly chart moved to last month, which only offers Day and Week
 
             // When the Group by is fitted to the range
-            const groupBy = getFittingGroupBy(QUARTER, getInsightsGroupByOptions({preset: THIS_MONTH}));
+            const groupBy = getFittingGroupBy(QUARTER, getInsightsGroupByOptions({preset: LAST_MONTH}));
 
             // Then Week is picked, the closest grouping to Quarter that the month offers
             expect(groupBy).toBe(WEEK);
@@ -97,8 +97,8 @@ describe('insightsGroupByUtils', () => {
 
     describe('getQueryGroupBy', () => {
         it('queries the nearest offered option when the date range rules the selection out', () => {
-            // Given a quarterly dashboard moved to this month, which only offers Day and Week
-            const filters: InsightsFilters = {date: {preset: THIS_MONTH}, policyIDs: [], groupBy: QUARTER, groupCurrency: 'USD'};
+            // Given a quarterly dashboard moved to last month, which only offers Day and Week
+            const filters: InsightsFilters = {date: {preset: LAST_MONTH}, policyIDs: [], groupBy: QUARTER, groupCurrency: 'USD'};
 
             // When the Group by to query with is picked
             const groupBy = getQueryGroupBy(filters);

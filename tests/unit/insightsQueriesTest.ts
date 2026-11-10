@@ -229,12 +229,12 @@ describe('insightsQueries', () => {
             // Given the spend dashboard grouped by month
             const monthly = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, FILTERS, SPEND_SPEC.supportingCharts);
 
-            // When the same dashboard is grouped by quarter instead
-            const quarterly = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, {...FILTERS, groupBy: CONST.SEARCH.GROUP_BY.QUARTER}, SPEND_SPEC.supportingCharts);
+            // When the same dashboard is grouped by week instead
+            const weekly = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, {...FILTERS, groupBy: CONST.SEARCH.GROUP_BY.WEEK}, SPEND_SPEC.supportingCharts);
 
             // Then each request carries the hash of the query it asks for, so the two responses are stored apart
             expect(monthly?.hash).toBe(parsePayload(monthly)?.hash);
-            expect(quarterly?.hash).not.toBe(monthly?.hash);
+            expect(weekly?.hash).not.toBe(monthly?.hash);
         });
 
         it('asks for nothing the page filters did not set', () => {
@@ -351,11 +351,11 @@ describe('insightsQueries', () => {
             const {headlineChart} = SPEND_SPEC;
             expect(headlineChart.groupBy).toBeUndefined();
 
-            // When the page filters group by quarter
-            const chartQuery = applyInsightsFilters(headlineChart, {...FILTERS, groupBy: CONST.SEARCH.GROUP_BY.QUARTER});
+            // When the page filters group by week
+            const chartQuery = applyInsightsFilters(headlineChart, {...FILTERS, groupBy: CONST.SEARCH.GROUP_BY.WEEK});
 
-            // Then the chart is grouped by quarter
-            expect(buildSearchQueryJSON(chartQuery)?.groupBy).toBe(CONST.SEARCH.GROUP_BY.QUARTER);
+            // Then the chart is grouped by week
+            expect(buildSearchQueryJSON(chartQuery)?.groupBy).toBe(CONST.SEARCH.GROUP_BY.WEEK);
         });
 
         it('groups the headline chart by day while supporting charts keep their own group-by', () => {

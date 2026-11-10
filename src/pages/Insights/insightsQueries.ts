@@ -7,10 +7,13 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {InsightsDashboard, InsightsDashboardID, InsightsGraphKey} from '@src/types/onyx';
 
+import {addDays, format, parseISO} from 'date-fns';
+
 import type {InsightsChartSpec, InsightsDateFilterKey} from './dashboardSpecs';
 import type {InsightsFilters} from './insightsFilters';
 
 import INSIGHTS_DASHBOARD_SPECS, {VIOLATION_HAS_VALUES} from './dashboardSpecs';
+import getInsightsDateRange from './getInsightsDateRange';
 import {getQueryGroupBy} from './insightsGroupByUtils';
 
 /** How many periods before the selected date range the Average mode spans */
@@ -36,6 +39,21 @@ function buildDateFormValues(date: InsightsFilters['date'], dateFilterKey: Insig
         return {[on]: date.on};
     }
     return {[range]: getRangeQueryValue(date.from, date.to)};
+}
+
+/** Returns the day after a date, which a strict `date<` filter takes to keep the date itself in */
+function getDayAfter(date: Date): string {
+    return format(addDays(date, 1), CONST.DATE.FNS_FORMAT_STRING);
+}
+
+/** Builds the filter that leaves out expenses dated after today, or nothing when the date range already ends by today. */
+function buildStopAtTodayFormValues(date: InsightsFilters['date']): Partial<SearchAdvancedFiltersForm> {
+    const now = new Date();
+    const {end} = getInsightsDateRange(date);
+    if (!end || end <= format(now, CONST.DATE.FNS_FORMAT_STRING)) {
+        return {};
+    }
+    return {[FILTER_KEYS.DATE_BEFORE]: getDayAfter(now)};
 }
 
 /** Builds the page's filters in the shape a search query is built from. Leaves the workspaces out when none are selected, which reports on all of them. */
@@ -81,12 +99,31 @@ function buildInsightsQueryString(filters: InsightsFilters): SearchQueryString {
     return buildQueryStringFromFilterFormValues({...buildFilterFormValues(filters), groupBy: filters.groupBy as SearchGroupBy, compare: filters.compare});
 }
 
-/** Builds a chart's query with the page's filters applied. */
-function applyInsightsFilters(chart: InsightsChartSpec, filters: InsightsFilters, compare?: SearchCompareMode): SearchQueryString {
+/** Builds a chart's query with the page's filters applied. `shouldStopAtToday` leaves out expenses dated after today, for charts on the expense date whose query goes to Search instead of GetInsights. */
+function applyInsightsFilters(chart: InsightsChartSpec, filters: InsightsFilters, compare?: SearchCompareMode, shouldStopAtToday = false): SearchQueryString {
+    const isExpenseDateChart = !chart.dateFilterKey || chart.dateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE;
     return buildQueryStringFromFilterFormValues(
-        {...buildFilterFormValues(filters, true, chart.dateFilterKey), has: chart.has, groupBy: chart.groupBy ?? getQueryGroupBy(filters), view: chart.view, compare},
+        {
+            ...buildFilterFormValues(filters, true, chart.dateFilterKey),
+            ...(shouldStopAtToday && isExpenseDateChart && buildStopAtTodayFormValues(filters.date)),
+            has: chart.has,
+            groupBy: chart.groupBy ?? getQueryGroupBy(filters),
+            view: chart.view,
+            compare,
+        },
         {sortBy: chart.sortBy, sortOrder: chart.sortOrder, limit: chart.limit},
     );
+}
+
+/** Builds the Spend page query for the expenses the dashboard leaves out: those dated after `asOfDate` through the end of the date range, in the dashboard's workspaces. */
+function buildFutureExpensesQueryString(filters: InsightsFilters, asOfDate: string): SearchQueryString {
+    const {end} = getInsightsDateRange(filters.date);
+    return buildQueryStringFromFilterFormValues({
+        ...buildFilterFormValues(filters, false),
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        [FILTER_KEYS.DATE_AFTER]: asOfDate,
+        ...(!!end && {[FILTER_KEYS.DATE_BEFORE]: getDayAfter(parseISO(end))}),
+    });
 }
 
 type InsightsChartQuery = {
@@ -178,6 +215,6 @@ function buildTopExpensesQueryJSON(query: SearchQueryString): Readonly<SearchQue
     return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, sortBy: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, sortOrder: CONST.SEARCH.SORT_ORDER.DESC, limit: TOP_EXPENSES_LIMIT}));
 }
 
-export {applyInsightsFilters, buildDateFormValues, buildInsightsQueryString, buildTopExpensesQueryJSON, TOP_EXPENSES_LIMIT};
+export {applyInsightsFilters, buildDateFormValues, buildFutureExpensesQueryString, buildInsightsQueryString, buildTopExpensesQueryJSON, TOP_EXPENSES_LIMIT};
 export type {InsightsChartQuery, InsightsQuery};
 export default buildInsightsJsonQuery;

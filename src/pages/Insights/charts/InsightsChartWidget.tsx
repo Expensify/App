@@ -79,6 +79,9 @@ type InsightsChartWidgetProps = {
 
     /** Shows a group-by control in the chart's header when set. Stores the time bucket or Running total the control picks. */
     onGroupByChange?: (update: Partial<InsightsFilters>) => void;
+
+    /** Shown below the plot once the chart has loaded, including when it has nothing to plot */
+    children?: React.ReactNode;
 };
 
 function InsightsChartWidget({
@@ -94,6 +97,7 @@ function InsightsChartWidget({
     insightsScope,
     onRetry,
     onGroupByChange,
+    children,
 }: InsightsChartWidgetProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -240,6 +244,7 @@ function InsightsChartWidget({
                     </View>
                 )}
             </Animated.View>
+            {(state === INSIGHTS_CHART_STATE.READY || state === INSIGHTS_CHART_STATE.EMPTY) && children}
         </WidgetContainer>
     );
 }

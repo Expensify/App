@@ -135,7 +135,6 @@ function SearchChartView({
     const formatTotal = isCountMetric ? convertToDisplayString : undefined;
 
     const emptyLaterKeys = new Set(data.filter((item) => isEmptyPeriodAfterToday(item, groupBy, today, dateFilterRange.start)).map((item) => item.keyForList));
-    const comparedKeysWithExpenses = new Set(comparison && !isChartAverage(comparison) ? comparison.data.filter((item) => !!item.count).map((item) => item.keyForList) : []);
     const {data: chartData, comparison: chartComparison} = shouldShowRunningTotal ? applyRunningTotal({data, comparison, groupBy}) : {data, comparison};
 
     const {series, rows} = buildChartSeries({
@@ -154,7 +153,6 @@ function SearchChartView({
             return !!range && isPeriodAfterToday(range.start, today, dateFilterRange.start);
         },
         isEmptyLaterPeriod: (item) => emptyLaterKeys.has(item.keyForList),
-        hasComparedExpenses: (item) => comparedKeysWithExpenses.has(item.keyForList),
         translate,
         dateFnsLocale,
         colorScheme: theme.colorScheme,

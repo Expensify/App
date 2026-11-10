@@ -37,7 +37,7 @@ function isHomeInsightChart(chart: InsightsChartSpec): chart is HomeInsightChart
 
 /** Builds a Home insight that queries the same chart as the Insights page. */
 function buildInsightConfigFromChart(chart: HomeInsightChartSpec, filters: InsightsFilters): SearchTypeMenuItem {
-    const searchQuery = applyInsightsFilters(chart, filters);
+    const searchQuery = applyInsightsFilters(chart, filters, undefined, true);
     const searchQueryJSON = buildSearchQueryJSON(searchQuery);
 
     return {
