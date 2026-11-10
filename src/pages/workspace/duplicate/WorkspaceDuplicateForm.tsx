@@ -98,6 +98,7 @@ function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
                     <Text style={[styles.mb3, styles.textHeadline]}>{translate('workspace.duplicateWorkspace.title')}</Text>
                 </View>
                 <AvatarWithImagePicker
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DUPLICATE_AVATAR}
                     isUsingDefaultAvatar={!stashedLocalAvatarImage}
                     source={stashedLocalAvatarImage}
                     avatar={workspaceAvatarNode}

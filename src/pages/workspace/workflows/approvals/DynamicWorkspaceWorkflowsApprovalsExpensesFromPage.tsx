@@ -438,6 +438,9 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
     }
     const button = (
         <FormAlertWithSubmitButton
+            sentryLabel={
+                shouldShowListEmptyContent ? CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVALS_EXPENSES_FROM_CLOSE : CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVALS_EXPENSES_FROM_SUBMIT
+            }
             isDisabled={!shouldShowListEmptyContent && !selectedMembers.length}
             buttonText={buttonText}
             onSubmit={shouldShowListEmptyContent ? () => Navigation.goBack() : nextStep}

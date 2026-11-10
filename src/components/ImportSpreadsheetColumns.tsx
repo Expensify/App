@@ -121,6 +121,7 @@ function ImportSpreadsheetColumns({
                     errorRowStyles={styles.mv2}
                 >
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.IMPORT_SPREADSHEET.IMPORT_BUTTON}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         onPress={importFunction}
