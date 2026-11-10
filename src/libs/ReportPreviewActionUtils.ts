@@ -1,4 +1,5 @@
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Policy, Report, ReportMetadata, Rule, Transaction, TransactionViolation} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -40,7 +41,14 @@ import {
     isSettled,
     shouldShowAddExpenseAction,
 } from './ReportUtils';
-import {hasOnlyPendingCardTransactions, hasOnlyUnsettledExpenses, hasSmartScanFailedWithMissingFields, hasSubmissionBlockingViolations, isScanning} from './TransactionUtils';
+import {
+    getVisibleTransactionViolations,
+    hasOnlyPendingCardTransactions,
+    hasSmartScanFailedWithMissingFields,
+    hasSubmissionBlockingViolations,
+    isScanning,
+    hasOnlyUnsettledExpenses,
+} from './TransactionUtils';
 
 function canSubmit(
     report: Report,
@@ -301,6 +309,21 @@ function getReportPreviewAction({
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
     if (canApprove(report, currentUserAccountID, reportMetadata, policy, transactions)) {
+        const hasVisibleViolations = transactions.some(
+            (transaction) =>
+                getVisibleTransactionViolations(
+                    transaction,
+                    violationsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [],
+                    currentUserLogin,
+                    currentUserAccountID,
+                    report,
+                    ownerLogin,
+                    policy,
+                ).length > 0,
+        );
+        if (hasVisibleViolations) {
+            return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE_WITH_VIOLATIONS;
+        }
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
     }
     if (canPay(report, isReportArchived, currentUserAccountID, currentUserLogin, bankAccountList, transactions, policy, invoiceReceiverPolicy)) {
