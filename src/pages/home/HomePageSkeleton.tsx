@@ -112,10 +112,10 @@ function renderIconTwoBarWithTrailingRow(args: TrailingSkeletonRowArgs) {
 type HomePageSkeletonCardProps = {
     children: React.ReactNode;
     hasBottomPadding?: boolean;
-    hasSubtitle?: boolean;
+    subtitle?: React.ReactNode;
 };
 
-function HomePageSkeletonCard({children, hasBottomPadding = true, hasSubtitle = false}: HomePageSkeletonCardProps) {
+function HomePageSkeletonCard({children, hasBottomPadding = true, subtitle}: HomePageSkeletonCardProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -128,12 +128,7 @@ function HomePageSkeletonCard({children, hasBottomPadding = true, hasSubtitle = 
                             lineHeight={TITLE_LINE_HEIGHT}
                             barWidth={CARD_TITLE_WIDTH}
                         />
-                        {hasSubtitle && (
-                            <SkeletonTextLine
-                                lineHeight={SUBTITLE_LINE_HEIGHT}
-                                barWidth={CARD_SUBTITLE_WIDTH}
-                            />
-                        )}
+                        {subtitle}
                     </>
                 }
                 containerStyles={hasBottomPadding && styles.getWidgetContainerBottomPaddingStyle(shouldUseNarrowLayout)}
@@ -194,7 +189,12 @@ function HomePageSkeletonSpinnerCard() {
     return (
         <HomePageSkeletonCard
             hasBottomPadding={false}
-            hasSubtitle
+            subtitle={
+                <SkeletonTextLine
+                    lineHeight={SUBTITLE_LINE_HEIGHT}
+                    barWidth={CARD_SUBTITLE_WIDTH}
+                />
+            }
         >
             <View style={chartPaddingStyle}>
                 <View style={[styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getHeight(SPINNER_CARD_HEIGHT)]}>
