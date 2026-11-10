@@ -12746,6 +12746,7 @@ ${reportName}`,
         submitted: '送信済み',
         approved: '承認済み',
         paid: '支払い済み',
+        receivedPayment: '支払いを受け取りました',
         toSubmit: '送信する',
         toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
             if (!eta) {

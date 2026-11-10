@@ -12423,6 +12423,7 @@ ${reportName}`,
         submitted: '已提交',
         approved: '已批准',
         paid: '已付款',
+        receivedPayment: '已收到付款',
         toSubmit: '提交',
         toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
             if (!eta) {

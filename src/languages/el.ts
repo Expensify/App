@@ -13242,6 +13242,7 @@ ${reportName}`,
         submitted: 'υπέβαλε',
         approved: 'ενέκρινε',
         paid: 'πλήρωσε',
+        receivedPayment: 'έλαβε πληρωμή',
         toSubmit: 'να υποβάλει',
         toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
             if (!eta) {

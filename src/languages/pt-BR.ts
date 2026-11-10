@@ -12921,6 +12921,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         submitted: 'enviou',
         approved: 'aprovou',
         paid: 'pagou',
+        receivedPayment: 'pagamento recebido',
         toSubmit: 'enviar',
         toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
             if (!eta) {
