@@ -5581,6 +5581,10 @@ const CONST = {
                     this.NAME.BUSINESS_CENTRAL,
                 ] as const;
             },
+            // Integrations that aren't available yet, so the Connections page offers their waitlist instead of connecting
+            get WAITLIST_CONNECTION_NAMES() {
+                return [this.NAME.SAGE_ACCOUNTING] as const;
+            },
             // The `origin` the backend stamps on a report field imported by an accounting integration. These values
             // differ from the connection names above (e.g. `quickbooksOnline` is stamped as `qbo`), so map them here.
             get REPORT_FIELD_ORIGIN() {
