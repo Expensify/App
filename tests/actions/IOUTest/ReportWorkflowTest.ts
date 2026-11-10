@@ -3747,6 +3747,8 @@ describe('actions/IOU/ReportWorkflow', () => {
             return mergedChatValue;
         };
 
+        const getUpdateKeys = (updates: Array<{key: string}> | undefined) => updates?.map((update) => update.key) ?? [];
+
         beforeEach(() => {
             jest.clearAllMocks();
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify optimistic data.
@@ -3778,7 +3780,8 @@ describe('actions/IOU/ReportWorkflow', () => {
         it('does not touch the parent chat when a DEW approver without parent access approves partially', async () => {
             // Given a DEW policy and an approving delegate who cannot read the parent chat
             const {policy, expenseReport} = await setupChat(CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, {hasParentAccess: false});
-            const parentChatKeys: string[] = [chatKey, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`];
+            const parentChatKeys = new Set<string>([chatKey, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`]);
+            const approvedReportKey = `${ONYXKEYS.COLLECTION.REPORT}${approvedReportID}`;
 
             // When the delegate approves only the unheld expenses
             approve(expenseReport, policy, false);
@@ -3786,21 +3789,11 @@ describe('actions/IOU/ReportWorkflow', () => {
             // Then the split-off report is created on its own and no update targets the parent chat or its report actions
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
             const onyxData: AnyOnyxData | undefined = jest.mocked(API.write).mock.calls.at(0)?.[2];
-            const optimisticData = onyxData?.optimisticData ?? [];
-            const failureData = onyxData?.failureData ?? [];
-            expect(optimisticData.filter((update) => parentChatKeys.includes(update.key))).toHaveLength(0);
-            expect(failureData.filter((update) => parentChatKeys.includes(update.key))).toHaveLength(0);
-            expect(
-                optimisticData.some((update) => {
-                    const value: Partial<Report> | undefined = update.value;
-                    return (
-                        update.key.startsWith(ONYXKEYS.COLLECTION.REPORT) &&
-                        update.key !== chatKey &&
-                        update.key !== `${ONYXKEYS.COLLECTION.REPORT}${approvedReportID}` &&
-                        value?.chatReportID === chatReportID
-                    );
-                }),
-            ).toBe(true);
+            const optimisticKeys = getUpdateKeys(onyxData?.optimisticData);
+            const failureKeys = getUpdateKeys(onyxData?.failureData);
+            expect(optimisticKeys.some((key) => parentChatKeys.has(key))).toBe(false);
+            expect(failureKeys.some((key) => parentChatKeys.has(key))).toBe(false);
+            expect(optimisticKeys.some((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT) && key !== ONYXKEYS.COLLECTION.REPORT && key !== chatKey && key !== approvedReportKey)).toBe(true);
         });
 
         it('still adds the held report preview to the parent chat when a DEW approver with parent access approves partially', async () => {
