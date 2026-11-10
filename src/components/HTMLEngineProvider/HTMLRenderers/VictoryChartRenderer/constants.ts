@@ -26,4 +26,7 @@ const LEFT_AXIS_LABEL_PADDING = 32;
 /** Max gap between a left-axis label and the chart it labels, clamping the XML-provided `tickLabels.padding` when that value is larger. */
 const LEFT_AXIS_LABEL_OFFSET_MAX = 2;
 
-export {X_KEY, Y_KEY_PREFIX, LABEL_KEY, VALUE_KEY, COLOR_KEY, CHART_TYPE, POLAR_CONTAINER_HEIGHT_RATIO, LEFT_AXIS_LABEL_PADDING, LEFT_AXIS_LABEL_OFFSET_MAX};
+/** Max `tickcount` honored on a `<victoryaxis>`, because victory-native generates and draws one tick per count and an unbounded value exhausts memory. */
+const AXIS_TICK_COUNT_MAX = 100;
+
+export {X_KEY, Y_KEY_PREFIX, LABEL_KEY, VALUE_KEY, COLOR_KEY, CHART_TYPE, POLAR_CONTAINER_HEIGHT_RATIO, LEFT_AXIS_LABEL_PADDING, LEFT_AXIS_LABEL_OFFSET_MAX, AXIS_TICK_COUNT_MAX};
