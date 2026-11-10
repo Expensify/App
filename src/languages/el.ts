@@ -5509,6 +5509,12 @@ ${amount} για ${merchant} - ${date}`,
             vendors: 'Προμηθευτές',
             noAccessActionPrompt: 'Ο ρόλος σας σε αυτόν τον χώρο εργασίας δεν έχει πρόσβαση σε αυτές τις ρυθμίσεις. Ζητήστε από έναν διαχειριστή να σας δώσει πρόσβαση, αν τη χρειάζεστε.',
             connections: 'Συνδέσεις',
+            newRoles: 'Νέοι ρόλοι',
+            adminRoles: 'Ρόλοι διαχειριστή',
+            otherRoles: 'Άλλοι ρόλοι',
+            roleSelectorDescription: `Αναθέστε έναν ρόλο για τη διαχείριση των δικαιωμάτων χώρου εργασίας ενός μέλους. <a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">Συγκρίνετε ρόλους χώρου εργασίας</a>.`,
+            roleSelectorFeedback: 'Δεν βλέπετε τον ρόλο που χρειάζεστε;',
+            roleSelectorFeedbackLink: 'Ενημερώστε μας',
         },
         createdForClient: {
             title: 'Δημιουργήσατε έναν χώρο εργασίας για τον πελάτη σας!',
@@ -7955,6 +7961,11 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             changeOfficeLocation: 'Αλλαγή τοποθεσίας γραφείου',
             changeWorkArrangement: 'Αλλαγή ρύθμισης εργασίας',
             changeRole: 'Αλλαγή ρόλου',
+            newRolesBanner: {
+                title: 'Διαθέσιμοι νέοι ρόλοι',
+                subtitle:
+                    '<label-text>Δώστε στα μέλη ακριβώς το επίπεδο πρόσβασης που χρειάζονται με τους νέους ρόλους <strong>μόνο έγκρισης</strong> και <strong>επισκέπτη</strong>.</label-text>',
+            },
         },
         card: {
             getStartedIssuing: 'Ξεκινήστε εκδίδοντας την πρώτη σας εικονική ή φυσική κάρτα.',

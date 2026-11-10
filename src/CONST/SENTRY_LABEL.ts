@@ -47,6 +47,9 @@ const SENTRY_LABEL = {
     HIGH_CONTRAST_MODE_SWITCHER: {
         TOGGLE: 'HighContrastModeSwitcher-Toggle',
     },
+    NEW_WORKSPACE_ROLES_BANNER: {
+        DISMISS: 'NewWorkspaceRolesBanner-Dismiss',
+    },
     TEST_TOOLS_MODAL_NAVIGATOR: {
         DISMISS: 'TestToolsModalNavigator-Dismiss',
     },
@@ -1284,6 +1287,7 @@ const SENTRY_LABEL = {
             BULK_ACTIONS_DROPDOWN: 'WorkspaceMembers-BulkActionsDropdown',
             MORE_DROPDOWN: 'WorkspaceMembers-MoreDropdown',
             LIST_ROW: 'WorkspaceMembers-ListRow',
+            ROLE_SAVE_BUTTON: 'WorkspaceMembers-RoleSaveButton',
             CATEGORY_VISIBILITY: 'WorkspaceMemberDetails-CategoryVisibility',
         },
         CATEGORIES: {
