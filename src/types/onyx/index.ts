@@ -128,6 +128,7 @@ import type ImportedSpreadsheetMemberData from './ImportedSpreadsheetMemberData'
 import type InitiatingBankAccountUnlock from './InitiatingBankAccountUnlock';
 import type InsightsDashboard from './InsightsDashboard';
 import type {AIInsight, InsightsDashboardID, InsightsGraphKey, InsightsSearchKey} from './InsightsDashboard';
+import type InsightsExplanation from './InsightsExplanation';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type JoinablePolicies from './JoinablePolicies';
@@ -325,6 +326,7 @@ export type {
     GpsDraftDetails,
     AIInsight,
     InsightsDashboard,
+    InsightsExplanation,
     InsightsDashboardID,
     InsightsGraphKey,
     InsightsSearchKey,

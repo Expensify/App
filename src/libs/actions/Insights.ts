@@ -1,6 +1,6 @@
 import type {SearchQueryString} from '@components/Search/types';
 
-import {makeRequestWithSideEffects, waitForWrites, write} from '@libs/API';
+import {makeRequestWithSideEffects, read, waitForWrites, write} from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
@@ -90,4 +90,8 @@ function saveInsightsFilters(searchKey: InsightsSearchKey, query: SearchQueryStr
     write(WRITE_COMMANDS.SAVE_SEARCH_FILTERS, {jsonQuery: JSON.stringify({searchKey, inputQuery: query})}, {optimisticData});
 }
 
-export {getInsights, saveInsightsFilters, setInsightsFilters};
+function preloadInsightsExplanation(jsonQuery: string, hash: number) {
+    read(READ_COMMANDS.GET_INSIGHTS_EXPLANATION, {jsonQuery, hash});
+}
+
+export {getInsights, preloadInsightsExplanation, saveInsightsFilters, setInsightsFilters};

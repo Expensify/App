@@ -45,7 +45,7 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
 
     const shouldRespondInThread = targetReportID === conciergeReportID;
 
-    const askConcierge = (searchQuery: string, sidePanelContext?: SidePanelContext) => {
+    const askConcierge = (searchQuery: string, sidePanelContext?: SidePanelContext, preloadedResponse?: string) => {
         const trimmedQuery = searchQuery.trim();
         if (!trimmedQuery || !shouldShowAskConcierge) {
             return;
@@ -69,6 +69,7 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
             shouldPlaySound: true,
             isInSidePanel,
             sidePanelContext,
+            preloadedResponse,
             delegateAccountID,
             conciergeReportID,
             conciergeThreadReportID,
