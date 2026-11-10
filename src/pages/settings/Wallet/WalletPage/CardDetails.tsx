@@ -1,6 +1,5 @@
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import TextLink from '@components/TextLink';
 
 import useLocalize from '@hooks/useLocalize';
@@ -51,18 +50,19 @@ function CardDetails({pan = '', expiration = '', cvv = '', onUpdateAddressPress,
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const formattedAddress = getFormattedAddress(privatePersonalDetails ?? defaultPrivatePersonalDetails);
 
     return (
         <View>
             {pan?.length > 0 && (
-                <MenuItemWithTopDescription
-                    description={translate('cardPage.cardDetails.cardNumber')}
-                    title={pan}
-                    interactive={false}
-                    copyValue={pan}
-                    copyable
+                <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.CARD_NUMBER}
+                    name={translate('cardPage.cardDetails.cardNumber')}
+                    value={pan}
                     forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                />
+                >
+                    <MenuItem.Copy value={pan} />
+                </MenuItemField>
             )}
             {!!limitType && (
                 <MenuItem.Root>
@@ -74,32 +74,35 @@ function CardDetails({pan = '', expiration = '', cvv = '', onUpdateAddressPress,
                 </MenuItem.Root>
             )}
             {expiration?.length > 0 && (
-                <MenuItemWithTopDescription
-                    description={translate('cardPage.cardDetails.expiration')}
-                    title={expiration}
-                    interactive={false}
-                    copyable
+                <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.CARD_EXPIRATION}
+                    name={translate('cardPage.cardDetails.expiration')}
+                    value={expiration}
                     forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                />
+                >
+                    <MenuItem.Copy value={expiration} />
+                </MenuItemField>
             )}
             {cvv?.length > 0 && (
-                <MenuItemWithTopDescription
-                    description={translate('cardPage.cardDetails.cvv')}
-                    title={cvv}
-                    interactive={false}
-                    copyable
+                <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.CARD_CVV}
+                    name={translate('cardPage.cardDetails.cvv')}
+                    value={cvv}
                     forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                />
+                >
+                    <MenuItem.Copy value={cvv} />
+                </MenuItemField>
             )}
             {pan?.length > 0 && (
                 <>
-                    <MenuItemWithTopDescription
-                        description={translate('cardPage.cardDetails.address')}
-                        title={getFormattedAddress(privatePersonalDetails ?? defaultPrivatePersonalDetails)}
-                        interactive={false}
-                        copyable
+                    <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.CARD_ADDRESS}
+                        name={translate('cardPage.cardDetails.address')}
+                        value={formattedAddress}
                         forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                    />
+                    >
+                        <MenuItem.Copy value={formattedAddress} />
+                    </MenuItemField>
                     <TextLink
                         style={[styles.link, styles.mh5, styles.mb3]}
                         onPress={() => onUpdateAddressPress?.()}

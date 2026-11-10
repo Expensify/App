@@ -14,7 +14,6 @@ import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
@@ -529,53 +528,56 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                             }
                                         />
                                     ) : (
-                                        <MenuItemWithTopDescription
-                                            description={translate('cardPage.virtualCardNumber')}
-                                            title={maskCard('')}
-                                            interactive={false}
-                                            titleStyle={styles.walletCardNumber}
-                                            shouldShowRightComponent
+                                        <MenuItem.Root
+                                            sentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.VIRTUAL_CARD_NUMBER}
                                             shouldBeAccessible={isSignedInAsDelegate ? undefined : false}
-                                            rightComponent={
-                                                !isSignedInAsDelegate ? (
-                                                    <Button
-                                                        sentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.REVEAL_CARD_DETAILS}
-                                                        onPress={() => {
-                                                            if (isAccountLocked) {
-                                                                showLockedAccountModal();
-                                                                return;
-                                                            }
+                                        >
+                                            <MenuItem.Row>
+                                                <MenuItem.Content>
+                                                    <MenuItem.FieldName>{translate('cardPage.virtualCardNumber')}</MenuItem.FieldName>
+                                                    <MenuItem.FieldValue style={styles.walletCardNumber}>{maskCard('')}</MenuItem.FieldValue>
+                                                </MenuItem.Content>
+                                                {!isSignedInAsDelegate && (
+                                                    <MenuItem.Trailing>
+                                                        <Button
+                                                            sentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.REVEAL_CARD_DETAILS}
+                                                            onPress={() => {
+                                                                if (isAccountLocked) {
+                                                                    showLockedAccountModal();
+                                                                    return;
+                                                                }
 
-                                                            if (areAddressAndPersonalDetailsMissing(privatePersonalDetails)) {
-                                                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS.getRoute(String(card.cardID))));
-                                                                return;
-                                                            }
+                                                                if (areAddressAndPersonalDetailsMissing(privatePersonalDetails)) {
+                                                                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS.getRoute(String(card.cardID))));
+                                                                    return;
+                                                                }
 
-                                                            if (isUkEuExpensifyCard(card)) {
-                                                                const personalDetailsForm = getNormalizedSubPageValues(privatePersonalDetails);
-                                                                const personalDetailsParams = buildSetPersonalDetailsAndShipExpensifyCardsParams(personalDetailsForm, countryCode);
-                                                                executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PERSONAL_DETAILS_AND_REVEAL_CARD_DETAILS, {
-                                                                    ...personalDetailsParams,
-                                                                    cardID: String(card.cardID),
-                                                                });
-                                                                return;
-                                                            }
+                                                                if (isUkEuExpensifyCard(card)) {
+                                                                    const personalDetailsForm = getNormalizedSubPageValues(privatePersonalDetails);
+                                                                    const personalDetailsParams = buildSetPersonalDetailsAndShipExpensifyCardsParams(personalDetailsForm, countryCode);
+                                                                    executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PERSONAL_DETAILS_AND_REVEAL_CARD_DETAILS, {
+                                                                        ...personalDetailsParams,
+                                                                        cardID: String(card.cardID),
+                                                                    });
+                                                                    return;
+                                                                }
 
-                                                            if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL) {
-                                                                Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_CONFIRM_VALIDATE_CODE.getRoute(String(card.cardID)));
-                                                                return;
-                                                            }
-                                                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_REVEAL_VALIDATE_CODE.getRoute(String(card.cardID))));
-                                                        }}
-                                                        isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
-                                                        isLoading={isCardDetailsLoading[card.cardID]}
-                                                        size={CONST.BUTTON_SIZE.SMALL}
-                                                    >
-                                                        <Button.Text>{translate('cardPage.cardDetails.reveal')}</Button.Text>
-                                                    </Button>
-                                                ) : undefined
-                                            }
-                                        />
+                                                                if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL) {
+                                                                    Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_CONFIRM_VALIDATE_CODE.getRoute(String(card.cardID)));
+                                                                    return;
+                                                                }
+                                                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_REVEAL_VALIDATE_CODE.getRoute(String(card.cardID))));
+                                                            }}
+                                                            isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
+                                                            isLoading={isCardDetailsLoading[card.cardID]}
+                                                            size={CONST.BUTTON_SIZE.SMALL}
+                                                        >
+                                                            <Button.Text>{translate('cardPage.cardDetails.reveal')}</Button.Text>
+                                                        </Button>
+                                                    </MenuItem.Trailing>
+                                                )}
+                                            </MenuItem.Row>
+                                        </MenuItem.Root>
                                     )}
                                 </React.Fragment>
                             );
@@ -586,26 +588,29 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                     {revealedCardDetails[String(card.cardID)]?.cvv ? (
                                         <CardDetails cvv={revealedCardDetails[String(card.cardID)]?.cvv} />
                                     ) : (
-                                        <MenuItemWithTopDescription
-                                            description={translate('cardPage.travelCardCvv')}
-                                            title="•••"
-                                            interactive={false}
-                                            titleStyle={styles.walletCardNumber}
-                                            shouldShowRightComponent
+                                        <MenuItem.Root
+                                            sentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.TRAVEL_CARD_CVV}
                                             shouldBeAccessible={isSignedInAsDelegate ? undefined : false}
-                                            rightComponent={
-                                                !isSignedInAsDelegate ? (
-                                                    <Button
-                                                        sentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.REVEAL_CVV}
-                                                        onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_REVEAL_VALIDATE_CODE.getRoute(String(card.cardID))))}
-                                                        isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
-                                                        isLoading={isCardDetailsLoading[card.cardID]}
-                                                    >
-                                                        <Button.Text>{translate('cardPage.cardDetails.revealCvv')}</Button.Text>
-                                                    </Button>
-                                                ) : undefined
-                                            }
-                                        />
+                                        >
+                                            <MenuItem.Row>
+                                                <MenuItem.Content>
+                                                    <MenuItem.FieldName>{translate('cardPage.travelCardCvv')}</MenuItem.FieldName>
+                                                    <MenuItem.FieldValue style={styles.walletCardNumber}>•••</MenuItem.FieldValue>
+                                                </MenuItem.Content>
+                                                {!isSignedInAsDelegate && (
+                                                    <MenuItem.Trailing>
+                                                        <Button
+                                                            sentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.REVEAL_CVV}
+                                                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_REVEAL_VALIDATE_CODE.getRoute(String(card.cardID))))}
+                                                            isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
+                                                            isLoading={isCardDetailsLoading[card.cardID]}
+                                                        >
+                                                            <Button.Text>{translate('cardPage.cardDetails.revealCvv')}</Button.Text>
+                                                        </Button>
+                                                    </MenuItem.Trailing>
+                                                )}
+                                            </MenuItem.Row>
+                                        </MenuItem.Root>
                                     )}
                                 </React.Fragment>
                             ))}
