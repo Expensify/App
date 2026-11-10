@@ -3507,15 +3507,6 @@ function canIOUBePaid(
         return false;
     }
 
-    if (getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
-        if (!onlyShowPayElsewhere) {
-            return false;
-        }
-        if (iouReport?.statusNum !== CONST.REPORT.STATUS_NUM.SUBMITTED) {
-            return false;
-        }
-    }
-
     if (isInvoiceReport(iouReport)) {
         if (isChatReportArchived || iouSettled || isOpenInvoiceReport(iouReport)) {
             return false;
@@ -3524,6 +3515,16 @@ function canIOUBePaid(
             return chatReport?.invoiceReceiver?.accountID === currentUserAccountID;
         }
         return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN;
+    }
+
+    // Invoice payment depends on the receiver policy above, so the sender's reimbursement choice only gates non-invoice reports.
+    if (getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
+        if (!onlyShowPayElsewhere) {
+            return false;
+        }
+        if (iouReport?.statusNum !== CONST.REPORT.STATUS_NUM.SUBMITTED) {
+            return false;
+        }
     }
 
     const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, iouReport, bankAccountList, policy, onlyShowPayElsewhere);
