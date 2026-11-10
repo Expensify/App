@@ -53,6 +53,7 @@ describe('AmountFilterContent currency selection', () => {
         render(
             <ThemeStylesProvider>
                 <AmountFilterContent
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
                     value={{EqualTo: undefined, GreaterThan: '10.00 USD', LessThan: '20.00 GBP'}}
                     onChange={jest.fn()}
@@ -98,6 +99,7 @@ describe('AmountFilterContent currency selection', () => {
         // Given a saved USD amount that allows fractional input.
         render(
             <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT}
                 value={{EqualTo: '12.34 USD', GreaterThan: undefined, LessThan: undefined}}
                 onChange={jest.fn()}
@@ -177,6 +179,7 @@ describe('AmountFilterContent currency selection', () => {
         const onChange = jest.fn();
         render(
             <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 baseFilterKey={baseFilterKey}
                 value={{EqualTo: '1200', GreaterThan: undefined, LessThan: undefined}}
                 onChange={onChange}
@@ -209,6 +212,7 @@ describe('AmountFilterContent currency selection', () => {
         const onChange = jest.fn();
         render(
             <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 baseFilterKey={baseFilterKey}
                 value={{EqualTo: undefined, GreaterThan: undefined, LessThan: undefined}}
                 onChange={onChange}
@@ -234,6 +238,7 @@ describe('AmountFilterContent currency selection', () => {
         const onChange = jest.fn();
         render(
             <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
                 value={{EqualTo: '1200', GreaterThan: undefined, LessThan: undefined}}
                 onChange={onChange}
@@ -253,6 +258,7 @@ describe('AmountFilterContent currency selection', () => {
         const onChange = jest.fn();
         render(
             <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 baseFilterKey={baseFilterKey}
                 value={{EqualTo: '0.10 USD', GreaterThan: undefined, LessThan: undefined}}
                 onChange={onChange}
@@ -280,6 +286,7 @@ describe('AmountFilterContent currency selection', () => {
         const onChange = jest.fn();
         render(
             <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
                 value={{EqualTo: '12.00 USD', GreaterThan: undefined, LessThan: undefined}}
                 onChange={onChange}
@@ -302,6 +309,7 @@ describe('AmountFilterContent currency selection', () => {
         const onChange = jest.fn();
         render(
             <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT}
                 value={{EqualTo: undefined, GreaterThan: undefined, LessThan: undefined}}
                 onChange={onChange}
@@ -329,6 +337,7 @@ describe('AmountFilterContent currency selection', () => {
         const onChange = jest.fn();
         render(
             <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT}
                 value={{EqualTo: undefined, GreaterThan: '10.00 JPY', LessThan: '20.00 GBP'}}
                 onChange={onChange}
@@ -351,6 +360,7 @@ describe('AmountFilterContent currency selection', () => {
         const onChange = jest.fn();
         render(
             <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
                 value={{EqualTo: undefined, GreaterThan: '0.10 USD', LessThan: '20.00 GBP'}}
                 onChange={onChange}
@@ -374,6 +384,7 @@ describe('AmountFilterContent currency selection', () => {
         // When its existing editor is rendered.
         render(
             <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL}
                 value={{EqualTo: '1200', GreaterThan: undefined, LessThan: undefined}}
                 onChange={onChange}

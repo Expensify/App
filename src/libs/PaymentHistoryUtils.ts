@@ -303,7 +303,7 @@ function getPaymentDetailsBadge(purchases: Purchases | null | undefined, purchas
 }
 
 function formatDate(date: string, locale: DateFnsLocale | undefined): string {
-    return DateUtils.formatWithUTCTimeZone(date, CONST.DATE.MONTH_DAY_YEAR_FORMAT, locale) || date;
+    return DateUtils.formatToLongDateInUTC(date, locale) || date;
 }
 
 /** Resolves the dynamic badge label shown only on the details page, falling back to the plain state label. */
