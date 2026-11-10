@@ -48,6 +48,4 @@ function ImpossibleRuleNotice({refusal}: ImpossibleRuleNoticeProps) {
     );
 }
 
-ImpossibleRuleNotice.displayName = 'ImpossibleRuleNotice';
-
 export default ImpossibleRuleNotice;
