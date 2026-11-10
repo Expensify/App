@@ -514,6 +514,7 @@ const SENTRY_LABEL = {
             CREATE_EXPENSE: 'Search-EmptyState-CreateExpense',
             CREATE_REPORT: 'Search-EmptyState-CreateReport',
             SEND_INVOICE: 'Search-EmptyState-SendInvoice',
+            RESET_FILTERS: 'Search-EmptyState-ResetFilters',
             BOOK_TRAVEL: 'Search-EmptyState-BookTravel',
         },
         EXPENSE_REPORT_CHECKBOX: 'Search-ExpenseReportCheckbox',

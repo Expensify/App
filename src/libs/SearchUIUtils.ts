@@ -5354,6 +5354,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
                 emptyState: {
                     title: 'search.searchResults.emptyResults.title',
                     subtitle: 'search.searchResults.emptyResults.subtitle',
+                    shouldShowResetFilters: true,
                 },
             });
         }
