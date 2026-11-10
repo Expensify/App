@@ -93,6 +93,7 @@ function StateSelector({errorText, onBlur, value: stateCode, label, onInputChang
             }}
             wrapperStyle={wrapperStyle}
             forwardedFSClass={forwardedFSClass}
+            sentryLabel={CONST.SENTRY_LABEL.STATE_SELECTOR.OPEN}
         />
     );
 }

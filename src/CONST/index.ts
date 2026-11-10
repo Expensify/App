@@ -10337,6 +10337,12 @@ const CONST = {
         COUNTRY_PICKER: {
             OPEN: 'CountryPicker-Open',
         },
+        STATE_PICKER: {
+            OPEN: 'StatePicker-Open',
+        },
+        STATE_SELECTOR: {
+            OPEN: 'StateSelector-Open',
+        },
         PUSH_ROW_WITH_MODAL: {
             OPEN: 'PushRowWithModal-Open',
         },
@@ -11751,6 +11757,7 @@ const CONST = {
             COPY: 'TwoFactorAuth-Copy',
             COPY_CODES: 'TwoFactorAuth-CopyCodes',
             SECRET_COPY: 'TwoFactorAuth-SecretCopy',
+            RECOVERY_CODE_INPUT: 'TwoFactorAuth-RecoveryCodeInput',
         },
         VALIDATE_CODE: {
             RESEND_CODE: 'ValidateCode-ResendCode',
@@ -11801,6 +11808,8 @@ const CONST = {
         },
         BANK_ACCOUNT: {
             DATA_SECURE_LINK: 'BankAccount-DataSecureLink',
+            ROUTING_NUMBER_INPUT: 'BankAccount-RoutingNumberInput',
+            ACCOUNT_NUMBER_INPUT: 'BankAccount-AccountNumberInput',
         },
         EARLY_DISCOUNT_BANNER: {
             DISMISS_BUTTON: 'EarlyDiscountBanner-DismissButton',
@@ -11822,6 +11831,7 @@ const CONST = {
             VALIDATE: 'SignIn-Validate',
             SEND: 'SignIn-Send',
             CONFIRM: 'SignIn-Confirm',
+            RECOVERY_CODE_INPUT: 'SignIn-RecoveryCodeInput',
             FOOTER_LINK: {
                 EXPENSE_MANAGEMENT: 'SignIn-FooterLink-ExpenseManagement',
                 SPEND_MANAGEMENT: 'SignIn-FooterLink-SpendManagement',

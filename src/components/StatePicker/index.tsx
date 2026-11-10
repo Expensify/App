@@ -47,7 +47,10 @@ function StatePicker({value, errorText, onInputChange = () => {}, forwardedFSCla
 
     return (
         <>
-            <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => setIsPickerVisible(true), false, session)}>
+            <MenuItem.Root
+                onPress={callFunctionIfActionIsAllowed(() => setIsPickerVisible(true), false, session)}
+                sentryLabel={CONST.SENTRY_LABEL.STATE_PICKER.OPEN}
+            >
                 <MenuItemField.Row
                     name={translate('common.state')}
                     value={value ? translate(`allStates.${value as State}.stateName`) : undefined}
