@@ -1,6 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 
-import useIsResizableSingleRHP from '@hooks/useIsResizableSingleRHP';
+import useResizableSingleRHP from '@hooks/useResizableSingleRHP';
 
 type MockWideRHPState = {
     wideRHPRouteKeys: string[];
@@ -20,34 +20,34 @@ jest.mock('@hooks/useResponsiveLayout', () => () => ({isSmallScreenWidth: mockIs
 let mockIsResizableRHPEnabled = true;
 jest.mock('@hooks/usePermissions', () => () => ({isBetaEnabled: () => mockIsResizableRHPEnabled}));
 
-describe('useIsResizableSingleRHP', () => {
+describe('useResizableSingleRHP', () => {
     beforeEach(() => {
         mockWideRHPState = LONE_SINGLE_RHP;
         mockIsSmallScreenWidth = false;
         mockIsResizableRHPEnabled = true;
     });
 
-    it('lets a lone single RHP be resized', () => {
+    it('lets a lone single RHP be resized as a floating card', () => {
         // Given a single RHP with nothing wide underneath
         // When the hook reads the layout
-        const {result} = renderHook(() => useIsResizableSingleRHP());
+        const {result} = renderHook(() => useResizableSingleRHP());
 
-        // Then the card can be resized
-        expect(result.current).toBe(true);
+        // Then the card can be resized and the RHP frame itself is the card
+        expect(result.current).toEqual({isResizable: true, isFloating: true});
     });
 
     it.each([
         ['wide', {...LONE_SINGLE_RHP, wideRHPRouteKeys: ['wide']}],
         ['super-wide', {...LONE_SINGLE_RHP, superWideRHPRouteKeys: ['super-wide']}],
-    ])('lets a single RHP stacked on a %s RHP be resized', (_, state) => {
+    ])('lets a single RHP stacked on a %s RHP be resized without floating', (_, state) => {
         // Given a focused single RHP opened on top of a wider card, like an expense opened from a report
         mockWideRHPState = state;
 
         // When the hook reads the layout
-        const {result} = renderHook(() => useIsResizableSingleRHP());
+        const {result} = renderHook(() => useResizableSingleRHP());
 
-        // Then the stacked single card can be resized too
-        expect(result.current).toBe(true);
+        // Then the stacked card can be resized, but it sizes itself instead of the floating frame
+        expect(result.current).toEqual({isResizable: true, isFloating: false});
     });
 
     it.each([
@@ -58,30 +58,31 @@ describe('useIsResizableSingleRHP', () => {
         mockWideRHPState = state;
 
         // When the hook reads the layout
-        const {result} = renderHook(() => useIsResizableSingleRHP());
+        const {result} = renderHook(() => useResizableSingleRHP());
 
         // Then nothing can be resized
-        expect(result.current).toBe(false);
+        expect(result.current).toEqual({isResizable: false, isFloating: false});
     });
 
-    it('does not resize on a narrow layout or without the beta', () => {
+    it('does not resize on a narrow layout', () => {
         // Given a full-screen RHP on a narrow layout
         mockIsSmallScreenWidth = true;
 
         // When the hook reads the layout
-        const {result, rerender} = renderHook(() => useIsResizableSingleRHP());
+        const {result} = renderHook(() => useResizableSingleRHP());
 
         // Then there is no edge to drag
-        expect(result.current).toBe(false);
+        expect(result.current).toEqual({isResizable: false, isFloating: false});
+    });
 
-        // Given a wide layout but no beta
-        mockIsSmallScreenWidth = false;
+    it('does not resize without the beta', () => {
+        // Given a wide layout for a user outside the beta
         mockIsResizableRHPEnabled = false;
 
-        // When the hook reads the layout again
-        rerender({});
+        // When the hook reads the layout
+        const {result} = renderHook(() => useResizableSingleRHP());
 
-        // Then resizing stays hidden from users outside the beta
-        expect(result.current).toBe(false);
+        // Then resizing stays hidden from them
+        expect(result.current).toEqual({isResizable: false, isFloating: false});
     });
 });

@@ -3,8 +3,8 @@ import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import RHPResizeHandle from '@components/RHPResizeHandle';
 import {expandedRHPProgress, thirdOverlayProgress, useWideRHPActions, useWideRHPState} from '@components/WideRHPContextProvider';
 
-import useIsResizableSingleRHP from '@hooks/useIsResizableSingleRHP';
 import useOnyx from '@hooks/useOnyx';
+import useResizableSingleRHP from '@hooks/useResizableSingleRHP';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useSingleRHPWidth from '@hooks/useSingleRHPWidth';
@@ -61,7 +61,7 @@ type RightModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, t
 
 const Stack = createRightModalNavigator<RightModalNavigatorParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>();
 
-const singleRHPWidth = variables.rhpWidth;
+const defaultSingleRHPWidth = variables.rhpWidth;
 
 function MissingPersonalDetailsWithPINContext(props: Record<string, unknown>) {
     return (
@@ -202,7 +202,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const animatedWidth = Animated.subtract(
         expandedRHPProgress.interpolate({
             inputRange: [0, 1, 2],
-            outputRange: [singleRHPWidth, calculateWideRHPWidth(windowWidth), calculateSuperWideRHPWidth(windowWidth)],
+            outputRange: [defaultSingleRHPWidth, calculateWideRHPWidth(windowWidth), calculateSuperWideRHPWidth(windowWidth)],
         }),
         superWideRHPSidePanelOffset,
     );
@@ -231,9 +231,9 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0 || shouldRenderSecondaryOverlayForRHPOnWideRHP || shouldRenderSecondaryOverlayForRHPOnSuperWideRHP);
 
     const frameStyle = getRHPFrameStyle({styles, animatedWidth, singleRHPWidth: resizableSingleRHPWidth, shouldUseNarrowLayout, shouldUseCenteredFrame});
-    const isResizableSingleRHP = useIsResizableSingleRHP();
+    const {isResizable: isResizableSingleRHP, isFloating: isResizableFloatingRHP} = useResizableSingleRHP();
     // A single card stacked on a wide one sizes itself (see useModalStackScreenOptions), so only the lone floating card needs the fixed stack box.
-    const stackContentStyle = styles.singleRHPStackBox(isResizableSingleRHP && superWideRHPRouteKeys.length === 0 && wideRHPRouteKeys.length === 0);
+    const stackContentStyle = styles.singleRHPStackBox(isResizableFloatingRHP);
 
     const screenListeners = {
         blur: () => {

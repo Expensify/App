@@ -1,6 +1,6 @@
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
-import useIsResizableSingleRHP from '@hooks/useIsResizableSingleRHP';
+import useResizableSingleRHP from '@hooks/useResizableSingleRHP';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleRHPWidth from '@hooks/useSingleRHPWidth';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -41,7 +41,7 @@ const useRHPScreenOptions = (): PlatformStackNavigationOptions => {
     const isWideRHPContext = !isSmallScreenWidth && (wideRHPRouteKeys.length > 0 || superWideRHPRouteKeys.length > 0);
 
     // A card stacked on a wide one is sized by the modal stack's own screen options instead.
-    const isResizableFloatingRHP = useIsResizableSingleRHP() && !isWideRHPContext;
+    const {isFloating: isResizableFloatingRHP} = useResizableSingleRHP();
     const {width: singleRHPWidth} = useSingleRHPWidth();
 
     const getHorizontalIOSInterpolatorProps = (props: StackCardInterpolationProps) => {
