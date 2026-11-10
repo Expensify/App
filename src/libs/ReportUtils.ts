@@ -4068,6 +4068,7 @@ function canDeleteReportAction(
         reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT ||
         reportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
         isCreatedTaskReportAction(reportAction) ||
+        isCreatedSupportTicketReportAction(reportAction) ||
         reportAction?.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE
     ) {
         return false;

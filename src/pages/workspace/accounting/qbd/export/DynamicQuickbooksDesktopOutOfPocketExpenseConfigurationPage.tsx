@@ -21,7 +21,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import {clearQBDErrorField} from '@userActions/Policy/Policy';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -121,7 +121,7 @@ function DynamicQuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: W
                     key={index}
                 >
                     <MenuItem.Root
-                        onPress={callFunctionIfActionIsAllowed(section.onPress, false, session)}
+                        onPress={callIfAuthenticated(section.onPress, session)}
                         sentryLabel={section.sentryLabel}
                     >
                         <MenuItemField.Row

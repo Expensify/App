@@ -22,7 +22,7 @@ import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import {openLink} from '@userActions/Link';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -128,7 +128,7 @@ function ImportFromFileStep() {
                     </PressableWithoutFeedback>
                     <WrappingText text={translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionEnd')} />
                 </View>
-                <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_LAYOUT_NAME.getRoute(policyID)), false, session)}>
+                <MenuItem.Root onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_LAYOUT_NAME.getRoute(policyID)), session)}>
                     <MenuItemField.Row
                         name={translate('workspace.companyCards.addNewCard.companyCardLayoutName')}
                         value={companyCardLayoutName}

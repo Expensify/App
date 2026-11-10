@@ -18,7 +18,7 @@ import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -78,9 +78,8 @@ function DualEntryCardProgramAccountPage({policy}: WithPolicyConnectionsProps) {
                         >
                             <MenuItem.Root
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.DUAL_ENTRY.CARD_PROGRAM_ACCOUNT_FEED_ROW}
-                                onPress={callFunctionIfActionIsAllowed(
+                                onPress={callIfAuthenticated(
                                     () => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_CARD_PROGRAM_ACCOUNT_SELECTOR.getRoute(policyID, feedWithDomainID)) : undefined),
-                                    false,
                                     session,
                                 )}
                             >

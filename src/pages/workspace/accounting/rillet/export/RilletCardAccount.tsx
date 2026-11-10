@@ -17,7 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -77,9 +77,8 @@ function RilletCardAccount({policy}: WithPolicyConnectionsProps) {
                         >
                             <MenuItem.Root
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RILLET.CARD_ACCOUNT_FEED_ROW}
-                                onPress={callFunctionIfActionIsAllowed(
+                                onPress={callIfAuthenticated(
                                     () => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_CARD_ACCOUNT_CARD_LIST.getRoute(policyID, feedWithDomainID)) : undefined),
-                                    false,
                                     session,
                                 )}
                             >

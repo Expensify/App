@@ -3380,6 +3380,7 @@ ${amount} για ${merchant} - ${date}`,
         disablePaymentsPrompt: 'Αυτό θα αφαιρέσει όλες τις ρυθμίσεις πληρωμής σας.',
         businessBankAccountCountries: 'Χώρες επαγγελματικών τραπεζικών λογαριασμών',
         businessBankAccountCountriesDescription: 'Οι υπάλληλοι σε αυτές τις χώρες δίνουν στοιχεία για τοπική μεταφορά. Όλοι οι υπόλοιποι δίνουν στοιχεία για διεθνές έμβασμα.',
+        businessBankAccountCountriesError: 'Η ενημέρωση των χωρών αποζημίωσης απέτυχε. Δοκιμάστε ξανά.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Μια προσαρμοσμένη ροή έγκρισης είναι ενεργοποιημένη σε αυτόν τον χώρο εργασίας. Για να ελέγξετε ή να αλλάξετε αυτήν τη ροή, επικοινωνήστε με τον/την <account-manager-link>Account Manager</account-manager-link> σας ή το <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -6896,7 +6897,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     mastercard: 'Διαθέτουμε παγκόσμιες ενσωματώσεις με τη Mastercard, αν και η επιλεξιμότητα διαφέρει ανά τράπεζα και πρόγραμμα κάρτας.\n\nΓια να ξεκινήσετε, απλώς:',
                     vcf: `1. Επισκεφθείτε [αυτό το άρθρο βοήθειας](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) για αναλυτικές οδηγίες σχετικά με τη ρύθμιση των Visa Commercial Cards σας.
 
-2. [Επικοινωνήστε με την τράπεζά σας](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) για να επιβεβαιώσετε ότι υποστηρίζει εμπορική ροή για το πρόγραμμά σας και ζητήστε τους να την ενεργοποιήσουν.
+2. Επικοινωνήστε με την τράπεζά σας για να επιβεβαιώσετε ότι υποστηρίζει εμπορική ροή για το πρόγραμμά σας και ζητήστε τους να την ενεργοποιήσουν.
 
 3. *Μόλις ενεργοποιηθεί η ροή και έχετε τα στοιχεία της, συνεχίστε στην επόμενη οθόνη.*`,
                     gl1025: `1. Επισκεφθείτε [αυτό το άρθρο βοήθειας](${CONST.COMPANY_CARDS_AMEX_COMMERCIAL_CARD_HELP}) για να δείτε αν η American Express μπορεί να ενεργοποιήσει μια εμπορική ροή για το πρόγραμμά σας.
@@ -6906,7 +6907,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
 3. *Μόλις έχετε τις πληροφορίες της ροής, συνεχίστε στην επόμενη οθόνη.*`,
                     cdf: `1. Επισκεφτείτε [αυτό το άρθρο βοήθειας](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) για αναλυτικές οδηγίες σχετικά με τη ρύθμιση των Mastercard Commercial Cards σας.
 
-2. [Επικοινωνήστε με την τράπεζά σας](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) για να επιβεβαιώσετε ότι υποστηρίζει εμπορική ροή για το πρόγραμμά σας και ζητήστε να την ενεργοποιήσει.
+2. Επικοινωνήστε με την τράπεζά σας για να επιβεβαιώσετε ότι υποστηρίζει εμπορική ροή για το πρόγραμμά σας και ζητήστε να την ενεργοποιήσει.
 
 3. *Μόλις ενεργοποιηθεί η ροή και έχετε τις σχετικές λεπτομέρειες, συνεχίστε στην επόμενη οθόνη.*`,
                     stripe: `1. Επισκεφτείτε τον πίνακα ελέγχου του Stripe και μεταβείτε στις [Ρυθμίσεις](${CONST.COMPANY_CARDS_STRIPE_HELP}).
@@ -9918,6 +9919,12 @@ ${reportName}`,
         digits: {
             updateCurrencyTitle: 'Ενημέρωση νομίσματος χώρου εργασίας;',
             updateCurrencyPrompt: 'Το Digits είναι προς το παρόν διαθέσιμο μόνο για εταιρείες με έδρα στις ΗΠΑ που λειτουργούν σε USD.',
+            importDescription: 'Επιλέξτε ποιες διαμορφώσεις Digits θέλετε να εισαγάγετε.',
+            accountTypesDescription: 'Οι λογαριασμοί σας στο Digits θα εισαχθούν ως κατηγορίες.',
+            enableNewAccountsTitle: 'Ενεργοποίηση νεοεισαγόμενων λογαριασμών',
+            enableNewAccountsDescription: 'Οι νέοι λογαριασμοί Digits θα είναι διαθέσιμοι ως κατηγορίες.',
+            dimensionsImport: 'Όλες οι διαστάσεις Digits εισάγονται ως ετικέτες.',
+            departments: 'Τμήματα',
         },
         zohoBooks: {
             organization: 'Οργανισμός Zoho Books',
@@ -13105,6 +13112,7 @@ ${reportName}`,
         deletingTitle: 'Γίνεται διαγραφή αναφορών...',
         deletingExpensesTitle: 'Γίνεται διαγραφή εξόδων...',
         runningBody: 'Περιμένετε μερικά λεπτά ή αφήστε το Concierge να σας στείλει μήνυμα όταν ολοκληρωθεί.',
+        changingWorkspaceTitle: 'Γίνεται μετακίνηση αναφορών...',
         sendFromConcierge: 'Στείλτε μου μήνυμα όταν τελειώσει',
         conciergeTitle: 'Βεβαίως!',
         conciergeBody: 'Ο Concierge θα σας στείλει μήνυμα όταν ολοκληρωθεί.',
@@ -13140,6 +13148,10 @@ ${reportName}`,
         deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Διαγράφηκαν έξοδα σε ${doneCount} από ${count} αναφορά`,
             other: `Διαγράφηκαν έξοδα σε ${doneCount} από ${count} αναφορές`,
+        }),
+        changedWorkspaceTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Άλλαξε χώρο εργασίας σε ${doneCount} από ${count} αναφορά`,
+            other: `Άλλαξε χώρο εργασίας σε ${doneCount} από ${count} αναφορές`,
         }),
         noReportsTitle: 'Δεν υπάρχουν αντιστοιχίες αναφορών',
         noReportsBody: 'Καμία από τις αναφορές που επιλέξατε δεν χρειαζόταν αυτή την ενέργεια.',
@@ -13177,6 +13189,10 @@ ${reportName}`,
         expensesNotDeletedBody: ({count}: {count: number}) => ({
             one: 'Τα έξοδα σε 1 αναφορά δεν ήταν δυνατό να διαγραφούν.',
             other: `Τα έξοδα σε ${count} αναφορές δεν ήταν δυνατό να διαγραφούν.`,
+        }),
+        notMovedBody: ({count}: {count: number}) => ({
+            one: '1 αναφορά δεν μπόρεσε να μετακινηθεί.',
+            other: `${count} αναφορές δεν ήταν δυνατό να μετακινηθούν.`,
         }),
     },
     emailIssuePage: {
