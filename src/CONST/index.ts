@@ -10454,6 +10454,27 @@ const CONST = {
             VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
             VIOLATIONS_BY_APPROVER: 'violationsByApprover',
         },
+        AI_INSIGHT: {
+            SIGNAL: {
+                SPIKE: 'spike',
+                TREND: 'trend',
+                RECORD: 'record',
+                THRESHOLD: 'threshold',
+                CONCENTRATION: 'concentration',
+            },
+            CHIP_TYPE: {
+                CHANGE: 'change',
+                NEUTRAL: 'neutral',
+            },
+            CHIP_DIRECTION: {
+                INCREASE: 'increase',
+                DECREASE: 'decrease',
+            },
+            CHIP_UNIT: {
+                PERCENT: 'percent',
+                AMOUNT: 'amount',
+            },
+        },
     },
 
     SECTION_LIST_ITEM_TYPE: {
