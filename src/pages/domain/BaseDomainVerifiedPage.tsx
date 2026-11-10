@@ -14,12 +14,12 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import {isAdminSelector} from '@src/selectors/Domain';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
@@ -33,9 +33,12 @@ type BaseDomainVerifiedPageProps = {
 
     /** Route to navigate to when the user confirms verification success */
     confirmDestination?: Route;
+
+    /** Sentry label for the confirm button, one per destination */
+    confirmSentryLabel: SentryLabel;
 };
 
-function BaseDomainVerifiedPage({domainAccountID, redirectTo, confirmDestination = ROUTES.DOMAIN_INITIAL.getRoute(domainAccountID)}: BaseDomainVerifiedPageProps) {
+function BaseDomainVerifiedPage({domainAccountID, redirectTo, confirmDestination = ROUTES.DOMAIN_INITIAL.getRoute(domainAccountID), confirmSentryLabel}: BaseDomainVerifiedPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -75,7 +78,7 @@ function BaseDomainVerifiedPage({domainAccountID, redirectTo, confirmDestination
                 </ConfirmationPage.Content>
                 <FixedFooter>
                     <ConfirmationPage.PrimaryButton
-                        sentryLabel={CONST.SENTRY_LABEL.DOMAIN.VERIFIED_CONFIRM}
+                        sentryLabel={confirmSentryLabel}
                         text={translate('common.buttonConfirm')}
                         onPress={() => Navigation.navigate(confirmDestination)}
                     />

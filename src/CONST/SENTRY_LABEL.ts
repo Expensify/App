@@ -1230,7 +1230,10 @@ const SENTRY_LABEL = {
             ADD_NEW_INSTRUCTIONS_SUBMIT: 'WorkspaceCompanyCards-AddNewInstructionsSubmit',
             ADD_WORK_EMAIL: 'WorkspaceCompanyCards-AddWorkEmail',
             ASSIGN_ASSIGNEE_NEXT: 'WorkspaceCompanyCards-AssignAssigneeNext',
-            ASSIGN_CARD_SELECTION_SUBMIT: 'WorkspaceCompanyCards-AssignCardSelectionSubmit',
+            ASSIGN_CARD_SELECTION_SUBMIT: {
+                CONFIRM: 'WorkspaceCompanyCards-AssignCardSelectionSubmit-Confirm',
+                NEXT: 'WorkspaceCompanyCards-AssignCardSelectionSubmit-Next',
+            },
             ASSIGN_CONFIRM_CARDHOLDER: 'WorkspaceCompanyCards-AssignConfirmCardholder',
             ASSIGN_CONFIRM_CARD_NAME: 'WorkspaceCompanyCards-AssignConfirmCardName',
             ASSIGN_CONFIRM_SUBMIT: 'WorkspaceCompanyCards-AssignConfirmSubmit',
@@ -1387,7 +1390,10 @@ const SENTRY_LABEL = {
             APPROVAL_LIMIT_APPROVER: 'WorkspaceWorkflows-ApprovalLimitApprover',
             APPROVAL_LIMIT_REMOVE: 'WorkspaceWorkflows-ApprovalLimitRemove',
             APPROVAL_LIMIT_SKIP: 'WorkspaceWorkflows-ApprovalLimitSkip',
-            APPROVAL_LIMIT_SUBMIT: 'WorkspaceWorkflows-ApprovalLimitSubmit',
+            APPROVAL_LIMIT_SUBMIT: {
+                SAVE: 'WorkspaceWorkflows-ApprovalLimitSubmit-Save',
+                NEXT: 'WorkspaceWorkflows-ApprovalLimitSubmit-Next',
+            },
             AUTO_REPORTING_FREQUENCY_SAVE: 'WorkspaceWorkflows-AutoReportingFrequencySave',
             PAYER_SAVE: 'WorkspaceWorkflows-PayerSave',
             AUTO_REPORTING_OFFSET: 'WorkspaceWorkflows-AutoReportingOffset',
@@ -2061,7 +2067,11 @@ const SENTRY_LABEL = {
         ACCESS_RESTRICTED_VERIFY_YOURSELF: 'DomainAccessRestricted-VerifyYourself',
         ALREADY_EXISTS_NEVER_MIND: 'DomainAlreadyExists-NeverMind',
         ALREADY_EXISTS_REQUEST_ACCESS: 'DomainAlreadyExists-RequestAccess',
-        VERIFIED_CONFIRM: 'DomainVerified-Confirm',
+        VERIFIED_CONFIRM: {
+            SAML: 'DomainVerified-Confirm-Saml',
+            MEMBERS: 'DomainVerified-Confirm-Members',
+            WORKSPACES: 'DomainVerified-Confirm-Workspaces',
+        },
         VERIFY_SUBMIT: 'DomainVerify-Submit',
         ADMINS: {
             ROW: 'DomainAdmins-Row',
