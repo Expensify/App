@@ -174,13 +174,6 @@
 - E/App issue: [#83000](https://github.com/Expensify/App/issues/83000)
 - PR introducing patch: [#83256](https://github.com/Expensify/App/pull/83256)
 
-### [react-native+0.86.0+024+fix-hermes-sampling-profiler-pthread-kill-crash.patch](react-native+0.86.0+024+fix-hermes-sampling-profiler-pthread-kill-crash.patch)
-
-- Reason: On Android (Bionic libc), `pthread_kill` with an invalid `pthread_t` (e.g., thread has exited) calls `abort()` instead of returning `ESRCH` like glibc. The Hermes sampling profiler's timer thread sends `SIGPROF` via `pthread_kill` to registered runtime threads at ~100Hz. If a runtime's thread exits while profiling is active (e.g., during HybridApp transitions or background/foreground), the stale `pthread_t` triggers `SIGABRT: invalid pthread_t passed to pthread_kill`. This patch adds a `doLast` hook to the `unzipHermes` Gradle task that modifies `SamplingProfilerPosix.cpp` after Hermes source extraction, replacing `pthread_kill` with the `tgkill` syscall on Android, which safely returns `ESRCH` for dead threads. A kernel thread ID (`currentTid_`) is stored alongside the `pthread_t` and kept in sync via `setRuntimeThread()`. The Gradle hook approach is necessary because `unzipHermes` downloads fresh Hermes source, overwriting any direct source patches.
-- Upstream PR/issue: 🛑
-- E/App issue: [#77171](https://github.com/Expensify/App/issues/77171)
-- PR introducing patch: [#84708](https://github.com/Expensify/App/pull/84708)
-
 ### [react-native+0.86.0+025+fix-display-contents-dirty-flag.patch](react-native+0.86.0+025+fix-display-contents-dirty-flag.patch)
 
 - Reason: When a child node has `display: contents`, Yoga may reuse cached layout results from a previous pass even though the subtree has changed. This patch marks the parent yoga node as dirty when it encounters a child with `display: contents`, ensuring Yoga re-visits and recalculates the layout for that subtree instead of skipping it.
@@ -397,7 +390,7 @@
 
 ### [react-native+0.86.0+048+fix-hermes-tarball-root-after-repo-move.patch](react-native+0.86.0+048+fix-hermes-tarball-root-after-repo-move.patch)
 
-- Reason: Fixes Android builds that compile React Native from source (the artifacts publish workflow, any build that misses the prebuilt artifacts, `BUILD_RN_FROM_SOURCE=1`) failing at `hermes-engine:configureBuildForHermes` with `The source directory ".../sdks/hermes" does not appear to contain CMakeLists.txt`. On 2026-10-28 `facebook/hermes` moved to `meta/hermes`. The old tarball URL still redirects, but GitHub names the archive's top-level folder `<owner>-<repo>-<sha>`, so it is now `meta-hermes-<sha>/` and `unzipHermes` only flattened `facebook-hermes-*`, leaving the sources one level too deep. The patch is the upstream fix: download from `meta/hermes` and strip the single top-level folder whatever its name (`includeEmptyDirs = false` keeps the empty wrapper folder from being recreated), the same way `ReactAndroid/build.gradle.kts` extracts folly, fmt and fast_float. It leaves the `doLast` step from `+024` untouched, which depends on `sdks/hermes` being flattened correctly.
+- Reason: Fixes Android builds that compile React Native from source (the artifacts publish workflow, any build that misses the prebuilt artifacts, `BUILD_RN_FROM_SOURCE=1`) failing at `hermes-engine:configureBuildForHermes` with `The source directory ".../sdks/hermes" does not appear to contain CMakeLists.txt`. On 2026-10-28 `facebook/hermes` moved to `meta/hermes`. The old tarball URL still redirects, but GitHub names the archive's top-level folder `<owner>-<repo>-<sha>`, so it is now `meta-hermes-<sha>/` and `unzipHermes` only flattened `facebook-hermes-*`, leaving the sources one level too deep. The patch is the upstream fix: download from `meta/hermes` and strip the single top-level folder whatever its name (`includeEmptyDirs = false` keeps the empty wrapper folder from being recreated), the same way `ReactAndroid/build.gradle.kts` extracts folly, fmt and fast_float.
 - Upstream PR/issue: [react-native#59587](https://github.com/react/react-native/issues/59587) / [react-native#59589](https://github.com/react/react-native/pull/59589) ([react-native@f6a5042](https://github.com/react/react-native/commit/f6a5042c8)), merged to `main` on 2026-10-28, not in any `0.86.x` release (`0.86.3` predates the move) nor on `0.86-stable`.
 - E/App issue: https://github.com/Expensify/App/issues/105383
 - PR introducing patch: https://github.com/Expensify/App/pull/105381
