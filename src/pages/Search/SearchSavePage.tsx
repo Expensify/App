@@ -19,7 +19,6 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -198,9 +197,8 @@ function SearchSavePage() {
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
     const {currentDefaultSearchQueryFilterKeys, currentSearchQueryJSON} = useSearchQueryContext();
-    const {currentSearchResults, shouldUseLiveData} = useSearchResultsContext();
-    const {isOffline} = useNetwork();
-    const canSave = isSearchQuerySavable(currentSearchQueryJSON, undefined, currentSearchResults?.search, !isOffline && !shouldUseLiveData);
+    const {currentSearchResults} = useSearchResultsContext();
+    const canSave = isSearchQuerySavable(currentSearchQueryJSON, undefined, currentSearchResults?.search);
     const shouldReturnTripRooms = useShouldReturnTripRooms(currentSearchQueryJSON?.type);
 
     const onSaveSearch = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_SAVE_FORM>) => {

@@ -4,7 +4,6 @@ import {useSearchQueryContext, useSearchResultsContext} from '@components/Search
 import useActiveSavedSearch from '@hooks/useActiveSavedSearch';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {close} from '@libs/actions/Modal';
@@ -27,9 +26,8 @@ function SearchFiltersSaveButton() {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
-    const {currentSearchResults, shouldUseLiveData} = useSearchResultsContext();
-    const {isOffline} = useNetwork();
-    const isUpdateDisabled = !isSearchQuerySavable(currentSearchQueryJSON, undefined, currentSearchResults?.search, !isOffline && !shouldUseLiveData);
+    const {currentSearchResults} = useSearchResultsContext();
+    const isUpdateDisabled = !isSearchQuerySavable(currentSearchQueryJSON, undefined, currentSearchResults?.search);
     const activeSavedSearch = useActiveSavedSearch();
     const activeSavedSearchID = searchKeyToSavedSearchID(currentSearchKey);
 

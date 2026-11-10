@@ -4,7 +4,6 @@ import {useSearchQueryContext, useSearchResultsContext} from '@components/Search
 import SearchFiltersSaveButton from '@components/Search/SearchPageHeader/SearchFiltersSaveButton';
 
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 
 import {saveSearch} from '@libs/actions/Search';
 import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
@@ -30,37 +29,36 @@ jest.mock('@components/Search/SearchContext', () => ({
 }));
 jest.mock('@hooks/useActiveSavedSearch', () => jest.fn(() => ({name: 'Coffee'})));
 jest.mock('@hooks/useLocalize');
-jest.mock('@hooks/useNetwork');
 jest.mock('@libs/actions/Search', () => ({saveSearch: jest.fn()}));
 
 beforeAll(() => IntlStore.load(CONST.LOCALES.EN));
 
-it('opens Save while validation is pending and enables Update existing once the search succeeds', () => {
+it('allows updates while the search is pending and disables them if the server rejects the query', () => {
     // Given an online edit to a saved search that has not received a response yet
     const queryJSON = buildSearchQueryJSON('type:expense merchant:coffee');
     jest.mocked(useSearchQueryContext).mockReturnValue(
         createMock<ReturnType<typeof useSearchQueryContext>>({currentSearchKey: savedSearchIDToSearchKey('123'), currentSearchQueryJSON: queryJSON}),
     );
-    jest.mocked(useSearchResultsContext).mockReturnValue(createMock<ReturnType<typeof useSearchResultsContext>>({shouldUseLiveData: false}));
-    jest.mocked(useNetwork).mockReturnValue(createMock<ReturnType<typeof useNetwork>>({isOffline: false}));
+    jest.mocked(useSearchResultsContext).mockReturnValue(createMock<ReturnType<typeof useSearchResultsContext>>({}));
     jest.mocked(useLocalize).mockReturnValue(createMock<ReturnType<typeof useLocalize>>({translate: translateLocal}));
     const {rerender} = render(<SearchFiltersSaveButton />);
 
     // When the user opens Save while the query is still pending
     fireEvent.press(screen.getByRole('button', {name: 'Save'}));
 
-    // Then they can choose Create new, and Update existing stays disabled
+    // Then they can create a new search or update the saved search without waiting for a response
     expect(screen.getByRole('button', {name: 'Create new'})).toBeEnabled();
-    expect(screen.getByRole('button', {name: 'Update existing'})).toBeDisabled();
-    expect(saveSearch).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', {name: 'Update existing'})).toBeEnabled();
+    fireEvent.press(screen.getByRole('button', {name: 'Update existing'}));
+    expect(saveSearch).toHaveBeenCalledWith({id: '123', queryJSON, newName: 'Coffee'});
 
-    // When the matching search succeeds and the user confirms the update
+    // When the server rejects the current query and the user opens Save again
     jest.mocked(useSearchResultsContext).mockReturnValue(
-        createMock<ReturnType<typeof useSearchResultsContext>>({currentSearchResults: {search: {hash: queryJSON?.hash, hasSuccessfulResponse: true}}}),
+        createMock<ReturnType<typeof useSearchResultsContext>>({currentSearchResults: {search: {hash: queryJSON?.hash, responseJsonCode: CONST.JSON_CODE.INVALID_SEARCH_QUERY}}}),
     );
     rerender(<SearchFiltersSaveButton />);
-    fireEvent.press(screen.getByRole('button', {name: 'Update existing'}));
+    fireEvent.press(screen.getByRole('button', {name: 'Save'}));
 
-    // Then the validated query replaces the saved search
-    expect(saveSearch).toHaveBeenCalledWith({id: '123', queryJSON, newName: 'Coffee'});
+    // Then they cannot update the saved search with the rejected query
+    expect(screen.getByRole('button', {name: 'Update existing'})).toBeDisabled();
 });

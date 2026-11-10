@@ -40,7 +40,7 @@ jest.mock('@components/Navigation/NavigationTabBar/useInsightsTabNavigation', ()
 jest.mock('@hooks/useRestoreWorkspacesTabOnNavigate', () => () => mockNavigateToWorkspaces);
 jest.mock('@hooks/useInboxTabIndicatorStatus', () => () => mockInboxIndicator);
 jest.mock('@hooks/useWorkspacesTabIndicatorStatus', () => () => mockWorkspacesIndicator);
-jest.mock('@components/Navigation/FlatNavigationBar/FlatNavCreateMenuButtons', () => () => null);
+jest.mock('@components/Navigation/FlatNavigationBar/FlatNavCreateButton', () => () => null);
 jest.mock('@pages/inbox/sidebar/SupportalSwitcherButton', () => () => null);
 jest.mock('@components/Avatar/AccountNavigationAvatar', () => () => null);
 jest.mock('@libs/Navigation/Navigation', () => ({

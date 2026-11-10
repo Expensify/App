@@ -1257,6 +1257,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         explain: 'Expliquer',
         explainChartPrompt: (chartTitle: string) => `Expliquez les données dans ${chartTitle}.`,
+        violationsOverTime: 'Infractions au fil du temps',
+        topViolations: 'Principales infractions',
+        violationsBySubmitter: 'Infractions par déclarant',
+        violationsByApprover: 'Infractions par l’approbateur',
         viewDetails: 'Afficher les détails',
         viewAll: 'Tout afficher',
         topExpenses: 'Dépenses principales',
@@ -8640,6 +8644,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Notre intégration Campfire est disponible uniquement avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
+            [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: {
+                title: 'Digits',
+                description: `Profitez de la synchronisation automatisée et réduisez les saisies manuelles grâce à l’intégration Expensify + Digits. Alignez les dimensions de codage des dépenses sur votre configuration Digits pour une meilleure visibilité financière.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Notre intégration Digits est disponible uniquement avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
                 title: 'Dynamics 365 Business Central',
                 description: `Profitez de la synchronisation automatisée et réduisez les saisies manuelles grâce à l’intégration Expensify + Dynamics 365 Business Central. Alignez les dimensions de codage des dépenses et la synchronisation fiscale sur votre configuration Dynamics 365 Business Central pour une meilleure visibilité financière.`,
@@ -9764,6 +9774,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     return `${customAccountsCount} cartes avec comptes personnalisés`;
                 },
             },
+        },
+        digits: {
+            updateCurrencyTitle: 'Mettre à jour la devise de l’espace de travail ?',
+            updateCurrencyPrompt: 'Digits n’est actuellement disponible que pour les entreprises basées aux États-Unis qui opèrent en USD.',
         },
         zohoBooks: {
             organization: 'Organisation Zoho Books',
@@ -11015,6 +11029,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Année',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestre',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approbateur',
+                [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Infraction',
             },
             feed: 'Fil',
             withdrawalType: {
@@ -11076,6 +11091,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Années',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestres',
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approbateurs',
+            [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Infractions',
         },
         moneyRequestReport: {emptyStateTitle: 'Aucune dépense pour l’instant', accessPlaceHolder: 'Ouvrir pour plus de détails'},
         noCategory: 'Aucune catégorie',

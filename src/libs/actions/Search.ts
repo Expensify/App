@@ -1495,13 +1495,10 @@ function search({
     const finallyData = onyxLoadingData.finallyData;
     // The breakdown the total now answers, so the footer can tell a total for another one apart. A later page without
     // totals keeps the earlier total, so it leaves the stamp alone.
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`,
-            value: {search: {hasSuccessfulResponse: true, ...((shouldCalculateTotals || !offset) && {footerTotal: footerTotal ?? CONST.SEARCH.FOOTER_TOTAL.TOTAL})}},
-        },
-    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> =
+        shouldCalculateTotals || !offset
+            ? [{onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`, value: {search: {footerTotal: footerTotal ?? CONST.SEARCH.FOOTER_TOTAL.TOTAL}}}]
+            : [];
 
     if (searchKey) {
         optimisticData.push({

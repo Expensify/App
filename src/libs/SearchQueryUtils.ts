@@ -213,6 +213,13 @@ const VALID_GROUP_BYS = new Set<string>(Object.values(CONST.SEARCH.GROUP_BY));
 const SEARCH_TYPES_SUPPORTING_GROUP_BY = new Set<string>([CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.DATA_TYPES.TRIP]);
 const SEARCH_TYPES_REJECTING_UNREPORTED_REPORT_ID = new Set<string>([CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, CONST.SEARCH.DATA_TYPES.INVOICE]);
 
+/** Group-bys only Insights queries use. The Search command doesn't return data for them yet (see https://github.com/Expensify/App/issues/105303) */
+const INSIGHTS_ONLY_GROUP_BYS = new Set<string>([CONST.SEARCH.GROUP_BY.VIOLATION]);
+
+function isGroupBySupportedBySearch(groupBy: string | undefined): boolean {
+    return !groupBy || !INSIGHTS_ONLY_GROUP_BYS.has(groupBy);
+}
+
 // Create reverse lookup maps for O(1) performance
 const createKeyToUserFriendlyMap = () => {
     const map = new Map<string, string>();
@@ -1249,8 +1256,11 @@ function getSearchQueryError(queryJSON: Readonly<SearchQueryJSON>): TranslationP
     }
 
     const type = queryJSON.type.toLowerCase();
-    if (queryJSON.groupBy && (typeof queryJSON.groupBy !== 'string' || !VALID_GROUP_BYS.has(queryJSON.groupBy.toLowerCase()) || !SEARCH_TYPES_SUPPORTING_GROUP_BY.has(type))) {
-        return 'search.searchResults.unsupportedGrouping';
+    if (queryJSON.groupBy) {
+        const groupBy = typeof queryJSON.groupBy === 'string' ? queryJSON.groupBy.toLowerCase() : undefined;
+        if (!groupBy || !VALID_GROUP_BYS.has(groupBy) || !isGroupBySupportedBySearch(groupBy) || !SEARCH_TYPES_SUPPORTING_GROUP_BY.has(type)) {
+            return 'search.searchResults.unsupportedGrouping';
+        }
     }
 
     for (const filter of queryJSON.flatFilters) {
@@ -1405,22 +1415,13 @@ function getChangedDisplayOptionsCount(currentQueryJSON: SearchQueryJSON | undef
     return changedOptions.filter(Boolean).length;
 }
 
-function isSearchQuerySavable(
-    currentQueryJSON: SearchQueryJSON | undefined,
-    defaultQueryJSON: SearchQueryJSON | undefined,
-    search?: Pick<SearchResultsInfo, 'hash' | 'responseJsonCode' | 'hasSuccessfulResponse'>,
-    shouldRequireSuccessfulSearch = false,
-) {
+function isSearchQuerySavable(currentQueryJSON: SearchQueryJSON | undefined, defaultQueryJSON: SearchQueryJSON | undefined, search?: Pick<SearchResultsInfo, 'hash' | 'responseJsonCode'>) {
     if (!currentQueryJSON) {
         return false;
     }
 
     const isCurrentSnapshot = search?.hash === currentQueryJSON.hash;
-    if (
-        (shouldRequireSuccessfulSearch && (!isCurrentSnapshot || !search.hasSuccessfulResponse)) ||
-        (isCurrentSnapshot && search.responseJsonCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY) ||
-        getSearchQueryError(currentQueryJSON)
-    ) {
+    if ((isCurrentSnapshot && search.responseJsonCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY) || getSearchQueryError(currentQueryJSON)) {
         return false;
     }
 
@@ -3466,6 +3467,7 @@ export {
     getFooterSelectionFromQuery,
     getQueryWithFooterSelection,
     getQueryWithoutGroupBy,
+    isGroupBySupportedBySearch,
     hasFiltersChangedFromDefault,
     isSearchQuerySavable,
     getChangedDisplayOptionsCount,
