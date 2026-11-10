@@ -161,6 +161,27 @@ describe('useAncestors', () => {
         ]);
     });
 
+    test('stops at a malformed parent cycle without listing the report as its own ancestor', async () => {
+        // Given a report and its parent that point at each other, as corrupt data could
+        const childReport: Report = {reportID: 'cycleChild', parentReportID: 'cycleParent', parentReportActionID: 'parentAction'};
+        const parentReport: Report = {reportID: 'cycleParent', parentReportID: 'cycleChild', parentReportActionID: 'childAction'};
+        const parentAction: ReportAction = {reportActionID: 'parentAction', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: DateUtils.getDBTime()};
+        const childAction: ReportAction = {reportActionID: 'childAction', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: DateUtils.getDBTime()};
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}cycleChild`, childReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}cycleParent`, parentReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}cycleParent`, {parentAction});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}cycleChild`, {childAction});
+        });
+
+        // When the ancestors of the child report are read
+        const {result} = renderHook(() => useAncestors(childReport));
+        await waitForBatchedUpdates();
+
+        // Then only the parent is returned, so the walk ends instead of looping back to the child
+        expect(result.current.map(({report}) => report.reportID)).toEqual(['cycleParent']);
+    });
+
     test('if no ancestor reports', () => {
         const mockReport = mockReports[`${ONYXKEYS.COLLECTION.REPORT}1`]; // First report, should have no ancestors
         const {

@@ -3181,6 +3181,7 @@ describe('actions/Report', () => {
             setHasRadio(false);
             const roomReportID = '456';
             const reportIDToName = {[roomReportID]: '#admins'};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${roomReportID}`, {reportID: roomReportID, reportName: '#admins'});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
                 [reportActionID]: {
@@ -3196,10 +3197,11 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
-            // When the user changes the caption and then changes it back, so the restoring edit is the one parked on the upload
-            Report.editReportComment({reportID}, await getAction(), `hello #admins changed\n\n[file.csv](${localSource})`, undefined, '', 1, undefined, reportIDToName);
+            // When the user changes the caption and then changes it back, so the restoring edit is the one parked on the upload.
+            // The composer passes an empty map, since the original HTML mentions the room by name and not by reportID.
+            Report.editReportComment({reportID}, await getAction(), `hello #admins changed\n\n[file.csv](${localSource})`, undefined, '', 1, undefined, {});
             await waitForBatchedUpdates();
-            Report.editReportComment({reportID}, await getAction(), `hello #admins\n\n[file.csv](${localSource})`, undefined, '', 1, undefined, reportIDToName);
+            Report.editReportComment({reportID}, await getAction(), `hello #admins\n\n[file.csv](${localSource})`, undefined, '', 1, undefined, {});
             await waitForBatchedUpdates();
             expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]?.reportIDToName).toEqual(reportIDToName);
 

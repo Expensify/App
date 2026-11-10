@@ -13108,10 +13108,10 @@ type ParentReportLink = {
  */
 function getParentReportChain(report: OnyxEntry<Report>, reportCollection: OnyxCollection<Report>, reportDraftCollection: OnyxCollection<Report>): ParentReportLink[] {
     const chain: ParentReportLink[] = [];
-    const visitedReportIDs = new Set<string>();
+    const visitedReportIDs = new Set<string>(report?.reportID ? [report.reportID] : []);
     let currentReport = report;
 
-    // The visited check stops a malformed parent cycle from looping forever.
+    // The visited check stops a malformed parent cycle from looping forever or listing the starting report as its own ancestor.
     while (currentReport?.parentReportID && currentReport?.parentReportActionID && !visitedReportIDs.has(currentReport.parentReportID)) {
         visitedReportIDs.add(currentReport.parentReportID);
         const parentReport =
