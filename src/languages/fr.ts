@@ -5251,7 +5251,7 @@ ${amount} pour ${merchant} - ${date}`,
             },
         },
         bookingCount: ({count}: {count: number}) => ({
-            one: '1 réservation',
+            one: `${count} réservation`,
             other: `${count} réservations`,
         }),
     },

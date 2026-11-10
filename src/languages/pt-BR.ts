@@ -5212,7 +5212,7 @@ ${amount} para ${merchant} - ${date}`,
             },
         },
         bookingCount: ({count}: {count: number}) => ({
-            one: '1 reserva',
+            one: `${count} reserva`,
             other: `${count} reservas`,
         }),
     },
