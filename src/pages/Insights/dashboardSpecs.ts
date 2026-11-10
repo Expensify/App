@@ -63,7 +63,7 @@ type InsightsDashboardSpec = {
     /** The dashboard is shown when any workspace in scope passes this. A dashboard that declares none is always shown. */
     isPolicyEligible?: (policy: Policy, login: string | undefined) => boolean;
 
-    /** What the dashboard's queries search for, which also sets the type its snapshots are stored with */
+    /** The search type of every query on the dashboard: `expense` for charts of expenses, `expense-report` for charts of reports */
     queryType: SearchDataTypes;
 
     /** What the charts' counts are counts of, which names them in the tooltip. Defaults to expenses. */

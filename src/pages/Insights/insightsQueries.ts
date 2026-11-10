@@ -76,6 +76,7 @@ function buildComplianceFilters(filters: InsightsFilters) {
 
 /** Builds the query with the dashboard's data type */
 function buildDashboardQuery(query: SearchQueryString, dashboard: InsightsDashboardID): Readonly<SearchQueryJSON> | undefined {
+    // Added to the built string, since building it from form values with this type would drop filters that type's Search doesn't support, like the group-by
     return buildSearchQueryJSON(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${INSIGHTS_DASHBOARD_SPECS[dashboard].queryType} ${query}`);
 }
 

@@ -14,7 +14,8 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-// Expense-report queries take the report-list branch before the group-by is read, and a chart always plots groups
+// getSections turns an expense-report query into a list of reports and ignores its group-by,
+// so charts, which always plot groups, build their rows as if the query were for expenses
 const CHART_ROW_TYPE = CONST.SEARCH.DATA_TYPES.EXPENSE;
 
 /** Returns the accounts named in the snapshot's groups, so the hook can subscribe to just their personal details. */

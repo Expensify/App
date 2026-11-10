@@ -5,7 +5,7 @@ import {CurrencyListContextProvider} from '@components/CurrencyListContextProvid
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import SearchChartView from '@components/Search/SearchChartView';
-import type {GroupedItem, SearchChartCountDimension} from '@components/Search/types';
+import type {GroupedItem} from '@components/Search/types';
 import WidgetHeaderMenu from '@components/WidgetHeaderMenu';
 
 import localFileDownload from '@libs/localFileDownload';
@@ -53,11 +53,7 @@ const FEBRUARY: GroupedItem = {
 };
 const DATA: GroupedItem[] = [FEBRUARY];
 
-function renderWidget({
-    dashboardID = CONST.INSIGHTS.DASHBOARD.SPEND,
-    countDimension,
-    supportsDrillIn,
-}: {dashboardID?: InsightsDashboardID; countDimension?: SearchChartCountDimension; supportsDrillIn?: boolean} = {}) {
+function renderWidget({dashboardID = CONST.INSIGHTS.DASHBOARD.SPEND, supportsDrillIn}: {dashboardID?: InsightsDashboardID; supportsDrillIn?: boolean} = {}) {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
             <InsightsChartWidget
@@ -71,7 +67,6 @@ function renderWidget({
                 isDashboardLoaded={undefined}
                 filters={FILTERS}
                 insightsScope={{searchKey: INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND].searchKey, policyIDs: [], date: FILTERS.date, groupCurrency: FILTERS.groupCurrency}}
-                countDimension={countDimension}
                 supportsDrillIn={supportsDrillIn}
                 onRetry={jest.fn()}
             />
@@ -127,15 +122,15 @@ describe('Insights chart CSV action', () => {
         },
     );
 
-    it('offers only the CSV and keeps points from being pressed on a dashboard without drill-in, while still naming its counts', async () => {
+    it('offers only the CSV and keeps points from being pressed on a dashboard without drill-in', async () => {
         // Given a ready chart on a dashboard whose reports have no view on Spend
         // When it renders
-        renderWidget({countDimension: CONST.SEARCH.CHART_COUNT_DIMENSION.REPORT, supportsDrillIn: false});
+        renderWidget({supportsDrillIn: false});
         await waitForBatchedUpdatesWithAct();
 
-        // Then its menu can still download the data, but neither the menu nor a pressed point can open Spend, and the tooltip counts reports
+        // Then its menu can still download the data, but neither the menu nor a pressed point can open Spend
         expect(jest.mocked(WidgetHeaderMenu).mock.lastCall?.[0].menuItems.map((item) => item.text)).toEqual(['Download CSV']);
-        expect(jest.mocked(SearchChartView).mock.lastCall?.[0]).toMatchObject({shouldDrillDownOnPress: false, countDimension: CONST.SEARCH.CHART_COUNT_DIMENSION.REPORT});
+        expect(jest.mocked(SearchChartView).mock.lastCall?.[0]).toMatchObject({shouldDrillDownOnPress: false});
     });
 });
 
