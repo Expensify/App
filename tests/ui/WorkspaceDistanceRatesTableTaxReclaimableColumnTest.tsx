@@ -102,6 +102,13 @@ const NARROW_LAYOUT: ResponsiveLayoutResult = {
     onboardingIsMediumOrLargerScreenWidth: false,
 };
 
+// A tablet or half-width desktop window. The table also uses its narrow rows here, even though shouldUseNarrowLayout is off.
+const MEDIUM_LAYOUT: ResponsiveLayoutResult = {
+    ...WIDE_LAYOUT,
+    isMediumScreenWidth: true,
+    isLargeScreenWidth: false,
+};
+
 const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
 
 const POLICY_ID = 'policy-1';
@@ -283,13 +290,16 @@ describe('PolicyDistanceRatesPage tax reclaimable column', () => {
         expect(sortRates(CONST.SEARCH.SORT_ORDER.DESC)).toEqual(['$8.00', '$5.00', '$2.00']);
     });
 
-    describe('narrow layout', () => {
+    describe.each([
+        ['phone', NARROW_LAYOUT],
+        ['medium', MEDIUM_LAYOUT],
+    ])('narrow layout (%s)', (_layoutName, layout) => {
         beforeEach(() => {
-            jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(NARROW_LAYOUT);
+            jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(layout);
         });
 
         it('shows the amount in the row when the column is visible', async () => {
-            // Given a phone-width screen and a workspace that tracks tax on a $10.00 rate where 50% is tax reclaimable
+            // Given a narrow table layout and a workspace that tracks tax on a $10.00 rate where 50% is tax reclaimable
             // When the distance rates page renders
             await renderPage([buildRate('cars', {attributes: {taxClaimablePercentage: 0.5, taxRateExternalID: TAX_RATE_ID}})]);
 
@@ -298,7 +308,7 @@ describe('PolicyDistanceRatesPage tax reclaimable column', () => {
         });
 
         it('shows the amount only for rates that have one', async () => {
-            // Given a phone-width screen with one rate that has an amount and one that has no percentage set
+            // Given a narrow table layout with one rate that has an amount and one that has no percentage set
             // When the distance rates page renders
             await renderPage([
                 buildRate('missing', {attributes: {taxRateExternalID: TAX_RATE_ID}}),
@@ -314,7 +324,7 @@ describe('PolicyDistanceRatesPage tax reclaimable column', () => {
             ['policy tax tracking is off', {trackingEnabled: false, taxEnabled: true}],
             ['distance tax is off', {trackingEnabled: true, taxEnabled: false}],
         ])('hides the amount when %s', async (_, settings) => {
-            // Given a phone-width screen and a rate that would have an amount, but only one of the two tax settings is on
+            // Given a narrow table layout and a rate that would have an amount, but only one of the two tax settings is on
             // When the distance rates page renders
             await renderPage([buildRate('cars', {attributes: {taxClaimablePercentage: 0.5, taxRateExternalID: TAX_RATE_ID}})], settings);
 
