@@ -1214,6 +1214,11 @@ const SENTRY_LABEL = {
     },
     WORKSPACE: {
         APPROVAL_WORKFLOW_SECTION: 'Workspace-ApprovalWorkflowSection',
+        COPY_SETTINGS_CONFIRM_SETTINGS: 'WorkspaceCopySettings-ConfirmSettings',
+        COPY_SETTINGS_CONFIRM_SUBMIT: 'WorkspaceCopySettings-ConfirmSubmit',
+        COPY_SETTINGS_CONFIRM_WORKSPACES: 'WorkspaceCopySettings-ConfirmWorkspaces',
+        DUPLICATE_AVATAR: 'WorkspaceDuplicate-Avatar',
+        ROOMS_CREATE: 'WorkspaceRooms-Create',
         TOGGLE_SETTINGS_ROW: 'Workspace-ToggleSettingsRow',
         CONFIRMATION_FORM_KEEP_ME_AS_ADMIN_SWITCH: 'WorkspaceConfirmationForm-KeepMeAsAdminSwitch',
         IMPORT_SPREADSHEET_FILE_CONTAINS_HEADER_SWITCH: 'WorkspaceImportSpreadsheet-FileContainsHeaderSwitch',
@@ -1514,6 +1519,9 @@ const SENTRY_LABEL = {
         },
         CONNECTIONS: {
             CARD: 'WorkspaceConnections-Card',
+            MERGE_CONFIG_ROW: 'WorkspaceConnections-MergeConfigRow',
+            UBER_CENTRAL_BILLING_ACCOUNT: 'WorkspaceConnections-UberCentralBillingAccount',
+            UBER_MANAGE_INVITES: 'WorkspaceConnections-UberManageInvites',
             CONFIGURE_BUTTON: 'WorkspaceConnections-ConfigureButton',
             SUGGEST_INTEGRATION: 'WorkspaceConnections-SuggestIntegration',
             UBER_AUTO_INVITE_SWITCH: 'WorkspaceConnections-UberAutoInviteSwitch',
@@ -1522,6 +1530,7 @@ const SENTRY_LABEL = {
         MERGE: {
             SKIPPED_EMPLOYEES_TOGGLE_HR: 'WorkspaceMerge-SkippedEmployeesToggle-HR',
             SKIPPED_EMPLOYEES_TOGGLE_RECRUITING: 'WorkspaceMerge-SkippedEmployeesToggle-Recruiting',
+            SYNC_RESULTS_CONFIRM: 'WorkspaceMerge-SyncResultsConfirm',
         },
         RULES: {
             INDIVIDUAL_EXPENSES_MENU_ITEM: 'WorkspaceRules-IndividualExpensesMenuItem',
@@ -1606,6 +1615,15 @@ const SENTRY_LABEL = {
         },
         TRAVEL: {
             BOOK_TRAVEL_BUTTON: 'WorkspaceTravel-BookTravelButton',
+            BILLING_EXPORT_CSV: 'WorkspaceTravel-BillingExportCSV',
+            BILLING_EXPORT_PDF: 'WorkspaceTravel-BillingExportPDF',
+            BILLING_MONTHLY_LIMIT: 'WorkspaceTravel-BillingMonthlyLimit',
+            BILLING_PAY_BALANCE: 'WorkspaceTravel-BillingPayBalance',
+            BILLING_SETTLEMENT_ACCOUNT: 'WorkspaceTravel-BillingSettlementAccount',
+            BILLING_SETTLEMENT_FREQUENCY: 'WorkspaceTravel-BillingSettlementFrequency',
+            BILLING_SET_UP_NEW_FEED: 'WorkspaceTravel-BillingSetUpNewFeed',
+            BILLING_VIEW_ON_SPEND: 'WorkspaceTravel-BillingViewOnSpend',
+            MORE_DROPDOWN: 'WorkspaceTravel-MoreDropdown',
             GET_STARTED_BUTTON: 'WorkspaceTravel-GetStartedButton',
             AUTO_ADD_TRIP_NAME_SWITCH: 'WorkspaceTravel-AutoAddTripNameSwitch',
             CODING_SYNC_SWITCH: 'WorkspaceTravel-CodingSyncSwitch',
@@ -1618,6 +1636,22 @@ const SENTRY_LABEL = {
         },
         FEATURE_LIST: {
             CTA_BUTTON: 'WorkspaceFeatureList-CtaButton',
+        },
+        DOWNGRADE: {
+            CONFIRMATION_GOT_IT: 'WorkspaceDowngrade-ConfirmationGotIt',
+            INTRO_DOWNGRADE: 'WorkspaceDowngrade-IntroDowngrade',
+            INTRO_GO_TO_WORKSPACES: 'WorkspaceDowngrade-IntroGoToWorkspaces',
+            PAY_AND_DOWNGRADE: 'WorkspaceDowngrade-PayAndDowngrade',
+        },
+        HR: {
+            APPROVAL_MODE_SAVE: 'WorkspaceHR-ApprovalModeSave',
+            MERGE_GROUPS_SAVE: 'WorkspaceHR-MergeGroupsSave',
+        },
+        UPGRADE: {
+            CONFIRMATION_GOT_IT: 'WorkspaceUpgrade-ConfirmationGotIt',
+            GENERIC_FEATURES_GO_TO_WORKSPACES: 'WorkspaceUpgrade-GenericFeaturesGoToWorkspaces',
+            GENERIC_FEATURES_UPGRADE: 'WorkspaceUpgrade-GenericFeaturesUpgrade',
+            INTRO_UPGRADE: 'WorkspaceUpgrade-IntroUpgrade',
         },
         MORE_FEATURES: {
             CATEGORIES_SWITCH: 'WorkspaceMoreFeatures-FeatureSwitch-Categories',
@@ -1638,6 +1672,16 @@ const SENTRY_LABEL = {
             MERGE_ATS_OFFICES_FILTER_SWITCH: 'WorkspaceRecruiting-MergeATSFilterSwitch-Offices',
             MERGE_ATS_STAGES_FILTER_SWITCH: 'WorkspaceRecruiting-MergeATSFilterSwitch-Stages',
             MERGE_ATS_TAGS_FILTER_SWITCH: 'WorkspaceRecruiting-MergeATSFilterSwitch-Tags',
+            MERGE_ATS_APPROVAL_MODE_SAVE: 'WorkspaceRecruiting-MergeATSApprovalModeSave',
+            MERGE_ATS_APPROVER_FIELD: 'WorkspaceRecruiting-MergeATSApproverField',
+            MERGE_ATS_FILTERS_SAVE: 'WorkspaceRecruiting-MergeATSFiltersSave',
+            MERGE_ATS_FILTER_SELECTION_SAVE: 'WorkspaceRecruiting-MergeATSFilterSelectionSave',
+            MERGE_ATS_FINAL_APPROVER: 'WorkspaceRecruiting-MergeATSFinalApprover',
+            MERGE_ATS_FILTER_ROW: {
+                OFFICES: 'WorkspaceRecruiting-MergeATSFilterRow-Offices',
+                STAGES: 'WorkspaceRecruiting-MergeATSFilterRow-Stages',
+                TAGS: 'WorkspaceRecruiting-MergeATSFilterRow-Tags',
+            },
         },
         REPORTS: {
             PREVENT_MEMBERS_CHANGING_CUSTOM_NAMES_SWITCH: 'WorkspaceReports-PreventMembersChangingCustomNamesSwitch',
@@ -1749,6 +1793,44 @@ const SENTRY_LABEL = {
     },
     LOCATION_ERROR: {
         CLOSE_BUTTON: 'LocationError-CloseButton',
+    },
+    ERROR_PAGE: {
+        REFRESH: 'ErrorPage-Refresh',
+        SIGN_OUT: 'ErrorPage-SignOut',
+    },
+    UPDATE_REQUIRED: {
+        REFRESH_PAGE: 'UpdateRequired-RefreshPage',
+        UPDATE: 'UpdateRequired-Update',
+    },
+    MULTIFACTOR_AUTHENTICATION: {
+        AUTHORIZE_TRANSACTION_APPROVE: 'MultifactorAuthentication-AuthorizeTransactionApprove',
+        AUTHORIZE_TRANSACTION_DENY: 'MultifactorAuthentication-AuthorizeTransactionDeny',
+        PROMPT_CONFIRM: 'MultifactorAuthentication-PromptConfirm',
+        REVOKE_ALL: 'MultifactorAuthentication-RevokeAll',
+        REVOKE_DISMISS: 'MultifactorAuthentication-RevokeDismiss',
+        REVOKE_ROW: 'MultifactorAuthentication-RevokeRow',
+        VALIDATE_CODE_VERIFY: 'MultifactorAuthentication-ValidateCodeVerify',
+    },
+    RESTRICTED_ACTION: {
+        ADMIN_CHAT_IN_ADMINS: 'RestrictedAction-AdminChatInAdmins',
+        OWNER_ADD_PAYMENT_CARD: 'RestrictedAction-OwnerAddPaymentCard',
+        OWNER_GO_TO_SUBSCRIPTION: 'RestrictedAction-OwnerGoToSubscription',
+        USER_CHAT_WITH_ADMIN: 'RestrictedAction-UserChatWithAdmin',
+    },
+    SCHEDULE_CALL: {
+        CONFIRMATION_CONFIRM: 'ScheduleCall-ConfirmationConfirm',
+        CONFIRMATION_DATE_TIME: 'ScheduleCall-ConfirmationDateTime',
+        TIME_SLOT: 'ScheduleCall-TimeSlot',
+    },
+    TRAVEL: {
+        DOMAIN_PERMISSION_INFO_CONFIRM: 'Travel-DomainPermissionInfoConfirm',
+        ENABLE_DOMAIN_SELECTOR_NEXT: 'Travel-EnableDomainSelectorNext',
+        ENABLE_TERMS_CONFIRM: 'Travel-EnableTermsConfirm',
+        MANAGE_TRIPS_BOOK_DEMO: 'Travel-ManageTripsBookDemo',
+        MANAGE_TRIPS_BOOK_TRAVEL: 'Travel-ManageTripsBookTravel',
+        PUBLIC_DOMAIN_ERROR_CONFIRM: 'Travel-PublicDomainErrorConfirm',
+        TRIP_DETAILS_MODIFY_TRIP: 'Travel-TripDetailsModifyTrip',
+        TRIP_DETAILS_TRIP_SUPPORT: 'Travel-TripDetailsTripSupport',
     },
     PIN_BUTTON: {
         TOGGLE: 'PinButton-Toggle',

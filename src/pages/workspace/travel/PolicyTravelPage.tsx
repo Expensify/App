@@ -130,6 +130,7 @@ function WorkspaceTravelPage({
                 >
                     {step === CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP && canWriteMoreFeatures && (
                         <ButtonWithDropdownMenu
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.MORE_DROPDOWN}
                             onPress={() => {}}
                             customText={translate('common.more')}
                             options={secondaryActions}

@@ -72,6 +72,7 @@ function ManageTrips({policyID}: ManageTripsProps) {
                         footer={
                             <>
                                 <Button
+                                    sentryLabel={CONST.SENTRY_LABEL.TRAVEL.MANAGE_TRIPS_BOOK_DEMO}
                                     onPress={navigateToBookTravelDemo}
                                     accessibilityLabel={translate('travel.bookDemo')}
                                     style={[styles.w100, styles.mb3]}
@@ -80,6 +81,7 @@ function ManageTrips({policyID}: ManageTripsProps) {
                                     <Button.Text>{translate('travel.bookDemo')}</Button.Text>
                                 </Button>
                                 <BookTravelButton
+                                    sentryLabel={CONST.SENTRY_LABEL.TRAVEL.MANAGE_TRIPS_BOOK_TRAVEL}
                                     text={translate('travel.bookTravel')}
                                     shouldRenderErrorMessageBelowButton
                                     setShouldScrollToBottom={setShouldScrollToBottom}

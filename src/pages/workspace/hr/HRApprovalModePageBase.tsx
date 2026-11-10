@@ -166,6 +166,7 @@ function HRApprovalModePageBase<T extends ApprovalModeValue>({policyID, config}:
                         addBottomSafeAreaPadding
                     >
                         <Button
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.HR.APPROVAL_MODE_SAVE}
                             size={CONST.BUTTON_SIZE.LARGE}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={confirmSaveApprovalMode}

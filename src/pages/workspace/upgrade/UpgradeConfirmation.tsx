@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React, {useEffect, useState} from 'react';
@@ -70,6 +71,7 @@ function UpgradeConfirmation({policyName, planName, afterUpgradeAcknowledged, is
             </ConfirmationPage.Content>
             <FixedFooter>
                 <ConfirmationPage.PrimaryButton
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.CONFIRMATION_GOT_IT}
                     text={buttonText ?? translate('workspace.upgrade.completed.gotIt')}
                     onPress={afterUpgradeAcknowledged}
                 />

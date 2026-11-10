@@ -30,6 +30,7 @@ function RevokeRow({title, isLoading, onPress}: RevokeRowProps) {
                 </MenuItem.Content>
                 <MenuItem.Trailing>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.REVOKE_ROW}
                         variant={CONST.BUTTON_VARIANT.DANGER}
                         size={CONST.BUTTON_SIZE.SMALL}
                         isLoading={isLoading}
