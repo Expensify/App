@@ -86,8 +86,8 @@ No. Assignment Status in Certinia (Closed, Active, or Completed) does not affect
 
 ## How do I disconnect the Certinia connection?
 
-1. From the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting**.
-2. Select the three dots **(⋮)** next to the Certinia connection.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**, then select **Configure** next to Certinia.
+2. Select **More (⋮)**.
 3. Click **Disconnect** and confirm.
 
 Disconnecting removes the active integration and clears all imported options from Expensify.

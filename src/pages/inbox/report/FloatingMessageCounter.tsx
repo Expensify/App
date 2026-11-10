@@ -191,3 +191,4 @@ function FloatingMessageCounter({
 FloatingMessageCounter.displayName = 'FloatingMessageCounter';
 
 export default FloatingMessageCounter;
+export type {FloatingMessageCounterProps};
