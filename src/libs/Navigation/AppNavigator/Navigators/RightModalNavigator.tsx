@@ -52,7 +52,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {Animated, DeviceEventEmitter, View} from 'react-native';
+import {Animated, DeviceEventEmitter, StyleSheet, View} from 'react-native';
 
 import getRHPFrameStyle from './getRHPFrameStyle';
 import {NarrowPaneContextProvider} from './NarrowPaneContext';
@@ -113,6 +113,9 @@ type RightModalDialogFrameProps = {
     /** Callback ref for the container node so the provider can observe node identity changes. */
     onContainerRef: (node: ComponentRef<typeof View> | null) => void;
 
+    /** Handle straddling the card's left edge, outside the card's clip, with the style of a box around both that becomes the dialog. */
+    resizeHandle?: {element: React.ReactNode; dialogStyle: StyleProp<ViewStyle>};
+
     /** RHP stack navigator rendered inside the dialog frame. */
     children: React.ReactNode;
 };
@@ -124,23 +127,41 @@ type RightModalDialogFrameProps = {
  * Wide RHPs always keep role=dialog + aria-modal (including untitled routes like SEARCH_REPORT).
  * aria-label is applied only once the visible title is registered so JAWS can announce a named dialog;
  * Header also announces "{title}, dialog" via a polite live region when the title is ready.
+ *
+ * Screen readers that honor aria-modal (VoiceOver in Safari, Firefox) hide everything outside the dialog's DOM subtree,
+ * so with a resize handle the dialog is a box around both the card and the handle.
  */
-function RightModalDialogFrame({hasDialogSemantics, style, contentStyle, onContainerRef, children}: RightModalDialogFrameProps) {
+function RightModalDialogFrame({hasDialogSemantics, style, contentStyle, onContainerRef, resizeHandle, children}: RightModalDialogFrameProps) {
+    const styles = useThemeStyles();
     const {dialogAriaLabel} = useDialogLabelData();
     const hasName = !!dialogAriaLabel;
+    const isDialogAroundHandle = !!resizeHandle;
+    const isCardDialog = hasDialogSemantics && !isDialogAroundHandle;
+    const isOuterDialog = hasDialogSemantics && isDialogAroundHandle;
 
     return (
-        <Animated.View
-            ref={onContainerRef}
-            role={hasDialogSemantics ? CONST.ROLE.DIALOG : undefined}
-            aria-modal={hasDialogSemantics || undefined}
-            aria-label={hasDialogSemantics && hasName ? dialogAriaLabel : undefined}
+        // The outer box always renders, so a handle appearing or disappearing doesn't remount the stack navigator.
+        <View
+            ref={isDialogAroundHandle ? onContainerRef : undefined}
+            role={isOuterDialog ? CONST.ROLE.DIALOG : undefined}
+            aria-modal={isOuterDialog || undefined}
+            aria-label={isOuterDialog && hasName ? dialogAriaLabel : undefined}
             // Focusable so SRs / claimDialogFocus can land on the dialog when it has no nested controls.
-            tabIndex={hasDialogSemantics ? -1 : undefined}
-            style={style}
+            tabIndex={isOuterDialog ? -1 : undefined}
+            style={resizeHandle?.dialogStyle ?? [StyleSheet.absoluteFill, styles.pointerEventsBoxNone]}
         >
-            <View style={contentStyle}>{children}</View>
-        </Animated.View>
+            <Animated.View
+                ref={isDialogAroundHandle ? undefined : onContainerRef}
+                role={isCardDialog ? CONST.ROLE.DIALOG : undefined}
+                aria-modal={isCardDialog || undefined}
+                aria-label={isCardDialog && hasName ? dialogAriaLabel : undefined}
+                tabIndex={isCardDialog ? -1 : undefined}
+                style={style}
+            >
+                <View style={contentStyle}>{children}</View>
+            </Animated.View>
+            {resizeHandle?.element}
+        </View>
     );
 }
 
@@ -318,6 +339,11 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             onContainerRef={setContainerNodeFromRef}
                             style={frameStyle}
                             contentStyle={stackContentStyle}
+                            resizeHandle={
+                                isResizableSingleRHP
+                                    ? {element: <RHPResizeHandle ref={setResizeHandleElement} />, dialogStyle: styles.rhpResizableDialog(resizableSingleRHPWidth)}
+                                    : undefined
+                            }
                         >
                             <Stack.Navigator
                                 parentRoute={route}
@@ -621,7 +647,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             />
                         </>
                     )}
-                    {isResizableSingleRHP && <RHPResizeHandle ref={setResizeHandleElement} />}
                 </NoDropZone>
             </FocusTrapExtraContainersContext.Provider>
         </NarrowPaneContextProvider>
