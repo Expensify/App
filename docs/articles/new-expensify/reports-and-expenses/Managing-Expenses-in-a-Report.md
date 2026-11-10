@@ -1,7 +1,7 @@
 ---
 title: Managing Expenses in a Report
 description: Learn how to add, remove, and move expenses or merge reports in New Expensify, including what happens to comments and report details.
-keywords: [New Expensify, manage expenses, add expense, delete expense, move expense, merge reports, combine expense reports, expense table, edit report, report approval, expense actions, create report, admin create report, inline editing, edit expense inline, sort expenses in a report, sort by date, sort by column, expense order in a report, group by category, group by tag]
+keywords: [New Expensify, manage expenses, add expense, delete expense, move expense, merge reports, combine expense reports, merge approved reports, report field mismatch, expense table, edit report, report approval, expense actions, create report, admin create report, inline editing, edit expense inline, sort expenses in a report, sort by date, sort by column, expense order in a report, group by category, group by tag]
 internalScope: Audience is submitters, approvers, and workspace admins. Covers managing expenses within reports and consolidating report contents by merging reports. Does not cover merging duplicate expenses or configuring approval workflows.
 ---
 
@@ -90,13 +90,13 @@ To clear your selection on web, click the **X** on the right side of the selecti
 
 Use **Merge reports** to consolidate all expenses from two or more reports into one of the selected reports. This combines reports, not duplicate expenses.
 
-The reports must belong to the same submitter and workspace and be at the same point in the approval workflow. Outstanding reports must also have the same current approver. You need edit access to every selected report:
+The reports must belong to the same submitter and workspace and be at the same point in the approval workflow. Outstanding and Approved reports must also have the same approver. You need edit access to every selected report:
 
 - Submitters can merge their own Draft reports or Outstanding reports that have not yet received their first approval.
 - Current approvers can merge Outstanding reports assigned to them.
-- Workspace admins can merge eligible Draft or Outstanding reports in their workspace.
+- Workspace admins can merge eligible Draft, Outstanding, or Approved reports in their workspace. Other members cannot merge Approved reports.
 
-Paid and Done reports cannot be merged.
+Paid/reimbursed and Done/closed reports cannot be merged. You cannot mix Draft, Outstanding, and Approved reports in one merge.
 
 **On web:**
 
@@ -106,7 +106,13 @@ Paid and Done reports cannot be merged.
 4. Choose the report you want to keep.
 5. Select **Confirm**.
 
+If an error says the reports have different report field values, **Confirm** is disabled. Open each report and make the editable report fields match before merging. Formula fields do not need to match. Workspace admins can update report fields on Approved reports without unapproving them. This field check applies to all report merges, not only Approved reports.
+
+If a selected report has already been exported to an accounting integration, or has an export pending, a **Heads up** warning appears. The warning does not disable **Confirm**, but exporting again after merging may create duplicate accounting data. Check the existing data in your accounting system before exporting the merged report.
+
 All expenses move into the report you chose, and you are taken to that report. Its report-level details and approval state stay unchanged.
+
+When a workspace admin merges Approved reports, the retained report stays Approved and payable without unapproving it or approving it again. This does not depend on the workspace's reimbursement method.
 
 **Important:** The other selected reports and their report-level comments are permanently deleted. Their comments are not copied to the report you keep.
 
@@ -130,6 +136,8 @@ All expenses move into the report you chose, and you are taken to that report. I
 ---
 
 ## How to Edit Expenses in Approved or Paid Reports
+
+If you want to combine Approved reports rather than edit individual expenses, workspace admins can [merge the reports without unapproving them](#how-to-merge-reports).
 
 Apart from a Workspace Admin attaching or replacing a receipt, Approved and Paid reports are locked for editing. To make other changes:
 
