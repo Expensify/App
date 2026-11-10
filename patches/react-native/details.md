@@ -75,6 +75,7 @@
     - Fixes an issue where pasted image displays as binary text on some Android devices where rich clipboard data is stored in binary form
     - Fixes an issue where pasting from WPS Office app crashes the app on Android where its content URI is not recognized by Android `ContentResolver`
     - Fixes an issue where mentions copied from mWeb and pasted on Android are not displayed.
+    - Fixes an issue on iOS where pasting an image failed with "We couldn't process this image" when the first image representation on the pasteboard (e.g. HEIC) could not be read: unreadable representations are now skipped, HEIC/HEIF is tried last so a PNG or JPEG of the same image is used directly when the pasteboard offers one (no HEIC to JPEG conversion needed), the decoded `UIImage` is used as a fallback, and no file is emitted when nothing can be read.
 - Upstream PR/issue: https://github.com/facebook/react-native/pull/45425
 - Upstream RFC: https://github.com/s77rt/discussions-and-proposals/blob/TextInput-onPaste/proposals/0000-textinput-onpaste.md
 - E/App issue:
@@ -393,3 +394,11 @@
 - E/App issue: https://github.com/Expensify/App/issues/103369
 - PR introducing patch: https://github.com/Expensify/App/pull/103447
 - 0.86.0 migration note: the adopted release containing `3f553d7` is not enough to drop this patch. `0.87.0` still throws here and already has `checkNotNull(parentView)` right before this check. `0.88` soft-fails a non-`ViewGroup` parent but keeps that `checkNotNull`, so a null `parentView` (the placeholder `ViewState` from [react-native#58526](https://github.com/react/react-native/issues/58526)) still crashes. On the 0.88 upgrade, reduce it to soft-failing the `checkNotNull` only. Drop it once upstream handles a null `parentView` in `removeViewAt`.
+
+### [react-native+0.86.0+048+fix-hermes-tarball-root-after-repo-move.patch](react-native+0.86.0+048+fix-hermes-tarball-root-after-repo-move.patch)
+
+- Reason: Fixes Android builds that compile React Native from source (the artifacts publish workflow, any build that misses the prebuilt artifacts, `BUILD_RN_FROM_SOURCE=1`) failing at `hermes-engine:configureBuildForHermes` with `The source directory ".../sdks/hermes" does not appear to contain CMakeLists.txt`. On 2026-10-28 `facebook/hermes` moved to `meta/hermes`. The old tarball URL still redirects, but GitHub names the archive's top-level folder `<owner>-<repo>-<sha>`, so it is now `meta-hermes-<sha>/` and `unzipHermes` only flattened `facebook-hermes-*`, leaving the sources one level too deep. The patch is the upstream fix: download from `meta/hermes` and strip the single top-level folder whatever its name (`includeEmptyDirs = false` keeps the empty wrapper folder from being recreated), the same way `ReactAndroid/build.gradle.kts` extracts folly, fmt and fast_float. It leaves the `doLast` step from `+024` untouched, which depends on `sdks/hermes` being flattened correctly.
+- Upstream PR/issue: [react-native#59587](https://github.com/react/react-native/issues/59587) / [react-native#59589](https://github.com/react/react-native/pull/59589) ([react-native@f6a5042](https://github.com/react/react-native/commit/f6a5042c8)), merged to `main` on 2026-10-28, not in any `0.86.x` release (`0.86.3` predates the move) nor on `0.86-stable`.
+- E/App issue: https://github.com/Expensify/App/issues/105383
+- PR introducing patch: https://github.com/Expensify/App/pull/105381
+- 0.86.0 migration note: drop once we adopt a React Native release that contains `f6a5042`. Adding this patch changes the patches hash, so merging it republishes the prebuilt artifacts; that publish is also the first CI build from source since the move, so confirm it passes.

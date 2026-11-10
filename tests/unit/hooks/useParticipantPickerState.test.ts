@@ -1,6 +1,5 @@
 import {act, renderHook} from '@testing-library/react-native';
-
-import type useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
+import type * as ReactNavigation from '@react-navigation/native';
 
 import type {IOURequestStepConfirmationProps} from '@pages/iou/request/step/IOURequestStepConfirmation/types';
 import useParticipantPickerState from '@pages/iou/request/step/IOURequestStepConfirmation/useParticipantPickerState';
@@ -39,6 +38,11 @@ const selfDMParticipant: Participant = {accountID: 0, reportID: '200', isPolicyE
 
 let mockDefaultParticipants: Participant[] = [];
 let mockDefaultPolicy: Policy | undefined;
+
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof ReactNavigation>('@react-navigation/native'),
+    useIsFocused: () => true,
+}));
 
 jest.mock('@hooks/useDefaultParticipants', () => ({
     __esModule: true,
@@ -86,7 +90,6 @@ const mockedSetMoneyRequestCurrency = jest.mocked(setMoneyRequestCurrency);
 const mockedSetMoneyRequestParticipants = jest.mocked(setMoneyRequestParticipants);
 
 const navigation = createMock<IOURequestStepConfirmationProps['navigation']>({addListener: jest.fn(() => jest.fn()), setParams: jest.fn()});
-const blockDistanceRequestIfNeeded: ReturnType<typeof useBlockDistanceRequest> = jest.fn(() => false);
 
 // A draft started from global create before its participants are known, so it still holds the member's Payment currency.
 function createDraftWithoutParticipants(overrides: Partial<Transaction> = {}): Transaction {
@@ -109,15 +112,12 @@ async function renderParticipantPickerState(transaction: Transaction) {
     renderHook(() =>
         useParticipantPickerState({
             transaction,
-            transactions: [transaction],
             iouType: CONST.IOU.TYPE.CREATE,
+            action: CONST.IOU.ACTION.CREATE,
             reportID: REPORT_ID,
             reportDrafts: undefined,
             navigation,
-            policyID: undefined,
-            isDistanceRequest: transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE,
             isManualRequest: transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL,
-            blockDistanceRequestIfNeeded,
         }),
     );
     await act(waitForBatchedUpdates);

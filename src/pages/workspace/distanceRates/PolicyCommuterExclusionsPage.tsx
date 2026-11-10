@@ -3,7 +3,7 @@ import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -237,16 +237,14 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
     const isHomeAndOfficeSelected = selectedKey === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
 
     const workArrangementFooter = (
-        <MenuItemWithTopDescription
-            shouldShowRightIcon
-            title={translate(
+        <MenuItemField
+            name={translate('workspace.distanceRates.commuterExclusions.workArrangement.title')}
+            value={translate(
                 hasOfficeWorkArrangement(existingCommuterExclusions)
                     ? 'workspace.distanceRates.commuterExclusions.workArrangement.officeBasedTitle'
                     : 'workspace.distanceRates.commuterExclusions.workArrangement.noRegularWorkplaceTitle',
             )}
-            description={translate('workspace.distanceRates.commuterExclusions.workArrangement.title')}
             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_WORK_ARRANGEMENT.getRoute(policyID))}
-            wrapperStyle={[styles.ph5, styles.pt3]}
         />
     );
 

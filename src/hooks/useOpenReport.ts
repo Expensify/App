@@ -3,6 +3,8 @@ import type {OpenReportActionParams} from '@userActions/Report';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {DistributedOmit} from 'type-fest';
+
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -12,7 +14,7 @@ import useOnyx from './useOnyx';
 /** Params this hook fills in itself */
 type SharedOpenReportParams = 'introSelected' | 'conciergeChat' | 'currentUserAccountID' | 'isSelfTourViewed' | 'hasCompletedGuidedSetupFlow' | 'delegateAccountID';
 
-type UseOpenReportParams = Omit<OpenReportActionParams, SharedOpenReportParams>;
+type UseOpenReportParams = DistributedOmit<OpenReportActionParams, SharedOpenReportParams>;
 
 /** Returns openReport with the current user's context already filled in */
 function useOpenReport() {

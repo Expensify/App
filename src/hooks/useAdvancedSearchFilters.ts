@@ -15,6 +15,7 @@ import {emailSelector} from '@selectors/Session';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
+import useShouldReturnTripRooms from './useShouldReturnTripRooms';
 import useWorkspaceList from './useWorkspaceList';
 
 /**
@@ -50,13 +51,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY,
         ],
-        [
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
-        ],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED, CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS, CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD,
@@ -69,6 +64,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY,
         ],
@@ -77,6 +73,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.ORDER_DEAL_NUMBERS,
         ],
@@ -206,6 +203,12 @@ const typeFiltersKeys = {
     ],
 };
 
+/** A trip search that returns trip rooms only filters by what a trip row has */
+const tripRoomFiltersKeys: (typeof typeFiltersKeys)[typeof CONST.SEARCH.DATA_TYPES.TRIP] = [
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID],
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE],
+];
+
 function shouldDisplayFilter(numberOfFilters: number, isFeatureEnabled: boolean, singlePolicyCondition = false): boolean {
     return (numberOfFilters !== 0 || singlePolicyCondition) && isFeatureEnabled;
 }
@@ -329,6 +332,7 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined) {
     const shouldDisplayBankAccountFilter = shouldDisplayFilter(hasFilterableBankAccount ? 1 : 0, true);
     const shouldDisplayTaxFilter = shouldDisplayFilter(policyDerived?.hasAnyTaxRates ? 1 : 0, policyDerived?.areTaxEnabled ?? false);
     const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length > 1);
+    const shouldReturnTripRooms = useShouldReturnTripRooms(type);
 
     let currentType = type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
@@ -336,7 +340,7 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined) {
         currentType = CONST.SEARCH.DATA_TYPES.EXPENSE;
     }
 
-    return typeFiltersKeys[currentType]
+    return (shouldReturnTripRooms ? tripRoomFiltersKeys : typeFiltersKeys[currentType])
         .map((section) =>
             section
                 .map((key) => {

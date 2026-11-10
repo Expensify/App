@@ -5,11 +5,14 @@ import useAskConcierge from '@components/Search/SearchRouter/useAskConcierge';
 import {addAttachmentWithComment, addComment} from '@userActions/Report';
 import {createTaskFromMarkdown} from '@userActions/Task';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import Onyx from 'react-native-onyx';
+
+import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const ACCOUNT_ID = 1;
 const DELEGATE_ACCOUNT_ID = '99';
@@ -119,6 +122,29 @@ describe('useAskConcierge', () => {
             expect(result.current.conciergeTargetReportID).toBe(CONCIERGE_REPORT_ID);
         });
 
+        it('does not rerender when the thread open in the side panel gets a reply', async () => {
+            // Given web, with the side panel showing the thread of an earlier Concierge question
+            mockIsInSidePanel = true;
+            await seedReports();
+            const conciergeThread = {reportID: '300', parentReportID: CONCIERGE_REPORT_ID} as Report;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${conciergeThread.reportID}`, conciergeThread);
+            mockSidePanelReportID = conciergeThread.reportID;
+            let renderCount = 0;
+            renderHook(() => {
+                renderCount++;
+                return useAskConcierge();
+            });
+            await waitForBatchedUpdates();
+            const renderCountBeforeReply = renderCount;
+
+            // When Concierge replies in that thread
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${conciergeThread.reportID}`, {lastMessageText: 'Spend is up because of travel.'});
+            await waitForBatchedUpdates();
+
+            // Then the hook does not rerender, since the reply leaves the thread's parent, and so the target, unchanged
+            expect(renderCount).toBe(renderCountBeforeReply);
+        });
+
         it('targets Concierge on native, where there is no side panel', async () => {
             // Given native, which has no side panel to route through
             await seedReports();
@@ -159,6 +185,21 @@ describe('useAskConcierge', () => {
                     conciergeReportID: CONCIERGE_REPORT_ID,
                 }),
             );
+        });
+
+        it('sends the side panel context with the comment, so Concierge answers about the data on screen', async () => {
+            // Given a loaded Concierge report and the Insights filters the user is looking at
+            await seedReports();
+            const {result} = renderAskConcierge({forceConcierge: true});
+            const sidePanelContext = {
+                insightsScope: {searchKey: CONST.INSIGHTS.SEARCH_KEY.SPEND, policyIDs: ['ABC123'], date: {from: '2026-01-01', to: '2026-03-31'}, groupCurrency: CONST.CURRENCY.USD},
+            };
+
+            // When the user asks Concierge to explain an insight
+            result.current.askConcierge('Explain the data in Spend over time', sidePanelContext);
+
+            // Then the filters reach addComment alongside the message
+            expect(mockAddComment).toHaveBeenCalledWith(expect.objectContaining({text: 'Explain the data in Spend over time', sidePanelContext}));
         });
 
         it('creates a task instead of a comment when the message uses the `[] task` shorthand', async () => {

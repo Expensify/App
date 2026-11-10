@@ -8,6 +8,14 @@ describe('maskSensitiveValue', () => {
         expect(maskSensitiveValue('123451234')).toBe('•••-••-1234');
     });
 
+    it('keeps the SSN grouping for an SSN starting with zeros', () => {
+        // Given nine digit SSNs that the SSN validator rejects but the form accepts
+        // When they are masked
+        // Then they keep the same grouping as any other SSN on the confirmation page
+        expect(maskSensitiveValue('000000000')).toBe('•••-••-0000');
+        expect(maskSensitiveValue('000012345')).toBe('•••-••-2345');
+    });
+
     it('keeps the last four characters of any other value', () => {
         // Given an account number that is not an SSN
         // When it is masked

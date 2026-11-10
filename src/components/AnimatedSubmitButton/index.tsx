@@ -3,6 +3,7 @@ import Button from '@components/Button';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
@@ -12,14 +13,15 @@ import {clearPendingExpenseAction} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportMetadata} from '@src/types/onyx';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 import Animated, {css, useReducedMotion} from 'react-native-reanimated';
 
-type AnimatedSubmitButtonProps = WithSentryLabel & {
+type AnimatedSubmitButtonProps = WithRequiredSentryLabel & {
     /** Submit buttons support the default and success styles; danger is not a valid submit state. */
     variant?: typeof CONST.BUTTON_VARIANT.SUCCESS;
 
@@ -124,10 +126,11 @@ function SubmittingButton({variant, text, onAnimationFinish, shouldShowMarkAsDon
 
 function AnimatedSubmitButton({isSubmittingAnimationRunning, onPress, isDisabled, sentryLabel, ...props}: AnimatedSubmitButtonProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const [pendingExpenseAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${props.reportID}`, {selector: pendingExpenseActionSelector});
 
     return (
-        <Animated.View style={[styles.justifyContentCenter, {height: variables.componentSizeNormal}]}>
+        <View style={[styles.justifyContentCenter, StyleUtils.getHeight(variables.componentSizeNormal)]}>
             {isSubmittingAnimationRunning ? (
                 <SubmittingButton
                     key={`${props.reportID}:${props.isDEWSubmission ? 'dew' : 'standard'}`}
@@ -144,7 +147,7 @@ function AnimatedSubmitButton({isSubmittingAnimationRunning, onPress, isDisabled
                     <Button.Text>{props.text}</Button.Text>
                 </Button>
             )}
-        </Animated.View>
+        </View>
     );
 }
 

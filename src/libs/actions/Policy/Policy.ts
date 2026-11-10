@@ -67,6 +67,7 @@ import type {
     SetWorkspaceAutoReportingMonthlyOffsetParams,
     UpdatePolicyTimezoneParams,
     SetWorkspacePayerParams,
+    SetReimbursementCountriesParams,
     SetWorkspaceReimbursementParams,
     ToggleCollectDepositAccountsParams,
     TogglePolicyReceiptPartnersParams,
@@ -101,7 +102,7 @@ import {rand64} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import {buildOnyxDataForGovernmentRateAutoUpdate} from '@libs/PolicyDistanceRatesUtils';
+import {buildOnyxDataForGovernmentRateAutoUpdate, getGovernmentRateCountryForCurrency} from '@libs/PolicyDistanceRatesUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {
     getCustomUnitsForDuplication,
@@ -336,6 +337,8 @@ type SetWorkspaceReimbursementActionParams = {
     shouldUpdateLastPaymentMethod?: boolean;
     currentReimbursementChoice: Policy['reimbursementChoice'];
     currentAchAccount: Policy['achAccount'];
+    currentIsCollectDepositAccountsEnabled?: Policy['isCollectDepositAccountsEnabled'];
+    currentReimbursementCountries?: NonNullable<Policy['reimbursement']>['countries'];
     bankAccountList?: BankAccountList;
 };
 
@@ -343,6 +346,7 @@ type SetWorkspaceApprovalModeAdditionalData = {
     transactionViolations?: OnyxCollection<TransactionViolations>;
     isASAPSubmitBetaEnabled: boolean | undefined;
     personalDetailsList?: OnyxEntry<PersonalDetailsList>;
+    personalDetailsByLogins: PersonalDetailsByLogin | undefined;
 };
 
 /**
@@ -582,7 +586,14 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
 
     if (policyID === activePolicyID) {
         const mostRecentlyCreatedGroupPolicy = Object.values(policies ?? {})
-            .filter((p) => p && p.id !== activePolicyID && p.type !== CONST.POLICY.TYPE.PERSONAL && p.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+            .filter(
+                (p) =>
+                    p &&
+                    p.id !== activePolicyID &&
+                    p.type !== CONST.POLICY.TYPE.PERSONAL &&
+                    p.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+                    PolicyUtils.canCreateExpensesOnPolicy(p),
+            )
             .sort((policyA, policyB) => localeCompare(policyB?.created ?? '', policyA?.created ?? ''))
             .at(0);
 
@@ -1055,6 +1066,69 @@ function toggleCollectDepositAccounts(policyID: string, enabled: boolean, curren
     API.write(WRITE_COMMANDS.TOGGLE_COLLECT_DEPOSIT_ACCOUNTS, params, {optimisticData, failureData, successData});
 }
 
+/**
+ * Replace the countries a workspace collects employee deposit accounts for. The server never removes a country the
+ * workspace has a withdrawal account in, so callers should keep that country in the list.
+ */
+function setReimbursementCountries(policyID: string, countryISOs: string[], currentCountries: NonNullable<Policy['reimbursement']>['countries']) {
+    // A country waiting to be deleted is already gone for the user, so selecting it again adds it back
+    const currentCountryISOs = PolicyUtils.getReimbursementCountryISOs(currentCountries);
+    const addedCountryISOs = countryISOs.filter((countryISO) => !currentCountryISOs.includes(countryISO));
+    const removedCountryISOs = currentCountryISOs.filter((countryISO) => !countryISOs.includes(countryISO));
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                reimbursement: {
+                    countries: {
+                        ...Object.fromEntries(addedCountryISOs.map((countryISO) => [countryISO, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}])),
+                        ...Object.fromEntries(removedCountryISOs.map((countryISO) => [countryISO, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}])),
+                    },
+                },
+                errorFields: {reimbursementCountries: null},
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                reimbursement: {
+                    countries: {
+                        ...Object.fromEntries(addedCountryISOs.map((countryISO) => [countryISO, null])),
+                        ...Object.fromEntries(removedCountryISOs.map((countryISO) => [countryISO, {pendingAction: null}])),
+                    },
+                },
+                errorFields: {reimbursementCountries: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsPage.businessBankAccountCountriesError')},
+            },
+        },
+    ];
+
+    // Removed countries are deleted rather than having their pendingAction cleared, because this runs after the
+    // response deletes them and clearing a field would add the country back as an empty object.
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                reimbursement: {
+                    countries: {
+                        ...Object.fromEntries(addedCountryISOs.map((countryISO) => [countryISO, {pendingAction: null}])),
+                        ...Object.fromEntries(removedCountryISOs.map((countryISO) => [countryISO, null])),
+                    },
+                },
+            },
+        },
+    ];
+
+    const params: SetReimbursementCountriesParams = {policyID, countryISOList: countryISOs.join(',')};
+    API.write(WRITE_COMMANDS.SET_REIMBURSEMENT_COUNTRIES, params, {optimisticData, failureData, successData});
+}
+
 function setWorkspaceAutoReportingOffset(
     policyID: string,
     autoReportingOffset: AutoReportingOffset,
@@ -1241,6 +1315,7 @@ function setWorkspaceApprovalMode(
                 predictedNextStatus: report?.statusNum ?? CONST.REPORT.STATUS_NUM.SUBMITTED,
                 isTrackIntentUser,
                 rules,
+                personalDetailsByLogins: additionalData.personalDetailsByLogins,
             });
 
             reportsOptimisticData.push({
@@ -1487,6 +1562,8 @@ function setWorkspaceReimbursement({
     shouldUpdateLastPaymentMethod,
     currentReimbursementChoice,
     currentAchAccount,
+    currentIsCollectDepositAccountsEnabled,
+    currentReimbursementCountries,
     bankAccountList = {},
 }: SetWorkspaceReimbursementActionParams) {
     const lastUsedPaymentMethod = typeof lastPaymentMethod === 'string' ? lastPaymentMethod : lastPaymentMethod?.expense?.name;
@@ -1619,6 +1696,23 @@ function setWorkspaceReimbursement({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.BANK_ACCOUNT_LIST,
             value: failureBankAccountList,
+        });
+    }
+
+    // Turning payments off also stops collecting employee bank details and clears the reimbursement countries
+    if (reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {isCollectDepositAccountsEnabled: false, reimbursement: {countries: null}},
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isCollectDepositAccountsEnabled: currentIsCollectDepositAccountsEnabled ?? null,
+                reimbursement: {countries: currentReimbursementCountries ?? null},
+            },
         });
     }
 
@@ -2371,19 +2465,13 @@ function updateGeneralSettings(
         }
     }
 
-    // Enabling government rate auto-update and copying the chosen country's reference rates rides on this request, so the
-    // whole currency change stays a single API call. The server applies the same copy when it saves the currency.
-    const governmentRateAutoUpdateData = governmentRateCountry
-        ? buildOnyxDataForGovernmentRateAutoUpdate(
-              policy.id,
-              distanceUnit,
-              true,
-              governmentMileageRates,
-              currency,
-              governmentRateCountry,
-              !!policy.shouldAutoUpdateGovernmentDistanceRates,
-              policy.autoUpdateGovernmentRateCountry,
-          )
+    // Enabling government rate auto-update and copying the new country's reference rates rides on this request, so the
+    // whole currency change stays a single API call. The server applies the same copy when it saves the currency. EUR needs
+    // the chosen country, and every other supported currency maps to one country, so the rates are filtered by currency.
+    const shouldCopyGovernmentRates =
+        !!governmentRateCountry || (!!policy.shouldAutoUpdateGovernmentDistanceRates && currencyPendingAction !== undefined && !!getGovernmentRateCountryForCurrency(currency));
+    const governmentRateAutoUpdateData = shouldCopyGovernmentRates
+        ? buildOnyxDataForGovernmentRateAutoUpdate(policy, true, governmentMileageRates, currency, governmentRateCountry)
         : undefined;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
@@ -2483,11 +2571,9 @@ function updateGeneralSettings(
         completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
         // The server mirrors this copy through its own SetWorkspaceDistanceAutoUpdate call, so send the client-side
         // optimistic rate IDs to keep the persisted rates consistent with the optimistic Onyx state.
-        ...(governmentRateCountry && {
-            governmentRateCountry,
-            ...(Object.keys(governmentRateAutoUpdateData?.optimisticRateIDs ?? {}).length > 0 && {
-                optimisticRateIDs: JSON.stringify(governmentRateAutoUpdateData?.optimisticRateIDs),
-            }),
+        ...(governmentRateCountry && {governmentRateCountry}),
+        ...(Object.keys(governmentRateAutoUpdateData?.optimisticRateIDs ?? {}).length > 0 && {
+            optimisticRateIDs: JSON.stringify(governmentRateAutoUpdateData?.optimisticRateIDs),
         }),
     };
 
@@ -2766,6 +2852,53 @@ function getApprovalModeForNewWorkspace(
     return CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
+type NewWorkspaceWorkflowsOptions = {
+    /** If the workspace type is submit */
+    isSubmitWorkspace: boolean;
+
+    /** The workspace type being created */
+    workspaceType?: ValueOf<typeof CONST.POLICY.TYPE>;
+
+    /** Explicit pick from the workspace creation feature map, when the flow offers one */
+    workflowsFeatureEnabled?: boolean;
+
+    /** The account level onboarding choice */
+    introSelectedChoice?: OnboardingPurpose;
+
+    /** The choice passed for this creation */
+    engagementChoice?: OnboardingPurpose;
+};
+
+/**
+ * Determines whether workflows feature is enabled by default on a workspace
+ */
+function shouldEnableWorkflowsByDefaultForNewWorkspace({
+    isSubmitWorkspace,
+    workspaceType,
+    workflowsFeatureEnabled,
+    introSelectedChoice,
+    engagementChoice,
+}: NewWorkspaceWorkflowsOptions): boolean {
+    if (workflowsFeatureEnabled !== undefined) {
+        return workflowsFeatureEnabled;
+    }
+    if (isSubmitWorkspace) {
+        return true;
+    }
+    if (workspaceType === CONST.POLICY.TYPE.CORPORATE && engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && introSelectedChoice === CONST.ONBOARDING_CHOICES.ADMIN) {
+        return false;
+    }
+    if (engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE || engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL) {
+        return false;
+    }
+    return (
+        !engagementChoice ||
+        engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
+        engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND ||
+        isTrackOnboardingChoice(engagementChoice)
+    );
+}
+
 /**
  * Builds the default title report field (`fieldList`) used when seeding a new policy.
  */
@@ -2874,6 +3007,14 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
 
     const workspaceType = type ?? (isCorporateFeature || isCorporateIntegration || shouldCreateControlPolicy || isAnnualSubscription ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM);
 
+    const isWorkflowFeatureEnabled = shouldEnableWorkflowsByDefaultForNewWorkspace({
+        isSubmitWorkspace,
+        workspaceType,
+        workflowsFeatureEnabled: featuresMap?.find((feature) => feature.id === CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED)?.enabled,
+        introSelectedChoice: introSelected?.choice,
+        engagementChoice,
+    });
+
     const areDistanceRatesEnabled = isSubmitWorkspace || !!featuresMap?.find((feature) => feature.id === CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED && feature.enabled);
 
     // WARNING: The data below should be kept in sync with the API so we create the policy with the correct configuration.
@@ -2922,7 +3063,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                 areCompanyCardsEnabled: !isSubmitWorkspace,
                 areTagsEnabled: isSubmitWorkspace,
                 areDistanceRatesEnabled,
-                areWorkflowsEnabled: shouldEnableWorkflowsByDefault,
+                areWorkflowsEnabled: isWorkflowFeatureEnabled,
                 areReportFieldsEnabled: false,
                 areConnectionsEnabled: false,
                 areExpensifyCardsEnabled: false,
@@ -2978,6 +3119,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                     reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     outputCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    timeZone: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     address: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     type: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -3091,6 +3233,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                     reimbursementChoice: null,
                     name: null,
                     outputCurrency: null,
+                    timeZone: null,
                     address: null,
                     description: null,
                     type: null,
@@ -3567,6 +3710,7 @@ function buildOptimisticDuplicatePolicy(
         areInvoicesEnabled: isInvoicesFeatureSelected,
         areRulesEnabled: isRulesFeatureSelected,
         areWorkflowsEnabled: isWorkflowsFeatureSelected,
+        isCollectDepositAccountsEnabled: isWorkflowsFeatureSelected ? sourcePolicy?.isCollectDepositAccountsEnabled : false,
         areReportFieldsEnabled: isReportsFeatureSelected ? sourcePolicy?.areReportFieldsEnabled : false,
         areInvoiceFieldsEnabled: isInvoiceFieldsFeatureSelected ? sourcePolicy?.areInvoiceFieldsEnabled : false,
         areConnectionsEnabled: isConnectionsFeatureSelected,
@@ -3595,6 +3739,7 @@ function buildOptimisticDuplicatePolicy(
             reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             name: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             outputCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            timeZone: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             address: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             type: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -3762,6 +3907,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
                     reimbursementChoice: null,
                     name: null,
                     outputCurrency: null,
+                    timeZone: null,
                     address: null,
                     description: null,
                     type: null,
@@ -8338,6 +8484,7 @@ export {
     setWorkspaceAutoReportingOffset,
     setWorkspaceTimezone,
     toggleCollectDepositAccounts,
+    setReimbursementCountries,
     updateWorkspaceDescription,
     updateWorkspaceClientID,
     setWorkspacePayer,
@@ -8347,8 +8494,6 @@ export {
     enablePolicyConnections,
     enablePolicyHR,
     enablePolicyRecruiting,
-    enablePolicyMCP,
-    enablePolicyReceiptPartners,
     enablePolicyFeatureForConnection,
     enablePolicyReportFields,
     enablePolicyInvoiceFields,

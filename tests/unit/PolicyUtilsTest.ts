@@ -24,6 +24,7 @@ import {
     canSendInvoiceFromWorkspace,
     canShowReimbursableToggleForPolicy,
     canSubmitPerDiemExpenseFromWorkspace,
+    canSubmitOwnReportOnPolicy,
     canUnarchivePolicy,
     evaluateApprovalWorkflowRule,
     findVendorByID,
@@ -75,7 +76,10 @@ import {
     getOwnedPaidPolicies,
     getSageIntacctVendors,
     arePaymentsEnabled,
+    getPolicyBankAccountCountry,
+    getReimbursementAccountCountries,
     getReimbursementChoice,
+    hasReimbursementCountries,
     isPolicyPayer,
     getReimburserEmail,
     getRuleApprovers,
@@ -98,6 +102,7 @@ import {
     getGLCodeFromPolicyTag,
     getTagList,
     getTagListByOrderWeight,
+    getTagListEntryByOrderWeight,
     getTravelStep,
     getUberConnectionErrorDirectlyFromPolicy,
     getUnitRateValue,
@@ -130,6 +135,7 @@ import {
     isPerDiemEligiblePolicy,
     isPerDiemEnabled,
     isPolicyAccessible,
+    isConnectionFeature,
     isPolicyAdmin,
     isPolicyFeatureEnabled,
     isRoomMemberProtectedByPolicyRole,
@@ -154,7 +160,7 @@ import {getTagArrayFromName} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTags, PolicyTagLists, Report, Transaction, TravelSettings} from '@src/types/onyx';
+import type {BankAccount, PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTags, PolicyTagLists, Report, Transaction, TravelSettings} from '@src/types/onyx';
 import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {
     Connections,
@@ -487,6 +493,28 @@ describe('PolicyUtils', () => {
                 expect(result).toHaveLength(1);
                 expect(result.at(0)?.id).toBe(activePolicy.id);
             });
+
+            it('excludes workspaces where the member cannot create expenses', () => {
+                // Given a member workspace and an approve-only workspace
+                // When the workspace pickers collect policies with expense chat
+                // Then the approve-only workspace is left out, since no expense can be created in it
+                const memberPolicy = createMock<Policy>({...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), name: 'member', role: CONST.POLICY.ROLE.USER, pendingAction: null});
+                const approveOnlyPolicy = createMock<Policy>({
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
+                    name: 'approve-only',
+                    role: CONST.POLICY.ROLE.APPROVE_ONLY,
+                    pendingAction: null,
+                });
+                const policies = createCollection<Policy>(
+                    (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
+                    (index) => (index === 0 ? memberPolicy : approveOnlyPolicy),
+                    2,
+                );
+
+                const result = getActivePoliciesWithExpenseChat(policies, undefined);
+                expect(result).toHaveLength(1);
+                expect(result.at(0)?.id).toBe(memberPolicy.id);
+            });
         });
 
         describe('per diem policy filters', () => {
@@ -592,6 +620,25 @@ describe('PolicyUtils', () => {
                         pendingAction: null,
                         // Explicit off must be respected, so the lingering custom unit cannot re-enable it
                         arePerDiemRatesEnabled: false,
+                        customUnits: {
+                            ABCDEF: perDiemCustomUnit,
+                        },
+                    },
+                };
+
+                expect(getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined)).toHaveLength(0);
+            });
+
+            it('excludes a per diem workspace where the member cannot create expenses', () => {
+                // Given a control workspace with per diem rates where the member is approve-only
+                // When the per diem workspace list is built
+                // Then the workspace is left out, so an approve-only member cannot start a per diem expense there
+                const policies: OnyxCollection<Policy> = {
+                    approveOnly: {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                        role: CONST.POLICY.ROLE.APPROVE_ONLY,
+                        pendingAction: null,
+                        arePerDiemRatesEnabled: true,
                         customUnits: {
                             ABCDEF: perDiemCustomUnit,
                         },
@@ -1438,8 +1485,8 @@ describe('PolicyUtils', () => {
                 [CONST.POLICY.ROLE.ADMIN, true, true],
                 [CONST.POLICY.ROLE.AUDITOR, true, false],
                 [CONST.POLICY.ROLE.PAYMENTS_ADMIN, true, false],
+                [CONST.POLICY.ROLE.CARD_ADMIN, true, false],
                 [CONST.POLICY.ROLE.EDITOR, false, false],
-                [CONST.POLICY.ROLE.CARD_ADMIN, false, false],
                 [CONST.POLICY.ROLE.PEOPLE_ADMIN, false, false],
                 [CONST.POLICY.ROLE.USER, false, false],
                 [CONST.POLICY.ROLE.GUEST, false, false],
@@ -1456,6 +1503,7 @@ describe('PolicyUtils', () => {
             it.each([
                 [CONST.POLICY.ROLE.AUDITOR, true],
                 [CONST.POLICY.ROLE.PAYMENTS_ADMIN, true],
+                [CONST.POLICY.ROLE.CARD_ADMIN, true],
                 [CONST.POLICY.ROLE.ADMIN, false],
                 [CONST.POLICY.ROLE.EDITOR, false],
                 [CONST.POLICY.ROLE.USER, false],
@@ -1468,14 +1516,17 @@ describe('PolicyUtils', () => {
                 expect(hasReadOnlyAllReportsAccess(policy, memberLogin)).toBe(expected);
             });
 
-            it.each([CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.ROLE.PAYMENTS_ADMIN])('hasReadOnlyAllReportsAccess is false for a %s after the workspace is downgraded to Team', (role) => {
-                // Given a member whose control-only role is still stored after the policy type changed to Team
-                const policy = {...buildPolicy(role), type: CONST.POLICY.TYPE.TEAM};
+            it.each([CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.ROLE.PAYMENTS_ADMIN, CONST.POLICY.ROLE.CARD_ADMIN])(
+                'hasReadOnlyAllReportsAccess is false for a %s after the workspace is downgraded to Team',
+                (role) => {
+                    // Given a member whose control-only role is still stored after the policy type changed to Team
+                    const policy = {...buildPolicy(role), type: CONST.POLICY.TYPE.TEAM};
 
-                // When we check whether they can only read all reports
-                // Then the role no longer applies, matching the other permission helpers
-                expect(hasReadOnlyAllReportsAccess(policy, memberLogin)).toBe(false);
-            });
+                    // When we check whether they can only read all reports
+                    // Then the role no longer applies, matching the other permission helpers
+                    expect(hasReadOnlyAllReportsAccess(policy, memberLogin)).toBe(false);
+                },
+            );
 
             it('allows auditors to read every policy feature but write only rooms and expense creation', () => {
                 const policy = buildPolicy(CONST.POLICY.ROLE.AUDITOR);
@@ -1561,6 +1612,12 @@ describe('PolicyUtils', () => {
                 });
 
                 expect(canCreateExpensesOnPolicy(policyWithDifferentViewerRole, memberLogin)).toBe(false);
+            });
+
+            it('lets a submitter submit their own report only when their role can create expenses', () => {
+                expect(canSubmitOwnReportOnPolicy(buildPolicy(CONST.POLICY.ROLE.USER), memberLogin)).toBe(true);
+                expect(canSubmitOwnReportOnPolicy(buildPolicy(CONST.POLICY.ROLE.APPROVE_ONLY), memberLogin)).toBe(false);
+                expect(canSubmitOwnReportOnPolicy({...buildPolicy(CONST.POLICY.ROLE.APPROVE_ONLY), type: CONST.POLICY.TYPE.PERSONAL}, memberLogin)).toBe(true);
             });
 
             it('allows Guest assignment only on Control workspaces', () => {
@@ -1760,6 +1817,17 @@ describe('PolicyUtils', () => {
                 // When that member's protection is resolved
                 // Then they are protected, because Auth rejects removing any member who can read every workspace report
                 expect(isRoomMemberProtectedByPolicyRole(policyWithPaymentsAdmin, paymentsAdminLogin, undefined)).toBe(true);
+            });
+
+            it('protects a member who is a card admin of the policy', () => {
+                // Given a policy viewed by an admin, holding a card admin in its employee list
+                const cardAdminLogin = 'cardadmin@test.com';
+                const policy = buildPolicy();
+                const policyWithCardAdmin = {...policy, employeeList: {...policy.employeeList, [cardAdminLogin]: {role: CONST.POLICY.ROLE.CARD_ADMIN}}};
+
+                // When that member's protection is resolved
+                // Then they are protected, because Auth rejects removing any member who can read every workspace report
+                expect(isRoomMemberProtectedByPolicyRole(policyWithCardAdmin, cardAdminLogin, undefined)).toBe(true);
             });
 
             it('protects the policy owner by accountID even when the employee list does not list them', () => {
@@ -3380,6 +3448,38 @@ describe('PolicyUtils', () => {
                 expect(tagList.name).toEqual(expected);
             });
         });
+        describe('getTagListEntryByOrderWeight', () => {
+            // Given tag lists that share a name but are stored under unique Onyx keys, as a no-header import with
+            // GL codes in adjacent columns can return them
+            const tagListsWithDuplicateNames: PolicyTagLists = {
+                Clients: {name: 'Clients', orderWeight: 0, required: false, tags: {}},
+                'Sub-projects': {name: 'Sub-projects', orderWeight: 1, required: false, tags: {}},
+                'Sub-projects_2': {name: 'Sub-projects', orderWeight: 2, required: false, tags: {}},
+            };
+
+            it.each([
+                ['returns the entry of the first list with a repeated name', 1, 'Sub-projects'],
+                ['returns the entry of the second list with a repeated name', 2, 'Sub-projects_2'],
+            ])('%s', (_description, orderWeight, expectedKey) => {
+                // When the entry is looked up by orderWeight
+                const entry = getTagListEntryByOrderWeight(tagListsWithDuplicateNames, orderWeight);
+
+                // Then the key and value of the matching list are returned, so callers write to its key, not its name
+                expect(entry).toEqual([expectedKey, tagListsWithDuplicateNames[expectedKey]]);
+            });
+
+            it('returns undefined when no list has the orderWeight', () => {
+                // Given tag lists without orderWeight 3
+                // When / Then
+                expect(getTagListEntryByOrderWeight(tagListsWithDuplicateNames, 3)).toBeUndefined();
+            });
+
+            it('returns undefined when there are no tag lists', () => {
+                // Given no tag lists
+                // When / Then
+                expect(getTagListEntryByOrderWeight(undefined, 0)).toBeUndefined();
+            });
+        });
         describe('hasAnyTagGLCode', () => {
             it('returns false when the workspace has no tags', () => {
                 // Given no tag lists, there is no GL code to pick, so the Tag GL code cell must stay read-only
@@ -4357,6 +4457,75 @@ describe('PolicyUtils', () => {
             });
         });
 
+        describe('hasReimbursementCountries', () => {
+            it('returns false when there is no policy', () => {
+                // Given no policy, which happens while a workspace is still loading
+
+                // When we check for selected countries before policy data has loaded
+                const hasCountries = hasReimbursementCountries(undefined);
+
+                // Then missing policy data does not imply any selected countries
+                expect(hasCountries).toBe(false);
+            });
+
+            it('returns false when no countries are selected', () => {
+                // Given a workspace with an empty countries list and no business bank account
+                const policy = createMock<Policy>({id: '1', reimbursement: {countries: {}}});
+
+                // When we check for selected countries on an unconfigured workspace
+                const hasCountries = hasReimbursementCountries(policy);
+
+                // Then an empty list does not count as a country selection
+                expect(hasCountries).toBe(false);
+            });
+
+            it('returns false when every country has a falsy value', () => {
+                // Given a workspace whose countries are all deselected
+                // @ts-expect-error - Defensively handles malformed country entries that violate the object type.
+                const policy = createMock<Policy>({id: '1', reimbursement: {countries: {US: false, GB: null}}});
+
+                // When we check countries that retain deselected entries in Onyx
+                const hasCountries = hasReimbursementCountries(policy);
+
+                // Then deselected entries do not count as selected countries
+                expect(hasCountries).toBe(false);
+            });
+
+            it('returns true when a country has a truthy value', () => {
+                // Given a workspace with a selected business bank account country
+                // @ts-expect-error - Defensively handles malformed country entries that violate the object type.
+                const policy = createMock<Policy>({id: '1', reimbursement: {countries: {US: false, GB: []}}});
+
+                // When we check a mixture of selected and deselected countries
+                const hasCountries = hasReimbursementCountries(policy);
+
+                // Then the truthy entry counts even when its array is empty
+                expect(hasCountries).toBe(true);
+            });
+
+            it('returns false when only a business bank account is connected', () => {
+                // Given a workspace with a connected business bank account and no countries
+                const policy = createMock<Policy>({id: '1', achAccount: {bankAccountID: 123}});
+
+                // When we check country selection independently of connected accounts
+                const hasCountries = hasReimbursementCountries(policy);
+
+                // Then a bank account alone does not count as a selected country
+                expect(hasCountries).toBe(false);
+            });
+
+            it('returns false when the bank account ID is 0 and countries are missing', () => {
+                // Given a workspace whose achAccount has no real bank account ID
+                const policy = createMock<Policy>({id: '1', achAccount: {bankAccountID: 0}});
+
+                // When we check a workspace without reimbursement country data
+                const hasCountries = hasReimbursementCountries(policy);
+
+                // Then missing countries do not count regardless of the bank account ID
+                expect(hasCountries).toBe(false);
+            });
+        });
+
         describe('arePaymentsEnabled', () => {
             it.each([
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES, true],
@@ -4373,6 +4542,70 @@ describe('PolicyUtils', () => {
 
                 // Then only a disabled workspace turns payments off, whichever of the two values it reports
                 expect(paymentsEnabled).toBe(expected);
+            });
+        });
+
+        describe('getReimbursementAccountCountries', () => {
+            it('should return countries with a connected bank account and the country of the workspace bank account', () => {
+                // Given a workspace with an AU withdrawal account in its countries and a GB account the admin owns
+                const policy = createMock<Policy>({
+                    id: '1',
+                    outputCurrency: CONST.CURRENCY.GBP,
+                    achAccount: {bankAccountID: 2, accountNumber: '', routingNumber: '', addressName: '', bankName: '', reimburser: ''},
+                    reimbursement: {countries: {AU: {bankAccountID: 1}, FR: {}}},
+                });
+                const bankAccountList = {2: createMock<BankAccount>({accountData: {additionalData: {country: 'GB'}}})};
+
+                // When the countries that can't be deselected are read
+                const countries = getReimbursementAccountCountries(policy, getPolicyBankAccountCountry(policy, bankAccountList));
+
+                // Then both account countries are returned, because the server never removes either one
+                expect(countries).toEqual(['AU', 'GB']);
+            });
+
+            it('should treat a workspace bank account with no country as a US account', () => {
+                // Given a legacy bank account that the admin owns and that has no country
+                const policy = createMock<Policy>({
+                    id: '1',
+                    achAccount: {bankAccountID: 2, accountNumber: '', routingNumber: '', addressName: '', bankName: '', reimburser: ''},
+                });
+                const bankAccountList = {2: createMock<BankAccount>({accountData: {additionalData: {}}})};
+
+                // When the bank account's country is read
+                const country = getPolicyBankAccountCountry(policy, bankAccountList);
+
+                // Then it is US, because legacy US accounts were saved without a country
+                expect(country).toBe(CONST.COUNTRY.US);
+            });
+
+            it('should read the top-level bankCountry when the bank account has no nested country', () => {
+                // Given a GB bank account that the admin owns and that only has the top-level bankCountry
+                const policy = createMock<Policy>({
+                    id: '1',
+                    achAccount: {bankAccountID: 2, accountNumber: '', routingNumber: '', addressName: '', bankName: '', reimburser: ''},
+                });
+                const bankAccountList = {2: createMock<BankAccount>({bankCountry: 'GB', accountData: {additionalData: {}}})};
+
+                // When the bank account's country is read
+                const country = getPolicyBankAccountCountry(policy, bankAccountList);
+
+                // Then it is GB, so US isn't added and locked for a workspace whose bank account is outside the US
+                expect(country).toBe('GB');
+            });
+
+            it('should fall back to US for a USD workspace whose bank account the admin does not own', () => {
+                // Given a USD workspace whose bank account isn't in the admin's bank account list
+                const policy = createMock<Policy>({
+                    id: '1',
+                    outputCurrency: CONST.CURRENCY.USD,
+                    achAccount: {bankAccountID: 2, accountNumber: '', routingNumber: '', addressName: '', bankName: '', reimburser: ''},
+                });
+
+                // When the countries that can't be deselected are read
+                const countries = getReimbursementAccountCountries(policy, getPolicyBankAccountCountry(policy, {}));
+
+                // Then US is returned, because a USD workspace's bank account is always in the US
+                expect(countries).toEqual([CONST.COUNTRY.US]);
             });
         });
 
@@ -4416,6 +4649,26 @@ describe('PolicyUtils', () => {
                     const canPay = canAdminPayReport(policy, 'member@example.com');
 
                     // Then normalizing the reimbursement choice does not grant payment permissions to regular members
+                    expect(canPay).toBe(false);
+                },
+            );
+
+            it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES, CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL])(
+                'should not allow a card admin to pay for %s',
+                (reimbursementChoice) => {
+                    // Given a card admin on a workspace with payments enabled, who can read every report
+                    const policy = createMock<Policy>({
+                        type: CONST.POLICY.TYPE.CORPORATE,
+                        role: CONST.POLICY.ROLE.CARD_ADMIN,
+                        reimbursementChoice,
+                        reimburser: 'payer@example.com',
+                        owner: 'payer@example.com',
+                    });
+
+                    // When the card admin's permission to pay a report is checked
+                    const canPay = canAdminPayReport(policy, 'cardadmin@example.com');
+
+                    // Then reading every report does not grant payment, which needs write access to workspace payments
                     expect(canPay).toBe(false);
                 },
             );
@@ -6137,6 +6390,26 @@ describe('PolicyUtils', () => {
 
             it('returns false for an undefined policy', () => {
                 expect(isInvoiceFieldsEnabled(undefined)).toBe(false);
+            });
+        });
+
+        describe('isConnectionFeature', () => {
+            it('returns true for the features that connecting an integration turns on', () => {
+                // Given the features Connections turns on, which have no toggle on More features
+                // When each one is checked
+                // Then each counts as a connection feature, so a page gated on it sends users to Connections instead
+                expect(isConnectionFeature(CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED)).toBe(true);
+                expect(isConnectionFeature(CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)).toBe(true);
+                expect(isConnectionFeature(CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED)).toBe(true);
+                expect(isConnectionFeature(CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED)).toBe(true);
+                expect(isConnectionFeature(CONST.POLICY.MORE_FEATURES.IS_MCP_ENABLED)).toBe(true);
+            });
+
+            it('returns false for a feature that has a toggle on More features', () => {
+                // Given a feature that is still turned on from More features
+                // When it is checked
+                // Then it is not a connection feature, so a page gated on it keeps sending users to More features
+                expect(isConnectionFeature(CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED)).toBe(false);
             });
         });
 

@@ -5,7 +5,7 @@ import getIndustryCategoryOptions from './getIndustryCategoryOptions';
 
 /** The person who represents the business */
 const representativePage: DynamicFormPage = {
-    key: 'representative',
+    key: CONST.WISE.ONBOARDING_STEP.REPRESENTATIVE,
     titleKey: 'walletPage.wiseOnboarding.representative.title',
     descriptionKey: 'walletPage.wiseOnboarding.representative.description',
     content: [
@@ -48,7 +48,7 @@ const representativePage: DynamicFormPage = {
 
 /** The business itself. The bank account already holds its website, tax ID and address, so only what the admin can act on is asked */
 const businessPage: DynamicFormPage = {
-    key: 'business',
+    key: CONST.WISE.ONBOARDING_STEP.BUSINESS,
     titleKey: 'walletPage.wiseOnboarding.business.title',
     content: [
         // Shown but never edited here, so it is clear which business is onboarding
