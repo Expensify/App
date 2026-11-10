@@ -20,6 +20,7 @@ import type GpsDraftDetails from '@src/types/onyx/GpsDraftDetails';
 import type {RefObject} from 'react';
 
 import {stopLocationUpdatesAsync} from 'expo-location';
+import Onyx from 'react-native-onyx';
 
 import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
@@ -51,7 +52,6 @@ function useSignOut() {
     });
     const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const showOfflineModal = () => {
         showConfirmModal({
@@ -63,7 +63,7 @@ function useSignOut() {
     };
 
     const signOutImmediately = () => {
-        signOutAndRedirectToSignIn(session);
+        Onyx.get(ONYXKEYS.SESSION).then((session) => signOutAndRedirectToSignIn(session));
     };
 
     const runSignOut = async ({shouldAlwaysConfirm = false}: SignOutOptions = {}) => {
@@ -72,7 +72,7 @@ function useSignOut() {
         const isOfflineReceiptsCase = isOffline && !isTrackingGPS && saveableReceipts.length > 0;
 
         if (!shouldAlwaysConfirm && !shouldWarnBeforeSignOut && saveableReceipts.length === 0) {
-            return signOutAndRedirectToSignIn(session);
+            return signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION));
         }
 
         const confirmModalTitle = isTrackingGPS ? translate('gps.signOutWarningTripInProgress.title') : translate('common.areYouSure');
@@ -144,7 +144,7 @@ function useSignOut() {
             stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((error) => console.error('[GPS distance request] Failed to stop location tracking', error));
         }
 
-        return signOutAndRedirectToSignIn(session);
+        return signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION));
     };
 
     const signOut = async ({shouldAlwaysConfirm = false}: SignOutOptions = {}) => {

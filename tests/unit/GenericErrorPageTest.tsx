@@ -1,5 +1,5 @@
 // Regression coverage for the error-page heading and its existing recovery actions.
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import ThemeProvider from '@components/ThemeProvider';
@@ -80,8 +80,8 @@ it('preserves authenticated sign-out and refresh', async () => {
     // When the user chooses Sign out
     fireEvent.press(screen.getByRole('button', {name: en.initialSettingsPage.signOut}));
 
-    // Then sign-out still runs and refresh does not request chunk-cache recovery
-    expect(signOutAndRedirectToSignIn).toHaveBeenCalledTimes(1);
+    // Then sign-out still runs once the session is read, and refresh does not request chunk-cache recovery
+    await waitFor(() => expect(signOutAndRedirectToSignIn).toHaveBeenCalledTimes(1));
     expect(refreshPage).toHaveBeenCalledTimes(1);
     expect(refreshPage).toHaveBeenCalledWith();
 });

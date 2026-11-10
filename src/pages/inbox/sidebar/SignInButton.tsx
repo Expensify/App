@@ -2,7 +2,6 @@ import Button from '@components/Button';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {signOutAndRedirectToSignIn} from '@userActions/Session';
@@ -12,17 +11,19 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 function SignInButton() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     return (
         <PressableWithoutFeedback
             accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
             role={CONST.ROLE.BUTTON}
-            onPress={() => signOutAndRedirectToSignIn(session, undefined, undefined, true)}
+            onPress={() => {
+                Onyx.get(ONYXKEYS.SESSION).then((session) => signOutAndRedirectToSignIn(session));
+            }}
             sentryLabel={CONST.SENTRY_LABEL.SIDEBAR.SIGN_IN_BUTTON}
         >
             <View style={[styles.signInButtonAvatar, styles.ph2]}>
@@ -30,7 +31,7 @@ function SignInButton() {
                     sentryLabel={CONST.SENTRY_LABEL.SIDEBAR.SIGN_IN_BUTTON}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {
-                        signOutAndRedirectToSignIn(session, undefined, undefined, true);
+                        Onyx.get(ONYXKEYS.SESSION).then((session) => signOutAndRedirectToSignIn(session));
                     }}
                 >
                     <Button.Text>{translate('common.signIn')}</Button.Text>

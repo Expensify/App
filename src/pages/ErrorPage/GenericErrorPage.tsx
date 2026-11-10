@@ -8,7 +8,6 @@ import TextLink from '@components/TextLink';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import usePageRefresh from '@hooks/usePageRefresh';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -25,6 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import ErrorBodyText from './ErrorBodyText';
 
@@ -37,7 +37,6 @@ function GenericErrorPage({error}: {error?: Error}) {
     const chunkLoadError = isChunkLoadError(error);
     const refreshPage = usePageRefresh();
     const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark', 'Bug']);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     return (
         <SafeAreaConsumer>
@@ -85,8 +84,10 @@ function GenericErrorPage({error}: {error?: Error}) {
                                     {isAuthenticated && (
                                         <Button
                                             onPress={() => {
-                                                signOutAndRedirectToSignIn(session, undefined, undefined, true);
-                                                refreshPage();
+                                                Onyx.get(ONYXKEYS.SESSION).then((session) => {
+                                                    signOutAndRedirectToSignIn(session);
+                                                    refreshPage();
+                                                });
                                             }}
                                         >
                                             <Button.Text>{translate('initialSettingsPage.signOut')}</Button.Text>
