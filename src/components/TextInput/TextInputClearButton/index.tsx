@@ -22,7 +22,7 @@ type TextInputClearButtonProps = WithSentryLabel & {
     onPressButton: () => void;
 };
 
-function TextInputClearButton({iconSize = variables.iconSizeNormal, style, onPressButton, sentryLabel}: TextInputClearButtonProps) {
+function TextInputClearButton({iconSize = variables.iconSizeNormal, style, onPressButton, sentryLabel = CONST.SENTRY_LABEL.TEXT_INPUT.CLEAR_BUTTON}: TextInputClearButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();

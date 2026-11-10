@@ -26,7 +26,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({__esModule: true, default: {nav
 jest.mock('@libs/PolicyUtils', () => ({
     getConnectedIntegration: () => mockConnectedIntegration,
     getIntegrationLastSuccessfulDate: () => undefined,
-    shouldShowQBOReimbursableExportDestinationAccountError: () => false,
+    shouldShowReimbursableExportDestinationAccountError: () => false,
 }));
 jest.mock('@pages/workspace/accounting/AccountingContext', () => ({
     useAccountingActions: () => ({startIntegrationFlow: mockStartIntegrationFlow}),

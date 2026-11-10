@@ -49,7 +49,7 @@ jobs:
     needs: [prep, resolveRefs]
     # Preserve the default token scopes while adding OIDC access
     permissions: write-all
-    runs-on: ${{ github.repository_owner == 'Expensify' && 'blacksmith-12vcpu-macos-latest' || 'macos-latest' }}
+    runs-on: ${{ github.repository_owner == 'Expensify' && 'blacksmith-12vcpu-macos-27' || 'xcode-27' }}
     strategy:
       fail-fast: false
       matrix:
@@ -80,6 +80,14 @@ jobs:
 
       - name: Set up Xcode version
         uses: ./.github/actions/composite/getXcodeVersion
+
+      # Temporary Blacksmith macOS 27 image workaround: the image lacks the Apple WWDR G3 intermediate (no valid signing identity)
+      # and the iOS 27.1 simulator runtime. Safe to remove once Blacksmith ships the patched image.
+      - name: Install missing Apple WWDR G3 certificate and iOS simulator runtime
+        run: |
+          curl -fsSLO https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer
+          sudo security import AppleWWDRCAG3.cer -k /Library/Keychains/System.keychain 2>/dev/null || true
+          xcodebuild -downloadPlatform iOS
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode

@@ -105,7 +105,7 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowRece
             <PressableWithFeedback
                 testID={`recentlyAddedRow-${expense.transactionID}`}
                 accessibilityLabel={expense.merchant}
-                sentryLabel="RecentlyAddedRow"
+                sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.RECENTLY_ADDED_ROW}
                 onPress={isPendingDelete ? () => {} : onPress}
                 wrapperStyle={styles.w100}
                 hoverStyle={styles.hoveredComponentBG}
