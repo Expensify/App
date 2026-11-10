@@ -1,8 +1,8 @@
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import Table from '@components/Table';
 import {useTableContext} from '@components/Table/TableContext';
 
-import type {UseCompanyCardsResult} from '@hooks/useCompanyCards';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -16,55 +16,25 @@ import {View} from 'react-native';
 import type {WorkspaceCompanyCardBulkActionType} from './useWorkspaceCompanyCardsBulkActions';
 import type {WorkspaceCompanyCardTableItemData} from './WorkspaceCompanyCardsTableRow';
 
-import useWorkspaceCompanyCardsBulkActions from './useWorkspaceCompanyCardsBulkActions';
-
 type WorkspaceCompanyCardsTableControlsProps = {
-    policyID: string;
-    domainOrWorkspaceAccountID: number;
-    bankName: UseCompanyCardsResult['bankName'];
-    feedName: UseCompanyCardsResult['feedName'];
-
-    /** Whether the current member can edit company cards */
-    canWriteCompanyCards: boolean;
-
-    /** Clear selected card rows */
-    clearCardSelection: () => void;
+    /** The actions the selected cards support, built by the table so the floating bar offers the same list */
+    bulkActionOptions: Array<DropdownOption<WorkspaceCompanyCardBulkActionType>>;
 
     /** Whether the narrow-layout selection mode is active */
     isSelectionModeEnabled: boolean;
 
-    /** The card rows the actions apply to */
-    selectedCards: WorkspaceCompanyCardTableItemData[];
+    /** How many card rows the actions apply to */
+    selectedCardsCount: number;
 };
 
-function WorkspaceCompanyCardsTableControls({
-    policyID,
-    domainOrWorkspaceAccountID,
-    bankName,
-    feedName,
-    canWriteCompanyCards,
-    clearCardSelection,
-    isSelectionModeEnabled,
-    selectedCards,
-}: WorkspaceCompanyCardsTableControlsProps) {
+function WorkspaceCompanyCardsTableControls({bulkActionOptions, isSelectionModeEnabled, selectedCardsCount}: WorkspaceCompanyCardsTableControlsProps) {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
     const {translate} = useLocalize();
     const {shouldUseNarrowTableLayout} = useTableContext<WorkspaceCompanyCardTableItemData>();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const getBulkActionOptions = useWorkspaceCompanyCardsBulkActions({
-        policyID,
-        domainOrWorkspaceAccountID,
-        bankName,
-        feedName,
-        canWriteCompanyCards,
-        clearCardSelection,
-        selectedCards,
-    });
 
-    const hasSelectedCards = selectedCards.length > 0;
-    // The wide layout offers these actions in the floating bar over the table instead, so the filter bar stays put
-    // no matter what is selected.
+    // The wide layout offers these actions in the floating bar over the table instead.
     const shouldShowBulkActions = shouldUseNarrowLayout && isSelectionModeEnabled;
 
     return (
@@ -74,11 +44,11 @@ function WorkspaceCompanyCardsTableControls({
                     <ButtonWithDropdownMenu<WorkspaceCompanyCardBulkActionType>
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={() => {}}
-                        customText={translate('workspace.common.selected', {count: selectedCards.length})}
-                        options={getBulkActionOptions()}
+                        customText={translate('workspace.common.selected', {count: selectedCardsCount})}
+                        options={bulkActionOptions}
                         isSplitButton={false}
                         shouldAlwaysShowDropdownMenu
-                        isDisabled={!hasSelectedCards}
+                        isDisabled={selectedCardsCount === 0}
                         anchorAlignment={{
                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
@@ -88,11 +58,9 @@ function WorkspaceCompanyCardsTableControls({
                     />
                 </View>
             )}
-            {/* The filter bar must stay mounted while rows are selected: unmounting it resets the search string
+            {/* The filter bar stays mounted while rows are selected. Unmounting it resets the search string
                 (TableSearchBar clears it on unmount), which would immediately clear the selection that was just made. */}
-            <View>
-                <Table.FilterBar label={translate('workspace.companyCards.findCompanyCard')} />
-            </View>
+            <Table.FilterBar label={translate('workspace.companyCards.findCompanyCard')} />
         </>
     );
 }

@@ -45,7 +45,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
-type VendorBulkActionsProps = {
+type UseVendorBulkActionOptionsParams = {
     policyID: string;
     selectedVendorKeys: string[];
     policyVendors?: OnyxEntry<PolicyVendors>;
@@ -53,7 +53,7 @@ type VendorBulkActionsProps = {
     onClearSelection: () => void;
 };
 
-function useVendorBulkActionOptions({policyID, selectedVendorKeys, policyVendors, defaultVendorID, onClearSelection}: VendorBulkActionsProps) {
+function useVendorBulkActionOptions({policyID, selectedVendorKeys, policyVendors, defaultVendorID, onClearSelection}: UseVendorBulkActionOptionsParams) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close']);
     const policyData = usePolicyData(policyID);
@@ -104,11 +104,18 @@ function useVendorBulkActionOptions({policyID, selectedVendorKeys, policyVendors
     return options;
 }
 
-function VendorBulkActions({policyID, selectedVendorKeys, policyVendors, defaultVendorID, onClearSelection}: VendorBulkActionsProps) {
+type VendorBulkActionsButtonProps = {
+    /** The actions the selected vendors support, built by the page so the floating bar offers the same list */
+    options: ReturnType<typeof useVendorBulkActionOptions>;
+
+    /** How many vendor rows the actions apply to */
+    selectedVendorsCount: number;
+};
+
+function VendorBulkActions({options, selectedVendorsCount}: VendorBulkActionsButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
-    const options = useVendorBulkActionOptions({policyID, selectedVendorKeys, policyVendors, defaultVendorID, onClearSelection});
 
     return (
         <ButtonWithDropdownMenu
@@ -116,11 +123,11 @@ function VendorBulkActions({policyID, selectedVendorKeys, policyVendors, default
             onPress={() => null}
             shouldAlwaysShowDropdownMenu
             size={CONST.BUTTON_SIZE.MEDIUM}
-            customText={translate('workspace.common.selected', {count: selectedVendorKeys.length})}
+            customText={translate('workspace.common.selected', {count: selectedVendorsCount})}
             options={options}
             isSplitButton={false}
             style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
-            isDisabled={!selectedVendorKeys.length || options.length === 0}
+            isDisabled={selectedVendorsCount === 0 || options.length === 0}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.INITIAL.VENDORS}
             testID="WorkspaceVendorsPage-header-dropdown-menu-button"
         />
@@ -268,22 +275,16 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
                 >
                     {!shouldDisplayButtonsInSeparateLine && canShowBulkActions && (
                         <VendorBulkActions
-                            policyID={policyID}
-                            selectedVendorKeys={selectedVendorKeys}
-                            policyVendors={policyVendors}
-                            defaultVendorID={defaultVendorID}
-                            onClearSelection={clearTableSelection}
+                            options={vendorBulkActionOptions}
+                            selectedVendorsCount={selectedVendorKeys.length}
                         />
                     )}
                 </HeaderWithBackButton>
                 {shouldDisplayButtonsInSeparateLine && canShowBulkActions && (
                     <View style={[styles.pl5, styles.pr5]}>
                         <VendorBulkActions
-                            policyID={policyID}
-                            selectedVendorKeys={selectedVendorKeys}
-                            policyVendors={policyVendors}
-                            defaultVendorID={defaultVendorID}
-                            onClearSelection={clearTableSelection}
+                            options={vendorBulkActionOptions}
+                            selectedVendorsCount={selectedVendorKeys.length}
                         />
                     </View>
                 )}

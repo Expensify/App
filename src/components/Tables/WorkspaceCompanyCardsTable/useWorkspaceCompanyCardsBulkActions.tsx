@@ -161,46 +161,42 @@ function useWorkspaceCompanyCardsBulkActions({
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BULK_EDIT_TRANSACTION_START_DATE.getRoute(policyID, feedName, selectedCardIDs));
     };
 
-    const getBulkActionOptions = (): Array<DropdownOption<WorkspaceCompanyCardBulkActionType>> => {
-        const options: Array<DropdownOption<WorkspaceCompanyCardBulkActionType>> = [];
+    const bulkActionOptions: Array<DropdownOption<WorkspaceCompanyCardBulkActionType>> = [];
 
-        if (isOnlyAssignedCardsSelected) {
-            if (canWriteCompanyCards) {
-                options.push({
-                    icon: icons.RemoveMembers,
-                    text: translate(isSingleAssignedCard ? 'workspace.moreFeatures.companyCards.unassignCard' : 'workspace.moreFeatures.companyCards.unassignCards'),
-                    value: 'unassign',
-                    shouldSkipFocusRestore: !!bankName,
-                    onSelected: confirmBulkUnassign,
-                });
-            }
-            options.push({
-                icon: icons.MoneySearch,
-                text: translate('workspace.common.viewTransactions'),
-                value: 'viewTransactions',
-                onSelected: viewSelectedCardTransactions,
+    if (isOnlyAssignedCardsSelected) {
+        if (canWriteCompanyCards) {
+            bulkActionOptions.push({
+                icon: icons.RemoveMembers,
+                text: translate(isSingleAssignedCard ? 'workspace.moreFeatures.companyCards.unassignCard' : 'workspace.moreFeatures.companyCards.unassignCards'),
+                value: 'unassign',
+                shouldSkipFocusRestore: !!bankName,
+                onSelected: confirmBulkUnassign,
             });
-            if (canWriteCompanyCards) {
-                options.push({
-                    icon: icons.CalendarSolid,
-                    text: translate('workspace.moreFeatures.companyCards.bulkUpdateTransactionStartDate'),
-                    value: 'editTransactionStartDate',
-                    onSelected: editSelectedCardTransactionStartDates,
-                });
-            }
         }
-
-        options.push({
-            icon: icons.Export,
-            text: translate('workspace.expensifyCard.exportAsCSV'),
-            value: 'exportCSV',
-            onSelected: exportSelectedCardsToCSV,
+        bulkActionOptions.push({
+            icon: icons.MoneySearch,
+            text: translate('workspace.common.viewTransactions'),
+            value: 'viewTransactions',
+            onSelected: viewSelectedCardTransactions,
         });
+        if (canWriteCompanyCards) {
+            bulkActionOptions.push({
+                icon: icons.CalendarSolid,
+                text: translate('workspace.moreFeatures.companyCards.bulkUpdateTransactionStartDate'),
+                value: 'editTransactionStartDate',
+                onSelected: editSelectedCardTransactionStartDates,
+            });
+        }
+    }
 
-        return options;
-    };
+    bulkActionOptions.push({
+        icon: icons.Export,
+        text: translate('workspace.expensifyCard.exportAsCSV'),
+        value: 'exportCSV',
+        onSelected: exportSelectedCardsToCSV,
+    });
 
-    return getBulkActionOptions;
+    return bulkActionOptions;
 }
 
 export default useWorkspaceCompanyCardsBulkActions;

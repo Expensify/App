@@ -510,14 +510,9 @@ function WorkspaceCompanyCardsTable({
 
     const tableControlsComponent = showCards ? (
         <WorkspaceCompanyCardsTableControls
-            policyID={policyID}
-            domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
-            bankName={bankName}
-            feedName={feedName}
-            canWriteCompanyCards={canWriteCompanyCards}
-            clearCardSelection={clearCardSelection}
+            bulkActionOptions={bulkActionOptions}
             isSelectionModeEnabled={isSelectionModeEnabled}
-            selectedCards={selectedCards}
+            selectedCardsCount={selectedCards.length}
         />
     ) : undefined;
     const balanceLabelsComponent = showCards ? (
@@ -612,7 +607,7 @@ function WorkspaceCompanyCardsTable({
             {showCards && !shouldShowPendingUnassignmentLoading && <Table.NoResultsState />}
             {showCards && <Table.Header />}
             {showCards && <Table.Body />}
-            {showCards && <Table.BulkActionBar options={bulkActionOptions()} />}
+            {showCards && <Table.BulkActionBar options={bulkActionOptions} />}
         </Table>
     );
 }

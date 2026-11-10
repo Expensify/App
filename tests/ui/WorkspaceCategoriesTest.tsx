@@ -9,6 +9,7 @@ import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
+import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import Navigation from '@libs/Navigation/Navigation';
@@ -52,6 +53,9 @@ const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
  * the bar it landed in.
  */
 const openBulkActions = async () => {
+    // Without this the missing bar only surfaces later, as a confusing missing-action failure.
+    expect(screen.getByLabelText(TestHelper.translateLocal('bulkActionBar.label'))).toBeOnTheScreen();
+
     const moreButton = screen.queryByLabelText(TestHelper.translateLocal('common.more'));
 
     if (moreButton) {
@@ -370,6 +374,81 @@ describe('WorkspaceCategories', () => {
 
         expect(navigate.mock.calls.at(1)?.at(0)).toBe(categoryRoute);
         expect(JSON.stringify(getStateFromPath(categoryRoute))).not.toContain(SCREENS.NOT_FOUND);
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+    /** Two enabled categories on an admin policy, which is all either selection case below needs. */
+    const setUpCategories = async ({shouldEnableMobileSelectionMode = false} = {}) => {
+        await TestHelper.signInWithTestUser();
+
+        const policy = {
+            ...LHNTestUtils.getFakePolicy(),
+            role: CONST.POLICY.ROLE.ADMIN,
+            areCategoriesEnabled: true,
+        };
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`, {
+                [FIRST_CATEGORY]: {name: FIRST_CATEGORY, enabled: true},
+                [SECOND_CATEGORY]: {name: SECOND_CATEGORY, enabled: true},
+            });
+        });
+
+        const renderResult = renderPage(SCREENS.WORKSPACE.CATEGORIES, {policyID: policy.id});
+        await waitForBatchedUpdatesWithAct();
+        await waitFor(() => {
+            expect(screen.getByText(FIRST_CATEGORY)).toBeOnTheScreen();
+        });
+
+        // A narrow layout keeps its checkboxes behind selection mode, which a long press turns on in the app. It has
+        // to be turned on after the page is mounted, because a page that starts in it turns it back off.
+        if (shouldEnableMobileSelectionMode) {
+            await act(async () => {
+                turnOnMobileSelectionMode();
+            });
+            await waitForBatchedUpdatesWithAct();
+        }
+
+        // Once the list loads, the sticky table header renders a second "Select all" checkbox
+        const selectAll = screen.getAllByLabelText(TestHelper.translateLocal('workspace.common.selectAll')).at(0);
+        if (!selectAll) {
+            throw new Error('Select all button not found');
+        }
+        fireEvent.press(selectAll);
+        await waitForBatchedUpdatesWithAct();
+
+        return renderResult;
+    };
+
+    it('keeps the header buttons in place while the floating bar carries the selection', async () => {
+        // Given the full-width page, where the bar fits
+        const {unmount} = await setUpCategories();
+
+        // Then the bar holds the bulk actions and the header is left alone, which is the point of moving them there
+        expect(screen.getByLabelText(TestHelper.translateLocal('bulkActionBar.label'))).toBeOnTheScreen();
+        expect(screen.getByText(TestHelper.translateLocal('workspace.categories.addCategory'))).toBeOnTheScreen();
+        expect(screen.queryByTestId('WorkspaceCategoriesPage-header-dropdown-menu-button')).toBeNull();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('falls back to the header dropdown in the RHP, where the floating bar cannot go', async () => {
+        // Given a wide screen showing the page in the RHP, which is narrow without being a small screen
+        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
+            createMock<ResponsiveLayoutResult>({
+                isSmallScreenWidth: false,
+                shouldUseNarrowLayout: true,
+            }),
+        );
+
+        const {unmount} = await setUpCategories({shouldEnableMobileSelectionMode: true});
+
+        // Then the actions stay reachable from the header instead
+        expect(screen.getByTestId('WorkspaceCategoriesPage-header-dropdown-menu-button')).toBeOnTheScreen();
+        expect(screen.queryByLabelText(TestHelper.translateLocal('bulkActionBar.label'))).toBeNull();
 
         unmount();
         await waitForBatchedUpdatesWithAct();
