@@ -170,9 +170,7 @@ function ReportCardLostPage({
                         </View>
                         <View style={styles.mh5}>
                             <FormAlertWithSubmitButton
-                                sentryLabel={
-                                    isDamaged ? CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.REPORT_LOST_SHIP_NEW_CARD : CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.REPORT_LOST_DEACTIVATE_CARD
-                                }
+                                sentryLabel={isDamaged ? CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.REPORT_LOST_SUBMIT.DAMAGED : CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.REPORT_LOST_SUBMIT.STOLEN}
                                 isAlertVisible={shouldShowAddressError}
                                 onSubmit={handleSubmitSecondStep}
                                 message={translate('reportCardLostOrDamaged.addressError')}

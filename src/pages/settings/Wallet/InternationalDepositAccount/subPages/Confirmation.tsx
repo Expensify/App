@@ -25,6 +25,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CorpayFormField} from '@src/types/onyx';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import React, {useEffect} from 'react';
 
@@ -85,9 +86,10 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
         };
     }, []);
 
-    const summaryItems: MenuItemProps[] = [
+    const summaryItems: Array<MenuItemProps & WithRequiredSentryLabel> = [
         {
             id: 'bankCountry',
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_WALLET.INTERNATIONAL_CONFIRMATION_EDIT.COUNTRY,
             description: translate('common.country'),
             title: translate(`allCountries.${formValues.bankCountry}` as TranslationPaths),
             onPress: () => {
@@ -97,6 +99,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
         },
         {
             id: 'bankCurrency',
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_WALLET.INTERNATIONAL_CONFIRMATION_EDIT.BANK_ACCOUNT_DETAILS,
             description: translate('common.currency'),
             title: `${formValues.bankCurrency} - ${getCurrencySymbol(formValues.bankCurrency)}`,
             onPress: () => {
@@ -109,6 +112,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
     for (const [fieldName, field] of Object.entries(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS] ?? {})) {
         summaryItems.push({
             id: `${CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS}-${fieldName}`,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_WALLET.INTERNATIONAL_CONFIRMATION_EDIT.BANK_ACCOUNT_DETAILS,
             description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
             title: getTitle(field, fieldName),
             onPress: () => {
@@ -120,6 +124,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
     for (const [fieldName, field] of Object.entries(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE] ?? {})) {
         summaryItems.push({
             id: `${CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE}-${fieldName}`,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_WALLET.INTERNATIONAL_CONFIRMATION_EDIT.ACCOUNT_TYPE,
             description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
             title: getTitle(field, fieldName),
             onPress: () => {
@@ -133,6 +138,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
     )) {
         summaryItems.push({
             id: `${CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION}-${fieldName}`,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_WALLET.INTERNATIONAL_CONFIRMATION_EDIT.BANK_INFORMATION,
             description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
             title: getTitle(field, fieldName),
             onPress: () => {
@@ -146,6 +152,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
     )) {
         summaryItems.push({
             id: `${CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS}-${fieldName}`,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_WALLET.INTERNATIONAL_CONFIRMATION_EDIT.ACCOUNT_HOLDER_INFORMATION,
             description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
             title: fieldName === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? translate(`allCountries.${formValues.bankCountry}` as TranslationPaths) : getTitle(field, fieldName),
             onPress: () => {
@@ -171,9 +178,9 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('addPersonalBankAccount.confirmationStepHeader')}</Text>
                 <Text style={[styles.mb6, styles.ph5, styles.textSupporting]}>{translate('addPersonalBankAccount.confirmationStepSubHeader')}</Text>
             </CollapsibleHeaderOnKeyboardGroupMember>
-            {summaryItems.map(({id, description, title, interactive, disabled, onPress}) => (
+            {summaryItems.map(({id, description, title, interactive, disabled, onPress, sentryLabel}) => (
                 <MenuItemField
-                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.INTERNATIONAL_CONFIRMATION_EDIT}
+                    sentryLabel={sentryLabel}
                     key={id}
                     name={description}
                     onPress={interactive === false ? undefined : onPress}
