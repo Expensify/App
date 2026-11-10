@@ -44,6 +44,7 @@ jest.mock('@components/MoneyRequestConfirmationFields/context', () => ({
 }));
 
 jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual('@react-navigation/native'),
     useIsFocused: () => true,
     useNavigation: () => ({addListener: () => jest.fn()}),
 }));
