@@ -5,6 +5,7 @@ import SafeTriangle from '@components/SafeTriangle';
 import FilterList from '@components/Search/FilterComponents/AdvancedFilters/FilterList';
 import SearchAdvancedFiltersContent from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
 import SearchNLFilterContent from '@components/Search/FilterComponents/AdvancedFilters/SearchNLFilterContent';
+import useFilterPanesKeyboardNavigation from '@components/Search/hooks/useFilterPanesKeyboardNavigation';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import type {SearchQueryJSON} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
@@ -26,7 +27,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
-import {focusFirstShownControl, getAdjacentRow, isCaretAtEdge} from '@libs/SearchAdvancedFiltersKeyboardUtils';
 import {getMatchingFilters, hasFilterContentValuesChanged, isLabelMatchingSearchValue} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
@@ -39,7 +39,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
 import type {ComponentRef, Ref} from 'react';
 
-import React, {Activity, useEffect, useEffectEvent, useLayoutEffect, useRef, useState} from 'react';
+import React, {Activity, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import AmountFilterContentPopupWrapper from './AmountFilterContentPopupWrapper';
@@ -149,7 +149,6 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay, filterSearchInputR
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const filterContentRef = useRef<ComponentRef<typeof View>>(null);
     const filterListContainerRef = useRef<ComponentRef<typeof View>>(null);
-    const keyboardFocusToKeepRef = useRef<HTMLElement | null>(null);
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles', 'ArrowRight']);
     const illustrations = useMemoizedLazyIllustrations(['Filters']);
     const [mountedFilterState, setMountedFilterState] = useState<MountedFilterState>(() => ({
@@ -300,96 +299,14 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay, filterSearchInputR
 
     const getRowLabel = (row: SearchFilter['key'] | typeof DESCRIBE_SEARCH_ROW) => (row === DESCRIBE_SEARCH_ROW ? translate('search.filters.describeSearch.title') : row);
 
-    const moveRowSelection = (event: KeyboardEvent, listContainer: HTMLElement) => {
-        const currentRow = isDescribeMode ? DESCRIBE_SEARCH_ROW : activeFilter;
-        const nextRow = getAdjacentRow(listedRows, currentRow, event.key === CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey ? 1 : -1);
-        // Staying on the same row renders nothing, so no layout effect would take back the focus kept below.
-        if (!nextRow || nextRow === currentRow) {
-            return;
-        }
-
-        if (nextRow === DESCRIBE_SEARCH_ROW) {
-            setIsDescribeMode(true);
-        } else {
-            focusFilter(nextRow);
-        }
-
-        // The caret stays in the search so typing goes on, while a row the keyboard is on hands the focus down the list.
-        const rowElement = listContainer.querySelector(`[aria-label="${CSS.escape(getRowLabel(nextRow))}"]`);
-        if (!(rowElement instanceof HTMLElement)) {
-            return;
-        }
-        if (event.target instanceof HTMLInputElement) {
-            rowElement.scrollIntoView({block: 'nearest'});
-            keyboardFocusToKeepRef.current = event.target;
-            return;
-        }
-        rowElement.focus();
-        keyboardFocusToKeepRef.current = rowElement;
-    };
-
-    // A content list the keyboard has been used in focuses its row again when it is shown, which would pull the focus
-    // out of the filter list. This runs after the content's effects, so the focus goes back to where the arrow key left it.
-    useLayoutEffect(() => {
-        const elementToKeepFocused = keyboardFocusToKeepRef.current;
-        keyboardFocusToKeepRef.current = null;
-        if (!elementToKeepFocused || document.activeElement === elementToKeepFocused) {
-            return;
-        }
-        elementToKeepFocused.focus({preventScroll: true});
+    useFilterPanesKeyboardNavigation({
+        listContainerRef: filterListContainerRef,
+        contentContainerRef: filterContentRef,
+        rows: listedRows,
+        selectedRow: isDescribeMode ? DESCRIBE_SEARCH_ROW : activeFilter,
+        getRowLabel,
+        onSelectRow: (row) => (row === DESCRIBE_SEARCH_ROW ? setIsDescribeMode(true) : focusFilter(row)),
     });
-
-    // The keyboard library listens on the document in the capture phase, and the content lists take the arrow keys
-    // through it. Listening on the window comes first, so the pane holding the focus decides where an arrow key goes.
-    const handleKeyDown = useEffectEvent((event: KeyboardEvent) => {
-        const listContainer = filterListContainerRef.current;
-        const contentContainer = filterContentRef.current;
-        if (!(listContainer instanceof HTMLElement) || !(contentContainer instanceof HTMLElement) || !(event.target instanceof Node)) {
-            return;
-        }
-        if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) {
-            return;
-        }
-
-        if (listContainer.contains(event.target)) {
-            switch (event.key) {
-                case CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey:
-                case CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey:
-                    moveRowSelection(event, listContainer);
-                    break;
-                case CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey:
-                    if (!isCaretAtEdge(event.target, 'end')) {
-                        return;
-                    }
-                    focusFirstShownControl(contentContainer);
-                    break;
-                case CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey:
-                    focusFirstShownControl(contentContainer);
-                    break;
-                default:
-                    return;
-            }
-        } else if (contentContainer.contains(event.target)) {
-            const isLeavingContent =
-                event.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey || (event.key === CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey && isCaretAtEdge(event.target, 'start'));
-            if (!isLeavingContent) {
-                return;
-            }
-            const searchInput = listContainer.querySelector('input');
-            searchInput?.focus();
-        } else {
-            return;
-        }
-
-        event.preventDefault();
-        event.stopPropagation();
-    });
-
-    useEffect(() => {
-        const onKeyDown = (event: KeyboardEvent) => handleKeyDown(event);
-        window.addEventListener('keydown', onKeyDown, true);
-        return () => window.removeEventListener('keydown', onKeyDown, true);
-    }, []);
 
     return (
         <SafeTriangle submenuRef={filterContentRef}>
