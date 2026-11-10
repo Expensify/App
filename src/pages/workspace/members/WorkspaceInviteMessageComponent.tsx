@@ -357,6 +357,7 @@ function WorkspaceInviteMessageComponent({
                             )}
                             {shouldShowMemberNames && !isInviteNewMemberStep && (
                                 <MenuItemField
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.INVITE_MESSAGE_MEMBERS}
                                     name={translate('common.members')}
                                     value={memberNames}
                                     numberOfLinesValue={2}
@@ -366,6 +367,7 @@ function WorkspaceInviteMessageComponent({
                                 />
                             )}
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.INVITE_MESSAGE_ROLE}
                                 name={translate('common.role')}
                                 onPress={
                                     canChangeInviteRole
@@ -381,6 +383,7 @@ function WorkspaceInviteMessageComponent({
                             />
                             {!!shouldShowApproverRow && (
                                 <MenuItemField
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.INVITE_MESSAGE_APPROVER}
                                     name={translate('workflowsPage.approver')}
                                     onPress={navigateToApproverPage}
                                     value={approverName}
@@ -388,6 +391,7 @@ function WorkspaceInviteMessageComponent({
                             )}
                             {shouldShowWorkArrangement && (
                                 <MenuItemField
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.INVITE_MESSAGE_WORK_ARRANGEMENT}
                                     name={translate('workspace.people.workArrangement')}
                                     onPress={navigateToWorkArrangementPage}
                                     value={defaultOfficeLabel ? `${selectedWorkArrangementLabel}, ${defaultOfficeLabel}` : selectedWorkArrangementLabel}

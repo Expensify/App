@@ -218,6 +218,7 @@ function DynamicWorkspaceInvitePage({route}: WorkspaceInvitePageProps) {
 
     const footerContent = (
         <FormAlertWithSubmitButton
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.INVITE_NEXT}
             isDisabled={!selectedOptions.length}
             isAlertVisible={shouldShowAlertPrompt}
             buttonText={translate('common.next')}

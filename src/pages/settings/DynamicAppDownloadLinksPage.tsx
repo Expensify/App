@@ -49,7 +49,10 @@ function DynamicAppDownloadLinksPage() {
             />
 
             <ScrollView style={[styles.mt3]}>
-                <MenuItem.Root onPress={callIfAuthenticated(() => openExternalLink(CONST.APP_DOWNLOAD_LINKS.ANDROID), session)}>
+                <MenuItem.Root
+                    onPress={callIfAuthenticated(() => openExternalLink(CONST.APP_DOWNLOAD_LINKS.ANDROID), session)}
+                    sentryLabel={CONST.SENTRY_LABEL.APP_DOWNLOAD_LINKS.ANDROID}
+                >
                     <MenuItem.Row>
                         <MenuItem.Leading>
                             <MenuItem.Icon src={icons.Android} />
@@ -62,7 +65,10 @@ function DynamicAppDownloadLinksPage() {
                         </MenuItem.Trailing>
                     </MenuItem.Row>
                 </MenuItem.Root>
-                <MenuItem.Root onPress={callIfAuthenticated(() => openExternalLink(CONST.APP_DOWNLOAD_LINKS.IOS, true), session)}>
+                <MenuItem.Root
+                    onPress={callIfAuthenticated(() => openExternalLink(CONST.APP_DOWNLOAD_LINKS.IOS, true), session)}
+                    sentryLabel={CONST.SENTRY_LABEL.APP_DOWNLOAD_LINKS.IOS}
+                >
                     <MenuItem.Row>
                         <MenuItem.Leading>
                             <MenuItem.Icon src={icons.Apple} />
