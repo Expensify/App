@@ -1,5 +1,4 @@
 import {act, renderHook} from '@testing-library/react-native';
-import type * as ReactNavigation from '@react-navigation/native';
 
 import type {IOURequestStepConfirmationProps} from '@pages/iou/request/step/IOURequestStepConfirmation/types';
 import useParticipantPickerState from '@pages/iou/request/step/IOURequestStepConfirmation/useParticipantPickerState';
@@ -12,6 +11,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+
+import type * as ReactNavigation from '@react-navigation/native';
 
 import Onyx from 'react-native-onyx';
 
