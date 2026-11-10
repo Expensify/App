@@ -22,6 +22,7 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolation from '@hooks/useTransactionViolation';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
@@ -66,9 +67,10 @@ function PolicyDistanceRatesPage({
         params: {policyID},
     },
 }: PolicyDistanceRatesPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Gear', 'Plus', 'Trashcan']);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'DotIndicator', 'Gear', 'Plus', 'Trashcan']);
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {pageGutter} = useLayoutSpacing();
     const {translate, toLocaleDigit} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -368,17 +370,7 @@ function PolicyDistanceRatesPage({
     };
 
     const isLoading = !isOffline && customUnit === undefined;
-    const taxErrorIndicator = shouldShowUKFuelRateTaxError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
-
-    const secondaryActions = [
-        {
-            icon: icons.Gear,
-            text: translate('common.settings'),
-            brickRoadIndicator: taxErrorIndicator,
-            onSelected: openSettings,
-            value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
-        },
-    ];
+    const hasFuelRateTaxError = shouldShowUKFuelRateTaxError(policy);
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
@@ -395,17 +387,19 @@ function PolicyDistanceRatesPage({
                         <Button.Icon src={icons.Plus} />
                         <Button.Text>{translate('workspace.distanceRates.addRate')}</Button.Text>
                     </Button>
-                    <ButtonWithDropdownMenu
-                        onPress={() => {}}
-                        shouldUseOptionIcon
-                        shouldAlwaysShowDropdownMenu={!!taxErrorIndicator}
-                        brickRoadIndicator={taxErrorIndicator}
-                        customText={translate('common.more')}
+                    <Button
+                        onPress={openSettings}
+                        accessibilityLabel={translate('common.settings')}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.MORE_DROPDOWN}
-                        options={secondaryActions}
-                        isSplitButton={false}
-                        wrapperStyle={styles.flexGrow0}
-                    />
+                        style={styles.flexGrow0}
+                    >
+                        <Button.Icon
+                            src={hasFuelRateTaxError ? icons.DotIndicator : icons.Gear}
+                            fill={hasFuelRateTaxError ? theme.danger : undefined}
+                            hoverFill={hasFuelRateTaxError ? theme.danger : undefined}
+                        />
+                        <Button.Text>{translate('common.settings')}</Button.Text>
+                    </Button>
                 </>
             ) : (
                 <ButtonWithDropdownMenu<WorkspaceDistanceRatesBulkActionType>
