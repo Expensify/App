@@ -23,6 +23,10 @@ const SENTRY_LABEL = {
     },
     TEST_TOOL_MENU: {
         SERVER: 'TestToolMenu-Server',
+        QA_AUTH: 'TestToolMenu-QAAuth',
+        CLEAR_QA_AUTH_SESSION: 'TestToolMenu-ClearQAAuthSession',
+        SOFT_KILL_APP: 'TestToolMenu-SoftKillApp',
+        TEST_CRASH: 'TestToolMenu-TestCrash',
         DEBUG_MODE_SWITCH: 'TestToolMenu-DebugModeSwitch',
         SHOW_BRANCH_NAME_SWITCH: 'TestToolMenu-ShowBranchNameSwitch',
         FORCE_OFFLINE_SWITCH: 'TestToolMenu-ForceOfflineSwitch',
@@ -1942,6 +1946,7 @@ const SENTRY_LABEL = {
     },
     SETTINGS_TROUBLESHOOT: {
         CLEAR_CACHE: 'SettingsTroubleshoot-ClearCache',
+        IMPORT_ONYX: 'SettingsTroubleshoot-ImportOnyx',
         EXPORT_ONYX: 'SettingsTroubleshoot-ExportOnyx',
         GO_TO_CLASSIC: 'SettingsTroubleshoot-GoToExpensifyClassic',
         MASK_EXPORT_ONYX_DATA_SWITCH: 'SettingsTroubleshoot-MaskExportOnyxDataSwitch',
@@ -1979,6 +1984,27 @@ const SENTRY_LABEL = {
     },
     MFA_OVERLAY: {
         BACKDROP: 'MfaOverlay-Backdrop',
+    },
+    DEBUG: {
+        CONSTANT_SELECTOR: 'Debug-ConstantSelector',
+        DATE_TIME_SELECTOR: 'Debug-DateTimeSelector',
+        DETAILS_DELETE: 'Debug-DetailsDelete',
+        JSON_COPY: 'Debug-JSONCopy',
+        TAG_PICKER_SAVE: 'Debug-TagPickerSave',
+        REPORT_ACTIONS_CREATE: 'Debug-ReportActionsCreate',
+        REPORT_REASON_VIEW: 'Debug-ReportReasonView',
+        REPORT_VIEW_REPORT: 'Debug-ReportViewReport',
+        REPORT_VIEW_TRANSACTION: 'Debug-ReportViewTransaction',
+        REPORT_ACTION_CREATE_SAVE: 'Debug-ReportActionCreateSave',
+        REPORT_ACTION_VIEW_TRANSACTION: 'Debug-ReportActionViewTransaction',
+        TRANSACTION_VIEW_REPORT: 'Debug-TransactionViewReport',
+        TRANSACTION_VIOLATION_ROW: 'Debug-TransactionViolationRow',
+        TRANSACTION_VIOLATIONS_CREATE: 'Debug-TransactionViolationsCreate',
+        TRANSACTION_VIOLATION_CREATE_SAVE: 'Debug-TransactionViolationCreateSave',
+    },
+    MFA: {
+        RESEND_VALIDATION_CODE: 'MultifactorAuthentication-ResendValidationCode',
+        OUTCOME_CLOSE: 'MultifactorAuthentication-OutcomeClose',
     },
     AGENTS: {
         TABLE_ROW: 'Agents-TableRow',

@@ -68,6 +68,7 @@ function ConstantSelector({formType, policyID, errorText = '', name, value, onIn
 
     return (
         <MenuItem.Root
+            sentryLabel={CONST.SENTRY_LABEL.DEBUG.CONSTANT_SELECTOR}
             onPress={callFunctionIfActionIsAllowed(
                 () => {
                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.DETAILS_CONSTANT_PICKER.getRoute(formType, name, value, policyID)));
