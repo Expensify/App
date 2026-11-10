@@ -5803,7 +5803,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(newExpenseReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
         });
 
-        it('keeps only the unheld total on the approved report when the policy chat is not loaded', async () => {
+        it.each([undefined, false])('keeps the unheld total without a loaded policy chat (hasParentAccess: %s)', async (hasParentAccess) => {
             // Given a vacation delegate approving a report whose policy expense chat was never opened, with one expense on hold
             await Onyx.set(ONYXKEYS.SESSION, {
                 email: adminEmail,
@@ -5812,6 +5812,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, null);
             const expenseReportWithHeldAmount: Report = {
                 ...expenseReport,
+                hasParentAccess,
                 total: -1000,
                 nonReimbursableTotal: 0,
                 unheldTotal: -600,
@@ -5850,6 +5851,8 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             // When only the unheld expenses are approved
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write data while allowing the optimistic updates to run.
+            const apiWriteSpy = jest.spyOn(API, 'write');
             const newExpenseReportID = approveMoneyRequest({
                 personalDetailsByLogins: {},
                 rules: undefined,
@@ -5880,6 +5883,16 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(heldReport?.type).toBe(CONST.REPORT.TYPE.EXPENSE);
             expect(heldReport?.total).toBe(-400);
             expect(heldReport?.chatReportID).toBe(expenseReport.chatReportID);
+
+            // Then no request outcome creates data for a parent chat the approver has not loaded
+            const [, , onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls);
+            const parentChatKeys = [`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`];
+            for (const dataType of ['optimisticData', 'successData', 'failureData'] as const) {
+                const updates = getRequiredOnyxUpdates(onyxData, dataType);
+                for (const key of parentChatKeys) {
+                    expect(updates).not.toEqual(expect.arrayContaining([expect.objectContaining({key})]));
+                }
+            }
         });
     });
 
