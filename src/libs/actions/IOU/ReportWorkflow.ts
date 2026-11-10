@@ -439,7 +439,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     let optimisticHoldReportExpenseActionIDs;
     let optimisticReportActionCopyIDs;
     let optimisticCreatedReportForUnapprovedTransactionsActionID;
-    if (!full && !!chatReport && !!expenseReport) {
+    if (!full && !!expenseReport) {
         const originalCreated = getReportOriginalCreationTimestamp(expenseReport);
         const holdReportOnyxData = getReportFromHoldRequestsOnyxData({
             chatReport,
