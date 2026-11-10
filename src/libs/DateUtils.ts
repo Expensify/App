@@ -1046,17 +1046,6 @@ function getCancellationDateTimezoneLabel(venueTimezone: string): string {
 }
 
 /**
- * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language and
- * whether the year is shown.
- * They format in UTC, so move the date to the venue's wall-clock time with `toZonedTime` and pass it through
- * `toUTCWallClockDate`.
- */
-const memoizedCreateCancellationDateFormatter = memoize(
-    (localeCode: string, shouldIncludeYear: boolean) =>
-        new Intl.DateTimeFormat(localeCode, {weekday: 'long', year: shouldIncludeYear ? 'numeric' : undefined, month: 'short', day: 'numeric', timeZone: 'UTC'}),
-);
-
-/**
  * Returns a formatted cancellation date, preserving the venue's timezone from the ISO string offset.
  * Dates are formatted as follows:
  * 1. When the date refers to the current year: Wednesday, Mar 17 8:00 AM, GMT+7
@@ -1073,11 +1062,9 @@ function getFormattedCancellationDate(isoDateString: string, dateFnsLocale: Date
     // in the device's timezone, so read it as-is and leave out the timezone label instead of guessing one.
     const isWallClockTime = !offsetMatch && !isoDateString.endsWith('Z');
     const date = isWallClockTime ? fromZonedTime(isoDateString, venueTimezone) : new Date(isoDateString);
-    // A hand-written `EEEE, MMM d` fixed the US order, so `Intl` builds the date part in the language's own order. Not
-    // every engine accepts a raw offset like `+07:00` as an `Intl` timeZone, so the venue's wall-clock fields are moved
-    // into a local Date first and formatted without one.
-    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
-    const datePart = memoizedCreateCancellationDateFormatter(dateFnsLocale?.code ?? 'en-US', !isThisYear(date)).format(toUTCWallClockDate(toZonedTime(date, venueTimezone)));
+    // Not every engine accepts a raw offset like `+07:00` as an `Intl` timeZone, so the venue's wall-clock fields are
+    // moved into a local Date first and formatted without one.
+    const datePart = formatToWeekdayDate(toZonedTime(date, venueTimezone), dateFnsLocale, !isThisYear(date));
     const formattedDate = `${datePart} ${formatInTimeZone(date, venueTimezone, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}`;
     if (isWallClockTime) {
         return localTimeLabel ? `${formattedDate}, ${localTimeLabel}` : formattedDate;
