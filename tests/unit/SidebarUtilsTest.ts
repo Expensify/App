@@ -1,3 +1,4 @@
+// cspell:ignore Zote Čeněk Øresund øresund
 /* eslint-disable @typescript-eslint/naming-convention */
 import {act, renderHook} from '@testing-library/react-native';
 
@@ -19,6 +20,7 @@ import {
     getReportPreviewMessage,
 } from '@libs/ReportUtils';
 import SidebarUtils, {_buildSortKey, _categorizeReportsForLHN, _combineReportCategories, _sortCategorizedReports} from '@libs/SidebarUtils';
+import StringUtils from '@libs/StringUtils';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
@@ -1364,6 +1366,82 @@ describe('SidebarUtils', () => {
             });
 
             expect(result).toStrictEqual({shouldDisplay: false});
+        });
+
+        describe('bill reports', () => {
+            const billReport = {
+                ...createRandomReport(1, undefined),
+                reportName: 'Bill',
+                type: CONST.REPORT.UNSUPPORTED_TYPE.BILL,
+                errorFields: undefined,
+            } as Report;
+
+            const getBillDisplayResult = (isBillPayBetaEnabled: boolean) =>
+                SidebarUtils.shouldDisplayReportInLHN({
+                    policy: undefined,
+                    report: billReport,
+                    reports: {[`${ONYXKEYS.COLLECTION.REPORT}${billReport.reportID}`]: billReport},
+                    currentReportId: undefined,
+                    isInFocusMode: false,
+                    isDefaultRoomsBetaEnabled: false,
+                    isBillPayBetaEnabled,
+                    transactionViolations: {},
+                    // A draft makes the report show in any mode, so only the bill check can hide it.
+                    draftComment: 'Draft',
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    hasGuidesEmails: false,
+                    conciergeReportID: undefined,
+                    session: undefined,
+                });
+
+            it('hides a bill from users without the newDotBillPay beta', () => {
+                // Given a bill with a draft and a user without the newDotBillPay beta
+                // When the LHN decides whether to show the bill
+                const result = getBillDisplayResult(false);
+
+                // Then the bill stays hidden, because NewDot only shows bills behind the beta
+                expect(result).toStrictEqual({shouldDisplay: false});
+            });
+
+            it('shows a bill to users with the newDotBillPay beta', () => {
+                // Given a bill with a draft and a user with the newDotBillPay beta
+                // When the LHN decides whether to show the bill
+                const result = getBillDisplayResult(true);
+
+                // Then the bill shows like any other report with a draft
+                expect(result).toStrictEqual({shouldDisplay: true});
+            });
+
+            it('still hides a paycheck from users with the newDotBillPay beta', () => {
+                // Given a paycheck and a user with the newDotBillPay beta
+                const paycheckReport = {...billReport, type: CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK} as Report;
+
+                // When the LHN decides whether to show the paycheck
+                const result = SidebarUtils.shouldDisplayReportInLHN({
+                    policy: undefined,
+                    report: paycheckReport,
+                    reports: {[`${ONYXKEYS.COLLECTION.REPORT}${paycheckReport.reportID}`]: paycheckReport},
+                    currentReportId: undefined,
+                    isInFocusMode: false,
+                    isDefaultRoomsBetaEnabled: false,
+                    isBillPayBetaEnabled: true,
+                    transactionViolations: {},
+                    draftComment: 'Draft',
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    hasGuidesEmails: false,
+                    conciergeReportID: undefined,
+                    session: undefined,
+                });
+
+                // Then the paycheck stays hidden, because the beta only covers bills
+                expect(result).toStrictEqual({shouldDisplay: false});
+            });
         });
 
         it('accepts isOffline=true without error', () => {
@@ -4662,6 +4740,27 @@ describe('SidebarUtils', () => {
         describe('sortCategorizedReports', () => {
             const mockLocaleCompare = (a: string, b: string) => a.localeCompare(b);
 
+            it('should sort folded accented names with the fast sort key', () => {
+                // Given reports whose accented names are folded before their sort keys are compared
+                const categories = {
+                    pinnedAndGBRReports: [
+                        {reportID: '1', displayName: 'Nuevo Budget', sortKey: _buildSortKey('Nuevo Budget')},
+                        {reportID: '2', displayName: 'Ñu Safari', sortKey: _buildSortKey('Ñu Safari')},
+                        {reportID: '3', displayName: 'Zote Report', sortKey: _buildSortKey('Zote Report')},
+                    ],
+                    errorReports: [],
+                    draftReports: [],
+                    nonArchivedReports: [],
+                    archivedReports: [],
+                };
+
+                // When the pinned reports are sorted
+                const result = _sortCategorizedReports(categories, true, mockLocaleCompare);
+
+                // Then the folded key order is used instead of placing Ñ after Z by code point
+                expect(result.pinnedAndGBRReports.map((report) => report.displayName)).toEqual(['Ñu Safari', 'Nuevo Budget', 'Zote Report']);
+            });
+
             it('should sort reports correctly in default mode', () => {
                 // Given the reports are created
                 const categories = {
@@ -4803,13 +4902,48 @@ describe('SidebarUtils', () => {
         });
 
         describe('buildSortKey', () => {
-            it('should sort accented characters by Unicode code point, not locale-aware order', () => {
-                // Given names with accented characters
+            it('should fold accents so accented and plain names share a sort key', () => {
+                // Given names that differ only by an accent
                 const cafeAccented = _buildSortKey('Café');
                 const cafePlain = _buildSortKey('Cafe');
 
-                // Then accented "é" sorts after plain "e" by code point
-                expect(cafeAccented > cafePlain).toBe(true);
+                // Then the accent-folded keys are equal and the comparator can use its locale fallback
+                expect(cafeAccented).toBe(cafePlain);
+            });
+
+            it('should create the same key for composed and decomposed accents', () => {
+                // Given equivalent composed and decomposed Unicode display names
+                const composedName = 'Café';
+                const decomposedName = 'Cafe\u0301';
+
+                // When sort keys are created for both forms
+                const composedKey = _buildSortKey(composedName);
+                const decomposedKey = _buildSortKey(decomposedName);
+
+                // Then the canonical forms produce the same key
+                expect(composedKey).toBe(decomposedKey);
+            });
+
+            it('should use StringUtils accent folding when building the sort key', () => {
+                // Given a display name containing accents
+                const displayName = 'Čeněk';
+
+                // When its sort key is created
+                const sortKey = _buildSortKey(displayName);
+
+                // Then the key uses the shared accent normalization result
+                expect(sortKey).toBe(StringUtils.normalizeAccents(displayName.toLowerCase()));
+            });
+
+            it('should leave unmapped characters unchanged', () => {
+                // Given a display name with a character that does not decompose into a base letter and mark
+                const displayName = 'Øresund';
+
+                // When its sort key is created
+                const sortKey = _buildSortKey(displayName);
+
+                // Then the unmapped character remains in the key
+                expect(sortKey).toBe('øresund');
             });
 
             it('should be case-insensitive', () => {
@@ -5511,6 +5645,47 @@ describe('SidebarUtils', () => {
                 });
 
                 expect(result[`${ONYXKEYS.COLLECTION.REPORT}1`]).toBeUndefined();
+            });
+
+            it.each([
+                {isBillPayBetaEnabled: false, shouldShowBill: false},
+                {isBillPayBetaEnabled: true, shouldShowBill: true},
+            ])('shows a bill only when isBillPayBetaEnabled is true (isBillPayBetaEnabled: $isBillPayBetaEnabled)', ({isBillPayBetaEnabled, shouldShowBill}) => {
+                // Given a bill with a draft, so the draft alone would make it show
+                const report = {
+                    ...createRandomReport(1, undefined),
+                    reportID: '1',
+                    reportName: 'Bill',
+                    type: CONST.REPORT.UNSUPPORTED_TYPE.BILL,
+                    errorFields: undefined,
+                };
+                const reports: OnyxCollection<Report> = {
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: report,
+                };
+
+                // When the LHN builds its list for a user with or without the newDotBillPay beta
+                const result = SidebarUtils.getReportsToDisplayInLHN({
+                    currentReportId: undefined,
+                    policies: {},
+                    reports,
+                    isDefaultRoomsBetaEnabled: false,
+                    isBillPayBetaEnabled,
+                    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                    draftComments: {[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}1`]: 'Draft'},
+                    transactionViolations: {},
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                    guideAccountIDs: [],
+                    conciergeReportID: undefined,
+                    session: undefined,
+                });
+
+                // Then only users with the beta see the bill
+                expect(!!result[`${ONYXKEYS.COLLECTION.REPORT}1`]).toBe(shouldShowBill);
             });
 
             it('should use the correct draft comment per report', () => {

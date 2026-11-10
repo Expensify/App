@@ -643,7 +643,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                                 return;
                             }
 
-                            removeTransaction(transaction.transactionID);
+                            removeTransaction(transaction.transactionID, {isDeleted: true});
                         };
                     }
                     if (isInNarrowPaneModal) {
@@ -752,6 +752,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
 
     return (
         <ButtonWithDropdownMenu
+            sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.MORE_BUTTON}
             ref={dropdownMenuRef}
             onPress={() => {}}
             shouldAlwaysShowDropdownMenu

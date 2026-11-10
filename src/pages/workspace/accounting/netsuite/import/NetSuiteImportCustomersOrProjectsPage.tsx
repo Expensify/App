@@ -83,6 +83,7 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
                 title={translate('workspace.netsuite.import.customersOrJobs.importCustomers')}
                 isActive={(config?.syncOptions?.mapping?.customers ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT}
                 switchAccessibilityLabel={translate('workspace.netsuite.import.customersOrJobs.importCustomers')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.IMPORT_CUSTOMERS_SWITCH}
                 onToggle={(isEnabled: boolean) => {
                     updateMapping(CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS, isEnabled);
                 }}
@@ -95,6 +96,7 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
                 title={translate('workspace.netsuite.import.customersOrJobs.importJobs')}
                 isActive={(config?.syncOptions?.mapping?.jobs ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT}
                 switchAccessibilityLabel={translate('workspace.netsuite.import.customersOrJobs.importJobs')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.IMPORT_JOBS_SWITCH}
                 onToggle={(isEnabled: boolean) => {
                     updateMapping(CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS, isEnabled);
                 }}
@@ -111,6 +113,7 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
                     title={translate('workspace.netsuite.import.crossSubsidiaryCustomers')}
                     isActive={config?.syncOptions?.crossSubsidiaryCustomers ?? false}
                     switchAccessibilityLabel={translate('workspace.netsuite.import.crossSubsidiaryCustomers')}
+                    switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CROSS_SUBSIDIARY_CUSTOMERS_SWITCH}
                     onToggle={(isEnabled: boolean) => {
                         updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID, isEnabled);
                     }}

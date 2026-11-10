@@ -83,11 +83,18 @@ describe('WiseGlobalReimbursementsIntroPage', () => {
         ['starts the onboarding with Get started for an account that has not started', undefined, undefined, 'walletPage.wiseGlobalReimbursementsIntro.getStarted', '/business-onboarding'],
         ['continues the onboarding the admin left before Submit', CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE, undefined, 'common.continue', '/business-onboarding'],
         [
-            'continues to the more info page when Wise needs more info',
+            'continues to the status page when Wise needs more info',
             CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE,
             {status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED},
             'common.continue',
-            '/more-info-needed',
+            '/status',
+        ],
+        [
+            'continues to the status page while Wise reviews the business',
+            CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE,
+            {status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW},
+            'common.continue',
+            '/status',
         ],
     ])('%s', async (_label, globalReimbursementProvider, wise, buttonText, pageSuffix) => {
         // Given the intro for a bank account at some point of its Wise onboarding
