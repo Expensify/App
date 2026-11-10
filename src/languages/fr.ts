@@ -13044,7 +13044,6 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         submitted: 'a soumis',
         approved: 'a approuvé',
         paid: 'a payé',
-        receivedPayment: 'paiement reçu',
         toSubmit: 'soumettre',
         toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
             if (!eta) {

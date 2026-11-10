@@ -12921,7 +12921,6 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         submitted: 'heeft ingediend',
         approved: 'heeft goedgekeurd',
         paid: 'heeft betaald',
-        receivedPayment: 'betaling ontvangen',
         toSubmit: 'indienen',
         toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
             if (!eta) {

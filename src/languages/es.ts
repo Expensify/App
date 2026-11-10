@@ -13343,7 +13343,6 @@ ${reportName}`,
         submitted: 'envió',
         approved: 'aprobó',
         paid: 'pagó',
-        receivedPayment: 'pago recibido',
         toSubmit: 'enviar',
         toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
             if (!eta) {

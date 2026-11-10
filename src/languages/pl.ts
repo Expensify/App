@@ -12958,7 +12958,6 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         submitted: 'wysłał',
         approved: 'zatwierdził',
         paid: 'opłacił',
-        receivedPayment: 'otrzymana płatność',
         toSubmit: 'przesłać',
         toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
             if (!eta) {
