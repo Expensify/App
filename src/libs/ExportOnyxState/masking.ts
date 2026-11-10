@@ -392,6 +392,7 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE,
     // eslint-disable-next-line @typescript-eslint/no-deprecated -- the key is still on device until the migration drains it, so it stays in the safe-to-export set
     ONYXKEYS.SHOULD_USE_STAGING_SERVER,
+    ONYXKEYS.SIDE_PANEL_WIDTH,
     ONYXKEYS.SIGN_IN_HIGH_CONTRAST_INTENT,
     ONYXKEYS.SINGLE_RHP_WIDTH,
     ONYXKEYS.STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE,

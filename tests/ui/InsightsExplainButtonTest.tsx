@@ -36,13 +36,12 @@ const mockAskConcierge = jest.fn();
 let mockIsOffline = false;
 jest.mock('@hooks/useNetwork', () => ({__esModule: true, default: () => ({isOffline: mockIsOffline})}));
 
-function renderButton(scope = SCOPE, isAccented = false) {
+function renderButton(scope = SCOPE) {
     return (
         <LocaleContextProvider>
             <InsightsExplainButton
                 explainPrompt={PROMPT}
                 insightsScope={scope}
-                isAccented={isAccented}
             />
         </LocaleContextProvider>
     );
@@ -62,9 +61,9 @@ describe('InsightsExplainButton', () => {
         });
     });
 
-    it.each([false, true])('preloads without sending a message and keeps Explain visible when isAccented is %s', async (isAccented) => {
+    it('preloads without sending a message and keeps Explain visible', async () => {
         // Given a chart or card with Concierge available.
-        render(renderButton(SCOPE, isAccented));
+        render(renderButton());
         await waitForBatchedUpdatesWithAct();
         const jsonQuery = buildInsightsExplanationQuery(1, REPORT_ID, PROMPT, SCOPE);
         const hash = hashText(jsonQuery, 2 ** 32);

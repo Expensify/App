@@ -1536,6 +1536,7 @@ const CONST = {
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
         COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
         RESIZABLE_RHP: 'resizableRHP',
+        RESIZABLE_SIDE_PANEL: 'resizableSidePanel',
         TRAVEL_APPROVAL: 'travelApproval',
         FLAT_NAV: 'flatNav',
         CATEGORY_VISIBILITY: 'categoryVisibility',
@@ -10268,21 +10269,21 @@ const CONST = {
 
         /** Pointer travel, in px, under which pressing a handle counts as a click rather than a drag. */
         DRAG_SLOP: 3,
+
+        /** Width of the strip straddling a pane's edge that picks up a drag, as wide as the RHP floating card's gutter. */
+        PANE_HIT_WIDTH: 12,
+
+        /** How close, in px, a pane drag has to come to the default width to snap onto it. */
+        PANE_SNAP_THRESHOLD: 20,
+
+        /** Width of a pane's line while its edge is pressed or dragged. */
+        PANE_ACTIVE_INDICATOR_WIDTH: 3,
+
+        /** Width of a pane's line while a drag is held on the default width. */
+        PANE_SNAPPED_INDICATOR_WIDTH: 5,
     },
 
     RHP_RESIZE: {
-        /** Width of the strip straddling the single RHP's left edge that picks up a drag, as wide as the floating card's gutter. */
-        HANDLE_HIT_WIDTH: 12,
-
-        /** How close, in px, a drag has to come to the default width to snap onto it. */
-        SNAP_THRESHOLD: 20,
-
-        /** Width of the line while the edge is pressed or dragged. */
-        ACTIVE_INDICATOR_WIDTH: 3,
-
-        /** Width of the line while a drag is held on the default width. */
-        SNAPPED_INDICATOR_WIDTH: 5,
-
         /** Narrowest the single RHP can be dragged, in px. */
         MIN_WIDTH: 380,
 
@@ -10452,6 +10453,27 @@ const CONST = {
             TOP_VIOLATIONS: 'topViolations',
             VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
             VIOLATIONS_BY_APPROVER: 'violationsByApprover',
+        },
+        AI_INSIGHT: {
+            SIGNAL: {
+                SPIKE: 'spike',
+                TREND: 'trend',
+                RECORD: 'record',
+                THRESHOLD: 'threshold',
+                CONCENTRATION: 'concentration',
+            },
+            CHIP_TYPE: {
+                CHANGE: 'change',
+                NEUTRAL: 'neutral',
+            },
+            CHIP_DIRECTION: {
+                INCREASE: 'increase',
+                DECREASE: 'decrease',
+            },
+            CHIP_UNIT: {
+                PERCENT: 'percent',
+                AMOUNT: 'amount',
+            },
         },
     },
 
