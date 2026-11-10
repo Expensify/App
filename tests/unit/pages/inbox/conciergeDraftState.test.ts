@@ -153,18 +153,16 @@ describe('conciergeDraftState', () => {
         expect(getFirstMessageText(completedDraft)).toBe(bodyMarkdown);
     });
 
-    it('should use the passed room names when the final HTML mentions a room by reportID', () => {
+    it('should keep the room mention in the HTML and convert it to a placeholder in the text', () => {
         // Given a Concierge reply whose final HTML from the server mentions a room by reportID only
-        const mentionedRoomID = '987654';
-        const finalRenderedHTML = `<comment>Ask in <mention-report reportID="${mentionedRoomID}"></mention-report></comment>`;
+        const finalRenderedHTML = '<comment>Ask in <mention-report reportID="987654"></mention-report></comment>';
 
-        // When the completed event is applied with the name of that room
-        const draft = applyConciergeDraftEvent(null, createDraftEvent({status: 'completed', bodyMarkdown: 'Ask in #admins', finalRenderedHTML}), REPORT_ID, false, undefined, {
-            [mentionedRoomID]: '#admins',
-        });
+        // When the completed event is applied
+        const draft = applyConciergeDraftEvent(null, createDraftEvent({status: 'completed', bodyMarkdown: 'Ask in #admins', finalRenderedHTML}), REPORT_ID, false);
 
-        // Then the draft text has the room name instead of #Hidden
-        expect(getFirstMessageText(draft)).toBe('Ask in #admins');
+        // Then the HTML still holds the mention that the draft renders, and the unused text gets a placeholder instead of #Hidden
+        expect(getFirstMessageHTML(draft)).toBe(finalRenderedHTML);
+        expect(getFirstMessageText(draft)).toBe('Ask in #room');
     });
 
     it('should ignore stale events from the same stream session', () => {

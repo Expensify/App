@@ -24,7 +24,10 @@ function getReportIDToNameMapForRoomsInMarkdown(reportIDToName: ReportIDToNameMa
 }
 
 // Same reportID capture as ExpensiMark's reportMentions rule, which accepts the ID with or without quotes
-const MENTION_REPORT_ID_REGEX = /<mention-report reportID="?(\d+)"?/gi;
+const MENTION_REPORT_ID_REGEX = /<mention-report reportID="?(\d+)"?/g;
+
+// Any non-empty room name works as a placeholder, because every room name starts with #
+const MENTIONED_ROOM_PLACEHOLDER = '#room';
 
 /** Returns the unique reportIDs of the `<mention-report reportID="...">` tags in the given HTML. */
 function getMentionedReportIDs(html: string | undefined): string[] {
@@ -32,6 +35,14 @@ function getMentionedReportIDs(html: string | undefined): string[] {
         return [];
     }
     return [...new Set(Array.from(html.matchAll(MENTION_REPORT_ID_REGEX), (match) => match[1]))];
+}
+
+/**
+ * Maps every room the HTML mentions by reportID to a placeholder name. Use it only when the converted text is never shown,
+ * so the conversion doesn't need a subscription to the reports and doesn't log a missing report name for each mention.
+ */
+function buildMentionedRoomPlaceholderMap(html: string | undefined): ReportIDToNameMap {
+    return Object.fromEntries(getMentionedReportIDs(html).map((reportID) => [reportID, MENTIONED_ROOM_PLACEHOLDER]));
 }
 
 function getReportName(report: Report): string {
@@ -70,4 +81,4 @@ function useReportIDToNameMap(): ReportIDToNameMap {
 }
 
 export default useReportIDToNameMap;
-export {buildReportIDToNameMap, getMentionedReportIDs, getReportIDToNameMapForRoomsInMarkdown};
+export {buildMentionedRoomPlaceholderMap, buildReportIDToNameMap, getMentionedReportIDs, getReportIDToNameMapForRoomsInMarkdown};

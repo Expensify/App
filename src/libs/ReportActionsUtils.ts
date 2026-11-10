@@ -3310,8 +3310,7 @@ function isApprovedOrSubmittedReportAction(action: OnyxEntry<ReportAction>) {
 
 /**
  * Gets the text version of the message in a report action
- */
-/**
+ *
  * @param reportIDToName - names for the rooms the message mentions by reportID, so they aren't shown as #Hidden
  */
 function getReportActionMessageText(reportAction: OnyxEntry<ReportAction>, reportIDToName?: Record<string, string>): string {

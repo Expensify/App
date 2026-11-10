@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import useReportIDToNameMap, {buildReportIDToNameMap, getMentionedReportIDs, getReportIDToNameMapForRoomsInMarkdown} from '@hooks/useReportIDToNameMap';
+import useReportIDToNameMap, {buildMentionedRoomPlaceholderMap, buildReportIDToNameMap, getMentionedReportIDs, getReportIDToNameMapForRoomsInMarkdown} from '@hooks/useReportIDToNameMap';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
@@ -230,6 +230,29 @@ describe('buildReportIDToNameMap', () => {
         const map = buildReportIDToNameMap(reports, []);
 
         // Then no report is looked up
+        expect(map).toEqual({});
+    });
+});
+
+describe('buildMentionedRoomPlaceholderMap', () => {
+    it('maps every room mentioned by reportID to a room placeholder', () => {
+        // Given HTML that mentions two rooms by reportID
+        const html = '<mention-report reportID="1"></mention-report> and <mention-report reportID="2" />';
+
+        // When building the placeholder map
+        const map = buildMentionedRoomPlaceholderMap(html);
+
+        // Then both rooms get a name that starts with #, so emoji checks on the text behave as for a real room name
+        expect(Object.keys(map)).toEqual(['1', '2']);
+        expect(Object.values(map).every((name) => name.startsWith('#'))).toBe(true);
+    });
+
+    it('returns an empty map when the HTML mentions no room by reportID', () => {
+        // Given HTML without any reportID mention
+        // When building the placeholder map
+        const map = buildMentionedRoomPlaceholderMap('hello <mention-report>#admins</mention-report>');
+
+        // Then nothing is mapped
         expect(map).toEqual({});
     });
 });
