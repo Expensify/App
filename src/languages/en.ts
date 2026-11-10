@@ -12963,6 +12963,7 @@ const translations = {
         deletingTitle: 'Deleting reports...',
         deletingExpensesTitle: 'Deleting expenses...',
         runningBody: "Wait a few minutes, or Concierge can message you when it's done.",
+        changingWorkspaceTitle: 'Moving reports...',
         sendFromConcierge: "Message me when it's done",
         conciergeTitle: 'You bet!',
         conciergeBody: "Concierge will message you when it's done.",
@@ -12999,6 +13000,10 @@ const translations = {
             one: `Deleted expenses on ${doneCount} of ${count} report`,
             other: `Deleted expenses on ${doneCount} of ${count} reports`,
         }),
+        changedWorkspaceTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Changed workspace on ${doneCount} of ${count} report`,
+            other: `Changed workspace on ${doneCount} of ${count} reports`,
+        }),
         noReportsTitle: 'No matching reports',
         noReportsBody: 'None of the reports you selected needed this action.',
         notApprovedBody: ({count}: {count: number}) => ({
@@ -13028,6 +13033,10 @@ const translations = {
         notDeletedBody: ({count}: {count: number}) => ({
             one: "1 report couldn't be deleted.",
             other: `${count} reports couldn't be deleted.`,
+        }),
+        notMovedBody: ({count}: {count: number}) => ({
+            one: "1 report couldn't be moved.",
+            other: `${count} reports couldn't be moved.`,
         }),
         expensesNotDeletedBody: ({count}: {count: number}) => ({
             one: "Expenses on 1 report couldn't be deleted.",
