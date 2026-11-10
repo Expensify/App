@@ -43,6 +43,11 @@ jest.mock('@components/MoneyRequestConfirmationFields/context', () => ({
     }),
 }));
 
+jest.mock('@react-navigation/native', () => ({
+    useIsFocused: () => true,
+    useNavigation: () => ({addListener: () => jest.fn()}),
+}));
+
 jest.mock('@components/NumberWithSymbolForm', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
     return ReactModule.forwardRef((props: NumberWithSymbolFormProps) => {
