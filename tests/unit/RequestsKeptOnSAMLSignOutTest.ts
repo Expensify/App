@@ -1,3 +1,7 @@
+import {renderHook} from '@testing-library/react-native';
+
+import useRequestsKeptOnSAMLSignOut from '@hooks/useRequestsKeptOnSAMLSignOut';
+
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
 import sendOrDeleteRequestsKeptOnSAMLSignOut from '@libs/actions/sendOrDeleteRequestsKeptOnSAMLSignOut';
 import redirectToSignIn from '@libs/actions/SignInRedirect';
@@ -51,6 +55,27 @@ describe('requests kept on a SAML sign-out', () => {
         // Then both requests are kept under their account in queue order, and the typed comment survives the clear
         expect(await getOnyxValue(ONYXKEYS.REQUESTS_KEPT_ON_SAML_SIGN_OUT)).toEqual({accountID: ACCOUNT_ID, requests: [uploadingReceipt, queuedComment]});
         expect(await getOnyxValue(DRAFT_KEY)).toBe('Lunch with the team');
+    });
+
+    it('keeps the requests set aside while this tab is still signed in', async () => {
+        // Given a signed in tab that sends kept requests again, with a comment waiting in the queue
+        renderHook(() => useRequestsKeptOnSAMLSignOut());
+        PersistedRequests.save(queuedComment);
+        await waitForBatchedUpdates();
+
+        // Storage takes a moment to clear in the app, long enough for the tab to see what is set aside
+        const clear = Onyx.clear.bind(Onyx);
+        jest.spyOn(Onyx, 'clear').mockImplementationOnce(async (keysToPreserve) => {
+            await waitForBatchedUpdates();
+            return clear(keysToPreserve);
+        });
+
+        // When SAML signs the person out
+        await redirectToSignIn(CONST.SIGN_OUT_REASON.SAML_REQUIRED, undefined, true);
+        await waitForBatchedUpdates();
+
+        // Then the comment is still set aside, since the tab only sends it again after the next sign-in
+        expect(await getOnyxValue(ONYXKEYS.REQUESTS_KEPT_ON_SAML_SIGN_OUT)).toEqual({accountID: ACCOUNT_ID, requests: [queuedComment]});
     });
 
     it('keeps what another tab set aside when this tab has no session left', async () => {
