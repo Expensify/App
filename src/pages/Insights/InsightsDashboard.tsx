@@ -64,7 +64,10 @@ type InsightsDashboardContentProps = {
     state: InsightsDashboardState;
     aiInsights: AIInsight[] | undefined;
     insightsScope: InsightsScope;
-    isLoadingAIInsights: boolean;
+
+    /** Whether the last request for the dashboard failed */
+    hasFailedToLoad: boolean;
+
     headlineChart: InsightsDashboardChart;
 
     /** Charts in the grid below the headline, left out when no workspace in scope is eligible for them */
@@ -94,7 +97,7 @@ function InsightsDashboardContent({
     state,
     aiInsights,
     insightsScope,
-    isLoadingAIInsights,
+    hasFailedToLoad,
     headlineChart,
     supportingCharts,
     filters,
@@ -236,7 +239,7 @@ function InsightsDashboardContent({
                         <InsightsAICardRow
                             insights={aiInsights}
                             insightsScope={insightsScope}
-                            isLoading={isLoadingAIInsights}
+                            hasFailedToLoad={hasFailedToLoad}
                         />
                     )}
                     <InsightsChartWidget
@@ -412,7 +415,16 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             ) : (
                 (!!tabSelector || !!pageControls) && (
                     <View style={[pageGutter, styles.pb5, styles.insightsPageControlsContainer]}>
-                        <View style={[styles.centeredContentWidthLimiter, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                        <View
+                            style={[
+                                styles.centeredContentWidthLimiter,
+                                styles.flexRow,
+                                styles.flexWrap,
+                                styles.alignItemsCenter,
+                                tabSelector ? styles.justifyContentBetween : styles.justifyContentEnd,
+                                styles.gap2,
+                            ]}
+                        >
                             {tabSelector}
                             {pageControls}
                         </View>
@@ -448,8 +460,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                                 date: filters.date,
                                 groupCurrency: filters.groupCurrency,
                             }}
-                            // Offline no response is coming, so the row hides instead of loading forever
-                            isLoadingAIInsights={!hasDashboardResponse(dashboard) && !isOffline}
+                            hasFailedToLoad={!!dashboard?.errors}
                             headlineChart={headlineChart}
                             supportingCharts={supportingCharts}
                             filters={filters}

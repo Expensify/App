@@ -90,6 +90,7 @@ const MERCHANT_RULE: Rule = {
 function createSourcePolicy(hasWorkspaceRules: boolean): Policy {
     return {
         ...createRandomPolicy(Number(POLICY_ID), CONST.POLICY.TYPE.CORPORATE),
+        areRulesEnabled: true,
         preventSelfApproval: false,
         maxExpenseAmountNoReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE,
         maxExpenseAmount: CONST.DISABLED_MAX_EXPENSE_VALUE,
@@ -330,5 +331,21 @@ describe('WorkspaceDuplicateSelectFeaturesForm Rules and Merchant rules', () => 
         pressContinue();
         // Then the API receives explicit consent.
         expect(jest.mocked(duplicateWorkspace).mock.calls.at(0)?.[1].hasAcceptedTravelTerms).toBe(true);
+    });
+
+    it('hides Rules when the source has workspace-level rules but Rules is turned off', async () => {
+        // Given a Control source with Rules turned off that still has a workspace-level rule set and a merchant rule
+        await renderForm(true, {areRulesEnabled: false});
+
+        // Then the Rules row is not offered, while Merchant rules is still offered and selected
+        expect(getRow('rules')).toBeUndefined();
+        expect(getRow('codingRules')?.isSelected).toBe(true);
+
+        // When the admin continues
+        pressContinue();
+
+        // Then Rules is not copied, so the duplicated workspace keeps Rules turned off like the source, and the merchant rules are copied on their own
+        expect(getSentParts()).not.toContain('rules');
+        expect(getSentParts()).toContain('codingRules');
     });
 });

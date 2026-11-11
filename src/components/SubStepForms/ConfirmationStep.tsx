@@ -229,6 +229,7 @@ function ConfirmationStep({
                     fsClass={forwardedFSClass}
                 >
                     <MenuItemAvatarNavigation
+                        sentryLabel={CONST.SENTRY_LABEL.CONFIRMATION_STEP.EDIT}
                         testID={row.id}
                         title={row.title}
                         description={row.description}

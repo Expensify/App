@@ -67,6 +67,7 @@ import type {
     SetWorkspaceAutoReportingMonthlyOffsetParams,
     UpdatePolicyTimezoneParams,
     SetWorkspacePayerParams,
+    SetReimbursementCountriesParams,
     SetWorkspaceReimbursementParams,
     ToggleCollectDepositAccountsParams,
     TogglePolicyReceiptPartnersParams,
@@ -1069,6 +1070,69 @@ function toggleCollectDepositAccounts(policyID: string, enabled: boolean, curren
     API.write(WRITE_COMMANDS.TOGGLE_COLLECT_DEPOSIT_ACCOUNTS, params, {optimisticData, failureData, successData});
 }
 
+/**
+ * Replace the countries a workspace collects employee deposit accounts for. The server never removes a country the
+ * workspace has a withdrawal account in, so callers should keep that country in the list.
+ */
+function setReimbursementCountries(policyID: string, countryISOs: string[], currentCountries: NonNullable<Policy['reimbursement']>['countries']) {
+    // A country waiting to be deleted is already gone for the user, so selecting it again adds it back
+    const currentCountryISOs = PolicyUtils.getReimbursementCountryISOs(currentCountries);
+    const addedCountryISOs = countryISOs.filter((countryISO) => !currentCountryISOs.includes(countryISO));
+    const removedCountryISOs = currentCountryISOs.filter((countryISO) => !countryISOs.includes(countryISO));
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                reimbursement: {
+                    countries: {
+                        ...Object.fromEntries(addedCountryISOs.map((countryISO) => [countryISO, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}])),
+                        ...Object.fromEntries(removedCountryISOs.map((countryISO) => [countryISO, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}])),
+                    },
+                },
+                errorFields: {reimbursementCountries: null},
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                reimbursement: {
+                    countries: {
+                        ...Object.fromEntries(addedCountryISOs.map((countryISO) => [countryISO, null])),
+                        ...Object.fromEntries(removedCountryISOs.map((countryISO) => [countryISO, {pendingAction: null}])),
+                    },
+                },
+                errorFields: {reimbursementCountries: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsPage.businessBankAccountCountriesError')},
+            },
+        },
+    ];
+
+    // Removed countries are deleted rather than having their pendingAction cleared, because this runs after the
+    // response deletes them and clearing a field would add the country back as an empty object.
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                reimbursement: {
+                    countries: {
+                        ...Object.fromEntries(addedCountryISOs.map((countryISO) => [countryISO, {pendingAction: null}])),
+                        ...Object.fromEntries(removedCountryISOs.map((countryISO) => [countryISO, null])),
+                    },
+                },
+            },
+        },
+    ];
+
+    const params: SetReimbursementCountriesParams = {policyID, countryISOList: countryISOs.join(',')};
+    API.write(WRITE_COMMANDS.SET_REIMBURSEMENT_COUNTRIES, params, {optimisticData, failureData, successData});
+}
+
 function setWorkspaceAutoReportingOffset(
     policyID: string,
     autoReportingOffset: AutoReportingOffset,
@@ -1507,6 +1571,7 @@ function setWorkspaceReimbursement({
     bankAccountList = {},
 }: SetWorkspaceReimbursementActionParams) {
     const lastUsedPaymentMethod = typeof lastPaymentMethod === 'string' ? lastPaymentMethod : lastPaymentMethod?.expense?.name;
+    const shouldClearBankAccountID = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 
     const oldBankAccountID = Object.keys(bankAccountList ?? {}).find((accountID) => {
         const account = bankAccountList?.[accountID];
@@ -1515,7 +1580,7 @@ function setWorkspaceReimbursement({
 
     // A bank account can list the workspace in its policyIDs while the workspace itself points at another account,
     // so the selection is only redundant when the workspace's own bank account is the selected one too.
-    if (oldBankAccountID !== undefined && String(bankAccountID) === oldBankAccountID && currentAchAccount?.bankAccountID === bankAccountID) {
+    if (!shouldClearBankAccountID && oldBankAccountID !== undefined && String(bankAccountID) === oldBankAccountID && currentAchAccount?.bankAccountID === bankAccountID) {
         return;
     }
 
@@ -1527,14 +1592,14 @@ function setWorkspaceReimbursement({
                 reimbursementChoice,
                 isLoadingWorkspaceReimbursement: true,
                 reimburser: reimburserEmail,
-                achAccount: {reimburser: reimburserEmail, bankAccountID, accountNumber, addressName, bankName, state},
+                achAccount: shouldClearBankAccountID ? null : {reimburser: reimburserEmail, bankAccountID, accountNumber, addressName, bankName, state},
                 errorFields: {reimbursementChoice: null},
                 pendingFields: {reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
             },
         },
     ];
 
-    if (bankAccountID !== undefined && bankAccountList !== undefined) {
+    if (!shouldClearBankAccountID && bankAccountID !== undefined && bankAccountList !== undefined) {
         const optimisticBankAccountList: NullishDeep<BankAccountList> = {};
         if (oldBankAccountID) {
             optimisticBankAccountList[oldBankAccountID] = {
@@ -1600,21 +1665,23 @@ function setWorkspaceReimbursement({
             value: {
                 isLoadingWorkspaceReimbursement: false,
                 reimbursementChoice: currentReimbursementChoice ?? null,
-                achAccount: {
-                    reimburser: currentAchAccount?.reimburser ?? null,
-                    bankAccountID: currentAchAccount?.bankAccountID ?? null,
-                    accountNumber: currentAchAccount?.accountNumber ?? null,
-                    addressName: currentAchAccount?.addressName ?? null,
-                    bankName: currentAchAccount?.bankName ?? null,
-                    state: currentAchAccount?.state ?? null,
-                },
+                achAccount: shouldClearBankAccountID
+                    ? (currentAchAccount ?? null)
+                    : {
+                          reimburser: currentAchAccount?.reimburser ?? null,
+                          bankAccountID: currentAchAccount?.bankAccountID ?? null,
+                          accountNumber: currentAchAccount?.accountNumber ?? null,
+                          addressName: currentAchAccount?.addressName ?? null,
+                          bankName: currentAchAccount?.bankName ?? null,
+                          state: currentAchAccount?.state ?? null,
+                      },
                 errorFields: {reimbursementChoice: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                 pendingFields: {reimbursementChoice: null},
             },
         },
     ];
 
-    if (bankAccountID !== undefined && bankAccountList !== undefined) {
+    if (!shouldClearBankAccountID && bankAccountID !== undefined && bankAccountList !== undefined) {
         const failureBankAccountList: NullishDeep<BankAccountList> = {};
         if (oldBankAccountID) {
             failureBankAccountList[oldBankAccountID] = {
@@ -1640,7 +1707,47 @@ function setWorkspaceReimbursement({
     }
 
     // Turning payments off also stops collecting employee bank details and clears the reimbursement countries
-    if (reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
+    if (shouldClearBankAccountID) {
+        const optimisticBankAccountList: NullishDeep<BankAccountList> = {};
+        const failureBankAccountList: NullishDeep<BankAccountList> = {};
+
+        // Incomplete setups can link a workspace without an ACH account or a policyIDs entry.
+        // Clear both association forms without detaching other workspaces that use the same account.
+        for (const [accountID, account] of Object.entries(bankAccountList ?? {})) {
+            const policyIDs = account?.accountData?.policyIDs;
+            const isLinkedToWorkspace = policyIDs?.includes(policyID);
+            const isSetupForWorkspace = account?.accountData?.additionalData?.policyID === policyID;
+            if (!isLinkedToWorkspace && !isSetupForWorkspace) {
+                continue;
+            }
+
+            optimisticBankAccountList[accountID] = {
+                accountData: {
+                    ...(isLinkedToWorkspace ? {policyIDs: policyIDs?.filter((id) => id !== policyID)} : {}),
+                    ...(isSetupForWorkspace ? {additionalData: {policyID: null}} : {}),
+                },
+            };
+            failureBankAccountList[accountID] = {
+                accountData: {
+                    ...(isLinkedToWorkspace ? {policyIDs} : {}),
+                    ...(isSetupForWorkspace ? {additionalData: {policyID}} : {}),
+                },
+            };
+        }
+
+        if (Object.keys(optimisticBankAccountList).length > 0) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: optimisticBankAccountList,
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: failureBankAccountList,
+            });
+        }
+
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -1656,7 +1763,6 @@ function setWorkspaceReimbursement({
         });
     }
 
-    const shouldClearBankAccountID = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
     const params: SetWorkspaceReimbursementParams = {
         policyID,
         reimbursementChoice,
@@ -3881,6 +3987,10 @@ function buildDuplicatePolicyData(sourcePolicy: Policy, options: DuplicatePolicy
             key: `${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`,
             value: {
                 pendingAction: null,
+                // The duplication response can merge a stray `areRulesEnabled: true` into the new policy after the full
+                // policy merge (seen when categories are copied from a Control workspace). successData is applied after the
+                // response's onyxData, so set the final value here, or Rules shows in the new workspace until the policy reloads.
+                areRulesEnabled: parts.includes('codingRules') || (parts.includes('rules') && PolicyUtils.arePolicyRulesEnabled(sourcePolicy, sourceCategories)),
                 pendingFields: {
                     autoReporting: null,
                     approvalMode: null,
@@ -8463,6 +8573,7 @@ export {
     setWorkspaceAutoReportingOffset,
     setWorkspaceTimezone,
     toggleCollectDepositAccounts,
+    setReimbursementCountries,
     updateWorkspaceDescription,
     updateWorkspaceClientID,
     setWorkspacePayer,

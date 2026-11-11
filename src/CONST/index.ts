@@ -632,14 +632,20 @@ const CONST = {
 
     MERCHANT_NAME_MAX_BYTES: 255,
 
-    /** The subset of EDIT_REQUEST_FIELD a merchant rule can govern, whose edit shows the "Create a rule" callout */
+    /**
+     * The fields a merchant rule can govern, whose edit shows the "Create a rule" callout.
+     *
+     * Named the way the server names them in its `suggestNewRuleCreation` verdict, since that verdict is read by
+     * these keys. A description is `comment` there and a tax rate is `tax`, so the names cannot be taken from
+     * EDIT_REQUEST_FIELD.
+     */
     MERCHANT_RULE_SUGGESTION_FIELDS: {
-        CATEGORY: editRequestFields.CATEGORY,
-        TAG: editRequestFields.TAG,
-        TAX: editRequestFields.TAX_RATE,
-        DESCRIPTION: editRequestFields.DESCRIPTION,
-        BILLABLE: editRequestFields.BILLABLE,
-        REIMBURSABLE: editRequestFields.REIMBURSABLE,
+        CATEGORY: 'category',
+        TAG: 'tag',
+        TAX: 'tax',
+        DESCRIPTION: 'comment',
+        BILLABLE: 'billable',
+        REIMBURSABLE: 'reimbursable',
     },
 
     MASKED_PAN_PREFIX: 'XXXXXXXXXXXX',
@@ -650,6 +656,9 @@ const CONST = {
 
     GENERATED_RULE: {
         PROMPT_MAX_LENGTH: 6000,
+
+        // The slowest answers in the eval take about 13 seconds. After this time, the agent rule saves without an answer.
+        AGENT_RULE_CHECK_TIMEOUT_MS: 20000,
         STATE: {
             RULE: 'rule',
             UNSUPPORTED: 'unsupported',
@@ -1532,16 +1541,19 @@ const CONST = {
         INSIGHTS_COMPLIANCE: 'insightsCompliance',
         NL_FILTERS: 'nlFilters',
         SUPPORT_TICKET: 'supportTicket',
-        ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
+        PINNABLE_TABLE_COLUMNS: 'pinnableTableColumns',
         COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
         RESIZABLE_RHP: 'resizableRHP',
+        RESIZABLE_SIDE_PANEL: 'resizableSidePanel',
         TRAVEL_APPROVAL: 'travelApproval',
         FLAT_NAV: 'flatNav',
         CATEGORY_VISIBILITY: 'categoryVisibility',
+        RECEIPT_TRANSLATION: 'receiptTranslation',
         SCAN_FLASH_TORCH: 'scanFlashTorch',
         NEW_DOT_BILL_PAY: 'newDotBillPay',
         HYBRID_WEB: 'hybridWeb',
+        MILEAGE_UI: 'mileageUI',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -2008,6 +2020,31 @@ const CONST = {
 
         // Elements with this data attribute pause the hover zoom while the pointer is over them
         HOVER_ZOOM_EXCLUDED_ELEMENT: 'receipt-hover-zoom-excluded',
+
+        TRANSLATION_SCAN_DURATION: 1000,
+        TRANSLATION_SCAN_LINE_HEIGHT: 8,
+        TRANSLATION_SCAN_TINT_OPACITY: 0.2,
+        TRANSLATION_ROW_TYPE: {
+            HEADING: 'heading',
+            TEXT: 'text',
+            LABEL_VALUE: 'labelValue',
+            ITEM: 'item',
+            TOTAL: 'total',
+            DIVIDER: 'divider',
+        },
+        TRANSLATION_ROW_ALIGN: {
+            LEFT: 'left',
+            CENTER: 'center',
+        },
+        TRANSLATION_STATE: {
+            TRANSLATED: 'translated',
+            UNREADABLE: 'unreadable',
+            ALREADY_IN_LANGUAGE: 'alreadyInLanguage',
+        },
+        TRANSLATION_REQUEST_STATE: {
+            LOADING: 'loading',
+            LOADED: 'loaded',
+        },
     },
     RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN: 120,
     REPORT: {
@@ -2599,6 +2636,10 @@ const CONST = {
             DYNAMIC_EXTERNAL_WORKFLOW_SUBMIT_ERROR: 'dynamicExternalWorkflowSubmitError',
             DYNAMIC_EXTERNAL_WORKFLOW_APPROVE_ERROR: 'dynamicExternalWorkflowApproveError',
             DYNAMIC_EXTERNAL_WORKFLOW_OFFLINE: 'dynamicExternalWorkflowOffline',
+        },
+        AUTO_EXPORT_MESSAGE_KEY: {
+            EXPORTS_AFTER_FINAL_APPROVAL: 'exportsAfterFinalApproval',
+            REIMBURSABLE_EXPORTS_WHEN_PAID: 'outOfPocketExportsWhenPaid',
         },
         ICONS: {
             HOURGLASS: 'hourglass',
@@ -5464,6 +5505,7 @@ const CONST = {
             AUTOREPORTING_OFFSET: 'autoReportingOffset',
             GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY: 'globalReimbursementFXPreferCompany',
             IS_COLLECT_DEPOSIT_ACCOUNTS_ENABLED: 'isCollectDepositAccountsEnabled',
+            REIMBURSEMENT_COUNTRIES: 'reimbursementCountries',
             GENERAL_SETTINGS: 'generalSettings',
             TIME_ZONE: 'timeZone',
         },
@@ -5644,6 +5686,7 @@ const CONST = {
                 netsuite:
                     'https://help.expensify.com/articles/expensify-classic/connections/netsuite/Netsuite-Troubleshooting#expensierror-ns0109-failed-to-login-to-netsuite-please-verify-your-credentials',
                 businessCentral: 'https://help.expensify.com/new-expensify/hubs/connections/',
+                digits: 'https://help.expensify.com/new-expensify/hubs/connections/',
             },
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT_QBO: 'startingImportQBO',
@@ -5816,6 +5859,7 @@ const CONST = {
         'Sage Intacct': 'https://help.expensify.com/articles/new-expensify/connections/sage-intacct/Configure-Sage-Intacct',
         Certinia: 'https://help.expensify.com/articles/expensify-classic/connections/certinia/Connect-To-Certinia',
         MERGE_EXPENSES: 'https://help.expensify.com/articles/new-expensify/reports-and-expenses/Merging-expenses',
+        WORKSPACE_ROLES_AND_PERMISSIONS: 'https://help.expensify.com/articles/new-expensify/workspaces/Understand-Workspace-Roles-and-Permissions',
     },
 
     CUSTOM_UNITS: {
@@ -7406,6 +7450,7 @@ const CONST = {
     },
     EMOJI_PICKER_TEXT_INPUT_SIZES: 152,
     EMOJI_PICKER_SKIN_TONE_LIST_HEIGHT: 56,
+    /** @deprecated Position symbol declaratively via JSX order in KeypadAmountEditor or prefixCharacter in AmountFormField.Input. See contributingGuides/NUMBER_WITH_SYMBOL_FORM_MIGRATION.md. */
     TEXT_INPUT_SYMBOL_POSITION: {
         PREFIX: 'prefix',
         SUFFIX: 'suffix',
@@ -8305,6 +8350,7 @@ const CONST = {
             DUPLICATE: 'duplicate',
             DUPLICATE_REPORT: 'duplicateReport',
             UNDELETE: 'undelete',
+            CHANGE_WORKSPACE: 'changeWorkspace',
         },
         BULK_DUPLICATE_LIMIT: 50,
         TRANSACTION_TYPE: {
@@ -8844,6 +8890,11 @@ const CONST = {
         get TRIP_FILTER_STATUSES() {
             // Approval statuses only show as badges, so the Status filter keeps to where the trip is in time
             return [this.TRIP_STATUS.UPCOMING, this.TRIP_STATUS.DONE, this.TRIP_STATUS.CANCELED] as const;
+        },
+        TABLE_COLUMN_ALIGNMENT: {
+            START: 'start',
+            CENTER: 'center',
+            END: 'end',
         },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
@@ -9504,6 +9555,14 @@ const CONST = {
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.CAMPFIRE}.description` as const,
                 icon: 'CampfireSquare',
             },
+            [this.POLICY.CONNECTIONS.NAME.DIGITS]: {
+                id: this.POLICY.CONNECTIONS.NAME.DIGITS,
+                alias: 'digits',
+                name: this.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.digits,
+                title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.DIGITS}.title` as const,
+                description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.DIGITS}.description` as const,
+                icon: 'DigitsSquare',
+            },
             [this.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
                 id: this.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL,
                 alias: 'businessCentral',
@@ -10062,6 +10121,7 @@ const CONST = {
     INBOX_TAB_STALE_UNREAD_MONTHS: 3,
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     AGENTS_RULES_BANNER: 'agentsRulesBanner',
+    NEW_WORKSPACE_ROLES_BANNER: 'newWorkspaceRolesBanner',
     WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER: 'wiseGlobalReimbursementsWalletBanner',
     WISE_GLOBAL_REIMBURSEMENTS_WORKSPACE_BANNER: 'wiseGlobalReimbursementsWorkspaceBanner',
     SMART_BANNER_HEIGHT: 152,
@@ -10255,21 +10315,21 @@ const CONST = {
 
         /** Pointer travel, in px, under which pressing a handle counts as a click rather than a drag. */
         DRAG_SLOP: 3,
+
+        /** Width of the strip straddling a pane's edge that picks up a drag, as wide as the RHP floating card's gutter. */
+        PANE_HIT_WIDTH: 12,
+
+        /** How close, in px, a pane drag has to come to the default width to snap onto it. */
+        PANE_SNAP_THRESHOLD: 20,
+
+        /** Width of a pane's line while its edge is pressed or dragged. */
+        PANE_ACTIVE_INDICATOR_WIDTH: 3,
+
+        /** Width of a pane's line while a drag is held on the default width. */
+        PANE_SNAPPED_INDICATOR_WIDTH: 5,
     },
 
     RHP_RESIZE: {
-        /** Width of the strip straddling the single RHP's left edge that picks up a drag, as wide as the floating card's gutter. */
-        HANDLE_HIT_WIDTH: 12,
-
-        /** How close, in px, a drag has to come to the default width to snap onto it. */
-        SNAP_THRESHOLD: 20,
-
-        /** Width of the line while the edge is pressed or dragged. */
-        ACTIVE_INDICATOR_WIDTH: 3,
-
-        /** Width of the line while a drag is held on the default width. */
-        SNAPPED_INDICATOR_WIDTH: 5,
-
         /** Narrowest the single RHP can be dragged, in px. */
         MIN_WIDTH: 380,
 
@@ -10439,6 +10499,27 @@ const CONST = {
             TOP_VIOLATIONS: 'topViolations',
             VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
             VIOLATIONS_BY_APPROVER: 'violationsByApprover',
+        },
+        AI_INSIGHT: {
+            SIGNAL: {
+                SPIKE: 'spike',
+                TREND: 'trend',
+                RECORD: 'record',
+                THRESHOLD: 'threshold',
+                CONCENTRATION: 'concentration',
+            },
+            CHIP_TYPE: {
+                CHANGE: 'change',
+                NEUTRAL: 'neutral',
+            },
+            CHIP_DIRECTION: {
+                INCREASE: 'increase',
+                DECREASE: 'decrease',
+            },
+            CHIP_UNIT: {
+                PERCENT: 'percent',
+                AMOUNT: 'amount',
+            },
         },
     },
 

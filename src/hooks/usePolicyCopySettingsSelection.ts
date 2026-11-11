@@ -17,6 +17,7 @@ import {
     needsCurrencyForWorkflows,
 } from '@libs/CopyPolicySettingsUtils';
 import {
+    arePolicyRulesEnabled,
     createFilteredMemberCountSelector,
     createInvoiceConfigurationTextSelector,
     getDistanceRateCustomUnit,
@@ -123,7 +124,7 @@ function usePolicyCopySettingsSelection(
         perDiemCount,
         connectedIntegrationCount: connectedIntegration?.length ?? 0,
         hasWorkflowRules: !!workflows?.length,
-        hasWorkspaceRules: !!rules?.length,
+        hasWorkspaceRules: !!rules?.length && arePolicyRulesEnabled(sourcePolicy, policyCategories),
         codingRulesCount,
         hasInvoiceConfiguration:
             !!sourcePolicy?.areInvoicesEnabled && (!!sourcePolicy.invoice?.markUp || !!invoiceConfigurationText || invoiceFieldsCount > 0 || isInvoiceFieldsEnabled(sourcePolicy)),

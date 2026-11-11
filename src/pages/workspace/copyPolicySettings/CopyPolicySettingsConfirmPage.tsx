@@ -137,12 +137,14 @@ function CopyPolicySettingsConfirmPage() {
                     </View>
                     <View style={[styles.mt4]}>
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COPY_SETTINGS_CONFIRM_SETTINGS}
                             name={translate('common.settings')}
                             value={translatedParts}
                             numberOfLinesValue={0}
                             onPress={navigateToSelectFeatures}
                         />
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COPY_SETTINGS_CONFIRM_WORKSPACES}
                             name={translate('common.workspaces')}
                             value={targetPolicies.map((policy) => policy?.name).join(', ')}
                             numberOfLinesValue={0}
@@ -161,6 +163,7 @@ function CopyPolicySettingsConfirmPage() {
                         />
                     )}
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COPY_SETTINGS_CONFIRM_SUBMIT}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         onPress={handleCopyPolicySettings}
