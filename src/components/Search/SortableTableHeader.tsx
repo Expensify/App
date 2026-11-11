@@ -1,3 +1,5 @@
+import ColumnResizeHandle from '@components/Table/columnResize/ColumnResizeHandle';
+
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -75,7 +77,7 @@ function SortableTableHeader({
     const {translate} = useLocalize();
 
     return (
-        <View style={[styles.flex1]}>
+        <View style={[styles.flex1, styles.alignSelfStretch]}>
             <View style={[styles.flex1, styles.flexRow, styles.gap3, containerStyles]}>
                 {columns.map(({columnName, translationKey, icon, isColumnSortable, sortColumnName, canEdit}) => {
                     if (!shouldShowColumn(columnName)) {
@@ -100,10 +102,12 @@ function SortableTableHeader({
                         isYesNoColumn || isConversionAmountColumn ? styles.flexShrink1 : null,
                     ];
 
+                    const columnLabel = translationKey ? translate(translationKey) : '';
+
                     return (
                         <SortableHeaderText
                             key={columnName}
-                            text={translationKey ? translate(translationKey) : ''}
+                            text={columnLabel}
                             icon={icon}
                             textStyle={textStyle}
                             sortOrder={sortOrder ?? CONST.SEARCH.SORT_ORDER.ASC}
@@ -125,10 +129,16 @@ function SortableTableHeader({
                                     isWithdrawnColumnWide: withdrawnColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     isActionColumnWide,
                                 }),
+                                styles.justifyContentCenter,
                             ]}
                             isSortable={isSortable}
                             onPress={(order: SortOrder) => onSortPress(sortByColumnName, order)}
-                        />
+                        >
+                            <ColumnResizeHandle
+                                columnKey={columnName}
+                                columnLabel={columnLabel}
+                            />
+                        </SortableHeaderText>
                     );
                 })}
             </View>

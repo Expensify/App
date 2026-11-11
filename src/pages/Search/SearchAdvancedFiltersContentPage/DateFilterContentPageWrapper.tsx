@@ -27,11 +27,13 @@ function DateFilterContentPageWrapper({baseFilterKey, value: initialValue, hasFe
                 hasFeed={hasFeed}
                 size={CONST.BUTTON_SIZE.LARGE}
                 style={[styles.flex1]}
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_PAGE_APPLY_VALUE.DATE}
                 onDateModifierSelected={setSelectedDateModifier}
                 onChange={setValue}
             />
             {!selectedDateModifier && (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SAVE_BUTTON}
                     style={[styles.ph5, styles.pb5, styles.pt3]}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}

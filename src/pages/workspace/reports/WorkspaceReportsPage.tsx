@@ -143,7 +143,10 @@ function WorkspaceReportFieldsPage({
                                 onClose={clearTitleFieldError}
                             >
                                 <View style={styles.mt6}>
-                                    <MenuItemSectionRoot onPress={canWriteReportFields ? () => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID)) : undefined}>
+                                    <MenuItemSectionRoot
+                                        onPress={canWriteReportFields ? () => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID)) : undefined}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORTS.CUSTOM_NAME_TITLE}
+                                    >
                                         <MenuItemField.Row
                                             name={translate('workspace.reports.customNameTitle')}
                                             value={titleField?.defaultValue ? Str.htmlDecode(titleField.defaultValue) : undefined}
@@ -157,6 +160,7 @@ function WorkspaceReportFieldsPage({
                                 pendingAction={reportTitlePendingFields.deletable ?? policy?.pendingAction}
                                 title={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
                                 switchAccessibilityLabel={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
+                                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORTS.PREVENT_MEMBERS_CHANGING_CUSTOM_NAMES_SWITCH}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
                                 titleStyle={toggleTitleStyle}
                                 isActive={titleField?.deletable === false}
@@ -205,6 +209,9 @@ function WorkspaceReportFieldsPage({
                             policyFeature={CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS}
                             syncErrorConnectionNames={CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES}
                             titleAccessibilityRole={CONST.ROLE.HEADER}
+                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.ENABLE_SWITCH}
+                            rowSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.ROW}
+                            addFieldSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.ADD_FIELD}
                         />
                     </ScrollView>
                 )}

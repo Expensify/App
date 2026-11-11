@@ -35,8 +35,10 @@ const useLocale = () => ({});
 const useNavigationState = () => undefined;
 const usePreventRemove = noop;
 const triggerTransitionEnd = noop;
+/** A page change on the story's stack is a new screen gaining focus, so the effect runs again */
 const useFocusEffect = (callback: () => (() => void) | void) => {
-    useEffect(() => callback(), [callback]);
+    const currentRoute = useStoryRouter()?.current;
+    useEffect(() => callback(), [callback, currentRoute]);
 };
 function Link() {
     return null;

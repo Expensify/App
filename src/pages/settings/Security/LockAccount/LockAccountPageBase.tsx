@@ -13,11 +13,12 @@ import {lockAccount} from '@userActions/User';
 
 import CONST from '@src/CONST';
 import type Response from '@src/types/onyx/Response';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-type BaseLockAccountComponentProps = {
+type BaseLockAccountComponentProps = WithRequiredSentryLabel & {
     confirmModalPrompt: React.JSX.Element | string;
     lockAccountPagePrompt: React.JSX.Element | string;
     testID: string;
@@ -38,6 +39,7 @@ function LockAccountPageBase({
     domainName,
     accountID,
     lockButtonText,
+    sentryLabel,
 }: BaseLockAccountComponentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -77,6 +79,7 @@ function LockAccountPageBase({
 
     const lockAccountButton = (
         <ButtonDisabledWhenOffline
+            sentryLabel={sentryLabel}
             variant={CONST.BUTTON_VARIANT.DANGER}
             isLoading={isLoading}
             size={CONST.BUTTON_SIZE.LARGE}

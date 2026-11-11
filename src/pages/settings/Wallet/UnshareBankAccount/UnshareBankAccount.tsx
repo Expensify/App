@@ -163,6 +163,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
             isInteractive: false,
             actionElement: (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.UNSHARE_BANK_ACCOUNT}
                     isLoading={isLoading && unsharedBankAccountData?.email === formattedAdmin.login}
                     size={CONST.BUTTON_SIZE.SMALL}
                     isDisabled={isLoading}

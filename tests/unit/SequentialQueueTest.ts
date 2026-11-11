@@ -30,6 +30,7 @@ jest.mock('@libs/ActiveClientManager', () => ({
     isClientTheLeader: jest.fn(() => true),
     isReady: jest.fn(() => Promise.resolve()),
     init: jest.fn(),
+    getLogTab: jest.fn(),
 }));
 const mockedIsClientTheLeader = jest.mocked(isClientTheLeader);
 
@@ -351,7 +352,7 @@ describe('SequentialQueue', () => {
                     return;
                 }
 
-                Onyx.disconnect(connectionId);
+                connectionId.unsubscribe();
                 expect(ongoingRequest).toEqual(persistedRequest);
                 expect(ongoingRequest).toEqual(getOngoingRequest());
                 expect(getAll().length).toBe(0);
@@ -484,6 +485,38 @@ describe('SequentialQueue', () => {
             offlineSpy.mockRestore();
         }
     });
+
+    it('keeps and sends a write the leader queued when a follower tab writes back a stale copy of the queue', async () => {
+        // Given a leader with a paused queue holding two requests and a newer approval
+        const processSpy = jest.spyOn(RequestModule, 'processWithMiddleware').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
+        const readNewestAction: AnyRequest = {command: WRITE_COMMANDS.READ_NEWEST_ACTION, requestIndex: 1};
+        const openReport: AnyRequest = {command: WRITE_COMMANDS.OPEN_REPORT, requestIndex: 2};
+        const approveMoneyRequest: AnyRequest = {command: WRITE_COMMANDS.APPROVE_MONEY_REQUEST, requestIndex: 3};
+
+        try {
+            SequentialQueue.pause();
+            await SequentialQueue.push(readNewestAction);
+            await SequentialQueue.push(openReport);
+            await SequentialQueue.push(approveMoneyRequest);
+            await waitForBatchedUpdates();
+
+            // When a follower tab's copy of the queue, saved before the approval, lands in shared storage
+            await Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, [readNewestAction, openReport]);
+            await waitForBatchedUpdates();
+
+            // Then the leader still sends the approval once the queue resumes
+            SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+            expect(processSpy.mock.calls.map(([sentRequest]) => sentRequest.command)).toEqual([
+                WRITE_COMMANDS.READ_NEWEST_ACTION,
+                WRITE_COMMANDS.OPEN_REPORT,
+                WRITE_COMMANDS.APPROVE_MONEY_REQUEST,
+            ]);
+        } finally {
+            processSpy.mockRestore();
+        }
+    });
 });
 
 describe('SequentialQueue - reconnect coverage collapse', () => {
@@ -598,7 +631,7 @@ describe('SequentialQueue - reconnect coverage collapse', () => {
             // The in-flight cycle owns the shared flag; its finallyData clears the spinner even under the drop.
             expect(isLoadingReportData).toBe(false);
         } finally {
-            Onyx.disconnect(connectionID);
+            connectionID.unsubscribe();
         }
     });
 
@@ -737,7 +770,7 @@ describe('SequentialQueue - offline read reconciliation', () => {
                 const connectionID = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connectionID);
+                        connectionID.unsubscribe();
                         resolve(value);
                     },
                 });
