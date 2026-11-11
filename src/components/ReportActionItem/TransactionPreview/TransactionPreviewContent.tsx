@@ -114,7 +114,7 @@ function TransactionPreviewContent({
 
     const firstViolation = getViolationToDescribe(violations, transaction);
     const isParentPolicyExpenseChat = isPolicyExpenseChat(chatReport);
-    const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(displayTransaction, undefined, policy, isParentPolicyExpenseChat) ?? {};
+    const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(displayTransaction, policy, isParentPolicyExpenseChat) ?? {};
     const {amount, comment: requestComment, merchant, category, currency: requestCurrency} = transactionDetails;
     const managerID = report?.managerID ?? reportPreviewAction?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerAccountID = report?.ownerAccountID ?? reportPreviewAction?.childOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID;
