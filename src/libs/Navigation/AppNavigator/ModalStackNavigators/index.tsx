@@ -112,6 +112,9 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP]: {
         animation: Animations.NONE,
     },
+    [SCREENS.SEARCH.SEARCH_CHANGE_WORKSPACE_RHP]: {
+        animation: Animations.NONE,
+    },
     [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: {
         animation: Animations.NONE,
     },
@@ -1112,6 +1115,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/advanced/CampfireTravelBillingSettlementAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_TRAVEL_BILLING_PAYABLE_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/advanced/CampfireTravelBillingPayableAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/digits/import/DigitsImportPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_PREREQUISITES]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/BusinessCentralPrerequisitesPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_SETUP]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/BusinessCentralSetupPage').default,
@@ -1162,6 +1166,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/DynamicReconciliationFeedSelectorPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_CURRENCY_CONVERSION_FEES]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceWorkflowsCurrencyConversionFeesPage').default,
+    [SCREENS.WORKSPACE.WORKFLOWS_REIMBURSEMENT_COUNTRIES]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceReimbursementCountrySelectorPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceAutoReportingMonthlyOffsetPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_WEEKLY_OFFSET]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceAutoReportingWeeklyOffsetPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_SEMI_MONTHLY_OFFSET]: () =>
@@ -1497,6 +1502,7 @@ const SearchReportActionsModalStackNavigator = createModalStackNavigator<SearchR
     [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchHoldReasonPage').default,
     [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_SEARCH]: () => require<ReactComponentModule>('../../../../pages/Search/SearchHoldReasonPage').default,
     [SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchRejectReasonPage').default,
+    [SCREENS.SEARCH.SEARCH_CHANGE_WORKSPACE_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchChangeWorkspacePage').default,
     [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchTransactionsChangeReport').default,
     [SCREENS.SEARCH.MERGE_REPORTS_SEARCH_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchReportsMergeReports').default,
     [SCREENS.SEARCH.CHANGE_APPROVER.ROOT]: () => require<ReactComponentModule>('../../../../pages/Search/SearchChangeApproverPage').default,

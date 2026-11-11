@@ -42,11 +42,7 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowRece
     const {convertToDisplayString} = useCurrencyListActions();
     const {dateFnsLocale, translate} = useLocalize();
 
-    const formattedDate = DateUtils.formatWithUTCTimeZone(
-        expense.created,
-        DateUtils.doesDateBelongToAPastYear(expense.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
-        dateFnsLocale,
-    );
+    const formattedDate = DateUtils.formatToMonthDayWithOptionalYearInUTC(expense.created, dateFnsLocale);
 
     const hasFailedScanAmountPlaceholder = isFailedScanAmountPlaceholder(expense.transaction, isSettled(expense.report));
     const shouldShowScanFailureMessage = hasFailedScanAmountPlaceholder && expense.transaction.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED;

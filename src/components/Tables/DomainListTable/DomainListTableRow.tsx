@@ -93,6 +93,7 @@ export default function DomainListTableRow({item, rowIndex, shouldUseNarrowTable
 
     return (
         <TableRow
+            sentryLabel={CONST.SENTRY_LABEL.DOMAIN.LIST.ROW}
             interactive
             rowIndex={rowIndex}
             onPress={item.action}
@@ -131,6 +132,7 @@ export default function DomainListTableRow({item, rowIndex, shouldUseNarrowTable
 
                         {threeDotMenuItems.length > 0 && (
                             <ThreeDotsMenu
+                                sentryLabel={CONST.SENTRY_LABEL.DOMAIN.LIST.THREE_DOT_MENU}
                                 isNested
                                 shouldOverlay
                                 shouldSelfPosition
