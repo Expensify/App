@@ -1495,7 +1495,6 @@
 "../../src/pages/settings/Security/MergeAccounts/MergeResultPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Security/SecuritySettingsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Security/TwoFactorAuth/DynamicSuccessPage.tsx"	"rulesdir/no-onyx-loading-status"	1
-"../../src/pages/settings/Security/TwoFactorAuth/EnabledPage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/settings/Security/TwoFactorAuth/EnabledPage.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/settings/Security/TwoFactorAuth/SuccessPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/settings/Security/TwoFactorAuth/TwoFactorAuthWrapper.tsx"	"no-restricted-imports"	1
@@ -1694,14 +1693,12 @@
 "../../src/pages/workspace/accounting/AccountingContext/default.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/AccountingSetupWebViewPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/accounting/businessCentral/BusinessCentralPrerequisitesPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/accounting/campfire/CampfireExistingConnectionsPage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/workspace/accounting/campfire/CampfireExistingConnectionsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/accounting/campfire/export/CampfireExportPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/certinia/CertiniaExistingConnectionsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/accounting/certinia/import/CertiniaDimensionMappingPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/ClaimOfferPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/ClaimOfferPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/accounting/dualentry/DualEntryExistingConnectionsPage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/workspace/accounting/dualentry/DualEntryExistingConnectionsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/accounting/dualentry/export/DualEntryExportPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/ExactOnlineWaitlistButton.tsx"	"rulesdir/no-onyx-loading-status"	4
@@ -1999,7 +1996,6 @@
 "../../src/pages/workspace/tags/DynamicTagApproverPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/tags/DynamicTagGLCodePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/tags/DynamicTagGLCodePage.tsx"	"rulesdir/no-onyx-loading-status"	1
-"../../src/pages/workspace/tags/DynamicTagSettingsPage.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/tags/DynamicTagSettingsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/tags/DynamicWorkspaceEditTagsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/tags/DynamicWorkspaceViewTagsPage.tsx"	"no-restricted-imports"	1
