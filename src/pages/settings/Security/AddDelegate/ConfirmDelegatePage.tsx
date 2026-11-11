@@ -45,6 +45,7 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
 
     const submitButton = (
         <ButtonDisabledWhenOffline
+            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SECURITY.ADD_COPILOT_CONFIRM}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             size={CONST.BUTTON_SIZE.LARGE}
             style={styles.mt6}
@@ -85,6 +86,7 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
                 </MenuItem.Root>
                 <View>
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SECURITY.ADD_COPILOT_ACCESS_LEVEL}
                         name={translate('delegate.accessLevel')}
                         value={translate('delegate.role', role)}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(login, role, ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(login, role)))}
