@@ -2279,6 +2279,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: '毎月の最終日曜日に',
             },
         },
+        autoExport: {
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL]: 'このレポートは、最終承認後にエクスポートされます。',
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID]: 'このレポートが支払われると、立替経費がエクスポートされます。',
+        },
     },
     profilePage: {
         profile: 'プロフィール',
