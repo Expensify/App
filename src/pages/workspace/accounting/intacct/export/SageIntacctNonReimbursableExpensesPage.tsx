@@ -54,6 +54,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
                 onClose={item.onCloseError}
             >
                 <MenuItemField
+                    sentryLabel={item.sentryLabel}
                     name={item.description ?? ''}
                     onPress={item.onPress}
                     value={item.title}
@@ -77,6 +78,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
             type: 'menuitem',
             title: config?.export.nonReimbursable ? translate(`workspace.sageIntacct.nonReimbursableExpenses.values.${config?.export.nonReimbursable}`) : undefined,
             description: translate('workspace.accounting.exportAs'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.NON_REIMBURSABLE_ROW.EXPORT_AS,
             onPress: () => {
                 if (!policyID) {
                     return;
@@ -90,6 +92,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
             type: 'menuitem',
             title: config?.export.nonReimbursableAccount ? config.export.nonReimbursableAccount : undefined,
             description: translate('workspace.sageIntacct.creditCardAccount'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.NON_REIMBURSABLE_ROW.CREDIT_CARD_ACCOUNT,
             onPress: () => {
                 if (!policyID) {
                     return;
@@ -103,6 +106,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
             type: 'menuitem',
             title: defaultVendorName && defaultVendorName !== '' ? defaultVendorName : undefined,
             description: translate('workspace.sageIntacct.defaultVendor'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.NON_REIMBURSABLE_ROW.DEFAULT_VENDOR,
             helperText:
                 config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE
                     ? translate('workspace.accounting.defaultVendorHelperText', isDefaultVendorSet, CONST.NON_REIMBURSABLE_FALLBACK_VENDOR_NAME.CREDIT_CARD)
@@ -131,7 +135,9 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
             headerTitle="workspace.accounting.exportCompanyCard"
             title="workspace.sageIntacct.nonReimbursableExpenses.description"
             onBackButtonPress={() =>
-                Navigation.goBack(backTo ?? (policyID && createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID))))
+                Navigation.goBack(
+                    backTo ?? (policyID && createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.path, ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))),
+                )
             }
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}

@@ -7,6 +7,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -81,6 +82,7 @@ function AboutPage() {
     const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
     const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
 
     const menuItems = useMemo(() => {
         const baseMenuItems: MenuItem[] = [
@@ -131,6 +133,7 @@ function AboutPage() {
                         hasCompletedGuidedSetupFlow,
                         conciergePersonalDetails,
                         shouldDismissModal: false,
+                        delegateAccountID,
                     });
                 }),
             },
@@ -158,7 +161,19 @@ function AboutPage() {
             wrapperStyle: [styles.sectionMenuItemTopDescription],
             sentryLabel,
         }));
-    }, [icons, styles, translate, waitForNavigate, conciergeReportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, currentUserAccountID, conciergePersonalDetails]);
+    }, [
+        icons,
+        styles,
+        translate,
+        waitForNavigate,
+        conciergeReportID,
+        introSelected,
+        isSelfTourViewed,
+        hasCompletedGuidedSetupFlow,
+        currentUserAccountID,
+        conciergePersonalDetails,
+        delegateAccountID,
+    ]);
 
     const overlayContent = useCallback(
         () => (

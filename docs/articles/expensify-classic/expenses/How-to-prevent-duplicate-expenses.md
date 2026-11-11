@@ -41,6 +41,24 @@ SmartScan will not merge expenses automatically if:
 
 ---
 
+## What Awaiting merge with card transaction means
+
+**Awaiting merge with card transaction** appears on SmartScanned receipt expenses when you have a credit card connected to Expensify and the receipt appears to be from a credit card purchase.
+
+Expensify waits seven days for the matching card transaction to import and merge with the receipt expense. The seven-day period starts from the expense date, not the receipt upload date. If you edit the expense date, the seven-day period is based on the updated date.
+
+## When Awaiting merge with card transaction clears
+
+The status clears when any of the following happens:
+
+- The receipt expense merges with the matching card transaction.
+- The expense is more than seven days old.
+- You select **Mark as cash** to indicate that you paid with cash or a card that isn't connected to Expensify.
+
+**Note:** If your connected credit card has a connection issue, the expense may keep the **Awaiting merge with card transaction** status even after seven days.
+
+---
+
 ## How to fix duplicate expenses
 
 If expenses are duplicated because they failed to merge automatically, you can manually merge or delete the duplicate as needed. 

@@ -145,6 +145,7 @@ function CardListItemHeader({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_SELECT_ALL_CHECKBOX}
                             onPress={() => onCheckboxPress?.(cardItem)}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={isIndeterminate}

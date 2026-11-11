@@ -93,7 +93,7 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
                       showInlineEditError(translate('iou.error.invalidAmount'));
                       return;
                   }
-                  onSave(normalizedValue);
+                  return onSave(normalizedValue);
               }
             : undefined,
         // A failed-scan placeholder amount that the user actually typed into is treated as changed so that
