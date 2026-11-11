@@ -2,6 +2,7 @@ import AddressSearch from '@components/AddressSearch';
 import CountrySelector from '@components/CountrySelector';
 import DatePicker from '@components/DatePicker';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
+import isCountryCode from '@components/DynamicForm/utils/isCountryCode';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -25,19 +26,23 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
 import {doesContainReservedWord, getAgeRequirementError, isRequiredFulfilled, isValidDisplayName, isValidPhoneNumber} from '@libs/ValidationUtils';
 
+import type {CountryZipRegex} from '@pages/MissingPersonalDetails/types';
+
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
-import ObjectUtils from '@src/types/utils/ObjectUtils';
+import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 import {useRoute} from '@react-navigation/native';
 import {subYears} from 'date-fns';
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+
+const countryZipRegexData: Partial<Record<string, CountryZipRegex>> = COMMON_CONST.COUNTRY_ZIP_REGEX_DATA;
 
 function PrivatePersonalDetailsPage() {
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS>>();
@@ -54,14 +59,14 @@ function PrivatePersonalDetailsPage() {
     const legalLastName = privatePersonalDetails?.legalLastName ?? '';
     const phoneNumber = privatePersonalDetails?.phoneNumber ?? '';
     const dob = privatePersonalDetails?.dob ?? '';
-    const address = getCurrentAddress(privatePersonalDetails);
+    const address = normalizeCountryCode(getCurrentAddress(privatePersonalDetails)) as Address | undefined;
     const [street1, street2Fallback] = getStreetLines(address?.street);
     const initialStreet1 = street1 ?? '';
     const initialStreet2 = address?.street2 ?? street2Fallback ?? '';
     const city = address?.city ?? '';
     const state = address?.state ?? '';
     const zip = address?.zip ?? '';
-    const country = normalizeCountryCode(address)?.country ?? '';
+    const country = address?.country ?? '';
 
     const normalizedState = resolveStateCode(state);
 
@@ -69,8 +74,7 @@ function PrivatePersonalDetailsPage() {
     // suggestion's country/state choices survive a back-navigation instead of reverting to geolocation defaults.
     const draftCountry = draftValues?.[INPUT_IDS.COUNTRY] ?? '';
     const draftState = draftValues?.[INPUT_IDS.STATE] ?? '';
-    const initialCountry = draftCountry || country || (defaultCountry ?? '');
-    const [selectedCountry, setSelectedCountry] = useState<Country | ''>(ObjectUtils.typedKeys(CONST.ALL_COUNTRIES).find((code) => code === initialCountry) ?? '');
+    const [selectedCountry, setSelectedCountry] = useState<Country | ''>(draftCountry || country || (defaultCountry && isCountryCode(defaultCountry) ? defaultCountry : ''));
     const [selectedState, setSelectedState] = useState(draftState || normalizedState);
 
     // The draft is what feeds the confirm-validate-code page; clearing it on every unmount wipes the submission
@@ -149,16 +153,12 @@ function PrivatePersonalDetailsPage() {
         }
 
         const zipValue = values[INPUT_IDS.ZIP_POST_CODE] ?? '';
-        const countryRegexKey = ObjectUtils.typedKeys(COMMON_CONST.COUNTRY_ZIP_REGEX_DATA).find((code) => code === effectiveCountry);
-        const countryRegexDetails = countryRegexKey ? COMMON_CONST.COUNTRY_ZIP_REGEX_DATA[countryRegexKey] : undefined;
-        const countrySpecificZipRegex = countryRegexDetails && 'regex' in countryRegexDetails && countryRegexDetails.regex instanceof RegExp ? countryRegexDetails.regex : undefined;
+        const countryRegexDetails = effectiveCountry ? countryZipRegexData[effectiveCountry] : undefined;
+        const countrySpecificZipRegex = countryRegexDetails?.regex;
         if (countrySpecificZipRegex) {
             if (!countrySpecificZipRegex.test(zipValue.trim().toUpperCase())) {
                 if (isRequiredFulfilled(zipValue.trim())) {
-                    errors[INPUT_IDS.ZIP_POST_CODE] = translate(
-                        'privatePersonalDetails.error.incorrectZipFormat',
-                        countryRegexDetails && 'samples' in countryRegexDetails && typeof countryRegexDetails.samples === 'string' ? countryRegexDetails.samples : '',
-                    );
+                    errors[INPUT_IDS.ZIP_POST_CODE] = translate('privatePersonalDetails.error.incorrectZipFormat', countryRegexDetails?.samples ?? '');
                 } else {
                     errors[INPUT_IDS.ZIP_POST_CODE] = translate('common.error.fieldRequired');
                 }
@@ -319,18 +319,12 @@ function PrivatePersonalDetailsPage() {
                                 zipCode: INPUT_IDS.ZIP_POST_CODE,
                                 country: INPUT_IDS.COUNTRY,
                             }}
-                            onValueChange={(value, key) => {
-                                if (value != null && typeof value !== 'string') {
-                                    return;
-                                }
+                            onValueChange={(value: unknown, key: unknown) => {
+                                const stringValue = typeof value === 'string' ? value : '';
                                 if (key === INPUT_IDS.COUNTRY) {
-                                    const countryValue = value ?? '';
-                                    const countryCodeValue = ObjectUtils.typedKeys(CONST.ALL_COUNTRIES).find((code) => code === countryValue);
-                                    if (countryValue === '' || countryCodeValue) {
-                                        setSelectedCountry(countryCodeValue ?? '');
-                                    }
+                                    setSelectedCountry(isCountryCode(stringValue) ? stringValue : '');
                                 } else if (key === INPUT_IDS.STATE) {
-                                    setSelectedState(value ?? '');
+                                    setSelectedState(stringValue);
                                 }
                             }}
                         />
@@ -367,12 +361,7 @@ function PrivatePersonalDetailsPage() {
                                 InputComponent={StateSelector}
                                 inputID={INPUT_IDS.STATE}
                                 value={selectedState}
-                                onValueChange={(value) => {
-                                    if (value != null && typeof value !== 'string') {
-                                        return;
-                                    }
-                                    setSelectedState(value ?? '');
-                                }}
+                                onValueChange={(value: unknown) => setSelectedState(typeof value === 'string' ? value : '')}
                                 shouldSaveDraft
                             />
                         </View>
@@ -385,12 +374,7 @@ function PrivatePersonalDetailsPage() {
                                 aria-label={translate('common.stateOrProvince')}
                                 role={CONST.ROLE.PRESENTATION}
                                 value={selectedState}
-                                onValueChange={(value) => {
-                                    if (value != null && typeof value !== 'string') {
-                                        return;
-                                    }
-                                    setSelectedState(value ?? '');
-                                }}
+                                onValueChange={(value: unknown) => setSelectedState(typeof value === 'string' ? value : '')}
                                 shouldSaveDraft
                                 spellCheck={false}
                             />
@@ -414,16 +398,8 @@ function PrivatePersonalDetailsPage() {
                             InputComponent={CountrySelector}
                             inputID={INPUT_IDS.COUNTRY}
                             value={selectedCountry}
-                            onValueChange={(value) => {
-                                if (value != null && typeof value !== 'string') {
-                                    return;
-                                }
-                                const countryValue = value ?? '';
-                                const countryCodeValue = ObjectUtils.typedKeys(CONST.ALL_COUNTRIES).find((code) => code === countryValue);
-                                if (countryValue !== '' && !countryCodeValue) {
-                                    return;
-                                }
-                                const newCountry = countryCodeValue ?? '';
+                            onValueChange={(value: unknown) => {
+                                const newCountry = typeof value === 'string' && isCountryCode(value) ? value : '';
                                 if (newCountry === selectedCountry) {
                                     return;
                                 }

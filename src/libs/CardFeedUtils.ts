@@ -250,8 +250,7 @@ function getCardFeedsForDisplay(
             continue;
         }
 
-        for (const [key, feedData] of ObjectUtils.typedEntries(getOriginalCompanyFeeds(cardFeeds, feedKeysWithCards, Number(fundID)))) {
-            const feed = key;
+        for (const [feed, feedData] of ObjectUtils.typedEntries(getOriginalCompanyFeeds(cardFeeds, feedKeysWithCards, Number(fundID)))) {
             const id = `${fundID}_${feed}`;
 
             if (cardFeedsForDisplay[id]) {
@@ -380,11 +379,10 @@ function getCardFeedsForDisplayPerPolicy(
             continue;
         }
 
-        for (const [key, feedData] of ObjectUtils.typedEntries(getOriginalCompanyFeeds(cardFeeds, feedKeysWithCards, Number(fundID)))) {
+        for (const [feed, feedData] of ObjectUtils.typedEntries(getOriginalCompanyFeeds(cardFeeds, feedKeysWithCards, Number(fundID)))) {
             const preferredPolicy = feedData && 'preferredPolicy' in feedData ? (feedData.preferredPolicy ?? '') : '';
             const country = feedData && 'country' in feedData ? (feedData.country ?? '') : '';
             const linkedPolicyIDs = feedData && 'linkedPolicyIDs' in feedData ? feedData.linkedPolicyIDs : undefined;
-            const feed = key;
             const id = `${fundID}_${feed}`;
             const feedEntry: CardFeedForDisplay = {
                 id,
@@ -478,6 +476,7 @@ function getVisibleCompanyCardFeedsForSelector(
         }
 
         for (const [key, feedData] of ObjectUtils.typedEntries(getOriginalCompanyFeeds(cardFeeds, feedKeysWithCards, numericFundID))) {
+            // As before, skip an entry without a feed key, because it has no feed to show.
             if (!key) {
                 continue;
             }
@@ -611,13 +610,15 @@ function getCombinedCardFeedsFromAllFeeds(
 }
 
 function findMatchingCards(cardFeeds: CombinedCardFeeds, cardLists: OnyxCollection<WorkspaceCardsList>, cardFeed?: CardFeedWithNumber, cardID?: number) {
-    const feedsWithDomainIDs = ObjectUtils.typedKeys(cardFeeds);
+    const feedsWithDomainIDs = Object.keys(cardFeeds);
     return Object.values(cardLists ?? {})
         .flatMap((cardList) => Object.values(cardList ?? {}))
+        .filter(isCard)
         .filter((card) => {
             const feedKey = card.bank;
-            const feedWithDomainID = `${card.bank}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${card.fundID ?? CONST.DEFAULT_MISSING_ID}`;
-            if (!feedsWithDomainIDs.some((key) => key === feedWithDomainID)) {
+            const feedDomainID = card.fundID ?? CONST.DEFAULT_MISSING_ID;
+            const feedWithDomainID = getCardFeedWithDomainID(feedKey, feedDomainID);
+            if (!feedsWithDomainIDs.includes(feedWithDomainID)) {
                 return false;
             }
             if (cardFeed && cardFeed !== feedKey) {
@@ -640,7 +641,7 @@ function getCardsUsingCustomExportCount(
 } {
     const perFeedCount: Partial<Record<CardFeedWithNumber, number>> = {};
     let totalCount = 0;
-    for (const card of findMatchingCards(cardFeeds, cardLists).filter((matchingCard): matchingCard is Card => typeof matchingCard.nameValuePairs === 'object')) {
+    for (const card of findMatchingCards(cardFeeds, cardLists)) {
         const feedKey = card.bank;
         if (typeof card.nameValuePairs !== 'object') {
             continue;

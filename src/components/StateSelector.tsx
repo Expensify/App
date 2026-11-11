@@ -7,7 +7,6 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import ObjectUtils from '@src/types/utils/ObjectUtils';
 
 import type {ComponentRef, ForwardedRef} from 'react';
 import type {View} from 'react-native';
@@ -22,10 +21,16 @@ import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
 type State = keyof typeof COMMON_CONST.STATES;
 
+/** A form draft or an address search can hold any text, so check that the value is a state code before translating it. */
+function isStateCode(code: string | undefined): code is State {
+    return !!code && code in COMMON_CONST.STATES;
+}
+
 type StateSelectorProps = {
     /** Form error text. e.g when no state is selected */
     errorText?: string;
 
+    /** Current state value. A form draft or an address search can hold any text, and only a state code gets a title. */
     value?: string;
 
     /** Callback to call when the input changes */
@@ -74,8 +79,7 @@ function StateSelector({errorText, onBlur, value: stateCode, label, onInputChang
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [stateFromUrl, onBlur, isFocused]);
 
-    const translationStateCode = ObjectUtils.typedKeys(COMMON_CONST.STATES).find((code) => code === stateCode);
-    const title = translationStateCode ? translate(`allStates.${translationStateCode}.stateName`) : '';
+    const title = isStateCode(stateCode) ? translate(`allStates.${stateCode}.stateName`) : '';
     const descStyle = title.length === 0 ? styles.textNormal : null;
 
     return (

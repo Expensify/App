@@ -18,7 +18,6 @@ import {canUseTouchScreen as canUseTouchScreenLib} from '@libs/DeviceCapabilitie
 
 import CONST from '@src/CONST';
 
-import type {} from '@fullstory/react-native';
 import type {MutedChangeEventPayload, PlayingChangeEventPayload, StatusChangeEventPayload, VideoPlayer} from 'expo-video';
 import type {ComponentRef} from 'react';
 
@@ -352,7 +351,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
             return true;
         }
 
-        if (typeof HTMLVideoElement !== 'undefined' && videoViewRef.current?.nativeRef?.current instanceof HTMLVideoElement) {
+        if (videoViewRef.current?.nativeRef?.current instanceof HTMLVideoElement) {
             return Reflect.get(videoViewRef.current.nativeRef.current, 'webkitDisplayingFullscreen') === true;
         }
         return false;
@@ -506,13 +505,8 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
             videoPlayerRef.current = currentVideoPlayerRef.current;
             videoViewRef.current = currentVideoViewRef.current;
         }
-        if (
-            currentlyPlayingURL === url &&
-            typeof HTMLDivElement !== 'undefined' &&
-            newParentRef instanceof HTMLDivElement &&
-            typeof HTMLVideoElement !== 'undefined' &&
-            sharedElement instanceof HTMLVideoElement
-        ) {
+        // Native players never share their element, so this branch runs only on web, where the DOM classes exist.
+        if (currentlyPlayingURL === url && newParentRef && 'appendChild' in newParentRef && sharedElement instanceof HTMLVideoElement) {
             if (newParentRef.hasChildNodes()) {
                 newParentRef.firstElementChild?.replaceWith(sharedElement);
             } else {
@@ -525,12 +519,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
             videoPlayerRef.current.currentTime = savedCurrentTimeRef.current;
         }
         return () => {
-            if (
-                typeof HTMLDivElement === 'undefined' ||
-                !(originalParent instanceof HTMLDivElement) ||
-                typeof HTMLVideoElement === 'undefined' ||
-                !(sharedElement instanceof HTMLVideoElement)
-            ) {
+            if (!originalParent || !('appendChild' in originalParent) || !(sharedElement instanceof HTMLVideoElement)) {
                 return;
             }
             originalParent.appendChild(sharedElement);
@@ -559,7 +548,8 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
     // ensure that video loads after page refresh on iOS Safari
     useEffect(() => {
         const videoElement: unknown = videoViewRef.current?.nativeRef?.current;
-        if (typeof HTMLVideoElement === 'undefined' || !(videoElement instanceof HTMLVideoElement) || hasError || !isSafari() || sharedElement) {
+        // `isSafari()` is false on native, so the DOM class is only read on web.
+        if (hasError || !isSafari() || sharedElement || !(videoElement instanceof HTMLVideoElement)) {
             return;
         }
         videoElement.load();
@@ -620,9 +610,10 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
                                             if (!el) {
                                                 return;
                                             }
+                                            // DOM classes exist only on web, where the View is a div that holds Expo's video element.
                                             if (typeof HTMLDivElement !== 'undefined' && el instanceof HTMLDivElement) {
                                                 const child = el.childNodes[0];
-                                                if (typeof HTMLVideoElement !== 'undefined' && child instanceof HTMLVideoElement) {
+                                                if (child instanceof HTMLVideoElement) {
                                                     videoPlayerElementRef.current = child;
                                                 }
                                             }

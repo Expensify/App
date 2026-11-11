@@ -24,7 +24,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
-import {createWorkspace, generateDefaultWorkspaceName, isCurrencySupportedForDirectReimbursement} from '@libs/actions/Policy/Policy';
+import {createWorkspace, generateDefaultWorkspaceName, isCurrencySupportedForDirectReimbursement, isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/actions/Search';
 import {isBankAccountPartiallySetup, showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
@@ -51,8 +51,9 @@ import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy} from '@src/types/onyx';
+import type {AccountData, Policy} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type PaymentMethodModel from '@src/types/onyx/PaymentMethod';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
@@ -64,6 +65,11 @@ import Onyx from 'react-native-onyx';
 import type SettlementButtonProps from './types';
 
 type TriggerKYCFlow = (params: ContinueActionParams) => void;
+
+/** Debit-card account data has no `type`, and `accountType` is optional on every payment method, so the `type` field is the only way to tell bank account data apart. */
+function getBankAccountData(accountData: PaymentMethodModel['accountData']): AccountData | undefined {
+    return accountData && 'type' in accountData ? accountData : undefined;
+}
 
 function SettlementButton({
     addDebitCardRoute = ROUTES.IOU_SEND_ADD_DEBIT_CARD,
@@ -129,7 +135,7 @@ function SettlementButton({
     const paymentReportType = reportType === CONST.REPORT.TYPE.IOU || reportType === CONST.REPORT.TYPE.EXPENSE || reportType === CONST.REPORT.TYPE.INVOICE ? reportType : undefined;
     const lastPaymentMethod = paymentReportType ? getLastPolicyPaymentMethod(policyIDKey, personalPolicyID, lastPaymentMethods, paymentReportType, isIOUReport(iouReport)) : undefined;
 
-    const lastBankAccountID = !reportType || paymentReportType ? getLastPolicyBankAccountID(policyIDKey, lastPaymentMethods, paymentReportType) : undefined;
+    const lastBankAccountID = getLastPolicyBankAccountID(policyIDKey, lastPaymentMethods, paymentReportType);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
@@ -174,7 +180,7 @@ function SettlementButton({
     const isBankAccountLocked = canAccessPolicyBankAccount(policy, bankAccountList) && policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED;
 
     function getLatestPersonalBankAccount() {
-        return formattedPaymentMethods.filter((ba) => !!ba.accountData && 'type' in ba.accountData && ba.accountData.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
+        return formattedPaymentMethods.filter((ba) => getBankAccountData(ba.accountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
     }
 
     // The guards checked after the account-validation gate. Also re-checked when a payment
@@ -270,7 +276,7 @@ function SettlementButton({
             ? businessBankAccountOptionList.map((account) => ({...account, value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT}))
             : undefined;
 
-    const canUseWallet = !isExpenseReport && !isInvoiceReport && CONST.DIRECT_REIMBURSEMENT_CURRENCIES.some((value) => value === currency);
+    const canUseWallet = !isExpenseReport && !isInvoiceReport && isCurrencySupportedForGlobalReimbursement(currency);
     const canUseBusinessBankAccount = isExpenseReport || (isIOUReport(iouReport) && reportID && !hasRequestFromCurrentAccount(iouReport, accountID ?? CONST.DEFAULT_NUMBER_ID));
     const canUsePersonalBankAccount = shouldShowPersonalBankAccountOption || isIOUReport(iouReport);
     const isPersonalOnlyOption = canUsePersonalBankAccount && !canUseBusinessBankAccount;
@@ -350,7 +356,7 @@ function SettlementButton({
         }
 
         if (isInvoiceReport) {
-            const showPayViaExpensifyOptions = isPayInvoiceViaExpensifyBetaEnabled && CONST.DIRECT_REIMBURSEMENT_CURRENCIES.some((value) => value === currency);
+            const showPayViaExpensifyOptions = isPayInvoiceViaExpensifyBetaEnabled && isCurrencySupportedForGlobalReimbursement(currency);
             const hasActivePolicyAsAdmin = !!activePolicy && isPolicyAdmin(activePolicy) && isPaidGroupPolicy(activePolicy);
 
             const isActivePolicyCurrencySupported = isCurrencySupportedForDirectReimbursement(activePolicy?.outputCurrency ?? '');
@@ -367,11 +373,9 @@ function SettlementButton({
 
                 return formattedPaymentMethods
                     .filter((method) => {
-                        const accountData = method.accountData;
-                        const accountState = accountData && 'state' in accountData ? accountData.state : undefined;
-                        const accountType = accountData && 'type' in accountData ? accountData.type : undefined;
-                        const isPartiallySetup = isBankAccountPartiallySetup(accountState);
-                        return accountType === requiredAccountType && !isPartiallySetup && matchesCurrency(method, currency);
+                        const accountData = getBankAccountData(method.accountData);
+                        const isPartiallySetup = isBankAccountPartiallySetup(accountData?.state);
+                        return accountData?.type === requiredAccountType && !isPartiallySetup && matchesCurrency(method, currency);
                     })
                     .map((formattedPaymentMethod) => ({
                         text: formattedPaymentMethod?.title ?? '',
@@ -486,12 +490,15 @@ function SettlementButton({
     const selectPaymentType = (iouPaymentType: PaymentMethodType) => {
         if (isInvoiceReport) {
             // if user has intent to pay, we should get the only bank account information to pay the invoice.
-            const currentBankInformation = formattedPaymentMethods.at(0);
-            if (hasIntentToPay && isPayInvoiceViaExpensifyBetaEnabled && currentBankInformation) {
+            if (hasIntentToPay && isPayInvoiceViaExpensifyBetaEnabled) {
+                const currentBankInformation = formattedPaymentMethods.at(0);
+                // With no payment method loaded there is no account to pay from, so don't start a payment.
+                if (!currentBankInformation) {
+                    return;
+                }
                 onPress({
                     paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-                    payAsBusiness:
-                        !!currentBankInformation.accountData && 'type' in currentBankInformation.accountData && currentBankInformation.accountData.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                    payAsBusiness: getBankAccountData(currentBankInformation.accountData)?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS,
                     methodID: currentBankInformation.methodID,
                     paymentMethod: currentBankInformation.accountType,
                 });
@@ -531,11 +538,13 @@ function SettlementButton({
         const isPayingWithMethod = paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
 
         if (!!policyFromPaymentMethod || (shouldSelectPaymentMethod && isPayingWithMethod)) {
+            // A workspace option's value is a policy ID, not a payment method, so it passes no payment method.
             const paymentMethod = Object.values(CONST.PAYMENT_METHODS).find((method) => method === selectedOption);
             selectPaymentMethod(paymentType, triggerKYCFlow, paymentMethod, policyFromPaymentMethod ?? policyFromContext);
             return;
         }
 
+        // Workspace and bank account options are handled above, so every option left here is a payment type.
         const selectedPaymentType = Object.values(CONST.IOU.PAYMENT_TYPE).find((type) => type === selectedOption);
         if (selectedPaymentType) {
             selectPaymentType(selectedPaymentType);
