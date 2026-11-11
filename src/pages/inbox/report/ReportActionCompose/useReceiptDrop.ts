@@ -70,7 +70,7 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
         if (shouldAddOrReplaceReceipt && transactionID) {
             const file = files.at(0);
             if (!(file instanceof File)) {
-                throw new TypeError('Receipt replacement requires a File.');
+                throw new TypeError('Receipt replacement requires a File');
             }
             const source = URL.createObjectURL(file);
             replaceReceipt({
@@ -90,11 +90,6 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
             return;
         }
 
-        // Check the complete batch before creating drafts or writing a valid prefix.
-        if (!files.every((file): file is FileObject & Blob => file instanceof Blob)) {
-            throw new TypeError('Receipt scan requires Blob-backed files.');
-        }
-
         const initialTransaction = initMoneyRequest({
             reportID,
             personalPolicy,
@@ -107,12 +102,15 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
         });
 
         for (const [index, file] of files.entries()) {
+            if (!(file instanceof File)) {
+                throw new TypeError('Receipt upload requires a File');
+            }
             const source = URL.createObjectURL(file);
             const newTransaction =
                 index === 0
                     ? initialTransaction
                     : buildOptimisticTransactionAndCreateDraft({
-                          initialTransaction: initialTransaction ? {...initialTransaction, category: initialTransaction.category ?? undefined} : {},
+                          initialTransaction: initialTransaction ?? {},
                           reportID,
                       });
             const newTransactionID = newTransaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;

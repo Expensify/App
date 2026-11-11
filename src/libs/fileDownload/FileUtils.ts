@@ -747,12 +747,16 @@ const resizeImageIfNeeded = (file: FileObject) => {
         .then((result) => createFile(result));
 };
 
+const isValidReceiptExtension = (file: FileObject) => {
+    const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
+    const normalizedExtension = fileExtension.toLowerCase();
+    return CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.some((extension) => extension === normalizedExtension);
+};
+
 const validateReceipt = (file: FileObject, setUploadReceiptError: (isInvalid: boolean, title: TranslationPaths, reason: TranslationPaths) => void) => {
     return validateImageForCorruption(file)
         .then(() => {
-            const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
-            const normalizedExtension = fileExtension.toLowerCase();
-            if (!CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.some((extension) => extension === normalizedExtension)) {
+            if (!isValidReceiptExtension(file)) {
                 setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
                 return false;
             }
@@ -772,12 +776,6 @@ const validateReceipt = (file: FileObject, setUploadReceiptError: (isInvalid: bo
             setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
             return false;
         });
-};
-
-const isValidReceiptExtension = (file: FileObject) => {
-    const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
-    const normalizedExtension = fileExtension.toLowerCase();
-    return CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.some((extension) => extension === normalizedExtension);
 };
 
 const hasHeicOrHeifExtension = (file: FileObject) => {
@@ -1028,9 +1026,6 @@ function cleanFileObject(fileObject: FileObject): FileObject | null {
     return fileObject;
 }
 
-function cleanFileObjectName(fileObject: FileObject): FileObject;
-function cleanFileObjectName(fileObject: null): null;
-function cleanFileObjectName(fileObject: FileObject | null): FileObject | null;
 function cleanFileObjectName(fileObject: FileObject | null): FileObject | null {
     if (fileObject instanceof File) {
         const cleanName = cleanFileName(fileObject.name);
