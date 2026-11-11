@@ -88,6 +88,7 @@ describe('VacationDelegateMenuItem', () => {
                 pendingAction={pendingAction}
                 onCloseError={jest.fn()}
                 onPress={jest.fn()}
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />,
         );
     }
@@ -253,6 +254,7 @@ describe('VacationDelegateMenuItem', () => {
             <VacationDelegateMenuItem
                 vacationDelegate={{delegate: EMAIL_DELEGATE, clearAfter: '2000-01-01 00:00:00'}}
                 onPress={jest.fn()}
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />,
         );
 
@@ -271,6 +273,7 @@ describe('VacationDelegateMenuItem', () => {
             <VacationDelegateMenuItem
                 vacationDelegate={{delegate: EMAIL_DELEGATE, clearAfter: '2999-01-02 07:59:59'}}
                 onPress={jest.fn()}
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />,
         );
 

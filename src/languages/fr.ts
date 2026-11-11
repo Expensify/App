@@ -2313,6 +2313,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'le dernier dimanche du mois',
             },
         },
+        autoExport: {
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL]: 'Cette note de frais sera exportée après l’approbation finale.',
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID]: 'Les dépenses remboursables seront exportées lorsque cette note de frais sera payée.',
+        },
     },
     profilePage: {
         profile: 'Profil',
@@ -3322,6 +3326,7 @@ ${amount} pour ${merchant} - ${date}`,
         businessBankAccountCountries: 'Pays des comptes bancaires professionnels',
         businessBankAccountCountriesDescription:
             'Les employés de ces pays fournissent des coordonnées de virement local. Tous les autres fournissent des coordonnées de virement international.',
+        businessBankAccountCountriesError: 'La mise à jour de vos pays de remboursement a échoué. Veuillez réessayer.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Un workflow d’approbation personnalisé est activé sur cet espace de travail. Pour examiner ou modifier ce workflow, veuillez contacter votre <account-manager-link>chargé de compte</account-manager-link> ou <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -6822,7 +6827,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         'Nous proposons des intégrations globales avec Mastercard, bien que l’éligibilité varie selon la banque et le programme de carte.\n\nPour commencer, il vous suffit de :',
                     vcf: `1. Consultez [cet article d'aide](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) pour obtenir des instructions détaillées sur la configuration de vos cartes Visa Commercial Cards.
 
-2. [Contactez votre banque](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) pour vérifier qu'elle prend en charge un flux commercial pour votre programme et demandez-lui de l'activer.
+2. Contactez votre banque pour vérifier qu'elle prend en charge un flux commercial pour votre programme et demandez-lui de l'activer.
 
 3. *Une fois le flux activé et que vous disposez de ses détails, passez à l'écran suivant.*`,
                     gl1025: `1. Consultez [cet article d’aide](${CONST.COMPANY_CARDS_AMEX_COMMERCIAL_CARD_HELP}) pour savoir si American Express peut activer un flux commercial pour votre programme.
@@ -6832,7 +6837,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
 3. *Une fois que vous avez les informations du flux, continuez vers l’écran suivant.*`,
                     cdf: `1. Consultez [cet article d'aide](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) pour des instructions détaillées sur la configuration de vos Mastercard Commercial Cards.
 
- 2. [Contactez votre banque](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) pour vérifier qu'elle prend en charge un flux commercial pour votre programme et demandez-lui de l'activer.
+ 2. Contactez votre banque pour vérifier qu'elle prend en charge un flux commercial pour votre programme et demandez-lui de l'activer.
 
 3. *Une fois le flux activé et que vous disposez de ses détails, continuez vers l'écran suivant.*`,
                     stripe: `1. Accédez au tableau de bord Stripe, puis allez dans [Paramètres](${CONST.COMPANY_CARDS_STRIPE_HELP}).
@@ -9321,6 +9326,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 describeRuleForConcierge: 'Décrivez votre règle et Concierge la créera',
                 gotIt: 'Compris',
                 createRule: 'Créer une règle',
+                saveAnyway: 'Enregistrer quand même',
+                checkingRule: 'Vérification de votre règle...',
                 fallbackBanner:
                     'Ce n’est pas une règle standard, nous avons donc rédigé une règle d’agent. Les règles d’agent s’exécutent lorsqu’une dépense ou une note de frais est créée ou mise à jour.',
                 fallbackBannerWithExplanation: (explanation: string) =>
@@ -9789,6 +9796,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         digits: {
             updateCurrencyTitle: 'Mettre à jour la devise de l’espace de travail ?',
             updateCurrencyPrompt: 'Digits n’est actuellement disponible que pour les entreprises basées aux États-Unis qui opèrent en USD.',
+            importDescription: 'Choisissez quelles configurations Digits importer.',
+            accountTypesDescription: 'Vos comptes Digits seront importés en tant que catégories.',
+            enableNewAccountsTitle: 'Activer les nouveaux comptes importés',
+            enableNewAccountsDescription: 'Les nouveaux comptes Digits seront disponibles en tant que catégories.',
+            dimensionsImport: 'Toutes les dimensions Digits sont importées en tant que tags.',
+            departments: 'Services',
         },
         zohoBooks: {
             organization: 'Organisation Zoho Books',
@@ -12920,6 +12933,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         deletingTitle: 'Suppression des notes de frais...',
         deletingExpensesTitle: 'Suppression des dépenses...',
         runningBody: 'Patientez quelques minutes, ou laissez Concierge vous envoyer un message lorsque ce sera terminé.',
+        changingWorkspaceTitle: 'Déplacement des notes de frais...',
         sendFromConcierge: 'Envoyez-moi un message quand ce sera fait',
         conciergeTitle: 'Bien sûr !',
         conciergeBody: 'Concierge vous enverra un message lorsque ce sera terminé.',
@@ -12955,6 +12969,10 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Dépenses supprimées pour ${doneCount} sur ${count} note de frais`,
             other: `Dépenses supprimées pour ${doneCount} sur ${count} notes de frais`,
+        }),
+        changedWorkspaceTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Espace de travail modifié pour ${doneCount} sur ${count} note de frais`,
+            other: `Espace de travail modifié pour ${doneCount} sur ${count} notes de frais`,
         }),
         noReportsTitle: 'Aucune note de frais correspondante',
         noReportsBody: 'Aucune des notes de frais que vous avez sélectionnées n’avait besoin de cette action.',
@@ -12992,6 +13010,10 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         expensesNotDeletedBody: ({count}: {count: number}) => ({
             one: "Les dépenses de 1 note de frais n'ont pas pu être supprimées.",
             other: `Les dépenses de ${count} notes de frais n'ont pas pu être supprimées.`,
+        }),
+        notMovedBody: ({count}: {count: number}) => ({
+            one: "1 note de frais n'a pas pu être déplacée.",
+            other: `${count} notes de frais n'ont pas pu être déplacées.`,
         }),
     },
     earlyRenewal: {

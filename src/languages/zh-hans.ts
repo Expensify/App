@@ -2211,6 +2211,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: '在每月的最后一个星期日',
             },
         },
+        autoExport: {
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL]: '此报表将在最终批准后导出。',
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID]: '当此报表支付后，可报销费用将被导出。',
+        },
     },
     profilePage: {
         profile: '个人资料',
@@ -3186,6 +3190,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         disablePaymentsPrompt: '这将删除您的所有付款设置。',
         businessBankAccountCountries: '企业银行账户国家',
         businessBankAccountCountriesDescription: '这些国家的员工需提供本地转账信息，其他员工需提供国际电汇信息。',
+        businessBankAccountCountriesError: '报销国家更新失败，请重试。',
         customApprovalWorkflowEnabled:
             '<muted-text-label>此工作区已启用自定义审批流程。若要查看或更改此流程，请联系您的<account-manager-link>客户经理</account-manager-link>或<concierge-link>Concierge</concierge-link>。</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -6506,7 +6511,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     mastercard: '我们与 Mastercard 有全球集成，但资格条件会因银行和卡片项目而异。\n\n要开始使用，只需：',
                     vcf: `1. 请访问[此帮助文章](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP})，查看关于如何设置 Visa 商务卡的详细说明。
 
-2. 请[联系您的银行](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP})，确认他们是否为您的项目支持商业数据连接，并请求他们为您启用。
+2. 请联系您的银行，确认他们是否为您的项目支持商业数据连接，并请求他们为您启用。
 
 3. *启用数据连接并获取相关详细信息后，请继续前往下一屏。*`,
                     gl1025: `1. 访问[此帮助文章](${CONST.COMPANY_CARDS_AMEX_COMMERCIAL_CARD_HELP})，了解 American Express 是否可以为您的项目启用商业数据连接。
@@ -6516,7 +6521,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
 3. *在获取数据连接信息后，继续前往下一屏。*`,
                     cdf: `1. 访问[此帮助文章](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS})，获取有关如何设置 Mastercard 商业卡的详细说明。
 
-2. [联系您的银行](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS})，确认他们是否支持您项目的商业数据流，并请他们为您启用。
+2. 联系您的银行，确认他们是否支持您项目的商业数据流，并请他们为您启用。
 
 3. *一旦数据流已启用并且您获得了相关详细信息，继续到下一屏。*`,
                     stripe: `1. 访问 Stripe 的控制面板，然后前往[设置](${CONST.COMPANY_CARDS_STRIPE_HELP})。
@@ -8880,6 +8885,8 @@ ${reportName}`,
                 describeRuleForConcierge: '描述你的规则，Concierge 会帮你创建',
                 gotIt: '知道了',
                 createRule: '创建规则',
+                saveAnyway: '仍然保存',
+                checkingRule: '正在检查你的规则...',
                 fallbackBanner: '这不是一条标准规则，所以我们起草了一条代理规则。代理规则会在报销或报表被创建或更新时运行。',
                 fallbackBannerWithExplanation: (explanation: string) => `这不是一条标准规则，所以我们起草了一条代理规则。代理规则会在报销或报表被创建或更新时运行。${explanation}`,
             },
@@ -9295,6 +9302,12 @@ ${reportName}`,
         digits: {
             updateCurrencyTitle: '更新工作区货币？',
             updateCurrencyPrompt: 'Digits 目前仅适用于在美国运营且使用美元的公司。',
+            importDescription: '选择要导入的 Digits 配置。',
+            accountTypesDescription: '您的 Digits 账户将会导入为类别。',
+            enableNewAccountsTitle: '启用新导入的账户',
+            enableNewAccountsDescription: '新的 Digits 账户将可用作类别。',
+            dimensionsImport: '所有 Digits 维度都会作为标签导入。',
+            departments: '部门',
         },
         zohoBooks: {
             organization: 'Zoho Books 组织',
@@ -12299,6 +12312,7 @@ ${reportName}`,
         deletingTitle: '正在删除报表…',
         deletingExpensesTitle: '正在删除报销费用…',
         runningBody: '请稍等几分钟，或者由 Concierge 在完成后发送消息通知你。',
+        changingWorkspaceTitle: '正在移动报表…',
         sendFromConcierge: '完成后给我发消息',
         conciergeTitle: '当然！',
         conciergeBody: '完成后，Concierge 会给你发送消息。',
@@ -12334,6 +12348,10 @@ ${reportName}`,
         deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `已删除 ${count} 份报表中 ${doneCount} 份的报销费用`,
             other: `已删除 ${count} 份报表中 ${doneCount} 份的报销费用`,
+        }),
+        changedWorkspaceTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `已在 ${count} 份报表中的 ${doneCount} 份上更改工作区`,
+            other: `已在 ${count} 份报表中的 ${doneCount} 份上更改工作区`,
         }),
         noReportsTitle: '没有匹配的报表',
         noReportsBody: '您选择的报表都不需要执行此操作。',
@@ -12371,6 +12389,10 @@ ${reportName}`,
         expensesNotDeletedBody: ({count}: {count: number}) => ({
             one: '无法删除 1 份报表的报销费用。',
             other: `无法删除 ${count} 份报表的报销费用。`,
+        }),
+        notMovedBody: ({count}: {count: number}) => ({
+            one: '1 份报表无法移动。',
+            other: `${count} 份报表无法移动。`,
         }),
     },
     earlyRenewal: {
