@@ -48,7 +48,7 @@ async function switchToKilometerRate(transaction: Transaction) {
         const connection = Onyx.connectWithoutView({
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`,
             callback: (value) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(value ?? undefined);
             },
         });

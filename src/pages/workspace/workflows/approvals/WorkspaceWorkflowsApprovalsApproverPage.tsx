@@ -6,9 +6,9 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
+import useShouldUseApprovalWorkflowRules from '@hooks/useShouldUseApprovalWorkflowRules';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearApprovalWorkflowApprover, clearApprovalWorkflowApprovers, setApprovalWorkflowApprover} from '@libs/actions/Workflow';
@@ -30,7 +30,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useNavigationState} from '@react-navigation/native';
 import React, {useState} from 'react';
@@ -42,12 +41,10 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
-    const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
-    const isApprovalWorkflowLoading = isLoadingOnyxValue(approvalWorkflowMetadata);
+    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const personalDetailsByEmail = usePersonalDetailsByEmail();
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
-    const {isBetaEnabled} = usePermissions();
-    const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
+    const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules(policy);
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const approverIndex = Number(route.params.approverIndex) ?? 0;
     const rhpRoutes = useNavigationState((state) => state.routes);
@@ -77,10 +74,11 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const shouldFilterOutExpensifyTeam = shouldFilterExpensifyTeam(policy?.owner, currentUserLogin);
 
     let allApprovers: SelectionListApprover[];
-    if (isApprovalWorkflowLoading || !employeeList) {
+    if (!employeeList) {
         allApprovers = [];
     } else {
         const membersEmail = approvalWorkflow?.members?.map((member) => member.email);
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, employeePersonalDetails);
         const approvers = Object.values(employeeList)
             .map((employee): SelectionListApprover | null => {
                 const email = employee.email;
@@ -102,10 +100,18 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 if (isEmailAlreadyInApprovers && visibleSelectedApproverEmail !== email) {
                     return null;
                 }
-                if (!isMultipleApproversBetaEnabled && !isDefault && approverIndex === 0 && defaultApprover === email) {
+
+                // Another step's additional approver can't also approve here, or that step's limit would add no one
+                const isOtherStepsAdditionalApprover = approversFromWorkflow?.some((approver, index) => approver?.overLimitForwardsTo === email && index !== approverIndex);
+                if (shouldUseApprovalWorkflowRules && isOtherStepsAdditionalApprover && visibleSelectedApproverEmail !== email) {
                     return null;
                 }
-                const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, employeePersonalDetails);
+
+                // On employeeList a workflow is identified by its first approver, and everyone who submits to the default
+                // approver is in the default workflow, so no other workflow can start with them. Rules store each workflow separately.
+                if (!shouldUseApprovalWorkflowRules && !isDefault && approverIndex === 0 && defaultApprover === email) {
+                    return null;
+                }
                 const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
                 if (!accountID) {
                     return null;
@@ -157,7 +163,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         allApprovers = approvers;
     }
 
-    const shouldShowListEmptyContent = !!approvalWorkflow && !isApprovalWorkflowLoading && !removingApprover;
+    const shouldShowListEmptyContent = !!approvalWorkflow && !removingApprover;
 
     const goBack = () => {
         let backToRoute;

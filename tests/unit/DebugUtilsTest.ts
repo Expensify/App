@@ -1416,19 +1416,20 @@ describe('DebugUtils', () => {
             });
             it('returns undefined when report has no RBR', () => {
                 const {reportAction} =
-                    DebugUtils.getReasonAndReportActionForRBRInLHNRow(
-                        {
+                    DebugUtils.getReasonAndReportActionForRBRInLHNRow({
+                        report: {
                             reportID: '1',
                         },
-                        chatReportR14932,
-                        undefined,
-                        sharedAllTransactions,
-                        undefined,
-                        false,
-                        {},
-                        false,
-                        RORY_ACCOUNT_ID,
-                    ) ?? {};
+                        chatReport: chatReportR14932,
+                        reportActions: undefined,
+                        transactions: sharedAllTransactions,
+                        transactionViolations: undefined,
+                        hasViolations: false,
+                        reportErrors: {},
+                        isOffline: false,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        policy: undefined,
+                    }) ?? {};
                 expect(reportAction).toBeUndefined();
             });
             it('returns undefined if it is a transaction thread, the transaction is missing smart scan fields and the report is not settled', async () => {
@@ -1485,7 +1486,19 @@ describe('DebugUtils', () => {
                 if (!report) {
                     throw new Error('Expected the report fixture to be present');
                 }
-                const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, chatReportR14932, undefined, transactionForTest, undefined, false, {}, false, 12345) ?? {};
+                const {reportAction} =
+                    DebugUtils.getReasonAndReportActionForRBRInLHNRow({
+                        report,
+                        chatReport: chatReportR14932,
+                        reportActions: undefined,
+                        transactions: transactionForTest,
+                        transactionViolations: undefined,
+                        hasViolations: false,
+                        reportErrors: {},
+                        isOffline: false,
+                        currentUserAccountID: 12345,
+                        policy: undefined,
+                    }) ?? {};
                 expect(reportAction).toBe(undefined);
             });
             describe('There is a report action with smart scan errors', () => {
@@ -1552,17 +1565,18 @@ describe('DebugUtils', () => {
                     };
                     const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_CHAT_REPORT_ACTIONS, mockTransactions, RORY_ACCOUNT_ID, undefined);
                     const {reportAction} =
-                        DebugUtils.getReasonAndReportActionForRBRInLHNRow(
-                            MOCK_CHAT_REPORT,
-                            chatReportR14932,
-                            MOCK_CHAT_REPORT_ACTIONS,
-                            mockTransactions,
-                            undefined,
-                            false,
+                        DebugUtils.getReasonAndReportActionForRBRInLHNRow({
+                            report: MOCK_CHAT_REPORT,
+                            chatReport: chatReportR14932,
+                            reportActions: MOCK_CHAT_REPORT_ACTIONS,
+                            transactions: mockTransactions,
+                            transactionViolations: undefined,
+                            hasViolations: false,
                             reportErrors,
-                            false,
-                            RORY_ACCOUNT_ID,
-                        ) ?? {};
+                            isOffline: false,
+                            currentUserAccountID: RORY_ACCOUNT_ID,
+                            policy: undefined,
+                        }) ?? {};
                     expect(reportAction).toMatchObject(MOCK_CHAT_REPORT_ACTIONS['1']);
                 });
                 it('returns correct report action which is a split bill and has an error', async () => {
@@ -1634,17 +1648,18 @@ describe('DebugUtils', () => {
                     };
                     const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, mockTransactions, RORY_ACCOUNT_ID, undefined);
                     const {reportAction} =
-                        DebugUtils.getReasonAndReportActionForRBRInLHNRow(
-                            MOCK_CHAT_REPORT,
-                            chatReportR14932,
-                            MOCK_REPORT_ACTIONS,
-                            mockTransactions,
-                            undefined,
-                            false,
+                        DebugUtils.getReasonAndReportActionForRBRInLHNRow({
+                            report: MOCK_CHAT_REPORT,
+                            chatReport: chatReportR14932,
+                            reportActions: MOCK_REPORT_ACTIONS,
+                            transactions: mockTransactions,
+                            transactionViolations: undefined,
+                            hasViolations: false,
                             reportErrors,
-                            false,
-                            12345,
-                        ) ?? {};
+                            isOffline: false,
+                            currentUserAccountID: 12345,
+                            policy: undefined,
+                        }) ?? {};
                     expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['3']);
                 });
             });
@@ -1692,19 +1707,20 @@ describe('DebugUtils', () => {
                 };
                 const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, sharedAllTransactions, RORY_ACCOUNT_ID, undefined);
                 const {reportAction} =
-                    DebugUtils.getReasonAndReportActionForRBRInLHNRow(
-                        {
+                    DebugUtils.getReasonAndReportActionForRBRInLHNRow({
+                        report: {
                             reportID: '1',
                         },
-                        chatReportR14932,
-                        MOCK_REPORT_ACTIONS,
-                        sharedAllTransactions,
-                        undefined,
-                        false,
+                        chatReport: chatReportR14932,
+                        reportActions: MOCK_REPORT_ACTIONS,
+                        transactions: sharedAllTransactions,
+                        transactionViolations: undefined,
+                        hasViolations: false,
                         reportErrors,
-                        false,
-                        RORY_ACCOUNT_ID,
-                    ) ?? {};
+                        isOffline: false,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        policy: undefined,
+                    }) ?? {};
                 expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['1']);
             });
         });
@@ -1732,52 +1748,55 @@ describe('DebugUtils', () => {
 
                 const reportErrors = getAllReportErrors(mockedReport, mockedReportActions, sharedAllTransactions, RORY_ACCOUNT_ID, undefined);
                 const {reason} =
-                    DebugUtils.getReasonAndReportActionForRBRInLHNRow(
-                        mockedReport,
-                        chatReportR14932,
-                        mockedReportActions,
-                        sharedAllTransactions,
-                        undefined,
-                        false,
+                    DebugUtils.getReasonAndReportActionForRBRInLHNRow({
+                        report: mockedReport,
+                        chatReport: chatReportR14932,
+                        reportActions: mockedReportActions,
+                        transactions: sharedAllTransactions,
+                        transactionViolations: undefined,
+                        hasViolations: false,
                         reportErrors,
-                        false,
-                        RORY_ACCOUNT_ID,
-                    ) ?? {};
+                        isOffline: false,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        policy: undefined,
+                    }) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasErrors');
             });
             it('returns correct reason when there are violations', () => {
                 const {reason} =
-                    DebugUtils.getReasonAndReportActionForRBRInLHNRow(
-                        {
+                    DebugUtils.getReasonAndReportActionForRBRInLHNRow({
+                        report: {
                             reportID: '1',
                         },
-                        chatReportR14932,
-                        undefined,
-                        sharedAllTransactions,
-                        undefined,
-                        true,
-                        {},
-                        false,
-                        RORY_ACCOUNT_ID,
-                    ) ?? {};
+                        chatReport: chatReportR14932,
+                        reportActions: undefined,
+                        transactions: sharedAllTransactions,
+                        transactionViolations: undefined,
+                        hasViolations: true,
+                        reportErrors: {},
+                        isOffline: false,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        policy: undefined,
+                    }) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasViolations');
             });
             it('returns an undefined reason when the report is archived', () => {
                 const {reason} =
-                    DebugUtils.getReasonAndReportActionForRBRInLHNRow(
-                        {
+                    DebugUtils.getReasonAndReportActionForRBRInLHNRow({
+                        report: {
                             reportID: '1',
                         },
-                        chatReportR14932,
-                        undefined,
-                        sharedAllTransactions,
-                        undefined,
-                        true,
-                        {},
-                        false,
-                        RORY_ACCOUNT_ID,
-                        true,
-                    ) ?? {};
+                        chatReport: chatReportR14932,
+                        reportActions: undefined,
+                        transactions: sharedAllTransactions,
+                        transactionViolations: undefined,
+                        hasViolations: true,
+                        reportErrors: {},
+                        isOffline: false,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        policy: undefined,
+                        isArchivedReport: true,
+                    }) ?? {};
                 expect(reason).toBe(undefined);
             });
             it('returns correct reason when there are reports on the expense chat with violations', async () => {
@@ -1832,7 +1851,19 @@ describe('DebugUtils', () => {
                         reportID: '1',
                     }),
                 };
-                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, chatReportR14932, {}, violationTransactions, transactionViolations, false, {}, false, 1234) ?? {};
+                const {reason} =
+                    DebugUtils.getReasonAndReportActionForRBRInLHNRow({
+                        report,
+                        chatReport: chatReportR14932,
+                        reportActions: {},
+                        transactions: violationTransactions,
+                        transactionViolations,
+                        hasViolations: false,
+                        reportErrors: {},
+                        isOffline: false,
+                        currentUserAccountID: 1234,
+                        policy: undefined,
+                    }) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasTransactionThreadViolations');
             });
             it('forwards isOffline through to SidebarUtils so the live IOU transaction-thread receipt error surfaces only when isOffline=false excludes the deleted pending-delete action', () => {
@@ -1892,28 +1923,30 @@ describe('DebugUtils', () => {
                     }),
                 };
 
-                const offline = DebugUtils.getReasonAndReportActionForRBRInLHNRow(
-                    OFFLINE_EXPENSE_REPORT,
-                    OFFLINE_CHAT_REPORT,
-                    OFFLINE_REPORT_ACTIONS,
-                    OFFLINE_TRANSACTIONS,
-                    {},
-                    false,
-                    {},
-                    true,
-                    12345,
-                );
-                const online = DebugUtils.getReasonAndReportActionForRBRInLHNRow(
-                    OFFLINE_EXPENSE_REPORT,
-                    OFFLINE_CHAT_REPORT,
-                    OFFLINE_REPORT_ACTIONS,
-                    OFFLINE_TRANSACTIONS,
-                    {},
-                    false,
-                    {},
-                    false,
-                    12345,
-                );
+                const offline = DebugUtils.getReasonAndReportActionForRBRInLHNRow({
+                    report: OFFLINE_EXPENSE_REPORT,
+                    chatReport: OFFLINE_CHAT_REPORT,
+                    reportActions: OFFLINE_REPORT_ACTIONS,
+                    transactions: OFFLINE_TRANSACTIONS,
+                    transactionViolations: {},
+                    hasViolations: false,
+                    reportErrors: {},
+                    isOffline: true,
+                    currentUserAccountID: 12345,
+                    policy: undefined,
+                });
+                const online = DebugUtils.getReasonAndReportActionForRBRInLHNRow({
+                    report: OFFLINE_EXPENSE_REPORT,
+                    chatReport: OFFLINE_CHAT_REPORT,
+                    reportActions: OFFLINE_REPORT_ACTIONS,
+                    transactions: OFFLINE_TRANSACTIONS,
+                    transactionViolations: {},
+                    hasViolations: false,
+                    reportErrors: {},
+                    isOffline: false,
+                    currentUserAccountID: 12345,
+                    policy: undefined,
+                });
 
                 // Online: deleted pending-delete is skipped → 1 IOU thread → receipt error surfaces.
                 expect(online?.reason).toBe('debug.reasonRBR.hasErrors');

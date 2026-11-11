@@ -4,7 +4,7 @@ import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 
 import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
-import INSIGHTS_DASHBOARD_SPECS, {getVisibleCharts} from '@pages/Insights/dashboardSpecs';
+import INSIGHTS_DASHBOARD_SPECS, {getPoliciesInScope, getVisibleCharts} from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
 import {isRunningTotalAvailable} from '@pages/Insights/insightsGroupByUtils';
@@ -16,7 +16,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {InsightsGraphKey} from '@src/types/onyx';
 
 // Home only shows Spend charts, which also exist as Search menu items
-type HomeInsightGraphKey = Exclude<InsightsGraphKey, typeof CONST.INSIGHTS.GRAPH.VIOLATIONS_OVER_TIME>;
+type HomeInsightGraphKey = Extract<
+    InsightsGraphKey,
+    typeof CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME | typeof CONST.INSIGHTS.GRAPH.TOP_SPENDERS | typeof CONST.INSIGHTS.GRAPH.TOP_MERCHANTS | typeof CONST.INSIGHTS.GRAPH.TOP_CATEGORIES
+>;
 
 type HomeInsightChartSpec = InsightsChartSpec & {graphKey: HomeInsightGraphKey};
 
@@ -54,16 +57,21 @@ function buildInsightConfigFromChart(chart: HomeInsightChartSpec, filters: Insig
  * Builds the configs for the Home insights the current user should see, in display order.
  * The charts and their visibility match the Insights Spend dashboard.
  */
-function useHomeInsightConfigs(): {configs: SearchTypeMenuItem[]; isResolved: boolean; shouldShowRunningTotal: boolean} {
+function useHomeInsightConfigs(): {configs: SearchTypeMenuItem[]; date: InsightsFilters['date']; isResolved: boolean; shouldShowRunningTotal: boolean} {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {filters, isResolved: areFiltersResolved} = useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND);
 
     const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND];
-    const configs = getVisibleCharts([headlineChart, ...supportingCharts], policies, filters.policyIDs, session?.email)
+    const configs = getVisibleCharts([headlineChart, ...supportingCharts], getPoliciesInScope(policies, filters.policyIDs), session?.email)
         .filter(isHomeInsightChart)
         .map((chart) => buildInsightConfigFromChart(chart, filters));
-    return {configs, isResolved: areFiltersResolved, shouldShowRunningTotal: filters.groupBy === INSIGHTS_RUNNING_TOTAL_GROUP_BY && isRunningTotalAvailable(filters.date)};
+    return {
+        configs,
+        date: filters.date,
+        isResolved: areFiltersResolved,
+        shouldShowRunningTotal: filters.groupBy === INSIGHTS_RUNNING_TOTAL_GROUP_BY && isRunningTotalAvailable(filters.date),
+    };
 }
 
 export default useHomeInsightConfigs;
