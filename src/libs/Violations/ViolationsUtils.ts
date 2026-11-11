@@ -81,7 +81,7 @@ type ViolationTranslationParams = {
  * Filters out receiptRequired violation when itemizedReceiptRequired is also present.
  * Itemized receipt requirement supersedes regular receipt requirement.
  */
-function filterReceiptViolations(violations: TransactionViolation[]): TransactionViolation[] {
+function filterReceiptViolations<TViolation extends {name: string}>(violations: TViolation[]): TViolation[] {
     const hasItemizedReceiptViolation = violations.some((v) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
     const hasReceiptRequiredViolation = violations.some((v) => v.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
 
