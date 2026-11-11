@@ -342,6 +342,7 @@ describe('actions/Workflow', () => {
                 policy,
                 currentApprovalWorkflow,
                 personalDetailsByEmail: {},
+                shouldUseApprovalWorkflowRules: false,
             });
             await waitForBatchedUpdates();
 
@@ -349,6 +350,45 @@ describe('actions/Workflow', () => {
             const approvalWorkflow = await getApprovalWorkflowState();
             expect(approvalWorkflow?.approvers.map((approver) => approver?.email)).toEqual([ownerEmail, employee1Email, employee2Email]);
             expect(approvalWorkflow?.approvers.at(1)?.overLimitAmount).toBe(1000);
+        });
+
+        it('should keep the approvers after a picked approver when the workflow uses approval workflow rules', async () => {
+            // Given a rules workflow approved by the owner, then employee2, then employee3, where employee1's employee settings forward to employee2
+            const currentApprovalWorkflow: ApprovalWorkflowOnyx = {
+                ...INITIAL_APPROVAL_WORKFLOW,
+                approvers: [
+                    {email: ownerEmail, displayName: ownerEmail},
+                    {email: employee2Email, displayName: employee2Email},
+                    {email: employee3Email, displayName: employee3Email},
+                ],
+            };
+            await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, currentApprovalWorkflow);
+            const policy = createMock<PolicyType>({
+                id: generatePolicyID(),
+                owner: ownerEmail,
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, role: 'admin', submitsTo: ownerEmail},
+                    [employee1Email]: {email: employee1Email, role: 'user', submitsTo: ownerEmail, forwardsTo: employee2Email},
+                    [employee2Email]: {email: employee2Email, role: 'user', submitsTo: ownerEmail},
+                    [employee3Email]: {email: employee3Email, role: 'user', submitsTo: ownerEmail},
+                },
+            });
+
+            // When employee1 replaces employee2 as the second approver
+            setApprovalWorkflowApprover({
+                approver: {email: employee1Email, displayName: employee1Email},
+                approverIndex: 1,
+                policy,
+                currentApprovalWorkflow,
+                personalDetailsByEmail: {},
+                shouldUseApprovalWorkflowRules: true,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the third approver the admin set up stays, since employee1's employee settings don't decide this workflow's steps
+            const approvalWorkflow = await getApprovalWorkflowState();
+            expect(approvalWorkflow?.approvers.map((approver) => approver?.email)).toEqual([ownerEmail, employee1Email, employee3Email]);
+            expect(calculateApproversMock).not.toHaveBeenCalled();
         });
 
         it('should add an approver at an empty index', async () => {
@@ -385,7 +425,7 @@ describe('actions/Workflow', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            setApprovalWorkflowApprover({approver: newApprover, approverIndex, policy: fakePolicy, currentApprovalWorkflow, personalDetailsByEmail});
+            setApprovalWorkflowApprover({approver: newApprover, approverIndex, policy: fakePolicy, currentApprovalWorkflow, personalDetailsByEmail, shouldUseApprovalWorkflowRules: false});
             await waitForBatchedUpdates();
 
             const approvalWorkflow = await getApprovalWorkflowState();

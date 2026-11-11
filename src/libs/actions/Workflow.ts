@@ -59,6 +59,9 @@ type SetApprovalWorkflowApproverParams = {
     currentApprovalWorkflow: ApprovalWorkflowOnyx | undefined;
     policy: OnyxEntry<Policy>;
     personalDetailsByEmail: OnyxEntry<PersonalDetailsList>;
+
+    /** Whether the workflow saves as approval workflow rules, where each workflow has its own chain rather than the approver's employee settings */
+    shouldUseApprovalWorkflowRules: boolean;
 };
 
 type ClearApprovalWorkflowApproverParams = {
@@ -632,7 +635,7 @@ function setApprovalWorkflowMembers(members: Member[]) {
  * @param approverIndex - The index of the approver to set
  * @param policy - The policy to set the approver for
  */
-function setApprovalWorkflowApprover({approver, approverIndex, currentApprovalWorkflow, policy, personalDetailsByEmail}: SetApprovalWorkflowApproverParams) {
+function setApprovalWorkflowApprover({approver, approverIndex, currentApprovalWorkflow, policy, personalDetailsByEmail, shouldUseApprovalWorkflowRules}: SetApprovalWorkflowApproverParams) {
     if (!currentApprovalWorkflow || !policy?.employeeList || !personalDetailsByEmail) {
         return;
     }
@@ -640,8 +643,9 @@ function setApprovalWorkflowApprover({approver, approverIndex, currentApprovalWo
     const approvers: Array<Approver | undefined> = [...currentApprovalWorkflow.approvers];
     approvers[approverIndex] = approver;
 
-    // Check if the approver forwards to other approvers and add them to the list
-    if (policy.employeeList[approver.email]?.forwardsTo) {
+    // Employee settings decide who approves after the approver in every legacy workflow they're in, so the steps after them follow those settings.
+    // Approval workflow rules give each workflow its own steps, so the ones the admin set up stay.
+    if (!shouldUseApprovalWorkflowRules && policy.employeeList[approver.email]?.forwardsTo) {
         const additionalApprovers = calculateApprovers({employees: policy.employeeList, firstEmail: approver.email, personalDetailsByEmail});
 
         approvers.splice(approverIndex, approvers.length, ...additionalApprovers);

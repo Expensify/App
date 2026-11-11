@@ -210,6 +210,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
             currentApprovalWorkflow: approvalWorkflow,
             policy,
             personalDetailsByEmail,
+            shouldUseApprovalWorkflowRules,
         });
 
         // If this is the change approver route, go back to the Approval Limit page

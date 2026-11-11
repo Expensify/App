@@ -20,6 +20,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
+import useShouldUseApprovalWorkflowRules from '@hooks/useShouldUseApprovalWorkflowRules';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
@@ -70,6 +71,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     const [hasSubmitted, setHasSubmitted] = useState(false);
 
     const policyID = route.params.policyID;
+    const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules(policy);
     const approverIndex = Number(route.params.approverIndex) || 0;
     const isEditFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT;
     // A newly picked approver gets the same steps as in a new workflow, even while an existing workflow is edited
@@ -167,6 +169,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
             currentApprovalWorkflow: approvalWorkflow,
             policy,
             personalDetailsByEmail,
+            shouldUseApprovalWorkflowRules,
         });
         navigateAfterCompletion();
     };
