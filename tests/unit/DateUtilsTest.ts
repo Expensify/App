@@ -1,4 +1,4 @@
-// cspell:ignore Montag Dienstag Freitag Sonntag März Τρίτη Κυριακή Januar grudzień janv styczeń stycznia
+// cspell:ignore Montag Dienstag Freitag Sonntag März Τρίτη Κυριακή Januar Februar grudzień janv styczeń stycznia
 // cspell:ignore Ιανουάριος Ιανουαρίου lundi novembre Δευτέρα Νοεμβρίου -- German, Polish, French and Greek weekday and month
 // names, asserted verbatim so the locale-driven formatters are covered rather than only the English path.
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -70,6 +70,30 @@ describe('DateUtils', () => {
 
     const datetime = '2022-11-07 00:00:00';
     const timezone = 'Atlantic/Reykjavik';
+
+    describe('formatToReadableString', () => {
+        it.each(['', 'unknown-preset', '2026-02-30', '2026-13-01', '2026-11-08T00:00:00.000Z'])('returns an empty label for the invalid calendar date %s', (date) => {
+            // Given an invalid calendar date or a value outside the date-only contract
+            // When it reaches the shared formatter
+            const label = DateUtils.formatToReadableString(date, enUS);
+
+            // Then formatting cannot throw during render or display the unsupported raw value
+            expect(label).toBe('');
+        });
+
+        it('preserves a valid leap day and localized date output', () => {
+            // Given a valid custom day and locales with different component ordering
+            const date = '2024-02-29';
+
+            // When the shared formatter renders the date
+            const english = DateUtils.formatToReadableString(date, enUS);
+            const german = DateUtils.formatToReadableString(date, de);
+
+            // Then the day stays intact and formatting continues to respect each locale
+            expect(english).toBe('February 29, 2024');
+            expect(german).toBe('29. Februar 2024');
+        });
+    });
 
     it('getZoneAbbreviation should show zone abbreviation from the datetime', () => {
         const zoneAbbreviation = DateUtils.getZoneAbbreviation(datetime, timezone, enUS);

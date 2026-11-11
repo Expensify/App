@@ -5,7 +5,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 
 import {convertToDisplayStringWithoutCurrencyForLocale, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {getSections, getSortedTransactionData, isTransactionCategoryGroupListItemType, isTransactionMonthGroupListItemType, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
+import {getDateDisplayValue, getSections, getSortedTransactionData, isTransactionCategoryGroupListItemType, isTransactionMonthGroupListItemType, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
@@ -42,6 +42,52 @@ const buildGroupedQueryJSON = (groupBy: SearchQueryJSON['groupBy'], sortBy: Sear
 };
 
 describe('SearchUIUtils', () => {
+    describe('getDateDisplayValue', () => {
+        it.each(['dateOn', 'dateAfter', 'dateBefore'] as const)('omits an invalid %s without leaving a label prefix', (key) => {
+            // Given a malformed literal date in any of the single-date fields
+            const form: Partial<SearchAdvancedFiltersForm> = {[key]: 'unknown-preset'};
+
+            // When the date label is built during render
+            const label = getDateDisplayValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, form, translate, undefined);
+
+            // Then neither an exception nor a dangling On, After or Before fragment is produced
+            expect(label).toBe('');
+        });
+
+        it('retains valid fragments when another date is invalid', () => {
+            // Given an invalid day alongside a valid lower boundary
+            const form: Partial<SearchAdvancedFiltersForm> = {dateOn: '2026-02-30', dateAfter: '2024-02-29', dateBefore: 'invalid'};
+
+            // When the date label is built
+            const label = getDateDisplayValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, form, translate, undefined);
+
+            // Then only the valid boundary remains, with no extra separators
+            expect(label).toBe('common.after February 29, 2024');
+        });
+
+        it.each(Object.values(CONST.SEARCH.DATE_PRESETS))('translates the recognized preset %s', (preset) => {
+            // Given a known preset, regardless of whether the Insights picker offers it
+            const form: Partial<SearchAdvancedFiltersForm> = {dateOn: preset};
+
+            // When the date label is built
+            const label = getDateDisplayValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, form, translate, undefined);
+
+            // Then the preset uses its translated label rather than calendar-date formatting
+            expect(label).toBe(`search.filters.date.presets.${preset}`);
+        });
+
+        it('continues to display a valid custom day', () => {
+            // Given a valid calendar day
+            const form: Partial<SearchAdvancedFiltersForm> = {dateOn: '2026-11-08'};
+
+            // When the date label is built
+            const label = getDateDisplayValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, form, translate, undefined);
+
+            // Then the existing localized day label is preserved
+            expect(label).toBe('common.on November 8, 2026');
+        });
+    });
+
     describe.each([CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT])('%s filter chip', (key) => {
         it.each([
             {operand: '1200.00 JPY', expected: '1,200 JPY'},
