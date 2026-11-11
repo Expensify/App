@@ -27,4 +27,3 @@ function getDraggedSize(startSize: number, travel: number, {min, max = Infinity,
 }
 
 export default getDraggedSize;
-export type {DraggedSizeSnap};

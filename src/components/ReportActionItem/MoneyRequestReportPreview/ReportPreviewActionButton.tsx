@@ -21,13 +21,14 @@ function ReportPreviewActionButton() {
     const {reportPreviewAction, connectedIntegration} = useReportPreviewActionState();
     const {buttonMaxWidth} = useReportPreviewUIState();
     const {openReportFromPreview} = useReportPreviewActions();
+    const shouldPrioritizeView = reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE_WITH_VIOLATIONS;
 
     const renderPrimaryButton = () => {
         if (reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT) {
             return <SubmitActionButton />;
         }
 
-        if (reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE) {
+        if (reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE || shouldPrioritizeView) {
             return <ApproveActionButton />;
         }
 
@@ -50,6 +51,7 @@ function ReportPreviewActionButton() {
 
     const viewButton = (
         <Button
+            variant={shouldPrioritizeView ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
             // Only flex View when it shares the row with a primary action. A lone View sits in a column with no fixed height, where flex: 1 collapses it on iOS Safari and cuts off the button.
             style={primaryButton ? styles.flex1 : undefined}
             onPress={openReportFromPreview}
@@ -65,8 +67,9 @@ function ReportPreviewActionButton() {
 
     return (
         <View style={[buttonMaxWidth, styles.flex1, styles.flexRow, styles.gap2, styles.reportPreviewActionRow]}>
+            {shouldPrioritizeView && viewButton}
             <View style={[styles.flex1]}>{primaryButton}</View>
-            {viewButton}
+            {!shouldPrioritizeView && viewButton}
         </View>
     );
 }
