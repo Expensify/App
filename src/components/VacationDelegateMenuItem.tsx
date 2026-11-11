@@ -1,6 +1,7 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useVacationDelegatePersonalDetails from '@hooks/useVacationDelegatePersonalDetails';
 
@@ -8,15 +9,18 @@ import getVacationDelegateDisplayName from '@libs/getVacationDelegateDisplayName
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {formatVacationDelegateClearDateTime, getActiveVacationDelegate, getVacationDelegateClearDateTime} from '@libs/VacationDelegateUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import type CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ValueOf} from 'type-fest';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 import MenuItem from './MenuItem';
@@ -76,7 +80,7 @@ function VacationDelegateMenuItemRow({label, displayName, avatar, accountID, log
     );
 }
 
-type VacationDelegateSectionProps = {
+type VacationDelegateSectionProps = WithRequiredSentryLabel & {
     vacationDelegate?: BaseVacationDelegate;
 
     /** Text above the delegate. Defaults to "Vacation delegate" */
@@ -103,7 +107,8 @@ type VacationDelegateSectionProps = {
     onPress: () => void;
 };
 
-function VacationDelegateMenuItemPreset({vacationDelegate, label, timezone, errors, pendingAction, onCloseError, onPress}: VacationDelegateSectionProps) {
+function VacationDelegateMenuItemPreset({vacationDelegate, label, timezone, errors, pendingAction, onCloseError, onPress, sentryLabel}: VacationDelegateSectionProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {timezone: currentUserTimezone} = useCurrentUserPersonalDetails();
@@ -129,7 +134,8 @@ function VacationDelegateMenuItemPreset({vacationDelegate, label, timezone, erro
         >
             {hasVacationDelegate ? (
                 <MenuItem.Root
-                    onPress={callFunctionIfActionIsAllowed(onPress)}
+                    sentryLabel={sentryLabel}
+                    onPress={callIfAuthenticated(onPress, session)}
                     accessibilityLabel={[rowLabel, delegateDisplayName, untilText].filter(Boolean).join(', ')}
                 >
                     <VacationDelegateMenuItemRow
@@ -143,6 +149,7 @@ function VacationDelegateMenuItemPreset({vacationDelegate, label, timezone, erro
                 </MenuItem.Root>
             ) : (
                 <MenuItemField
+                    sentryLabel={sentryLabel}
                     name={rowLabel}
                     onPress={onPress}
                 />

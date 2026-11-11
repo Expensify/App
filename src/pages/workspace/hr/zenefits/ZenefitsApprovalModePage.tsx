@@ -26,6 +26,7 @@ function ZenefitsApprovalModePage({
 
     const config: HRApprovalModeProviderConfig<ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE>> = {
         testID: 'ZenefitsApprovalModePage',
+        saveSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.HR.APPROVAL_MODE_SAVE.ZENEFITS,
         isConnected: isZenefitsConnected,
         approvalModes: CONST.ZENEFITS.APPROVAL_MODE,
         getCurrentApprovalMode: (policy) => policy?.connections?.zenefits?.config?.approvalMode ?? undefined,

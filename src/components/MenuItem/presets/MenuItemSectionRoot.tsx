@@ -14,7 +14,7 @@ type MenuItemSectionRootProps = MenuItemRootProps & {
 };
 
 /** A `MenuItem.Root` that spans the full width of a `Section`, ignoring the section's own horizontal padding */
-function MenuItemSectionRoot({children, onPress, isDisabled = false, sentryLabel, testID, accessibilityLabel, ref}: MenuItemSectionRootProps) {
+function MenuItemSectionRoot({children, onPress, isDisabled = false, sentryLabel, testID, accessibilityLabel, style, ref}: MenuItemSectionRootProps) {
     const {cardEdgeToEdge, cardMenuItemInset} = useLayoutSpacing();
 
     return (
@@ -28,6 +28,7 @@ function MenuItemSectionRoot({children, onPress, isDisabled = false, sentryLabel
                 sentryLabel={sentryLabel}
                 testID={testID}
                 accessibilityLabel={accessibilityLabel}
+                style={style}
             >
                 <View style={cardMenuItemInset}>{children}</View>
             </MenuItemRoot>

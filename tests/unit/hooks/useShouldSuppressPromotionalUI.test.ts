@@ -19,7 +19,7 @@ import type {UseOnyxResult} from 'react-native-onyx';
 import {emailSelector} from '@selectors/Session';
 
 // The SESSION/ACCOUNT selector mapping is covered by tests/unit/selectors/SessionTest.ts and AccountTest.ts,
-// so here we mock useOnyx to exercise the hook's own logic: combining the booleans and failing closed while loading.
+// so here we mock useOnyx to exercise the hook's own logic: combining the booleans.
 jest.mock('@hooks/useOnyx', () => jest.fn());
 jest.mock('@hooks/useRootNavigationState', () => jest.fn());
 jest.mock('@components/InitialURLContextProvider', () => ({
@@ -81,22 +81,6 @@ describe('useShouldSuppressPromotionalUI', () => {
         mockedUseOnyx.mockReset();
         mockedUseRootNavigationState.mockReset();
         mockedUseInitialURLState.mockReset();
-    });
-
-    it('fails closed (returns true) while SESSION is still loading', () => {
-        mockUseOnyx([false, {status: 'loading'}], [false, LOADED]);
-
-        const {result} = renderHook(() => useShouldSuppressPromotionalUI());
-
-        expect(result.current).toBe(true);
-    });
-
-    it('fails closed (returns true) while ACCOUNT is still loading', () => {
-        mockUseOnyx([false, LOADED], [false, {status: 'loading'}]);
-
-        const {result} = renderHook(() => useShouldSuppressPromotionalUI());
-
-        expect(result.current).toBe(true);
     });
 
     it('returns false for a loaded regular (non-supportal, non-copilot) session', () => {

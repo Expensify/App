@@ -3,7 +3,6 @@ import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -14,12 +13,12 @@ import Navigation from '@navigation/Navigation';
 
 import {shouldSwitchLocationsToReportFields} from '@pages/workspace/accounting/qbo/utils';
 import {getQuickbooksOnlineIntegrationName, isIntuitEnterpriseSuiteConnection} from '@pages/workspace/accounting/utils';
-import {getAccountingSettingsRoute} from '@pages/workspace/connections/utils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React, {useEffect} from 'react';
 
@@ -29,6 +28,7 @@ type QBOSectionType = {
     action: () => void;
     title: string;
     subscribedSettings: [string];
+    sentryLabel: SentryLabel;
 };
 
 function QuickbooksImportPage({policy}: WithPolicyProps) {
@@ -36,7 +36,6 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
     const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {syncClasses, syncCustomers, syncLocations, syncItems, syncTax, syncCustomDimensions, pendingFields, errorFields} = qboConfig ?? {};
     const isIntuitEnterpriseSuite = isIntuitEnterpriseSuiteConnection(policy);
@@ -54,6 +53,7 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
         {
             key: CONST.QUICKBOOKS_CONFIG.ENABLE_NEW_CATEGORIES,
             description: translate('workspace.accounting.accounts'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.IMPORT_ROW.ACCOUNTS,
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS.getRoute(policyID)),
             title: translate('workspace.accounting.importAsCategory'),
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.ENABLE_NEW_CATEGORIES],
@@ -61,6 +61,7 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
         {
             key: CONST.QUICKBOOKS_CONFIG.SYNC_CLASSES,
             description: translate('workspace.qbo.classes'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.IMPORT_ROW.CLASSES,
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES.getRoute(policyID)),
             title: translate(`workspace.accounting.importTypes.${syncClasses ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`),
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.SYNC_CLASSES],
@@ -69,6 +70,7 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
             ? customDimensions.map<QBOSectionType>((dimension) => ({
                   key: dimension.id,
                   description: dimension.label,
+                  sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.IMPORT_ROW.CUSTOM_DIMENSION,
                   action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOM_DIMENSION.getRoute(policyID, dimension.id)),
                   title: translate(`workspace.accounting.importTypes.${syncCustomDimensions?.[dimension.id] ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`),
                   subscribedSettings: [`${CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOM_DIMENSIONS}_${dimension.id}`],
@@ -77,6 +79,7 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
         {
             key: CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS,
             description: translate('workspace.qbo.customers'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.IMPORT_ROW.CUSTOMERS,
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS.getRoute(policyID)),
             title: translate(`workspace.accounting.importTypes.${syncCustomers ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`),
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS],
@@ -84,6 +87,7 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
         {
             key: CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS,
             description: translate('workspace.qbo.locations'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.IMPORT_ROW.LOCATIONS,
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS.getRoute(policyID)),
             title: translate(`workspace.accounting.importTypes.${syncLocations ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`),
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS],
@@ -91,6 +95,7 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
         {
             key: CONST.QUICKBOOKS_CONFIG.SYNC_ITEMS,
             description: translate('workspace.qbo.items'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.IMPORT_ROW.ITEMS,
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_ITEMS.getRoute(policyID)),
             title: translate(syncItems ? 'workspace.accounting.imported' : 'workspace.accounting.notImported'),
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.SYNC_ITEMS],
@@ -101,6 +106,7 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
         sections.push({
             key: CONST.QUICKBOOKS_CONFIG.SYNC_TAX,
             description: translate('workspace.accounting.taxes'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.IMPORT_ROW.TAXES,
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TAXES.getRoute(policyID)),
             title: translate(syncTax ? 'workspace.accounting.imported' : 'workspace.accounting.notImported'),
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.SYNC_TAX],
@@ -109,7 +115,7 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
-            onBackButtonPress={() => Navigation.goBack(getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled, policyID))}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))}
             displayName="QuickbooksImportPage"
             headerTitle="workspace.accounting.import"
             title="workspace.qbo.importDescription"
@@ -127,6 +133,7 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
                     pendingAction={PolicyUtils.settingsPendingAction(section.subscribedSettings, pendingFields)}
                 >
                     <MenuItemField
+                        sentryLabel={section.sentryLabel}
                         name={section.description}
                         onPress={section.action}
                         value={section.title}

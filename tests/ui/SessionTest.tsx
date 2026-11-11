@@ -153,7 +153,7 @@ describe('Deep linking', () => {
 
     afterEach(async () => {
         if (lastVisitedPathConnectionID) {
-            Onyx.disconnect(lastVisitedPathConnectionID);
+            lastVisitedPathConnectionID.unsubscribe();
             lastVisitedPathConnectionID = undefined;
         }
         cleanup();
@@ -608,7 +608,7 @@ describe('signInWithShortLivedAuthToken', () => {
             },
         });
         await waitForBatchedUpdates();
-        Onyx.disconnect(connectionID);
+        connectionID.unsubscribe();
 
         // Guard is already set even though getDeviceInfoWithID (and thus the redeem's optimisticData) has NOT resolved.
         expect(isAuthenticating).toBe(true);

@@ -3,9 +3,6 @@ import {useInitialURLState} from '@components/InitialURLContextProvider';
 import {isLoggingInAsNewUser} from '@libs/SessionUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {NavigationState} from '@react-navigation/native';
 
@@ -22,19 +19,13 @@ const isTransitionScreenOnTopSelector = (state: NavigationState | undefined) => 
  * Returns true when promo, training, and onboarding UI should be hidden (supportal or copilot session, or a transition
  * link for another account waiting for the user to confirm the switch).
  * Each subscription is narrowed to the derived boolean so consumers only re-render when suppression actually changes.
- * Fails closed: while SESSION or ACCOUNT is still loading we suppress, so a supportal/copilot session is never briefly
- * treated as a normal one (e.g. a copilot could otherwise be reset into onboarding before delegatedAccess.delegate loads).
  */
 function useShouldSuppressPromotionalUI(): boolean {
-    const [isSupportalSession = false, sessionMetadata] = useOnyx(ONYXKEYS.SESSION, {selector: isSupportalSessionSelector});
-    const [isActingAsDelegate = false, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
+    const [isSupportalSession = false] = useOnyx(ONYXKEYS.SESSION, {selector: isSupportalSessionSelector});
+    const [isActingAsDelegate = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const {initialURL} = useInitialURLState();
     const isTransitionScreenOnTop = useRootNavigationState(isTransitionScreenOnTopSelector);
-
-    if (isLoadingOnyxValue(sessionMetadata, accountMetadata)) {
-        return true;
-    }
 
     // Promotional UI opened while the "Switch accounts?" prompt waits would sit next to it, for an account the user may be
     // about to leave. The launch URL is read rather than the current one because in-app navigation does not change it.

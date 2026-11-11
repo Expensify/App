@@ -7,6 +7,7 @@ import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
+import {isBillPayHistoryAction} from '@libs/BillPayReportActionUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     getDelegateAccountIDFromReportAction,
@@ -14,6 +15,7 @@ import {
     getHumanAgentFirstName,
     getOriginalMessage,
     getReportActionActorAccountID,
+    isDeletedReportPreviewWithError,
     isMoneyRequestAction,
 } from '@libs/ReportActionsUtils';
 import {
@@ -34,8 +36,9 @@ import {buildUserIcon} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {getStableReportSelector} from '@src/selectors/Report';
-import {getReportActionByIDSelector} from '@src/selectors/ReportAction';
+import {getBillProcessorAccountIDSelector, getReportActionByIDSelector} from '@src/selectors/ReportAction';
 import {pendingDeleteMemberAccountIDsSelector} from '@src/selectors/ReportMetaData';
+import {isLinkedToBillSelector} from '@src/selectors/ReportNameValuePairs';
 import type {InvitedEmailsToAccountIDs, OnyxInputOrEntry, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 
@@ -86,7 +89,9 @@ function useReportActionAvatars({
     const [reportChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {selector: getStableReportSelector});
 
     const chatReport = isReportAChatReport ? report : reportChatReport;
-    const iouReport = isReportAChatReport ? undefined : report;
+    // A failed payment restores the deleted report in Onyx, which would swap this row's actor. Resolve from the chat.
+    const isADeletedReportPreview = isDeletedReportPreviewWithError(passedAction);
+    const iouReport = isReportAChatReport || isADeletedReportPreview ? undefined : report;
 
     const [chatReportPendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(chatReport?.reportID)}`, {
         selector: pendingDeleteMemberAccountIDsSelector,
@@ -134,7 +139,21 @@ function useReportActionAvatars({
 
     const delegateAccountID = getDelegateAccountIDFromReportAction(action);
     const delegatePersonalDetails = delegateAccountID ? personalDetails?.[delegateAccountID] : undefined;
-    const actorAccountID = getReportActionActorAccountID(action, iouReport, chatReport, delegatePersonalDetails, shouldUseRealActor);
+    const [isInvoiceLinkedToBill = false] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(isInvoiceReport(iouReport) ? iouReport?.reportID : undefined)}`,
+        {
+            selector: isLinkedToBillSelector,
+        },
+    );
+    const isBillPayHistory = isBillPayHistoryAction(action, iouReport, isInvoiceLinkedToBill);
+    const [billProcessorAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(isBillPayHistory ? iouReport?.reportID : undefined)}`, {
+        selector: getBillProcessorAccountIDSelector,
+    });
+
+    const actorAccountID = getReportActionActorAccountID(action, iouReport, chatReport, delegatePersonalDetails, shouldUseRealActor, {
+        isInvoiceLinkedToBill,
+        processorAccountID: billProcessorAccountID,
+    });
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(action);
 
     const isAInvoiceReport = isInvoiceReport(iouReport ?? null);
@@ -197,7 +216,8 @@ function useReportActionAvatars({
     const isReportPreviewInTripRoom = isAReportPreviewAction && isATripRoom;
 
     // We want to display only the sender's avatar next to the report preview if it only contains one person's expenses.
-    const displayAllActors = isAReportPreviewAction && !isATripRoom && !isAWorkspaceChat && !reportPreviewSenderID;
+    // A deleted report has no second actor left to name.
+    const displayAllActors = isAReportPreviewAction && !isATripRoom && !isAWorkspaceChat && !reportPreviewSenderID && !isADeletedReportPreview;
 
     const shouldUseAccountIDs = accountIDs.length > 0;
     const shouldShowAllActors = displayAllActors && !reportPreviewSenderID;
@@ -242,21 +262,20 @@ function useReportActionAvatars({
     const useNearestReportAvatars = (!accountID || !action) && accountIDs.length === 0;
 
     const getIconsWithDefaults = (onyxReport: OnyxInputOrEntry<Report>) =>
-        getIcons(
-            onyxReport,
+        getIcons({
+            report: onyxReport,
             formatPhoneNumber,
             translate,
             personalDetails,
-            avatar ?? fallbackIcon ?? defaultAvatars.FallbackAvatar,
-            defaultDisplayName,
-            accountID,
+            defaultIcon: avatar ?? fallbackIcon ?? defaultAvatars.FallbackAvatar,
+            defaultName: defaultDisplayName,
+            defaultAccountID: accountID,
             policy,
             invoiceReceiverPolicy,
-            false,
             // Only a chat report can be a group chat, the other reports passed here (IOU/invoice) never need it.
-            onyxReport?.reportID === chatReport?.reportID ? chatReportPendingDeleteMemberAccountIDs : undefined,
+            pendingDeleteMemberAccountIDs: onyxReport?.reportID === chatReport?.reportID ? chatReportPendingDeleteMemberAccountIDs : undefined,
             conciergeReportID,
-        );
+        });
 
     const reportIcons = getIconsWithDefaults(chatReport?.reportID ? chatReport : iouReport);
 
@@ -364,6 +383,12 @@ function useReportActionAvatars({
         avatars = [firstAvatar, policyChatReportIcon];
     }
 
+    // Intake history credits Concierge even when personal details are missing or still use the account's email as its name.
+    if (isBillPayHistory && actorAccountID === CONST.ACCOUNT_ID.CONCIERGE) {
+        avatars = [{id: actorAccountID, type: CONST.ICON_TYPE_AVATAR, source: defaultAvatars.ConciergeAvatar, name: CONST.CONCIERGE_DISPLAY_NAME}];
+        avatarType = CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE;
+    }
+
     // When a human Concierge agent reveals themselves, show a subscript avatar
     // with Concierge as the main avatar and the agent as the secondary avatar
     if (humanAgentAccountID && avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE) {
@@ -382,16 +407,22 @@ function useReportActionAvatars({
         }
     }
 
+    // A deleted preview shows the chat's actor, so read its details from there too. Otherwise the row pairs one
+    // person's name with another's status and hint.
+    const displayedAccountID = isADeletedReportPreview ? Number(avatars.at(0)?.id) || accountID : accountID;
+    const displayedPersonalDetails = personalDetails?.[displayedAccountID];
+    const displayedActorHint = isADeletedReportPreview ? (displayedPersonalDetails?.login ?? avatars.at(0)?.name ?? '') : login || defaultDisplayName || fallbackDisplayName;
+
     return {
         avatars,
         avatarType,
         details: {
-            ...(personalDetails?.[accountID] ?? {}),
+            ...(displayedPersonalDetails ?? {}),
             shouldDisplayAllActors: displayAllActors,
             isWorkspaceActor,
             shouldUseConciergeAvatar,
-            actorHint: String(shouldUsePrimaryAvatarID ? primaryAvatar.id : login || defaultDisplayName || fallbackDisplayName).replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
-            accountID,
+            actorHint: String(shouldUsePrimaryAvatarID ? primaryAvatar.id : displayedActorHint).replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
+            accountID: displayedAccountID,
             delegateAccountID: !isWorkspaceActor && !!delegateAccountID ? actorAccountID : undefined,
             humanAgentAccountID,
         },

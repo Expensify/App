@@ -13,6 +13,7 @@ import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUnreadMarker from '@hooks/useUnreadMarker';
 
+import {isBillPayReport, shouldKeepBillPayActorHeader} from '@libs/BillPayReportActionUtils';
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -43,10 +44,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {getStableReportSelector} from '@src/selectors/Report';
 import {pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
+import {isLinkedToBillSelector} from '@src/selectors/ReportNameValuePairs';
 import type * as OnyxTypes from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {LayoutChangeEvent} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {getCustomAgentAccountIDs} from '@selectors/AgentZeroChat';
@@ -78,6 +81,15 @@ type MoneyRequestReportActionsListContentProps = MoneyRequestReportListProps & {
     /** The reportID from the route, keying the content per report */
     reportIDFromRoute: string | undefined;
 };
+
+function reportNameValuePairsSelector(reportNameValuePairs: OnyxEntry<OnyxTypes.ReportNameValuePairs>) {
+    return {
+        origin: reportNameValuePairs?.origin,
+        originalID: reportNameValuePairs?.originalID,
+        billID: reportNameValuePairs?.billID,
+        conciergeFeedbackForReportActionID: reportNameValuePairs?.conciergeFeedbackForReportActionID,
+    };
+}
 
 /**
  * Renders the money-request report's unified list (transactions table + report actions). Composes the
@@ -141,15 +153,18 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
 
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`, {
+        selector: reportNameValuePairsSelector,
+    });
     const shouldShowHarvestCreatedAction = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
+    const isInvoiceLinkedToBill = isLinkedToBillSelector(reportNameValuePairs);
 
     const {visibleReportActions, visibleReportActionsNewestFirst, lastAction, firstVisibleReportActionID} = useMoneyRequestReportVisibleActions({
         reportID,
         reportActions,
         reportTransactionIDs,
         canPerformWriteAction: !!canPerformWriteAction,
-        shouldShowHarvestCreatedAction,
+        shouldShowCreatedAction: shouldShowHarvestCreatedAction || isBillPayReport(reportStable, isInvoiceLinkedToBill),
         isOffline,
         isWaitingOnBankAccount: !!report?.isWaitingOnBankAccount,
     });
@@ -250,6 +265,20 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         fullPolicySnapshot: report?.policyID && fullPolicySnapshotLastModified ? {policyID: report.policyID, lastModified: fullPolicySnapshotLastModified} : undefined,
     });
 
+    const [editScrollRequestID, setEditScrollRequestID] = useState(0);
+    const completedEditScrollRequestIDRef = useRef(0);
+    const requestScrollToNewestAfterEdit = () => {
+        // Force a layout commit even when closing the editor leaves the row's height unchanged.
+        setEditScrollRequestID((requestID) => requestID + 1);
+    };
+    const onCommitLayoutEffect = () => {
+        if (editScrollRequestID <= completedEditScrollRequestIDRef.current) {
+            return;
+        }
+        completedEditScrollRequestIDRef.current = editScrollRequestID;
+        scrollToBottom();
+    };
+
     // Wait for the actions to arrive before jumping, and clear the route param afterwards so a later remount
     // doesn't yank the user back down.
     useEffect(() => {
@@ -267,15 +296,17 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         const previousReportAction = indexWithinReportActions > 0 ? displayReportActions.at(indexWithinReportActions - 1) : undefined;
         const previousRun = previousReportAction ? runsByAnchorReportActionID.get(previousReportAction.reportActionID) : undefined;
         const isAfterCollapsedRun = indexWithinReportActions > 0 && !!previousRun && !previousRun.isExpanded;
+
         const displayAsGroup =
             !isAfterCollapsedRun &&
+            !shouldKeepBillPayActorHeader(reportAction, previousReportAction, reportStable, isInvoiceLinkedToBill) &&
             !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, canonicalIndex, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
             hasNextActionMadeBySameActor(visibleReportActions, canonicalIndex, isOffline);
         const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
         const isNewestReportAction = indexWithinReportActions === displayReportActions.length - 1;
 
         return (
-            <ReportActionScrollToNewestContext.Provider value={scrollToBottom}>
+            <ReportActionScrollToNewestContext.Provider value={requestScrollToNewestAfterEdit}>
                 <ReportActionPositionContextProvider
                     index={indexWithinReportActions}
                     isNewest={isNewestReportAction}
@@ -411,6 +442,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                         onLastItemIndexChange={updateLastItemIndex}
                         accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                         onListLayout={onListLayout}
+                        onCommitLayoutEffect={onCommitLayoutEffect}
                         onScroll={trackVerticalScrolling}
                         onScrollBeginDrag={onListScrollBeginDrag}
                         onContentSizeChange={onListContentSizeChange}
@@ -421,7 +453,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                         contentContainerStyle={[styles.pt5, shouldReserveBulkActionBarSpace && styles.bulkActionBarListSpacing]}
                         isLoadingInitialActions={isInitialReportLoadPending}
                         /* This list is not inverted, so the footer is the bottom of the message feed —
-                           the same position the indicator occupies in the inverted ReportActionsList. */
+                           the same position the indicator occupies in ReportActionsList. */
                         listFooterComponent={<ConciergeThinkingMessage reportID={report.reportID} />}
                     />
                 )}
