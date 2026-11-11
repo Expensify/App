@@ -2,6 +2,7 @@ import BookTravelButton from '@components/BookTravelButton';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import type {EmptyStateButton, HeaderMedia} from '@components/EmptyStateComponent/types';
 import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
+import {useRegisterSearchScrollView, useSearchListScrollLockStyle} from '@components/Search/SearchListScrollLockContext';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
@@ -25,10 +26,10 @@ import {startTestDrive} from '@libs/actions/Tour';
 import DateUtils from '@libs/DateUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import {canSendInvoice} from '@libs/PolicyUtils';
+import {canSendInvoice, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
+import {TODO_SEARCH_KEYS} from '@libs/SearchKeyUtils';
 import {getAllPolicyValues, getFilterFromQuery, isDefaultExpenseReportsQuery, isDefaultExpensesQuery, isSearchBeforeViolationsSnapshotStarted} from '@libs/SearchQueryUtils';
-import {TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -47,6 +48,7 @@ import React from 'react';
 import {Linking, View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
+import SearchResetFiltersButton from './SearchResetFiltersButton';
 import useSearchEmptyStateIllustration from './useSearchEmptyStateIllustration';
 
 type EmptySearchViewProps = {
@@ -131,15 +133,21 @@ function EmptySearchViewContent({
     onScroll,
     contentContainerStyle,
 }: EmptySearchViewContentProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate, dateFnsLocale} = useLocalize();
     const timezone = useCurrentTimezone();
     const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
     const tabRootScrollProps = useTabRootScrollProps([styles.flexGrow1, styles.flexShrink0, contentContainerStyle], {fillsVisibleArea: true});
+    const scrollLockStyle = useSearchListScrollLockStyle();
+    const scrollViewRef = useRegisterSearchScrollView();
 
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateTravel']);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    // With the travelApproval beta, Book a trip shows once the workspace is set up in Spotnana, like the other Book travel entry points.
+    // Without the beta, it keeps showing whenever the Travel switch is on.
+    const shouldShowBookTrip = isBetaEnabled(CONST.BETAS.TRAVEL_APPROVAL) ? isWorkspaceProvisionedForTravel(activePolicy?.travelSettings) : !!activePolicy?.isTravelEnabled;
     const {getCurrencyDecimals} = useCurrencyListActions();
     // A new report has no expenses yet, so it can't have violations.
     const hasViolations = false;
@@ -194,13 +202,20 @@ function EmptySearchViewContent({
     const handleCreateMoneyRequest = (iouType: typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE) => {
         interceptAnonymousUser(() => {
             startMoneyRequest(iouType, generateReportID(), draftTransactionIDs);
-        });
+        }, session);
     };
 
     const typeMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
 
     // Default 'Folder' illustration styles
     const defaultViewItemHeader = useSearchEmptyStateIllustration();
+
+    const getEmptyResultsContent = (): EmptySearchViewItem => ({
+        ...defaultViewItemHeader.folder,
+        title: translate('search.searchResults.emptyResults.title'),
+        subtitle: translate('search.searchResults.emptyResults.subtitle'),
+        children: <SearchResetFiltersButton />,
+    });
 
     const startTestDriveAction = () => {
         startTestDrive();
@@ -233,6 +248,7 @@ function EmptySearchViewContent({
                         ...button,
                         buttonText: translate(button.buttonText),
                     })),
+                    children: menuItem.emptyState.shouldShowResetFilters ? <SearchResetFiltersButton /> : undefined,
                 };
                 break;
             }
@@ -260,10 +276,11 @@ function EmptySearchViewContent({
                             {translate('travel.toLearnMore')}
                         </Text>
                     ),
-                    children: activePolicy?.isTravelEnabled ? (
+                    children: shouldShowBookTrip ? (
                         <View style={[styles.mt6, styles.alignSelfCenter]}>
                             <SearchScopeProvider isOnSearch={false}>
                                 <BookTravelButton
+                                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.EMPTY_STATE.BOOK_TRAVEL}
                                     text={translate('search.searchResults.emptyTripResults.buttonText')}
                                     activePolicyID={activePolicy?.id}
                                 />
@@ -274,17 +291,9 @@ function EmptySearchViewContent({
                 break;
             case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
                 if (!isFilteredWorkspaceAccessible) {
-                    content = {
-                        ...defaultViewItemHeader.folder,
-                        title: translate('search.searchResults.emptyResults.title'),
-                        subtitle: translate('search.searchResults.emptyResults.subtitle'),
-                    };
+                    content = getEmptyResultsContent();
                 } else if (hasResults && (!queryJSON || !isDefaultExpenseReportsQuery(queryJSON) || hasExpenseReports)) {
-                    content = {
-                        ...defaultViewItemHeader.folder,
-                        title: translate('search.searchResults.emptyResults.title'),
-                        subtitle: translate('search.searchResults.emptyResults.subtitle'),
-                    };
+                    content = getEmptyResultsContent();
                 } else if (!hasResults || !hasExpenseReports) {
                     content = {
                         ...defaultViewItemHeader.folder,
@@ -295,6 +304,7 @@ function EmptySearchViewContent({
                                 ? [
                                       {
                                           buttonText: translate('emptySearchView.takeATestDrive'),
+                                          sentryLabel: CONST.SENTRY_LABEL.SEARCH.EMPTY_STATE.TAKE_TEST_DRIVE,
                                           buttonAction: startTestDriveAction,
                                       },
                                   ]
@@ -303,6 +313,7 @@ function EmptySearchViewContent({
                                 ? [
                                       {
                                           buttonText: translate('quickAction.createReport'),
+                                          sentryLabel: CONST.SENTRY_LABEL.SEARCH.EMPTY_STATE.CREATE_REPORT,
                                           buttonAction: createReport,
                                           buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                       },
@@ -315,17 +326,9 @@ function EmptySearchViewContent({
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
                 if (!content) {
                     if (!isFilteredWorkspaceAccessible) {
-                        content = {
-                            ...defaultViewItemHeader.folder,
-                            title: translate('search.searchResults.emptyResults.title'),
-                            subtitle: translate('search.searchResults.emptyResults.subtitle'),
-                        };
+                        content = getEmptyResultsContent();
                     } else if (hasResults && (!queryJSON || !isDefaultExpensesQuery(queryJSON) || hasTransactions)) {
-                        content = {
-                            ...defaultViewItemHeader.folder,
-                            title: translate('search.searchResults.emptyResults.title'),
-                            subtitle: translate('search.searchResults.emptyResults.subtitle'),
-                        };
+                        content = getEmptyResultsContent();
                     } else if (!hasResults || !hasTransactions) {
                         content = {
                             ...defaultViewItemHeader.expenses,
@@ -336,12 +339,14 @@ function EmptySearchViewContent({
                                     ? [
                                           {
                                               buttonText: translate('emptySearchView.takeATestDrive'),
+                                              sentryLabel: CONST.SENTRY_LABEL.SEARCH.EMPTY_STATE.TAKE_TEST_DRIVE,
                                               buttonAction: startTestDriveAction,
                                           },
                                       ]
                                     : []),
                                 {
                                     buttonText: translate('iou.createExpense'),
+                                    sentryLabel: CONST.SENTRY_LABEL.SEARCH.EMPTY_STATE.CREATE_EXPENSE,
                                     buttonAction: () => handleCreateMoneyRequest(CONST.IOU.TYPE.CREATE),
                                     buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                 },
@@ -371,6 +376,7 @@ function EmptySearchViewContent({
                                 ? [
                                       {
                                           buttonText: translate('emptySearchView.takeATestDrive'),
+                                          sentryLabel: CONST.SENTRY_LABEL.SEARCH.EMPTY_STATE.TAKE_TEST_DRIVE,
                                           buttonAction: startTestDriveAction,
                                       },
                                   ]
@@ -379,6 +385,7 @@ function EmptySearchViewContent({
                                 ? [
                                       {
                                           buttonText: translate('workspace.invoices.sendInvoice'),
+                                          sentryLabel: CONST.SENTRY_LABEL.SEARCH.EMPTY_STATE.SEND_INVOICE,
                                           buttonAction: () => handleCreateMoneyRequest(CONST.IOU.TYPE.INVOICE),
                                           buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                       },
@@ -392,11 +399,7 @@ function EmptySearchViewContent({
             case CONST.SEARCH.DATA_TYPES.CHAT:
             default:
                 if (!content) {
-                    content = {
-                        ...defaultViewItemHeader.folder,
-                        title: translate('search.searchResults.emptyResults.title'),
-                        subtitle: translate('search.searchResults.emptyResults.subtitle'),
-                    };
+                    content = getEmptyResultsContent();
                 }
                 break;
         }
@@ -404,16 +407,14 @@ function EmptySearchViewContent({
 
     // Fallback to default content if somehow not set (should never happen in practice)
     if (!content) {
-        content = {
-            ...defaultViewItemHeader.folder,
-            title: translate('search.searchResults.emptyResults.title'),
-            subtitle: translate('search.searchResults.emptyResults.subtitle'),
-        };
+        content = getEmptyResultsContent();
     }
 
     return (
         <Animated.ScrollView
+            ref={scrollViewRef}
             showsVerticalScrollIndicator={false}
+            style={scrollLockStyle}
             {...tabRootScrollProps}
             scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
             onScroll={onScroll}

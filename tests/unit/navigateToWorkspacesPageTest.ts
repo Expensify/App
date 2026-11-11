@@ -5,6 +5,7 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import * as PolicyUtils from '@libs/PolicyUtils';
 
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -38,7 +39,7 @@ const mockedDispatch = jest.mocked(navigationRef.dispatch);
 
 const fakePolicyID = '344559B2CCF2B6C1';
 const mockPolicy = {...createRandomPolicy(0), id: fakePolicyID};
-const baseParams = {currentUserLogin: 'test@example.com', shouldUseNarrowLayout: false, policy: mockPolicy};
+const baseParams = {currentUserLogin: 'test@example.com', shouldUseNarrowLayout: false, policy: mockPolicy, session: undefined};
 
 const TAB_NAV_STATE_KEY = 'tab-nav-key-123';
 const tabNavigatorRoute = {
@@ -230,5 +231,21 @@ describe('navigateToWorkspacesPage', () => {
         });
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACES_LIST.route);
+    });
+
+    it('passes the session to interceptAnonymousUser', () => {
+        // Given an anonymous session passed in, which interceptAnonymousUser uses to decide whether to redirect to sign in
+        const session = {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS};
+
+        // When navigating to the Workspaces page from another tab
+        navigateToWorkspacesPage({
+            ...baseParams,
+            session,
+            lastTabNavigatorRoute: {name: NAVIGATORS.TAB_NAVIGATOR},
+            lastWorkspacesTabNavigatorRoute: undefined,
+        });
+
+        // Then the passed session is forwarded to interceptAnonymousUser
+        expect(interceptAnonymousUser).toHaveBeenCalledWith(expect.any(Function), session);
     });
 });

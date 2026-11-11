@@ -50,7 +50,6 @@ import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {Ref} from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import lodashPick from 'lodash/pick';
@@ -117,16 +116,17 @@ type ParticipantSearchResultsProps = {
     /** Whether to find the participant matching initiallySelectedReportID and move it to the top of the list */
     shouldMoveSelectedToTop?: boolean;
 
-    onRestrictedParticipantSelected?: () => void;
-
-    /** Callback to dismiss the participant picker overlay before the referral banner navigates, so the referral RHP isn't covered */
-    onCloseParticipantPicker?: () => void;
-
     /**
      * Called before committing a participant/workspace selection.
      * Return true to block the selection (e.g. manual/odometer distance into a commuter-exclusion workspace).
      */
     shouldBlockParticipantSelection?: (policyID?: string) => boolean;
+
+    /** Whether the import contacts prompt may be shown when the picker opens */
+    shouldShowContactImportPrompt?: boolean;
+
+    /** Whether to hold off focusing the search input, e.g. while the share flow is still checking the shared file */
+    shouldDeferTextInputAutoFocus?: boolean;
 };
 
 function ParticipantSearchResults({
@@ -147,9 +147,9 @@ function ParticipantSearchResults({
     onFinish,
     initiallySelectedReportID,
     shouldMoveSelectedToTop = false,
-    onRestrictedParticipantSelected,
-    onCloseParticipantPicker,
     shouldBlockParticipantSelection,
+    shouldShowContactImportPrompt = true,
+    shouldDeferTextInputAutoFocus = false,
 }: ParticipantSearchResultsProps) {
     const getParticipantOptionKey = (option: Partial<Participant>) => option.reportID ?? option.accountID?.toString() ?? option.login ?? option.phoneNumber ?? '';
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
@@ -178,7 +178,7 @@ function ParticipantSearchResults({
     const reportAttributesDerived = useReportAttributes();
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
-    // When the surrounding ScreenWrapper runs in edge-to-edge mode (e.g. the new manual expense flow's ParticipantPicker),
+    // When the surrounding ScreenWrapper runs in edge-to-edge mode,
     // it does not apply bottom safe area padding itself, so the fixed footer must consume it. Otherwise the footer
     // (referral banner / Next button) renders behind the system navigation bar.
     const screenWrapperStatusContext = useContext(ScreenWrapperStatusContext);
@@ -458,13 +458,20 @@ function ParticipantSearchResults({
     const hasPolicyExpenseChatParticipant = selectedOptions.some((participant) => participant.isPolicyExpenseChat);
     const shouldShowSplitBillErrorMessage = selectedOptions.length > 1 && hasPolicyExpenseChatParticipant;
 
-    const handleConfirmSelection = (keyEvent?: GestureResponderEvent | KeyboardEvent, option?: Participant) => {
-        const shouldAddSingleParticipant = option && !selectedOptions.length;
-        if (shouldShowSplitBillErrorMessage || (!selectedOptions.length && !option)) {
+    const confirmSelection = () => {
+        if (shouldShowSplitBillErrorMessage || !selectedOptions.length) {
             return;
         }
 
-        if (shouldAddSingleParticipant) {
+        onFinish(CONST.IOU.TYPE.SPLIT);
+    };
+
+    const confirmFocusedOption = (option: Participant) => {
+        if (shouldShowSplitBillErrorMessage) {
+            return;
+        }
+
+        if (!selectedOptions.length) {
             addSingleParticipant(option);
             return;
         }
@@ -492,14 +499,13 @@ function ParticipantSearchResults({
                 shouldShowSplitBillErrorMessage={shouldShowSplitBillErrorMessage}
                 shouldShowListEmptyContent={shouldShowListEmptyContent}
                 isDismissedReferralBanner={isDismissedReferralBanner}
-                onConfirmSelection={handleConfirmSelection}
+                onConfirmSelection={confirmSelection}
                 onNewWorkspace={() => onFinish()}
-                onCloseParticipantPicker={onCloseParticipantPicker}
             />
         );
 
     const onSelectRow = (option: Participant) => {
-        const optionPolicyID = option.policyID ?? (option.reportID ? getReportOrDraftReport(option.reportID)?.policyID : undefined);
+        const optionPolicyID = option.policyID ?? (option.reportID ? getReportOrDraftReport({reportID: option.reportID})?.policyID : undefined);
         if (shouldBlockParticipantSelection?.(optionPolicyID)) {
             return;
         }
@@ -511,7 +517,6 @@ function ParticipantSearchResults({
             optionPolicy &&
             shouldRestrictUserBillableActions(optionPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)
         ) {
-            onRestrictedParticipantSelected?.();
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(optionPolicyID));
             return;
         }
@@ -558,7 +563,7 @@ function ParticipantSearchResults({
         label: translate('selectionList.nameEmailOrPhoneNumber'),
         hint: offlineMessage,
         onChangeText: setSearchTerm,
-        disableAutoFocus: !textInputAutoFocus,
+        disableAutoFocus: !textInputAutoFocus || shouldDeferTextInputAutoFocus,
         headerMessage: header,
     };
 
@@ -568,12 +573,14 @@ function ParticipantSearchResults({
         onFocusTextInput: () => {
             setTextInputAutoFocus(true);
         },
+        isEnabled: shouldShowContactImportPrompt,
     });
 
     return (
         <SelectionListWithSections
             confirmButtonOptions={{
-                onConfirm: handleConfirmSelection,
+                onConfirm: confirmSelection,
+                onConfirmFocusedOption: confirmFocusedOption,
                 isFooterConfirmEnabled: selectedOptions.length > 0 || isCategorizeOrShareAction,
                 // Pass the footer Next button's disabled state so Enter falls back to the list when split-bill disables Next;
                 // otherwise Enter can't toggle off the conflicting row.

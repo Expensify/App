@@ -29,6 +29,7 @@ function ChartFrame({isLoading = false, hasData, getLoadingHeight, children}: Ch
         <ChartWidthBox>
             {(chartWidth) => (
                 <ChartReveal
+                    isLoading={isLoading}
                     loadingHeight={getLoadingHeight(chartWidth)}
                     isCardMeasured={chartWidth !== null}
                 >

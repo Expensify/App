@@ -1,5 +1,4 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
@@ -7,7 +6,6 @@ import SelectionListWithSections from '@components/SelectionList/SelectionListWi
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 
-import useAgents from '@hooks/useAgents';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -17,9 +15,11 @@ import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {openAgentsPage} from '@libs/actions/Agent';
 import {setWorkspaceInviteMembersDraft} from '@libs/actions/Policy/Member';
 import {clearErrors, openWorkspaceInvitePage as policyOpenWorkspaceInvitePage} from '@libs/actions/Policy/Policy';
 import {searchUserInServer} from '@libs/actions/Report';
+import {agentAccountIDsSelector} from '@libs/AgentUtils';
 import {READ_COMMANDS} from '@libs/API/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getPlatform from '@libs/getPlatform';
@@ -39,11 +39,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {InvitedEmailsToAccountIDs, Policy} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect, useState} from 'react';
 import {Keyboard} from 'react-native';
@@ -52,12 +49,9 @@ import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 
 type WorkspaceInvitePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE>;
 
-type WorkspaceInvitePageContentProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE> & {
-    policy: OnyxEntry<Policy>;
-    invitedEmailsToAccountIDsDraft: OnyxEntry<InvitedEmailsToAccountIDs>;
-};
-
-function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccountIDsDraft}: WorkspaceInvitePageContentProps) {
+function DynamicWorkspaceInvitePage({route}: WorkspaceInvitePageProps) {
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
+    const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID}`);
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_INVITE.path);
@@ -67,12 +61,17 @@ function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccoun
     const [personalDetails] = useAllPersonalDetails();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
-    const {agents} = useAgents();
-    const agentsAccountIDs = new Set(agents.map(({accountID}) => accountID));
+    const [agentsAccountIDs] = useOnyx(ONYXKEYS.COLLECTION.AGENT, {selector: agentAccountIDsSelector});
 
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails);
         policyOpenWorkspaceInvitePage(route.params.policyID, Object.keys(policyMemberEmailsToAccountIDs));
+
+        // The OpenWorkspaceInvitePage is only returning the policy members
+        // and on deep link the agent_ collection is empty resulting in `agentsWhitelist: []`
+        // making the user unable to invite their agents unless they visit the Agents page first
+        // Will be removed in https://github.com/Expensify/Expensify/issues/694677
+        openAgentsPage();
     };
 
     useEffect(() => {
@@ -141,7 +140,7 @@ function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccoun
             initialSelected,
             initialExtraOptions,
             shouldKeepSelectedInAvailableOptions: true,
-            agentsWhitelist: agentsAccountIDs,
+            agentsWhitelist: new Set(agentsAccountIDs),
         });
 
     let sections: Array<Section<OptionData>>;
@@ -219,6 +218,7 @@ function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccoun
 
     const footerContent = (
         <FormAlertWithSubmitButton
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.INVITE_NEXT}
             isDisabled={!selectedOptions.length}
             isAlertVisible={shouldShowAlertPrompt}
             buttonText={translate('common.next')}
@@ -286,22 +286,6 @@ function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccoun
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
-    );
-}
-
-function DynamicWorkspaceInvitePage(props: WorkspaceInvitePageProps) {
-    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${props.route.params.policyID}`);
-    const [invitedEmailsToAccountIDsDraft, invitedEmailsToAccountIDsDraftMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${props.route.params.policyID}`);
-    const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_INVITE.path);
-    if (isLoadingOnyxValue(policyMetadata, invitedEmailsToAccountIDsDraftMetadata)) {
-        return <FullscreenLoadingIndicator onGoBack={() => Navigation.goBack(dynamicBackPath)} />;
-    }
-    return (
-        <DynamicWorkspaceInvitePageContent
-            {...props}
-            policy={policy}
-            invitedEmailsToAccountIDsDraft={invitedEmailsToAccountIDsDraft}
-        />
     );
 }
 

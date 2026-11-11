@@ -10,7 +10,6 @@ import {addComment, openReport} from '@libs/actions/Report';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, getReportAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
 import {buildOptimisticTransaction, isTimeRequest} from '@libs/TransactionUtils';
@@ -722,12 +721,11 @@ describe('actions/Duplicate', () => {
 
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
             const participantAccountIDs = Object.keys(transactionThreadReport1.participants ?? {}).map(Number);
-            const userLogins = getLoginsByAccountIDs(participantAccountIDs, allPersonalDetails);
             jest.advanceTimersByTime(10);
-            const participants = userLogins.map((login, index) => ({
-                login,
-                accountID: participantAccountIDs.at(index),
-            }));
+            const participants = participantAccountIDs.flatMap((accountID) => {
+                const login = allPersonalDetails?.[accountID]?.login;
+                return login ? [{login, accountID, accountIDForOptimisticData: accountID}] : [];
+            });
             openReport({
                 conciergeChat: undefined,
                 hasReportActions: true,
@@ -768,7 +766,7 @@ describe('actions/Duplicate', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport1.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report).toBeTruthy();
                         resolve();
                     },
@@ -778,7 +776,7 @@ describe('actions/Duplicate', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport2.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report).toBeTruthy();
                         resolve();
                     },
@@ -879,7 +877,7 @@ describe('actions/Duplicate', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport1.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report?.reportID).toBeFalsy();
                         resolve();
                     },
@@ -890,7 +888,7 @@ describe('actions/Duplicate', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport2.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report?.reportID).toBeFalsy();
                         resolve();
                     },
@@ -1839,7 +1837,6 @@ describe('actions/Duplicate', () => {
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
                 conciergeChat,
-                dateFnsLocale: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
                 transaction: {...mockTransaction, amount: mockTransaction.amount * -1},
@@ -1885,7 +1882,6 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -1965,7 +1961,6 @@ describe('actions/Duplicate', () => {
             // When the expense is duplicated with that expense report as the target
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: sourceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2024,7 +2019,6 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockTimeExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2088,7 +2082,6 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockScanExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2145,7 +2138,6 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockScanExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2217,7 +2209,6 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockGPSDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2298,7 +2289,6 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockGPSDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2366,7 +2356,6 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2427,7 +2416,6 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2497,7 +2485,6 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockTimeExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2551,7 +2538,6 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: undefined,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2600,7 +2586,6 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2650,7 +2635,6 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockUnreportedTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2702,7 +2686,6 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2760,7 +2743,6 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2807,6 +2789,73 @@ describe('actions/Duplicate', () => {
             expect(Reflect.get(persistedTransaction, 'customUnitRateID')).toBeUndefined();
         });
 
+        it.each([
+            {description: 'workspace', targetPolicy: mockPolicy, command: WRITE_COMMANDS.CREATE_DISTANCE_REQUEST},
+            {description: 'self DM', targetPolicy: undefined, command: WRITE_COMMANDS.TRACK_EXPENSE},
+        ])('should send the selected alternate route distance when duplicating a map distance expense to a $description', async ({targetPolicy, command}) => {
+            // Given a saved map distance expense that uses an alternate route, so only routeDistanceMeters records which route was picked
+            const transactionID = 'distance-alternate-route';
+            const alternateRouteDistanceMeters = 16093.4;
+            const mockDistanceTransaction = {
+                ...mockTransaction,
+                transactionID,
+                amount: -1000,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                        routeDistanceMeters: alternateRouteDistanceMeters,
+                    },
+                    waypoints: {
+                        waypoint0: {address: 'Start', lat: 37.7749, lng: -122.4194},
+                        waypoint1: {address: 'End', lat: 34.0522, lng: -118.2437},
+                    },
+                },
+            };
+
+            await Onyx.clear();
+
+            // When the expense is duplicated
+            duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
+                conciergeChat: undefined,
+                transaction: mockDistanceTransaction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                customUnitPolicyID: mockPolicy.id,
+                targetPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetReport: policyExpenseChat,
+                existingTransactionDraft: undefined,
+                personalDetails: mockPersonalDetails,
+                recentWaypoints,
+                targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
+                rules: undefined,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the backend receives the alternate route's distance, so it doesn't recalculate the duplicate with the primary route
+            const writeCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(command));
+            expect(writeCall?.[1]).toEqual(expect.objectContaining({selectedRouteDistance: alternateRouteDistanceMeters}));
+        });
+
         it('should call submitPerDiemExpense for per diem transactions', async () => {
             const mockPerDiemTransaction = {
                 ...mockTransaction,
@@ -2833,7 +2882,6 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockPerDiemTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2895,7 +2943,7 @@ describe('actions/Duplicate', () => {
             // report already exists in the user's local data. Without this seed, buildTransactionThread
             // would find no existing report in Onyx and generate a fresh ID regardless, causing the
             // test to pass even without the fix. With this seed, buildTransactionThread calls
-            // getReportOrDraftReport(existingTransactionThreadReportID), finds this report, and
+            // getReportOrDraftReport({reportID: existingTransactionThreadReportID}), finds this report, and
             // reuses its ID as transactionThreadReportID — which is exactly the collision the fix prevents.
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${existingLinkedReportActionChildReportID}`, {
                 reportID: existingLinkedReportActionChildReportID,
@@ -2907,7 +2955,6 @@ describe('actions/Duplicate', () => {
             // When duplicating the transaction
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockTransactionWithLinkedAction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2964,7 +3011,6 @@ describe('actions/Duplicate', () => {
             // When duplicating the transaction without targetPolicy
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -3032,7 +3078,6 @@ describe('actions/Duplicate', () => {
             // When duplicating the transaction
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockCashExpense,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -3157,7 +3202,7 @@ describe('actions/Duplicate', () => {
                         const connection = Onyx.connect({
                             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`,
                             callback: (transaction) => {
-                                Onyx.disconnect(connection);
+                                connection.unsubscribe();
                                 // Then the duplicate transaction should correctly be set on hold.
                                 expect(transaction?.comment?.hold).toBeDefined();
                                 resolve();
@@ -3213,7 +3258,6 @@ describe('actions/Duplicate', () => {
 
         const getDefaultParams = (sourceTransactions: Transaction[], overrides: Partial<DuplicateReportParams> = {}): DuplicateReportParams => ({
             isVendorMatchingBetaEnabled: false,
-            dateFnsLocale: undefined,
             sourceReport: undefined,
             sourceReportTransactions: sourceTransactions,
             sourceReportName: 'Original Report',
@@ -3955,7 +3999,6 @@ describe('actions/Duplicate', () => {
             // When the selected expenses are duplicated
             bulkDuplicateExpenses({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transactionIDs: ['bulk_1', 'bulk_2', 'bulk_3'],
                 allTransactions,
@@ -4020,7 +4063,6 @@ describe('actions/Duplicate', () => {
             // When the selected expenses are duplicated
             bulkDuplicateExpenses({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transactionIDs: ['bulk_reported', 'bulk_unreported'],
                 allTransactions,
@@ -4127,7 +4169,6 @@ describe('actions/Duplicate', () => {
 
         const getDefaultBulkParams = (reportIDs: string[], overrides: Partial<BulkDuplicateReportsParams> = {}): BulkDuplicateReportsParams => ({
             isVendorMatchingBetaEnabled: false,
-            dateFnsLocale: undefined,
             selectedReports: reportIDs.map((id) => ({
                 reportID: id,
                 policyID: undefined,

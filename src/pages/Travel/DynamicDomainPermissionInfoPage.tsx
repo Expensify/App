@@ -46,6 +46,7 @@ function DynamicDomainPermissionInfoPage({route}: DomainPermissionInfoPageProps)
             </View>
             <FixedFooter>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.TRAVEL.DOMAIN_PERMISSION_INFO_CONFIRM}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.w100]}

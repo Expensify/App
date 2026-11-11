@@ -1,5 +1,6 @@
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isCreatedDateType} from '@libs/SearchUIUtils';
@@ -21,7 +22,7 @@ type SearchColumnConfig = {
     columnName: SearchColumnType;
     translationKey: TranslationPaths | undefined;
     icon?: IconAsset;
-    isColumnSortable?: boolean;
+    isColumnSortable: boolean;
     sortColumnName?: SearchSortBy;
     canEdit?: boolean;
 };
@@ -46,27 +47,38 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DATE,
         translationKey: 'common.date',
+        isColumnSortable: true,
         canEdit: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.POSTED,
         translationKey: 'search.filters.posted',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED,
         translationKey: 'search.filters.exported',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTED,
         translationKey: 'common.submitted',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.APPROVED,
         translationKey: 'search.filters.approved',
+        isColumnSortable: true,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.PAID,
+        translationKey: 'search.filters.paid',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
         translationKey: 'common.merchant',
+        isColumnSortable: true,
         canEdit: true,
     },
     {
@@ -77,45 +89,55 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
         translationKey: 'common.description',
+        isColumnSortable: true,
         canEdit: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.FROM,
         translationKey: 'common.from',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TO,
         translationKey: 'common.to',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME,
         translationKey: 'workspace.common.workspace',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.CARD,
         translationKey: 'common.card',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
         translationKey: 'common.category',
+        isColumnSortable: true,
         canEdit: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE,
         translationKey: 'common.categoryGLCode',
+        isColumnSortable: true,
         sortColumnName: CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ATTENDEES,
         translationKey: 'iou.attendees',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
         translationKey: 'iou.totalPerAttendee',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAG,
         translationKey: 'common.tag',
+        isColumnSortable: true,
         canEdit: true,
     },
     {
@@ -126,88 +148,114 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE,
         translationKey: 'common.tagGLCode',
+        isColumnSortable: true,
         sortColumnName: CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE,
         translationKey: 'common.reimbursable',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.BILLABLE,
         translationKey: 'common.billable',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.HELD,
         translationKey: 'search.filters.held',
+        isColumnSortable: true,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.DECLINED,
+        translationKey: 'search.filters.rejected',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.MCC,
         translationKey: 'common.mcc',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAX_CODE,
         translationKey: 'workspace.taxes.taxCode',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAX_RATE,
         translationKey: 'iou.taxRate',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT,
         translationKey: 'common.tax',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE,
         translationKey: 'common.exchangeRate',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT,
         translationKey: 'common.purchaseAmount',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL,
         translationKey: 'common.total',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
         translationKey: 'common.withdrawalID',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID,
         translationKey: 'workspace.common.customField1',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
         translationKey: 'workspace.common.customField2',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
         translationKey: 'common.internationalReimbursementIDs',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
         translationKey: groupBy ? 'common.total' : 'iou.amount',
+        isColumnSortable: true,
         canEdit: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID,
         translationKey: 'common.reportID',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.REPORT_ID,
         translationKey: 'common.longReportID',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TITLE,
         translationKey: 'common.title',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.STATUS,
         translationKey: 'common.status',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO,
         translationKey: 'search.exportedTo',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
@@ -220,18 +268,22 @@ const taskHeaders: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DATE,
         translationKey: 'search.filters.created',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TITLE,
         translationKey: 'common.title',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
         translationKey: 'common.description',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.FROM,
         translationKey: 'common.from',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.IN,
@@ -241,10 +293,56 @@ const taskHeaders: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE,
         translationKey: 'common.assignee',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO,
         translationKey: 'search.exportedTo',
+        isColumnSortable: true,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
+        translationKey: 'common.action',
+        isColumnSortable: false,
+    },
+];
+
+// The dates render in DateCell's editable cell frame, so their headers take the same inset to line up
+const tripHeaders: SearchColumnConfig[] = [
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.START_DATE,
+        translationKey: 'iou.startDate',
+        isColumnSortable: true,
+        sortColumnName: CONST.SEARCH.TABLE_COLUMNS.DATE,
+        canEdit: true,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.END_DATE,
+        translationKey: 'iou.endDate',
+        isColumnSortable: false,
+        canEdit: true,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.STATUS,
+        translationKey: 'common.status',
+        isColumnSortable: true,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TRIP_NAME,
+        translationKey: 'search.trip.tripName',
+        isColumnSortable: true,
+        sortColumnName: CONST.SEARCH.TABLE_COLUMNS.TITLE,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TRAVELER,
+        translationKey: 'search.trip.traveler',
+        isColumnSortable: true,
+        sortColumnName: CONST.SEARCH.TABLE_COLUMNS.FROM,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+        translationKey: 'common.total',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
@@ -263,102 +361,137 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DATE,
         translationKey: 'search.filters.created',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTED,
         translationKey: 'common.submitted',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.APPROVED,
         translationKey: 'search.filters.approved',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER,
         translationKey: 'search.filters.firstApprover',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED,
         translationKey: 'search.filters.firstApproved',
+        isColumnSortable: true,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.PAID,
+        translationKey: 'search.filters.paid',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.PAID_BY,
         translationKey: 'search.filters.paidBy',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED,
         translationKey: 'search.filters.exported',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.STATUS,
         translationKey: 'common.status',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.PAID_STATUS,
         translationKey: 'common.paidStatus',
+        isColumnSortable: true,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.DECLINED,
+        translationKey: 'search.filters.rejected',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TITLE,
         translationKey: 'common.title',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.FROM,
         translationKey: 'common.from',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TO,
         translationKey: 'common.to',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME,
         translationKey: 'workspace.common.workspace',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL,
         translationKey: 'common.reimbursableTotal',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL,
         translationKey: 'common.nonReimbursableTotal',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL,
         translationKey: 'common.total',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID,
         translationKey: 'workspace.common.customField1',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
         translationKey: 'workspace.common.customField2',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
         translationKey: 'common.internationalReimbursementIDs',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED,
         translationKey: 'common.amountDebited',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED,
         translationKey: 'common.amountReimbursed',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
         translationKey: 'common.withdrawalID',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID,
         translationKey: 'common.reportID',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.REPORT_ID,
         translationKey: 'common.longReportID',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO,
         translationKey: 'search.exportedTo',
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
@@ -391,6 +524,7 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                 {
                     columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM,
                     translationKey: 'common.from',
+                    isColumnSortable: true,
                 },
                 ...commonGroupHeaders,
             ];
@@ -405,10 +539,12 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                 {
                     columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD,
                     translationKey: 'common.card',
+                    isColumnSortable: true,
                 },
                 {
                     columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED,
                     translationKey: 'search.filters.feed',
+                    isColumnSortable: true,
                 },
                 ...commonGroupHeaders,
             ];
@@ -423,18 +559,22 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                 {
                     columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN,
                     translationKey: 'search.filters.withdrawn',
+                    isColumnSortable: true,
                 },
                 {
                     columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS,
                     translationKey: 'common.withdrawalStatus',
+                    isColumnSortable: true,
                 },
                 {
                     columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT,
                     translationKey: 'common.bankAccount',
+                    isColumnSortable: true,
                 },
                 {
                     columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
                     translationKey: 'common.withdrawalID',
+                    isColumnSortable: true,
                 },
                 groupExpensesHeader,
                 {
@@ -521,12 +661,33 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                 },
                 ...commonGroupHeaders,
             ];
+        case CONST.SEARCH.GROUP_BY.APPROVER:
+            return [
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+                    translationKey: undefined,
+                    icon: icons.Profile,
+                    isColumnSortable: false,
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER,
+                    translationKey: 'search.filters.groupBy.approver',
+                    isColumnSortable: true,
+                },
+                ...commonGroupHeaders,
+            ];
         default:
             return [];
     }
 };
 
-function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, icons: SearchHeaderIcons, groupBy?: SearchGroupBy, isExpenseReportView?: boolean): SearchColumnConfig[] | null {
+function getSearchColumns(
+    type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>,
+    icons: SearchHeaderIcons,
+    groupBy?: SearchGroupBy,
+    isExpenseReportView?: boolean,
+    shouldReturnTripRooms?: boolean,
+): SearchColumnConfig[] | null {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
             if (!isExpenseReportView && groupBy) {
@@ -536,7 +697,7 @@ function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, icons: 
         case CONST.SEARCH.DATA_TYPES.INVOICE:
             return getExpenseHeaders(groupBy);
         case CONST.SEARCH.DATA_TYPES.TRIP:
-            return getExpenseHeaders(groupBy);
+            return shouldReturnTripRooms ? tripHeaders : getExpenseHeaders(groupBy);
         case CONST.SEARCH.DATA_TYPES.TASK:
             return taskHeaders;
         case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
@@ -558,6 +719,7 @@ type SearchTableHeaderProps = {
     shouldShowYearApproved?: boolean;
     shouldShowYearPosted?: boolean;
     shouldShowYearExported?: boolean;
+    shouldShowYearPaid?: boolean;
     shouldShowYearWithdrawn?: boolean;
     isAmountColumnWide: boolean;
     isTaxAmountColumnWide: boolean;
@@ -570,6 +732,9 @@ type SearchTableHeaderProps = {
 
     /** True when the action column should render in its wider variant (e.g. tasks, deleted expenses). */
     isActionColumnWide?: boolean;
+
+    /** Replaces each labelled column's heading. See `SortableTableHeader`. */
+    children?: React.ReactNode;
 };
 
 function SearchTableHeader({
@@ -583,6 +748,7 @@ function SearchTableHeader({
     shouldShowYearApproved,
     shouldShowYearPosted,
     shouldShowYearExported,
+    shouldShowYearPaid,
     shouldShowYearWithdrawn,
     shouldShowSorting,
     canSelectMultiple,
@@ -591,11 +757,13 @@ function SearchTableHeader({
     groupBy,
     isExpenseReportView,
     isActionColumnWide,
+    children,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
+    const shouldReturnTripRooms = useShouldReturnTripRooms(type);
 
     // Only load Profile icon when it's needed for EXPENSE_REPORT type or grouped transactions
     const icons = useMemoizedLazyExpensifyIcons(type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || !!groupBy ? ['Profile', 'Bank', 'CreditCard'] : []) satisfies SearchHeaderIcons;
@@ -604,7 +772,7 @@ function SearchTableHeader({
         return columns.includes(columnName);
     };
 
-    const columnConfig = getSearchColumns(type, icons, groupBy, isExpenseReportView);
+    const columnConfig = getSearchColumns(type, icons, groupBy, isExpenseReportView, shouldReturnTripRooms);
 
     let orderedColumnConfig;
     if (!columnConfig) {
@@ -632,6 +800,13 @@ function SearchTableHeader({
         orderedColumnConfig = orderedConfig;
     }
 
+    const sortByColumn = (columnName: SearchSortBy, order: SortOrder) => {
+        if (columnName === CONST.SEARCH.TABLE_COLUMNS.COMMENTS) {
+            return;
+        }
+        onSortPress(columnName, order);
+    };
+
     if (displayNarrowVersion) {
         return;
     }
@@ -650,6 +825,7 @@ function SearchTableHeader({
             approvedColumnSize={shouldShowYearApproved ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             postedColumnSize={shouldShowYearPosted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             exportedColumnSize={shouldShowYearExported ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+            paidColumnSize={shouldShowYearPaid ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             withdrawnColumnSize={shouldShowYearWithdrawn ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             amountColumnSize={isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             taxAmountColumnSize={isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
@@ -660,13 +836,10 @@ function SearchTableHeader({
             isActionColumnWide={isActionColumnWide ?? type === CONST.SEARCH.DATA_TYPES.TASK}
             // Don't butt up against the 'select all' checkbox if present
             containerStyles={canSelectMultiple && [styles.pl3]}
-            onSortPress={(columnName, order) => {
-                if (columnName === CONST.SEARCH.TABLE_COLUMNS.COMMENTS) {
-                    return;
-                }
-                onSortPress(columnName, order);
-            }}
-        />
+            onSortPress={sortByColumn}
+        >
+            {children}
+        </SortableTableHeader>
     );
 }
 

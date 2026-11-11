@@ -1,13 +1,12 @@
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 
-import openPrivatePersonalDetailsPage from '@libs/Navigation/helpers/openPrivatePersonalDetailsPage';
+import openHomeAddressPage from '@libs/Navigation/helpers/openHomeAddressPage';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 import {isCommuterExclusionEnabled, isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
 import {getEffectiveWorkArrangement} from '@libs/WorkArrangementUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type Policy from '@src/types/onyx/Policy';
 import type PrivatePersonalDetails from '@src/types/onyx/PrivatePersonalDetails';
 
@@ -134,7 +133,7 @@ function useBlockDistanceRequest({
                 if (modalAction !== ModalActions.CONFIRM) {
                     return;
                 }
-                openPrivatePersonalDetailsPage(INPUT_IDS.ADDRESS_LINE_1);
+                openHomeAddressPage();
             });
             return;
         }
