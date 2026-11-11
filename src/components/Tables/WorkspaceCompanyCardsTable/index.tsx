@@ -21,7 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearCompanyCardErrorField, resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
 import {renameCompanyCardInline} from '@libs/actions/Policy/InlineEdit';
-import {formatMaskedCardName, getCompanyCardCustomName, getDefaultCardName} from '@libs/CardUtils';
+import {formatMaskedCardName, getCardLastUpdated, getCompanyCardCustomName, getDefaultCardName} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
@@ -44,7 +44,6 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import {companyCardCustomNamesSelector} from '@selectors/Card';
-import {format, isValid} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -315,21 +314,11 @@ function WorkspaceCompanyCardsTable({
                   // Unassigned cards have no sync history, so their cell stays empty.
                   let lastUpdatedText: string | undefined;
                   let lastUpdatedTooltip: string | undefined;
-                  if (assignedCard?.isLoadingLastUpdated) {
-                      lastUpdatedText = translate('workspace.moreFeatures.companyCards.updating');
-                  } else if (assignedCard) {
-                      const lastScrapeDate = assignedCard.lastScrape ? getLocalDateFromDatetime(assignedCard.lastScrape) : undefined;
-                      // A malformed lastScrape would make format() throw and break the whole table, so it reads as never synced.
-                      if (lastScrapeDate && isValid(lastScrapeDate)) {
-                          // Same abbreviation as the Spend date column, with the details page timestamp in the tooltip.
-                          const isPastYear = lastScrapeDate.getFullYear() !== currentLocalYear;
-                          lastUpdatedText = isPastYear
-                              ? format(lastScrapeDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, {locale: dateFnsLocale})
-                              : DateUtils.formatToMonthDay(lastScrapeDate, dateFnsLocale);
-                          lastUpdatedTooltip = format(lastScrapeDate, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
-                      } else {
-                          lastUpdatedText = translate('workspace.moreFeatures.companyCards.neverUpdated');
-                      }
+                  if (assignedCard) {
+                      const {text, localDate} = getCardLastUpdated(assignedCard, translate, getLocalDateFromDatetime);
+                      // A sync time shows the Spend date abbreviation, with the details page timestamp in the tooltip.
+                      lastUpdatedText = localDate ? DateUtils.formatLocalDateToMonthDayWithOptionalYear(localDate, currentLocalYear, dateFnsLocale) : text;
+                      lastUpdatedTooltip = localDate ? text : undefined;
                   }
 
                   return {
