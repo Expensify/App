@@ -59,7 +59,6 @@
 "../../src/components/AddressForm.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/components/AddressForm.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/AddressSearch/isCurrentTargetInsideContainer.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/AgentRules/AgentRulesList.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/components/AmountForm.tsx"	"@typescript-eslint/no-deprecated/CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX"	1
 "../../src/components/AmountForm.tsx"	"@typescript-eslint/no-deprecated/NumberWithSymbolForm"	1
 "../../src/components/AmountForm.tsx"	"@typescript-eslint/no-deprecated/NumberWithSymbolFormRef"	1
@@ -843,7 +842,7 @@
 "../../src/libs/ExpenseRuleUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/fileDownload/DownloadUtils.ts"	"no-restricted-syntax"	1
 "../../src/libs/fileDownload/FileUtils.ts"	"@typescript-eslint/no-misused-promises"	1
-"../../src/libs/fileDownload/FileUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
+"../../src/libs/fileDownload/FileUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/fileDownload/getImageManipulator/index.native.ts"	"@typescript-eslint/no-deprecated/manipulateAsync"	1
 "../../src/libs/fileDownload/getImageManipulator/index.ts"	"@typescript-eslint/no-deprecated/manipulateAsync"	1
 "../../src/libs/fileDownload/getImageResolution.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -2200,8 +2199,6 @@
 "../../tests/perf-test/MoneyRequestReportActionsList.perf-test.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/perf-test/MoneyRequestReportTransactionRowWrites.perf-test.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/perf-test/ReportActionCompose.perf-test.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
-"../../tests/ui/AgentRulesSectionTest.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
-"../../tests/ui/AgentRulesSectionTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../tests/ui/AgentsPromoBannersTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/ui/AmountFormTest.tsx"	"@typescript-eslint/no-deprecated/NumberWithSymbolFormRef"	1
 "../../tests/ui/AncestorReportActionItemTest.tsx"	"@typescript-eslint/no-deprecated/originalMessage"	1
