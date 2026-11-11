@@ -185,6 +185,7 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo, fallbackTo, shouldDis
                                     })}
                                     onRetry={() => getDomainValidationCode(domainAccountID, domainName)}
                                     size={CONST.BUTTON_SIZE.SMALL}
+                                    sentryLabel={CONST.SENTRY_LABEL.DOMAIN.VERIFY.RETRY_VALIDATION_CODE}
                                 />
                             )}
                         </View>
@@ -210,6 +211,7 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo, fallbackTo, shouldDis
                 </ScrollView>
 
                 <FormAlertWithSubmitButton
+                    sentryLabel={CONST.SENTRY_LABEL.DOMAIN.VERIFY_SUBMIT}
                     buttonText={translate('domain.verifyDomain.title')}
                     onSubmit={() => validateDomain(domainAccountID, domainName)}
                     message={getLatestErrorMessage({

@@ -34,7 +34,7 @@ import {getDisplayNameForParticipant, isCompletedTaskReport, isOpenTaskReport} f
 import StringUtils from '@libs/StringUtils';
 import {isActiveTaskEditRoute} from '@libs/TaskUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 import {canActionTask, canModifyTask, completeTask, reopenTask, setTaskReport} from '@userActions/Task';
 import {clearTaskErrors} from '@userActions/TaskDeletion';
 
@@ -46,7 +46,7 @@ import type {Report, ReportAction} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
@@ -68,7 +68,9 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const personalDetails = usePersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
 
     useEffect(() => {
@@ -138,6 +140,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                 accountID,
                                 introSelected,
                                 isSelfTourViewed,
+                                hasCompletedGuidedSetupFlow,
                                 report?.ownerAccountID ? (personalDetails?.[report.ownerAccountID] ?? undefined) : undefined,
                                 currentUserPersonalDetails,
                                 (personalDetails ? Object.values(personalDetails).find((detail) => detail?.login === CONST.EMAIL.CONCIERGE) : undefined) ?? undefined,
@@ -149,20 +152,16 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                             {(hovered) => (
                                 <PressableWithSecondaryInteraction
                                     accessible={shouldSplitTaskAccessibilityTargets ? false : undefined}
-                                    onPress={callFunctionIfActionIsAllowed(
-                                        (e) => {
-                                            if (isDisableInteractive) {
-                                                return;
-                                            }
-                                            if (e?.type === 'click') {
-                                                (e.currentTarget as HTMLElement).blur();
-                                            }
+                                    onPress={callIfAuthenticated((e) => {
+                                        if (isDisableInteractive) {
+                                            return;
+                                        }
+                                        if (e?.type === 'click') {
+                                            (e.currentTarget as HTMLElement).blur();
+                                        }
 
-                                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_TITLE.path));
-                                        },
-                                        false,
-                                        session,
-                                    )}
+                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_TITLE.path));
+                                    }, session)}
                                     style={({pressed}) => [
                                         styles.ph5,
                                         styles.pv2,
@@ -191,28 +190,24 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                         <View style={[styles.flexRow, styles.flex1]}>
                                                             <Checkbox
                                                                 shouldSelectOnPressEnter
-                                                                onPress={callFunctionIfActionIsAllowed(
-                                                                    () => {
-                                                                        // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
-                                                                        if (isActiveTaskEditRoute(report?.reportID)) {
-                                                                            return;
-                                                                        }
-                                                                        updateTaskCheckboxStateForAccessibility(isCompleted);
-                                                                        if (isCompleted) {
-                                                                            reopenTask(report, parentReport, currentUserPersonalDetails.accountID, delegateEmail);
-                                                                        } else {
-                                                                            completeTask(
-                                                                                report,
-                                                                                parentReport?.hasOutstandingChildTask ?? false,
-                                                                                hasOutstandingChildTask,
-                                                                                parentReportAction,
-                                                                                delegateEmail,
-                                                                            );
-                                                                        }
-                                                                    },
-                                                                    false,
-                                                                    session,
-                                                                )}
+                                                                onPress={callIfAuthenticated(() => {
+                                                                    // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
+                                                                    if (isActiveTaskEditRoute(report?.reportID)) {
+                                                                        return;
+                                                                    }
+                                                                    updateTaskCheckboxStateForAccessibility(isCompleted);
+                                                                    if (isCompleted) {
+                                                                        reopenTask(report, parentReport, currentUserPersonalDetails.accountID, delegateEmail);
+                                                                    } else {
+                                                                        completeTask(
+                                                                            report,
+                                                                            parentReport?.hasOutstandingChildTask ?? false,
+                                                                            hasOutstandingChildTask,
+                                                                            parentReportAction,
+                                                                            delegateEmail,
+                                                                        );
+                                                                    }
+                                                                }, session)}
                                                                 isChecked={isCompleted}
                                                                 style={styles.taskMenuItemCheckbox}
                                                                 containerSize={24}
@@ -231,11 +226,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                                     accessibilityHint={titlePressableAccessibilityHint}
                                                                     accessibilityState={{disabled: isDisableInteractive}}
                                                                     disabled={isDisableInteractive}
-                                                                    onPress={callFunctionIfActionIsAllowed(
-                                                                        () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_TITLE.path)),
-                                                                        false,
-                                                                        session,
-                                                                    )}
+                                                                    onPress={callIfAuthenticated(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_TITLE.path)), session)}
                                                                     style={[styles.flexRow, styles.flex1]}
                                                                     sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_TITLE}
                                                                 >

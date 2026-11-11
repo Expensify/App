@@ -12,14 +12,14 @@ import BulkActionStatusModal from './BulkActionStatusModal';
 
 /** Shows the status modal for a bulk action started from Search "Select all", and brings it back after a reload. */
 function BulkActionStatusManager() {
-    const [bulkActions, bulkActionsMetadata] = useOnyx(ONYXKEYS.COLLECTION.BULK_ACTION);
+    const [bulkActions] = useOnyx(ONYXKEYS.COLLECTION.BULK_ACTION);
     const [openBulkActionID, setOpenBulkActionID] = useState<string | undefined>();
     const [isAnyOtherModalActive] = useOnyx(ONYXKEYS.MODAL, {selector: isModalActiveSelector});
 
     // A record that already existed when this tab loaded resurfaces after a reload. One started in another tab
     // after that doesn't pop open here until this tab reloads.
     const [recordKeysAtLoad, setRecordKeysAtLoad] = useState<Set<string> | undefined>(undefined);
-    if (recordKeysAtLoad === undefined && bulkActionsMetadata.status === 'loaded') {
+    if (recordKeysAtLoad === undefined) {
         setRecordKeysAtLoad(new Set(Object.keys(bulkActions ?? {})));
     }
 

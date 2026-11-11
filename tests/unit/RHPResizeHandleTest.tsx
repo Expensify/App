@@ -1,30 +1,32 @@
 import {fireEvent, render} from '@testing-library/react-native';
 
-import {resetSingleRHPWidth, setSingleRHPWidth} from '@libs/actions/SingleRHPWidth';
-import type RHPResizeHandleComponent from '@libs/Navigation/AppNavigator/Navigators/RHPResizeHandle';
+import type RHPResizeHandleComponent from '@components/RHPResizeHandle';
+
+import {resetPaneWidth, setPaneWidth} from '@libs/actions/PaneWidth';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
 
 // Jest resolves the native no-op, so the web implementation is loaded by its file name.
-const {default: RHPResizeHandle} = jest.requireActual<{default: typeof RHPResizeHandleComponent}>('@libs/Navigation/AppNavigator/Navigators/RHPResizeHandle/index.tsx');
+const {default: RHPResizeHandle} = jest.requireActual<{default: typeof RHPResizeHandleComponent}>('@components/RHPResizeHandle/index.tsx');
 
 // The native helpers never touch the DOM, so the web ones are loaded by their file name too.
 jest.mock('@libs/Navigation/helpers/singleRHPWidth', () => jest.requireActual<Record<string, unknown>>('@libs/Navigation/helpers/singleRHPWidth/index.ts'));
 
-jest.mock('@libs/actions/SingleRHPWidth', () => ({
-    setSingleRHPWidth: jest.fn(),
-    resetSingleRHPWidth: jest.fn(),
+jest.mock('@libs/actions/PaneWidth', () => ({
+    setPaneWidth: jest.fn(),
+    resetPaneWidth: jest.fn(),
 }));
 
 const MIN_WIDTH = 380;
 const MAX_WIDTH = 800;
 
 let mockSavedWidth = 400;
-jest.mock('@hooks/useSingleRHPWidth', () => () => ({width: mockSavedWidth, min: MIN_WIDTH, max: MAX_WIDTH}));
+jest.mock('@hooks/useSingleRHPWidth', () => () => ({width: mockSavedWidth, bounds: {min: MIN_WIDTH, max: MAX_WIDTH}}));
 
 const WIDTH_VARIABLE = '--rhp-width';
 
@@ -32,9 +34,8 @@ type PointerEventName = 'pointerEnter' | 'pointerDown' | 'pointerMove' | 'pointe
 
 const DEFAULT_WIDTH = variables.rhpWidth;
 
-/** Renders the handle with a scope element, the way the RHP navigators mount it. */
+/** Renders the handle the way the RHP navigators mount it. */
 function renderHandle() {
-    const scopeElement = document.createElement('div');
     const handleElement = document.createElement('div');
 
     // jsdom has no pointer capture.
@@ -43,9 +44,8 @@ function renderHandle() {
     // The test renderer leaves refs empty, so the line's ref gets a real element to take the snapped width the handle sets on the DOM.
     const lineElement = document.createElement('div');
 
-    const scopeRef = {current: scopeElement};
     // Only the line holds a ref among the divs, so handing this element to every div reaches just the line.
-    const screen = render(<RHPResizeHandle scopeRef={scopeRef} />, {createNodeMock: (element) => (element.type === 'div' ? lineElement : null)});
+    const screen = render(<RHPResizeHandle />, {createNodeMock: (element) => (element.type === 'div' ? lineElement : null)});
 
     const getHandle = () => {
         // The first div is the handle; the indicator line is a second one, rendered while hovered or dragging.
@@ -62,9 +62,9 @@ function renderHandle() {
     const firePointer = (eventName: PointerEventName, clientX: number) =>
         fireEvent(getHandle(), eventName, {button: 0, clientX, pointerId: 1, currentTarget: handleElement, preventDefault: jest.fn(), stopPropagation: jest.fn()});
 
-    const readLiveWidth = () => scopeElement.style.getPropertyValue(WIDTH_VARIABLE);
+    const readLiveWidth = () => document.documentElement.style.getPropertyValue(WIDTH_VARIABLE);
 
-    const rerenderHandle = () => screen.rerender(<RHPResizeHandle scopeRef={scopeRef} />);
+    const rerenderHandle = () => screen.rerender(<RHPResizeHandle />);
 
     const readLineWidth = () => {
         const lineStyle: unknown = screen.UNSAFE_root.findAll((node) => node.type === 'div').at(1)?.props.style;
@@ -81,6 +81,8 @@ describe('RHPResizeHandle', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockSavedWidth = 400;
+        // The live width lives on the shared document, so a test that leaves it set would leak into the next.
+        document.documentElement.style.removeProperty(WIDTH_VARIABLE);
     });
 
     it('paints the live width mid-drag and saves it once on release', () => {
@@ -93,14 +95,14 @@ describe('RHPResizeHandle', () => {
 
         // Then the cards follow through the CSS variable without saving yet, since mid-drag widths only live in CSS
         expect(readLiveWidth()).toBe('500px');
-        expect(setSingleRHPWidth).not.toHaveBeenCalled();
+        expect(setPaneWidth).not.toHaveBeenCalled();
 
         // When the pointer is released, and the browser then reclaims capture as it always does after pointerup
         firePointer('pointerUp', 900);
         firePointer('lostPointerCapture', 900);
 
         // Then the dragged width is saved exactly once, so it survives a reload without a duplicate Onyx write
-        expect(jest.mocked(setSingleRHPWidth).mock.calls).toEqual([[500]]);
+        expect(jest.mocked(setPaneWidth).mock.calls).toEqual([[ONYXKEYS.SINGLE_RHP_WIDTH, 500]]);
     });
 
     it('clamps the live width to the bounds the window allows', () => {
@@ -126,8 +128,8 @@ describe('RHPResizeHandle', () => {
         firePointer('pointerUp', 1000);
 
         // Then nothing is saved or reset, so no needless Onyx write follows, and the live width is cleared because no render follows to clear it
-        expect(setSingleRHPWidth).not.toHaveBeenCalled();
-        expect(resetSingleRHPWidth).not.toHaveBeenCalled();
+        expect(setPaneWidth).not.toHaveBeenCalled();
+        expect(resetPaneWidth).not.toHaveBeenCalled();
         expect(readLiveWidth()).toBe('');
     });
 
@@ -161,6 +163,22 @@ describe('RHPResizeHandle', () => {
         expect(readLiveWidth()).toBe('500px');
     });
 
+    it('keeps the live width when the saved width changes while another handle drags', () => {
+        // Given a modal stacked on the RHP, each with its own handle, and a drag at 500px on the modal's
+        const rhpHandle = renderHandle();
+        const modalHandle = renderHandle();
+        modalHandle.firePointer('pointerDown', 1000);
+        modalHandle.firePointer('pointerMove', 900);
+
+        // When the saved width changes underneath both, as a window resize re-clamps it
+        mockSavedWidth = 450;
+        rhpHandle.rerenderHandle();
+        modalHandle.rerenderHandle();
+
+        // Then the idle RHP handle leaves the shared live width alone, so the cards don't jump back mid-drag
+        expect(modalHandle.readLiveWidth()).toBe('500px');
+    });
+
     it('clears the live width when it unmounts mid-drag', () => {
         // Given a drag in progress at 500px
         const {firePointer, readLiveWidth, unmount} = renderHandle();
@@ -170,7 +188,7 @@ describe('RHPResizeHandle', () => {
         // When the handle unmounts, as it does when a wide RHP opens on top
         unmount();
 
-        // Then the live width is cleared, since the scope outlives the handle and would otherwise pin the cards
+        // Then the live width is cleared, since the document outlives the handle and would otherwise pin the cards
         expect(readLiveWidth()).toBe('');
     });
 
@@ -188,8 +206,8 @@ describe('RHPResizeHandle', () => {
         firePointer('pointerUp', releaseClientX);
 
         // Then the saved width is dropped, so getting back to the default doesn't take pixel-perfect aim and follows the default if it changes
-        expect(resetSingleRHPWidth).toHaveBeenCalledTimes(1);
-        expect(setSingleRHPWidth).not.toHaveBeenCalled();
+        expect(jest.mocked(resetPaneWidth).mock.calls).toEqual([[ONYXKEYS.SINGLE_RHP_WIDTH]]);
+        expect(setPaneWidth).not.toHaveBeenCalled();
     });
 
     it('thickens the line while a drag is held on the default width', () => {
@@ -201,13 +219,13 @@ describe('RHPResizeHandle', () => {
         firePointer('pointerMove', 970);
 
         // Then the line thickens, so the snap onto the default is visible before release
-        expect(readPaintedLineWidth()).toBe(`${CONST.RHP_RESIZE.SNAPPED_INDICATOR_WIDTH}px`);
+        expect(readPaintedLineWidth()).toBe(`${CONST.RESIZE_HANDLE.PANE_SNAPPED_INDICATOR_WIDTH}px`);
 
         // When it is dragged past the snap threshold
         firePointer('pointerMove', 930);
 
         // Then the line goes back to the pressed width, since the cards follow the pointer again
-        expect(readPaintedLineWidth()).toBe(`${CONST.RHP_RESIZE.ACTIVE_INDICATOR_WIDTH}px`);
+        expect(readPaintedLineWidth()).toBe(`${CONST.RESIZE_HANDLE.PANE_ACTIVE_INDICATOR_WIDTH}px`);
     });
 
     it('lets go of the default width once a drag passes the snap threshold', () => {
@@ -237,8 +255,8 @@ describe('RHPResizeHandle', () => {
         firePointer('pointerUp', 1000);
 
         // Then the saved width is dropped, so a single click returns the RHP to the default the same way a click resets a table column, and nothing is painted on the way
-        expect(resetSingleRHPWidth).toHaveBeenCalledTimes(1);
-        expect(setSingleRHPWidth).not.toHaveBeenCalled();
+        expect(jest.mocked(resetPaneWidth).mock.calls).toEqual([[ONYXKEYS.SINGLE_RHP_WIDTH]]);
+        expect(setPaneWidth).not.toHaveBeenCalled();
         expect(readLiveWidth()).toBe('');
     });
 
@@ -251,8 +269,8 @@ describe('RHPResizeHandle', () => {
         firePointer('pointerCancel', 1000);
 
         // Then nothing is reset, since only a release counts as a click
-        expect(resetSingleRHPWidth).not.toHaveBeenCalled();
-        expect(setSingleRHPWidth).not.toHaveBeenCalled();
+        expect(resetPaneWidth).not.toHaveBeenCalled();
+        expect(setPaneWidth).not.toHaveBeenCalled();
     });
 
     it('widens the line by a pixel while the edge is pressed', () => {
@@ -264,7 +282,7 @@ describe('RHPResizeHandle', () => {
         firePointer('pointerDown', 1000);
 
         // Then the line is a pixel wider than the hover one, so the press reads as grabbing the edge
-        expect(readLineWidth()).toBe(CONST.RHP_RESIZE.ACTIVE_INDICATOR_WIDTH);
+        expect(readLineWidth()).toBe(CONST.RESIZE_HANDLE.PANE_ACTIVE_INDICATOR_WIDTH);
 
         // When it is released
         firePointer('pointerUp', 1000);
@@ -286,7 +304,7 @@ describe('RHPResizeHandle', () => {
 
         // Then nothing is painted or saved, so the drag holds on the default without counting as a snap onto it
         expect(liveWidthMidDrag).toBe('');
-        expect(setSingleRHPWidth).not.toHaveBeenCalled();
-        expect(resetSingleRHPWidth).not.toHaveBeenCalled();
+        expect(setPaneWidth).not.toHaveBeenCalled();
+        expect(resetPaneWidth).not.toHaveBeenCalled();
     });
 });

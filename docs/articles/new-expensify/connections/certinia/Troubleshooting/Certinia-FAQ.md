@@ -46,15 +46,12 @@ Only reports in **Approved**, **Done**, or **Paid** status can be exported. If t
 
 ## Why are company card expenses exporting to the wrong account?
 
-Company card expenses may export to the wrong account if the card export mapping is incorrect or the exporter doesn't have the right permissions.
+Company card expenses may export to the wrong account if the card export mapping is incorrect.
 
 **Verify the company card export mapping:**
 
 1. Confirm the correct export account is mapped for the affected card under your company card settings.
 2. Confirm the expenses display the **Card + Lock icon**, which means they're mapped correctly.
-3. Confirm the **Preferred Exporter** is a **Domain Admin**.
-
-If the Preferred Exporter is not a Domain Admin, exports default to the fallback company card account set in the Workspace configuration.
 
 ---
 
@@ -89,8 +86,8 @@ No. Assignment Status in Certinia (Closed, Active, or Completed) does not affect
 
 ## How do I disconnect the Certinia connection?
 
-1. From the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting**.
-2. Select the three dots **(⋮)** next to the Certinia connection.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**, then select **Configure** next to Certinia.
+2. Select **More (⋮)**.
 3. Click **Disconnect** and confirm.
 
 Disconnecting removes the active integration and clears all imported options from Expensify.

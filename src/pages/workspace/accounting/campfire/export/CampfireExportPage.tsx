@@ -8,7 +8,6 @@ import Text from '@components/Text';
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsLists from '@hooks/useCardsLists';
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -18,7 +17,6 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 
-import {getAccountingSettingsRoute} from '@pages/workspace/connections/utils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -33,7 +31,6 @@ function CampfireExportPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardLists] = useCardsLists();
     const policyOwner = policy?.owner;
@@ -59,7 +56,7 @@ function CampfireExportPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
-            onBackButtonPress={() => Navigation.goBack(getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled, policyID))}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))}
             displayName="CampfireExportPage"
             headerTitle="workspace.accounting.export"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
@@ -75,6 +72,7 @@ function CampfireExportPage({policy}: WithPolicyConnectionsProps) {
             </View>
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CAMPFIRE_CONFIG.EXPORTER], campfireConfig?.pendingFields)}>
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CAMPFIRE.PREFERRED_EXPORTER}
                     name={translate('workspace.accounting.preferredExporter')}
                     onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_PREFERRED_EXPORTER.getRoute(policyID)) : undefined)}
                     value={exporter}
@@ -97,6 +95,7 @@ function CampfireExportPage({policy}: WithPolicyConnectionsProps) {
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CAMPFIRE_CONFIG.EXPORT_DATE], campfireConfig?.pendingFields)}>
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CAMPFIRE.EXPORT_DATE}
                     name={translate('workspace.campfire.exportDate.label')}
                     onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_VENDOR_BILL_DATE.getRoute(policyID)) : undefined)}
                     value={translate(`workspace.campfire.exportDate.values.${exportDate}.label`)}
@@ -119,6 +118,7 @@ function CampfireExportPage({policy}: WithPolicyConnectionsProps) {
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CAMPFIRE_CONFIG.DEFAULT_VENDORID], campfireConfig?.pendingFields)}>
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CAMPFIRE.DEFAULT_COMPANY_CARD_VENDOR}
                     name={translate('workspace.campfire.defaultCompanyCardVendor.label')}
                     onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_DEFAULT_COMPANY_CARD_VENDOR.getRoute(policyID)) : undefined)}
                     value={defaultCompanyCardVendor?.name}
@@ -130,6 +130,7 @@ function CampfireExportPage({policy}: WithPolicyConnectionsProps) {
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CAMPFIRE_CONFIG.CREDIT_CARD_ACCOUNT_ID], campfireConfig?.pendingFields)}>
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CAMPFIRE.COMPANY_CARD_ACCOUNT}
                     name={translate('workspace.campfire.companyCardAccount.label')}
                     onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_COMPANY_CARD_ACCOUNT.getRoute(policyID)) : undefined)}
                     value={companyCardAccount ? `${companyCardAccount?.id} ${companyCardAccount?.name}` : undefined}
@@ -144,6 +145,7 @@ function CampfireExportPage({policy}: WithPolicyConnectionsProps) {
                     <ToggleSettingOptionRow
                         title={translate('workspace.campfire.exportToMultipleAccounts')}
                         switchAccessibilityLabel={translate('workspace.campfire.exportToMultipleAccounts')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CAMPFIRE.EXPORT_TO_MULTIPLE_ACCOUNTS_SWITCH}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.mv3, styles.mh5]}
                         isActive={exportToMultipleAccounts}
@@ -158,6 +160,7 @@ function CampfireExportPage({policy}: WithPolicyConnectionsProps) {
                     >
                         <OfflineWithFeedback pendingAction={settingsPendingAction(cardProgramsOfflineFeedbackKeys, campfireConfig?.pendingFields)}>
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CAMPFIRE.CARD_PROGRAM_ACCOUNT}
                                 name={translate('workspace.campfire.cardProgramAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_CARD_PROGRAM_ACCOUNT.getRoute(policyID)) : undefined)}
                                 value={translate('workspace.campfire.cardProgramAccount.countInfo', cardProgramsUsingCustomAccountsCount)}
@@ -169,6 +172,7 @@ function CampfireExportPage({policy}: WithPolicyConnectionsProps) {
                         </OfflineWithFeedback>
                         <OfflineWithFeedback pendingAction={getCardsCustomExportPendingAction(cardFeeds ?? {}, cardLists, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_CAMPFIRE_EXPORT_ACCOUNT)}>
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CAMPFIRE.CARD_ACCOUNT}
                                 name={translate('workspace.campfire.cardAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_CARD_ACCOUNT.getRoute(policyID)) : undefined)}
                                 value={translate('workspace.campfire.cardAccount.countInfo', cardsUsingCustomAccountsCount.totalCount)}
