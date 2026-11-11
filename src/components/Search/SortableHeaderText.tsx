@@ -8,7 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
@@ -17,7 +17,7 @@ import {View} from 'react-native';
 
 import type {SortOrder} from './types';
 
-type SearchTableHeaderColumnProps = WithSentryLabel & {
+type SearchTableHeaderColumnProps = WithRequiredSentryLabel & {
     text: string;
     icon?: IconAsset;
     isActive: boolean;
@@ -29,6 +29,9 @@ type SearchTableHeaderColumnProps = WithSentryLabel & {
     innerContainerStyle?: StyleProp<ViewStyle>;
     textStyle?: StyleProp<TextStyle>;
     onPress: (order: SortOrder) => void;
+
+    /** Rendered after the label and outside the sort button, so a resize handle doesn't trigger sorting. */
+    children?: React.ReactNode;
 };
 
 export default function SortableHeaderText({
@@ -42,6 +45,7 @@ export default function SortableHeaderText({
     isSortable = true,
     onPress,
     sentryLabel,
+    children,
 }: SearchTableHeaderColumnProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowDownLong', 'ArrowUpLong']);
     const styles = useThemeStyles();
@@ -68,6 +72,7 @@ export default function SortableHeaderText({
                         </Text>
                     )}
                 </View>
+                {children}
             </View>
         );
     }
@@ -115,6 +120,7 @@ export default function SortableHeaderText({
                     )}
                 </View>
             </PressableWithFeedback>
+            {children}
         </View>
     );
 }
