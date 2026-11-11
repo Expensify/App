@@ -22,7 +22,7 @@ import ROUTES from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type MenuListItem = ListItem & {
@@ -41,24 +41,18 @@ function NetSuiteJournalEntryApprovalLevelSelectPage({policy}: WithPolicyConnect
         isSelected: config?.syncOptions.exportJournalsTo === approvalType,
     }));
 
-    const headerContent = useMemo(
-        () => (
-            <View>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.netsuite.advancedConfig.exportJournalsTo.description')}</Text>
-            </View>
-        ),
-        [translate, styles.pb5, styles.ph5],
+    const headerContent = (
+        <View>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.netsuite.advancedConfig.exportJournalsTo.description')}</Text>
+        </View>
     );
 
-    const selectJournalApprovalLevel = useCallback(
-        (row: MenuListItem) => {
-            if (row.value !== config?.syncOptions.exportJournalsTo && policyID) {
-                updateNetSuiteExportJournalsTo(policyID, row.value, config?.syncOptions.exportJournalsTo ?? CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL.JOURNALS_APPROVED_NONE);
-            }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
-        },
-        [config?.syncOptions.exportJournalsTo, policyID],
-    );
+    const selectJournalApprovalLevel = (row: MenuListItem) => {
+        if (row.value !== config?.syncOptions.exportJournalsTo && policyID) {
+            updateNetSuiteExportJournalsTo(policyID, row.value, config?.syncOptions.exportJournalsTo ?? CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL.JOURNALS_APPROVED_NONE);
+        }
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
+    };
 
     return (
         <SelectionScreen

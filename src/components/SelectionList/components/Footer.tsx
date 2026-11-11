@@ -42,6 +42,7 @@ function Footer<TItem extends ListItem>({footerContent, confirmButtonOptions, ad
                 addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             >
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST.CONFIRM_BUTTON}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={confirmButtonSize}
                     style={[styles.w100, confirmButtonStyle]}
@@ -60,4 +61,4 @@ function Footer<TItem extends ListItem>({footerContent, confirmButtonOptions, ad
 
 Footer.displayName = 'Footer';
 
-export default React.memo(Footer) as typeof Footer;
+export default Footer;

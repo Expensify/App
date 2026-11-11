@@ -199,7 +199,7 @@ type Card = OnyxValueWithOfflineFeedback<{
     }> &
         OnyxValueWithOfflineFeedback<
             /** Type of export card */
-            Record<ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES> | ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_POLICY_TYPES>, string>
+            Partial<Record<ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES> | ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_POLICY_TYPES>, string>>
         >;
 }>;
 

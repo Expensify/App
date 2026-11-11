@@ -44,6 +44,9 @@ type WorkspaceMemberRolePickerModalProps = {
     allowedRoles?: Array<ValueOf<typeof CONST.POLICY.ROLE>>;
 
     onSelected?: (role: ValueOf<typeof CONST.POLICY.ROLE>) => void;
+
+    /** Height of the picker. Defaults to the height its roles need. */
+    popoverHeight?: number;
 } & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
 
 /**
@@ -80,12 +83,15 @@ function WorkspaceMemberRolePickerModal({
     onSelected,
     anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
     shouldMeasureAnchorPositionFromTop = false,
+    shouldSwitchPositionIfOverflow = true,
+    popoverHeight,
 }: WorkspaceMemberRolePickerModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const anchorRef = useRef<View>(null);
 
-    const {availableRoleItems, popoverHeight} = useWorkspaceMemberRolePickerPopover({policy, selectedRole, allowedRoles});
+    const {availableRoleItems, popoverHeight: contentHeight} = useWorkspaceMemberRolePickerPopover({policy, selectedRole, allowedRoles});
+    const resolvedHeight = popoverHeight ?? contentHeight;
 
     const handleRoleSelected = (item: ListItemType) => {
         onSelected?.(item.value);
@@ -100,19 +106,19 @@ function WorkspaceMemberRolePickerModal({
             anchorPosition={anchorPosition}
             popoverDimensions={{
                 width: CONST.POPOVER_DROPDOWN_WIDTH,
-                height: popoverHeight,
+                height: resolvedHeight,
             }}
             anchorAlignment={anchorAlignment}
             innerContainerStyle={StyleUtils.getWidthStyle(CONST.POPOVER_DROPDOWN_WIDTH)}
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
-            shouldSwitchPositionIfOverflow
+            shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
             shouldEnableNewFocusManagement
             shouldMeasureAnchorPositionFromTop={shouldMeasureAnchorPositionFromTop}
             shouldSkipRemeasurement
             shouldDisplayBelowModals
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <View style={[StyleUtils.getHeight(popoverHeight), styles.flexColumn, styles.pv4]}>
+            <View style={[StyleUtils.getHeight(resolvedHeight), styles.flexColumn, styles.pv4]}>
                 <SelectionList
                     data={availableRoleItems}
                     ListItem={SingleSelectListItem}

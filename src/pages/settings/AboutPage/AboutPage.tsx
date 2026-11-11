@@ -7,6 +7,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -30,7 +31,7 @@ import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
@@ -81,6 +82,7 @@ function AboutPage() {
     const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
     const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
 
     const menuItems = useMemo(() => {
         const baseMenuItems: MenuItem[] = [
@@ -88,7 +90,7 @@ function AboutPage() {
                 translationKey: 'initialSettingsPage.aboutPage.appDownloadLinks',
                 icon: icons.Link,
                 sentryLabel: CONST.SENTRY_LABEL.SETTINGS_ABOUT.APP_DOWNLOAD_LINKS,
-                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS)),
+                action: waitForNavigate(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.APP_DOWNLOAD_LINKS.path))),
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
@@ -131,6 +133,7 @@ function AboutPage() {
                         hasCompletedGuidedSetupFlow,
                         conciergePersonalDetails,
                         shouldDismissModal: false,
+                        delegateAccountID,
                     });
                 }),
             },
@@ -158,7 +161,19 @@ function AboutPage() {
             wrapperStyle: [styles.sectionMenuItemTopDescription],
             sentryLabel,
         }));
-    }, [icons, styles, translate, waitForNavigate, conciergeReportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, currentUserAccountID, conciergePersonalDetails]);
+    }, [
+        icons,
+        styles,
+        translate,
+        waitForNavigate,
+        conciergeReportID,
+        introSelected,
+        isSelfTourViewed,
+        hasCompletedGuidedSetupFlow,
+        currentUserAccountID,
+        conciergePersonalDetails,
+        delegateAccountID,
+    ]);
 
     const overlayContent = useCallback(
         () => (

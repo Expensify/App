@@ -27,15 +27,26 @@ import {View} from 'react-native';
 
 import AgentsTableRow from './AgentsTableRow';
 
-type AgentsTableColumnKey = 'agent' | 'role' | 'actions';
+type AgentsTableColumnKey = 'agent' | 'role' | 'owner' | 'actions';
 
 type AgentRowData = TableData & {
     accountID: number;
     displayName: string;
     login: string;
     role?: ValueOf<typeof CONST.POLICY.ROLE>;
+
+    /** The accountID of the agent owner */
     ownerAccountID?: number;
+
+    /** The display name of the agent owner */
+    ownerDisplayName?: string;
+
+    /** The type of the agent owner */
     ownerType?: AgentOwnerType;
+
+    /** The policy ID of the agent owner, only set if ownerType=workspace */
+    ownerPolicyID?: string;
+
     canManage: boolean;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
@@ -64,10 +75,23 @@ type AgentsTableProps = {
     /** Whether to show the role column */
     shouldShowRoleColumn?: boolean;
 
+    /** Whether to show the owner column */
+    shouldShowOwnerColumn?: boolean;
+
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
-export default function AgentsTable({ref, agents, emptyStateButtons, headerComponent, canSelectAgents, selectedKeys, shouldShowRoleColumn, onRowSelectionChange}: AgentsTableProps) {
+export default function AgentsTable({
+    ref,
+    agents,
+    emptyStateButtons,
+    headerComponent,
+    canSelectAgents,
+    selectedKeys,
+    shouldShowRoleColumn,
+    shouldShowOwnerColumn,
+    onRowSelectionChange,
+}: AgentsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -89,7 +113,19 @@ export default function AgentsTable({ref, agents, emptyStateButtons, headerCompo
                       key: 'role' as const,
                       label: translate('common.role'),
                       sortable: true,
-                      width: variables.workspaceMembersRoleColumnWidth,
+                      styling: {
+                          // editableCellHeader matches the padded role cell so the label and value share an edge.
+                          containerStyles: [styles.editableCellHeader],
+                      },
+                  },
+              ]
+            : []),
+        ...(shouldShowOwnerColumn
+            ? [
+                  {
+                      key: 'owner' as const,
+                      label: translate('common.owner'),
+                      sortable: true,
                   },
               ]
             : []),
@@ -110,6 +146,11 @@ export default function AgentsTable({ref, agents, emptyStateButtons, headerCompo
             return compareOptionalValues(item1.role, item2.role, compareRoleNames, orderMultiplier, displayNameComparison);
         }
 
+        if (activeSorting.columnKey === 'owner') {
+            const compareOwnerDisplayNames = (ownerDisplayName1: string, ownerDisplayName2: string) => localeCompare(ownerDisplayName1, ownerDisplayName2);
+            return compareOptionalValues(item1.ownerDisplayName, item2.ownerDisplayName, compareOwnerDisplayNames, orderMultiplier, displayNameComparison);
+        }
+
         return displayNameComparison;
     };
 
@@ -124,6 +165,7 @@ export default function AgentsTable({ref, agents, emptyStateButtons, headerCompo
             rowIndex={index}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
             shouldShowRoleColumn={shouldShowRoleColumn}
+            shouldShowOwnerColumn={shouldShowOwnerColumn}
         />
     );
 

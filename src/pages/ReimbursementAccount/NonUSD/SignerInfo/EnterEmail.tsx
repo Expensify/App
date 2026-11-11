@@ -19,7 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 import {Str} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React from 'react';
 
 type EmailSubmitParams = {signerEmail: string; secondSignerEmail?: string};
 
@@ -49,34 +49,29 @@ function EnterEmail({onSubmit, isUserDirector, isLoading}: EnterEmailProps) {
     const shouldGatherOnlySecondSignerEmail = currency === CONST.CURRENCY.AUD && isUserDirector;
     const companyName = reimbursementAccount?.achData?.corpay?.[COMPANY_NAME] ?? '';
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            // The single visible input writes to SECOND_SIGNER_EMAIL when only the second signer's email is gathered, so require that field instead of the (hidden, unpopulated) SIGNER_EMAIL.
-            const primaryEmailField = shouldGatherOnlySecondSignerEmail ? SECOND_SIGNER_EMAIL : SIGNER_EMAIL;
-            const requiredFields: Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>> = shouldGatherBothEmails
-                ? [primaryEmailField, SECOND_SIGNER_EMAIL]
-                : [primaryEmailField];
-            const errors = getFieldRequiredErrors(values, requiredFields, translate);
-            if (!shouldGatherOnlySecondSignerEmail && values[SIGNER_EMAIL] && !Str.isValidEmail(values[SIGNER_EMAIL])) {
-                errors[SIGNER_EMAIL] = translate('bankAccount.error.email');
-            }
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        // The single visible input writes to SECOND_SIGNER_EMAIL when only the second signer's email is gathered, so require that field instead of the (hidden, unpopulated) SIGNER_EMAIL.
+        const primaryEmailField = shouldGatherOnlySecondSignerEmail ? SECOND_SIGNER_EMAIL : SIGNER_EMAIL;
+        const requiredFields: Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>> = shouldGatherBothEmails ? [primaryEmailField, SECOND_SIGNER_EMAIL] : [primaryEmailField];
+        const errors = getFieldRequiredErrors(values, requiredFields, translate);
+        if (!shouldGatherOnlySecondSignerEmail && values[SIGNER_EMAIL] && !Str.isValidEmail(values[SIGNER_EMAIL])) {
+            errors[SIGNER_EMAIL] = translate('bankAccount.error.email');
+        }
 
-            if (shouldGatherOnlySecondSignerEmail && values[SECOND_SIGNER_EMAIL] && !Str.isValidEmail(String(values[SECOND_SIGNER_EMAIL]))) {
-                errors[SECOND_SIGNER_EMAIL] = translate('bankAccount.error.email');
-            }
+        if (shouldGatherOnlySecondSignerEmail && values[SECOND_SIGNER_EMAIL] && !Str.isValidEmail(String(values[SECOND_SIGNER_EMAIL]))) {
+            errors[SECOND_SIGNER_EMAIL] = translate('bankAccount.error.email');
+        }
 
-            if (shouldGatherBothEmails && values[SECOND_SIGNER_EMAIL] && !Str.isValidEmail(String(values[SECOND_SIGNER_EMAIL]))) {
-                errors[SECOND_SIGNER_EMAIL] = translate('bankAccount.error.email');
-            }
+        if (shouldGatherBothEmails && values[SECOND_SIGNER_EMAIL] && !Str.isValidEmail(String(values[SECOND_SIGNER_EMAIL]))) {
+            errors[SECOND_SIGNER_EMAIL] = translate('bankAccount.error.email');
+        }
 
-            if (shouldGatherBothEmails && values[SIGNER_EMAIL] === values[SECOND_SIGNER_EMAIL]) {
-                errors[SECOND_SIGNER_EMAIL] = translate('signerInfoStep.error.emailsMustBeDifferent');
-            }
+        if (shouldGatherBothEmails && values[SIGNER_EMAIL] === values[SECOND_SIGNER_EMAIL]) {
+            errors[SECOND_SIGNER_EMAIL] = translate('signerInfoStep.error.emailsMustBeDifferent');
+        }
 
-            return errors;
-        },
-        [shouldGatherBothEmails, shouldGatherOnlySecondSignerEmail, translate],
-    );
+        return errors;
+    };
 
     return (
         <FormProvider

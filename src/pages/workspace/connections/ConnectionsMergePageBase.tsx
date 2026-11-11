@@ -2,7 +2,6 @@ import ConnectToMergeFlow from '@components/ConnectToMergeFlow';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -114,7 +113,7 @@ function ConnectionsMergePageBaseContent({policyID, category, cards}: Connection
                     card={connectedCard}
                     policy={policy}
                     handleConnect={() => handleReconnect(connectedCard)}
-                    onDisconnect={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID))}
+                    onDisconnect={(disconnect) => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID), {afterTransition: disconnect})}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID))}
                     canWriteMoreFeatures={canWriteMoreFeatures}
                     showReadOnlyModal={showReadOnlyModal}
@@ -126,7 +125,6 @@ function ConnectionsMergePageBaseContent({policyID, category, cards}: Connection
 
 function ConnectionsMergePageBase({policyID, category, cards, shouldBeBlocked}: ConnectionsMergePageBaseProps) {
     const {featureName, openPage} = PAGE_CONFIG[category];
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const styles = useThemeStyles();
 
     useWorkspaceDocumentTitle(undefined, `workspace.common.${category}`);
@@ -148,14 +146,11 @@ function ConnectionsMergePageBase({policyID, category, cards, shouldBeBlocked}: 
             policyID={policyID}
             featureName={featureName}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
-            shouldBeBlocked={(shouldBeBlocked ?? false) || !isUnifiedConnectionsBetaEnabled || (!isConnected && !isFetchingConnections)}
+            shouldBeBlocked={(shouldBeBlocked ?? false) || (!isConnected && !isFetchingConnections)}
             fullPageNotFoundViewProps={{onBackButtonPress: () => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID))}}
         >
             {isFetchingConnections ? (
-                <FullScreenLoadingIndicator
-                    shouldUseGoBackButton
-                    style={styles.flex1}
-                />
+                <FullScreenLoadingIndicator style={styles.flex1} />
             ) : (
                 <ConnectionsMergePageBaseContent
                     policyID={policyID}

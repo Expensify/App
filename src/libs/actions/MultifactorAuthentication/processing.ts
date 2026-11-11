@@ -33,6 +33,7 @@ async function processRegistration(params: RegistrationParams): Promise<MFAResul
 async function processScenarioAction(
     action: MultifactorAuthenticationScenarioConfig['action'],
     params: Parameters<MultifactorAuthenticationScenarioConfig['action']>[0],
+    context?: {signal: AbortSignal},
 ): Promise<MFAResult<MultifactorAuthenticationScenarioResponse>> {
     if (!params.signedChallenge) {
         return {
@@ -41,7 +42,7 @@ async function processScenarioAction(
         };
     }
 
-    const {httpStatusCode, reason, message, body} = await action(params);
+    const {httpStatusCode, reason, message, body} = await (context ? action(params, context) : action(params));
 
     if (isHttpSuccess(httpStatusCode)) {
         return {

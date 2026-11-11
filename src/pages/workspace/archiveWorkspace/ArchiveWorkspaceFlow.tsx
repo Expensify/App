@@ -20,7 +20,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 type ArchiveWorkspaceFlowProps = {
@@ -62,7 +62,7 @@ function ArchiveWorkspaceFlow({policyID, onDismiss, onArchiveComplete}: ArchiveW
     const hasCardFeedOrExpensifyCard =
         !isEmptyObject(cardFeeds) ||
         !isEmptyObject(cardsList) ||
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- both flags are `boolean | undefined`, so we need a logical OR here; `??` would stop at an explicit `false` and never check the second flag
+        // both flags are `boolean | undefined`, so we need a logical OR here; `??` would stop at an explicit `false` and never check the second flag
         ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.policyAccountID);
     const hasExpensifyCardsEnabledOnWorkspace = !!policy?.areExpensifyCardsEnabled && !!policy?.policyAccountID;
 
@@ -70,48 +70,45 @@ function ArchiveWorkspaceFlow({policyID, onDismiss, onArchiveComplete}: ArchiveW
     const isPendingArchive = !!policy?.archivedDate && !!policy?.pendingAction;
     const prevIsPendingArchive = usePrevious(isPendingArchive);
 
-    const hideArchiveErrorModal = useCallback(() => {
+    const hideArchiveErrorModal = () => {
         dismissWorkspaceError(policyID, policy?.pendingAction);
-    }, [policyID, policy?.pendingAction]);
+    };
 
-    const dismissArchiveFlow = useCallback(() => {
+    const dismissArchiveFlow = () => {
         hideArchiveErrorModal();
         onDismiss();
-    }, [hideArchiveErrorModal, onDismiss]);
+    };
 
-    const showGenericArchiveErrorModal = useCallback(
-        (errorMessage: string) => {
-            if (!isFocused) {
-                dismissArchiveFlow();
-                return;
-            }
+    const showGenericArchiveErrorModal = (errorMessage: string) => {
+        if (!isFocused) {
+            dismissArchiveFlow();
+            return;
+        }
 
-            const prompt = CONST.HTML_TAG_REGEX.test(errorMessage) ? (
-                <View style={[styles.renderHTML, styles.flexRow]}>
-                    <RenderHTML
-                        html={errorMessage}
-                        onConciergeLinkPress={() => {
-                            closeModal();
-                            dismissArchiveFlow();
-                        }}
-                    />
-                </View>
-            ) : (
-                errorMessage
-            );
+        const prompt = CONST.HTML_TAG_REGEX.test(errorMessage) ? (
+            <View style={[styles.renderHTML, styles.flexRow]}>
+                <RenderHTML
+                    html={errorMessage}
+                    onConciergeLinkPress={() => {
+                        closeModal();
+                        dismissArchiveFlow();
+                    }}
+                />
+            </View>
+        ) : (
+            errorMessage
+        );
 
-            showConfirmModal({
-                title: translate('workspace.common.archive'),
-                prompt,
-                confirmText: translate('common.buttonConfirm'),
-                shouldShowCancelButton: false,
-                shouldHandleNavigationBack: false,
-            }).then(() => {
-                dismissArchiveFlow();
-            });
-        },
-        [closeModal, dismissArchiveFlow, isFocused, showConfirmModal, styles.flexRow, styles.renderHTML, translate],
-    );
+        showConfirmModal({
+            title: translate('workspace.common.archive'),
+            prompt,
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+            shouldHandleNavigationBack: false,
+        }).then(() => {
+            dismissArchiveFlow();
+        });
+    };
 
     const getArchiveConfirmationPrompt = () => {
         if (hasExpensifyCardsEnabledOnWorkspace) {

@@ -60,6 +60,7 @@ jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({shouldUseNarrowLay
 
 jest.mock('@libs/actions/BankAccounts', () => ({
     pressLockedBankAccount: jest.fn(),
+    openDepositAccountSetup: jest.fn(),
 }));
 
 jest.mock('@libs/actions/Report', () => ({
@@ -82,6 +83,7 @@ function TimeSensitiveSection() {
         <HomeTaskGroup
             title="homePage.timeSensitiveSection.title"
             rows={useTimeSensitiveItems()}
+            expandToggleSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.SECTION_EXPAND_TOGGLE_TIME_SENSITIVE}
         />
     );
 }

@@ -3,15 +3,13 @@ import ChartEmptyState from '@components/Search/ChartEmptyState';
 import ChartErrorState from '@components/Search/ChartErrorState';
 import ChartOfflineState from '@components/Search/ChartOfflineState';
 import SearchChartView from '@components/Search/SearchChartView';
+import Text from '@components/Text';
 import WidgetContainer from '@components/WidgetContainer';
 import WidgetHeaderMenu from '@components/WidgetHeaderMenu';
 
-import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setNameValuePair} from '@libs/actions/User';
@@ -19,6 +17,8 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import {INSIGHTS_CHART_STATE} from '@libs/resolveInsightsChartData';
 import type {SearchKey} from '@libs/SearchKeyUtils';
+
+import getInsightsDateLabel from '@pages/Insights/getInsightsDateLabel';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,18 +29,16 @@ import {View} from 'react-native';
 
 import InsightTitleDropdown from './InsightTitleDropdown';
 import useHomeInsightConfigs from './useHomeInsightConfigs';
+import useInsightChartPaddingStyle from './useInsightChartPaddingStyle';
 import useInsightData from './useInsightData';
 
 function InsightsSectionContent() {
     const styles = useThemeStyles();
-    const {cardPaddingHorizontal, cardPaddingBottom} = useLayoutSpacing();
-    const {translate} = useLocalize();
+    const chartPaddingStyle = useInsightChartPaddingStyle();
+    const {translate, dateFnsLocale} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Expand']);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isBetaEnabled} = usePermissions();
-    const isInsightsPageEnabled = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
 
-    const {configs: insightConfigs, isResolved: isConfigResolved} = useHomeInsightConfigs();
+    const {configs: insightConfigs, date, isResolved: isConfigResolved, shouldShowRunningTotal} = useHomeInsightConfigs();
     const [selectedKey, selectedKeyMetadata] = useOnyx(ONYXKEYS.NVP_HOME_SELECTED_INSIGHT);
 
     // The persisted key can name an insight the user is no longer eligible for, so fall back to the first option.
@@ -58,25 +56,33 @@ function InsightsSectionContent() {
         return null;
     }
 
-    const navigateToInsights = () =>
-        Navigation.navigate(
-            isInsightsPageEnabled ? ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND) : ROUTES.SEARCH_ROOT.getRoute({query: config.searchQuery, searchKey: config.key}),
-        );
+    const navigateToInsights = () => Navigation.navigate(ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND));
+
+    const showRunningTotal = shouldShowRunningTotal && config.key === CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME && view === CONST.SEARCH.VIEW.LINE;
 
     const widget = (
         <WidgetContainer
             titleContent={
-                <InsightTitleDropdown
-                    configs={insightConfigs}
-                    selectedKey={config.key}
-                    onSelect={onSelectInsight}
-                />
+                <>
+                    <InsightTitleDropdown
+                        configs={insightConfigs}
+                        selectedKey={config.key}
+                        onSelect={onSelectInsight}
+                    />
+                    <Text
+                        variant="label"
+                        style={styles.textSupporting}
+                        numberOfLines={1}
+                    >
+                        {getInsightsDateLabel(date, translate, dateFnsLocale)}
+                    </Text>
+                </>
             }
             titleRightContent={
                 state === INSIGHTS_CHART_STATE.READY || state === INSIGHTS_CHART_STATE.EMPTY || state === INSIGHTS_CHART_STATE.ERROR ? (
                     <WidgetHeaderMenu
                         testID="insightsOverflowMenu"
-                        sentryLabel="InsightsOverflowMenu"
+                        sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.INSIGHTS_OVERFLOW_MENU}
                         menuItems={[
                             {
                                 text: translate('common.view'),
@@ -93,23 +99,24 @@ function InsightsSectionContent() {
             {state === INSIGHTS_CHART_STATE.EMPTY && <ChartEmptyState testID="insightsSectionEmptyState" />}
             {state === INSIGHTS_CHART_STATE.ERROR && <ChartErrorState onRetry={retry} />}
             {(state === INSIGHTS_CHART_STATE.LOADING || state === INSIGHTS_CHART_STATE.READY) && (
-                <View style={[cardPaddingHorizontal, cardPaddingBottom, !shouldUseNarrowLayout && styles.pt3]}>
+                <View style={chartPaddingStyle}>
                     <SearchChartView
                         queryJSON={queryJSON}
                         view={view}
                         groupBy={groupBy}
                         data={data}
                         isLoading={state === INSIGHTS_CHART_STATE.LOADING}
-                        shouldShowSinglePointAsBar={isInsightsPageEnabled}
-                        shouldShowGroupLabels={!isInsightsPageEnabled}
-                        shouldDrillDownOnPress={!isInsightsPageEnabled}
+                        shouldShowRunningTotal={showRunningTotal}
+                        shouldShowSinglePointAsBar
+                        shouldUseResponsiveLabels
+                        shouldDrillDownOnPress={false}
                     />
                 </View>
             )}
         </WidgetContainer>
     );
 
-    if (!isInsightsPageEnabled || canUseTouchScreen()) {
+    if (canUseTouchScreen()) {
         return widget;
     }
 
@@ -117,7 +124,7 @@ function InsightsSectionContent() {
         <PressableWithoutFeedback
             accessible={false}
             onPress={navigateToInsights}
-            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.WIDGET_ITEM}
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.INSIGHTS_WIDGET}
         >
             {widget}
         </PressableWithoutFeedback>

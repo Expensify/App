@@ -1,16 +1,20 @@
-import {render} from '@testing-library/react-native';
+import {act, render} from '@testing-library/react-native';
 
+import ActivityIndicator from '@components/ActivityIndicator';
 import DynamicFormFlow from '@components/DynamicForm';
 import type {DynamicFormLayout, DynamicFormSubPageProps} from '@components/DynamicForm/types';
 import {getListItems, getListItemSensitiveKey} from '@components/DynamicForm/utils/listItems';
 import type {FormValue} from '@components/Form/types';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
+import ScreenWrapper from '@components/ScreenWrapper';
 
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 
 import Navigation from '@libs/Navigation/Navigation';
 
-import {clearSensitiveAnswers, forgetSensitiveAnswers, saveDraftAnswers, saveSensitiveAnswers} from '@userActions/DynamicForm';
+import {clearSensitiveAnswers, forgetDraftAnswers, forgetSensitiveAnswers, saveDraftAnswers, saveSensitiveAnswers} from '@userActions/DynamicForm';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,20 +36,30 @@ const mockPrevPage = jest.fn();
 const mockResetToPage = jest.fn();
 const mockMoveTo = jest.fn();
 let mockOnBackButtonPress: (() => void) | undefined;
-const mockStepWrapper = jest.fn<null, [{stepNames: string[]; startStepIndex: number}]>(() => null);
+let mockOnAndroidBackPress: (() => boolean) | undefined;
+const mockStepWrapper = jest.fn<null, [{stepNames: string[]; startStepIndex: number; shouldShowOfflineIndicatorInWideScreen?: boolean}]>(() => null);
 
 jest.mock('@hooks/useSubPage', () => jest.fn());
+jest.mock('@hooks/useAndroidBackButtonHandler', () =>
+    jest.fn((callback: () => boolean) => {
+        mockOnAndroidBackPress = callback;
+    }),
+);
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
 jest.mock('@userActions/DynamicForm', () => ({
     saveDraftAnswers: jest.fn(),
     saveSensitiveAnswers: jest.fn(),
     clearSensitiveAnswers: jest.fn(),
     forgetSensitiveAnswers: jest.fn(),
+    forgetDraftAnswers: jest.fn(),
 }));
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn()}));
 jest.mock('@components/ScreenWrapper', () => jest.fn(({children}: {children: React.ReactNode}) => children));
+jest.mock('@components/ActivityIndicator', () => jest.fn(() => null));
 jest.mock('@components/FullscreenLoadingIndicator', () => jest.fn(() => null));
-jest.mock('@components/InteractiveStepWrapper', () => jest.fn((props: {stepNames: string[]; startStepIndex: number}) => mockStepWrapper(props)));
+jest.mock('@components/InteractiveStepWrapper', () =>
+    jest.fn((props: {stepNames: string[]; startStepIndex: number; shouldShowOfflineIndicatorInWideScreen?: boolean}) => mockStepWrapper(props)),
+);
 jest.mock('@components/Header/composed/HeaderWithBackButtonAndTitle', () =>
     jest.fn(({onBackButtonPress}: {onBackButtonPress: () => void}) => {
         mockOnBackButtonPress = onBackButtonPress;
@@ -94,7 +108,24 @@ type RenderFlowOptions = {
     shouldReplaceRoute?: boolean;
     maxFileSize?: number;
     onRefreshRequirements?: (inputID: string, value: FormValue) => void;
+    shouldDisableNextWhenOffline?: boolean;
+    unsavedPageKeys?: string[];
 };
+
+function mockSubPage(currentPageName: string, pageIndex: number, isRedirecting: boolean) {
+    jest.mocked(useSubPage<DynamicFormSubPageProps>).mockReturnValue({
+        CurrentPage: mockCurrentPage,
+        isEditing: false,
+        currentPageName,
+        pageIndex,
+        lastPageIndex: 3,
+        nextPage: jest.fn(),
+        prevPage: mockPrevPage,
+        moveTo: mockMoveTo,
+        resetToPage: mockResetToPage,
+        isRedirecting,
+    });
+}
 
 async function renderFlow({
     flowSchema = schema,
@@ -109,21 +140,12 @@ async function renderFlow({
     shouldReplaceRoute,
     maxFileSize,
     onRefreshRequirements,
+    shouldDisableNextWhenOffline,
+    unsavedPageKeys,
 }: RenderFlowOptions = {}) {
     await Onyx.set(`${FORM_ID}Draft`, draft);
     await Onyx.set(ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS, {[FORM_ID]: sensitiveAnswers});
-    jest.mocked(useSubPage<DynamicFormSubPageProps>).mockReturnValue({
-        CurrentPage: mockCurrentPage,
-        isEditing: false,
-        currentPageName,
-        pageIndex,
-        lastPageIndex: 3,
-        nextPage: jest.fn(),
-        prevPage: mockPrevPage,
-        moveTo: mockMoveTo,
-        resetToPage: mockResetToPage,
-        isRedirecting,
-    });
+    mockSubPage(currentPageName, pageIndex, isRedirecting);
     const onSubmit = jest.fn();
     const onBack = jest.fn();
     const onPageSubmit = jest.fn();
@@ -144,6 +166,8 @@ async function renderFlow({
             maxFileSize={maxFileSize}
             onRefreshRequirements={onRefreshRequirements}
             isSubmitting={submitting}
+            shouldDisableNextWhenOffline={shouldDisableNextWhenOffline}
+            unsavedPageKeys={unsavedPageKeys}
         />
     );
     const {rerender, unmount} = render(renderWith(isSubmitting));
@@ -157,7 +181,15 @@ async function renderFlow({
         throw new Error('useSubPage was not called');
     }
     const pageProps = mockCurrentPage.mock.lastCall?.[0];
-    return {subPageOptions, setSubmitting, unmount, onSubmit, onBack, onPageSubmit, pageProps: hasDynamicFormProps(pageProps) ? pageProps : undefined};
+    const rerenderFlow = () => setSubmitting(isSubmitting);
+    return {subPageOptions, setSubmitting, rerenderFlow, unmount, onSubmit, onBack, onPageSubmit, pageProps: hasDynamicFormProps(pageProps) ? pageProps : undefined};
+}
+
+function pressAndroidBack(): boolean {
+    if (!mockOnAndroidBackPress) {
+        throw new Error('The flow did not register an Android back handler');
+    }
+    return mockOnAndroidBackPress();
 }
 
 describe('DynamicFormFlow', () => {
@@ -167,6 +199,7 @@ describe('DynamicFormFlow', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockOnAndroidBackPress = undefined;
         await Onyx.clear();
     });
 
@@ -325,6 +358,34 @@ describe('DynamicFormFlow', () => {
         expect(subPageOptions.startFrom).toBe(3);
     });
 
+    it('resumes on a page whose save did not go through, even when the draft completes every page', async () => {
+        // Given a complete form whose recipient page did not save, as when the app closed while it was saving
+        // When the flow renders with a confirmation page
+        const {subPageOptions} = await renderFlow({
+            flowSchema: schemaWithoutSsn,
+            draft: {firstName: 'Jane', legalType: 'PRIVATE'},
+            hasConfirmation: true,
+            unsavedPageKeys: ['recipient'],
+        });
+
+        // Then it opens on the recipient page instead of the confirmation page, so the user sees which page to save again
+        expect(subPageOptions.startFrom).toBe(1);
+    });
+
+    it('does not resume on an unsaved page the answers now skip', async () => {
+        // Given a complete form whose company page did not save, though the recipient is no longer a business
+        // When the flow renders with a confirmation page
+        const {subPageOptions} = await renderFlow({
+            flowSchema: schemaWithoutSsn,
+            draft: {firstName: 'Jane', legalType: 'PRIVATE'},
+            hasConfirmation: true,
+            unsavedPageKeys: ['company'],
+        });
+
+        // Then it opens on the confirmation page, since the company page is never shown
+        expect(subPageOptions.startFrom).toBe(3);
+    });
+
     it('skips a page whose own showWhen does not match, and resume passes over it', async () => {
         // Given a page shown only for business recipients, holding a field the draft never answered
         const businessPage: DynamicFormPage = {key: 'business', title: 'Business', showWhen: {key: 'legalType', equals: ['BUSINESS']}, content: [{key: 'ein', type: 'text', required: true}]};
@@ -367,7 +428,37 @@ describe('DynamicFormFlow', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('personal-details'), {forceReplace: true});
     });
 
-    it('drafts the page answers, keeps sensitive ones in memory, and hands the screen draft answers only', async () => {
+    it('hands its pages whether Next waits for a connection, leaving it off unless the screen asks', async () => {
+        // Given one flow that leaves the option out and one whose screen saves each page as the user leaves it
+        // When each flow renders
+        const defaultFlow = await renderFlow();
+        const onlineOnlyFlow = await renderFlow({shouldDisableNextWhenOffline: true});
+
+        // Then only the second asks its pages to wait for a connection, so other flows still move between pages offline
+        expect(defaultFlow.pageProps?.shouldDisableNextWhenOffline).toBeUndefined();
+        expect(onlineOnlyFlow.pageProps?.shouldDisableNextWhenOffline).toBe(true);
+    });
+
+    it('shows the offline indicator on wide screens only when Next waits for a connection', async () => {
+        // Given one flow that leaves the option out and one whose Next waits for a connection, each with plain pages and with a step indicator
+        // When each flow renders
+        await renderFlow({layout: 'pages'});
+        const defaultPages = jest.mocked(ScreenWrapper).mock.lastCall?.[0];
+        await renderFlow({layout: 'pages', shouldDisableNextWhenOffline: true});
+        const onlineOnlyPages = jest.mocked(ScreenWrapper).mock.lastCall?.[0];
+        await renderFlow({layout: 'stepper'});
+        const defaultStepper = mockStepWrapper.mock.lastCall?.[0];
+        await renderFlow({layout: 'stepper', shouldDisableNextWhenOffline: true});
+        const onlineOnlyStepper = mockStepWrapper.mock.lastCall?.[0];
+
+        // Then only the second shows it, since a disabled Next alone does not tell a wide screen user they are offline, and other flows keep the default
+        expect(defaultPages?.shouldShowOfflineIndicatorInWideScreen).toBeFalsy();
+        expect(onlineOnlyPages?.shouldShowOfflineIndicatorInWideScreen).toBe(true);
+        expect(defaultStepper?.shouldShowOfflineIndicatorInWideScreen).toBeFalsy();
+        expect(onlineOnlyStepper?.shouldShowOfflineIndicatorInWideScreen).toBe(true);
+    });
+
+    it('drafts the page answers, keeps sensitive ones in memory, and hands the screen the sensitive ones apart', async () => {
         // Given the first page
         const {pageProps, onPageSubmit} = await renderFlow();
         const page = pageProps?.pages.at(0);
@@ -378,10 +469,47 @@ describe('DynamicFormFlow', () => {
         // When the user leaves it with Next, with FormProvider's values also holding another page's answer
         pageProps.onPageSubmit(page, {firstName: 'Jane', ssn: '123456789', legalType: 'PRIVATE'});
 
-        // Then only this page's name is drafted, the SSN goes to memory only, and the screen never sees the SSN, since a page save would queue it
+        // Then only this page's name is drafted, the SSN goes to memory only, and the screen gets the SSN apart from the draft answers, so it can send it without the request queue
         expect(saveDraftAnswers).toHaveBeenCalledWith(FORM_ID, {firstName: 'Jane'});
         expect(saveSensitiveAnswers).toHaveBeenCalledWith(FORM_ID, {ssn: '123456789'});
-        expect(onPageSubmit).toHaveBeenCalledWith(page, {firstName: 'Jane'});
+        expect(onPageSubmit).toHaveBeenCalledWith(page, {firstName: 'Jane'}, {ssn: '123456789'});
+    });
+
+    it('forgets that the server holds a sensitive answer once its page is saved with the field hidden', async () => {
+        // Given an SSN shown only to people who have one, which the server holds from an earlier visit
+        const ssnPage: DynamicFormPage = {
+            key: 'personal-details',
+            content: [
+                {key: 'hasNoSSN', type: 'boolean', required: false},
+                {key: 'ssn', type: 'text', required: true, sensitive: true, showWhen: {key: 'hasNoSSN', equals: ['false']}},
+            ],
+        };
+        const {pageProps} = await renderFlow({flowSchema: {pages: [ssnPage]}, draft: {hasNoSSN: false, ssnProvided: true}});
+        const page = pageProps?.pages.at(0);
+        if (!pageProps || !page) {
+            throw new Error('No first page');
+        }
+
+        // When the user says they have no SSN and leaves the page with Next
+        pageProps.onPageSubmit(page, {hasNoSSN: true});
+
+        // Then the draft forgets the server's SSN, since the page was saved without one, so saying they have one again asks for a new one instead of showing it as on file
+        expect(forgetDraftAnswers).toHaveBeenCalledWith(FORM_ID, ['ssnProvided']);
+    });
+
+    it('keeps the server holding a sensitive answer while its field is shown', async () => {
+        // Given an SSN the server holds, on a page saved without changing it
+        const {pageProps} = await renderFlow({draft: {firstName: 'Jane', ssnProvided: true}});
+        const page = pageProps?.pages.at(0);
+        if (!pageProps || !page) {
+            throw new Error('No first page');
+        }
+
+        // When the user leaves the page with Next
+        pageProps.onPageSubmit(page, {firstName: 'Jane'});
+
+        // Then the draft still says the server holds it, so the field keeps showing it as on file
+        expect(forgetDraftAnswers).not.toHaveBeenCalled();
     });
 
     it('submits the visible answers, sensitive ones included, from the confirmation page', async () => {
@@ -429,6 +557,18 @@ describe('DynamicFormFlow', () => {
         expect(subPageOptions.skipPages).toEqual([]);
     });
 
+    it('shows a spinner below the header while it loads, so no second Go Back button covers the header', async () => {
+        // Given a flow that is redirecting to another page
+        // When the flow renders
+        await renderFlow({isRedirecting: true});
+
+        // Then the header is drawn with a plain spinner under it instead of a page
+        expect(HeaderWithBackButtonAndTitle).toHaveBeenCalled();
+        expect(ActivityIndicator).toHaveBeenCalled();
+        expect(FullscreenLoadingIndicator).not.toHaveBeenCalled();
+        expect(mockCurrentPage).not.toHaveBeenCalled();
+    });
+
     it('sends the user back to the incomplete page without pushing a second copy of it', async () => {
         // Given a form whose SSN was lost when the app restarted
         const {subPageOptions, onSubmit} = await renderFlow({draft: {firstName: 'Jane', legalType: 'PRIVATE'}});
@@ -440,6 +580,29 @@ describe('DynamicFormFlow', () => {
         expect(Navigation.goBack).toHaveBeenCalledWith(buildRoute('personal-details'));
         expect(mockResetToPage).not.toHaveBeenCalled();
         expect(onSubmit).not.toHaveBeenCalled();
+    });
+
+    it('stays on the confirmation page and has it show the errors when Confirm is pressed with an unanswered field', async () => {
+        // Given a flow with a confirmation page, whose SSN was lost when the app restarted
+        const {subPageOptions, onSubmit, rerenderFlow} = await renderFlow({
+            draft: {firstName: 'Jane', legalType: 'PRIVATE'},
+            hasConfirmation: true,
+            currentPageName: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY,
+            pageIndex: 3,
+        });
+
+        // When the user presses Confirm
+        act(() => {
+            subPageOptions.onFinished();
+        });
+        await rerenderFlow();
+
+        // Then the user stays where the rows say what is missing, and nothing is submitted
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+        expect(mockResetToPage).not.toHaveBeenCalled();
+        expect(onSubmit).not.toHaveBeenCalled();
+        const pageProps = mockCurrentPage.mock.lastCall?.[0];
+        expect(hasDynamicFormProps(pageProps) && pageProps.shouldShowFieldErrors).toBe(true);
     });
 
     it('resets to the incomplete page when routes are replaced, since there is no stack to go back in', async () => {
@@ -477,6 +640,54 @@ describe('DynamicFormFlow', () => {
         // Then the previous page opens and the sensitive answers are kept
         expect(mockPrevPage).toHaveBeenCalled();
         expect(clearSensitiveAnswers).not.toHaveBeenCalled();
+    });
+
+    it('takes Android back to the previous page from a later page', async () => {
+        // Given the second page of a flow on replaced routes, which leaves no page in the stack for the system back to pop
+        await renderFlow({pageIndex: 1, shouldReplaceRoute: true});
+
+        // When the user presses Android's back button
+        const isHandled = pressAndroidBack();
+
+        // Then the flow handles it like the header's back, so the user lands on the first page instead of leaving the flow
+        expect(isHandled).toBe(true);
+        expect(mockPrevPage).toHaveBeenCalled();
+        expect(clearSensitiveAnswers).not.toHaveBeenCalled();
+    });
+
+    it('leaves the flow and forgets sensitive answers on Android back from the first page', async () => {
+        // Given the first page
+        const {onBack} = await renderFlow({pageIndex: 0, shouldReplaceRoute: true});
+
+        // When the user presses Android's back button
+        const isHandled = pressAndroidBack();
+
+        // Then the screen is left and the SSN is dropped, as the header's back does, so it does not outlive the visit
+        expect(isHandled).toBe(true);
+        expect(onBack).toHaveBeenCalled();
+        expect(clearSensitiveAnswers).toHaveBeenCalledWith(FORM_ID);
+        expect(mockPrevPage).not.toHaveBeenCalled();
+    });
+
+    it('waits for the sensitive answers of an earlier visit to be cleared before showing a page', async () => {
+        // Given an SSN still in memory from a visit left without the flow's own back, such as by a swipe, and a new visit that opens with no page in the URL
+        const {rerenderFlow} = await renderFlow({draft: {firstName: 'Jane'}, sensitiveAnswers: {ssn: '123456789'}, isRedirecting: true});
+
+        // When the redirect lands on the first page before the clearing reaches memory
+        mockSubPage('personal-details', 0, false);
+        await rerenderFlow();
+
+        // Then the spinner stays, since the page's inputs read their values once on mount and would keep the old SSN
+        expect(mockCurrentPage).not.toHaveBeenCalled();
+
+        // When the earlier answers are cleared
+        await act(() => Onyx.merge(ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS, {[FORM_ID]: null}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the page opens without the old SSN, and no render of it ever held the SSN
+        expect(mockCurrentPage).toHaveBeenCalled();
+        const pageValues = mockCurrentPage.mock.calls.map(([props]) => (hasDynamicFormProps(props) ? props.values : undefined));
+        expect(pageValues.every((values) => values?.ssn === undefined)).toBe(true);
     });
 
     it('passes the file size limit on to the page', async () => {
@@ -589,7 +800,7 @@ describe('DynamicFormFlow', () => {
             pageProps.onPageSubmit(page, {directors: [jane]});
 
             // Then a screen saving page by page gets the director, while the SSN stays in memory, out of the request queue
-            expect(onPageSubmit).toHaveBeenCalledWith(page, {directors: [jane]});
+            expect(onPageSubmit).toHaveBeenCalledWith(page, {directors: [jane]}, {});
         });
 
         it('keeps a sensitive list in memory instead of the draft', async () => {

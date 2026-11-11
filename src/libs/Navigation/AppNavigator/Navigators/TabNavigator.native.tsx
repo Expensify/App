@@ -1,3 +1,5 @@
+import useOnyx from '@hooks/useOnyx';
+
 import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 
@@ -6,9 +8,11 @@ import InsightsPage from '@pages/Insights/InsightsPage';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
 import {createNativeBottomTabNavigator} from '@react-navigation/bottom-tabs/unstable';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 import type {NativeTabName} from './NativeTabNavigator/NATIVE_TAB_GLYPHS';
@@ -35,8 +39,9 @@ const HIDDEN_TAB_OPTIONS = {tabBarItemHidden: true};
 const renderNativeTabLayout = (props: NativeTabLayoutProps) => <NativeTabLayout {...props} />;
 
 function TabNavigator() {
-    const {shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled} = useNativeTabNavigator();
-    const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels});
+    const {shouldShowNativeTabBar, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled} = useNativeTabNavigator();
+    const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     // A tab with no bar item draws no icon.
     const getScreenOptions = ({route}: {route: {name: NativeTabName}}) =>
         route.name === tabWithoutBarItem
@@ -54,7 +59,7 @@ function TabNavigator() {
             screenLayout={bottomTabScreenLayoutWrapper}
             screenOptions={getScreenOptions}
             UNSTABLE_router={tabRouterOverride}
-            screenListeners={tabScreenListeners}
+            screenListeners={(props) => tabScreenListeners({...props, session})}
         >
             <Tab.Screen
                 name={SCREENS.HOME}
@@ -71,7 +76,7 @@ function TabNavigator() {
             <Tab.Screen
                 name={SCREENS.INSIGHTS}
                 component={InsightsPage}
-                // The Insights tab button opens the Spend dashboard, so a tap on the native tab lands on it too.
+                // The tab opens on Spend dashboard once, then keeps the last dashboard in navigation state until the app restarts.
                 initialParams={{dashboardID: CONST.INSIGHTS.DASHBOARD.SPEND}}
             />
             <Tab.Screen

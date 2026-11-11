@@ -7,6 +7,7 @@ import useReportTransactions from '@hooks/useReportTransactions';
 import {close} from '@libs/actions/Modal';
 import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import {mergeExpenseAddedGrowlTransactionIDs} from '@libs/actions/Transaction';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import navigateToCreatedExpense from '@libs/Navigation/helpers/navigateToCreatedExpense';
 import Navigation from '@libs/Navigation/Navigation';
@@ -20,6 +21,7 @@ import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 import type {Dispatch, SetStateAction} from 'react';
 
+import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
 import {useEffect, useRef, useState} from 'react';
 
 import GrowlNotificationContent from './GrowlNotification/GrowlNotificationContent';
@@ -95,6 +97,9 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
     const iouReport = isMoneyRequestReport(report) || isInvoiceReport(report) ? report : undefined;
     const iouReportID = iouReport?.reportID;
     const reportTransactions = useReportTransactions(iouReportID);
+    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(iouReport?.policyID)}`, {
+        selector: fullPolicySnapshotLastModifiedSelector,
+    });
 
     useEffect(() => {
         if (active) {
@@ -148,6 +153,7 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
                 iouReportAction: iouAction,
                 transaction,
                 personalDetails,
+                fullPolicySnapshotLastModified,
             });
             threadReportID = optimisticThread?.reportID;
         }

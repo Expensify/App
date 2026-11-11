@@ -27,9 +27,9 @@ import {
     buildOptimisticSelfDMReport,
     generateReportID,
     getChatByParticipants,
+    getChatReportFromMoneyRequestReport,
     getNewestOutstandingReportForUser,
     getReimbursableTotal,
-    getReportOrDraftReport,
     getUnheldReimbursableTotal,
     isExpenseReport,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
@@ -72,12 +72,16 @@ import resolveWriteBarrier from './resolveWriteBarrier';
 import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
 
 function removeSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string) {
+    if (!transaction) {
+        return;
+    }
+
     // Index comes from the route params and is a string
     const index = Number(currentIndex);
     if (index === -1) {
         return;
     }
-    const existingSubrates = transaction?.comment?.customUnit?.subRates ?? [];
+    const existingSubrates = transaction.comment?.customUnit?.subRates ?? [];
 
     const newSubrates = [...existingSubrates];
     newSubrates.splice(index, 1);
@@ -86,28 +90,31 @@ function removeSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentInd
     // to remove nested keys while also preserving other object keys
     // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
     const newTransaction: OnyxTypes.Transaction = {
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        ...(transaction as OnyxTypes.Transaction),
+        ...transaction,
         comment: {
-            ...transaction?.comment,
+            ...transaction.comment,
             customUnit: {
-                ...transaction?.comment?.customUnit,
+                ...transaction.comment?.customUnit,
                 subRates: newSubrates,
                 quantity: null,
             },
         },
     };
 
-    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, newTransaction);
 }
 
 function updateSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string, quantity: number, id: string, name: string, rate: number) {
+    if (!transaction) {
+        return;
+    }
+
     // Index comes from the route params and is a string
     const index = Number(currentIndex);
     if (index === -1) {
         return;
     }
-    const existingSubrates = transaction?.comment?.customUnit?.subRates ?? [];
+    const existingSubrates = transaction.comment?.customUnit?.subRates ?? [];
 
     if (index >= existingSubrates.length) {
         return;
@@ -120,19 +127,18 @@ function updateSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentInd
     // to remove nested keys while also preserving other object keys
     // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
     const newTransaction: OnyxTypes.Transaction = {
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        ...(transaction as OnyxTypes.Transaction),
+        ...transaction,
         comment: {
-            ...transaction?.comment,
+            ...transaction.comment,
             customUnit: {
-                ...transaction?.comment?.customUnit,
+                ...transaction.comment?.customUnit,
                 subRates: newSubrates,
                 quantity: null,
             },
         },
     };
 
-    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, newTransaction);
 }
 
 function clearSubrates(transactionID: string) {
@@ -140,12 +146,16 @@ function clearSubrates(transactionID: string) {
 }
 
 function addSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string, quantity: number, id: string, name: string, rate: number) {
+    if (!transaction) {
+        return;
+    }
+
     // Index comes from the route params and is a string
     const index = Number(currentIndex);
     if (index === -1) {
         return;
     }
-    const existingSubrates = transaction?.comment?.customUnit?.subRates ?? [];
+    const existingSubrates = transaction.comment?.customUnit?.subRates ?? [];
 
     if (index !== existingSubrates.length) {
         return;
@@ -158,19 +168,18 @@ function addSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex:
     // to remove nested keys while also preserving other object keys
     // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
     const newTransaction: OnyxTypes.Transaction = {
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        ...(transaction as OnyxTypes.Transaction),
+        ...transaction,
         comment: {
-            ...transaction?.comment,
+            ...transaction.comment,
             customUnit: {
-                ...transaction?.comment?.customUnit,
+                ...transaction.comment?.customUnit,
                 subRates: newSubrates,
                 quantity: null,
             },
         },
     };
 
-    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, newTransaction);
 }
 
 function computePerDiemExpenseAmount(customUnit: TransactionCustomUnit) {
@@ -367,7 +376,7 @@ function getPerDiemExpensePolicyID({
     const allReports = getAllReports();
 
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    const parentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    const parentChatReport = getChatReportFromMoneyRequestReport(report);
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
 
     const parentChatReportCandidate = parentChatReport?.reportID ? parentChatReport : null;
@@ -643,7 +652,6 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
               [payerAccountID]: {
                   accountID: payerAccountID,
                   // Disabling this line since participant.displayName can be an empty string
-                  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                   displayName: formatPhoneNumber(participant.displayName || payerEmail),
                   login: participant.login,
                   isOptimisticPersonalDetail: true,
@@ -1103,7 +1111,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
 
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    const currentChatReport = getChatReportFromMoneyRequestReport(report);
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
 
     const {

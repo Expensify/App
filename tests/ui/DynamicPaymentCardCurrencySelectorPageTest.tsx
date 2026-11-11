@@ -7,6 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
 import {setDraftValues} from '@libs/actions/FormActions';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import DynamicPaymentCardCurrencySelectorPage from '@pages/settings/Subscription/PaymentCard/DynamicPaymentCardCurrencySelectorPage';
@@ -14,6 +15,7 @@ import DynamicPaymentCardCurrencySelectorPage from '@pages/settings/Subscription
 import {setPaymentMethodCurrency} from '@userActions/PaymentMethods';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React from 'react';
 
@@ -182,7 +184,7 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
 
     it('selects the add-payment-card draft currency in the add payment card flow', () => {
         // Given the add payment card flow with NZD already picked in its draft
-        mockUseDynamicBackPath.mockReturnValue('settings/subscription/add-payment-card');
+        mockUseDynamicBackPath.mockReturnValue(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path, ROUTES.SETTINGS_SUBSCRIPTION.route));
         mockOnyx(undefined, 'NZD');
 
         // When the selector opens
@@ -205,7 +207,7 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
 
     it('clamps a EUR preferred currency to USD in the add payment card flow when the beta is disabled', () => {
         // Given the add payment card flow with no draft, so the default comes from a EUR billing card, while the EUR beta is off
-        mockUseDynamicBackPath.mockReturnValue('settings/subscription/add-payment-card');
+        mockUseDynamicBackPath.mockReturnValue(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path, ROUTES.SETTINGS_SUBSCRIPTION.route));
         mockOnyx(undefined, undefined, 'EUR');
 
         // When the selector opens
@@ -290,7 +292,7 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
 
     it('writes only the add-card draft (not the change-billing draft) when Save is tapped in the add payment card flow', () => {
         // Given the selector opened from the add payment card flow
-        mockUseDynamicBackPath.mockReturnValue('settings/subscription/add-payment-card');
+        mockUseDynamicBackPath.mockReturnValue(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path, ROUTES.SETTINGS_SUBSCRIPTION.route));
 
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
@@ -313,7 +315,7 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
     });
 
     it('shows the currency note when opened from a flow that does not already display it (e.g. add payment card)', () => {
-        mockUseDynamicBackPath.mockReturnValue('settings/subscription/add-payment-card');
+        mockUseDynamicBackPath.mockReturnValue(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path, ROUTES.SETTINGS_SUBSCRIPTION.route));
 
         render(<DynamicPaymentCardCurrencySelectorPage />);
 

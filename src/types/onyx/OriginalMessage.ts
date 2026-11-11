@@ -4,6 +4,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {ValueOf} from 'type-fest';
 
 import type {CardID} from './Card';
+import type {CompanyCardFeedWithNumber, FeedReimbursable} from './CardFeeds';
 import type {PolicyRuleTaxRate} from './ExpenseRule';
 import type {Attendee} from './IOU';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
@@ -102,6 +103,18 @@ type OriginalMessageIOU = {
 
     /** Cross-border FX reimbursement: last 4 of the employee deposit account that was credited */
     creditBankAccountLast4?: string;
+
+    /** Wise payment: total fees, in cents of `currency` */
+    fee?: number;
+
+    /** Wise payment: units of `creditedCurrency` per one unit of `currency` */
+    rate?: number;
+
+    /** Wise payment: amount taken from the company's bank account, in cents of `currency` */
+    debitedAmount?: number;
+
+    /** Wise payment: tax Wise charges on the transfer in some corridors, in cents of `currency` */
+    tax?: number;
 
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
@@ -268,6 +281,9 @@ type OriginalMessageSubmitted = {
 
     expenseReportID?: string;
 
+    /** Account that received this submission, even if the report's current manager later changes. */
+    submittedTo?: number;
+
     /** Was the report submitted via harvesting (delayed submit) */
     harvesting?: boolean;
 
@@ -300,6 +316,9 @@ type OriginalMessageAddExpenseOnSubmitted = {
 type OriginalMessageCreated = {
     /** The account id of the user the report is submitted to */
     submittedTo?: number;
+
+    /** Account of the person who created the bill or processed the invoice for its owner. Bill intake omits this for emailed invoices. */
+    processor?: number;
 };
 
 /** Model of `created report for unapproved transactions` report action */
@@ -549,6 +568,12 @@ type OriginalMessagePolicyChangeLog = {
     newDescription?: string;
     oldDescription?: string;
 
+    /** Whether an existing expense policy document was replaced (true) or a first one added (false) */
+    isReplacement?: boolean;
+
+    /** Workspace whose expense policy document changed, used to link to its Overview page */
+    policyID?: string;
+
     /** Report field type */
     fieldType?: string;
 
@@ -560,8 +585,8 @@ type OriginalMessagePolicyChangeLog = {
     /** Array of field changes for consolidated employee updates */
     fields?: Array<{
         field: string;
-        oldValue: string;
-        newValue: string;
+        oldValue: string | number;
+        newValue: string | number;
     }>;
 
     /** Report field name */
@@ -592,6 +617,12 @@ type OriginalMessagePolicyChangeLog = {
 
     /** End date of the custom unit rate (yyyy-MM-dd), used in ADD actions */
     endDate?: string;
+
+    /** Share of the custom unit rate that is tax reclaimable, used in ADD actions */
+    taxClaimablePercentage?: number;
+
+    /** Name of the tax rate the custom unit rate's reclaimable tax falls under, used in ADD actions */
+    taxRateName?: string;
 
     /** New start date of the custom unit rate (yyyy-MM-dd), used in UPDATE actions */
     newStartDate?: string;
@@ -736,6 +767,9 @@ type OriginalMessagePolicyChangeLog = {
     /** Name of company card feed */
     feedName?: string;
 
+    /** Type of the card feed added to the workspace */
+    feedType?: ValueOf<typeof CONST.COMPANY_CARD.LINK_FEED_TYPE>;
+
     /** Last four digits of a company card */
     cardLastFour?: string;
 
@@ -750,6 +784,12 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Previous statement period end day for a company card feed */
     previousStatementPeriodEndDay?: string;
+
+    /** Reimbursable setting of a company card feed */
+    forceReimbursable?: FeedReimbursable;
+
+    /** Previous reimbursable setting of a company card feed */
+    previousForceReimbursable?: FeedReimbursable;
 
     /** Whether the user joined the workspace via joining link */
     didJoinPolicy?: boolean;
@@ -895,6 +935,30 @@ type OriginalMessageOfficeLocationChangeLog = {
 
     /** Address of the office before an address change */
     oldAddress?: CompanyAddress;
+};
+
+/** Model of a member office location change log action */
+type OriginalMessageEmployeeOfficeLocationChangeLog = {
+    /** Account ID of the member */
+    accountID?: number;
+
+    /** Login of the member */
+    email?: string;
+
+    /** Display name of the member */
+    name?: string;
+
+    /** Office the member was assigned to, or empty when the assignment was cleared */
+    officeID?: string;
+
+    /** Nickname of the office the member was assigned to */
+    officeName?: string;
+
+    /** Office the member was assigned to before the change, or empty when they had none */
+    oldOfficeID?: string;
+
+    /** Nickname of the office the member was assigned to before the change */
+    oldOfficeName?: string;
 };
 
 /** Model of a policy copy change log action */
@@ -1280,6 +1344,9 @@ type OriginalMessageReimbursed = {
 
     /** Currency the creditedAmount is denominated in (the employee's deposit currency) */
     creditedCurrency?: string;
+
+    /** The Concierge reasoning for the action */
+    reasoning?: string;
 };
 
 /** Model of `trip room preview` report action */
@@ -1421,6 +1488,9 @@ type OriginalMessageDemotedFromWorkspace = {
     /** The old role of the employee that is being demoted */
     oldRole: string;
 
+    /** The new role of the employee that is being demoted. Missing on actions created before the role was included */
+    newRole?: string;
+
     /** The accountID of the member who was demoted from workspace */
     whisperedTo: number[];
 };
@@ -1456,6 +1526,9 @@ type OriginalMessageCompanyCardConnectionBroken = {
 
     /** The feed name for which the company card connection was broken */
     feedName: string;
+
+    /** The feed's bank, used as the feed name when the feed has no custom name */
+    bank?: CompanyCardFeedWithNumber;
 };
 
 /**
@@ -1625,16 +1698,21 @@ type OriginalMessageSettlementAccountLocked = {
 };
 
 /**
- * Original message for Expensify Card issue/replacement actions
+ * Model of the Concierge report action that warns #admins about Auto Pay fees once Global Reimbursements is enabled
  */
-type IssueNewCardOriginalMessage = OriginalMessage<
-    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS
-    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED
-    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL
-    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED
-    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL
-    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED
->;
+type OriginalMessageAutoPayFeeDisclosure = {
+    /** The policy that has Auto Pay enabled */
+    policyID: string;
+
+    /** The admin who enabled Global Reimbursements */
+    accountID: number;
+
+    /** The name of the bank, which can be empty */
+    bankName: string;
+
+    /** The last four digits of the bank account number */
+    lastFour: string;
+};
 
 /**
  * Model of a HOME_ADDRESS_REQUIRED Concierge report action.
@@ -1809,6 +1887,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED]: OriginalMessageReimbursementDirectorInformationRequired;
     [CONST.REPORT.ACTIONS.TYPE.HOME_ADDRESS_REQUIRED]: OriginalMessageHomeAddressRequired;
     [CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED]: OriginalMessageSettlementAccountLocked;
+    [CONST.REPORT.ACTIONS.TYPE.AUTO_PAY_FEE_DISCLOSURE]: OriginalMessageAutoPayFeeDisclosure;
 } & Omit<OldDotOriginalMessageMap, typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL> &
     Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>, OriginalMessagePolicyChangeLog> &
     Record<PolicyChangeLogCopyReportActionNames, OriginalMessagePolicyChangeCopyLog> & {
@@ -1821,6 +1900,7 @@ type OriginalMessageMap = {
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_OFFICE_LOCATION]: OriginalMessageOfficeLocationChangeLog;
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OFFICE_LOCATION]: OriginalMessageOfficeLocationChangeLog;
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_OFFICE_LOCATION]: OriginalMessageOfficeLocationChangeLog;
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION]: OriginalMessageEmployeeOfficeLocationChangeLog;
     } & Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>, OriginalMessageChangeLog>;
 
 type OriginalMessage<T extends ReportActionName> = T extends keyof OriginalMessageMap ? OriginalMessageMap[T] : never;
@@ -1840,7 +1920,6 @@ export type {
     JoinWorkspaceResolution,
     OriginalMessageModifiedExpense,
     OriginalMessageExportIntegration,
-    IssueNewCardOriginalMessage,
     OriginalMessageChangePolicy,
     OriginalMessageMovedTransaction,
     PolicyBudgetFrequency,

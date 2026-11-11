@@ -6,7 +6,7 @@ import type {PDFDocumentProxy} from 'pdfjs-dist';
 
 // eslint-disable-next-line import/extensions
 import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker.min.mjs';
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import {Document, pdfjs, Thumbnail} from 'react-pdf';
 
@@ -27,37 +27,34 @@ function PDFThumbnail({previewSourceURL, style, enabled = true, onPassword, onLo
     const styles = useThemeStyles();
     const [failedToLoad, setFailedToLoad] = useState(false);
 
-    const thumbnail = useMemo(
-        () => (
-            <Document
-                loading={<LoadingIndicator />}
-                file={previewSourceURL}
-                options={PDF_DOCUMENT_OPTIONS}
-                externalLinkTarget="_blank"
-                onPassword={onPassword}
-                onLoad={() => {
-                    setFailedToLoad(false);
-                }}
-                onLoadSuccess={(pdf: PDFDocumentProxy) => {
-                    if (!onLoadSuccess) {
-                        return;
-                    }
-                    onLoadSuccess(pdf.numPages);
-                }}
-                onLoadError={() => {
-                    if (onLoadError) {
-                        onLoadError();
-                    }
-                    setFailedToLoad(true);
-                }}
-                error={() => null}
-            >
-                <View pointerEvents="none">
-                    <Thumbnail pageIndex={0} />
-                </View>
-            </Document>
-        ),
-        [previewSourceURL, onPassword, onLoadError, onLoadSuccess],
+    const thumbnail = (
+        <Document
+            loading={<LoadingIndicator />}
+            file={previewSourceURL}
+            options={PDF_DOCUMENT_OPTIONS}
+            externalLinkTarget="_blank"
+            onPassword={onPassword}
+            onLoad={() => {
+                setFailedToLoad(false);
+            }}
+            onLoadSuccess={(pdf: PDFDocumentProxy) => {
+                if (!onLoadSuccess) {
+                    return;
+                }
+                onLoadSuccess(pdf.numPages);
+            }}
+            onLoadError={() => {
+                if (onLoadError) {
+                    onLoadError();
+                }
+                setFailedToLoad(true);
+            }}
+            error={() => null}
+        >
+            <View pointerEvents="none">
+                <Thumbnail pageIndex={0} />
+            </View>
+        </Document>
     );
 
     return (
@@ -81,7 +78,7 @@ function PDFThumbnail({previewSourceURL, style, enabled = true, onPassword, onLo
 
 PDFThumbnail.displayName = 'PDFThumbnail';
 
-export default React.memo(PDFThumbnail);
+export default PDFThumbnail;
 
 // Re-exported so other PDF-rendering components reuse this file's worker setup
 // instead of importing pdfjs-dist/react-pdf directly.

@@ -27,7 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/EnterSignerInfoForm';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type UploadDocumentsProps = SubPageProps & {policyID: string};
@@ -68,17 +68,11 @@ function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
         getEnvironmentURL().then(setEnvironmentUrl);
     }, []);
 
-    const STEP_FIELDS = useMemo(
-        (): Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>> => [copyOfIDInputID, addressProofInputID, directorsProofInputID, codiceFiscaleInputID],
-        [copyOfIDInputID, addressProofInputID, directorsProofInputID, codiceFiscaleInputID],
-    );
+    const STEP_FIELDS: Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>> = [copyOfIDInputID, addressProofInputID, directorsProofInputID, codiceFiscaleInputID];
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM> => {
-            return getFieldRequiredErrors(values, STEP_FIELDS, translate);
-        },
-        [STEP_FIELDS, translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM> => {
+        return getFieldRequiredErrors(values, STEP_FIELDS, translate);
+    };
 
     const handleSubmit = useEnterSignerInfoStepFormSubmit({
         fieldIds: STEP_FIELDS,
@@ -241,7 +235,10 @@ function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
             {isDocumentNeededStatus.isPRDAndFSGNeeded && (
                 <View style={[styles.alignItemsStart]}>
                     <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('signerInfoStep.PDSandFSG')}</Text>
-                    <Button onPress={downloadPDSAndFSG}>
+                    <Button
+                        onPress={downloadPDSAndFSG}
+                        sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.ENTER_SIGNER_INFO_DOWNLOAD_PDS_AND_FSG}
+                    >
                         <Button.Text>{translate('common.download')}</Button.Text>
                     </Button>
                     {!isPDSandFSGDownloaded && isPDSandFSGDownloadedTouched && (

@@ -12,6 +12,7 @@ import {hasDependentTags} from '@libs/PolicyUtils';
 import {getDecodedTagName} from '@libs/TagUtils';
 import {getTagForDisplay} from '@libs/TransactionUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 
@@ -36,7 +37,7 @@ function TagCell({canEdit, onSave, shouldUseNarrowLayout, shouldShowTooltip, tra
     const policyHasDependentTags = hasDependentTags(policy, policyTags);
     const shouldShowGLCode = !!policy?.showTagGLCodes && !!policy?.glCodes;
 
-    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
+    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, popoverHeight, anchorAlignment, shouldOpenAbove, startEditing, cancelEditing, handleSave} = usePopoverEditState({
         canEdit,
         value: transactionItem?.tag ?? '',
         onSave,
@@ -78,7 +79,11 @@ function TagCell({canEdit, onSave, shouldUseNarrowLayout, shouldShowTooltip, tra
                     isVisible={isPopoverVisible}
                     onClose={cancelEditing}
                     anchorPosition={popoverPosition}
-                    shouldMeasureAnchorPositionFromTop={!isInverted}
+                    anchorAlignment={anchorAlignment}
+                    searchInputThreshold={CONST.INLINE_EDIT_PICKER_SEARCH_INPUT_THRESHOLD}
+                    popoverHeight={popoverHeight}
+                    shouldMeasureAnchorPositionFromTop={!shouldOpenAbove}
+                    shouldSwitchPositionIfOverflow={false}
                     onSelected={handleSave}
                 />
             }

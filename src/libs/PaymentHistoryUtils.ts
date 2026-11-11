@@ -24,6 +24,8 @@ type PaymentHistoryRow = {
     showsTax: boolean;
     state: PaymentHistoryState;
     activeUserCount?: number;
+    /** Whether the bill was on Collect 2025 pricing, which counts members instead of active users. */
+    countsMembers: boolean;
 };
 
 /** The dynamic badge shown on the payment details page, carrying the extra detail that only renders there. */
@@ -110,6 +112,7 @@ function getPaymentHistoryRows(purchases: Purchases | null | undefined): Payment
             showsTax: !!purchase.message.salesTaxCharged && !purchase.message.salesTaxExempt,
             state: foldedState.get(purchase.purchaseID)?.state ?? getOwnState(purchase),
             activeUserCount: getActiveUserCount(purchase),
+            countsMembers: !!purchase.message.isTeam2025Pricing,
         });
     }
 
@@ -184,15 +187,25 @@ function getDisplayAmount(purchase: Purchase): number {
 }
 
 function getActiveUserCount(purchase: Purchase): number | undefined {
-    if (purchase.message.totalUniqueMembersCount !== undefined) {
-        return purchase.message.totalUniqueMembersCount;
-    }
-    if (purchase.message.totalActorCount !== undefined) {
-        return purchase.message.totalActorCount;
+    const message = purchase.message;
+    // Legacy bills show the billed-actor count. Team 2025 bills take the larger of the two counts
+    // because a force-upgraded policy can push teamActorCount above the unique member count.
+    if (message.isTeam2025Pricing) {
+        const teamActors = Number(message.teamActorCount ?? 0);
+        const uniqueMembers = Number(message.totalUniqueMembersCount ?? 0);
+        const count = Math.max(teamActors, uniqueMembers);
+        if (count > 0) {
+            return count;
+        }
+    } else if (message.totalActorCount !== undefined) {
+        const count = Number(message.totalActorCount ?? 0);
+        if (count > 0) {
+            return count;
+        }
     }
 
     const emails = new Set<string>();
-    for (const policy of Object.values(purchase.message.billablePolicies ?? {})) {
+    for (const policy of Object.values(message.billablePolicies ?? {})) {
         for (const email of policy.actorList?.split(',') ?? []) {
             const trimmed = email.trim();
             if (trimmed) {
@@ -201,6 +214,11 @@ function getActiveUserCount(purchase: Purchase): number | undefined {
         }
     }
     return emails.size > 0 ? emails.size : undefined;
+}
+
+/** Returns the account IDs of the users billed for a purchase, deduped since the same person can be billed under more than one workspace. */
+function getActiveUserAccountIDs(purchase: Purchase | undefined): number[] {
+    return [...new Set(purchase?.activeUsers?.filter((accountID) => !!accountID))];
 }
 
 function compareNewestFirst(left: PaymentHistoryRow, right: PaymentHistoryRow): number {
@@ -285,7 +303,7 @@ function getPaymentDetailsBadge(purchases: Purchases | null | undefined, purchas
 }
 
 function formatDate(date: string, locale: DateFnsLocale | undefined): string {
-    return DateUtils.formatWithUTCTimeZone(date, CONST.DATE.MONTH_DAY_YEAR_FORMAT, locale) || date;
+    return DateUtils.formatToLongDateInUTC(date, locale) || date;
 }
 
 /** Resolves the dynamic badge label shown only on the details page, falling back to the plain state label. */
@@ -323,7 +341,9 @@ function getReceiptPurchase(purchases: Purchases | null | undefined, purchaseID:
         return null;
     }
     const purchase = purchases[String(purchaseID)];
-    if (!purchase) {
+    // Onyx can persist lookup completion without purchase data, despite these fields being required by the type.
+    // Reject placeholders before using their receipt or reading their message.
+    if (!purchase?.purchaseID || !purchase.message) {
         return null;
     }
     if (purchase.receipt?.source) {
@@ -339,7 +359,8 @@ function getReceiptPurchase(purchases: Purchases | null | undefined, purchaseID:
     while (currentID !== undefined && !visited.has(currentID)) {
         visited.add(currentID);
         const current: Purchase | undefined = purchases[String(currentID)];
-        if (!current) {
+        // Linked purchases can also be persisted placeholders, so each entry needs the same validation.
+        if (!current?.purchaseID || !current.message) {
             return null;
         }
         if (current.receipt?.source) {
@@ -362,7 +383,6 @@ function isInvoiceBilling(purchases: Purchases | null | undefined, purchaseID: n
 function getReceiptFileName(source: string, purchaseID: number): string {
     try {
         const pathname = new URL(source).pathname;
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return pathname.split('/').pop() || `receipt-${purchaseID}`;
     } catch {
         return `receipt-${purchaseID}`;
@@ -371,6 +391,7 @@ function getReceiptFileName(source: string, purchaseID: number): string {
 
 export {
     formatDate,
+    getActiveUserAccountIDs,
     getBadgeAppearance,
     getBadgeText,
     getPaymentDetailsBadge,

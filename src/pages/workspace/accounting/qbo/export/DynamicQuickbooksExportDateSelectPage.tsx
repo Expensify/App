@@ -23,7 +23,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 type CardListItem = ListItem & {
     value: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
@@ -48,21 +48,18 @@ function DynamicQuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsPr
         isSelected: qboConfig?.exportDate === dateType,
     }));
 
-    const exportDate = useMemo(() => qboConfig?.exportDate, [qboConfig?.exportDate]);
+    const exportDate = qboConfig?.exportDate;
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
-    const selectExportDate = useCallback(
-        (row: CardListItem) => {
-            if (row.value !== exportDate && policyID) {
-                updateQuickbooksOnlineExportDate(policyID, row.value, exportDate);
-            }
-            goBack();
-        },
-        [policyID, exportDate, goBack],
-    );
+    const selectExportDate = (row: CardListItem) => {
+        if (row.value !== exportDate && policyID) {
+            updateQuickbooksOnlineExportDate(policyID, row.value, exportDate);
+        }
+        goBack();
+    };
 
     return (
         <SelectionScreen

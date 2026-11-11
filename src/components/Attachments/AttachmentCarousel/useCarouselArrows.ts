@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 
 import type {SetStateAction} from 'react';
 
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 
 function useCarouselArrows() {
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
@@ -14,17 +14,17 @@ function useCarouselArrows() {
     /**
      * Cancels the automatic hiding of the arrows.
      */
-    const cancelAutoHideArrows = useCallback(() => {
+    const cancelAutoHideArrows = () => {
         if (!autoHideArrowTimeout.current) {
             return;
         }
         clearTimeout(autoHideArrowTimeout.current);
-    }, []);
+    };
 
     /**
      * Automatically hide the arrows if there is no interaction for 3 seconds.
      */
-    const autoHideArrows = useCallback(() => {
+    const autoHideArrows = () => {
         if (!canUseTouchScreen) {
             return;
         }
@@ -33,18 +33,15 @@ function useCarouselArrows() {
         autoHideArrowTimeout.current = setTimeout(() => {
             setShouldShowArrowsInternal(false);
         }, CONST.ARROW_HIDE_DELAY);
-    }, [canUseTouchScreen, cancelAutoHideArrows]);
+    };
 
     /**
      * Sets the visibility of the arrows.
      */
-    const setShouldShowArrows = useCallback(
-        (show: SetStateAction<boolean> = true) => {
-            setShouldShowArrowsInternal(show);
-            autoHideArrows();
-        },
-        [autoHideArrows],
-    );
+    const setShouldShowArrows = (show: SetStateAction<boolean> = true) => {
+        setShouldShowArrowsInternal(show);
+        autoHideArrows();
+    };
 
     useEffect(() => {
         autoHideArrows();

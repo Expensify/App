@@ -7,14 +7,17 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+
 import Navigation from '@navigation/Navigation';
 
 import variables from '@styles/variables';
 
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {isCollectingDepositAccountsSelector} from '@selectors/Policy';
 import React from 'react';
@@ -34,7 +37,7 @@ function BankAccountPurpose({showCountrySelectionStep}: BankAccountPurposeProps)
     // A workspace collecting deposit accounts needs the bank details its country requires, which the wallet setup does not ask for.
     const onGetReimbursedPressed = () => {
         if (isCollectingDepositAccounts) {
-            Navigation.navigate(ROUTES.SETTINGS_COLLECT_DEPOSIT_ACCOUNT.getRoute());
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.COLLECT_DEPOSIT_ACCOUNT.getRoute()));
             return;
         }
         openPersonalBankAccountSetupView({});
@@ -45,6 +48,11 @@ function BankAccountPurpose({showCountrySelectionStep}: BankAccountPurposeProps)
             <View style={styles.mh5}>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('bankAccount.bankAccountPurposeTitle')}</Text>
                 <MenuItem
+                    sentryLabel={
+                        isCollectingDepositAccounts
+                            ? CONST.SENTRY_LABEL.SETTINGS_WALLET.BANK_ACCOUNT_PURPOSE_GET_REIMBURSED.COLLECT_DEPOSIT_ACCOUNT
+                            : CONST.SENTRY_LABEL.SETTINGS_WALLET.BANK_ACCOUNT_PURPOSE_GET_REIMBURSED.PERSONAL_BANK_ACCOUNT
+                    }
                     icon={illustrations.WalletAlt2}
                     title={translate('bankAccount.getReimbursed')}
                     description={translate('bankAccount.getReimbursedDescription')}
@@ -57,6 +65,7 @@ function BankAccountPurpose({showCountrySelectionStep}: BankAccountPurposeProps)
                     wrapperStyle={styles.purposeMenuItem}
                 />
                 <MenuItem
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.BANK_ACCOUNT_PURPOSE_MAKE_PAYMENTS}
                     icon={illustrations.BankCoin}
                     title={translate('bankAccount.makePayments')}
                     description={translate('bankAccount.makePaymentsDescription')}
