@@ -197,7 +197,11 @@ const ONYXKEYS = {
     /** Agent templates for the add-agent Suggestions */
     AGENT_TEMPLATES: 'agentTemplates',
 
-    /** Accounting integration waitlist requests that are still pending or that failed */
+    /**
+     * Accounting integration waitlist requests that are still pending or that failed, by workspace and integration.
+     * NVP_ACCOUNTING_INTEGRATION_WAITLIST is an array the server replaces as a whole on every response, so pending and
+     * error state is kept in this key instead, where one response can't wipe another workspace's pending request.
+     */
     ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS: 'accountingIntegrationWaitlistRequests',
 
     /** Whether the user is a member of a policy other than their personal */
