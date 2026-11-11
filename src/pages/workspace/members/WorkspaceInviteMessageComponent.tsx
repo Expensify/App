@@ -296,7 +296,7 @@ function WorkspaceInviteMessageComponent({
     const invitingMemberName = Str.isSMSLogin(invitingMemberDetails?.displayName ?? '')
         ? formatPhoneNumber(invitingMemberDetails?.displayName ?? '')
         : (invitingMemberDetails?.displayName ?? '');
-    const invitingMemberTitle = invitingMemberName && invitingMemberName !== invitingMemberEmail ? invitingMemberName : invitingMemberEmail;
+    const invitingMemberTitle = invitingMemberName && invitingMemberName !== invitingMemberEmail ? invitingMemberName : formatPhoneNumber(invitingMemberEmail);
     const approverName = temporaryGetDisplayNameOrDefault({
         passedPersonalDetails: approverDetails,
         defaultValue: workspaceInviteApproverDraft,
