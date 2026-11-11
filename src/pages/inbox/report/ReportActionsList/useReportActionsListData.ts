@@ -1,5 +1,5 @@
-import {getReportActionMessage, isNewerReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
-import {isExpenseReport, isIOUReport, isInvoiceReport, isResolvedSupportTicket, isSupportTicket} from '@libs/ReportUtils';
+import {getReportActionMessage, isTransactionThread} from '@libs/ReportActionsUtils';
+import {isExpenseReport, isIOUReport, isInvoiceReport} from '@libs/ReportUtils';
 
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 import {useReportActionsListState} from '@pages/inbox/report/ReportActionsListContext';
@@ -11,8 +11,10 @@ import {useEffect} from 'react';
 
 import type {UseReportActionsListDataParams} from './types';
 
-/** Prepares the rendered report rows, including streamed Concierge drafts, support surveys, and collapsed system messages. */
-function useReportActionsListData({sortedVisibleReportActions, reportNameValuePairs, sessionStartTime, linkedReportActionID, unreadMarkerReportActionID}: UseReportActionsListDataParams) {
+import getReportActionsWithStreamedReply from './getReportActionsWithStreamedReply';
+
+/** Prepares the rendered report rows, including streamed Concierge drafts and collapsed system messages. */
+function useReportActionsListData({sortedVisibleReportActions, sessionStartTime, linkedReportActionID, unreadMarkerReportActionID}: UseReportActionsListDataParams) {
     const {report, sortedAllReportActions, parentReportAction, isConciergeHiddenHistory, showFullHistory} = useReportActionsListState();
     const {draftReportAction, isDraftPendingCompletion} = useConciergeDraft();
     const {clearDraft, revealDraftFromReportAction} = useConciergeDraftActions();
@@ -24,64 +26,14 @@ function useReportActionsListData({sortedVisibleReportActions, reportNameValuePa
           )
         : undefined;
 
-    const shouldHideSupportTicketSurvey = isSupportTicket(report) && (!isResolvedSupportTicket(report) || !!reportNameValuePairs?.reopenedAsReportID);
-    const latestResolvedSupportTicketAction = sortedAllReportActions?.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
-    const latestSupportTicketSurveyAction = latestResolvedSupportTicketAction
-        ? sortedAllReportActions?.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY && action.created >= latestResolvedSupportTicketAction.created)
-        : undefined;
-
-    const visibleReportActions = (() => {
-        if (!draftReportAction) {
-            return sortedVisibleReportActions;
-        }
-
-        if (showHiddenHistory && sessionStartTime && draftReportAction.created < sessionStartTime) {
-            return sortedVisibleReportActions;
-        }
-
-        // A completed reveal belongs to the saved action, even when pagination keeps that action off screen.
-        if (persistedDraftReportAction && !isDraftPendingCompletion) {
-            return sortedVisibleReportActions;
-        }
-
-        // Insert the synthetic draft into the already-descending render list without treating it as a persisted report action.
-        for (const [index, action] of sortedVisibleReportActions.entries()) {
-            if (action.reportActionID === draftReportAction.reportActionID) {
-                // Completed local replies can retain their pending add flag after the server merges followups.
-                if (!isDraftPendingCompletion) {
-                    return sortedVisibleReportActions;
-                }
-
-                const visibleReportActionsWithDraft = [...sortedVisibleReportActions];
-                visibleReportActionsWithDraft[index] = draftReportAction;
-                return visibleReportActionsWithDraft;
-            }
-            if (isNewerReportAction(draftReportAction, action)) {
-                const visibleReportActionsWithDraft = [...sortedVisibleReportActions];
-                visibleReportActionsWithDraft.splice(index, 0, draftReportAction);
-                return visibleReportActionsWithDraft;
-            }
-        }
-
-        const visibleReportActionsWithDraft = [...sortedVisibleReportActions];
-        visibleReportActionsWithDraft.push(draftReportAction);
-        return visibleReportActionsWithDraft;
-    })();
-
-    const shouldFilterSupportTicketSurveys =
-        isSupportTicket(report) &&
-        visibleReportActions.some(
-            (action) =>
-                action.actionName === CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY &&
-                (shouldHideSupportTicketSurvey || action.reportActionID !== latestSupportTicketSurveyAction?.reportActionID),
-        );
-    const renderedVisibleReportActions = shouldFilterSupportTicketSurveys
-        ? visibleReportActions.filter(
-              (action) =>
-                  action.actionName !== CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY ||
-                  (!shouldHideSupportTicketSurvey && action.reportActionID === latestSupportTicketSurveyAction?.reportActionID),
-          )
-        : visibleReportActions;
+    const shouldHideDraft = !!(showHiddenHistory && sessionStartTime && draftReportAction && draftReportAction.created < sessionStartTime);
+    const {reportActionsWithStreamedReply: renderedVisibleReportActions, isSyntheticDraftVisible} = getReportActionsWithStreamedReply({
+        sortedVisibleReportActions,
+        draftReportAction,
+        isDraftPendingCompletion,
+        hasPersistedDraft: !!persistedDraftReportAction,
+        shouldHideDraft,
+    });
 
     const shouldCollapseSystemMessages = isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report) || isTransactionThread(parentReportAction);
     const {
@@ -106,8 +58,7 @@ function useReportActionsListData({sortedVisibleReportActions, reportNameValuePa
 
     const draftMessageHTML = draftReportAction ? getReportActionMessage(draftReportAction)?.html : undefined;
     const draftReportActionID = draftReportAction?.reportActionID;
-    const isSyntheticDraftVisible = !!draftReportAction && renderedVisibleReportActions !== sortedVisibleReportActions;
-    const draftAutoScrollKey = isSyntheticDraftVisible ? `${draftReportAction.reportActionID}:${draftMessageHTML ?? ''}` : '';
+    const draftAutoScrollKey = isSyntheticDraftVisible && draftReportAction ? `${draftReportAction.reportActionID}:${draftMessageHTML ?? ''}` : '';
 
     useEffect(() => {
         if (!draftReportAction || isSyntheticDraftVisible) {

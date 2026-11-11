@@ -32,7 +32,7 @@ function getAssignCard() {
         const connection = Onyx.connect({
             key: ONYXKEYS.ASSIGN_CARD,
             callback: (value) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(value);
             },
         });

@@ -65,6 +65,7 @@ function EmptyWorkspaceView() {
                 addBottomSafeAreaPadding
             />
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.NEW_ROOM.LEARN_MORE}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.LARGE}
                 onPress={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute(Navigation.getActiveRoute()))}
