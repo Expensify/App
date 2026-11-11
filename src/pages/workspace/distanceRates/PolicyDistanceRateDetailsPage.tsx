@@ -272,12 +272,14 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                                 errorRowStyles={styles.mh5}
                                 onClose={() => clearErrorFields('taxRateExternalID')}
                             >
-                                <MenuItemField
-                                    name={translate('workspace.taxes.taxRate')}
-                                    value={taxRate}
-                                    onPress={canWriteDistanceRates ? editTaxRateValue : undefined}
-                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.TAX_RATE}
-                                />
+                                <View style={styles.w100}>
+                                    <MenuItemField
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.RATE_DETAILS_TAX_RATE}
+                                        name={translate('workspace.taxes.taxRate')}
+                                        onPress={canWriteDistanceRates ? editTaxRateValue : undefined}
+                                        value={taxRate}
+                                    />
+                                </View>
                             </OfflineWithFeedback>
                             <OfflineWithFeedback
                                 errors={fuelRateTaxErrors}

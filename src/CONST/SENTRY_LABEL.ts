@@ -1680,7 +1680,6 @@ const SENTRY_LABEL = {
             BULK_ACTIONS_DROPDOWN: 'WorkspaceDistanceRates-BulkActionsDropdown',
             UNIT_SELECTOR: 'WorkspaceDistanceRates-UnitSelector',
             COUNTRY_SELECTOR: 'WorkspaceDistanceRates-CountrySelector',
-            TAX_RATE: 'WorkspaceDistanceRates-TaxRate',
             ROW_ENABLE_SWITCH: 'WorkspaceDistanceRates-RowEnableSwitch',
             RATE_DETAILS_ENABLE_SWITCH: 'WorkspaceDistanceRates-RateDetailsEnableSwitch',
             AUTO_UPDATE_GOVERNMENT_RATE_SWITCH: 'WorkspaceDistanceRates-AutoUpdateGovernmentRateSwitch',

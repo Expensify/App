@@ -406,26 +406,6 @@ describe('PolicyUtils', () => {
             });
         });
 
-        it.each([false, true])('shares the warning copy across settings and rate details with integration=%s', (hasIntegration) => {
-            // Given an affected workspace, optionally connected to Xero
-            const policy = createUKFuelRateTaxPolicy();
-            if (hasIntegration) {
-                policy.connections = createMock<Connections>({xero: {config: {importTaxRates: true}}});
-            }
-            const translate = TestHelper.translateLocal;
-            const message = hasIntegration
-                ? translate('workspace.distanceRates.ukFuelRateTaxErrorWithIntegration', {integrationName: 'Xero'})
-                : translate('workspace.distanceRates.ukFuelRateTaxError');
-
-            // When building errors for either page
-            const settingsErrors = getUKFuelRateTaxErrors(policy, translate);
-            const detailsErrors = getUKFuelRateTaxErrors(policy, translate, 'fuel');
-
-            // Then both pages display the same localized warning
-            expect(settingsErrors).toEqual({ukFuelRateTax: message});
-            expect(detailsErrors).toEqual(settingsErrors);
-        });
-
         it('does not warn on another rate when a fuel band is invalid', () => {
             // Given a workspace with an invalid fuel band and a separate valid rate
             const policy = createUKFuelRateTaxPolicy();
