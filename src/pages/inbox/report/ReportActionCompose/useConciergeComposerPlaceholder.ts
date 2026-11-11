@@ -13,10 +13,13 @@ import type {Report, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
+import {accountIDSelector} from '@selectors/Session';
 import {useState} from 'react';
 
+// Counting stops here because the prompts only distinguish zero, one and multiple expenses, so unrelated edits do not change the selection.
+const EXPENSE_COUNT_CAP = 2;
+
 const DEFAULT_PLACEHOLDER_KEYS = ['common.concierge.composerPlaceholders.createExpense', 'reportActionCompose.askConciergeForHelp'] as const;
-const MAX_EXPENSE_COUNT = 2;
 
 const EXPENSE_PLACEHOLDER_KEYS = [
     'common.concierge.composerPlaceholders.spendLastMonth',
@@ -27,6 +30,8 @@ const EXPENSE_PLACEHOLDER_KEYS = [
     'common.concierge.composerPlaceholders.exportCsv',
 ] as const;
 
+const MULTIPLE_EXPENSE_PLACEHOLDER_KEYS = ['common.concierge.composerPlaceholders.combineExpenses'] as const;
+
 // Answerable from the user's own expenses, including unreported ones, or from any report they can see.
 const SPEND_INSIGHT_PLACEHOLDER_KEYS = ['common.concierge.composerPlaceholders.topSpender', 'common.concierge.composerPlaceholders.missingCategory'] as const;
 
@@ -35,6 +40,20 @@ const PAYABLE_REPORT_PLACEHOLDER_KEYS = ['common.concierge.composerPlaceholders.
 const OWN_EXPENSE_REPORT_PLACEHOLDER_KEYS = ['common.concierge.composerPlaceholders.notReimbursed'] as const;
 
 const OWN_REPORT_PLACEHOLDER_KEYS = ['common.concierge.composerPlaceholders.exportPdf'] as const;
+
+type PlaceholderEligibility = {
+    /** The user's own expenses, capped at EXPENSE_COUNT_CAP */
+    expenseCount: number;
+
+    /** Whether the user can see a nonempty expense, IOU, invoice or bill report */
+    hasAccessibleReports: boolean;
+
+    /** Whether the user owns a nonempty expense or IOU report */
+    hasOwnExpenseReports: boolean;
+
+    /** Whether the user owns any nonempty report, including sent invoices and received bills */
+    hasOwnReports: boolean;
+};
 
 function getReportEligibility(reports: OnyxCollection<Report>, isConciergeInboxDM: boolean, accountID: number | undefined) {
     let ownReportedExpenseCount = 0;
@@ -65,9 +84,9 @@ function getReportEligibility(reports: OnyxCollection<Report>, isConciergeInboxD
         }
         hasOwnExpenseReports = true;
         // Report counts include expenses whose transaction records have not been loaded locally.
-        ownReportedExpenseCount = Math.min(MAX_EXPENSE_COUNT, ownReportedExpenseCount + (report.transactionCount ?? 0));
-        // Every flag is already set once two own expenses are counted.
-        if (ownReportedExpenseCount === MAX_EXPENSE_COUNT) {
+        ownReportedExpenseCount = Math.min(EXPENSE_COUNT_CAP, ownReportedExpenseCount + (report.transactionCount ?? 0));
+        // Every flag is already set once the cap is reached.
+        if (ownReportedExpenseCount === EXPENSE_COUNT_CAP) {
             break;
         }
     }
@@ -79,48 +98,56 @@ function getUnreportedExpenseCount(transactions: OnyxCollection<Transaction>, is
         return 0;
     }
 
-    // Only distinguish zero, one and multiple expenses, so unrelated edits do not change the selection.
     let count = 0;
     for (const transaction of Object.values(transactions ?? {})) {
         if (!transaction || transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             continue;
         }
-        // Avoid double-counting owned reports or counting other users' expenses loaded by approvers.
+        // Reported expenses are already counted from their report, and other users' expenses are never unreported.
         if (!isExpenseUnreported(transaction)) {
             continue;
         }
         count++;
-        if (count === MAX_EXPENSE_COUNT) {
+        if (count === EXPENSE_COUNT_CAP) {
             return count;
         }
     }
     return count;
 }
 
+function getEligiblePlaceholderKeys({expenseCount, hasAccessibleReports, hasOwnExpenseReports, hasOwnReports}: PlaceholderEligibility) {
+    return [
+        ...DEFAULT_PLACEHOLDER_KEYS,
+        ...(expenseCount > 0 ? EXPENSE_PLACEHOLDER_KEYS : []),
+        ...(expenseCount > 1 ? MULTIPLE_EXPENSE_PLACEHOLDER_KEYS : []),
+        ...(expenseCount > 0 || hasAccessibleReports ? SPEND_INSIGHT_PLACEHOLDER_KEYS : []),
+        ...(hasAccessibleReports ? PAYABLE_REPORT_PLACEHOLDER_KEYS : []),
+        ...(hasOwnExpenseReports ? OWN_EXPENSE_REPORT_PLACEHOLDER_KEYS : []),
+        ...(hasOwnReports ? OWN_REPORT_PLACEHOLDER_KEYS : []),
+    ];
+}
+
 function useConciergeComposerPlaceholder(isConciergeInboxDM: boolean) {
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [reportEligibility] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: (reports) => getReportEligibility(reports, isConciergeInboxDM, accountID),
     });
     const [unreportedExpenseCount = 0] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: (transactions) => getUnreportedExpenseCount(transactions, isConciergeInboxDM, accountID),
     });
-    const expenseCount = Math.min(MAX_EXPENSE_COUNT, (reportEligibility?.ownReportedExpenseCount ?? 0) + unreportedExpenseCount);
-    const hasAccessibleReports = !!reportEligibility?.hasAccessibleReports;
 
     // Retain the random seed, not a key that could become invalid when Onyx loads or expenses are removed.
     const [randomSeed] = useState(() => Math.random());
-    const eligibleKeys = [
-        ...DEFAULT_PLACEHOLDER_KEYS,
-        ...(expenseCount > 0 ? EXPENSE_PLACEHOLDER_KEYS : []),
-        ...(expenseCount > 1 ? (['common.concierge.composerPlaceholders.combineExpenses'] as const) : []),
-        ...(expenseCount > 0 || hasAccessibleReports ? SPEND_INSIGHT_PLACEHOLDER_KEYS : []),
-        ...(hasAccessibleReports ? PAYABLE_REPORT_PLACEHOLDER_KEYS : []),
-        ...(reportEligibility?.hasOwnExpenseReports ? OWN_EXPENSE_REPORT_PLACEHOLDER_KEYS : []),
-        ...(reportEligibility?.hasOwnReports ? OWN_REPORT_PLACEHOLDER_KEYS : []),
-    ];
+    const eligibleKeys = getEligiblePlaceholderKeys({
+        expenseCount: Math.min(EXPENSE_COUNT_CAP, (reportEligibility?.ownReportedExpenseCount ?? 0) + unreportedExpenseCount),
+        hasAccessibleReports: !!reportEligibility?.hasAccessibleReports,
+        hasOwnExpenseReports: !!reportEligibility?.hasOwnExpenseReports,
+        hasOwnReports: !!reportEligibility?.hasOwnReports,
+    });
 
     return eligibleKeys[Math.floor(randomSeed * eligibleKeys.length)];
 }
 
 export default useConciergeComposerPlaceholder;
+export {getEligiblePlaceholderKeys, getReportEligibility, getUnreportedExpenseCount};
+export type {PlaceholderEligibility};

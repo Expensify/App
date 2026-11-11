@@ -1,10 +1,17 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import useConciergeComposerPlaceholder from '@pages/inbox/report/ReportActionCompose/useConciergeComposerPlaceholder';
+import useConciergeComposerPlaceholder, {
+    getEligiblePlaceholderKeys,
+    getReportEligibility,
+    getUnreportedExpenseCount,
+} from '@pages/inbox/report/ReportActionCompose/useConciergeComposerPlaceholder';
+import type {PlaceholderEligibility} from '@pages/inbox/report/ReportActionCompose/useConciergeComposerPlaceholder';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -13,23 +20,10 @@ import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 const ACCOUNT_ID = 1;
 const OTHER_ACCOUNT_ID = 2;
 const REPORT_ID = '1';
-
-// The full prompt list has 15 entries, so 15 evenly spaced seeds reach every slot of any shorter list too.
-const SLOT_COUNT = 15;
 const LAST_SLOT_SEED = 0.999;
 
-const CREATE_EXPENSE = 'common.concierge.composerPlaceholders.createExpense';
-const HELP = 'reportActionCompose.askConciergeForHelp';
-const COMBINE = 'common.concierge.composerPlaceholders.combineExpenses';
-const TOP_SPENDER = 'common.concierge.composerPlaceholders.topSpender';
-const MISSING_CATEGORY = 'common.concierge.composerPlaceholders.missingCategory';
-const AWAITING_APPROVAL = 'common.concierge.composerPlaceholders.awaitingApproval';
-const LEFT_TO_PAY = 'common.concierge.composerPlaceholders.leftToPay';
-const UNREIMBURSED = 'common.concierge.composerPlaceholders.notReimbursed';
-const EXPORT_PDF = 'common.concierge.composerPlaceholders.exportPdf';
-
-const BASE = [CREATE_EXPENSE, HELP];
-const PERSONAL = [
+const BASE_PROMPTS = ['common.concierge.composerPlaceholders.createExpense', 'reportActionCompose.askConciergeForHelp'];
+const EXPENSE_PROMPTS = [
     'common.concierge.composerPlaceholders.spendLastMonth',
     'common.concierge.composerPlaceholders.topExpenses',
     'common.concierge.composerPlaceholders.spendDrivers',
@@ -37,8 +31,14 @@ const PERSONAL = [
     'common.concierge.composerPlaceholders.unsubmitted',
     'common.concierge.composerPlaceholders.exportCsv',
 ];
-const SPEND_INSIGHT = [TOP_SPENDER, MISSING_CATEGORY];
-const PAYABLE = [AWAITING_APPROVAL, LEFT_TO_PAY];
+const MULTIPLE_EXPENSE_PROMPTS = ['common.concierge.composerPlaceholders.combineExpenses'];
+const SPEND_INSIGHT_PROMPTS = ['common.concierge.composerPlaceholders.topSpender', 'common.concierge.composerPlaceholders.missingCategory'];
+const PAYABLE_REPORT_PROMPTS = ['common.concierge.composerPlaceholders.awaitingApproval', 'common.concierge.composerPlaceholders.leftToPay'];
+const OWN_EXPENSE_REPORT_PROMPTS = ['common.concierge.composerPlaceholders.notReimbursed'];
+const OWN_REPORT_PROMPTS = ['common.concierge.composerPlaceholders.exportPdf'];
+
+const NO_ELIGIBILITY: PlaceholderEligibility = {expenseCount: 0, hasAccessibleReports: false, hasOwnExpenseReports: false, hasOwnReports: false};
+const EMPTY_REPORT_ELIGIBILITY = {ownReportedExpenseCount: 0, hasAccessibleReports: false, hasOwnExpenseReports: false, hasOwnReports: false};
 
 const expenseReport: Report = {reportID: REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID: ACCOUNT_ID, transactionCount: 1};
 const otherUsersExpenseReport: Report = {...expenseReport, ownerAccountID: OTHER_ACCOUNT_ID, managerID: ACCOUNT_ID};
@@ -51,30 +51,161 @@ const otherAdminsBill: Report = {...receivedBill, ownerAccountID: OTHER_ACCOUNT_
 const reportedTransaction: Transaction = {transactionID: '1', reportID: REPORT_ID, amount: 3000, currency: 'USD', merchant: 'Lunch', created: '2026-11-08'};
 const unreportedTransaction: Transaction = {...reportedTransaction, reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
 
-async function setReport(report: Report | null, reportID = REPORT_ID) {
-    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+function sorted(keys: readonly string[]) {
+    return [...keys].sort();
 }
 
-async function setTransaction(transaction: Transaction | null, transactionID = '1') {
-    await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+function toReportCollection(...reports: Report[]): OnyxCollection<Report> {
+    return Object.fromEntries(reports.map((report, index) => [`${ONYXKEYS.COLLECTION.REPORT}${index + 1}`, {...report, reportID: String(index + 1)}]));
 }
 
-/** Mounts the hook once per slot and returns every prompt it can pick for the current Onyx data. */
-async function getPossiblePlaceholders(isConciergeInboxDM = true) {
-    const placeholders = new Set<string>();
-    for (let slot = 0; slot < SLOT_COUNT; slot++) {
-        jest.mocked(Math.random).mockReturnValue((slot + 0.5) / SLOT_COUNT);
+function toTransactionCollection(...transactions: Transaction[]): OnyxCollection<Transaction> {
+    return Object.fromEntries(transactions.map((transaction, index) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${index + 1}`, {...transaction, transactionID: String(index + 1)}]));
+}
+
+function getLastEligibleKey(eligibility: PlaceholderEligibility) {
+    return getEligiblePlaceholderKeys(eligibility).at(-1);
+}
+
+/** Mounts the hook once per expected slot, so a list of a different length or order fails on the first mismatched slot. */
+async function expectHookToOffer(eligibility: PlaceholderEligibility, isConciergeInboxDM = true) {
+    const expectedKeys = getEligiblePlaceholderKeys(eligibility);
+    for (const [slot, expectedKey] of expectedKeys.entries()) {
+        jest.mocked(Math.random).mockReturnValue((slot + 0.5) / expectedKeys.length);
         const {result, unmount} = renderHook(() => useConciergeComposerPlaceholder(isConciergeInboxDM));
         await waitForBatchedUpdates();
-        placeholders.add(result.current);
+        expect(result.current).toBe(expectedKey);
         unmount();
     }
-    return [...placeholders].sort();
 }
 
-function sorted(placeholders: string[]) {
-    return [...placeholders].sort();
-}
+describe('getEligiblePlaceholderKeys', () => {
+    it.each([
+        ['an account with no expenses or reports', NO_ELIGIBILITY, BASE_PROMPTS],
+        ['one unreported expense', {...NO_ELIGIBILITY, expenseCount: 1}, [...BASE_PROMPTS, ...EXPENSE_PROMPTS, ...SPEND_INSIGHT_PROMPTS]],
+        ['two unreported expenses', {...NO_ELIGIBILITY, expenseCount: 2}, [...BASE_PROMPTS, ...EXPENSE_PROMPTS, ...MULTIPLE_EXPENSE_PROMPTS, ...SPEND_INSIGHT_PROMPTS]],
+        ["an approver of another user's report", {...NO_ELIGIBILITY, hasAccessibleReports: true}, [...BASE_PROMPTS, ...SPEND_INSIGHT_PROMPTS, ...PAYABLE_REPORT_PROMPTS]],
+        [
+            'an invoice sender or bill receiver',
+            {...NO_ELIGIBILITY, hasAccessibleReports: true, hasOwnReports: true},
+            [...BASE_PROMPTS, ...SPEND_INSIGHT_PROMPTS, ...PAYABLE_REPORT_PROMPTS, ...OWN_REPORT_PROMPTS],
+        ],
+        [
+            'an owned report with one expense',
+            {expenseCount: 1, hasAccessibleReports: true, hasOwnExpenseReports: true, hasOwnReports: true},
+            [...BASE_PROMPTS, ...EXPENSE_PROMPTS, ...SPEND_INSIGHT_PROMPTS, ...PAYABLE_REPORT_PROMPTS, ...OWN_EXPENSE_REPORT_PROMPTS, ...OWN_REPORT_PROMPTS],
+        ],
+        [
+            'an owned report with two expenses',
+            {expenseCount: 2, hasAccessibleReports: true, hasOwnExpenseReports: true, hasOwnReports: true},
+            [...BASE_PROMPTS, ...EXPENSE_PROMPTS, ...MULTIPLE_EXPENSE_PROMPTS, ...SPEND_INSIGHT_PROMPTS, ...PAYABLE_REPORT_PROMPTS, ...OWN_EXPENSE_REPORT_PROMPTS, ...OWN_REPORT_PROMPTS],
+        ],
+    ])('offers the prompts that %s can act on', (_description, eligibility, expectedKeys) => {
+        // Given the eligibility that state produces
+        // When the eligible prompts are listed
+        const keys = getEligiblePlaceholderKeys(eligibility);
+
+        // Then only the prompts the user can act on are offered, and the full state matches what main offered to everyone
+        expect(sorted(keys)).toEqual(sorted(expectedKeys));
+    });
+
+    it('lists spend insight prompts once when both an own expense and an accessible report unlock them', () => {
+        // Given two sources that each unlock the spend insight prompts
+        const eligibility = {...NO_ELIGIBILITY, expenseCount: 1, hasAccessibleReports: true};
+
+        // When the eligible prompts are listed
+        const keys = getEligiblePlaceholderKeys(eligibility);
+
+        // Then no prompt appears twice, so none gets a higher chance of being picked
+        expect(new Set(keys).size).toBe(keys.length);
+    });
+});
+
+describe('getReportEligibility', () => {
+    it.each([
+        ['an owned expense report', [expenseReport], {ownReportedExpenseCount: 1, hasAccessibleReports: true, hasOwnExpenseReports: true, hasOwnReports: true}],
+        ["another user's expense report", [otherUsersExpenseReport], {...EMPTY_REPORT_ELIGIBILITY, hasAccessibleReports: true}],
+        ['a received invoice', [receivedInvoice], {...EMPTY_REPORT_ELIGIBILITY, hasAccessibleReports: true}],
+        ['a sent invoice', [sentInvoice], {...EMPTY_REPORT_ELIGIBILITY, hasAccessibleReports: true, hasOwnReports: true}],
+        ['a received bill', [receivedBill], {...EMPTY_REPORT_ELIGIBILITY, hasAccessibleReports: true, hasOwnReports: true}],
+        ["another admin's bill", [otherAdminsBill], {...EMPTY_REPORT_ELIGIBILITY, hasAccessibleReports: true}],
+        [
+            'two owned reports with one expense each',
+            [expenseReport, expenseReport],
+            {ownReportedExpenseCount: 2, hasAccessibleReports: true, hasOwnExpenseReports: true, hasOwnReports: true},
+        ],
+        [
+            'an owned report with many expenses',
+            [{...expenseReport, transactionCount: 100}],
+            {ownReportedExpenseCount: 2, hasAccessibleReports: true, hasOwnExpenseReports: true, hasOwnReports: true},
+        ],
+    ])('derives eligibility from %s', (_description, reports, expectedEligibility) => {
+        // Given only that report data in Onyx
+        // When eligibility is derived in the Concierge inbox DM
+        const eligibility = getReportEligibility(toReportCollection(...reports), true, ACCOUNT_ID);
+
+        // Then ownership and report type decide which flags are set, and the count stops at the cap
+        expect(eligibility).toEqual(expectedEligibility);
+    });
+
+    it.each([
+        ['a chat', {...expenseReport, type: CONST.REPORT.TYPE.CHAT}],
+        ['a task', {...expenseReport, type: CONST.REPORT.TYPE.TASK}],
+        ['an empty expense report', {...expenseReport, transactionCount: 0}],
+        ['an expense report without a count', {...expenseReport, transactionCount: undefined}],
+        ['an expense report pending deletion', {...expenseReport, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
+        ['an inaccessible expense report', {...expenseReport, errorFields: {notFound: {[ACCOUNT_ID]: 'Report not found'}}}],
+        ['an empty invoice', {...sentInvoice, transactionCount: 0}],
+        ['an invoice pending deletion', {...receivedInvoice, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
+        ['an empty bill', {...receivedBill, transactionCount: 0}],
+        ['a bill pending deletion', {...receivedBill, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
+    ])('ignores %s', (_description, report) => {
+        // Given a report the user cannot act on
+        // When eligibility is derived in the Concierge inbox DM
+        const eligibility = getReportEligibility(toReportCollection(report), true, ACCOUNT_ID);
+
+        // Then it unlocks nothing, so the composer falls back to the safe prompts
+        expect(eligibility).toEqual(EMPTY_REPORT_ELIGIBILITY);
+    });
+
+    it.each([
+        ['outside the Concierge inbox DM', false, ACCOUNT_ID],
+        ['before the session has an account ID', true, undefined],
+    ])('skips the scan %s', (_description, isConciergeInboxDM, accountID) => {
+        // Given an owned report with expenses
+        // When the composer is not the Concierge inbox DM or the user is unknown
+        const eligibility = getReportEligibility(toReportCollection(expenseReport), isConciergeInboxDM, accountID);
+
+        // Then no flags are set, so other chats keep their constant selector output
+        expect(eligibility).toEqual(EMPTY_REPORT_ELIGIBILITY);
+    });
+});
+
+describe('getUnreportedExpenseCount', () => {
+    it.each([
+        ['one unreported expense', [unreportedTransaction], 1],
+        ['two unreported expenses', [unreportedTransaction, unreportedTransaction], 2],
+        ['three unreported expenses', [unreportedTransaction, unreportedTransaction, unreportedTransaction], 2],
+        ['a reported expense', [reportedTransaction], 0],
+        ['an unreported expense pending deletion', [{...unreportedTransaction, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}], 0],
+    ])('counts %s', (_description, transactions, expectedCount) => {
+        // Given only those transactions in Onyx
+        // When unreported expenses are counted in the Concierge inbox DM
+        const count = getUnreportedExpenseCount(toTransactionCollection(...transactions), true, ACCOUNT_ID);
+
+        // Then reported expenses are left to their report count, deleted ones are skipped and counting stops at the cap
+        expect(count).toBe(expectedCount);
+    });
+
+    it('skips the scan outside the Concierge inbox DM', () => {
+        // Given an unreported expense
+        // When the composer is not the Concierge inbox DM
+        const count = getUnreportedExpenseCount(toTransactionCollection(unreportedTransaction), false, ACCOUNT_ID);
+
+        // Then nothing is counted, so other chats keep their constant selector output
+        expect(count).toBe(0);
+    });
+});
 
 describe('useConciergeComposerPlaceholder', () => {
     beforeAll(() => {
@@ -94,281 +225,122 @@ describe('useConciergeComposerPlaceholder', () => {
         jest.restoreAllMocks();
     });
 
-    describe('prompts each kind of account can get', () => {
-        it('offers only the safe prompts to an account with just a chat', async () => {
-            // Given a new account whose only report is a chat, which is the state right after onboarding
-            await setReport({reportID: REPORT_ID, type: CONST.REPORT.TYPE.CHAT});
+    it('does not count a reported expense twice when its transaction is also loaded', async () => {
+        // Given an owned report with one expense whose transaction is also in Onyx
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, expenseReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, reportedTransaction);
 
-            // When every random slot is sampled
-            const placeholders = await getPossiblePlaceholders();
-
-            // Then no prompt asks about expenses or reports the account does not have
-            expect(placeholders).toEqual(sorted(BASE));
-        });
-
-        it('offers personal and spend prompts for one unreported expense', async () => {
-            // Given an unreported expense, which has a Category field but no report to approve, pay or export
-            await setTransaction(unreportedTransaction);
-
-            // When every random slot is sampled
-            const placeholders = await getPossiblePlaceholders();
-
-            // Then expense prompts are offered, but report-only and combine prompts are not
-            expect(placeholders).toEqual(sorted([...BASE, ...PERSONAL, ...SPEND_INSIGHT]));
-        });
-
-        it('adds the combine prompt once there are two unreported expenses', async () => {
-            // Given two unreported expenses, since combining needs at least two
-            await setTransaction(unreportedTransaction);
-            await setTransaction({...unreportedTransaction, transactionID: '2'}, '2');
-
-            // When every random slot is sampled
-            const placeholders = await getPossiblePlaceholders();
-
-            // Then combining becomes available on top of the single-expense prompts
-            expect(placeholders).toEqual(sorted([...BASE, ...PERSONAL, COMBINE, ...SPEND_INSIGHT]));
-        });
-
-        it('offers every prompt except combine for an owned report with one expense', async () => {
-            // Given the user's own report with one expense, which can be reimbursed and exported
-            await setReport(expenseReport);
-
-            // When every random slot is sampled
-            const placeholders = await getPossiblePlaceholders();
-
-            // Then all report and expense prompts are offered, but one expense cannot be combined
-            expect(placeholders).toEqual(sorted([...BASE, ...PERSONAL, ...SPEND_INSIGHT, ...PAYABLE, UNREIMBURSED, EXPORT_PDF]));
-        });
-
-        it('offers all prompts for an owned report with two expenses', async () => {
-            // Given the user's own report with two expenses, so every prerequisite is met
-            await setReport({...expenseReport, transactionCount: 2});
-
-            // When every random slot is sampled
-            const placeholders = await getPossiblePlaceholders();
-
-            // Then the list matches the full set that main always offered
-            expect(placeholders).toEqual(sorted([...BASE, ...PERSONAL, COMBINE, ...SPEND_INSIGHT, ...PAYABLE, UNREIMBURSED, EXPORT_PDF]));
-        });
-
-        it("offers team and payment prompts but no personal ones to an approver of another user's report", async () => {
-            // Given another user's report and two of their expenses loaded by the approver
-            await setReport(otherUsersExpenseReport);
-            await setTransaction(reportedTransaction);
-            await setTransaction({...reportedTransaction, transactionID: '2'}, '2');
-
-            // When every random slot is sampled
-            const placeholders = await getPossiblePlaceholders();
-
-            // Then prompts about "my" expenses or reports stay hidden because none of them belong to the approver
-            expect(placeholders).toEqual(sorted([...BASE, ...SPEND_INSIGHT, ...PAYABLE]));
-        });
-
-        it('offers payment prompts to an invoice recipient', async () => {
-            // Given only an invoice sent to the user, which they have to pay
-            await setReport(receivedInvoice);
-
-            // When every random slot is sampled
-            const placeholders = await getPossiblePlaceholders();
-
-            // Then payment prompts are offered without treating the invoice as the user's expenses or report
-            expect(placeholders).toEqual(sorted([...BASE, ...SPEND_INSIGHT, ...PAYABLE]));
-        });
-
-        it('offers the PDF prompt to an invoice sender', async () => {
-            // Given only an invoice the user sent, which they can download as a PDF
-            await setReport(sentInvoice);
-
-            // When every random slot is sampled
-            const placeholders = await getPossiblePlaceholders();
-
-            // Then PDF export is offered, but invoice items are sales and do not unlock expense or reimbursement prompts
-            expect(placeholders).toEqual(sorted([...BASE, ...SPEND_INSIGHT, ...PAYABLE, EXPORT_PDF]));
-        });
-
-        it('offers payment and PDF prompts to a bill receiver', async () => {
-            // Given only a bill recorded under the user, which they approve, pay and can download
-            await setReport(receivedBill);
-
-            // When every random slot is sampled
-            const placeholders = await getPossiblePlaceholders();
-
-            // Then payment and PDF prompts are offered, but vendor charges do not unlock expense or reimbursement prompts
-            expect(placeholders).toEqual(sorted([...BASE, ...SPEND_INSIGHT, ...PAYABLE, EXPORT_PDF]));
-        });
-
-        it("offers payment prompts but no PDF prompt for another admin's bill", async () => {
-            // Given a bill recorded under another admin, so it is not the user's own report
-            await setReport(otherAdminsBill);
-
-            // When every random slot is sampled
-            const placeholders = await getPossiblePlaceholders();
-
-            // Then the user can ask about paying it but not about exporting their own report
-            expect(placeholders).toEqual(sorted([...BASE, ...SPEND_INSIGHT, ...PAYABLE]));
-        });
-
-        it.each([
-            ['an empty expense report', {...expenseReport, transactionCount: 0}],
-            ['an expense report without a count', {...expenseReport, transactionCount: undefined}],
-            ['an expense report pending deletion', {...expenseReport, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
-            ['an inaccessible expense report', {...expenseReport, errorFields: {notFound: {[ACCOUNT_ID]: 'Report not found'}}}],
-            ['an empty invoice', {...sentInvoice, transactionCount: 0}],
-            ['an invoice pending deletion', {...receivedInvoice, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
-            ['an empty bill', {...receivedBill, transactionCount: 0}],
-            ['a bill pending deletion', {...receivedBill, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
-            ['a task', {...expenseReport, type: CONST.REPORT.TYPE.TASK}],
-        ])('offers only the safe prompts for %s', async (_description, report) => {
-            // Given a report the user cannot act on, with a loaded transaction that points at it
-            await setReport(report);
-            await setTransaction(reportedTransaction);
-
-            // When every random slot is sampled
-            const placeholders = await getPossiblePlaceholders();
-
-            // Then neither the report nor its transaction unlocks any history-dependent prompt
-            expect(placeholders).toEqual(sorted(BASE));
-        });
-
-        it("counts only the user's own expenses toward combining", async () => {
-            // Given one own unreported expense and another user's expense on a report with no counted expenses
-            await setReport({...otherUsersExpenseReport, transactionCount: 0});
-            await setTransaction(unreportedTransaction);
-            await setTransaction({...reportedTransaction, transactionID: '2'}, '2');
-
-            // When every random slot is sampled
-            const placeholders = await getPossiblePlaceholders();
-
-            // Then the other user's expense does not make a second expense to combine
-            expect(placeholders).toEqual(sorted([...BASE, ...PERSONAL, ...SPEND_INSIGHT]));
-        });
-
-        it('does not count a reported expense twice when its transaction is also loaded', async () => {
-            // Given an owned report with one expense whose transaction is also in Onyx
-            await setReport(expenseReport);
-            await setTransaction(reportedTransaction);
-
-            // When every random slot is sampled
-            const placeholders = await getPossiblePlaceholders();
-
-            // Then the report count and the loaded transaction are one expense, so combine stays hidden
-            expect(placeholders).not.toContain(COMBINE);
-        });
-
-        it('sums expenses across owned reports and unreported expenses', async () => {
-            // Given one expense on an owned report and one unreported expense
-            await setReport(expenseReport);
-            await setTransaction({...unreportedTransaction, transactionID: '2'}, '2');
-
-            // When every random slot is sampled
-            const placeholders = await getPossiblePlaceholders();
-
-            // Then both sources add up to two expenses, which can be combined
-            expect(placeholders).toContain(COMBINE);
-        });
-
-        it('offers only the safe prompts outside the Concierge inbox DM', async () => {
-            // Given an account with every prerequisite met
-            await setReport({...expenseReport, transactionCount: 2});
-
-            // When the composer belongs to another chat or the side panel
-            const placeholders = await getPossiblePlaceholders(false);
-
-            // Then the hook skips the eligibility work and falls back to the safe prompts
-            expect(placeholders).toEqual(sorted(BASE));
-        });
+        // When every slot of the expected list is picked
+        // Then the report count and the loaded transaction are one expense, so combine stays hidden
+        await expectHookToOffer({expenseCount: 1, hasAccessibleReports: true, hasOwnExpenseReports: true, hasOwnReports: true});
     });
 
-    describe('updates while Concierge is open', () => {
-        it('adapts when a report loads after mount and when it is deleted', async () => {
-            // Given a composer mounted before any report data arrives, with the seed on the last slot
-            const {result} = renderHook(() => useConciergeComposerPlaceholder(true));
-            await waitForBatchedUpdates();
-            expect(result.current).toBe(HELP);
+    it('adds reported and unreported expenses together', async () => {
+        // Given one expense on an owned report and one unreported expense
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, expenseReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}2`, {...unreportedTransaction, transactionID: '2'});
 
-            // When an owned report arrives without remounting
-            await act(async () => {
-                await setReport(expenseReport);
-            });
+        // When every slot of the expected list is picked
+        // Then both sources add up to two expenses, which can be combined
+        await expectHookToOffer({expenseCount: 2, hasAccessibleReports: true, hasOwnExpenseReports: true, hasOwnReports: true});
+    });
 
-            // Then the same seed can now land on PDF export, the last eligible prompt
-            expect(result.current).toBe(EXPORT_PDF);
+    it('offers only the safe prompts outside the Concierge inbox DM', async () => {
+        // Given an account with every prerequisite met
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {...expenseReport, transactionCount: 2});
 
-            // When the report is marked for deletion
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
-            });
+        // When the composer belongs to another chat or the side panel
+        // Then the hook skips the eligibility work and falls back to the safe prompts
+        await expectHookToOffer(NO_ELIGIBILITY, false);
+    });
 
-            // Then the composer goes back to a safe prompt instead of keeping a stale one
-            expect(result.current).toBe(HELP);
+    it('adapts when a report loads after mount and when it is deleted', async () => {
+        // Given a composer mounted before any report data arrives, with the seed on the last slot
+        const {result} = renderHook(() => useConciergeComposerPlaceholder(true));
+        await waitForBatchedUpdates();
+        expect(result.current).toBe(getLastEligibleKey(NO_ELIGIBILITY));
+
+        // When an owned report arrives without remounting
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, expenseReport);
         });
 
-        it('rechecks ownership when the report owner changes', async () => {
-            // Given an owned report, so the last slot is PDF export
-            await setReport(expenseReport);
-            const {result} = renderHook(() => useConciergeComposerPlaceholder(true));
-            await waitForBatchedUpdates();
-            expect(result.current).toBe(EXPORT_PDF);
+        // Then the same seed picks from the longer list
+        expect(result.current).toBe(getLastEligibleKey({expenseCount: 1, hasAccessibleReports: true, hasOwnExpenseReports: true, hasOwnReports: true}));
 
-            // When the report now belongs to another user
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {ownerAccountID: OTHER_ACCOUNT_ID});
-            });
-
-            // Then personal prompts drop out and the last slot is the payment prompt
-            expect(result.current).toBe(LEFT_TO_PAY);
+        // When the report is marked for deletion
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
         });
 
-        it('keeps category help when deleting a report leaves its expense unreported', async () => {
-            // Given an owned report and its expense
-            await setReport(expenseReport);
-            await setTransaction(reportedTransaction);
-            const {result} = renderHook(() => useConciergeComposerPlaceholder(true));
-            await waitForBatchedUpdates();
+        // Then the composer goes back to a safe prompt instead of keeping a stale one
+        expect(result.current).toBe(getLastEligibleKey(NO_ELIGIBILITY));
+    });
 
-            // When the report is deleted and its expense becomes unreported, as Delete report does
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
-            });
+    it('rechecks ownership when the report owner changes', async () => {
+        // Given an owned report
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, expenseReport);
+        const {result} = renderHook(() => useConciergeComposerPlaceholder(true));
+        await waitForBatchedUpdates();
 
-            // Then the last slot is category help, which still applies to the unreported expense
-            expect(result.current).toBe(MISSING_CATEGORY);
+        // When the report now belongs to another user
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {ownerAccountID: OTHER_ACCOUNT_ID});
         });
 
-        it('waits for the report count instead of counting loaded transactions early', async () => {
-            // Given an owned report whose count has not arrived yet and its loaded transaction
-            await setReport({...expenseReport, transactionCount: 0});
-            await setTransaction(reportedTransaction);
-            const {result} = renderHook(() => useConciergeComposerPlaceholder(true));
-            await waitForBatchedUpdates();
-            expect(result.current).toBe(HELP);
+        // Then only the prompts for a report the user can see remain
+        expect(result.current).toBe(getLastEligibleKey({...NO_ELIGIBILITY, hasAccessibleReports: true}));
+    });
 
-            // When the count arrives without a transaction update
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {transactionCount: 1});
-            });
+    it('keeps expense prompts when deleting a report leaves its expense unreported', async () => {
+        // Given an owned report and its expense
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, expenseReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, reportedTransaction);
+        const {result} = renderHook(() => useConciergeComposerPlaceholder(true));
+        await waitForBatchedUpdates();
 
-            // Then the report unlocks its prompts from the count alone
-            expect(result.current).toBe(EXPORT_PDF);
+        // When the report is deleted and its expense becomes unreported, as Delete report does
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
         });
 
-        it('keeps the selection across unrelated updates and rerenders', async () => {
-            // Given an owned report and a mounted composer
-            await setReport(expenseReport);
-            const {result, rerender} = renderHook(() => useConciergeComposerPlaceholder(true));
-            await waitForBatchedUpdates();
-            expect(result.current).toBe(EXPORT_PDF);
+        // Then the unreported expense still unlocks the prompts about the user's own expenses
+        expect(result.current).toBe(getLastEligibleKey({...NO_ELIGIBILITY, expenseCount: 1}));
+    });
 
-            // When unrelated report data changes and a new random value would differ
-            jest.mocked(Math.random).mockReturnValue(0);
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportName: 'Updated report'});
-            });
-            rerender({});
+    it('waits for the report count instead of counting loaded transactions early', async () => {
+        // Given an owned report whose count has not arrived yet and its loaded transaction
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {...expenseReport, transactionCount: 0});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, reportedTransaction);
+        const {result} = renderHook(() => useConciergeComposerPlaceholder(true));
+        await waitForBatchedUpdates();
+        expect(result.current).toBe(getLastEligibleKey(NO_ELIGIBILITY));
 
-            // Then the seed picked at mount is kept, so the prompt does not change
-            expect(result.current).toBe(EXPORT_PDF);
+        // When the count arrives without a transaction update
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {transactionCount: 1});
         });
+
+        // Then the report unlocks its prompts from the count alone
+        expect(result.current).toBe(getLastEligibleKey({expenseCount: 1, hasAccessibleReports: true, hasOwnExpenseReports: true, hasOwnReports: true}));
+    });
+
+    it('keeps the selection across unrelated updates and rerenders', async () => {
+        // Given an owned report and a mounted composer
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, expenseReport);
+        const {result, rerender} = renderHook(() => useConciergeComposerPlaceholder(true));
+        await waitForBatchedUpdates();
+        const initialKey = result.current;
+
+        // When unrelated report data changes and a new random value would differ
+        jest.mocked(Math.random).mockReturnValue(0);
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportName: 'Updated report'});
+        });
+        rerender({});
+
+        // Then the seed picked at mount is kept, so the prompt does not change
+        expect(result.current).toBe(initialKey);
     });
 });
