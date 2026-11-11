@@ -40,8 +40,13 @@ function DynamicIOURequestStepReport({route, navigation, transaction}: DynamicIO
     // The form this page was opened from sits right below it in the stack and reads the expense type from its own route.
     const setFormIOUType = (formIOUType: IOUType) => {
         const {routes} = navigation.getState();
-        const formRoute = routes.at(routes.findIndex((stackRoute) => stackRoute.key === route.key) - 1);
-        if (!formRoute || formRoute.key === route.key) {
+        const pageIndex = routes.findIndex((stackRoute) => stackRoute.key === route.key);
+        // A page missing from the stack, or at its bottom, has no form below it to update.
+        if (pageIndex <= 0) {
+            return;
+        }
+        const formRoute = routes.at(pageIndex - 1);
+        if (!formRoute) {
             return;
         }
         Navigation.setParams({iouType: formIOUType}, formRoute.key);

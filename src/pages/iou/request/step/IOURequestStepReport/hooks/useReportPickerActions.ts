@@ -176,12 +176,7 @@ function useReportPickerActions({
 
     // We need to fall back to transactionPolicyID because for a new workspace there is no report created yet
     // and if we choose this workspace as participant we want to create a new report in the chosen workspace
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(
-        isPerDiemTransaction,
-        isTimeRequestUtil(transaction),
-        targetExpensePolicyID,
-        isUnreportedManagedCardTransaction,
-    );
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiemTransaction, isTimeTransaction, targetExpensePolicyID, isUnreportedManagedCardTransaction);
 
     // No violations exist for a report that hasn't been created yet — kept as a literal to avoid subscribing to the entire TRANSACTION_VIOLATIONS collection.
     const hasViolations = false;
@@ -328,7 +323,7 @@ function useReportPickerActions({
             isEditing,
             isUnreported,
             isPerDiemRequest: transaction ? isPerDiemTransaction : false,
-            isTimeRequest: transaction ? isTimeRequestUtil(transaction) : false,
+            isTimeRequest: isTimeTransaction,
             isUnreportedManagedCardTransaction: transaction ? isUnreportedManagedCardTransaction : false,
             createReport: policyForMovingExpensesID || shouldSelectPolicy || isPerDiemTransaction || isUnreportedManagedCardTransaction ? createReport : undefined,
             selectNoReport: isNoReportSupported ? selectNoReport : undefined,
