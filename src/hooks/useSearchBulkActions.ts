@@ -7,7 +7,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useOpenSearchReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import {getClaimedGroupKey, getRowsCheckedInExcludedGroups, getSearchGroupCountByKey, mergeRowsIntoPartlyLoadedGroups} from '@components/Search/selectionBuilders';
-import type {BulkPaySelectionData, PaymentData, QueryFilterKey, SearchColumnType, SearchGroupBy, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
+import type {ASTNode, BulkPaySelectionData, PaymentData, SearchColumnType, SearchGroupBy, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
 import {getAccountingIntegrationDisplayName, getExportLabelForConnection, isIntuitEnterpriseSuiteConnection} from '@libs/AccountingUtils';
 import {getExpensifyCardStatementPDF} from '@libs/actions/CompanyCards';
@@ -95,7 +95,7 @@ import {
     serializeQueryJSONForBackend,
 } from '@libs/SearchQueryUtils';
 import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
-import type {SearchGroupKey} from '@libs/SearchUIUtils';
+import type {SearchDateRange, SearchGroupKey, SelectedGroupValueFilter} from '@libs/SearchUIUtils';
 import {
     canChangeWorkspaceOfSearchReport,
     getAllMatchingExpenseActionQuery,
@@ -339,36 +339,64 @@ function getGroupKeysSelectedViaGroup(selectedTransactions: SelectedTransactions
     return [...groupKeys];
 }
 
-function addSelectedGroupsFilter(queryJSON: SearchQueryJSON, selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined): SearchQueryJSON {
+/**
+ * Scopes a time-grouped query to the selected groups' dates by ORing their ranges into the `filters` AST.
+ * Only `filters` changes, so rebuilding the query from its text drops this scope.
+ */
+function addSelectedDateRangesFilter(queryJSON: SearchQueryJSON, dateRanges: SearchDateRange[]): SearchQueryJSON {
+    const [firstRangeNode, ...otherRangeNodes] = dateRanges.map(
+        (range): ASTNode => ({
+            operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+            left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, right: range.start},
+            right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, right: range.end},
+        }),
+    );
+    if (!firstRangeNode) {
+        return queryJSON;
+    }
+
+    const datesNode = otherRangeNodes.reduce((left, right): ASTNode => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.OR, left, right}), firstRangeNode);
+    const filters: ASTNode = queryJSON.filters ? {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: queryJSON.filters, right: datesNode} : datesNode;
+    return {...queryJSON, filters};
+}
+
+/**
+ * Scopes a group export to the selected groups. Returns undefined unless every group can be scoped,
+ * because their row IDs aren't sent, so an unscoped group would be exported wrongly or dropped.
+ */
+function addSelectedGroupsFilter(queryJSON: SearchQueryJSON, selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined): SearchQueryJSON | undefined {
     const {groupBy} = queryJSON;
     if (!groupBy || !searchData) {
-        return queryJSON;
+        return undefined;
     }
 
     const groupKeys = getGroupKeysSelectedViaGroup(selectedTransactions);
     if (groupKeys.length === 0) {
-        return queryJSON;
+        return undefined;
     }
 
-    const filterEntries: Array<{key: QueryFilterKey; value: string | number}> = [];
+    const filterEntries: SelectedGroupValueFilter[] = [];
+    const dateRanges: SearchDateRange[] = [];
     for (const key of groupKeys) {
         const group = searchData[key as keyof SearchResultDataType];
-        if (!group) {
-            continue;
+        const entry = group ? getSelectedGroupFilterEntry(groupBy, group) : undefined;
+        if (!entry) {
+            return undefined;
         }
-        const entry = getSelectedGroupFilterEntry(groupBy, group);
-        if (entry) {
+        if (entry.kind === 'dateRange') {
+            dateRanges.push(entry.dateRange);
+        } else {
             filterEntries.push(entry);
         }
     }
 
-    if (filterEntries.length === 0) {
-        return queryJSON;
+    if (dateRanges.length > 0) {
+        return addSelectedDateRangesFilter(queryJSON, dateRanges);
     }
 
     const filterKey = filterEntries.at(0)?.key;
     if (!filterKey) {
-        return queryJSON;
+        return undefined;
     }
     const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== filterKey);
     newFlatFilters.push({
@@ -376,7 +404,7 @@ function addSelectedGroupsFilter(queryJSON: SearchQueryJSON, selectedTransaction
         filters: filterEntries.map((e) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: e.value})),
     });
 
-    return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters: newFlatFilters})) ?? queryJSON;
+    return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters: newFlatFilters}));
 }
 
 /**
@@ -400,16 +428,31 @@ function getUngroupedTemplateExportQuery(queryJSON: SearchQueryJSON): SearchQuer
 }
 
 /**
+ * The groupings a template export can scope to the selected groups. Keep this in sync with the groupings `getSelectedGroupFilterEntry` returns a `kind: 'value'` entry for.
+ * Time-based groupings are left out because the template export would drop their date scope.
+ */
+const TEMPLATE_EXPORTABLE_GROUP_BYS = new Set<SearchGroupBy>([
+    CONST.SEARCH.GROUP_BY.FROM,
+    CONST.SEARCH.GROUP_BY.APPROVER,
+    CONST.SEARCH.GROUP_BY.CARD,
+    CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+    CONST.SEARCH.GROUP_BY.CATEGORY,
+    CONST.SEARCH.GROUP_BY.MERCHANT,
+    CONST.SEARCH.GROUP_BY.TAG,
+]);
+
+/**
  * The query a template export sends for a group selection.
  *
  * Returns undefined when the selected groups can't be turned into a filter, so the export never widens to the whole search.
  */
 function getTemplateGroupExportQuery(queryJSON: SearchQueryJSON, selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined): SearchQueryJSON | undefined {
-    const groupFilteredQueryJSON = addSelectedGroupsFilter(queryJSON, selectedTransactions, searchData);
-    if (groupFilteredQueryJSON === queryJSON) {
+    // A date scope lives only in the `filters` AST, and the ungrouped query is rebuilt from text, which would drop it
+    if (!queryJSON.groupBy || !TEMPLATE_EXPORTABLE_GROUP_BYS.has(queryJSON.groupBy)) {
         return undefined;
     }
-    return getUngroupedTemplateExportQuery(groupFilteredQueryJSON);
+    const groupFilteredQueryJSON = addSelectedGroupsFilter(queryJSON, selectedTransactions, searchData);
+    return groupFilteredQueryJSON ? getUngroupedTemplateExportQuery(groupFilteredQueryJSON) : undefined;
 }
 
 type CSVExportQueryJSON = Omit<SearchQueryJSON, 'columns'> & {columns: SearchColumnType[]; searchKey: SearchKey | undefined};
@@ -430,20 +473,6 @@ function getAllMatchingReportActionQuery(queryJSON: SearchQueryJSON, excludedTra
     }
     return isEmptyObject(excludedTransactions) ? queryJSON : undefined;
 }
-
-/**
- * The groupings whose selected groups `getSelectedGroupFilterEntry` can turn into a query filter, which a template export needs.
- * Keep this in sync with that function.
- */
-const TEMPLATE_EXPORTABLE_GROUP_BYS = new Set<SearchGroupBy>([
-    CONST.SEARCH.GROUP_BY.FROM,
-    CONST.SEARCH.GROUP_BY.APPROVER,
-    CONST.SEARCH.GROUP_BY.CARD,
-    CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
-    CONST.SEARCH.GROUP_BY.CATEGORY,
-    CONST.SEARCH.GROUP_BY.MERCHANT,
-    CONST.SEARCH.GROUP_BY.TAG,
-]);
 
 type ShouldShowBulkDuplicateParams = {
     selectedTransactionsKeys: string[];
@@ -1305,6 +1334,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             let didFail = false;
             const reportIDList = selectedReports.length > 0 ? selectedReportIDs : selectedTransactionReportIDs;
             const queryJSONToExport = isGroupExport && queryJSON ? addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data) : queryJSON;
+            if (isGroupExport && !queryJSONToExport) {
+                showDownloadErrorModal();
+                return;
+            }
             const exportParameters = getCSVExportParameters(isBasicExport, queryJSONToExport);
             await exportSearchItemsToCSV(
                 {
@@ -1440,6 +1473,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 additionalOnyxData: getSearchApproveOnyxData(hash, reportID, currentSearchKey),
                 shouldPlaySuccessSound: false,
                 isTrackIntentUser,
+                allTransactionViolations,
             });
 
             if (!wouldNavigateToUpgrade && !wouldNavigateToRestricted) {
@@ -2264,7 +2298,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const isReportsTab = isExpenseReportType;
             const includesGroupExport = isGroupedSearch && Object.entries(selectedTransactions).some(([key, selectedTransaction]) => isGroupSelection(key, selectedTransaction));
             // A template export sends a group selection as a filter on the ungrouped query (see `getTemplateGroupExportQuery`), alongside any individually picked expenses.
-            // Groupings with no such filter (the time-based ones) would fail that export, so they keep only "Current view".
+            // That export rebuilds the query from its text, which drops the time-based groupings' date scope, so they keep only "Current view".
             const canExportGroupWithTemplates = !includesGroupExport || (!!groupBy && TEMPLATE_EXPORTABLE_GROUP_BYS.has(groupBy));
 
             const canReportBeExported = (report: (typeof selectedReports)[0], exportOption: ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>) => {
@@ -3431,7 +3465,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         text: translate('common.merge'),
                         icon: expensifyIcons.ArrowCollapse,
                         value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
-                        onSelected: () => setupMergeTransactionDataAndNavigate(transactionID, searchedTransactions, localeCompare, getCurrencyDecimals, reports, false, true, undefined),
+                        onSelected: () =>
+                            setupMergeTransactionDataAndNavigate(transactionID, searchedTransactions, localeCompare, translate, getCurrencyDecimals, reports, false, true, undefined),
                     });
                 }
             }
@@ -3688,5 +3723,5 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 }
 
 export default useSearchBulkActions;
-export {getFullyDeletedGroupKeysByTransactionID, getGroupKeysSelectedViaGroup, getSelectedGroupKeys, shouldShowBulkDuplicateOption};
+export {getFullyDeletedGroupKeysByTransactionID, getGroupKeysSelectedViaGroup, getSelectedGroupKeys, getTemplateGroupExportQuery, shouldShowBulkDuplicateOption};
 export type {SearchHeaderOptionValue};

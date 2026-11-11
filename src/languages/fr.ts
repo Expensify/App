@@ -1427,6 +1427,14 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase2: 'ou faites-en glisser un ici',
         },
         pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Page ${page} sur ${pageCount}`,
+        translate: 'Traduire',
+        viewOriginal: 'Afficher l’original',
+        translationDisclaimer: 'L’IA peut faire des erreurs. Veuillez vérifier l’original.',
+        translationError: {
+            unreadable: 'Nous n’avons pas pu lire ce reçu avec suffisamment de clarté pour le traduire.',
+            alreadyInLanguage: 'Ce reçu est déjà dans votre langue.',
+            generic: "Nous n'avons pas pu traduire ce reçu. Veuillez réessayer.",
+        },
     },
     quickAction: {
         scanReceipt: 'Scanner le reçu',
@@ -10911,6 +10919,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         columns: 'Colonnes',
         editColumns: 'Modifier les colonnes',
         resetColumns: 'Réinitialiser les colonnes',
+        columnMenu: {
+            openMenu: ({columnName}: {columnName: string}) => `Options de la colonne ${columnName}`,
+            sortAscending: 'Trier par ordre croissant',
+            sortDescending: 'Trier par ordre décroissant',
+            hideColumn: 'Masquer la colonne',
+        },
         groupColumns: 'Regrouper les colonnes',
         expenseColumns: 'Colonnes de dépenses',
         saveView: 'Enregistrer la vue',

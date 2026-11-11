@@ -1412,6 +1412,14 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: 'Añade un recibo',
             phrase2: 'o arrastra y suelta uno aquí',
         },
+        translate: 'Traducir',
+        viewOriginal: 'Ver original',
+        translationDisclaimer: 'La IA puede cometer errores. Por favor, comprueba el original.',
+        translationError: {
+            unreadable: 'No hemos podido leer este recibo con la suficiente claridad como para traducirlo.',
+            alreadyInLanguage: 'Este recibo ya está en tu idioma.',
+            generic: 'No pudimos traducir este recibo. Por favor, inténtalo de nuevo.',
+        },
     },
     quickAction: {
         scanReceipt: 'Escanear recibo',
@@ -10802,6 +10810,12 @@ ${reportName}`,
         columns: 'Columnas',
         editColumns: 'Editar columnas',
         resetColumns: 'Restablecer columnas',
+        columnMenu: {
+            openMenu: ({columnName}: {columnName: string}) => `Opciones de la columna ${columnName}`,
+            sortAscending: 'Ordenar ascendente',
+            sortDescending: 'Ordenar descendente',
+            hideColumn: 'Ocultar columna',
+        },
         groupColumns: 'Columnas de grupo',
         expenseColumns: 'Columnas de gastos',
         display: {

@@ -1419,6 +1419,14 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase2: 'oder ziehe eine hierher und lege sie ab',
         },
         pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Seite ${page} von ${pageCount}`,
+        translate: 'Übersetzen',
+        viewOriginal: 'Original anzeigen',
+        translationDisclaimer: 'KI kann Fehler machen. Bitte prüfen Sie das Original noch einmal.',
+        translationError: {
+            unreadable: 'Wir konnten diesen Beleg nicht deutlich genug lesen, um ihn zu übersetzen.',
+            alreadyInLanguage: 'Dieser Beleg ist bereits in Ihrer Sprache.',
+            generic: 'Wir konnten diese Quittung nicht übersetzen. Bitte versuchen Sie es erneut.',
+        },
     },
     quickAction: {
         scanReceipt: 'Beleg scannen',
@@ -10877,6 +10885,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         columns: 'Spalten',
         editColumns: 'Spalten bearbeiten',
         resetColumns: 'Spalten zurücksetzen',
+        columnMenu: {
+            openMenu: ({columnName}: {columnName: string}) => `Spaltenoptionen für ${columnName}`,
+            sortAscending: 'Aufsteigend sortieren',
+            sortDescending: 'Absteigend sortieren',
+            hideColumn: 'Spalte ausblenden',
+        },
         groupColumns: 'Spalten gruppieren',
         expenseColumns: 'Spalten für Ausgaben',
         saveView: 'Ansicht speichern',

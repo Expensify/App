@@ -33,6 +33,7 @@ import type {
 } from '@components/Search/SearchList/ListItem/types';
 import {GROUP_ITEM_TYPES} from '@components/Search/SearchList/ListItem/types';
 import type {
+    ASTNode,
     GroupedItem,
     QueryFilterKey,
     QueryFilters,
@@ -49,6 +50,7 @@ import type {
     SearchGroupBy,
     SearchPaidStatus,
     SearchQueryJSON,
+    SearchQueryString,
     SearchSortBy,
     SearchTextFilterKeys,
     SearchView,
@@ -89,15 +91,12 @@ import type {
     SearchDataTypes,
     SearchMemberGroup,
     SearchMerchantGroup,
-    SearchMonthGroup,
-    SearchQuarterGroup,
     SearchResultDataType,
     SearchTagGroup,
     SearchTask,
     SearchTransactionAction,
     SearchWeekGroup,
     SearchWithdrawalIDGroup,
-    SearchYearGroup,
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -650,6 +649,17 @@ type ReportActionKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`;
 type ViolationKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${string}`;
 
 type SearchGroupKey = `${typeof CONST.SEARCH.GROUP_PREFIX}${string}`;
+
+/** Inclusive yyyy-MM-dd bounds */
+type SearchDateRange = {start: string; end: string};
+
+/** Scopes a query to one selected group by an exact match on a filter, e.g. `category:Travel` */
+type SelectedGroupValueFilter = {kind: 'value'; key: QueryFilterKey; value: string | number};
+
+/** Scopes a query to one selected time-based group, which has no exact-match filter and is matched by its dates instead */
+type SelectedGroupDateRangeFilter = {kind: 'dateRange'; dateRange: SearchDateRange};
+
+type SelectedGroupFilterEntry = SelectedGroupValueFilter | SelectedGroupDateRangeFilter;
 
 type SavedSearchMenuItem = MenuItemWithLink & {
     key: string;
@@ -3228,35 +3238,91 @@ function getReportSections({
     return [reportIDToTransactionsValues, reportIDToTransactionsValues.length, hasDeletedTransaction];
 }
 
-function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): {key: QueryFilterKey; value: string | number} | undefined {
+/** The inclusive yyyy-MM-dd range a time-based group covers, or undefined for any other grouping or a group missing its date fields. */
+function getGroupDateRange(groupBy: string, groupData: unknown): SearchDateRange | undefined {
+    if (typeof groupData !== 'object' || !groupData) {
+        return undefined;
+    }
+
     switch (groupBy) {
-        case CONST.SEARCH.GROUP_BY.FROM:
-            return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, value: (groupData as SearchMemberGroup).accountID};
-        case CONST.SEARCH.GROUP_BY.APPROVER: {
-            if (!groupData || typeof groupData !== 'object' || !('accountID' in groupData) || typeof groupData.accountID !== 'number') {
-                return undefined;
-            }
-            return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER, value: groupData.accountID};
+        case CONST.SEARCH.GROUP_BY.DAY: {
+            const day = 'day' in groupData ? groupData.day : undefined;
+            return typeof day === 'string' && day ? {start: day, end: day} : undefined;
         }
-        case CONST.SEARCH.GROUP_BY.CARD:
-            return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: (groupData as SearchCardGroup).cardID};
-        case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
-            return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID, value: (groupData as SearchWithdrawalIDGroup).entryID};
-        case CONST.SEARCH.GROUP_BY.CATEGORY: {
-            const category = (groupData as SearchCategoryGroup).category;
-            return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: !category ? CONST.SEARCH.CATEGORY_EMPTY_VALUE : category};
+        case CONST.SEARCH.GROUP_BY.MONTH: {
+            const year = 'year' in groupData ? groupData.year : undefined;
+            const month = 'month' in groupData ? groupData.month : undefined;
+            return typeof year === 'number' && typeof month === 'number' && month ? DateUtils.getMonthDateRange(year, month) : undefined;
         }
-        case CONST.SEARCH.GROUP_BY.MERCHANT: {
-            const merchant = (groupData as SearchMerchantGroup).merchant;
-            return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: merchant === '' ? CONST.SEARCH.MERCHANT_EMPTY_VALUE : merchant};
+        case CONST.SEARCH.GROUP_BY.WEEK: {
+            const week = 'week' in groupData ? groupData.week : undefined;
+            return typeof week === 'string' && week ? DateUtils.getWeekDateRange(week) : undefined;
         }
-        case CONST.SEARCH.GROUP_BY.TAG: {
-            const tag = (groupData as SearchTagGroup).tag;
-            return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, value: tag === '' || tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : tag};
+        case CONST.SEARCH.GROUP_BY.YEAR: {
+            const year = 'year' in groupData ? groupData.year : undefined;
+            return typeof year === 'number' ? DateUtils.getYearDateRange(year) : undefined;
+        }
+        case CONST.SEARCH.GROUP_BY.QUARTER: {
+            const year = 'year' in groupData ? groupData.year : undefined;
+            const quarter = 'quarter' in groupData ? groupData.quarter : undefined;
+            return typeof year === 'number' && typeof quarter === 'number' ? DateUtils.getQuarterDateRange(year, quarter) : undefined;
         }
         default:
             return undefined;
     }
+}
+
+/** The filter that scopes a query to one selected group, or undefined when the grouping or the group's data can't be turned into one. */
+function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): SelectedGroupFilterEntry | undefined {
+    switch (groupBy) {
+        case CONST.SEARCH.GROUP_BY.FROM:
+            return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, value: (groupData as SearchMemberGroup).accountID};
+        case CONST.SEARCH.GROUP_BY.APPROVER: {
+            if (!groupData || typeof groupData !== 'object' || !('accountID' in groupData) || typeof groupData.accountID !== 'number') {
+                return undefined;
+            }
+            return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER, value: groupData.accountID};
+        }
+        case CONST.SEARCH.GROUP_BY.CARD:
+            return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: (groupData as SearchCardGroup).cardID};
+        case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
+            return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID, value: (groupData as SearchWithdrawalIDGroup).entryID};
+        case CONST.SEARCH.GROUP_BY.CATEGORY: {
+            const category = (groupData as SearchCategoryGroup).category;
+            return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: !category ? CONST.SEARCH.CATEGORY_EMPTY_VALUE : category};
+        }
+        case CONST.SEARCH.GROUP_BY.MERCHANT: {
+            const merchant = (groupData as SearchMerchantGroup).merchant;
+            return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: merchant === '' ? CONST.SEARCH.MERCHANT_EMPTY_VALUE : merchant};
+        }
+        case CONST.SEARCH.GROUP_BY.TAG: {
+            const tag = (groupData as SearchTagGroup).tag;
+            return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, value: tag === '' || tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : tag};
+        }
+        case CONST.SEARCH.GROUP_BY.DAY:
+        case CONST.SEARCH.GROUP_BY.WEEK:
+        case CONST.SEARCH.GROUP_BY.MONTH:
+        case CONST.SEARCH.GROUP_BY.QUARTER:
+        case CONST.SEARCH.GROUP_BY.YEAR: {
+            const dateRange = getGroupDateRange(groupBy, groupData);
+            return dateRange ? {kind: 'dateRange', dateRange} : undefined;
+        }
+        default:
+            return undefined;
+    }
+}
+
+/** Leaves the deselected groups' dates out of a time-grouped query, through the `filters` AST. */
+function addExcludedDateRangesFilter(queryJSON: SearchQueryJSON, dateRanges: SearchDateRange[]): SearchQueryJSON {
+    const filters = dateRanges.reduce<ASTNode | undefined>((left, range) => {
+        const outsideRangeNode: ASTNode = {
+            operator: CONST.SEARCH.SYNTAX_OPERATORS.OR,
+            left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, right: range.start},
+            right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, right: range.end},
+        };
+        return left ? {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left, right: outsideRangeNode} : outsideRangeNode;
+    }, queryJSON.filters);
+    return filters ? {...queryJSON, filters} : queryJSON;
 }
 
 function getAllMatchingExportQueryAndExclusions(
@@ -3265,7 +3331,8 @@ function getAllMatchingExportQueryAndExclusions(
     searchData: SearchResultDataType | undefined,
 ): {queryJSON: SearchQueryJSON; excludedTransactionIDList: string[]} | undefined {
     const excludedTransactionIDList: string[] = [];
-    const excludedGroupEntries: Array<{key: QueryFilterKey; value: string | number}> = [];
+    const excludedGroupEntries: SelectedGroupValueFilter[] = [];
+    const excludedDateRanges: SearchDateRange[] = [];
 
     for (const key of Object.keys(excludedTransactions)) {
         if (!isGroupEntry(key)) {
@@ -3278,7 +3345,16 @@ function getAllMatchingExportQueryAndExclusions(
         if (!groupEntry) {
             return undefined;
         }
-        excludedGroupEntries.push(groupEntry);
+        if (groupEntry.kind === 'dateRange') {
+            excludedDateRanges.push(groupEntry.dateRange);
+        } else {
+            excludedGroupEntries.push(groupEntry);
+        }
+    }
+
+    // Excluding a date group needs an OR, which flatFilters can't express
+    if (excludedDateRanges.length > 0) {
+        return {queryJSON: addExcludedDateRangesFilter(queryJSON, excludedDateRanges), excludedTransactionIDList};
     }
 
     if (excludedGroupEntries.length === 0) {
@@ -3400,37 +3476,14 @@ function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | unde
                 }
                 break;
             }
-            case CONST.SEARCH.GROUP_BY.DAY: {
-                if ('day' in group && typeof group.day === 'string' && group.day) {
-                    transactionsQueryJSON = buildDateRangeGroupQuery(queryJSON, {start: group.day, end: group.day}).transactionsQueryJSON;
-                }
-                break;
-            }
-            case CONST.SEARCH.GROUP_BY.MONTH: {
-                const monthGroup = group as SearchMonthGroup;
-                if (monthGroup.year && monthGroup.month) {
-                    transactionsQueryJSON = buildDateRangeGroupQuery(queryJSON, DateUtils.getMonthDateRange(monthGroup.year, monthGroup.month))?.transactionsQueryJSON;
-                }
-                break;
-            }
-            case CONST.SEARCH.GROUP_BY.WEEK: {
-                const weekGroup = group as SearchWeekGroup;
-                if (weekGroup.week) {
-                    transactionsQueryJSON = buildDateRangeGroupQuery(queryJSON, DateUtils.getWeekDateRange(weekGroup.week))?.transactionsQueryJSON;
-                }
-                break;
-            }
-            case CONST.SEARCH.GROUP_BY.YEAR: {
-                const yearGroup = group as SearchYearGroup;
-                if (typeof yearGroup.year === 'number') {
-                    transactionsQueryJSON = buildDateRangeGroupQuery(queryJSON, DateUtils.getYearDateRange(yearGroup.year))?.transactionsQueryJSON;
-                }
-                break;
-            }
+            case CONST.SEARCH.GROUP_BY.DAY:
+            case CONST.SEARCH.GROUP_BY.MONTH:
+            case CONST.SEARCH.GROUP_BY.WEEK:
+            case CONST.SEARCH.GROUP_BY.YEAR:
             case CONST.SEARCH.GROUP_BY.QUARTER: {
-                const quarterGroup = group as SearchQuarterGroup;
-                if (typeof quarterGroup.year === 'number' && typeof quarterGroup.quarter === 'number') {
-                    transactionsQueryJSON = buildDateRangeGroupQuery(queryJSON, DateUtils.getQuarterDateRange(quarterGroup.year, quarterGroup.quarter))?.transactionsQueryJSON;
+                const dateRange = getGroupDateRange(queryJSON.groupBy, group);
+                if (dateRange) {
+                    transactionsQueryJSON = buildDateRangeGroupQuery(queryJSON, dateRange).transactionsQueryJSON;
                 }
                 break;
             }
@@ -4430,8 +4483,8 @@ function getSortedTransactionData(
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.TAX_RATE) {
         return data.sort((a, b) => {
-            const aValue = getTaxName(a.policy, a);
-            const bValue = getTaxName(b.policy, b);
+            const aValue = getTaxName(translate, a.policy, a);
+            const bValue = getTaxName(translate, b.policy, b);
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }
@@ -4805,6 +4858,25 @@ function getCustomColumns(value?: SearchDataTypes | SearchGroupBy): SearchCustom
         default:
             return [];
     }
+}
+
+/** Whether users can pick and reorder the columns of a search of this type. A trip search shows expenses unless it returns trip rooms, and only the rooms table has columns to pick. */
+function canEditSearchColumns(type: SearchDataTypes, shouldReturnTripRooms: boolean): boolean {
+    return (type !== CONST.SEARCH.DATA_TYPES.TRIP || shouldReturnTripRooms) && getCustomColumns(type).length > 0;
+}
+
+/**
+ * Columns users can't remove. At least one column has to flex for the table to lay out, and the totals make sense in
+ * every expense table, so they always stay. A search filtering by violations also keeps the column showing them.
+ */
+function getRequiredSearchColumns(shouldRequireViolationsColumn: boolean): Set<SearchCustomColumnIds> {
+    const requiredColumns = new Set<SearchCustomColumnIds>([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL, ...Object.values(groupByRequiredColumns).flat()]);
+
+    if (shouldRequireViolationsColumn) {
+        requiredColumns.add(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+    }
+
+    return requiredColumns;
 }
 
 function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): SearchCustomColumnIds[] {
@@ -8074,6 +8146,11 @@ function navigateToSearchRHP(route: {route: string; getRoute: (backTo?: string) 
     }
 }
 
+/** Reloads the current search with a new set of columns. Only the columns change, so it's still the same search: the key carries over rather than being re-derived from the new query. */
+function navigateToSearchWithColumns(query: SearchQueryString, searchKey: SearchKey | undefined) {
+    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, searchKey}), {forceReplace: true});
+}
+
 type CanChangeWorkspaceOfSearchReportParams = {
     report: OnyxEntry<OnyxTypes.Report>;
     /** The report in Onyx, which an export after the search updates while the search results keep the old flag */
@@ -8395,9 +8472,11 @@ export {
     getGroupTableScrollLayout,
     getCustomColumns,
     getCustomColumnDefault,
+    canEditSearchColumns,
+    getRequiredSearchColumns,
     filterValidHasValues,
-    groupByRequiredColumns,
     navigateToSearchRHP,
+    navigateToSearchWithColumns,
     shouldShowDeleteOption,
     getToFieldValueForTransaction,
     getSearchReportAvatarProps,
@@ -8437,4 +8516,15 @@ export {
     SKIPPED_SEARCH_FILTERS,
     SEARCH_TYPE_MENU_ICON_NAMES,
 };
-export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchGroupKey, GroupBySection, SearchFilter};
+export type {
+    SavedSearchMenuItem,
+    SearchTypeMenuSection,
+    SearchTypeMenuItem,
+    SearchDateModifier,
+    SearchDateModifierLower,
+    SearchGroupKey,
+    GroupBySection,
+    SearchFilter,
+    SearchDateRange,
+    SelectedGroupValueFilter,
+};

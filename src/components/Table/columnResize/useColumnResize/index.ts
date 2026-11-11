@@ -305,8 +305,10 @@ function useColumnResize({
         return undefined;
     }
 
+    const hasHandle = (columnKey: string) => resizableColumnKeys.includes(columnKey);
+
     const getHandleProps = (columnKey: string): ColumnResizeHandleDOMProps | undefined => {
-        if (!resizableColumnKeys.includes(columnKey)) {
+        if (!hasHandle(columnKey)) {
             return undefined;
         }
 
@@ -337,7 +339,7 @@ function useColumnResize({
         };
     };
 
-    return {setScopeElement, getHandleProps};
+    return {setScopeElement, getHandleProps, hasHandle};
 }
 
 export default useColumnResize;
