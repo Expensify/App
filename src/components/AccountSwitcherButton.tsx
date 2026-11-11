@@ -217,7 +217,7 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
     );
     const allMenuItems = [currentUserMenuItem, ...delegatorMenuItems];
     const [searchInput, setSearchInput, filteredMenuItems] = useSearchResults(allMenuItems, filterMenuItem);
-    const shouldShowSearchInput = !isActingAsDelegate && delegators.length >= 1;
+    const shouldShowSearchInput = !isActingAsDelegate && delegators.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     const menuItems = (): PopoverMenuItem[] => {
         if (isActingAsDelegate) {
