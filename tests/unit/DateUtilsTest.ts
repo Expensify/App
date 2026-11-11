@@ -1314,25 +1314,6 @@ describe('DateUtils', () => {
             expect(DateUtils.getFormattedDateRangeForSearch('2025-12-29', '2026-01-04', undefined)).toBe(`Dec 29, 2025${THIN_SPACE}–${THIN_SPACE}Jan 4, 2026`);
         });
 
-        it('still joins the range on an engine without formatRange', () => {
-            // Given an engine that does not implement `Intl.DateTimeFormat.prototype.formatRange`, as can happen on Hermes
-            const formatRangeDescriptor = Object.getOwnPropertyDescriptor(Intl.DateTimeFormat.prototype, 'formatRange');
-            // @ts-expect-error -- removed on purpose to reproduce an engine that leaves the method out
-            delete Intl.DateTimeFormat.prototype.formatRange;
-
-            try {
-                // When a range label is built
-                const result = DateUtils.getFormattedDateRangeForSearch('2025-09-01', '2025-09-07', undefined);
-
-                // Then both dates are still shown, joined with a dash, instead of the Search page throwing
-                expect(result).toBe('Sep 1, 2025 – Sep 7, 2025');
-            } finally {
-                if (formatRangeDescriptor) {
-                    Object.defineProperty(Intl.DateTimeFormat.prototype, 'formatRange', formatRangeDescriptor);
-                }
-            }
-        });
-
         it('returns an empty string for a date that cannot be read', () => {
             // Given a range whose start is not a yyyy-MM-dd date
             // When its range label is built

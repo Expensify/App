@@ -1482,13 +1482,8 @@ const memoizedCreateSearchDateRangeFormatter = memoize(
  */
 function formatSearchDateRange(start: Date, end: Date, dateFnsLocale: DateFnsLocale | undefined, shouldIncludeYear: boolean): string {
     // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
-    const formatter = memoizedCreateSearchDateRangeFormatter(dateFnsLocale?.code ?? 'en-US', shouldIncludeYear);
-    // Hermes, which runs the app on iOS and Android, may not implement `formatRange` even though the type says it always
-    // exists, so join two localized dates there.
-    if (!formatter.formatRange) {
-        return `${formatter.format(toUTCWallClockDate(start))} – ${formatter.format(toUTCWallClockDate(end))}`;
-    }
-    return formatter.formatRange(toUTCWallClockDate(start), toUTCWallClockDate(end));
+    // Hermes lacks `formatRange`, so native apps get it from polyfillDateTimeFormatRange.
+    return memoizedCreateSearchDateRangeFormatter(dateFnsLocale?.code ?? 'en-US', shouldIncludeYear).formatRange(toUTCWallClockDate(start), toUTCWallClockDate(end));
 }
 
 /**
