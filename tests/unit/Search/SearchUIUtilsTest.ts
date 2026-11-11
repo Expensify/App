@@ -13905,6 +13905,18 @@ describe('SearchUIUtils', () => {
             ]);
         });
 
+        test('Should make the Violations header sortable', () => {
+            // Given the expense table headers
+            const headers = getExpenseHeaders();
+
+            // When the Violations header is looked up
+            const violationsHeader = headers.find(({columnName}) => columnName === CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+
+            // Then it isn't marked unsortable, so clicking it sorts the rows like the other column headers
+            expect(violationsHeader).toBeDefined();
+            expect(violationsHeader?.isColumnSortable).not.toBe(false);
+        });
+
         test('Should show MCC whenever that column is selected, even with no displayable MCC', () => {
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const transactionWithoutMCC = {
