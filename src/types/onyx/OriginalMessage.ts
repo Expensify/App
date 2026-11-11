@@ -134,13 +134,21 @@ type OriginalMessageSmartScanFailed = {
 
 /** Fields common to all report action original messages */
 type OriginalMessageBase = {
-    /** Account IDs for whom this action is marked as important */
+    /**
+     * Account IDs for whom this action is marked as important. Similar to `actionableForAccountIDs` except
+     * receiving an important message only triggers a push notification.
+     */
     importantForAccountIDs?: number[];
 
     /** Whether push notifications should be scoped to actionableForAccountIDs only */
     shouldScopePushToActionableAccounts?: boolean;
 
-    /** Account IDs that should receive push notifications when shouldScopePushToActionableAccounts is true */
+    /**
+     * Accounts IDs for whom this action is actionable. Receiving an actionable message will
+     * - Mark the report as unread
+     * - Trigger an email notification
+     * - Trigger a push notification (on web and mobile)
+     */
     actionableForAccountIDs?: number[];
 };
 
