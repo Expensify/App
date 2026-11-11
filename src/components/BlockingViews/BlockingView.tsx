@@ -190,5 +190,5 @@ function BlockingView({
     );
 }
 
-export type {BlockingViewProps};
+export type {BlockingViewIconProps, BlockingViewProps};
 export default BlockingView;

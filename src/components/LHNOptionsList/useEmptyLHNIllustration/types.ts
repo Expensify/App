@@ -1,5 +1,5 @@
-import type {BlockingViewProps} from '@components/BlockingViews/BlockingView';
+import type {BlockingViewIconProps} from '@components/BlockingViews/BlockingView';
 
-type UseEmptyLHNIllustration = () => Pick<BlockingViewProps, 'icon' | 'iconWidth' | 'iconHeight'>;
+type UseEmptyLHNIllustration = () => Pick<BlockingViewIconProps, 'icon' | 'iconWidth' | 'iconHeight'>;
 
 export default UseEmptyLHNIllustration;

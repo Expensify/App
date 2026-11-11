@@ -26,6 +26,7 @@ function TextInputMeasurement({
     autoGrowMeasurementStyles,
 }: TextInputMeasurementProps) {
     const styles = useThemeStyles();
+    // A web View takes only a CSS string color, but a TextStyle color can be a native color object. The View does not draw text, so it can drop such a color.
     const flattenedInputStyle = StyleSheet.flatten(inputStyle);
     const wrapperInputStyle = flattenedInputStyle && {
         ...flattenedInputStyle,

@@ -28,10 +28,6 @@ function LHNEmptyState() {
     const {activeTab} = useSidebarOrderedReportsState();
     const {setActiveTab} = useSidebarOrderedReportsActions();
 
-    if (!emptyLHNIllustration.icon) {
-        return null;
-    }
-
     if (activeTab === CONST.INBOX_TAB.UNREAD || activeTab === CONST.INBOX_TAB.TODO) {
         const title = activeTab === CONST.INBOX_TAB.UNREAD ? translate('common.emptyLHN.noUnreadChats') : translate('common.emptyLHN.noTodos');
         const caughtUpSubtitle = (
@@ -49,7 +45,6 @@ function LHNEmptyState() {
         return (
             <BlockingView
                 {...emptyLHNIllustration}
-                icon={emptyLHNIllustration.icon}
                 title={title}
                 titleStyles={styles.mb2}
                 CustomSubtitle={caughtUpSubtitle}
@@ -97,7 +92,6 @@ function LHNEmptyState() {
     return (
         <BlockingView
             {...emptyLHNIllustration}
-            icon={emptyLHNIllustration.icon}
             title={translate('common.emptyLHN.title')}
             CustomSubtitle={subtitle}
             accessibilityLabel={translate('common.emptyLHN.title')}
