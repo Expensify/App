@@ -3285,7 +3285,7 @@ function getAllMatchingExportQueryAndExclusions(
         return {queryJSON, excludedTransactionIDList};
     }
 
-    const flatFilters = queryJSON.flatFilters.map((filter) => ({...filter, filters: [...filter.filters]}));
+    const flatFilters = [...queryJSON.flatFilters];
     for (const entry of excludedGroupEntries) {
         const exclusionFilter = {operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: entry.value};
         flatFilters.push({key: entry.key, filters: [exclusionFilter]});
