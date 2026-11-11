@@ -1,11 +1,13 @@
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useIsOwnWorkspaceChatRef from '@hooks/useIsOwnWorkspaceChatRef';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSidePanelActions from '@hooks/useSidePanelActions';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -67,6 +69,8 @@ function ReportNavigateAwayHandler() {
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
 
     const isFocused = useIsFocused();
+    const isInSidePanel = useIsInSidePanel();
+    const {openSidePanel} = useSidePanelActions();
     const {isInNarrowPaneModal} = useResponsiveLayout();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
@@ -236,6 +240,12 @@ function ReportNavigateAwayHandler() {
             return;
         }
 
+        // The side panel shows its own report, so move the side panel and leave the main pane where the user is.
+        if (isInSidePanel) {
+            openSidePanel({reportID: deletedReportParentID});
+            return;
+        }
+
         Navigation.isNavigationReady().then(() => {
             // Drop the deleted report from the split navigator stack before navigating away. Otherwise, it stays
             // mounted underneath the destination, and tapping back refocuses it and re-triggers this effect,
@@ -258,6 +268,8 @@ function ReportNavigateAwayHandler() {
         previousReportWasDeleted,
         isFocused,
         isPendingCreationFromRoute,
+        isInSidePanel,
+        openSidePanel,
         deletedReportParentID,
         conciergeReportID,
         introSelected,
