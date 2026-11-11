@@ -1,0 +1,282 @@
+diff --git a/node_modules/@legendapp/list/react-native.js b/node_modules/@legendapp/list/react-native.js
+index 17727711406..3ccffa79110 100644
+--- a/node_modules/@legendapp/list/react-native.js
++++ b/node_modules/@legendapp/list/react-native.js
+@@ -518,7 +518,9 @@ var ENABLE_DEVMODE = IS_DEV && false;
+ var ENABLE_DEBUG_VIEW = IS_DEV && false;
+ 
+ // src/core/cancelImperativeScroll.ts
+-function cancelScrollCompletionChecks({ scheduledWork }) {
++function cancelScrollCompletionChecks(state) {
++  const { scheduledWork } = state;
++  state.silentInitialScrollReturn = void 0;
+   scheduledWork.cancel("checkFinishedScrollFrame");
+   scheduledWork.cancel("checkFinishedScrollRetryFrame");
+   scheduledWork.cancel("checkFinishedScrollFallback");
+@@ -2460,11 +2462,12 @@ function doMaintainScrollAtEnd(ctx, options) {
+ 
+ // src/core/finishScrollTo.ts
+ function finishScrollTo(ctx) {
+-  var _a3, _b, _c;
++  var _a3, _b, _c, _d;
+   const state = ctx.state;
+   if (state == null ? void 0 : state.scrollingTo) {
++    (_a3 = state.silentInitialScrollReturn) == null ? void 0 : _a3.call(state);
+     cancelScrollCompletionChecks(state);
+-    const resolvePendingScroll = ((_a3 = ctx.scrollRequestTracker) == null ? void 0 : _a3.isWaitingToRun()) ? void 0 : state.pendingScrollResolve;
++    const resolvePendingScroll = ((_b = ctx.scrollRequestTracker) == null ? void 0 : _b.isWaitingToRun()) ? void 0 : state.pendingScrollResolve;
+     if (resolvePendingScroll) {
+       state.pendingScrollResolve = void 0;
+     }
+@@ -2487,8 +2490,8 @@ function finishScrollTo(ctx) {
+       }
+     };
+     if (scrollingTo.isInitialScroll || state.initialScroll) {
+-      const isOffsetSession = ((_b = state.initialScrollSession) == null ? void 0 : _b.kind) === "offset";
+-      const shouldPreserveResizeTarget = !!scrollingTo.isInitialScroll && !state.clearPreservedInitialScrollOnNextFinish && state.props.data.length > 0 && ((_c = state.initialScroll) == null ? void 0 : _c.viewPosition) === 1;
++      const isOffsetSession = ((_c = state.initialScrollSession) == null ? void 0 : _c.kind) === "offset";
++      const shouldPreserveResizeTarget = !!scrollingTo.isInitialScroll && !state.clearPreservedInitialScrollOnNextFinish && state.props.data.length > 0 && ((_d = state.initialScroll) == null ? void 0 : _d.viewPosition) === 1;
+       finishInitialScroll(ctx, {
+         onFinished: complete,
+         preserveTarget: isOffsetSession && state.props.data.length === 0 || shouldPreserveResizeTarget,
+@@ -2636,10 +2639,13 @@ function checkFinishedScrollFallback(ctx) {
+         const jiggleOffset = targetOffset >= SILENT_INITIAL_SCROLL_TARGET_EPSILON ? targetOffset - SILENT_INITIAL_SCROLL_TARGET_EPSILON : targetOffset + SILENT_INITIAL_SCROLL_TARGET_EPSILON;
+         initialScrollCompletion.markSilentInitialScrollRetry(state);
+         scrollToFallbackOffset(ctx, jiggleOffset);
+-        state.scheduledWork.frame(
+-          () => scrollToFallbackOffset(ctx, targetOffset),
+-          "checkFinishedScrollRetryFrame"
+-        );
++        const returnToTarget = () => {
++          var _a4, _b2;
++          state.silentInitialScrollReturn = void 0;
++          scrollToFallbackOffset(ctx, (_b2 = (_a4 = initialScrollWatchdog.get(state)) == null ? void 0 : _a4.targetOffset) != null ? _b2 : targetOffset);
++        };
++        state.silentInitialScrollReturn = returnToTarget;
++        state.scheduledWork.frame(returnToTarget, "checkFinishedScrollRetryFrame");
+         scheduleFallbackCheck(SILENT_INITIAL_SCROLL_RETRY_DELAY_MS);
+       } else if (shouldRetryUnalignedEndScroll) {
+         scrollToFallbackOffset(ctx, completionState.clampedTargetOffset, !!isStillScrollingTo.animated);
+diff --git a/node_modules/@legendapp/list/react-native.mjs b/node_modules/@legendapp/list/react-native.mjs
+index a895a1aad01..676c117a45a 100644
+--- a/node_modules/@legendapp/list/react-native.mjs
++++ b/node_modules/@legendapp/list/react-native.mjs
+@@ -497,7 +497,9 @@ var ENABLE_DEVMODE = IS_DEV && false;
+ var ENABLE_DEBUG_VIEW = IS_DEV && false;
+ 
+ // src/core/cancelImperativeScroll.ts
+-function cancelScrollCompletionChecks({ scheduledWork }) {
++function cancelScrollCompletionChecks(state) {
++  const { scheduledWork } = state;
++  state.silentInitialScrollReturn = void 0;
+   scheduledWork.cancel("checkFinishedScrollFrame");
+   scheduledWork.cancel("checkFinishedScrollRetryFrame");
+   scheduledWork.cancel("checkFinishedScrollFallback");
+@@ -2439,11 +2441,12 @@ function doMaintainScrollAtEnd(ctx, options) {
+ 
+ // src/core/finishScrollTo.ts
+ function finishScrollTo(ctx) {
+-  var _a3, _b, _c;
++  var _a3, _b, _c, _d;
+   const state = ctx.state;
+   if (state == null ? void 0 : state.scrollingTo) {
++    (_a3 = state.silentInitialScrollReturn) == null ? void 0 : _a3.call(state);
+     cancelScrollCompletionChecks(state);
+-    const resolvePendingScroll = ((_a3 = ctx.scrollRequestTracker) == null ? void 0 : _a3.isWaitingToRun()) ? void 0 : state.pendingScrollResolve;
++    const resolvePendingScroll = ((_b = ctx.scrollRequestTracker) == null ? void 0 : _b.isWaitingToRun()) ? void 0 : state.pendingScrollResolve;
+     if (resolvePendingScroll) {
+       state.pendingScrollResolve = void 0;
+     }
+@@ -2466,8 +2469,8 @@ function finishScrollTo(ctx) {
+       }
+     };
+     if (scrollingTo.isInitialScroll || state.initialScroll) {
+-      const isOffsetSession = ((_b = state.initialScrollSession) == null ? void 0 : _b.kind) === "offset";
+-      const shouldPreserveResizeTarget = !!scrollingTo.isInitialScroll && !state.clearPreservedInitialScrollOnNextFinish && state.props.data.length > 0 && ((_c = state.initialScroll) == null ? void 0 : _c.viewPosition) === 1;
++      const isOffsetSession = ((_c = state.initialScrollSession) == null ? void 0 : _c.kind) === "offset";
++      const shouldPreserveResizeTarget = !!scrollingTo.isInitialScroll && !state.clearPreservedInitialScrollOnNextFinish && state.props.data.length > 0 && ((_d = state.initialScroll) == null ? void 0 : _d.viewPosition) === 1;
+       finishInitialScroll(ctx, {
+         onFinished: complete,
+         preserveTarget: isOffsetSession && state.props.data.length === 0 || shouldPreserveResizeTarget,
+@@ -2615,10 +2618,13 @@ function checkFinishedScrollFallback(ctx) {
+         const jiggleOffset = targetOffset >= SILENT_INITIAL_SCROLL_TARGET_EPSILON ? targetOffset - SILENT_INITIAL_SCROLL_TARGET_EPSILON : targetOffset + SILENT_INITIAL_SCROLL_TARGET_EPSILON;
+         initialScrollCompletion.markSilentInitialScrollRetry(state);
+         scrollToFallbackOffset(ctx, jiggleOffset);
+-        state.scheduledWork.frame(
+-          () => scrollToFallbackOffset(ctx, targetOffset),
+-          "checkFinishedScrollRetryFrame"
+-        );
++        const returnToTarget = () => {
++          var _a4, _b2;
++          state.silentInitialScrollReturn = void 0;
++          scrollToFallbackOffset(ctx, (_b2 = (_a4 = initialScrollWatchdog.get(state)) == null ? void 0 : _a4.targetOffset) != null ? _b2 : targetOffset);
++        };
++        state.silentInitialScrollReturn = returnToTarget;
++        state.scheduledWork.frame(returnToTarget, "checkFinishedScrollRetryFrame");
+         scheduleFallbackCheck(SILENT_INITIAL_SCROLL_RETRY_DELAY_MS);
+       } else if (shouldRetryUnalignedEndScroll) {
+         scrollToFallbackOffset(ctx, completionState.clampedTargetOffset, !!isStillScrollingTo.animated);
+diff --git a/node_modules/@legendapp/list/react-native.web.js b/node_modules/@legendapp/list/react-native.web.js
+index 10dd9b9c9bb..b6f2da18e38 100644
+--- a/node_modules/@legendapp/list/react-native.web.js
++++ b/node_modules/@legendapp/list/react-native.web.js
+@@ -459,7 +459,9 @@ function calculateOffsetForIndex(ctx, index) {
+ }
+ 
+ // src/core/cancelImperativeScroll.ts
+-function cancelScrollCompletionChecks({ scheduledWork }) {
++function cancelScrollCompletionChecks(state) {
++  const { scheduledWork } = state;
++  state.silentInitialScrollReturn = void 0;
+   scheduledWork.cancel("checkFinishedScrollFrame");
+   scheduledWork.cancel("checkFinishedScrollRetryFrame");
+   scheduledWork.cancel("checkFinishedScrollFallback");
+@@ -2342,11 +2344,12 @@ function doMaintainScrollAtEnd(ctx, options) {
+ 
+ // src/core/finishScrollTo.ts
+ function finishScrollTo(ctx) {
+-  var _a3, _b, _c;
++  var _a3, _b, _c, _d;
+   const state = ctx.state;
+   if (state == null ? void 0 : state.scrollingTo) {
++    (_a3 = state.silentInitialScrollReturn) == null ? void 0 : _a3.call(state);
+     cancelScrollCompletionChecks(state);
+-    const resolvePendingScroll = ((_a3 = ctx.scrollRequestTracker) == null ? void 0 : _a3.isWaitingToRun()) ? void 0 : state.pendingScrollResolve;
++    const resolvePendingScroll = ((_b = ctx.scrollRequestTracker) == null ? void 0 : _b.isWaitingToRun()) ? void 0 : state.pendingScrollResolve;
+     if (resolvePendingScroll) {
+       state.pendingScrollResolve = void 0;
+     }
+@@ -2369,8 +2372,8 @@ function finishScrollTo(ctx) {
+       }
+     };
+     if (scrollingTo.isInitialScroll || state.initialScroll) {
+-      const isOffsetSession = ((_b = state.initialScrollSession) == null ? void 0 : _b.kind) === "offset";
+-      const shouldPreserveResizeTarget = !!scrollingTo.isInitialScroll && !state.clearPreservedInitialScrollOnNextFinish && state.props.data.length > 0 && ((_c = state.initialScroll) == null ? void 0 : _c.viewPosition) === 1;
++      const isOffsetSession = ((_c = state.initialScrollSession) == null ? void 0 : _c.kind) === "offset";
++      const shouldPreserveResizeTarget = !!scrollingTo.isInitialScroll && !state.clearPreservedInitialScrollOnNextFinish && state.props.data.length > 0 && ((_d = state.initialScroll) == null ? void 0 : _d.viewPosition) === 1;
+       finishInitialScroll(ctx, {
+         onFinished: complete,
+         preserveTarget: isOffsetSession && state.props.data.length === 0 || shouldPreserveResizeTarget,
+diff --git a/node_modules/@legendapp/list/react-native.web.mjs b/node_modules/@legendapp/list/react-native.web.mjs
+index 0ba06dac531..7413734a88e 100644
+--- a/node_modules/@legendapp/list/react-native.web.mjs
++++ b/node_modules/@legendapp/list/react-native.web.mjs
+@@ -438,7 +438,9 @@ function calculateOffsetForIndex(ctx, index) {
+ }
+ 
+ // src/core/cancelImperativeScroll.ts
+-function cancelScrollCompletionChecks({ scheduledWork }) {
++function cancelScrollCompletionChecks(state) {
++  const { scheduledWork } = state;
++  state.silentInitialScrollReturn = void 0;
+   scheduledWork.cancel("checkFinishedScrollFrame");
+   scheduledWork.cancel("checkFinishedScrollRetryFrame");
+   scheduledWork.cancel("checkFinishedScrollFallback");
+@@ -2321,11 +2323,12 @@ function doMaintainScrollAtEnd(ctx, options) {
+ 
+ // src/core/finishScrollTo.ts
+ function finishScrollTo(ctx) {
+-  var _a3, _b, _c;
++  var _a3, _b, _c, _d;
+   const state = ctx.state;
+   if (state == null ? void 0 : state.scrollingTo) {
++    (_a3 = state.silentInitialScrollReturn) == null ? void 0 : _a3.call(state);
+     cancelScrollCompletionChecks(state);
+-    const resolvePendingScroll = ((_a3 = ctx.scrollRequestTracker) == null ? void 0 : _a3.isWaitingToRun()) ? void 0 : state.pendingScrollResolve;
++    const resolvePendingScroll = ((_b = ctx.scrollRequestTracker) == null ? void 0 : _b.isWaitingToRun()) ? void 0 : state.pendingScrollResolve;
+     if (resolvePendingScroll) {
+       state.pendingScrollResolve = void 0;
+     }
+@@ -2348,8 +2351,8 @@ function finishScrollTo(ctx) {
+       }
+     };
+     if (scrollingTo.isInitialScroll || state.initialScroll) {
+-      const isOffsetSession = ((_b = state.initialScrollSession) == null ? void 0 : _b.kind) === "offset";
+-      const shouldPreserveResizeTarget = !!scrollingTo.isInitialScroll && !state.clearPreservedInitialScrollOnNextFinish && state.props.data.length > 0 && ((_c = state.initialScroll) == null ? void 0 : _c.viewPosition) === 1;
++      const isOffsetSession = ((_c = state.initialScrollSession) == null ? void 0 : _c.kind) === "offset";
++      const shouldPreserveResizeTarget = !!scrollingTo.isInitialScroll && !state.clearPreservedInitialScrollOnNextFinish && state.props.data.length > 0 && ((_d = state.initialScroll) == null ? void 0 : _d.viewPosition) === 1;
+       finishInitialScroll(ctx, {
+         onFinished: complete,
+         preserveTarget: isOffsetSession && state.props.data.length === 0 || shouldPreserveResizeTarget,
+diff --git a/node_modules/@legendapp/list/react.js b/node_modules/@legendapp/list/react.js
+index 10dd9b9c9bb..b6f2da18e38 100644
+--- a/node_modules/@legendapp/list/react.js
++++ b/node_modules/@legendapp/list/react.js
+@@ -459,7 +459,9 @@ function calculateOffsetForIndex(ctx, index) {
+ }
+ 
+ // src/core/cancelImperativeScroll.ts
+-function cancelScrollCompletionChecks({ scheduledWork }) {
++function cancelScrollCompletionChecks(state) {
++  const { scheduledWork } = state;
++  state.silentInitialScrollReturn = void 0;
+   scheduledWork.cancel("checkFinishedScrollFrame");
+   scheduledWork.cancel("checkFinishedScrollRetryFrame");
+   scheduledWork.cancel("checkFinishedScrollFallback");
+@@ -2342,11 +2344,12 @@ function doMaintainScrollAtEnd(ctx, options) {
+ 
+ // src/core/finishScrollTo.ts
+ function finishScrollTo(ctx) {
+-  var _a3, _b, _c;
++  var _a3, _b, _c, _d;
+   const state = ctx.state;
+   if (state == null ? void 0 : state.scrollingTo) {
++    (_a3 = state.silentInitialScrollReturn) == null ? void 0 : _a3.call(state);
+     cancelScrollCompletionChecks(state);
+-    const resolvePendingScroll = ((_a3 = ctx.scrollRequestTracker) == null ? void 0 : _a3.isWaitingToRun()) ? void 0 : state.pendingScrollResolve;
++    const resolvePendingScroll = ((_b = ctx.scrollRequestTracker) == null ? void 0 : _b.isWaitingToRun()) ? void 0 : state.pendingScrollResolve;
+     if (resolvePendingScroll) {
+       state.pendingScrollResolve = void 0;
+     }
+@@ -2369,8 +2372,8 @@ function finishScrollTo(ctx) {
+       }
+     };
+     if (scrollingTo.isInitialScroll || state.initialScroll) {
+-      const isOffsetSession = ((_b = state.initialScrollSession) == null ? void 0 : _b.kind) === "offset";
+-      const shouldPreserveResizeTarget = !!scrollingTo.isInitialScroll && !state.clearPreservedInitialScrollOnNextFinish && state.props.data.length > 0 && ((_c = state.initialScroll) == null ? void 0 : _c.viewPosition) === 1;
++      const isOffsetSession = ((_c = state.initialScrollSession) == null ? void 0 : _c.kind) === "offset";
++      const shouldPreserveResizeTarget = !!scrollingTo.isInitialScroll && !state.clearPreservedInitialScrollOnNextFinish && state.props.data.length > 0 && ((_d = state.initialScroll) == null ? void 0 : _d.viewPosition) === 1;
+       finishInitialScroll(ctx, {
+         onFinished: complete,
+         preserveTarget: isOffsetSession && state.props.data.length === 0 || shouldPreserveResizeTarget,
+diff --git a/node_modules/@legendapp/list/react.mjs b/node_modules/@legendapp/list/react.mjs
+index 0ba06dac531..7413734a88e 100644
+--- a/node_modules/@legendapp/list/react.mjs
++++ b/node_modules/@legendapp/list/react.mjs
+@@ -438,7 +438,9 @@ function calculateOffsetForIndex(ctx, index) {
+ }
+ 
+ // src/core/cancelImperativeScroll.ts
+-function cancelScrollCompletionChecks({ scheduledWork }) {
++function cancelScrollCompletionChecks(state) {
++  const { scheduledWork } = state;
++  state.silentInitialScrollReturn = void 0;
+   scheduledWork.cancel("checkFinishedScrollFrame");
+   scheduledWork.cancel("checkFinishedScrollRetryFrame");
+   scheduledWork.cancel("checkFinishedScrollFallback");
+@@ -2321,11 +2323,12 @@ function doMaintainScrollAtEnd(ctx, options) {
+ 
+ // src/core/finishScrollTo.ts
+ function finishScrollTo(ctx) {
+-  var _a3, _b, _c;
++  var _a3, _b, _c, _d;
+   const state = ctx.state;
+   if (state == null ? void 0 : state.scrollingTo) {
++    (_a3 = state.silentInitialScrollReturn) == null ? void 0 : _a3.call(state);
+     cancelScrollCompletionChecks(state);
+-    const resolvePendingScroll = ((_a3 = ctx.scrollRequestTracker) == null ? void 0 : _a3.isWaitingToRun()) ? void 0 : state.pendingScrollResolve;
++    const resolvePendingScroll = ((_b = ctx.scrollRequestTracker) == null ? void 0 : _b.isWaitingToRun()) ? void 0 : state.pendingScrollResolve;
+     if (resolvePendingScroll) {
+       state.pendingScrollResolve = void 0;
+     }
+@@ -2348,8 +2351,8 @@ function finishScrollTo(ctx) {
+       }
+     };
+     if (scrollingTo.isInitialScroll || state.initialScroll) {
+-      const isOffsetSession = ((_b = state.initialScrollSession) == null ? void 0 : _b.kind) === "offset";
+-      const shouldPreserveResizeTarget = !!scrollingTo.isInitialScroll && !state.clearPreservedInitialScrollOnNextFinish && state.props.data.length > 0 && ((_c = state.initialScroll) == null ? void 0 : _c.viewPosition) === 1;
++      const isOffsetSession = ((_c = state.initialScrollSession) == null ? void 0 : _c.kind) === "offset";
++      const shouldPreserveResizeTarget = !!scrollingTo.isInitialScroll && !state.clearPreservedInitialScrollOnNextFinish && state.props.data.length > 0 && ((_d = state.initialScroll) == null ? void 0 : _d.viewPosition) === 1;
+       finishInitialScroll(ctx, {
+         onFinished: complete,
+         preserveTarget: isOffsetSession && state.props.data.length === 0 || shouldPreserveResizeTarget,

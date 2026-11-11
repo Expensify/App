@@ -1,0 +1,482 @@
+diff --git a/node_modules/@legendapp/list/react-native.js b/node_modules/@legendapp/list/react-native.js
+index 92b387b085f..e687e9c0a41 100644
+--- a/node_modules/@legendapp/list/react-native.js
++++ b/node_modules/@legendapp/list/react-native.js
+@@ -1800,9 +1800,11 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+   const state = ctx.state;
+   const { idsInView, positions, props } = state;
+   const {
+-    maintainVisibleContentPosition: { data: mvcpData, size: mvcpScroll, shouldRestorePosition }
++    maintainVisibleContentPosition: { anchor, data: mvcpData, size: mvcpScroll, shouldRestorePosition }
+   } = props;
+   const isWeb = Platform.OS === "web";
++  const isEndAnchor = anchor === "end";
++  const getAnchorCandidateId = (i) => idsInView[isEndAnchor ? idsInView.length - 1 - i : i];
+   const now = Date.now();
+   const enableMVCPAnchorLock = isWeb && (!!dataChanged || !!state.mvcpAnchorLock);
+   const scrollingTo = state.scrollingTo;
+@@ -1847,11 +1849,16 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+       }
+       targetId = (_c = scrollingTo == null ? void 0 : scrollingTo.key) != null ? _c : getId(state, scrollTarget);
+     } else if (idsInView.length > 0 && state.didContainersLayout && !dataChanged) {
+-      targetId = idsInView.find((id) => indexByKey.get(id) !== void 0);
++      for (let i = 0; i < idsInView.length && targetId === void 0; i++) {
++        const id = getAnchorCandidateId(i);
++        if (indexByKey.get(id) !== void 0) {
++          targetId = id;
++        }
++      }
+     }
+     if (dataChanged && idsInView.length > 0 && state.didContainersLayout) {
+       for (let i = 0; i < idsInView.length; i++) {
+-        const id = idsInView[i];
++        const id = getAnchorCandidateId(i);
+         const index = previousIndexByKey.get(id);
+         if (index !== void 0) {
+           const position = positions[index];
+@@ -8236,6 +8243,7 @@ function normalizeMaintainVisibleContentPosition(value) {
+   }
+   if (value && typeof value === "object") {
+     return {
++      anchor: value.anchor,
+       data: (_a3 = value.data) != null ? _a3 : false,
+       shouldRestorePosition: value.shouldRestorePosition,
+       size: (_b = value.size) != null ? _b : true
+diff --git a/node_modules/@legendapp/list/react-native.mjs b/node_modules/@legendapp/list/react-native.mjs
+index 30105d17d72..6271d782ea7 100644
+--- a/node_modules/@legendapp/list/react-native.mjs
++++ b/node_modules/@legendapp/list/react-native.mjs
+@@ -1779,9 +1779,11 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+   const state = ctx.state;
+   const { idsInView, positions, props } = state;
+   const {
+-    maintainVisibleContentPosition: { data: mvcpData, size: mvcpScroll, shouldRestorePosition }
++    maintainVisibleContentPosition: { anchor, data: mvcpData, size: mvcpScroll, shouldRestorePosition }
+   } = props;
+   const isWeb = Platform.OS === "web";
++  const isEndAnchor = anchor === "end";
++  const getAnchorCandidateId = (i) => idsInView[isEndAnchor ? idsInView.length - 1 - i : i];
+   const now = Date.now();
+   const enableMVCPAnchorLock = isWeb && (!!dataChanged || !!state.mvcpAnchorLock);
+   const scrollingTo = state.scrollingTo;
+@@ -1826,11 +1828,16 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+       }
+       targetId = (_c = scrollingTo == null ? void 0 : scrollingTo.key) != null ? _c : getId(state, scrollTarget);
+     } else if (idsInView.length > 0 && state.didContainersLayout && !dataChanged) {
+-      targetId = idsInView.find((id) => indexByKey.get(id) !== void 0);
++      for (let i = 0; i < idsInView.length && targetId === void 0; i++) {
++        const id = getAnchorCandidateId(i);
++        if (indexByKey.get(id) !== void 0) {
++          targetId = id;
++        }
++      }
+     }
+     if (dataChanged && idsInView.length > 0 && state.didContainersLayout) {
+       for (let i = 0; i < idsInView.length; i++) {
+-        const id = idsInView[i];
++        const id = getAnchorCandidateId(i);
+         const index = previousIndexByKey.get(id);
+         if (index !== void 0) {
+           const position = positions[index];
+@@ -8215,6 +8222,7 @@ function normalizeMaintainVisibleContentPosition(value) {
+   }
+   if (value && typeof value === "object") {
+     return {
++      anchor: value.anchor,
+       data: (_a3 = value.data) != null ? _a3 : false,
+       shouldRestorePosition: value.shouldRestorePosition,
+       size: (_b = value.size) != null ? _b : true
+diff --git a/node_modules/@legendapp/list/react-native.web.js b/node_modules/@legendapp/list/react-native.web.js
+index c102661fc18..2b3171a6f4c 100644
+--- a/node_modules/@legendapp/list/react-native.web.js
++++ b/node_modules/@legendapp/list/react-native.web.js
+@@ -1704,8 +1704,10 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+   const state = ctx.state;
+   const { idsInView, positions, props } = state;
+   const {
+-    maintainVisibleContentPosition: { data: mvcpData, size: mvcpScroll, shouldRestorePosition }
++    maintainVisibleContentPosition: { anchor, data: mvcpData, size: mvcpScroll, shouldRestorePosition }
+   } = props;
++  const isEndAnchor = anchor === "end";
++  const getAnchorCandidateId = (i) => idsInView[isEndAnchor ? idsInView.length - 1 - i : i];
+   const now = Date.now();
+   const enableMVCPAnchorLock = (!!dataChanged || !!state.mvcpAnchorLock);
+   const scrollingTo = state.scrollingTo;
+@@ -1743,11 +1745,16 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+     } else if (scrollTarget !== void 0) {
+       targetId = (_c = scrollingTo == null ? void 0 : scrollingTo.key) != null ? _c : getId(state, scrollTarget);
+     } else if (idsInView.length > 0 && state.didContainersLayout && !dataChanged) {
+-      targetId = idsInView.find((id) => indexByKey.get(id) !== void 0);
++      for (let i = 0; i < idsInView.length && targetId === void 0; i++) {
++        const id = getAnchorCandidateId(i);
++        if (indexByKey.get(id) !== void 0) {
++          targetId = id;
++        }
++      }
+     }
+     if (dataChanged && idsInView.length > 0 && state.didContainersLayout) {
+       for (let i = 0; i < idsInView.length; i++) {
+-        const id = idsInView[i];
++        const id = getAnchorCandidateId(i);
+         const index = previousIndexByKey.get(id);
+         if (index !== void 0) {
+           const position = positions[index];
+@@ -9018,6 +9025,7 @@ function normalizeMaintainVisibleContentPosition(value) {
+   }
+   if (value && typeof value === "object") {
+     return {
++      anchor: value.anchor,
+       data: (_a3 = value.data) != null ? _a3 : false,
+       shouldRestorePosition: value.shouldRestorePosition,
+       size: (_b = value.size) != null ? _b : true
+diff --git a/node_modules/@legendapp/list/react-native.web.mjs b/node_modules/@legendapp/list/react-native.web.mjs
+index ff71fd62640..dbd6fbbf3e8 100644
+--- a/node_modules/@legendapp/list/react-native.web.mjs
++++ b/node_modules/@legendapp/list/react-native.web.mjs
+@@ -1683,8 +1683,10 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+   const state = ctx.state;
+   const { idsInView, positions, props } = state;
+   const {
+-    maintainVisibleContentPosition: { data: mvcpData, size: mvcpScroll, shouldRestorePosition }
++    maintainVisibleContentPosition: { anchor, data: mvcpData, size: mvcpScroll, shouldRestorePosition }
+   } = props;
++  const isEndAnchor = anchor === "end";
++  const getAnchorCandidateId = (i) => idsInView[isEndAnchor ? idsInView.length - 1 - i : i];
+   const now = Date.now();
+   const enableMVCPAnchorLock = (!!dataChanged || !!state.mvcpAnchorLock);
+   const scrollingTo = state.scrollingTo;
+@@ -1722,11 +1724,16 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+     } else if (scrollTarget !== void 0) {
+       targetId = (_c = scrollingTo == null ? void 0 : scrollingTo.key) != null ? _c : getId(state, scrollTarget);
+     } else if (idsInView.length > 0 && state.didContainersLayout && !dataChanged) {
+-      targetId = idsInView.find((id) => indexByKey.get(id) !== void 0);
++      for (let i = 0; i < idsInView.length && targetId === void 0; i++) {
++        const id = getAnchorCandidateId(i);
++        if (indexByKey.get(id) !== void 0) {
++          targetId = id;
++        }
++      }
+     }
+     if (dataChanged && idsInView.length > 0 && state.didContainersLayout) {
+       for (let i = 0; i < idsInView.length; i++) {
+-        const id = idsInView[i];
++        const id = getAnchorCandidateId(i);
+         const index = previousIndexByKey.get(id);
+         if (index !== void 0) {
+           const position = positions[index];
+@@ -8997,6 +9004,7 @@ function normalizeMaintainVisibleContentPosition(value) {
+   }
+   if (value && typeof value === "object") {
+     return {
++      anchor: value.anchor,
+       data: (_a3 = value.data) != null ? _a3 : false,
+       shouldRestorePosition: value.shouldRestorePosition,
+       size: (_b = value.size) != null ? _b : true
+diff --git a/node_modules/@legendapp/list/react.js b/node_modules/@legendapp/list/react.js
+index c102661fc18..2b3171a6f4c 100644
+--- a/node_modules/@legendapp/list/react.js
++++ b/node_modules/@legendapp/list/react.js
+@@ -1704,8 +1704,10 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+   const state = ctx.state;
+   const { idsInView, positions, props } = state;
+   const {
+-    maintainVisibleContentPosition: { data: mvcpData, size: mvcpScroll, shouldRestorePosition }
++    maintainVisibleContentPosition: { anchor, data: mvcpData, size: mvcpScroll, shouldRestorePosition }
+   } = props;
++  const isEndAnchor = anchor === "end";
++  const getAnchorCandidateId = (i) => idsInView[isEndAnchor ? idsInView.length - 1 - i : i];
+   const now = Date.now();
+   const enableMVCPAnchorLock = (!!dataChanged || !!state.mvcpAnchorLock);
+   const scrollingTo = state.scrollingTo;
+@@ -1743,11 +1745,16 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+     } else if (scrollTarget !== void 0) {
+       targetId = (_c = scrollingTo == null ? void 0 : scrollingTo.key) != null ? _c : getId(state, scrollTarget);
+     } else if (idsInView.length > 0 && state.didContainersLayout && !dataChanged) {
+-      targetId = idsInView.find((id) => indexByKey.get(id) !== void 0);
++      for (let i = 0; i < idsInView.length && targetId === void 0; i++) {
++        const id = getAnchorCandidateId(i);
++        if (indexByKey.get(id) !== void 0) {
++          targetId = id;
++        }
++      }
+     }
+     if (dataChanged && idsInView.length > 0 && state.didContainersLayout) {
+       for (let i = 0; i < idsInView.length; i++) {
+-        const id = idsInView[i];
++        const id = getAnchorCandidateId(i);
+         const index = previousIndexByKey.get(id);
+         if (index !== void 0) {
+           const position = positions[index];
+@@ -9018,6 +9025,7 @@ function normalizeMaintainVisibleContentPosition(value) {
+   }
+   if (value && typeof value === "object") {
+     return {
++      anchor: value.anchor,
+       data: (_a3 = value.data) != null ? _a3 : false,
+       shouldRestorePosition: value.shouldRestorePosition,
+       size: (_b = value.size) != null ? _b : true
+diff --git a/node_modules/@legendapp/list/react.mjs b/node_modules/@legendapp/list/react.mjs
+index ff71fd62640..dbd6fbbf3e8 100644
+--- a/node_modules/@legendapp/list/react.mjs
++++ b/node_modules/@legendapp/list/react.mjs
+@@ -1683,8 +1683,10 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+   const state = ctx.state;
+   const { idsInView, positions, props } = state;
+   const {
+-    maintainVisibleContentPosition: { data: mvcpData, size: mvcpScroll, shouldRestorePosition }
++    maintainVisibleContentPosition: { anchor, data: mvcpData, size: mvcpScroll, shouldRestorePosition }
+   } = props;
++  const isEndAnchor = anchor === "end";
++  const getAnchorCandidateId = (i) => idsInView[isEndAnchor ? idsInView.length - 1 - i : i];
+   const now = Date.now();
+   const enableMVCPAnchorLock = (!!dataChanged || !!state.mvcpAnchorLock);
+   const scrollingTo = state.scrollingTo;
+@@ -1722,11 +1724,16 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+     } else if (scrollTarget !== void 0) {
+       targetId = (_c = scrollingTo == null ? void 0 : scrollingTo.key) != null ? _c : getId(state, scrollTarget);
+     } else if (idsInView.length > 0 && state.didContainersLayout && !dataChanged) {
+-      targetId = idsInView.find((id) => indexByKey.get(id) !== void 0);
++      for (let i = 0; i < idsInView.length && targetId === void 0; i++) {
++        const id = getAnchorCandidateId(i);
++        if (indexByKey.get(id) !== void 0) {
++          targetId = id;
++        }
++      }
+     }
+     if (dataChanged && idsInView.length > 0 && state.didContainersLayout) {
+       for (let i = 0; i < idsInView.length; i++) {
+-        const id = idsInView[i];
++        const id = getAnchorCandidateId(i);
+         const index = previousIndexByKey.get(id);
+         if (index !== void 0) {
+           const position = positions[index];
+@@ -8997,6 +9004,7 @@ function normalizeMaintainVisibleContentPosition(value) {
+   }
+   if (value && typeof value === "object") {
+     return {
++      anchor: value.anchor,
+       data: (_a3 = value.data) != null ? _a3 : false,
+       shouldRestorePosition: value.shouldRestorePosition,
+       size: (_b = value.size) != null ? _b : true
+diff --git a/node_modules/@legendapp/list/react-native.d.ts b/node_modules/@legendapp/list/react-native.d.ts
+index 983e937cf5c..72e2d573b77 100644
+--- a/node_modules/@legendapp/list/react-native.d.ts
++++ b/node_modules/@legendapp/list/react-native.d.ts
+@@ -3,6 +3,7 @@ import { Key, Dispatch, SetStateAction } from 'react';
+ import { ScrollViewProps, NativeSyntheticEvent as NativeSyntheticEvent$1, NativeScrollEvent as NativeScrollEvent$1, ScrollView, StyleProp as StyleProp$1, ViewStyle as ViewStyle$1, ScrollViewComponent, ScrollResponderMixin, Insets as Insets$1, View } from 'react-native';
+ 
+ interface MaintainVisibleContentPositionNormalized<ItemT = any> {
++    anchor?: "start" | "end";
+     data: boolean;
+     size: boolean;
+     shouldRestorePosition?: (item: ItemT, index: number, data: readonly ItemT[]) => boolean;
+@@ -292,6 +293,7 @@ interface LegendListSpecificProps<ItemT, TItemType extends string | undefined> {
+      * - size (default: true) stabilizes during size/layout changes while scrolling.
+      * - data (default: false) stabilizes when the data array changes.
+      * - shouldRestorePosition can opt out specific items from data-change anchoring.
++     * - anchor (default: "start") picks the visible item that stays in place: the first, or the last with "end".
+      * - undefined (default) enables scroll stabilization but skips data-change anchoring.
+      * - true enables both JS behaviors; false disables both.
+      * Native iOS maintainVisibleContentPosition is enabled when either size or data stabilization is enabled,
+@@ -494,6 +496,12 @@ type LegendListPropsBase<ItemT, TScrollViewProps = Record<string, any>, TItemTyp
+ interface MaintainVisibleContentPositionConfig<ItemT = any> {
+     data?: boolean;
+     size?: boolean;
++    /**
++     * Which visible item stays in place when sizes or data change. "start" (default) keeps the first visible
++     * item in place, so changes move the content below it. "end" keeps the last visible item in place, so changes
++     * move the content above it, like in an inverted list. Use "end" for chat-style lists read from the bottom.
++     */
++    anchor?: "start" | "end";
+     shouldRestorePosition?: (item: ItemT, index: number, data: readonly ItemT[]) => boolean;
+ }
+ interface AnchoredEndSpaceReadyInfo {
+diff --git a/node_modules/@legendapp/list/react-native.web.d.ts b/node_modules/@legendapp/list/react-native.web.d.ts
+index 358fcd7faa5..455c5857a8b 100644
+--- a/node_modules/@legendapp/list/react-native.web.d.ts
++++ b/node_modules/@legendapp/list/react-native.web.d.ts
+@@ -30,6 +30,7 @@ interface ScrollViewMethods {
+ }
+ 
+ interface MaintainVisibleContentPositionNormalized<ItemT = any> {
++    anchor?: "start" | "end";
+     data: boolean;
+     size: boolean;
+     shouldRestorePosition?: (item: ItemT, index: number, data: readonly ItemT[]) => boolean;
+@@ -319,6 +320,7 @@ interface LegendListSpecificProps<ItemT, TItemType extends string | undefined> {
+      * - size (default: true) stabilizes during size/layout changes while scrolling.
+      * - data (default: false) stabilizes when the data array changes.
+      * - shouldRestorePosition can opt out specific items from data-change anchoring.
++     * - anchor (default: "start") picks the visible item that stays in place: the first, or the last with "end".
+      * - undefined (default) enables scroll stabilization but skips data-change anchoring.
+      * - true enables both JS behaviors; false disables both.
+      * Native iOS maintainVisibleContentPosition is enabled when either size or data stabilization is enabled,
+@@ -521,6 +523,12 @@ type LegendListPropsBase<ItemT, TScrollViewProps = Record<string, any>, TItemTyp
+ interface MaintainVisibleContentPositionConfig<ItemT = any> {
+     data?: boolean;
+     size?: boolean;
++    /**
++     * Which visible item stays in place when sizes or data change. "start" (default) keeps the first visible
++     * item in place, so changes move the content below it. "end" keeps the last visible item in place, so changes
++     * move the content above it, like in an inverted list. Use "end" for chat-style lists read from the bottom.
++     */
++    anchor?: "start" | "end";
+     shouldRestorePosition?: (item: ItemT, index: number, data: readonly ItemT[]) => boolean;
+ }
+ interface AnchoredEndSpaceReadyInfo {
+diff --git a/node_modules/@legendapp/list/react.d.ts b/node_modules/@legendapp/list/react.d.ts
+index 358fcd7faa5..455c5857a8b 100644
+--- a/node_modules/@legendapp/list/react.d.ts
++++ b/node_modules/@legendapp/list/react.d.ts
+@@ -30,6 +30,7 @@ interface ScrollViewMethods {
+ }
+ 
+ interface MaintainVisibleContentPositionNormalized<ItemT = any> {
++    anchor?: "start" | "end";
+     data: boolean;
+     size: boolean;
+     shouldRestorePosition?: (item: ItemT, index: number, data: readonly ItemT[]) => boolean;
+@@ -319,6 +320,7 @@ interface LegendListSpecificProps<ItemT, TItemType extends string | undefined> {
+      * - size (default: true) stabilizes during size/layout changes while scrolling.
+      * - data (default: false) stabilizes when the data array changes.
+      * - shouldRestorePosition can opt out specific items from data-change anchoring.
++     * - anchor (default: "start") picks the visible item that stays in place: the first, or the last with "end".
+      * - undefined (default) enables scroll stabilization but skips data-change anchoring.
+      * - true enables both JS behaviors; false disables both.
+      * Native iOS maintainVisibleContentPosition is enabled when either size or data stabilization is enabled,
+@@ -521,6 +523,12 @@ type LegendListPropsBase<ItemT, TScrollViewProps = Record<string, any>, TItemTyp
+ interface MaintainVisibleContentPositionConfig<ItemT = any> {
+     data?: boolean;
+     size?: boolean;
++    /**
++     * Which visible item stays in place when sizes or data change. "start" (default) keeps the first visible
++     * item in place, so changes move the content below it. "end" keeps the last visible item in place, so changes
++     * move the content above it, like in an inverted list. Use "end" for chat-style lists read from the bottom.
++     */
++    anchor?: "start" | "end";
+     shouldRestorePosition?: (item: ItemT, index: number, data: readonly ItemT[]) => boolean;
+ }
+ interface AnchoredEndSpaceReadyInfo {
+diff --git a/node_modules/@legendapp/list/animated.d.ts b/node_modules/@legendapp/list/animated.d.ts
+index c519061902a..1397ff21793 100644
+--- a/node_modules/@legendapp/list/animated.d.ts
++++ b/node_modules/@legendapp/list/animated.d.ts
+@@ -3,6 +3,7 @@ import { Key } from 'react';
+ import { ScrollViewProps, NativeSyntheticEvent as NativeSyntheticEvent$1, NativeScrollEvent as NativeScrollEvent$1, ScrollView, StyleProp as StyleProp$1, ViewStyle as ViewStyle$1, ScrollViewComponent, ScrollResponderMixin, Insets as Insets$1, Animated } from 'react-native';
+ 
+ interface MaintainVisibleContentPositionNormalized<ItemT = any> {
++    anchor?: "start" | "end";
+     data: boolean;
+     size: boolean;
+     shouldRestorePosition?: (item: ItemT, index: number, data: readonly ItemT[]) => boolean;
+@@ -292,6 +293,7 @@ interface LegendListSpecificProps<ItemT, TItemType extends string | undefined> {
+      * - size (default: true) stabilizes during size/layout changes while scrolling.
+      * - data (default: false) stabilizes when the data array changes.
+      * - shouldRestorePosition can opt out specific items from data-change anchoring.
++     * - anchor (default: "start") picks the visible item that stays in place: the first, or the last with "end".
+      * - undefined (default) enables scroll stabilization but skips data-change anchoring.
+      * - true enables both JS behaviors; false disables both.
+      * Native iOS maintainVisibleContentPosition is enabled when either size or data stabilization is enabled,
+@@ -494,6 +496,12 @@ type LegendListPropsBase<ItemT, TScrollViewProps = Record<string, any>, TItemTyp
+ interface MaintainVisibleContentPositionConfig<ItemT = any> {
+     data?: boolean;
+     size?: boolean;
++    /**
++     * Which visible item stays in place when sizes or data change. "start" (default) keeps the first visible
++     * item in place, so changes move the content below it. "end" keeps the last visible item in place, so changes
++     * move the content above it, like in an inverted list. Use "end" for chat-style lists read from the bottom.
++     */
++    anchor?: "start" | "end";
+     shouldRestorePosition?: (item: ItemT, index: number, data: readonly ItemT[]) => boolean;
+ }
+ interface AnchoredEndSpaceReadyInfo {
+diff --git a/node_modules/@legendapp/list/keyboard.d.ts b/node_modules/@legendapp/list/keyboard.d.ts
+index 2aa690be174..32f72309087 100644
+--- a/node_modules/@legendapp/list/keyboard.d.ts
++++ b/node_modules/@legendapp/list/keyboard.d.ts
+@@ -6,6 +6,7 @@ import { SharedValue } from 'react-native-reanimated';
+ import { AnimatedLegendListProps } from '@legendapp/list/reanimated';
+ 
+ interface MaintainVisibleContentPositionNormalized<ItemT = any> {
++    anchor?: "start" | "end";
+     data: boolean;
+     size: boolean;
+     shouldRestorePosition?: (item: ItemT, index: number, data: readonly ItemT[]) => boolean;
+diff --git a/node_modules/@legendapp/list/keyboard-legacy.d.ts b/node_modules/@legendapp/list/keyboard-legacy.d.ts
+index 0d2e865f8e7..61e36137d52 100644
+--- a/node_modules/@legendapp/list/keyboard-legacy.d.ts
++++ b/node_modules/@legendapp/list/keyboard-legacy.d.ts
+@@ -5,6 +5,7 @@ import { ScrollEvent, ScrollHandlerProcessed } from 'react-native-reanimated';
+ import { AnimatedLegendListProps } from '@legendapp/list/reanimated';
+ 
+ interface MaintainVisibleContentPositionNormalized<ItemT = any> {
++    anchor?: "start" | "end";
+     data: boolean;
+     size: boolean;
+     shouldRestorePosition?: (item: ItemT, index: number, data: readonly ItemT[]) => boolean;
+diff --git a/node_modules/@legendapp/list/reanimated.d.ts b/node_modules/@legendapp/list/reanimated.d.ts
+index 5b568f2d397..f6aa70389be 100644
+--- a/node_modules/@legendapp/list/reanimated.d.ts
++++ b/node_modules/@legendapp/list/reanimated.d.ts
+@@ -4,6 +4,7 @@ import Reanimated, { SharedValue } from 'react-native-reanimated';
+ import { ScrollViewProps, NativeSyntheticEvent as NativeSyntheticEvent$1, NativeScrollEvent as NativeScrollEvent$1, ScrollView, StyleProp as StyleProp$1, ViewStyle as ViewStyle$1, ScrollViewComponent, ScrollResponderMixin, Insets as Insets$1 } from 'react-native';
+ 
+ interface MaintainVisibleContentPositionNormalized<ItemT = any> {
++    anchor?: "start" | "end";
+     data: boolean;
+     size: boolean;
+     shouldRestorePosition?: (item: ItemT, index: number, data: readonly ItemT[]) => boolean;
+@@ -293,6 +294,7 @@ interface LegendListSpecificProps<ItemT, TItemType extends string | undefined> {
+      * - size (default: true) stabilizes during size/layout changes while scrolling.
+      * - data (default: false) stabilizes when the data array changes.
+      * - shouldRestorePosition can opt out specific items from data-change anchoring.
++     * - anchor (default: "start") picks the visible item that stays in place: the first, or the last with "end".
+      * - undefined (default) enables scroll stabilization but skips data-change anchoring.
+      * - true enables both JS behaviors; false disables both.
+      * Native iOS maintainVisibleContentPosition is enabled when either size or data stabilization is enabled,
+@@ -495,6 +497,12 @@ type LegendListPropsBase<ItemT, TScrollViewProps = Record<string, any>, TItemTyp
+ interface MaintainVisibleContentPositionConfig<ItemT = any> {
+     data?: boolean;
+     size?: boolean;
++    /**
++     * Which visible item stays in place when sizes or data change. "start" (default) keeps the first visible
++     * item in place, so changes move the content below it. "end" keeps the last visible item in place, so changes
++     * move the content above it, like in an inverted list. Use "end" for chat-style lists read from the bottom.
++     */
++    anchor?: "start" | "end";
+     shouldRestorePosition?: (item: ItemT, index: number, data: readonly ItemT[]) => boolean;
+ }
+ interface AnchoredEndSpaceReadyInfo {
+diff --git a/node_modules/@legendapp/list/section-list.d.ts b/node_modules/@legendapp/list/section-list.d.ts
+index 94edf333f0d..aab8b29dc8d 100644
+--- a/node_modules/@legendapp/list/section-list.d.ts
++++ b/node_modules/@legendapp/list/section-list.d.ts
+@@ -60,6 +60,7 @@ type BuildSectionListDataResult<ItemT, SectionT> = {
+ };
+ 
+ interface MaintainVisibleContentPositionNormalized<ItemT = any> {
++    anchor?: "start" | "end";
+     data: boolean;
+     size: boolean;
+     shouldRestorePosition?: (item: ItemT, index: number, data: readonly ItemT[]) => boolean;
+@@ -349,6 +350,7 @@ interface LegendListSpecificProps<ItemT, TItemType extends string | undefined> {
+      * - size (default: true) stabilizes during size/layout changes while scrolling.
+      * - data (default: false) stabilizes when the data array changes.
+      * - shouldRestorePosition can opt out specific items from data-change anchoring.
++     * - anchor (default: "start") picks the visible item that stays in place: the first, or the last with "end".
+      * - undefined (default) enables scroll stabilization but skips data-change anchoring.
+      * - true enables both JS behaviors; false disables both.
+      * Native iOS maintainVisibleContentPosition is enabled when either size or data stabilization is enabled,
+@@ -551,6 +553,12 @@ type LegendListPropsBase<ItemT, TScrollViewProps = Record<string, any>, TItemTyp
+ interface MaintainVisibleContentPositionConfig<ItemT = any> {
+     data?: boolean;
+     size?: boolean;
++    /**
++     * Which visible item stays in place when sizes or data change. "start" (default) keeps the first visible
++     * item in place, so changes move the content below it. "end" keeps the last visible item in place, so changes
++     * move the content above it, like in an inverted list. Use "end" for chat-style lists read from the bottom.
++     */
++    anchor?: "start" | "end";
+     shouldRestorePosition?: (item: ItemT, index: number, data: readonly ItemT[]) => boolean;
+ }
+ interface AnchoredEndSpaceReadyInfo {
