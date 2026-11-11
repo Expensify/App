@@ -3,6 +3,8 @@ import {useInitialURLState} from '@components/InitialURLContextProvider';
 import {isLoggingInAsNewUser} from '@libs/SessionUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
 import type {NavigationState} from '@react-navigation/native';
 
