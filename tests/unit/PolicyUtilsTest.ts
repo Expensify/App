@@ -78,6 +78,8 @@ import {
     getOwnedPaidPolicies,
     getSageIntacctVendors,
     arePaymentsEnabled,
+    getPolicyBankAccountCountry,
+    getReimbursementAccountCountries,
     getReimbursementChoice,
     hasReimbursementCountries,
     isPolicyPayer,
@@ -161,7 +163,7 @@ import {getTagArrayFromName} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTags, PolicyTagLists, Report, Transaction, TravelSettings} from '@src/types/onyx';
+import type {BankAccount, PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTags, PolicyTagLists, Report, Transaction, TravelSettings} from '@src/types/onyx';
 import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {
     CampfireVendor,
@@ -4485,6 +4487,7 @@ describe('PolicyUtils', () => {
 
             it('returns false when every country has a falsy value', () => {
                 // Given a workspace whose countries are all deselected
+                // @ts-expect-error - Defensively handles malformed country entries that violate the object type.
                 const policy = createMock<Policy>({id: '1', reimbursement: {countries: {US: false, GB: null}}});
 
                 // When we check countries that retain deselected entries in Onyx
@@ -4496,6 +4499,7 @@ describe('PolicyUtils', () => {
 
             it('returns true when a country has a truthy value', () => {
                 // Given a workspace with a selected business bank account country
+                // @ts-expect-error - Defensively handles malformed country entries that violate the object type.
                 const policy = createMock<Policy>({id: '1', reimbursement: {countries: {US: false, GB: []}}});
 
                 // When we check a mixture of selected and deselected countries
@@ -4544,6 +4548,70 @@ describe('PolicyUtils', () => {
 
                 // Then only a disabled workspace turns payments off, whichever of the two values it reports
                 expect(paymentsEnabled).toBe(expected);
+            });
+        });
+
+        describe('getReimbursementAccountCountries', () => {
+            it('should return countries with a connected bank account and the country of the workspace bank account', () => {
+                // Given a workspace with an AU withdrawal account in its countries and a GB account the admin owns
+                const policy = createMock<Policy>({
+                    id: '1',
+                    outputCurrency: CONST.CURRENCY.GBP,
+                    achAccount: {bankAccountID: 2, accountNumber: '', routingNumber: '', addressName: '', bankName: '', reimburser: ''},
+                    reimbursement: {countries: {AU: {bankAccountID: 1}, FR: {}}},
+                });
+                const bankAccountList = {2: createMock<BankAccount>({accountData: {additionalData: {country: 'GB'}}})};
+
+                // When the countries that can't be deselected are read
+                const countries = getReimbursementAccountCountries(policy, getPolicyBankAccountCountry(policy, bankAccountList));
+
+                // Then both account countries are returned, because the server never removes either one
+                expect(countries).toEqual(['AU', 'GB']);
+            });
+
+            it('should treat a workspace bank account with no country as a US account', () => {
+                // Given a legacy bank account that the admin owns and that has no country
+                const policy = createMock<Policy>({
+                    id: '1',
+                    achAccount: {bankAccountID: 2, accountNumber: '', routingNumber: '', addressName: '', bankName: '', reimburser: ''},
+                });
+                const bankAccountList = {2: createMock<BankAccount>({accountData: {additionalData: {}}})};
+
+                // When the bank account's country is read
+                const country = getPolicyBankAccountCountry(policy, bankAccountList);
+
+                // Then it is US, because legacy US accounts were saved without a country
+                expect(country).toBe(CONST.COUNTRY.US);
+            });
+
+            it('should read the top-level bankCountry when the bank account has no nested country', () => {
+                // Given a GB bank account that the admin owns and that only has the top-level bankCountry
+                const policy = createMock<Policy>({
+                    id: '1',
+                    achAccount: {bankAccountID: 2, accountNumber: '', routingNumber: '', addressName: '', bankName: '', reimburser: ''},
+                });
+                const bankAccountList = {2: createMock<BankAccount>({bankCountry: 'GB', accountData: {additionalData: {}}})};
+
+                // When the bank account's country is read
+                const country = getPolicyBankAccountCountry(policy, bankAccountList);
+
+                // Then it is GB, so US isn't added and locked for a workspace whose bank account is outside the US
+                expect(country).toBe('GB');
+            });
+
+            it('should fall back to US for a USD workspace whose bank account the admin does not own', () => {
+                // Given a USD workspace whose bank account isn't in the admin's bank account list
+                const policy = createMock<Policy>({
+                    id: '1',
+                    outputCurrency: CONST.CURRENCY.USD,
+                    achAccount: {bankAccountID: 2, accountNumber: '', routingNumber: '', addressName: '', bankName: '', reimburser: ''},
+                });
+
+                // When the countries that can't be deselected are read
+                const countries = getReimbursementAccountCountries(policy, getPolicyBankAccountCountry(policy, {}));
+
+                // Then US is returned, because a USD workspace's bank account is always in the US
+                expect(countries).toEqual([CONST.COUNTRY.US]);
             });
         });
 
