@@ -47,14 +47,6 @@ function MonthPickerModal({isVisible, currentMonth, minMonth, maxMonth, onMonthC
     const {setActivePopoverExtraAnchorRef} = usePopoverActions();
     const contentRef = useRef<View>(null);
     const [searchText, setSearchText] = useState('');
-    // The rows are built here from numbers, so the compiler can cache them across the calendar's re-renders.
-    const months: CalendarPickerListItem[] = DateUtils.getMonthNames(dateFnsLocale).map((month, index) => ({
-        text: Str.UCFirst(month),
-        value: index,
-        keyForList: index.toString(),
-        isSelected: index === currentMonth,
-        isDisabled: index < minMonth || index > maxMonth,
-    }));
 
     useEffect(() => {
         if (!isVisible) {
@@ -65,6 +57,15 @@ function MonthPickerModal({isVisible, currentMonth, minMonth, maxMonth, onMonthC
         // outside the calendar popover and would dismiss it. Registering the content keeps the calendar open.
         setActivePopoverExtraAnchorRef(contentRef);
     }, [isVisible, setActivePopoverExtraAnchorRef]);
+
+    // The rows are built here from numbers, so the compiler can cache them across the calendar's re-renders.
+    const months: CalendarPickerListItem[] = DateUtils.getMonthNames(dateFnsLocale).map((month, index) => ({
+        text: Str.UCFirst(month),
+        value: index,
+        keyForList: index.toString(),
+        isSelected: index === currentMonth,
+        isDisabled: index < minMonth || index > maxMonth,
+    }));
 
     const filteredMonths = searchText === '' ? months : months.filter((month) => month.text?.toLowerCase().includes(searchText.toLowerCase()));
     const headerMessage = !filteredMonths.length ? translate('common.noResultsFound') : '';
