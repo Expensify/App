@@ -2287,7 +2287,7 @@ function setPolicyCategoryMemberVisibility(policyID: string, categoryNames: stri
             continue;
         }
 
-        // The failure patch removes the members the optimistic patch added, then puts back every member the category had.
+        // visibleTo is merged, so members the optimistic patch added would keep access after a failure unless they're nulled out here.
         const failureVisibleTo = previousVisibleTo
             ? {
                   ...Object.fromEntries(selectedAccountIDs.filter((accountID) => !previousVisibleTo[accountID]).map((accountID) => [accountID, null])),

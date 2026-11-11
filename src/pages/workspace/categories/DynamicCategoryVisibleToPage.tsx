@@ -31,7 +31,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {formatMemberForList, isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
-import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -69,15 +68,12 @@ function DynamicCategoryVisibleToPage({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const {canWrite: canWriteCategories} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
     const {showConfirmModal} = useConfirmModal();
-    const {showMembersNeedCategoryModal} = useMembersNeedCategoryModal(policyID);
+    // The modal hook decides who counts as a current member, so the rows here match the members it checks.
+    const {policyMemberAccountIDs: memberAccountIDs, policyMemberAccountIDsByLogin: memberAccountIDsByLogin, showMembersNeedCategoryModal} = useMembersNeedCategoryModal(policyID);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const categorySettingsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_VISIBLE_TO.path);
 
     const policyCategory = policyCategories?.[categoryName];
-
-    // Members being removed are left out, since they'll lose access to every category anyway.
-    const memberAccountIDsByLogin = getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, true, false);
-    const memberAccountIDs = Object.values(memberAccountIDsByLogin);
 
     // A missing visibleTo means every member can use the category, so every row starts checked.
     const visibleAccountIDs = memberAccountIDs.filter((accountID) => !policyCategory?.visibleTo || !!policyCategory.visibleTo[accountID]);

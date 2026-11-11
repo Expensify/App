@@ -38,7 +38,8 @@ function useMembersNeedCategoryModal(policyID: string | undefined) {
     const employeePersonalDetails = usePersonalDetailsByLogins(employeeLogins);
 
     // Members being removed are left out, since they'll lose access to every category anyway.
-    const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, true, false));
+    const policyMemberAccountIDsByLogin = getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, true, false);
+    const policyMemberAccountIDs = Object.values(policyMemberAccountIDsByLogin);
 
     // isRemovingAccess is for a category's "Visible to" page, where the category stays enabled and only these members lose it.
     const showMembersNeedCategoryModal = (accountIDs: number[], categoryNames: string[], isRemovingAccess = false) => {
@@ -95,7 +96,7 @@ function useMembersNeedCategoryModal(policyID: string | undefined) {
         });
     };
 
-    return {policyMemberAccountIDs, showMembersNeedCategoryModal};
+    return {policyMemberAccountIDs, policyMemberAccountIDsByLogin, showMembersNeedCategoryModal};
 }
 
 export default useMembersNeedCategoryModal;
