@@ -41,7 +41,7 @@ type SidebarOrderedReportsStateContextValue = {
     chatTabBrickRoad: BrickRoad;
     activeTab: ValueOf<typeof CONST.INBOX_TAB>;
     inboxTabCounts: Record<typeof CONST.INBOX_TAB.TODO | typeof CONST.INBOX_TAB.UNREAD, number>;
-    /** Whether the Unread tab holds a report whose newest message is older than CONST.INBOX_TAB_STALE_UNREAD_MONTHS. */
+    /** Whether the Unread tab holds a report the user participates in whose newest message is older than CONST.INBOX_TAB_STALE_UNREAD_MONTHS. */
     hasStaleUnreadReport: boolean;
 };
 
