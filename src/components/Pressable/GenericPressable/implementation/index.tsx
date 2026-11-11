@@ -13,9 +13,11 @@ import GenericPressable from './BaseGenericPressable';
 
 function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: PressableProps) {
     const accessible = (props.accessible ?? props.accessible === undefined) ? true : props.accessible;
+    // Not every accessibilityRole is a valid `role`. React Native Web reads accessibilityRole itself, so only "link" is copied to
+    // `role`, because BaseGenericPressable checks `role` for its Enter key handler.
     let role = props.role;
     if (props.accessibilityRole) {
-        role = props.accessibilityRole === 'link' ? 'link' : undefined;
+        role = props.accessibilityRole === CONST.ROLE.LINK ? CONST.ROLE.LINK : undefined;
     }
     // React Native Web maps role="button" to a native <button>. Safari clears the native text range
     // before the click handler can suppress row navigation, so render a div and restore the ARIA role.
@@ -28,9 +30,10 @@ function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: Pre
     const internalRef = useRef<ComponentRef<typeof View>>(null);
     // `||` is intentional so that falsy values like empty string or 0 are treated as not-disabled
     const isAriaDisabled = props.fullDisabled || props.disabled || props.accessibilityState?.disabled;
+    // effectiveRole is a dependency even though the effect doesn't read it: React Native Web renders a different element when the role changes, and that element needs these attributes again.
     useLayoutEffect(() => {
         const el = internalRef.current;
-        if (typeof HTMLElement === 'undefined' || !(el instanceof HTMLElement)) {
+        if (!(el instanceof HTMLElement)) {
             return;
         }
         if (isAriaDisabled) {
@@ -51,7 +54,6 @@ function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: Pre
             focusable={focusable}
             tabIndex={(props.tabIndex ?? (!accessible || !focusable)) ? -1 : 0}
             accessibilityRole={shouldRenderAsNonNativeButton ? undefined : props.accessibilityRole}
-            // Keep link for BaseGenericPressable's Enter handler; React Native Web converts other accessibility roles.
             role={shouldRenderAsNonNativeButton ? undefined : role}
             id={props.id}
             aria-label={props.accessibilityLabel}
