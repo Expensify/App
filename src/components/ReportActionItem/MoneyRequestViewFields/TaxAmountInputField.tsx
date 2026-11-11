@@ -2,7 +2,7 @@
  * The tax amount of a saved expense, edited in place on the expense view with the input the create expense form uses.
  * The amount is saved when the input loses focus, through the same write the tax amount page uses.
  */
-import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
+import AmountFormField from '@components/AmountFormField';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -61,21 +61,20 @@ function TaxAmountInputField({transaction, updateParams, policy, taxAmount, curr
 
     return (
         <View style={[styles.mh4, styles.mv2]}>
-            <NumberWithSymbolForm
+            <AmountFormField
                 key={inputKey}
-                displayAsTextInput
-                autoFocus={false}
                 value={inputValue}
                 decimals={decimals}
-                currency={currency}
-                symbol={getLocalizedCurrencySymbol(preferredLocale, currency) ?? ''}
-                label={label}
                 errorText={inputError}
                 onInputChange={applyTypedAmount}
-                onFocus={startEditing}
-                onBlur={saveTypedAmount}
-                shouldShowBigNumberPad={false}
-            />
+            >
+                <AmountFormField.Input
+                    label={label}
+                    prefixCharacter={getLocalizedCurrencySymbol(preferredLocale, currency) ?? ''}
+                    onFocus={startEditing}
+                    onBlur={saveTypedAmount}
+                />
+            </AmountFormField>
         </View>
     );
 }
