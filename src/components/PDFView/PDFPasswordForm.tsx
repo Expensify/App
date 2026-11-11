@@ -134,6 +134,7 @@ function PDFPasswordForm({isFocused, isPasswordInvalid = false, shouldShowLoadin
                 secureTextEntry
             />
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.PDF_VIEW.PASSWORD_CONFIRM}
                 // Keep focus on the TextInput effectively keeping keyboard open
                 onMouseDown={(e) => e.preventDefault()}
                 onPress={submitPassword}

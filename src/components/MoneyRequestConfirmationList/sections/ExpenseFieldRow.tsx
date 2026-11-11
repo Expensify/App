@@ -10,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -206,7 +206,7 @@ function ExpenseFieldRow({
                 // reads that as a non-interactive row and drops the button role and the focus stop with it.
                 // Otherwise the press is guarded like every other `MenuItem` preset, so an anonymous user gets
                 // the sign-in prompt rather than the field's selector.
-                onPress={isInteractive ? callFunctionIfActionIsAllowed(onPress, false, session) : undefined}
+                onPress={isInteractive ? callIfAuthenticated(onPress, session) : undefined}
                 isDisabled={isDisabled}
                 shouldAllowTextSelection={shouldShowCopy}
                 accessibilityLabel={accessibilityLabel}

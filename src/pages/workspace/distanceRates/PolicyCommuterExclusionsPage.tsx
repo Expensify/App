@@ -225,6 +225,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
                 />
             )}
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.COMMUTER_EXCLUSIONS_SAVE}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.LARGE}
                 onPress={onSave}
@@ -238,6 +239,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
 
     const workArrangementFooter = (
         <MenuItemField
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.COMMUTER_EXCLUSIONS_WORK_ARRANGEMENT}
             name={translate('workspace.distanceRates.commuterExclusions.workArrangement.title')}
             value={translate(
                 hasOfficeWorkArrangement(existingCommuterExclusions)
