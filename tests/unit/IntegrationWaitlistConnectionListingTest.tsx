@@ -7,7 +7,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ConnectionsGrid from '@pages/workspace/connections/ConnectionsGrid';
 import useAccountingConnectionListings from '@pages/workspace/connections/useAccountingConnectionListings';
 
-import {clearExactOnlineWaitlistError, joinExactOnlineWaitlist} from '@userActions/User';
+import {clearIntegrationWaitlistError, joinIntegrationWaitlist} from '@userActions/User';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -26,7 +26,7 @@ let mockEnabledBetas: string[] = [];
 const mockStartIntegrationFlow = jest.fn();
 const mockConnect = jest.fn();
 
-jest.mock('@userActions/User', () => ({clearExactOnlineWaitlistError: jest.fn(), joinExactOnlineWaitlist: jest.fn()}));
+jest.mock('@userActions/User', () => ({clearIntegrationWaitlistError: jest.fn(), joinIntegrationWaitlist: jest.fn()}));
 jest.mock('@hooks/useConfirmModal', () => {
     const {default: mockUseConfirmModal} = jest.requireActual<typeof MockUseConfirmModalUtil>('../utils/mockUseConfirmModal');
     return mockUseConfirmModal;
@@ -48,7 +48,7 @@ function TestWrapper({children}: {children: React.ReactNode}) {
     return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>{children}</ComposeProviders>;
 }
 
-describe('Exact Online in unified Connections', () => {
+describe('Coming-soon integrations in unified Connections', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
         return IntlStore.load(CONST.LOCALES.EN);
@@ -87,7 +87,8 @@ describe('Exact Online in unified Connections', () => {
 
         // Then Exact offers coming-soon signup offline while live connectors retain their offline restriction
         expect(screen.getByText('Coming soon')).toBeOnTheScreen();
-        expect(joinExactOnlineWaitlist).toHaveBeenCalledTimes(1);
+        expect(joinIntegrationWaitlist).toHaveBeenCalledTimes(1);
+        expect(joinIntegrationWaitlist).toHaveBeenCalledWith(CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE);
         expect(mockStartIntegrationFlow).not.toHaveBeenCalled();
         expect(mockConnect).not.toHaveBeenCalled();
         expect(screen.getByLabelText('Exact Online, Coming soon')).toBeOnTheScreen();
@@ -101,6 +102,42 @@ describe('Exact Online in unified Connections', () => {
         await act(() => Onyx.merge(ONYXKEYS.ACCOUNT, {errorFields: {exactOnlineWaitlist: {[Date.now()]: 'Signup failed. Please try again.'}}}));
         expect(screen.getByText('Signup failed. Please try again.')).toBeOnTheScreen();
         fireEvent.press(screen.getByRole('button', {name: 'Dismiss'}));
-        expect(clearExactOnlineWaitlistError).toHaveBeenCalledTimes(1);
+        expect(clearIntegrationWaitlistError).toHaveBeenCalledWith(CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE);
     });
+
+    it.each([{enabledBetas: []}, {enabledBetas: [CONST.BETAS.ODOO]}])(
+        'lists Odoo as coming soon right after Sage Intacct with Odoo beta enrollment $enabledBetas',
+        async ({enabledBetas}) => {
+            // Given a workspace, where the Odoo beta may be enabled since the painted door shows to everyone
+            mockEnabledBetas = enabledBetas;
+            const policy = createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE, 'Test workspace');
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When the accounting listings are built
+            const {result} = renderHook(() => useAccountingConnectionListings(policy), {wrapper: TestWrapper});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then Odoo follows Sage Intacct, as in the design, and offers no connect flow yet
+            const keys = result.current.map((listing) => listing.key);
+            expect(keys.indexOf(CONST.POLICY.CONNECTIONS.NAME.ODOO)).toBe(keys.indexOf(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT) + 1);
+            const listing = result.current.find((item) => item.key === CONST.POLICY.CONNECTIONS.NAME.ODOO);
+            expect(listing?.onConnect).toBeUndefined();
+
+            // When the Odoo card renders and the user joins its waitlist
+            render(
+                <ConnectionsGrid
+                    policyID={policy.id}
+                    listings={listing ? [listing] : []}
+                />,
+                {wrapper: TestWrapper},
+            );
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByRole('button', {name: 'Join waitlist'}));
+
+            // Then the coming-soon card signs the account up for the Odoo waitlist
+            expect(screen.getByLabelText('Odoo, Coming soon')).toBeOnTheScreen();
+            expect(joinIntegrationWaitlist).toHaveBeenCalledWith(CONST.POLICY.CONNECTIONS.NAME.ODOO);
+            expect(mockStartIntegrationFlow).not.toHaveBeenCalled();
+        },
+    );
 });

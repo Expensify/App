@@ -163,7 +163,14 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
         };
     });
 
-    // The connector flow arrives in a later release, so beta users also see the waitlist for now.
+    // The connector flows arrive in later releases, so beta users also see the waitlist rows for now.
+    // Odoo is designed to sit right after Sage Intacct, while Exact Online stays last.
+    const odooIndex = listings.findIndex((listing) => listing.key === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT) + 1;
+    listings.splice(odooIndex, 0, {
+        key: CONST.POLICY.CONNECTIONS.NAME.ODOO,
+        category: CONST.TAB.CONNECTIONS.ACCOUNTING,
+        title: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.odoo,
+    });
     listings.push({
         key: CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE,
         category: CONST.TAB.CONNECTIONS.ACCOUNTING,

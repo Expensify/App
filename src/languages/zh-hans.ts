@@ -7597,7 +7597,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             },
             errorODIntegration: (oldDotPolicyConnectionsURL: string) => `Expensify Classic 中已设置的某个连接出错。[前往 Expensify Classic 解决此问题](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: '前往 Expensify Classic 管理您的设置。',
-            exactOnline: {
+            integrationWaitlist: {
                 comingSoon: '即将推出',
                 joinWaitlist: '加入候补名单',
                 onWaitlist: '您在候补名单中',

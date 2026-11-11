@@ -1715,6 +1715,7 @@ const SENTRY_LABEL = {
         },
         ACCOUNTING: {
             EXACT_ONLINE_WAITLIST_BUTTON: 'WorkspaceAccounting-ExactOnlineWaitlistButton',
+            ODOO_WAITLIST_BUTTON: 'WorkspaceAccounting-OdooWaitlistButton',
             CARD_RECONCILIATION_ACCOUNT: 'WorkspaceAccounting-CardReconciliationAccount',
             CLAIM_OFFER: 'WorkspaceAccounting-ClaimOffer',
             CLAIM_OFFER_CONNECT: {

@@ -1704,7 +1704,6 @@
 "../../src/pages/workspace/accounting/dualentry/DualEntryExistingConnectionsPage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/workspace/accounting/dualentry/DualEntryExistingConnectionsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/accounting/dualentry/export/DualEntryExportPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/accounting/ExactOnlineWaitlistButton.tsx"	"rulesdir/no-onyx-loading-status"	4
 "../../src/pages/workspace/accounting/intacct/advanced/DynamicSageIntacctAccountingMethodPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/intacct/DynamicSageIntacctPrerequisitesPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/accounting/intacct/EnterSageIntacctCredentialsPage.tsx"	"no-restricted-imports"	1

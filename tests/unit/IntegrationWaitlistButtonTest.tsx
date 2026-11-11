@@ -4,9 +4,9 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
-import ExactOnlineWaitlistButton from '@pages/workspace/accounting/ExactOnlineWaitlistButton';
+import IntegrationWaitlistButton from '@pages/workspace/accounting/IntegrationWaitlistButton';
 
-import {joinExactOnlineWaitlist} from '@userActions/User';
+import {joinIntegrationWaitlist} from '@userActions/User';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -27,7 +27,7 @@ let mockCanWriteAccounting = true;
 const policy = createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE, 'First workspace');
 const otherPolicy = createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE, 'Second workspace');
 
-jest.mock('@userActions/User', () => ({joinExactOnlineWaitlist: jest.fn()}));
+jest.mock('@userActions/User', () => ({joinIntegrationWaitlist: jest.fn()}));
 jest.mock('@hooks/useConfirmModal', () => {
     const {default: mockUseConfirmModal} = jest.requireActual<typeof MockUseConfirmModalUtil>('../utils/mockUseConfirmModal');
     return mockUseConfirmModal;
@@ -37,11 +37,20 @@ jest.mock('@hooks/usePolicyFeatureWriteAccess', () => ({
     default: () => ({canWrite: mockCanWriteAccounting, showReadOnlyModal: mockShowReadOnlyModal}),
 }));
 
+function ExactOnlineButton({policy: buttonPolicy}: {policy: typeof policy}) {
+    return (
+        <IntegrationWaitlistButton
+            integration={CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE}
+            policy={buttonPolicy}
+        />
+    );
+}
+
 function TestWrapper({children}: {children: React.ReactNode}) {
     return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>{children}</ComposeProviders>;
 }
 
-describe('Exact Online waitlist signup', () => {
+describe('Integration waitlist signup', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
         return IntlStore.load(CONST.LOCALES.EN);
@@ -58,7 +67,7 @@ describe('Exact Online waitlist signup', () => {
     it('queues signup offline, confirms success once, and shares signup status across workspaces', async () => {
         // Given an account that has not joined the waitlist and is currently offline
         await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
-        const {rerender} = render(<ExactOnlineWaitlistButton policy={policy} />, {wrapper: TestWrapper});
+        const {rerender} = render(<ExactOnlineButton policy={policy} />, {wrapper: TestWrapper});
         await waitForBatchedUpdatesWithAct();
 
         // When the user presses Join waitlist twice before the optimistic value renders
@@ -67,11 +76,11 @@ describe('Exact Online waitlist signup', () => {
         fireEvent.press(button);
 
         // Then signup is queued once without claiming success while offline
-        expect(joinExactOnlineWaitlist).toHaveBeenCalledTimes(1);
+        expect(joinIntegrationWaitlist).toHaveBeenCalledTimes(1);
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
 
         await act(() => Onyx.merge(ONYXKEYS.ACCOUNT, {pendingFields: {exactOnlineWaitlist: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}}));
-        rerender(<ExactOnlineWaitlistButton policy={otherPolicy} />);
+        rerender(<ExactOnlineButton policy={otherPolicy} />);
         await waitForBatchedUpdatesWithAct();
         expect(screen.getByRole('button', {name: 'Join waitlist', disabled: true})).toBeOnTheScreen();
 
@@ -99,13 +108,13 @@ describe('Exact Online waitlist signup', () => {
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
         await act(() => Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: false}));
         await act(() => Onyx.merge(ONYXKEYS.ACCOUNT, {pendingFields: {exactOnlineWaitlist: null}}));
-        rerender(<ExactOnlineWaitlistButton policy={policy} />);
+        rerender(<ExactOnlineButton policy={policy} />);
         await waitForBatchedUpdatesWithAct();
 
         // Then the same account signup is shown without another action in the new workspace
         expect(screen.getByText('You’re on the waitlist')).toBeTruthy();
         expect(screen.queryByRole('button', {name: 'Join waitlist'})).toBeNull();
-        expect(joinExactOnlineWaitlist).toHaveBeenCalledTimes(2);
+        expect(joinIntegrationWaitlist).toHaveBeenCalledTimes(2);
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         expect(getShowConfirmModalOption('title')).toBe('You’re on the waitlist');
         expect(getShowConfirmModalOption('prompt')).toBe('Concierge will send you a message to let you know when this integration is ready and how to connect.');
@@ -118,7 +127,7 @@ describe('Exact Online waitlist signup', () => {
         await Onyx.merge(ONYXKEYS.ACCOUNT, {pendingFields: {exactOnlineWaitlist: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}});
 
         // When the user opens accounting in another workspace
-        render(<ExactOnlineWaitlistButton policy={otherPolicy} />, {wrapper: TestWrapper});
+        render(<ExactOnlineButton policy={otherPolicy} />, {wrapper: TestWrapper});
         await waitForBatchedUpdatesWithAct();
         expect(screen.getByRole('button', {name: 'Join waitlist', disabled: true})).toBeOnTheScreen();
         await act(() => Onyx.merge(ONYXKEYS.ACCOUNT, {pendingFields: {exactOnlineWaitlist: null}}));
@@ -127,14 +136,14 @@ describe('Exact Online waitlist signup', () => {
         // Then their stored signup replaces the action without opening an acknowledgement
         expect(screen.getByText('You’re on the waitlist')).toBeTruthy();
         expect(screen.queryByRole('button', {name: 'Join waitlist'})).toBeNull();
-        expect(joinExactOnlineWaitlist).not.toHaveBeenCalled();
+        expect(joinIntegrationWaitlist).not.toHaveBeenCalled();
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
     });
 
     it('shows the read-only explanation without signing up when accounting write access is denied', async () => {
         // Given a workspace where the user has read-only accounting access
         mockCanWriteAccounting = false;
-        render(<ExactOnlineWaitlistButton policy={policy} />, {wrapper: TestWrapper});
+        render(<ExactOnlineButton policy={policy} />, {wrapper: TestWrapper});
         await waitForBatchedUpdatesWithAct();
 
         // When the user presses Join waitlist
@@ -142,7 +151,36 @@ describe('Exact Online waitlist signup', () => {
 
         // Then the standard read-only explanation appears and the account stays off the waitlist
         expect(mockShowReadOnlyModal).toHaveBeenCalledTimes(1);
-        expect(joinExactOnlineWaitlist).not.toHaveBeenCalled();
+        expect(joinIntegrationWaitlist).not.toHaveBeenCalled();
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
+    });
+
+    it('keeps each integration’s signup separate', async () => {
+        // Given an account that already joined the Exact Online waitlist but not the Odoo one
+        await Onyx.set(ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, '2026-10-13 12:00:00');
+        render(
+            <IntegrationWaitlistButton
+                integration={CONST.POLICY.CONNECTIONS.NAME.ODOO}
+                policy={policy}
+            />,
+            {wrapper: TestWrapper},
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user presses Join waitlist on Odoo
+        fireEvent.press(screen.getByRole('button', {name: 'Join waitlist'}));
+
+        // Then the Exact Online signup doesn't hide the Odoo action, and Odoo is the waitlist that gets joined
+        expect(joinIntegrationWaitlist).toHaveBeenCalledWith(CONST.POLICY.CONNECTIONS.NAME.ODOO);
+
+        // When the Odoo signup succeeds
+        await act(() => Onyx.merge(ONYXKEYS.ACCOUNT, {pendingFields: {odooWaitlist: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}}));
+        await act(() => Onyx.set(ONYXKEYS.NVP_ODOO_WAITLIST, '2026-11-11 12:00:00'));
+        await act(() => Onyx.merge(ONYXKEYS.ACCOUNT, {pendingFields: {odooWaitlist: null}}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Odoo shows the account is on its waitlist and confirms it once
+        expect(screen.getByText('You’re on the waitlist')).toBeTruthy();
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
     });
 });
