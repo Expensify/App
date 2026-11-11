@@ -15,7 +15,6 @@ import type {State} from '@libs/Navigation/types';
 
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {Screen} from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
 
@@ -23,7 +22,7 @@ import useRootNavigationState from './useRootNavigationState';
 
 function useEnableGlobalReimbursementsNavigation() {
     const route = useRoute();
-    const isDynamic = isDynamicRouteScreen(route.name as Screen); // eslint-disable-line @typescript-eslint/no-unsafe-type-assertion -- route.name is string at runtime
+    const isDynamic = isDynamicRouteScreen(route.name);
     const navigationPath = useRootNavigationState((state) => (isDynamic && state ? getPathFromState(state as State) : undefined));
     const dynamicBasePath = isDynamic ? getDynamicBasePathFromNavigationPath(navigationPath) : '';
 

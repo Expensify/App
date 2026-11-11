@@ -20,11 +20,13 @@ const onboardingRoutes = {
 } satisfies Record<OnboardingScreen, Route>;
 
 function getOnboardingRouteFromScreen(screen: OnboardingScreen, backTo?: string): Route | undefined {
+    // A screen without a linking config path has no route to go back to.
     const path = normalizedConfigs[screen]?.path;
     if (!path) {
         return undefined;
     }
 
+    // The onboarding getters in ROUTES are typed to allow a query, so the route with `backTo` is still a Route.
     if (backTo) {
         return getUrlWithParams(onboardingRoutes[screen], {backTo});
     }
