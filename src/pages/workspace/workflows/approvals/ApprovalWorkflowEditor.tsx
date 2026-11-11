@@ -58,8 +58,12 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
 
     const approverDescriptions = getApproverTitles({
         approvers: approvalWorkflow.approvers,
-        getTitle: (position, count, approver, isLast) =>
-            position > 0 && isLast ? translate('workflowsPage.finalApprover') : `${toLocaleOrdinalWithWords(position + 1)} ${translate('workflowsPage.approver').toLowerCase()}`,
+        getTitle: (position, count, approver, isLast) => {
+            if (approverCount <= 1) {
+                return translate('workflowsPage.approver');
+            }
+            return position > 0 && isLast ? translate('workflowsPage.finalApprover') : `${toLocaleOrdinalWithWords(position + 1)} ${translate('workflowsPage.approver').toLowerCase()}`;
+        },
         currency,
         translate,
         convertToDisplayString,
