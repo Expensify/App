@@ -28,6 +28,7 @@ const JSONRPC_VERSION = '2.0';
 const SEATBELT_POLL_INTERVAL_MS = 1000;
 const STREAM_FAILURE_EXIT_CODE = 1;
 const REFRESH_REQUEST_ID_PREFIX = 'oxlint-seatbelt-refresh-';
+const LSP_FLAG = '--lsp';
 const METHOD = {
     INITIALIZE: 'initialize',
     DID_OPEN: 'textDocument/didOpen',
@@ -140,7 +141,9 @@ async function transformPullResult(request: PendingPull, result: unknown): Promi
     return result;
 }
 
-const server = Bun.spawn([oxlintBin, ...process.argv.slice(2)], {stdin: 'pipe', stdout: 'pipe', stderr: 'inherit'});
+// Editors other than VS Code may start the script without `--lsp`, and plain oxlint would lint the folder instead.
+const oxlintArgs = process.argv.slice(2);
+const server = Bun.spawn([oxlintBin, ...oxlintArgs, ...(oxlintArgs.includes(LSP_FLAG) ? [] : [LSP_FLAG])], {stdin: 'pipe', stdout: 'pipe', stderr: 'inherit'});
 
 function sendToServer(message: JSONObject): void {
     server.stdin.write(encodeMessage(message));
