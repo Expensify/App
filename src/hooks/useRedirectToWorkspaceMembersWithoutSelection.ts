@@ -19,7 +19,19 @@ function useRedirectToWorkspaceMembersWithoutSelection({policyID, selectedMember
         if (selectedMemberCount > 0) {
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
+
+        // After a refresh this runs before the navigation container is ready, when goBack() would be dropped, so it waits for it
+        let isCancelled = false;
+        Navigation.isNavigationReady().then(() => {
+            if (isCancelled) {
+                return;
+            }
+            Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
+        });
+
+        return () => {
+            isCancelled = true;
+        };
     }, [selectedMemberCount, policyID]);
 }
 
