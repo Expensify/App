@@ -2171,7 +2171,7 @@ describe('useSearchBulkActions - export options', () => {
             const searchResults = makeSearchResults([]);
             Object.assign(searchResults.data, {[CARD_GROUP_KEY]: {cardID: 1234}});
             mockCurrentSearchResults = searchResults;
-            jest.mocked(getSelectedGroupFilterEntry).mockReturnValue({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: 1234});
+            jest.mocked(getSelectedGroupFilterEntry).mockReturnValue({kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: 1234});
 
             const {result} = renderHook(() => useSearchBulkActions({queryJSON: cardGroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
