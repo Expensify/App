@@ -50,6 +50,7 @@ function ActivateStep({userWallet}: ActivateStepProps) {
                 {!!isActivatedWallet && (
                     <FixedFooter>
                         <ConfirmationPage.PrimaryButton
+                            sentryLabel={CONST.SENTRY_LABEL.ENABLE_PAYMENTS.PAY_ACTIVATE_CONTINUE}
                             text={continueButtonText}
                             onPress={() => continueSetup(kycWallRef)}
                         />

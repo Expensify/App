@@ -549,22 +549,32 @@ describe('DateUtils', () => {
             jest.useRealTimers();
         });
 
-        it('getFormattedTransportDate uses the locale weekday, month and clock', () => {
+        it('getFormattedTransportDate uses the locale weekday, month, order and clock', () => {
+            // Given a departure this year
+            // When its label is formatted in English, German, Japanese and Greek
+            // Then each language uses its own order and clock. German puts the day before the month and Japanese puts
+            // the weekday last, which a fixed `EEEE, MMM d` could not do.
             expect(DateUtils.getFormattedTransportDate(translateLocal, undefined, thisYear)).toBe('Departs Tuesday, Mar 17 at 8:00 AM');
-            expect(DateUtils.getFormattedTransportDate(translateLocal, de, thisYear)).toBe('Departs Dienstag, März 17 at 08:00');
-            expect(DateUtils.getFormattedTransportDate(translateLocal, ja, thisYear)).toBe('Departs 火曜日, 3月 17 at 8:00');
+            expect(DateUtils.getFormattedTransportDate(translateLocal, de, thisYear)).toBe('Departs Dienstag, 17. März at 08:00');
+            expect(DateUtils.getFormattedTransportDate(translateLocal, ja, thisYear)).toBe('Departs 3月17日火曜日 at 8:00');
             // Greek is the one shipped locale that keeps a 12-hour clock.
-            expect(DateUtils.getFormattedTransportDate(translateLocal, el, thisYear)).toBe('Departs Τρίτη, Μαρ 17 at 8:00 π.μ.');
+            expect(DateUtils.getFormattedTransportDate(translateLocal, el, thisYear)).toBe('Departs Τρίτη 17 Μαρ at 8:00 π.μ.');
         });
 
         it('getFormattedTransportDate adds the year outside the current year', () => {
-            expect(DateUtils.getFormattedTransportDate(translateLocal, de, pastYear)).toBe('Departs Freitag, März 17, 2023 at 20:30');
+            // Given a departure in a past year
+            // When its label is formatted in German
+            // Then the year is included, in German order, so the date is not mistaken for this year's
+            expect(DateUtils.getFormattedTransportDate(translateLocal, de, pastYear)).toBe('Departs Freitag, 17. März 2023 at 20:30');
         });
 
         it('getFormattedTransportDateAndHour returns the date and hour separately, both localized', () => {
+            // Given departures this year and in a past year
+            // When the trip details split them into a date and an hour
+            // Then both parts follow the language, and only the past-year date carries a year
             expect(DateUtils.getFormattedTransportDateAndHour(thisYear, undefined)).toEqual({date: 'Tuesday, Mar 17', hour: '8:00 AM'});
-            expect(DateUtils.getFormattedTransportDateAndHour(thisYear, de)).toEqual({date: 'Dienstag, März 17', hour: '08:00'});
-            expect(DateUtils.getFormattedTransportDateAndHour(pastYear, de)).toEqual({date: 'Freitag, März 17, 2023', hour: '20:30'});
+            expect(DateUtils.getFormattedTransportDateAndHour(thisYear, de)).toEqual({date: 'Dienstag, 17. März', hour: '08:00'});
+            expect(DateUtils.getFormattedTransportDateAndHour(pastYear, de)).toEqual({date: 'Freitag, 17. März 2023', hour: '20:30'});
         });
 
         it('should leave the date and hour blank when a booking has no date', () => {
@@ -1269,6 +1279,147 @@ describe('DateUtils', () => {
             expect(DateUtils.getShortFormattedQuarterForSearch(2026, 3, undefined, false)).toBe('Q3');
             expect(DateUtils.getShortFormattedDateRangeForSearch('2026-09-01', '2026-09-07', undefined, false)).toBe('Sep 1 - 7');
             expect(DateUtils.getShortFormattedDateRangeForSearch('2026-09-28', '2026-10-04', undefined, false)).toBe('Sep 28 - Oct 4');
+        });
+    });
+
+    describe('month and day', () => {
+        // cspell:ignore Juni
+        const CURRENT_YEAR = new Date().getFullYear();
+
+        describe('formatToMonthDay', () => {
+            it('keeps the English month and day unchanged', () => {
+                // Given a date and no locale, which falls back to en-US
+                // When it is formatted as a month and day
+                // Then English keeps the `MMM d` shape it had before
+                expect(DateUtils.formatToMonthDay(new Date(Date.UTC(2026, 5, 20)), undefined, 'UTC')).toBe('Jun 20');
+            });
+
+            it('orders the month and day the way each language does', () => {
+                // Given languages that do not write a month and day in the US order
+                // When the same date is formatted in each
+                // Then German and Spanish put the day first and Japanese adds its day suffix. The hand-written `MMM d`
+                // produced `Juni 20` and `6月 20` instead.
+                const date = new Date(Date.UTC(2026, 5, 20));
+                expect(DateUtils.formatToMonthDay(date, de, 'UTC')).toBe('20. Juni');
+                expect(DateUtils.formatToMonthDay(date, es, 'UTC')).toBe('20 jun');
+                expect(DateUtils.formatToMonthDay(date, ja, 'UTC')).toBe('6月20日');
+            });
+
+            it('returns an empty string for an invalid date', () => {
+                // Given a date that cannot be read
+                // When it is formatted
+                // Then nothing is shown instead of `Intl` throwing a RangeError into the render
+                expect(DateUtils.formatToMonthDay(new Date('not a date'), undefined)).toBe('');
+            });
+        });
+
+        describe('formatToMonthDayWithOptionalYearInUTC', () => {
+            it('leaves out the year for a date in the current year', () => {
+                // Given a calendar date in the current year
+                // When it is formatted
+                // Then only the month and day are shown, in the language's own order
+                expect(DateUtils.formatToMonthDayWithOptionalYearInUTC(`${CURRENT_YEAR}-06-20`, undefined)).toBe('Jun 20');
+                expect(DateUtils.formatToMonthDayWithOptionalYearInUTC(`${CURRENT_YEAR}-06-20`, de)).toBe('20. Juni');
+            });
+
+            it('adds the year for a date in a past year', () => {
+                // Given a calendar date from a previous year
+                // When it is formatted
+                // Then the year is included so the date is not mistaken for this year's
+                expect(DateUtils.formatToMonthDayWithOptionalYearInUTC(`${CURRENT_YEAR - 2}-06-20`, undefined)).toBe(`Jun 20, ${CURRENT_YEAR - 2}`);
+            });
+
+            it('does not move the day for a midnight calendar date', () => {
+                // Given a calendar date stored as midnight, which would fall on the previous day in a timezone behind UTC
+                // When it is formatted
+                // Then the stored day is shown, because a transaction date is a calendar value rather than an instant
+                expect(DateUtils.formatToMonthDayWithOptionalYearInUTC(`${CURRENT_YEAR}-01-01 00:00:00`, undefined)).toBe('Jan 1');
+            });
+
+            it('leaves out the year for January 1 of the current year in every timezone', () => {
+                // Given a stored January 1 date, at midday on January 1 in UTC, when it is January 1 on every device
+                jest.useFakeTimers();
+                jest.setSystemTime(new Date('2026-01-01T12:00:00Z'));
+
+                try {
+                    // When it is formatted
+                    // Then the date's year is read in UTC, the timezone it is shown in. Read in the device's timezone, the
+                    // stored midnight falls on December 31 behind UTC and the date was mistaken for the previous year.
+                    expect(DateUtils.formatToMonthDayWithOptionalYearInUTC('2026-01-01', de)).toBe('1. Jan.');
+                } finally {
+                    jest.useRealTimers();
+                }
+            });
+
+            it('returns an empty string for an empty date', () => {
+                // Given a missing date
+                // When it is formatted
+                // Then nothing is shown
+                expect(DateUtils.formatToMonthDayWithOptionalYearInUTC('', undefined)).toBe('');
+            });
+        });
+    });
+
+    describe('local long date', () => {
+        // cspell:ignore Juni junio
+        describe('formatToLongDate', () => {
+            it('keeps the English long date unchanged', () => {
+                // Given a local date and no locale, which falls back to en-US
+                // When it is formatted as a long date
+                // Then English keeps the `MMMM d, yyyy` shape it had before
+                expect(DateUtils.formatToLongDate(new Date(2026, 5, 20), undefined)).toBe('June 20, 2026');
+            });
+
+            it('orders the date the way each language does', () => {
+                // Given languages that do not write a long date in the US order
+                // When the same date is formatted in each
+                // Then German puts the day first, Spanish adds its `de` between the parts and Japanese leads with the year
+                const date = new Date(2026, 5, 20);
+                expect(DateUtils.formatToLongDate(date, de)).toBe('20. Juni 2026');
+                expect(DateUtils.formatToLongDate(date, es)).toBe('20 de junio de 2026');
+                expect(DateUtils.formatToLongDate(date, ja)).toBe('2026年6月20日');
+            });
+
+            it('returns an empty string for an invalid date', () => {
+                // Given a date that cannot be read
+                // When it is formatted
+                // Then nothing is shown instead of `Intl` throwing a RangeError into the render
+                expect(DateUtils.formatToLongDate(new Date('not a date'), undefined)).toBe('');
+            });
+        });
+
+        describe('formatToReadableString', () => {
+            it('shows a yyyy-MM-dd date on its own day in the language order', () => {
+                // Given a calendar date such as a search filter boundary or a distance rate start date
+                // When it is formatted
+                // Then the stored day is shown, ordered the way each language writes it
+                expect(DateUtils.formatToReadableString('2026-06-20', undefined)).toBe('June 20, 2026');
+                expect(DateUtils.formatToReadableString('2026-06-20', de)).toBe('20. Juni 2026');
+            });
+        });
+    });
+
+    describe('getFormattedReservationRangeDate', () => {
+        // cspell:ignore Dienstag Freitag März
+        beforeEach(() => {
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date(2026, 5, 1));
+        });
+
+        it('keeps the English reservation dates unchanged', () => {
+            // Given a stay this year and a stay in a past year, with no locale, which falls back to en-US
+            // When their date ranges are formatted
+            // Then English keeps the `EEEE, MMM d` shape, adding the year only outside the current year
+            expect(DateUtils.getFormattedReservationRangeDate(translateLocal, undefined, new Date(2026, 2, 17), new Date(2026, 2, 17))).toBe('Tuesday, Mar 17');
+            expect(DateUtils.getFormattedReservationRangeDate(translateLocal, undefined, new Date(2023, 2, 17), new Date(2023, 2, 17))).toBe('Friday, Mar 17, 2023');
+        });
+
+        it('orders each reservation date the way the language does', () => {
+            // Given a stay this year and a stay in a past year
+            // When their date ranges are formatted in German
+            // Then the day comes before the month. The hand-written pattern kept the US order and showed the month first.
+            expect(DateUtils.getFormattedReservationRangeDate(translateLocal, de, new Date(2026, 2, 17), new Date(2026, 2, 17))).toBe('Dienstag, 17. März');
+            expect(DateUtils.getFormattedReservationRangeDate(translateLocal, de, new Date(2023, 2, 17), new Date(2023, 2, 17))).toBe('Freitag, 17. März 2023');
         });
     });
 
