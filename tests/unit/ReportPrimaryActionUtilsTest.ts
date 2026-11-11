@@ -1678,6 +1678,7 @@ describe('getPrimaryAction', () => {
         expect(
             getReportPrimaryAction({
                 rules: undefined,
+                cardList: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
