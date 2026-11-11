@@ -19,7 +19,7 @@ import Onyx from 'react-native-onyx';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-// Only what renders between the expense and its comments matters here, so the expense and the divider parts are stand-ins.
+// Only what renders between the expense and its comments matters here, so the expense and the "New" line are stand-ins.
 jest.mock('@components/ReportActionItem/MoneyRequestView', () => {
     const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string}>>>('react-native');
     return () => <RN.View testID="money-request-view" />;
@@ -27,10 +27,6 @@ jest.mock('@components/ReportActionItem/MoneyRequestView', () => {
 jest.mock('@components/UnreadActionIndicator', () => {
     const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string}>>>('react-native');
     return () => <RN.View testID="unread-indicator" />;
-});
-jest.mock('@components/SpacerView', () => {
-    const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string}>>>('react-native');
-    return () => <RN.View testID="divider-rule" />;
 });
 
 const threadReport: OnyxTypes.Report = {...LHNTestUtils.getFakeReport(), parentReportID: 'expenseReport1'};
@@ -89,7 +85,7 @@ describe('ReportActionItemContentCreated below an expense', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then a rule and the "Comments" heading sit between the expense and the comments, with no "New" line
-        expect(screen.getByTestId('divider-rule')).toBeOnTheScreen();
+        expect(screen.getByTestId('expense-comments-rule')).toBeOnTheScreen();
         expect(screen.getByText('Comments')).toBeOnTheScreen();
         expect(screen.queryByTestId('unread-indicator')).not.toBeOnTheScreen();
     });
@@ -103,7 +99,7 @@ describe('ReportActionItemContentCreated below an expense', () => {
         // Then the "New" line marks the unread comment under the heading and takes the rule's place, so the two don't stack
         expect(screen.getByTestId('unread-indicator')).toBeOnTheScreen();
         expect(screen.getByText('Comments')).toBeOnTheScreen();
-        expect(screen.queryByTestId('divider-rule')).not.toBeOnTheScreen();
+        expect(screen.queryByTestId('expense-comments-rule')).not.toBeOnTheScreen();
     });
 
     it('shows no heading while the expense has nothing below it', async () => {
@@ -114,6 +110,6 @@ describe('ReportActionItemContentCreated below an expense', () => {
 
         // Then there is nothing to head, so neither the heading nor the rule shows
         expect(screen.queryByText('Comments')).not.toBeOnTheScreen();
-        expect(screen.queryByTestId('divider-rule')).not.toBeOnTheScreen();
+        expect(screen.queryByTestId('expense-comments-rule')).not.toBeOnTheScreen();
     });
 });

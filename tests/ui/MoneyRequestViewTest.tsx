@@ -1,9 +1,11 @@
-import {act, render, screen, waitFor} from '@testing-library/react-native';
+import {act, render, renderHook, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
+
+import useTheme from '@hooks/useTheme';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
@@ -124,7 +126,6 @@ const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.get
                         outputCurrency: CONST.CURRENCY.USD,
                         ...policy,
                     })}
-                    shouldShowAnimatedBackground={false}
                     readonly={readonly}
                 />
             </ScreenWrapperStatusContext.Provider>
@@ -249,6 +250,26 @@ describe('MoneyRequestView edit fields', () => {
         expect(screen.getByLabelText(amountLabel).props.value).toBe('-50.00');
     });
 
+    it('shows no empty-state background behind the fields', async () => {
+        // Given an open expense, whose view starts with its fields rather than an empty chat
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+        await setupTestData();
+
+        // When the expense view renders
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the chat's empty-state illustration doesn't peek through above the fields
+        await waitFor(() => {
+            expect(screen.getByLabelText('common.merchant')).toBeOnTheScreen();
+        });
+        expect(screen.queryByTestId('animated-bg')).not.toBeOnTheScreen();
+    });
+
     it('keeps the merchant of a receipt being scanned as a field that opens its page', async () => {
         // Given an open expense whose receipt is still being scanned, so its merchant is not known yet
         const threadReport = {
@@ -299,6 +320,28 @@ describe('MoneyRequestView edit fields', () => {
         expect(screen.getByLabelText(amountLabel).props.value).toBeUndefined();
         expect(screen.queryByLabelText('common.merchant')).toBeNull();
         expect(screen.queryByLabelText('common.date')).toBeNull();
+    });
+
+    it('shows the value of a locked field in the standard text color', async () => {
+        // Given a settled expense, whose merchant is a locked field
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+        await setupTestData(true);
+        // Read before the view renders, as a later render would replace the view on the screen
+        const mutedColor = renderHook(() => useTheme()).result.current.textSupporting;
+
+        // When the expense view renders
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the merchant reads like any other text rather than muted, since the field's disabled fill already marks it as locked
+        await waitFor(() => {
+            expect(screen.getByText('Coffee Shop')).toBeOnTheScreen();
+        });
+        expect(screen.getByText('Coffee Shop')).not.toHaveStyle({color: mutedColor});
     });
 
     it('shows the category and tag from the report policy as dropdown fields when nothing is selected yet', async () => {
@@ -458,7 +501,6 @@ describe('MoneyRequestView edit fields', () => {
                         transactionThreadReport={threadReport}
                         parentReportID={selfDMReportID}
                         expensePolicy={undefined}
-                        shouldShowAnimatedBackground={false}
                     />
                 </ScreenWrapperStatusContext.Provider>
             </ComposeProviders>,
@@ -1392,7 +1434,6 @@ describe('MoneyRequestView edit fields', () => {
                         transactionThreadReport={threadReport}
                         parentReportID={selfDMReportID}
                         expensePolicy={undefined}
-                        shouldShowAnimatedBackground={false}
                     />
                 </ComposeProviders>,
             );

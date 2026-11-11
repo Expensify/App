@@ -153,7 +153,6 @@ function ExpenseFieldRow({
                         {valueComponent ?? (
                             <MenuItem.FieldValue
                                 numberOfLines={numberOfLinesValue}
-                                isMuted={!isInteractive}
                                 isSelectable={shouldShowCopy}
                             >
                                 {value}

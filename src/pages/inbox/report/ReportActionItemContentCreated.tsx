@@ -69,13 +69,13 @@ function ReportActionItemContentCreated({parentReportAction, transactionID, draf
         <>
             {/* An unread comment's "New" line takes the rule's place, as it does below every other created action. */}
             {!shouldHideThreadDividerLine && (
-                <SpacerView
-                    shouldShow
-                    style={styles.reportHorizontalRule}
+                <View
+                    testID="expense-comments-rule"
+                    style={[styles.reportHorizontalRule, styles.borderBottom, styles.mv3]}
                 />
             )}
             <View
-                style={[styles.mh5, styles.pv2, styles.userSelectNone]}
+                style={[styles.mh5, styles.pt4, styles.pb2, styles.userSelectNone]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 <Text variant="labelStrong">{translate('common.comments')}</Text>
@@ -130,7 +130,6 @@ function ReportActionItemContentCreated({parentReportAction, transactionID, draf
                                 transactionThreadReport={report}
                                 parentReportID={report?.parentReportID}
                                 expensePolicy={policy}
-                                shouldShowAnimatedBackground
                             />
                             {expenseThreadDivider}
                         </View>

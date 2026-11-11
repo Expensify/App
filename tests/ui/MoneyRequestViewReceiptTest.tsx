@@ -64,11 +64,6 @@ jest.mock('@components/ReportActionItem/MoneyRequestReceiptView', () => {
     return () => <RN.View testID="money-request-receipt-view" />;
 });
 
-jest.mock('@pages/inbox/report/AnimatedEmptyStateBackground', () => {
-    const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string}>>>('react-native');
-    return () => <RN.View testID="animated-bg" />;
-});
-
 jest.mock('@components/MenuItem', () => {
     const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
     const {default: actualMenuItem} = jest.requireActual<{default: Record<string, unknown>}>('@components/MenuItem');
@@ -137,7 +132,6 @@ const renderMoneyRequestView = () =>
                 transactionThreadReport={threadReport}
                 parentReportID={expenseReportID}
                 expensePolicy={expensePolicy}
-                shouldShowAnimatedBackground={false}
             />
         </ComposeProviders>,
     );

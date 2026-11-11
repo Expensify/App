@@ -155,8 +155,6 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 
 import Navigation from '@navigation/Navigation';
 
-import AnimatedEmptyStateBackground from '@pages/inbox/report/AnimatedEmptyStateBackground';
-
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -195,9 +193,6 @@ type MoneyRequestViewProps = {
     /** Policy that the report belongs to */
     expensePolicy: OnyxEntry<OnyxTypes.Policy>;
 
-    /** Whether we should display the animated banner above the component */
-    shouldShowAnimatedBackground: boolean;
-
     /** Whether we should show Money Request with disabled all fields */
     readonly?: boolean;
 
@@ -226,7 +221,6 @@ function MoneyRequestView({
     transactionThreadReport,
     parentReportID,
     expensePolicy,
-    shouldShowAnimatedBackground,
     readonly = false,
     updatedTransaction,
     isFromReviewDuplicates = false,
@@ -721,7 +715,7 @@ function MoneyRequestView({
                 event?.stopPropagation();
                 openExternalLink(`${CONST.GOOGLE_SEARCH_URL}${encodeURIComponent(originalMerchantForGoogleSearch)}`);
             }}
-            style={[styles.flexRow, styles.alignItemsCenter, styles.mt1, styles.alignSelfStart]}
+            style={[styles.flexRow, styles.alignItemsCenter, styles.alignSelfStart]}
         >
             <Text style={styles.textLabelSupporting}>
                 {translate('common.googleThisMerchant', {
@@ -1531,7 +1525,7 @@ function MoneyRequestView({
                     ) : (
                         <ExpenseFieldRow
                             name={translate('common.description')}
-                            valueComponent={descriptionHTML ? <MenuItem.FieldValueHTML isMuted>{descriptionHTML}</MenuItem.FieldValueHTML> : undefined}
+                            valueComponent={descriptionHTML ? <MenuItem.FieldValueHTML>{descriptionHTML}</MenuItem.FieldValueHTML> : undefined}
                             hasValueComponent={!!descriptionHTML}
                             accessibilityLabel={[translate('common.description'), descriptionCopyValue].filter(Boolean).join(', ')}
                             copyValue={descriptionCopyValue}
@@ -1752,7 +1746,6 @@ function MoneyRequestView({
             style={[styles.moneyRequestView]}
             dataSet={COPYABLE_ROW_DATA_SET}
         >
-            {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
             {shouldShowReceipt && (
                 <MoneyRequestReceiptView
                     report={transactionThreadReport ?? parentReport}

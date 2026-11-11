@@ -204,7 +204,6 @@ function DynamicConfirmationPage() {
                                     transactionThreadReport={report}
                                     parentReportID={report?.parentReportID}
                                     expensePolicy={policy}
-                                    shouldShowAnimatedBackground={false}
                                     readonly
                                     updatedTransaction={newTransaction as OnyxEntry<Transaction>}
                                     isFromReviewDuplicates
