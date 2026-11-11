@@ -229,6 +229,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                     <CardDetailsActionButtons style={styles.mb0}>
                         {!isCSVImportedPersonalCard && (
                             <CardDetailsActionButton
+                                sentryLabel={CONST.SENTRY_LABEL.PERSONAL_CARD.UPDATE}
                                 onPress={updateCard}
                                 isDisabled={isOffline || card?.isLoadingLastUpdated}
                                 isLoading={card?.isLoadingLastUpdated}
@@ -239,6 +240,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                             </CardDetailsActionButton>
                         )}
                         <CardDetailsActionButton
+                            sentryLabel={CONST.SENTRY_LABEL.PERSONAL_CARD.VIEW_TRANSACTIONS}
                             onPress={navigateToTransactions}
                             style={styles.flexShrink0}
                         >
@@ -267,6 +269,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                                 style={[styles.flex1, styles.mb0]}
                             />
                             <Button
+                                sentryLabel={CONST.SENTRY_LABEL.PERSONAL_CARD.FIX_CONNECTION}
                                 variant={CONST.BUTTON_VARIANT.DANGER}
                                 size={CONST.BUTTON_SIZE.SMALL}
                                 onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PERSONAL_CARD_FIX_CONNECTION.path))}
