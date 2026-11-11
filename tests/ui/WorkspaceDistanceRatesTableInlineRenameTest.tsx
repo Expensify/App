@@ -96,6 +96,7 @@ function buildRow(rate: Rate): DistanceRateTableItemData {
         isLocked: false,
         canEditName: true,
         canEditRate: false,
+        canEditTaxReclaimable: false,
         action: jest.fn(),
         dismissError: jest.fn(),
         onToggleEnabled: jest.fn(),
@@ -103,6 +104,7 @@ function buildRow(rate: Rate): DistanceRateTableItemData {
             renameDistanceRateInline(TestHelper.translateLocal, POLICY_ID, CUSTOM_UNIT, rate, newName);
         },
         onChangeRate: jest.fn(),
+        onChangeTaxReclaimable: jest.fn(),
     };
 }
 
