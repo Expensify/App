@@ -5205,6 +5205,7 @@ ${amount} voor ${merchant} - ${date}`,
                 softApproval: (time: string) => `Wordt automatisch goedgekeurd over ${time}. Gratis annuleren tot die tijd.`,
                 hardApproval: (time: string) => `Wordt automatisch geannuleerd over ${time} als deze niet is goedgekeurd.`,
             },
+            genericError: 'Deze boeking kon niet worden bijgewerkt. Probeer het opnieuw.',
         },
     },
     workspace: {

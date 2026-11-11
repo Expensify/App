@@ -839,6 +839,8 @@ const WRITE_COMMANDS = {
     UPLOAD_USER_KYB_DOCS: 'UploadUserKYBDocs',
     JOIN_REPORT_VIA_SECURE_LINK: 'JoinReportViaSecureLink',
     CREATE_JOIN_WORKSPACE_ONBOARDING_CONTENT: 'CreateJoinWorkspacePostOnboardingContent',
+    APPROVE_TRAVEL_BOOKINGS: 'ApproveTravelBookings',
+    REJECT_TRAVEL_BOOKING: 'RejectTravelBooking',
 } as const;
 
 /** `payMoneyRequest` sends the wallet command for Expensify Wallet payments and the plain one for everything else, both built from the same params. */
@@ -1321,6 +1323,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPLOAD_USER_KYB_DOCS]: Parameters.UploadUserKYBDocsParams;
     [WRITE_COMMANDS.JOIN_REPORT_VIA_SECURE_LINK]: Parameters.JoinReportViaSecureLinkParams;
     [WRITE_COMMANDS.CREATE_JOIN_WORKSPACE_ONBOARDING_CONTENT]: Parameters.CreateJoinWorkspaceOnboardingContentParams;
+    [WRITE_COMMANDS.APPROVE_TRAVEL_BOOKINGS]: Parameters.ApproveTravelBookingsParams;
+    [WRITE_COMMANDS.REJECT_TRAVEL_BOOKING]: Parameters.RejectTravelBookingParams;
 
     [WRITE_COMMANDS.REJECT_MONEY_REQUEST_IN_BULK]: Parameters.RejectMoneyRequestInBulkParams;
     [WRITE_COMMANDS.BANK_ACCOUNT_CREATE_CORPAY]: Parameters.BankAccountCreateCorpayParams;

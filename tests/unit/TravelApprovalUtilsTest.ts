@@ -1,4 +1,4 @@
-import {canApproveBooking, getBookingDeadlineDate, getBookingStatusBadge, getEarliestOutstandingBooking, getTripDeadlineText} from '@libs/TravelApprovalUtils';
+import {canApproveBooking, getBookingDeadlineDate, getBookingStatusBadge, getEarliestOutstandingBooking, getTripDeadlineText, getTripStatusFromBookings} from '@libs/TravelApprovalUtils';
 
 import type {ThemeColors} from '@styles/theme/types';
 
@@ -192,6 +192,45 @@ describe('TravelApprovalUtils', () => {
             // When its badge is built
             // Then no badge shows, so the trip row renders instead of crashing on missing colors
             expect(getBookingStatusBadge(translateLocal, BADGE_COLORS, unknownStatus)).toBeUndefined();
+        });
+    });
+
+    describe('getTripStatusFromBookings', () => {
+        const {STATUS, TYPE} = CONST.TRAVEL.BOOKING_APPROVAL;
+
+        it('keeps the trip outstanding while any booking still waits', () => {
+            // Given a trip where one booking was approved and another still waits
+            const tripData = buildTripData({[HOTEL_PNR_ID]: buildBooking({status: STATUS.APPROVED}), [FLIGHT_PNR_ID]: buildBooking()});
+
+            // When its Spend status is worked out
+            // Then it stays outstanding, like the backend's status
+            expect(getTripStatusFromBookings(tripData, NOW)).toBe(CONST.SEARCH.TRIP_STATUS.OUTSTANDING);
+        });
+
+        it('rejects the trip only when every booking that needed approval was rejected', () => {
+            // Given one trip where everything needing approval was rejected, and one where a booking was approved
+            const passive = buildBooking({status: STATUS.APPROVED, approvalType: TYPE.PASSIVE});
+            const allRejected = buildTripData({[HOTEL_PNR_ID]: buildBooking({status: STATUS.REJECTED}), [FLIGHT_PNR_ID]: passive});
+            const partlyRejected = {
+                tripID: 'trip',
+                endDate: '2026-12-20',
+                bookingApprovalState: {[HOTEL_PNR_ID]: buildBooking({status: STATUS.REJECTED}), [FLIGHT_PNR_ID]: buildBooking({status: STATUS.APPROVED})},
+            };
+
+            // When their Spend statuses are worked out
+            // Then passive bookings don't keep a trip from being rejected, but an approved booking does
+            expect(getTripStatusFromBookings(allRejected, NOW)).toBe(CONST.SEARCH.TRIP_STATUS.REJECTED);
+            expect(getTripStatusFromBookings(partlyRejected, NOW)).toBe(CONST.SEARCH.TRIP_STATUS.UPCOMING);
+        });
+
+        it('falls back to where the trip is in time once nothing is left to decide', () => {
+            // Given approved trips that end after and before today
+            const bookings = {[HOTEL_PNR_ID]: buildBooking({status: STATUS.APPROVED})};
+
+            // When their Spend statuses are worked out
+            // Then a trip that hasn't ended is upcoming and one that has is done
+            expect(getTripStatusFromBookings({tripID: 'trip', endDate: '2026-12-10', bookingApprovalState: bookings}, NOW)).toBe(CONST.SEARCH.TRIP_STATUS.UPCOMING);
+            expect(getTripStatusFromBookings({tripID: 'trip', endDate: '2026-12-09', bookingApprovalState: bookings}, NOW)).toBe(CONST.SEARCH.TRIP_STATUS.DONE);
         });
     });
 });

@@ -5274,6 +5274,7 @@ const translations = {
                 softApproval: (time: string) => `Auto-approves in ${time}. Free cancellation until then.`,
                 hardApproval: (time: string) => `Auto-cancels in ${time} if not approved.`,
             },
+            genericError: "Couldn't update this booking. Please try again.",
         },
         termsAndConditions: {
             header: 'Before we continue...',

@@ -776,4 +776,6 @@ export type {default as UpgradeSubmitParams} from './UpgradeSubmitParams';
 export type {default as UploadOFXParams} from './UploadOFXParams';
 export type {default as UploadUserKYBDocsParams} from './UploadUserKYBDocsParams';
 export type {default as JoinReportViaSecureLinkParams} from './JoinReportViaSecureLinkParams';
+export type {default as ApproveTravelBookingsParams} from './ApproveTravelBookingsParams';
+export type {default as RejectTravelBookingParams} from './RejectTravelBookingParams';
 export type {default as DismissMarketingWindowParams} from './DismissMarketingWindow';
