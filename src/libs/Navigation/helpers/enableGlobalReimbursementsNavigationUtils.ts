@@ -113,6 +113,13 @@ function isWiseGlobalReimbursementsIntroOverPayReportScreen(introBackPath: strin
     return shouldUseDynamicEnableGlobalReimbursementsBase(introBackPath, PAY_REPORT_ENTRY_SCREENS);
 }
 
+/** Whether the path ends with the bank account's Wise intro, which a page over the intro reads from the root state only once the state holds that page */
+function isWiseGlobalReimbursementsIntroPath(path: string, bankAccountID: number): boolean {
+    return findAllMatchingDynamicSuffixes(path.replaceAll(/^\/+/g, '')).some(
+        (suffixMatch) => suffixMatch.pattern === DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.path && suffixMatch.pathParams.bankAccountID === String(bankAccountID),
+    );
+}
+
 export type {EnableGlobalReimbursementsRouteParams};
 export {
     getDynamicBasePathFromNavigationPath,
@@ -120,5 +127,6 @@ export {
     getEnableGlobalReimbursementsRootBackPath,
     getWiseGlobalReimbursementsIntroNavigationRoute,
     isWiseGlobalReimbursementsIntroOverPayReportScreen,
+    isWiseGlobalReimbursementsIntroPath,
     shouldUseDynamicEnableGlobalReimbursementsBase,
 };

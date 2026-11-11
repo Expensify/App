@@ -12,12 +12,12 @@ import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useStyleUtils from './useStyleUtils';
 
 const backgroundImages = {
-    [CONST.ERECEIPT_COLORS.YELLOW]: eReceiptBGs.EReceiptBG_Yellow,
-    [CONST.ERECEIPT_COLORS.ICE]: eReceiptBGs.EReceiptBG_Ice,
-    [CONST.ERECEIPT_COLORS.BLUE]: eReceiptBGs.EReceiptBG_Blue,
-    [CONST.ERECEIPT_COLORS.GREEN]: eReceiptBGs.EReceiptBG_Green,
-    [CONST.ERECEIPT_COLORS.TANGERINE]: eReceiptBGs.EReceiptBG_Tangerine,
-    [CONST.ERECEIPT_COLORS.PINK]: eReceiptBGs.EReceiptBG_Pink,
+    [CONST.ERECEIPT_COLORS.YELLOW]: eReceiptBGs.EReceiptBGYellow,
+    [CONST.ERECEIPT_COLORS.ICE]: eReceiptBGs.EReceiptBGIce,
+    [CONST.ERECEIPT_COLORS.BLUE]: eReceiptBGs.EReceiptBGBlue,
+    [CONST.ERECEIPT_COLORS.GREEN]: eReceiptBGs.EReceiptBGGreen,
+    [CONST.ERECEIPT_COLORS.TANGERINE]: eReceiptBGs.EReceiptBGTangerine,
+    [CONST.ERECEIPT_COLORS.PINK]: eReceiptBGs.EReceiptBGPink,
 };
 
 export default function useEReceipt(transactionData: Transaction | TransactionListItemType | undefined, fileExtension?: string, isReceiptThumbnail?: boolean) {
