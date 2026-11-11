@@ -541,6 +541,7 @@ function useSelectedTransactionsActions({
                             transactionID,
                             selectedTransactionsList,
                             localeCompare,
+                            translate,
                             getCurrencyDecimals,
                             [],
                             false,

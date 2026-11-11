@@ -9040,8 +9040,8 @@ describe('SearchUIUtils', () => {
             // Then each entry filters on merchant with the group's own value, and the empty merchant maps to `none`,
             // so the export can match each group exactly. The hook test checks that the backend gets `eq`.
             expect(selectedGroupEntries).toEqual([
-                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: 'Amazon'},
-                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: CONST.SEARCH.MERCHANT_EMPTY_VALUE},
+                {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: 'Amazon'},
+                {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: CONST.SEARCH.MERCHANT_EMPTY_VALUE},
             ]);
         });
     });
@@ -17742,5 +17742,37 @@ describe('getMatchingFilters', () => {
 
         // Then nothing is left, so the list shows its no results message
         expect(matchingFilters).toEqual([]);
+    });
+});
+
+describe('canEditSearchColumns', () => {
+    it('lets users pick the columns of expense and expense report searches', () => {
+        // Given the search types whose tables have customizable columns
+        // When asked whether users can edit their columns
+        // Then both allow it, regardless of trip rooms
+        expect(SearchUIUtils.canEditSearchColumns(CONST.SEARCH.DATA_TYPES.EXPENSE, false)).toBe(true);
+        expect(SearchUIUtils.canEditSearchColumns(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, false)).toBe(true);
+    });
+
+    it('does not let users pick the columns of a task or invoice search', () => {
+        // Given task and invoice searches, whose tables have no customizable columns
+        // When asked whether users can edit their columns
+        // Then neither allows it, so the headings get no column menus
+        expect(SearchUIUtils.canEditSearchColumns(CONST.SEARCH.DATA_TYPES.TASK, false)).toBe(false);
+        expect(SearchUIUtils.canEditSearchColumns(CONST.SEARCH.DATA_TYPES.INVOICE, false)).toBe(false);
+    });
+
+    it('does not let users pick the columns of a trip search that shows expenses', () => {
+        // Given a trip search that doesn't return trip rooms, so its table is the expense table
+        // When asked whether users can edit its columns
+        // Then it doesn't allow it, since the trip columns only apply to the rooms table
+        expect(SearchUIUtils.canEditSearchColumns(CONST.SEARCH.DATA_TYPES.TRIP, false)).toBe(false);
+    });
+
+    it('lets users pick the columns of a search that returns trip rooms', () => {
+        // Given a trip search that returns trip rooms
+        // When asked whether users can edit its columns
+        // Then it allows it
+        expect(SearchUIUtils.canEditSearchColumns(CONST.SEARCH.DATA_TYPES.TRIP, true)).toBe(true);
     });
 });
