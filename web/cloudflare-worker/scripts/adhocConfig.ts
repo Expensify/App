@@ -8,7 +8,8 @@ type WorkerRuntime = {compatibility_date: string; compatibility_flags: string[]}
 type ExtractAssets = (archive: string, destination: string) => void | Promise<void>;
 
 const STATUS_PATH = '/__expensify_preview';
-const WORKER_NAME = 'adhoc';
+// cspell:ignore expensfy -- Matches the configured Cloudflare Worker name.
+const WORKER_NAME = 'new-expensfy-adhoc';
 
 function getTarget(prNumber: unknown) {
     if ((typeof prNumber !== 'string' && typeof prNumber !== 'number') || !/^[1-9]\d*$/.test(String(prNumber)) || !Number.isSafeInteger(Number(prNumber))) {
