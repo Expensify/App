@@ -3165,6 +3165,218 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         await mockFetch?.resume?.();
     });
 
+    it('should keep the report transaction count equal to the rows it holds when splits are added and removed while offline', async () => {
+        // Given a workspace expense report that holds one expense
+        let expenseReport: OnyxEntry<Report>;
+        let chatReport: OnyxEntry<Report>;
+        let originalTransactionID: string | undefined;
+
+        const policyID = generatePolicyID();
+        createWorkspace({
+            conciergeChat: undefined,
+            policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+            makeMeAdmin: true,
+            policyName: "Carlos's Workspace",
+            policyID,
+            introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+            currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+            currentUserEmailParam: CARLOS_EMAIL,
+            currency: undefined,
+            isSelfTourViewed: false,
+            hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
+            activePolicy: undefined,
+            delegateAccountID: undefined,
+        });
+        const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined);
+        await waitForBatchedUpdates();
+
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.REPORT,
+            callback: (allReports) => {
+                chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+            },
+        });
+
+        requestMoney({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            conciergeChat: undefined,
+            report: chatReport,
+            participantParams: {
+                payeeEmail: RORY_EMAIL,
+                payeeAccountID: RORY_ACCOUNT_ID,
+                participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport?.reportID},
+            },
+            transactionParams: {
+                amount: 9000,
+                attendees: [],
+                currency: CONST.CURRENCY.USD,
+                created: '',
+                merchant: 'TestMerchant',
+                comment: '',
+            },
+            shouldGenerateTransactionThreadReport: true,
+            isASAPSubmitBetaEnabled: false,
+            isVendorMatchingBetaEnabled: false,
+            currentUserAccountIDParam: RORY_ACCOUNT_ID,
+            currentUserEmailParam: RORY_EMAIL,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            isSelfTourViewed: false,
+            existingTransactionDraft: undefined,
+            personalDetails: {},
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            formatPhoneNumber,
+            rules: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.REPORT,
+            callback: (allReports) => {
+                expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
+            },
+        });
+        await getOnyxData({
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
+            callback: (allReportActions) => {
+                const iouAction = Object.values(allReportActions ?? {}).find((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
+                    isMoneyRequestAction(reportAction),
+                );
+                originalTransactionID = iouAction ? getOriginalMessage(iouAction)?.IOUTransactionID : undefined;
+            },
+        });
+
+        const expenseReportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.reportID}` as const;
+        const draftKey = `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}` as const;
+        const getTransactionCount = async () => (await getOnyxValue(expenseReportKey))?.transactionCount;
+        const getReportRowCounts = async () => {
+            let reportRows: Array<OnyxEntry<Transaction>> = [];
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                callback: (allTransactions) => {
+                    reportRows = Object.values(allTransactions ?? {}).filter((transaction) => transaction?.reportID === expenseReport?.reportID);
+                },
+            });
+            return {
+                rowCount: reportRows.length,
+                pendingDeleteRowCount: reportRows.filter((transaction) => transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length,
+            };
+        };
+        const getActiveSplits = async () => {
+            let activeSplits: Array<OnyxEntry<Transaction>> = [];
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                callback: (allTransactions) => {
+                    activeSplits = Object.values(allTransactions ?? {}).filter(
+                        (transaction) => transaction?.comment?.originalTransactionID === originalTransactionID && transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    );
+                },
+            });
+            return activeSplits;
+        };
+        const saveSplitExpenses = async () => {
+            const draftTransaction = await getOnyxValue(draftKey);
+            const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
+            let allTransactions: OnyxCollection<Transaction>;
+            let allReports: OnyxCollection<Report>;
+            let allReportActions: OnyxCollection<ReportActions>;
+            let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+            await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, callback: (value) => (allTransactions = value)});
+            await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, callback: (value) => (allReports = value)});
+            await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_ACTIONS, callback: (value) => (allReportActions = value)});
+            await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, callback: (value) => (allReportNameValuePairs = value)});
+            const allPolicyTags = await getAllPolicyTags();
+            const currentExpenseReport = await getOnyxValue(expenseReportKey);
+            const {transactionReport} = getTransactionAndExpenseReports(splitExpenses.at(0)?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
+
+            updateSplitTransactionsFromSplitExpensesFlow({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                isVendorMatchingBetaEnabled: false,
+                allTransactionsList: allTransactions,
+                allReportsList: allReports,
+                reportDrafts: {},
+                allReportActionsList: allReportActions,
+                allReportNameValuePairsList: allReportNameValuePairs,
+                transactionData: {
+                    reportID: expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                    originalTransactionID: originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
+                    splitExpenses,
+                    splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal ?? 0,
+                },
+                policyCategories: undefined,
+                policy,
+                policyRecentlyUsedCategories: [],
+                iouReport: currentExpenseReport,
+                firstIOU: undefined,
+                isASAPSubmitBetaEnabled: false,
+                currentUserPersonalDetails,
+                transactionViolations: {},
+                policyRecentlyUsedCurrencies: [],
+                quickAction: undefined,
+                allPolicyTags,
+                personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                transactionReport,
+                expenseReport: currentExpenseReport,
+                isOffline: true,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                rules: undefined,
+            });
+            await waitForBatchedUpdates();
+        };
+        const removeOneSplitAndSave = async () => {
+            const activeSplits = await getActiveSplits();
+            initSplitExpense(activeSplits.at(0), expenseReport, policy, undefined, undefined, undefined, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
+            await waitForBatchedUpdates();
+            removeSplitExpenseField(await getOnyxValue(draftKey), activeSplits.at(-1)?.transactionID ?? CONST.DEFAULT_NUMBER_ID.toString(), getCurrencyDecimalsLocal);
+            await waitForBatchedUpdates();
+            await saveSplitExpenses();
+        };
+        expect(await getTransactionCount()).toBe(1);
+
+        mockFetch?.pause?.();
+        try {
+            // When the expense is split three ways while offline
+            const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
+            initSplitExpense(originalTransaction, expenseReport, policy, undefined, undefined, undefined, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
+            await waitForBatchedUpdates();
+            addSplitExpenseField(originalTransaction, await getOnyxValue(draftKey), expenseReport, policy, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
+            await waitForBatchedUpdates();
+            await saveSplitExpenses();
+
+            // Then the report counts the three splits in place of the expense
+            expect(await getActiveSplits()).toHaveLength(3);
+            expect(await getReportRowCounts()).toEqual({rowCount: 3, pendingDeleteRowCount: 0});
+            expect(await getTransactionCount()).toBe(3);
+
+            // When one split is removed
+            await removeOneSplitAndSave();
+
+            // Then the removed split stays counted as a row pending deletion, as any offline delete does, so the count less pending deletions is the two splits left
+            expect(await getActiveSplits()).toHaveLength(2);
+            expect(await getReportRowCounts()).toEqual({rowCount: 3, pendingDeleteRowCount: 1});
+            expect(await getTransactionCount()).toBe(3);
+
+            // When another split is removed, which puts the original expense back
+            await removeOneSplitAndSave();
+
+            // Then the count matches the rows the report holds: the original and the two splits pending deletion.
+            // A count above those rows would keep a reopened report table from ever seeing all of its expenses, so it would miss the next one added.
+            expect(await getReportRowCounts()).toEqual({rowCount: 3, pendingDeleteRowCount: 2});
+            expect(await getTransactionCount()).toBe(3);
+        } finally {
+            // Resume the paused requests even when an assertion fails, so they don't block the request queue for later tests
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+        }
+    });
+
     it('should not count held expenses in the unheld totals when an expense is split while offline', async () => {
         const amount = 20000;
         const heldAmount = 10000;
