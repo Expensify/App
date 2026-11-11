@@ -1149,7 +1149,7 @@ function isStaleUnreadReportForInboxTab(report: ReportsToDisplayInLHN[string], s
 function getInboxTabSummary(
     reportIDs: string[],
     reportsToDisplay: ReportsToDisplayInLHN,
-    accountID: number,
+    currentUserAccountID: number,
 ): {counts: Record<typeof CONST.INBOX_TAB.TODO | typeof CONST.INBOX_TAB.UNREAD, number>; hasStaleUnreadReport: boolean} {
     const staleUnreadTime = DateUtils.getDBTime(subMonths(startOfDay(new Date()), CONST.INBOX_TAB_STALE_UNREAD_MONTHS).valueOf());
     let todoCount = 0;
