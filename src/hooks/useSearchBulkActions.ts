@@ -1849,7 +1849,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             if (additionalData?.paymentMethod === CONST.PAYMENT_METHODS.ABA) {
                 // Paying several expenses from one report only needs the report in the file once
                 const reportIDs = [...new Set(itemsToPay.map((item) => item.reportID).filter((reportID): reportID is string => !!reportID))];
-                payReportsViaABA(reportIDs, policies?.[`${ONYXKEYS.COLLECTION.POLICY}${itemsToPay.at(0)?.policyID}`]);
+                payReportsViaABA(reportIDs, bulkPayPolicy);
                 clearSelectedTransactions();
                 return;
             }
@@ -2076,6 +2076,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             ownerBillingGracePeriodEnd,
             amountOwed,
             policies,
+            bulkPayPolicy,
             showDelegateNoAccessModal,
             allReports,
             allReportActions,
