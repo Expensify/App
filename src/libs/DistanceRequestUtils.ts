@@ -21,7 +21,7 @@ import {convertDistanceUnit, convertToDistanceInMeters} from './DistanceUnitConv
 import getStoredDefaultP2PMileageRate from './getStoredDefaultP2PMileageRate';
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getUnitRateValue} from './PolicyUtils/customUnits';
 import replaceAllDigits from './replaceAllDigits';
-import {getCurrency, getFormattedCreated, getRateID, isCustomUnitRateIDForP2P, isExpenseUnreported} from './TransactionUtils/fields';
+import {getAmount, getBilledDistance, getCurrency, getFormattedCreated, getRateID, isCustomUnitRateIDForP2P, isExpenseUnreported} from './TransactionUtils/fields';
 
 type MileageRate = {
     customUnitRateID?: string;
@@ -156,10 +156,10 @@ function getFormattedRateValue(
     isOffline?: boolean,
     useShortFormUnit?: boolean,
 ): string {
-    if (isOffline && !rate) {
+    if (isOffline && rate === undefined) {
         return translate('iou.defaultRate');
     }
-    if (!rate || !currency || !unit) {
+    if (rate === undefined || !currency || !unit) {
         return translate('iou.fieldPending');
     }
 
@@ -258,7 +258,7 @@ function getDistanceMerchant(
     isZeroDistanceAllowed?: boolean,
     commuterExclusionData?: CommuterExclusionData | null,
 ): string {
-    if (!hasRoute || !rate) {
+    if (!hasRoute || rate === undefined) {
         return translate('iou.fieldPending');
     }
 
@@ -825,6 +825,26 @@ function getDistanceUnit(transaction: OnyxEntry<Transaction>, mileageRate: OnyxE
 }
 
 /**
+ * The rate a distance expense's amount was calculated with, when `currentRate` can't have produced it. A $0 expense with a distance
+ * is split by its distance like a $0 rate expense, whatever its rate, and a $0 rate can't have produced a nonzero amount.
+ * Returns undefined when `currentRate` can have produced the expense's amount.
+ */
+function getRateBeforeZeroRateChange(transaction: OnyxEntry<Transaction>, currentRate: number | undefined): number | undefined {
+    const quantity = getBilledDistance(transaction);
+    if (typeof quantity !== 'number' || quantity <= 0 || (currentRate !== undefined && currentRate < 0)) {
+        return undefined;
+    }
+    const amount = getAmount(transaction);
+    if (amount === 0) {
+        return currentRate === 0 ? undefined : 0;
+    }
+    if (currentRate === 0) {
+        return amount / quantity;
+    }
+    return undefined;
+}
+
+/**
  * Get the selected rate for a transaction, from the policy or P2P default rate.
  * Use the distanceUnit stored on the transaction by default to prevent policy changes modifying existing transactions. Otherwise, get the unit from the rate.
  *
@@ -1097,6 +1117,7 @@ export default {
     getDistanceUnitLabel,
     getUpdatedDistanceUnit,
     getRate,
+    getRateBeforeZeroRateChange,
     getRateByCustomUnitRateID,
     getRateByCustomUnitRateIDAcrossPolicies,
     getEnabledRateByCustomUnitRateIDFromAnyPolicy,

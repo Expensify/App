@@ -55,7 +55,7 @@ import {
     removeSettledAndApprovedTransactions,
     removeTransactionFromDuplicateTransactionViolation,
 } from './duplicates';
-import {getCurrency, getCreated, getFormattedCreated, isCustomUnitRateIDForP2P, getRateID, isExpenseUnreported} from './fields';
+import {getAmount, getBilledDistance, getCurrency, getCreated, getFormattedCreated, isCustomUnitRateIDForP2P, getRateID, isExpenseUnreported} from './fields';
 import getDistanceInMeters from './getDistanceInMeters';
 import getSelectedRouteKey from './getSelectedRouteKey';
 // eslint-disable-next-line import/no-cycle
@@ -183,7 +183,7 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
     const mileageRate = DistanceRequestUtils.getRateByCustomUnitRateIDAcrossPolicies({customUnitRateID: customUnit?.customUnitRateID, policy, policies});
     const rate = mileageRate?.rate;
     const unit = customUnit?.distanceUnit ?? mileageRate?.unit;
-    if (!unit || !rate) {
+    if (!unit || rate === undefined) {
         return transaction;
     }
 
@@ -512,37 +512,6 @@ function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>, transaction
 function getDescription(transaction: OnyxInputOrEntry<Transaction>): string {
     // Casting the description to string to avoid wrong data types (e.g. number) being returned from the API
     return transaction?.comment?.comment?.toString() ?? '';
-}
-
-/**
- * Return the amount field from the transaction, return the modifiedAmount if present.
- */
-function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport = false, isFromTrackedExpense = false, allowNegative = false, disableOppositeConversion = false): number {
-    // IOU requests cannot have negative values, but they can be stored as negative values, let's return absolute value
-    if (!isFromExpenseReport && !isFromTrackedExpense && !allowNegative) {
-        const amount = Number(transaction?.modifiedAmount) ?? 0;
-        if (hasValidModifiedAmount(transaction)) {
-            return Math.abs(amount);
-        }
-        return Math.abs(transaction?.amount ?? 0);
-    }
-
-    if (disableOppositeConversion) {
-        return transaction?.amount ?? 0;
-    }
-
-    // Expense report case:
-    // The amounts are stored using an opposite sign and negative values can be set,
-    // we need to return an opposite sign than is saved in the transaction object
-    let amount = Number(transaction?.modifiedAmount) ?? 0;
-    if (hasValidModifiedAmount(transaction)) {
-        return -amount;
-    }
-
-    amount = transaction?.amount ?? 0;
-
-    // To avoid -0 being shown, lets only change the sign if the value is other than 0.
-    return amount ? -amount : 0;
 }
 
 /**
@@ -1866,6 +1835,7 @@ export {
     isManualDistanceRequest,
     isOdometerDistanceRequest,
     hasAppliedCommuterExclusion,
+    getBilledDistance,
     shouldUseCommuterExclusionForDisplay,
     getDisplayTransactionWithoutInvalidCommuterExclusion,
     isDistanceExpenseType,

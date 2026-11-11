@@ -8,6 +8,10 @@ import CONST from '@src/CONST';
 import type {OnyxInputOrEntry, Transaction} from '@src/types/onyx';
 import type {UnreportedTransaction} from '@src/types/onyx/Transaction';
 
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {hasValidModifiedAmount} from './amountUtils';
+
 /**
  * Return the currency field from the transaction, return the modifiedCurrency if present.
  */
@@ -49,4 +53,52 @@ function isExpenseUnreported(transaction?: Transaction): transaction is Unreport
     return transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 }
 
-export {getCurrency, getCreated, getFormattedCreated, isCustomUnitRateIDForP2P, getRateID, isExpenseUnreported};
+/**
+ * Return the amount field from the transaction, return the modifiedAmount if present.
+ */
+function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport = false, isFromTrackedExpense = false, allowNegative = false, disableOppositeConversion = false): number {
+    // IOU requests cannot have negative values, but they can be stored as negative values, let's return absolute value
+    if (!isFromExpenseReport && !isFromTrackedExpense && !allowNegative) {
+        const amount = Number(transaction?.modifiedAmount) ?? 0;
+        if (hasValidModifiedAmount(transaction)) {
+            return Math.abs(amount);
+        }
+        return Math.abs(transaction?.amount ?? 0);
+    }
+
+    if (disableOppositeConversion) {
+        return transaction?.amount ?? 0;
+    }
+
+    // Expense report case:
+    // The amounts are stored using an opposite sign and negative values can be set,
+    // we need to return an opposite sign than is saved in the transaction object
+    let amount = Number(transaction?.modifiedAmount) ?? 0;
+    if (hasValidModifiedAmount(transaction)) {
+        return -amount;
+    }
+
+    amount = transaction?.amount ?? 0;
+
+    // To avoid -0 being shown, lets only change the sign if the value is other than 0.
+    return amount ? -amount : 0;
+}
+
+/**
+ * The distance a distance expense is billed for, which leaves out any commuter exclusion.
+ */
+function getBilledDistance(transaction: OnyxEntry<Transaction>): number | undefined {
+    const customUnit = transaction?.comment?.customUnit;
+    if (typeof customUnit?.reimbursableDistance === 'number') {
+        return customUnit.reimbursableDistance;
+    }
+    const quantity = customUnit?.quantity ?? undefined;
+    const commuterExclusion = customUnit?.commuterExclusion;
+    // The reimbursable distance isn't always stored, so derive it the same way the expense displays it
+    if (quantity !== undefined && typeof commuterExclusion === 'number' && commuterExclusion > 0) {
+        return Math.max(0, quantity - commuterExclusion);
+    }
+    return quantity;
+}
+
+export {getAmount, getBilledDistance, getCurrency, getCreated, getFormattedCreated, isCustomUnitRateIDForP2P, getRateID, isExpenseUnreported};

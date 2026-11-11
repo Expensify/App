@@ -649,9 +649,9 @@ function MoneyRequestView({
     const hasRequiredCompanyCardViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.COMPANY_CARD_REQUIRED);
     const isCustomUnitOutOfPolicy =
         transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY) ||
-        (isDistanceRequest && !rate && !isTrackExpense) ||
+        (isDistanceRequest && rate === undefined && !isTrackExpense) ||
         (isDistanceRequest && isSelectedRateEnabled === false && !isExpenseUnreported);
-    const calculateFromTransactionData = isTrackExpense && !rate;
+    const calculateFromTransactionData = isTrackExpense && rate === undefined;
     const distanceUnit = calculateFromTransactionData ? transaction?.comment?.customUnit?.distanceUnit : unit;
     const backCalculationQuantity = transaction?.comment?.customUnit?.quantity;
     const distanceRate = calculateFromTransactionData && !!backCalculationQuantity ? (transactionAmount ?? 0) / backCalculationQuantity : rate;

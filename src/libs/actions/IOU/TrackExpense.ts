@@ -1168,7 +1168,8 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             taxAmount: taxAmount ? -taxAmount : undefined,
             taxValue,
             billable,
-            pendingFields: isDistanceRequest && !isManualDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
+            // Odometer distance is computed locally, so there is no route for the server to fetch.
+            pendingFields: isDistanceRequest && !isManualDistanceRequest && !isOdometerDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
             reimbursable,
             filename: existingTransactionData?.receipt?.filename,
             attendees,
