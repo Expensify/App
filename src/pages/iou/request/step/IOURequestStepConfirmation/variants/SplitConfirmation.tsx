@@ -11,9 +11,9 @@ import type {ConfirmationVariantProps} from './types';
 
 /** Confirms a split, submitting through splitBill / startSplitBill / splitBillAndOpenReport. */
 function SplitConfirmation({submissionParams, orchestratorProps, listProps}: ConfirmationVariantProps) {
-    const {transaction, policy, isDistanceRequest, isUnreported, isPolicyExpenseChat, submitLock} = submissionParams;
+    const {transaction, policy, iouType, isPolicyExpenseChat, isSelfDMDestination, submitLock} = submissionParams;
 
-    const transactionTaxValues = getTransactionTaxValues({transaction, policy, isPolicyExpenseChat, isUnreported, isDistanceRequest});
+    const transactionTaxValues = getTransactionTaxValues({transaction, policy, iouType, isPolicyExpenseChat, isSelfDMDestination});
 
     const splitSubmission = useSplitSubmission({
         ...submissionParams,

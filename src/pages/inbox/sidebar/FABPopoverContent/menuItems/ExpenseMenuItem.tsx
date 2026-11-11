@@ -30,6 +30,7 @@ function ExpenseMenuItem({reportID}: ExpenseMenuItemProps) {
 
     return (
         <FABFocusableMenuItem
+            sentryLabel={CONST.SENTRY_LABEL.FAB_MENU.CREATE_EXPENSE}
             itemId={ITEM_ID}
             pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.CREATE_EXPENSE}
             icon={getIconForAction(CONST.IOU.TYPE.CREATE, icons)}

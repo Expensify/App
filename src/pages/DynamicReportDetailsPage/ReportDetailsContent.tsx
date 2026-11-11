@@ -1,6 +1,7 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
@@ -86,22 +87,18 @@ function ReportDetailsContent({reportID}: ReportDetailsContentProps) {
 
                     {isFinancialReportsForBusinesses && (
                         <>
-                            <MenuItemWithTopDescription
-                                title={base62ReportID}
-                                description={translate('common.reportID')}
-                                copyValue={base62ReportID}
-                                interactive={false}
-                                shouldBlockSelection
-                                copyable
-                            />
-                            <MenuItemWithTopDescription
-                                title={reportID}
-                                description={translate('common.longReportID')}
-                                copyValue={reportID}
-                                interactive={false}
-                                shouldBlockSelection
-                                copyable
-                            />
+                            <MenuItemField
+                                name={translate('common.reportID')}
+                                value={base62ReportID}
+                            >
+                                <MenuItem.Copy value={base62ReportID} />
+                            </MenuItemField>
+                            <MenuItemField
+                                name={translate('common.longReportID')}
+                                value={reportID}
+                            >
+                                <MenuItem.Copy value={reportID} />
+                            </MenuItemField>
                         </>
                     )}
 
