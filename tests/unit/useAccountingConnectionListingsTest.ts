@@ -40,8 +40,8 @@ jest.mock('@pages/workspace/accounting/utils', () => ({
 
 const policy: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), id: 'policy-1'};
 
-function findListing(key: string) {
-    const {result} = renderHook(() => useAccountingConnectionListings(policy));
+function findListing(key: string, policyOverride: Policy = policy) {
+    const {result} = renderHook(() => useAccountingConnectionListings(policyOverride));
     return result.current.find((listing) => listing.key === key);
 }
 
@@ -150,5 +150,35 @@ describe('useAccountingConnectionListings', () => {
         // Then both integrations are available
         expect(businessCentral).toBeDefined();
         expect(findListing(CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE)).toBeDefined();
+    });
+
+    it('should pass a failed Zoho Books connect error to the Zoho Books card', () => {
+        // Given the Zoho Books OAuth flow failed after leaving the app, so the backend left its error on the policy
+        mockEnabledBetas = [CONST.BETAS.ZOHO_BOOKS];
+        const connectError = 'Zoho Books organizations with multiple locations are not supported yet.';
+        const policyWithConnectError: Policy = {...policy, connectErrors: {[CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: connectError}};
+
+        // When the accounting listings are built
+        const zohoBooks = findListing(CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS, policyWithConnectError);
+
+        // Then the Zoho Books card carries the error, so the admin sees why it didn't connect, and other cards carry none
+        expect(zohoBooks?.connectError).toBe(connectError);
+        expect(findListing(CONST.POLICY.CONNECTIONS.NAME.XERO, policyWithConnectError)?.connectError).toBeUndefined();
+    });
+
+    it('should hide a failed Zoho Books connect error once another accounting integration is connected', () => {
+        // Given Zoho Books failed to connect, and the admin then connected Campfire instead, which leaves the saved Zoho Books error in place
+        mockEnabledBetas = [CONST.BETAS.ZOHO_BOOKS];
+        mockConnectedIntegration = CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE;
+        const policyWithConnectError: Policy = {
+            ...policy,
+            connectErrors: {[CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: 'Zoho Books organizations with multiple locations are not supported yet.'},
+        };
+
+        // When the accounting listings are built
+        const zohoBooks = findListing(CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS, policyWithConnectError);
+
+        // Then the Zoho Books card shows no error, because the workspace is already connected to accounting and the old failure no longer applies
+        expect(zohoBooks?.connectError).toBeUndefined();
     });
 });
