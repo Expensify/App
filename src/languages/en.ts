@@ -7077,6 +7077,7 @@ const translations = {
             },
         },
         digits: {
+            entity: 'Entity',
             updateCurrencyTitle: 'Update workspace currency?',
             updateCurrencyPrompt: 'Digits is currently only available for US-based companies that operate in USD.',
             importDescription: 'Choose which Digits configurations to import.',

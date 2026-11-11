@@ -9762,6 +9762,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             },
         },
         digits: {
+            entity: 'Entität',
             updateCurrencyTitle: 'Arbeitsbereichswährung aktualisieren?',
             updateCurrencyPrompt: 'Digits ist derzeit nur für Unternehmen mit Sitz in den USA verfügbar, die in USD arbeiten.',
             importDescription: 'Wählen Sie, welche Digits-Konfigurationen importiert werden sollen.',

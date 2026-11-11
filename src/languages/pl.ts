@@ -9703,6 +9703,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             },
         },
         digits: {
+            entity: 'Jednostka',
             updateCurrencyTitle: 'Zaktualizować walutę przestrzeni roboczej?',
             updateCurrencyPrompt: 'Digits jest obecnie dostępny tylko dla firm z siedzibą w USA, które działają w USD.',
             importDescription: 'Wybierz, które konfiguracje Digits zaimportować.',

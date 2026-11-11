@@ -9704,6 +9704,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             },
         },
         digits: {
+            entity: 'Entità',
             updateCurrencyTitle: 'Aggiornare la valuta dello spazio di lavoro?',
             updateCurrencyPrompt: 'Digits è attualmente disponibile solo per le aziende con sede negli Stati Uniti che operano in USD.',
             importDescription: 'Scegli quali configurazioni Digits importare.',

@@ -9694,6 +9694,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             },
         },
         digits: {
+            entity: 'Entidade',
             updateCurrencyTitle: 'Atualizar a moeda do espaço de trabalho?',
             updateCurrencyPrompt: 'No momento, o Digits só está disponível para empresas sediadas nos EUA que operam em USD.',
             importDescription: 'Escolha quais configurações do Digits importar.',
