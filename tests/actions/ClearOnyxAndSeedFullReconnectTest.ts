@@ -36,7 +36,7 @@ describe('actions/clearOnyxAndSeedFullReconnect', () => {
                     expect(typeof value).toBe('string');
                     expect((value ?? '').length > 0).toBe(true);
                     expect((value ?? '') >= before).toBe(true);
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve();
                 },
             });
@@ -58,7 +58,7 @@ describe('actions/clearOnyxAndSeedFullReconnect', () => {
                 key: ONYXKEYS.SESSION,
                 callback: (value) => {
                     expect(value?.authToken).toBe('preserved-auth-token');
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve();
                 },
             });
@@ -69,7 +69,7 @@ describe('actions/clearOnyxAndSeedFullReconnect', () => {
                 key: ONYXKEYS.NVP_PRIORITY_MODE,
                 callback: (value) => {
                     expect(value).toBeUndefined();
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve();
                 },
             });
@@ -91,7 +91,7 @@ describe('actions/clearOnyxAndSeedFullReconnect', () => {
                 key: ONYXKEYS.IS_LOADING_APP,
                 callback: (value) => {
                     expect(value).toBe(true);
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve();
                 },
             });
@@ -103,7 +103,7 @@ describe('actions/clearOnyxAndSeedFullReconnect', () => {
                 callback: (value) => {
                     expect(typeof value).toBe('string');
                     expect((value ?? '').length > 0).toBe(true);
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve();
                 },
             });
@@ -124,7 +124,7 @@ describe('actions/clearOnyxAndSeedFullReconnect', () => {
                 key: ONYXKEYS.IS_LOADING_APP,
                 callback: (value) => {
                     expect(value).toBe(false);
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve();
                 },
             });
@@ -144,7 +144,7 @@ describe('actions/clearOnyxAndSeedFullReconnect', () => {
                 callback: (value) => {
                     expect(typeof value).toBe('string');
                     expect((value ?? '').length > 0).toBe(true);
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve();
                 },
             });
@@ -169,7 +169,7 @@ describe('actions/clearOnyxAndSeedFullReconnect', () => {
                 key: ONYXKEYS.NVP_PRIORITY_MODE,
                 callback: (value) => {
                     expect(value).toBeUndefined();
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve();
                 },
             });
@@ -180,7 +180,7 @@ describe('actions/clearOnyxAndSeedFullReconnect', () => {
                 key: ONYXKEYS.HAS_LOADED_APP,
                 callback: (value) => {
                     expect(value).toBeUndefined();
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve();
                 },
             });
@@ -191,7 +191,7 @@ describe('actions/clearOnyxAndSeedFullReconnect', () => {
                 key: ONYXKEYS.SESSION,
                 callback: (value) => {
                     expect(value?.authToken).toBe('preserved-auth-token');
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve();
                 },
             });
@@ -202,7 +202,7 @@ describe('actions/clearOnyxAndSeedFullReconnect', () => {
                 key: ONYXKEYS.IS_LOADING_APP,
                 callback: (value) => {
                     expect(value).toBe(true);
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve();
                 },
             });

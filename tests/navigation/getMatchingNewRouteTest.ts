@@ -114,6 +114,16 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/edit/split-expense/overview/123/456/789?backTo=/r/123')).toBe('/create/split-expense/overview/123/456/0/split-expense/edit/123/789?backTo=/r/123');
     });
 
+    it('does not rewrite the split expense edit route opened from the Date tab of the Search split overview', () => {
+        // Given a split edit URL built on top of the Search split overview while the Date tab is active
+        const splitEditPath = '/search/split-expense-overview-search/date/split-expense/edit/123/456';
+
+        // When it is matched against the legacy routes
+        // Then it comes back unchanged, so the legacy `/*/*/date/*/*/*` pattern can't turn it into a broken expense-date route
+        expect(getMatchingNewRoute(splitEditPath)).toBe(splitEditPath);
+        expect(getMatchingNewRoute(`${splitEditPath}?backTo=/search`)).toBe(`${splitEditPath}?backTo=/search`);
+    });
+
     it('redirects old card reconciliation account path with two wildcards', () => {
         expect(getMatchingNewRoute('/workspaces/abc/accounting/xero/card-reconciliation/account')).toBe(
             '/workspaces/abc/accounting/xero/card-reconciliation/account-reconciliation-settings',
@@ -534,6 +544,11 @@ describe('getBestMatchingPath', () => {
     it('does not rewrite Expensify Card numeric fundID work-email paths', () => {
         expect(getMatchingNewRoute('/workspaces/p123/expensify-card/789/work-email')).toBe('/workspaces/p123/expensify-card/789/work-email');
         expect(getMatchingNewRoute('/workspaces/p123/expensify-card/789/verify-work-email')).toBe('/workspaces/p123/expensify-card/789/verify-work-email');
+    });
+
+    it('does not rewrite pages opened on top of the work-email page', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/company-cards/feed123/work-email/contact-methods')).toBe('/workspaces/p123/company-cards/feed123/work-email/contact-methods');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/789/work-email/contact-methods')).toBe('/workspaces/p123/expensify-card/789/work-email/contact-methods');
     });
 
     it('does not rewrite the already-migrated Expensify Card details paths', () => {

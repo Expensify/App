@@ -37,6 +37,7 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
         return {
             title: policy.name,
             key: policy.id,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.COPY_EXISTING_CONNECTION,
             avatarID: policy.id,
             icon: policy.avatarURL,
             iconType: CONST.ICON_TYPE_WORKSPACE,
@@ -63,6 +64,7 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
             <ScrollView style={[styles.flex1]}>
                 <Text style={[styles.mh5, styles.mb4]}>{translate('workspace.common.existingConnectionsDescription', CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)}</Text>
                 <MenuItemNavigation
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CREATE_NEW_CONNECTION}
                     title={translate('workspace.common.createNewConnection')}
                     icon={icons.LinkCopy}
                     onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SAGE_INTACCT_PREREQUISITES.path))}

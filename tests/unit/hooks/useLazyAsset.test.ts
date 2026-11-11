@@ -488,3 +488,61 @@ describe('useMemoizedLazyIllustrations', () => {
         expect(mockLoadIllustrationsChunk).toHaveBeenCalledTimes(1);
     });
 });
+
+describe.each([
+    {
+        hookName: 'useMemoizedLazyExpensifyIcons',
+        firstName: 'AddReaction',
+        secondName: 'Apple',
+        mockCachedChunk: (assetsByName: Record<string, IconAsset>) => {
+            const mockChunk = createMock<ExpensifyIconsChunk>({});
+            mockChunk.getExpensifyIcon = jest.fn((name: ExpensifyIconName) => assetsByName[name]);
+            mockChunk.AVAILABLE_EXPENSIFY_ICONS = ['AddReaction', 'Apple'];
+            mockGetExpensifyIconsChunk.mockReturnValue(mockChunk);
+        },
+        useIcons: (shouldRequestSecondName: boolean): Record<string, IconAsset> => useMemoizedLazyExpensifyIcons(shouldRequestSecondName ? ['AddReaction', 'Apple'] : ['AddReaction']),
+    },
+    {
+        hookName: 'useMemoizedLazyIllustrations',
+        firstName: 'Building',
+        secondName: 'Tag',
+        mockCachedChunk: (assetsByName: Record<string, IconAsset>) => {
+            const mockChunk = createMock<IllustrationsChunk>({});
+            mockChunk.getIllustration = jest.fn((name: IllustrationName) => assetsByName[name]);
+            mockChunk.AVAILABLE_ILLUSTRATIONS = ['Building', 'Tag'];
+            mockGetIllustrationsChunk.mockReturnValue(mockChunk);
+        },
+        useIcons: (shouldRequestSecondName: boolean): Record<string, IconAsset> => useMemoizedLazyIllustrations(shouldRequestSecondName ? ['Building', 'Tag'] : ['Building']),
+    },
+])('$hookName returned object', ({firstName, secondName, mockCachedChunk, useIcons}) => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockCachedChunk({[firstName]: mockAsset, [secondName]: mockFallbackAsset});
+    });
+
+    it('keeps its identity when the parent re-renders with the same names', () => {
+        // Given a consumer whose names array is a new array on every render
+        const {result, rerender} = renderHook(({shouldRequestSecondName}) => useIcons(shouldRequestSecondName), {initialProps: {shouldRequestSecondName: false}});
+        const firstIcons = result.current;
+
+        // When the parent re-renders without changing the requested names
+        rerender({shouldRequestSecondName: false});
+
+        // Then the same object is returned, so consumers that depend on it don't recompute
+        expect(result.current).toBe(firstIcons);
+    });
+
+    it('returns the newly requested icons when the names change', () => {
+        // Given a consumer that first requests one name from an already cached chunk
+        const {result, rerender} = renderHook(({shouldRequestSecondName}) => useIcons(shouldRequestSecondName), {initialProps: {shouldRequestSecondName: false}});
+        const firstIcons = result.current;
+
+        // When it starts requesting a second name
+        rerender({shouldRequestSecondName: true});
+
+        // Then a new object holds both icons instead of a placeholder for the added name
+        expect(result.current).not.toBe(firstIcons);
+        expect(result.current[firstName]).toBe(mockAsset);
+        expect(result.current[secondName]).toBe(mockFallbackAsset);
+    });
+});

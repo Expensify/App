@@ -83,6 +83,7 @@ function TimeSensitiveSection() {
         <HomeTaskGroup
             title="homePage.timeSensitiveSection.title"
             rows={useTimeSensitiveItems()}
+            expandToggleSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.SECTION_EXPAND_TOGGLE_TIME_SENSITIVE}
         />
     );
 }

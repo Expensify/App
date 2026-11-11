@@ -13,7 +13,7 @@ runs:
       id: getVersion
       shell: bash
       run: |
-        VERSION="26.6"
+        VERSION="27.1"
         DEVELOPER_DIR="/Applications/Xcode_${VERSION}.app/Contents/Developer"
         echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
         echo "DEVELOPER_DIR=$DEVELOPER_DIR" >> "$GITHUB_ENV"

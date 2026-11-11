@@ -33,6 +33,33 @@ type DynamicFormHeading = {
 
     /** Hides the title only. The fields after it still show, since a heading marks a place rather than containing fields. */
     showWhen?: DynamicFormCondition;
+
+    /** Only a link has a URL, which is what tells a link apart from a heading */
+    url?: never;
+};
+
+/**
+ * A link between the fields of a page, such as one to a help article. It has no `type`, so an App version that does not know links reads it as a
+ * heading with no text and leaves it out.
+ */
+type DynamicFormLink = {
+    /** Can match a field's key, since links and fields are told apart by `type` */
+    key: string;
+
+    /** Address the link opens. Only https links to expensify.com or its subdomains are shown, since the link leaves the form. */
+    url: string;
+
+    /** The schema author's wording, shown when there is no textKey */
+    text?: string;
+
+    /** Translation of `text`, used instead of it when set */
+    textKey?: TranslationPaths;
+
+    /** Hides the link while the condition is not met */
+    showWhen?: DynamicFormCondition;
+
+    /** Only a field has a type, which is what tells a link apart from a field */
+    type?: never;
 };
 
 /** One allowed value of a select or radio field */
@@ -257,13 +284,19 @@ type DynamicFormListItem = {
 /** A field as the schema sends it, which can be of a type this App version does not know */
 type DynamicFormSchemaField = DynamicFormField | (DynamicFormFieldBase & {type: string});
 
-/** A heading or a field of a page */
-type DynamicFormContentItem = DynamicFormHeading | DynamicFormSchemaField;
+/** A heading, a link or a field of a page */
+type DynamicFormContentItem = DynamicFormHeading | DynamicFormLink | DynamicFormSchemaField;
 
 /** A page of a multi-page form. It is a heading with its own content, so it can carry a title, a description and a `showWhen`. */
 type DynamicFormPage = DynamicFormHeading & {
     /** The headings and fields shown on this page */
     content: DynamicFormContentItem[];
+
+    /** The schema author's name for the page's section on the confirmation page, shown when there is no sectionTitleKey. Without either, or when it is empty, the page's headline names the section. */
+    sectionTitle?: string;
+
+    /** Translation of `sectionTitle`, used instead of it when set */
+    sectionTitleKey?: TranslationPaths;
 };
 
 /** What a multi-page form is built from: pages as the server groups them, or a flat list of fields the App paginates */
@@ -271,6 +304,12 @@ type DynamicFormSchema = {pages: DynamicFormPage[]} | {fields: DynamicFormSchema
 
 /** Answers to sensitive fields, keyed by form ID, then by field key. Kept in memory only, never in a draft. */
 type DynamicFormSensitiveAnswers = Partial<Record<OnyxFormKey, Partial<Record<string, FormValue>>>>;
+
+/**
+ * A page's answers as the server saved them: the draft's values after a JSON round trip, under the same keys.
+ * A sensitive answer is never sent back. `<key>Provided: true` stands in for it, and counts as answered.
+ */
+type DynamicFormSavedValues = Partial<Record<string, string | string[] | boolean | null>>;
 
 /** Every type the renderer and validator handle */
 type DynamicFormFieldType = DynamicFormField['type'];
@@ -284,12 +323,14 @@ export type {
     DynamicFormFieldOption,
     DynamicFormFieldType,
     DynamicFormHeading,
+    DynamicFormLink,
     DynamicFormListField,
     DynamicFormListItem,
     DynamicFormMultiChoiceField,
     DynamicFormNumberField,
     DynamicFormPage,
     DynamicFormSchema,
+    DynamicFormSavedValues,
     DynamicFormSchemaField,
     DynamicFormSensitiveAnswers,
     DynamicFormTextField,
