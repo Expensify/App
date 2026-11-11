@@ -200,6 +200,13 @@ const FOOTER_FILTER_KEYS = new Set<SearchFilterKey>([
     CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY,
 ]);
+// Submitting, approving or forwarding a report changes which expenses these filters match without changing a transaction.
+const WORKFLOW_FILTER_KEYS = new Set<SearchFilterKey>([
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
+]);
 
 function isFooterCount(value: string): value is SearchFooterCount {
     return VALID_FOOTER_COUNTS.has(value);
@@ -883,13 +890,15 @@ function queryHasHasFilter(queryJSON: SearchQueryJSON | undefined, hasValues: Re
 
 /**
  * Whether the query's results depend on report state that only report actions reveal, so adding a workflow action
- * must refetch it: grouping by approver, or a `submitted-violation` or `approved-violation` filter. Negated filters
- * count too, because submitting or approving a report moves its expenses out of a `-has:submitted-violation` or
- * `-has:approved-violation` search.
+ * must refetch it: grouping by approver, an `approver:`, `anyApproval:`, `submitted:` or `approved:` filter, or a
+ * `submitted-violation` or `approved-violation` filter. Negated filters count too, because submitting or approving a
+ * report moves its expenses out of a `-has:submitted-violation` or `-has:approved-violation` search.
  */
 function shouldRefetchSearchOnReportActionChange(queryJSON: SearchQueryJSON): boolean {
     return (
-        queryJSON.groupBy === CONST.SEARCH.GROUP_BY.APPROVER || queryHasHasFilter(queryJSON, [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION], true)
+        queryJSON.groupBy === CONST.SEARCH.GROUP_BY.APPROVER ||
+        queryJSON.flatFilters.some((filter) => WORKFLOW_FILTER_KEYS.has(filter.key)) ||
+        queryHasHasFilter(queryJSON, [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION], true)
     );
 }
 
