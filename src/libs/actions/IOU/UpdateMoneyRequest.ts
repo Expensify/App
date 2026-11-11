@@ -1959,7 +1959,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
           })
         : undefined;
 
-    const transactionDetails = getTransactionDetails(updatedTransaction, undefined, undefined, allowNegative);
+    const transactionDetails = getTransactionDetails(updatedTransaction, undefined, allowNegative);
 
     if (transactionDetails?.waypoints) {
         transactionDetails.waypoints = stringifyWaypointsForAPI(transactionDetails.waypoints as WaypointCollection);
