@@ -175,10 +175,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         const snapshotData = snapshot.data;
         const transactionKey = Object.keys(snapshotData)
             .filter(isTransactionEntry)
-            .find((key) => {
-                const candidate = snapshotData[key];
-                return typeof candidate === 'object' && candidate !== null && 'reportID' in candidate && candidate.reportID === reportIDFromRoute;
-            });
+            .find((key) => snapshotData[key]?.reportID === reportIDFromRoute);
         if (!transactionKey) {
             derivedValue = {
                 snapshotTransaction: undefined,

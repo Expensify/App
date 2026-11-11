@@ -24,7 +24,15 @@ import type {ExpenseReportListItemType} from './types';
 
 import UserInfoCellsWithArrow from './UserInfoCellsWithArrow';
 
-type UserInfoAndActionButtonRowProps = {
+function UserInfoAndActionButtonRow({
+    item,
+    shouldShowUserInfo,
+    containerStyles,
+    stateNum,
+    statusNum,
+    isSelected,
+    shouldAllowStatusTextSelection = false,
+}: {
     item: Pick<ExpenseReportListItemType, 'from' | 'to' | 'formattedFrom'> & Partial<Pick<Report, 'reportID'>>;
     shouldShowUserInfo: boolean;
     containerStyles?: StyleProp<ViewStyle>;
@@ -32,9 +40,7 @@ type UserInfoAndActionButtonRowProps = {
     statusNum: ExpenseReportListItemType['statusNum'];
     isSelected?: boolean;
     shouldAllowStatusTextSelection?: boolean;
-};
-
-function UserInfoAndActionButtonRow({item, shouldShowUserInfo, containerStyles, stateNum, statusNum, isSelected, shouldAllowStatusTextSelection = false}: UserInfoAndActionButtonRowProps) {
+}) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();

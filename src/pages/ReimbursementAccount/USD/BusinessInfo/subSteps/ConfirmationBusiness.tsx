@@ -21,6 +21,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
 
 const BUSINESS_INFO_STEP_KEYS = INPUT_IDS.BUSINESS_INFO_STEP;
@@ -55,6 +56,7 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
     };
 
     const values = getSubStepValues(BUSINESS_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount);
+    // The form stores both fields as plain strings, so only known keys can build a translation path.
     const incorporationType = values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_TYPE];
     const incorporationState = values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_STATE];
 
@@ -125,7 +127,7 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
                 onPress={() => {
                     onMove(BUSINESS_INFO_STEP_INDEXES.INCORPORATION_STATE);
                 }}
-                value={incorporationState ? translate(`allStates.${incorporationState}.stateName`) : undefined}
+                value={hasKey(COMMON_CONST.STATES, incorporationState) ? translate(`allStates.${incorporationState}.stateName`) : undefined}
             />
             <MenuItemField
                 sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.BUSINESS_INFO_INDUSTRY_CODE}
