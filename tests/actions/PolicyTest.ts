@@ -794,6 +794,59 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
         });
 
+        it('duplicate workspace keeps Rules off when the DuplicatePolicy response turns it on after the policy merge', async () => {
+            // Given a Control workspace with Rules disabled
+            const fakePolicy: PolicyType = {...createRandomPolicy(20, CONST.POLICY.TYPE.CORPORATE), areRulesEnabled: false};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+
+            // And a DuplicatePolicy response that, like production when categories are copied, merges the new policy with Rules off
+            // and then sends a single {areRulesEnabled: true} merge for the same policy
+            mockFetch.mockAPICommand('DuplicatePolicy', () => ({
+                onyxData: [
+                    {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`, value: {areRulesEnabled: false}},
+                    {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`, value: {areRulesEnabled: true}},
+                ],
+            }));
+            mockFetch.pause();
+
+            // When the workspace is duplicated with Categories selected and Rules unselected
+            Policy.duplicateWorkspace(fakePolicy, {
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                policyName: 'Rules Off Workspace',
+                policyID: fakePolicy.id,
+                targetPolicyID: policyID,
+                welcomeNote: 'Join my policy',
+                personalDetailsByLogins: {},
+                parts: {
+                    people: false,
+                    reports: false,
+                    connections: false,
+                    categories: true,
+                    tags: false,
+                    taxes: false,
+                    perDiem: false,
+                    reimbursements: false,
+                    expenses: false,
+                    distance: false,
+                    invoices: false,
+                    exportLayouts: false,
+                    codingRules: false,
+                },
+                localCurrency: 'USD',
+            });
+            await waitForBatchedUpdates();
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Then Rules is still off after the response is applied, so it never shows in the new workspace's menu
+            const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(policy?.areRulesEnabled).toBe(false);
+        });
+
         it('duplicate workspace with 3+ members creates optimistic announce chat using currentUserAccountID', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             const basePolicy = createRandomPolicy(16, CONST.POLICY.TYPE.TEAM);

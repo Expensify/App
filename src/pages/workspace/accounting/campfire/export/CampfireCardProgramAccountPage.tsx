@@ -77,6 +77,7 @@ function CampfireCardProgramAccountPage({policy}: WithPolicyConnectionsProps) {
                             pendingAction={settingsPendingAction([`${CONST.CAMPFIRE_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`], campfireConfig?.pendingFields)}
                         >
                             <MenuItem.Root
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CAMPFIRE.CARD_PROGRAM_ACCOUNT_FEED_ROW}
                                 onPress={callIfAuthenticated(
                                     () => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_CARD_PROGRAM_ACCOUNT_SELECTOR.getRoute(policyID, feedWithDomainID)) : undefined),
                                     session,

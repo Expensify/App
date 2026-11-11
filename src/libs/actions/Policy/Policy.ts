@@ -123,7 +123,7 @@ import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import {buildTaskData, getOnboardingTaskCompletionOnSuccessData, withReviewWorkspaceSettingsTaskData} from '@userActions/Task';
 import type {OnboardingTaskCompletionOnyxData} from '@userActions/Task';
-import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
+import {getIntroSelectedCompanySize, getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingPurpose} from '@userActions/Welcome/OnboardingFlow';
 
 import CONST from '@src/CONST';
@@ -3463,7 +3463,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
             adminsChatReportID,
             onboardingPolicyID: policyID,
             onboardingPurposeSelected,
-            companySize: companySize ?? (introSelected?.companySize as OnboardingCompanySize),
+            companySize: companySize ?? getIntroSelectedCompanySize(introSelected),
             isSelfTourViewed,
             conciergeChat,
             delegateAccountID,
@@ -3944,6 +3944,10 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
             key: `${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`,
             value: {
                 pendingAction: null,
+                // The DuplicatePolicy response can merge a stray `areRulesEnabled: true` into the new policy after the full
+                // policy merge (seen when categories are copied from a Control workspace). successData is applied after the
+                // response's onyxData, so set the final value here, or Rules shows in the new workspace until the policy reloads.
+                areRulesEnabled: !!parts?.expenses,
                 pendingFields: {
                     autoReporting: null,
                     approvalMode: null,
