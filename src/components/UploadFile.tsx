@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {StyleProp, ViewStyle} from 'react-native';
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion} from 'type-fest';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -29,7 +29,7 @@ type UploadFileProps = {
     uploadedFiles: FileObject[];
     onUpload: (files: FileObject[]) => void;
     onRemove: (fileUri: string) => void;
-    acceptedFileTypes: Array<ValueOf<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>>;
+    acceptedFileTypes: Array<TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>>;
 
     /** Styles to be assigned to Container */
     style?: StyleProp<ViewStyle>;
@@ -106,7 +106,7 @@ function UploadFile({
         if (acceptedFileTypes.length > 0) {
             const filesExtensions = new Set(files.map((file) => splitExtensionFromFileName(file?.name ?? '').fileExtension.toLowerCase()));
 
-            if (acceptedFileTypes.every((element) => typeof element !== 'string' || !filesExtensions.has(element))) {
+            if (acceptedFileTypes.every((element) => !filesExtensions.has(element))) {
                 setError(translate('attachmentPicker.notAllowedExtension'));
                 return;
             }

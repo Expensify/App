@@ -72,7 +72,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {SplitExpense} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import KeyboardUtils from '@src/utils/keyboard';
@@ -94,7 +93,6 @@ type DynamicSplitExpensePageProps = PlatformStackScreenProps<
 >;
 
 const TAB_NAVIGATOR_HEIGHT_LANDSCAPE = variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding;
-const EMPTY_SPLIT_EXPENSES: SplitExpense[] = [];
 
 function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const styles = useThemeStyles();
@@ -194,7 +192,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     } else {
         transactionDetailsAmount = signedAmount;
     }
-    const splitExpenses = draftTransaction?.comment?.splitExpenses ?? EMPTY_SPLIT_EXPENSES;
+    const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
     const sumOfSplitExpenses = splitExpenses.reduce((acc, item) => acc + (item.amount ?? 0), 0);
     const currencySymbol = getCurrencySymbol(transactionDetails.currency ?? '') ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
 
@@ -230,9 +228,10 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     );
     const {iouReport} = useGetIOUReportFromReportAction(iouActions.at(0));
 
-    const isSelectedSplitTab = (tab: string) => selectedTab === tab;
-    const isPercentageMode = isSelectedSplitTab(CONST.TAB.SPLIT.PERCENTAGE);
-    const isDateMode = isSelectedSplitTab(CONST.TAB.SPLIT.DATE);
+    // The SELECTED_TAB collection is typed with the IOU request tabs, but this page stores a split tab in it.
+    const selectedSplitTab: string | undefined = selectedTab;
+    const isPercentageMode = selectedSplitTab === CONST.TAB.SPLIT.PERCENTAGE;
+    const isDateMode = selectedSplitTab === CONST.TAB.SPLIT.DATE;
     const childTransactions = getChildTransactions(allTransactions, transactionID);
     const isDraftSelfDMContext = isSelfDM(draftTransactionReport);
     const splitFieldDataFromChildTransactions = childTransactions.map((childTransaction) => {
