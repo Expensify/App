@@ -249,7 +249,7 @@ function useReportActionsListScroll({
         endCorrectionFrameRef.current = undefined;
     };
 
-    const handleScrollBeginDrag = () => {
+    const stopAutomaticPositioning = () => {
         userDraggedListIDRef.current = listID;
         stopLinkedMessagePositioning();
         stopFollowingEnd();
@@ -289,7 +289,7 @@ function useReportActionsListScroll({
         }
     };
 
-    const handleListReady = () => {
+    const markInitialViewportReady = () => {
         // onLoad only means rows rendered; keep their estimated positions covered until initial scrolling settles.
         onLoad();
         setLoadedInitialViewportListID(listID);
@@ -439,14 +439,14 @@ function useReportActionsListScroll({
             onEndReachedThreshold: PAGINATION_THRESHOLD,
             onLayout: recordTimeToMeasureItemLayout,
             onScroll: trackScrollPositionAndThreshold,
-            onScrollBeginDrag: handleScrollBeginDrag,
+            onScrollBeginDrag: stopAutomaticPositioning,
             onStartReached: loadOlderChatsOnStartReached,
             onStartReachedThreshold: PAGINATION_THRESHOLD,
             onViewableItemsChanged: updateVisibleItemOverflow,
             initialScrollAtEnd: initialScrollIndex === undefined,
             initialScrollIndex: initialScrollIndex === undefined ? undefined : {index: initialScrollIndex, ...initialScrollIndexParams},
             alignItemsAtEnd: !shouldBeAlignedToTop,
-            onReady: handleListReady,
+            onReady: markInitialViewportReady,
             onItemSizeChanged,
             onContentSizeChange: trackContentSizeChange,
             onMetricsChange: ({headerSize}: {headerSize: number}) => {
