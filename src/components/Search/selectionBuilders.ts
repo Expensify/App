@@ -962,7 +962,6 @@ export {
     isGroupSelected,
     getGroupCheckboxState,
     isRowChecked,
-    getSearchGroupCount,
     getSearchGroupCountByKey,
     getGroupByCount,
     resolveGroupCount,
