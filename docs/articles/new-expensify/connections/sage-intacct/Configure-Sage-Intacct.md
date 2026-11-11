@@ -182,10 +182,10 @@ Choose how to sync reimbursement status:
 
 **Note**: Make sure the selected account matches your Bill Payments default in Sage Intacct.
 
-## How to map an FX expense account for company-paid conversion fees
+## How to map the Sage Intacct currency conversion fee account
 
-Select the account for currency conversion (FX) fees. If the company pays these fees (set by going to **Workspaces > [workspace name] > Workflows** and changing the **Currency conversion fees** setting), each cross-border reimbursement exports a separate journal entry for the fee alongside the bill payment. This journal entry:
-- Debits the FX expense account and credits cash
+Select **Sage Intacct currency conversion fee account** to choose the account for currency conversion (FX) fees. This setting appears under **Sync reimbursed reports** only when it is enabled, you reimburse through Expensify, and a business bank account is connected. If **Workspaces > [workspace name] > Workflows > Payments > Currency conversion fees** is set to **Company pays**, each cross-border reimbursement exports a separate journal entry for the fee alongside the bill payment. This journal entry:
+- Debits the selected currency conversion fee account and credits cash
 - Uses the memo “Foreign Exchange Fees for Expensify report [reportID]”
 - Only exports if this account is mapped
 
@@ -202,4 +202,3 @@ Once enabled, select a **Reconciliation account** that matches your settlement a
 ## Will enabling auto-sync affect previously approved reports?
 
 No. Auto-sync only affects newly approved reports. Older approved or reimbursed reports must be exported manually if they weren’t synced before enabling auto-sync.
-

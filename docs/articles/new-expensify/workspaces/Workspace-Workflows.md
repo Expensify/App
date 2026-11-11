@@ -99,8 +99,8 @@ Who can pay reports depends on whether a business bank account is connected:
 
 For cross-border reimbursements, the **Currency conversion fees** setting in the **Payments** section controls whether your company or your employee absorbs the foreign exchange (FX) rate difference and conversion fee when a reimbursement is paid in a currency other than your workspace currency.
 
-1. Go to **Workflows**.
-2. Under **Payments**, set **Currency conversion fees** to one of the following:
+1. Go to **Workspaces > [workspace name] > Workflows > Payments > Currency conversion fees**.
+2. Select one of the following:
    - **Company pays** — Your company absorbs the FX rate difference and conversion fee, so the employee receives the full intended amount in their local currency. Your business bank account is debited more than the report total to cover these costs.
    - **Employee pays** — The employee absorbs the FX rate difference and conversion fee, so the amount deposited into their account can be less than the report total.
 
@@ -155,4 +155,3 @@ All automatic report submissions occur in the evening, based on the workspace **
 ## Can I automatically create separate reports for each of my credit cards?
 
 Not at this time. All expenses are collected into a single report and submitted based on the selected frequency.
-
