@@ -343,8 +343,10 @@ function DatePicker({
     // Digits that do not add up to a date read as no date at all, so a form with no rule about this field would accept
     // the entry in silence.
     const ownError = segmentInput.hasInvalidEntry ? translate('common.error.dateInvalid') : getRangeError(selectedDate);
-    // Nullish coalescing would keep an empty errorText, which is a form reporting no error rather than an empty one
-    const dateErrorText = errorText || ownError;
+    // Nullish coalescing would keep an empty errorText, which is a form reporting no error rather than an empty one.
+    // An unusable entry comes first, because the form only sees the empty date it reports and would call a field the
+    // user has typed into blank.
+    const dateErrorText = segmentInput.hasInvalidEntry ? ownError : errorText || ownError;
 
     // An entry part way through is never handed over, so the field still holds the date from before it. Saving that
     // would discard an edit the user is in the middle of, and the error is not shown because they are still making it.

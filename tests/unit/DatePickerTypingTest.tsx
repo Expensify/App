@@ -306,6 +306,28 @@ describe('DatePicker typing', () => {
         expect(screen.getByLabelText(SEGMENT_LABELS.year).props.value).toBe('1800');
     });
 
+    it('says what is wrong with an unusable entry rather than repeating the form rule it broke', async () => {
+        // Given a field a form has already called blank, which is what the empty date an unusable entry reports
+        // looks like from the outside
+        await renderDatePicker({
+            minDate: new Date('1900-01-01'),
+            maxDate: new Date('2100-12-31'),
+            errorText: 'This field is required',
+        });
+
+        // When digits that do not add up to a date are typed and focus then leaves the field
+        focusSegment(SEGMENT_LABELS.year);
+        pressKeys(SEGMENT_LABELS.year, ['2', '0', '2', '3']);
+        pressKeys(SEGMENT_LABELS.month, ['0', '2']);
+        pressKeys(SEGMENT_LABELS.day, ['3', '1']);
+        leaveFieldByTabbing();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the field says the date is unusable, since calling it blank would contradict the digits on screen
+        expect(screen.getByText('Please select a valid date')).toBeOnTheScreen();
+        expect(screen.queryByText('This field is required')).not.toBeOnTheScreen();
+    });
+
     it('restores a year taken apart by hand when the calendar is asked for the same year back', async () => {
         // Given a field holding a date whose year the user has taken the last digit out of, which is held back as no
         // date at all, so the field still reports the date it had before
