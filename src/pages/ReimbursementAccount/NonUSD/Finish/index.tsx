@@ -69,6 +69,7 @@ function Finish() {
                     <Text style={[styles.mb6, styles.mt3, styles.textLabelSupportingEmptyValue]}>{translate('finishStep.thanksFor')}</Text>
                     <View style={styles.mhn5}>
                         <MenuItemNavigation
+                            sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.FINISH_CHAT_WITH_CONCIERGE}
                             icon={icons.ChatBubble}
                             title={translate('finishStep.iHaveA')}
                             onPress={handleNavigateToConciergeChat}
@@ -84,6 +85,7 @@ function Finish() {
                         <Text style={[styles.mt3, styles.textLabelSupportingEmptyValue]}>{translate('finishStep.weTake')}</Text>
                     </View>
                     <MenuItemSectionRoot
+                        sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.FINISH_ENABLE_TWO_FACTOR_AUTH}
                         onPress={() => {
                             Navigation.navigate(getTwoFactorAuthRoute());
                         }}

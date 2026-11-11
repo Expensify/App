@@ -2366,6 +2366,12 @@ function queueBulkExpenseAction(action: BulkExpenseActionType, allMatchingQuery:
     }
 }
 
+/** Moves every report matching the search query that the user can move to the given workspace. */
+function queueBulkChangeReportPolicy(jsonQuery: string, policyID: string) {
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE);
+    write(WRITE_COMMANDS.QUEUE_BULK_CHANGE_REPORT_POLICY, {jsonQuery, policyID, bulkActionID}, onyxData);
+}
+
 /**
  * Queues a bulk approval for every report matching the given search query. The backend pages through all matches itself,
  * so this covers reports beyond the currently loaded page(s) when "Select all" is checked in Search.
@@ -2838,6 +2844,7 @@ export {
     queueBulkPayReports,
     queueBulkApproveReports,
     queueBulkSubmitReports,
+    queueBulkChangeReportPolicy,
     queueBulkMarkAsExported,
     updateAdvancedFilters,
     setSearchContext,

@@ -97,6 +97,7 @@ import {
 import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
 import type {SearchGroupKey} from '@libs/SearchUIUtils';
 import {
+    canChangeWorkspaceOfSearchReport,
     getAllMatchingExpenseActionQuery,
     getAllMatchingExportQueryAndExclusions,
     getColumnsToShow,
@@ -743,6 +744,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'Pencil',
         'Workflows',
         'Document',
+        'Buildings',
     ]);
 
     const {getCurrencyDecimals, getCurrencySymbol, convertToDisplayString} = useCurrencyListActions();
@@ -3081,6 +3083,27 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             },
         };
 
+        // The same rules as Change workspace on a single report, so exported or settled reports stay put.
+        const transactionsByReportID = getTransactionsByReportID(searchResults?.data ?? {});
+        const canChangeWorkspaceOfReport = (selectedReport: SelectedReports) =>
+            canChangeWorkspaceOfSearchReport({
+                report: getReportFromSearchSnapshot(selectedReport.reportID, searchResults?.data, allReports),
+                liveReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`],
+                reportTransactions: selectedReport.reportID ? transactionsByReportID.get(selectedReport.reportID) : undefined,
+                currentSearchResults: searchResults?.data,
+                allReportActions,
+                policies,
+                currentUserLogin,
+                personalDetails,
+            });
+        const changeWorkspaceOption: DropdownOption<SearchHeaderOptionValue> = {
+            icon: expensifyIcons.Buildings,
+            text: translate('iou.changeWorkspace'),
+            value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE,
+            shouldCloseModalOnSelect: true,
+            onSelected: () => Navigation.navigate(ROUTES.SEARCH_CHANGE_WORKSPACE_RHP),
+        };
+
         if (areAllMatchingItemsSelected) {
             // Approve and Submit are report actions, and the backend skips the matching reports the user can't act on.
             const shouldShowApproveOptionForAllMatchingItems =
@@ -3115,6 +3138,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
             if ((isExpenseType || isExpenseReportType) && canQueueExpenseAction && selectedTransactionsKeys.some((id) => selectedTransactions[id].canUnhold)) {
                 allMatchingOptions.push(unholdOption);
+            }
+            // The backend only moves the matching reports the user can move, so one movable loaded report is enough to offer it.
+            if (!isOffline && isExpenseReportType && selectedReports.some(canChangeWorkspaceOfReport)) {
+                allMatchingOptions.push(changeWorkspaceOption);
             }
             allMatchingOptions.push(exportButtonOption);
             if (isExpenseReportSearch) {
@@ -3242,6 +3269,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 shouldCloseModalOnSelect: true,
                 onSelected: () => navigateToSearchRHP(ROUTES.CHANGE_APPROVER_SEARCH_RHP),
             });
+        }
+
+        // The same as Select all, the reports that can't move are skipped and listed in the status modal.
+        if (!isOffline && isExpenseReportType && selectedReports.some(canChangeWorkspaceOfReport)) {
+            options.push(changeWorkspaceOption);
         }
 
         const uniqueSelectedReportIDsFromTransactions = new Set(

@@ -14,6 +14,7 @@ import {
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
 } from '@libs/actions/Search';
+import type * as SearchActions from '@libs/actions/Search';
 import type * as ReportSecondaryActionUtilsModule from '@libs/ReportSecondaryActionUtils';
 import {getSelectedGroupFilterEntry} from '@libs/SearchUIUtils';
 import type * as SearchUIUtilsModule from '@libs/SearchUIUtils';
@@ -57,6 +58,7 @@ jest.mock('@libs/actions/SplitExpenses.ts', () => ({
 }));
 
 jest.mock('@libs/actions/Search', () => ({
+    getReportActionsFromSearchSnapshot: jest.requireActual<typeof SearchActions>('@libs/actions/Search').getReportActionsFromSearchSnapshot,
     openSearchCardFiltersPage: jest.fn(),
     getExportTemplates: jest.fn(() => ({
         customTemplates: [{name: 'Custom template', templateName: 'customTemplate', type: 'in-app', policyID: undefined, description: ''}],
@@ -217,7 +219,7 @@ jest.mock('@hooks/useUndeleteTransactions', () => ({
 }));
 
 jest.mock('@libs/SearchUIUtils', () => {
-    const {getAllMatchingExpenseActionQuery, getAllMatchingExportQueryAndExclusions, getColumnsToShow, getTransactionsByReportID} =
+    const {canChangeWorkspaceOfSearchReport, getAllMatchingExpenseActionQuery, getAllMatchingExportQueryAndExclusions, getColumnsToShow, getTransactionsByReportID} =
         jest.requireActual<typeof SearchUIUtilsModule>('@libs/SearchUIUtils');
     const actualCONSTForSearchUIUtils = jest.requireActual<{default: typeof CONSTType}>('@src/CONST').default;
     return {
@@ -230,6 +232,7 @@ jest.mock('@libs/SearchUIUtils', () => {
         // The real validator, so the `groupBy === GROUP_BY.CARD` comparison is exercised against it rather than an identity stub.
         getValidGroupBy: jest.fn(jest.requireActual<{getValidGroupBy: (groupBy?: string) => string | undefined}>('@libs/SearchUIUtils').getValidGroupBy),
         getSearchColumnTranslationKey: jest.fn((column: string) => column),
+        canChangeWorkspaceOfSearchReport,
         getColumnsToShow,
         // The bulk pay check reads each report's expenses from the search snapshot, so keep the real lookup
         getTransactionsByReportID,

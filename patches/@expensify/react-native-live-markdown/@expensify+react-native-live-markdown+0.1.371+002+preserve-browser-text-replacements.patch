@@ -1,0 +1,69 @@
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/commonjs/MarkdownTextInput.web.js b/node_modules/@expensify/react-native-live-markdown/lib/commonjs/MarkdownTextInput.web.js
+index bbc563d..722ac96 100644
+--- a/node_modules/@expensify/react-native-live-markdown/lib/commonjs/MarkdownTextInput.web.js
++++ b/node_modules/@expensify/react-native-live-markdown/lib/commonjs/MarkdownTextInput.web.js
+@@ -12,6 +12,7 @@ var _InputHistory = _interopRequireDefault(require("./web/InputHistory.js"));
+ var _cursorUtils = require("./web/utils/cursorUtils.js");
+ require("./web/MarkdownTextInput.css");
+ var _inputUtils = require("./web/utils/inputUtils.js");
++var _browserUtils = _interopRequireDefault(require("./web/utils/browserUtils.js"));
+ var _webStyleUtils = require("./web/utils/webStyleUtils.js");
+ var _inlineImage = require("./web/inputElements/inlineImage.js");
+ var _jsxRuntime = require("react/jsx-runtime");
+@@ -248,8 +249,8 @@ const MarkdownTextInput = /*#__PURE__*/_react.default.forwardRef(({
+     const previousText = divRef.current.value;
+     let parsedText = (0, _inputUtils.normalizeValue)(inputType === 'pasteText' ? pasteContent.current || '' : (0, _inputUtils.parseInnerHTMLToText)(e.target, contentSelection.current.start, inputType, multiline));
+ 
+-    // Browsers may also remove nodes when inserting text (e.g. Firefox removes a trailing <br>), so if the DOM lost content, build the value from the inserted text instead
+-    if (inputType === 'insertText' && !isComposing && typeof nativeEvent.data === 'string') {
++    // Firefox can remove a trailing <br> while typing. Other browsers can replace text without first updating the cached selection, so preserve their DOM value.
++    if (_browserUtils.default.isFirefox && inputType === 'insertText' && !isComposing && typeof nativeEvent.data === 'string') {
+       const {
+         start,
+         end
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.web.js b/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.web.js
+index 802ab37..4477ef1 100644
+--- a/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.web.js
++++ b/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.web.js
+@@ -9,6 +9,7 @@ import InputHistory from "./web/InputHistory.js";
+ import { getCurrentCursorPosition, removeSelection, setCursorPosition } from "./web/utils/cursorUtils.js";
+ import './web/MarkdownTextInput.css';
+ import { getElementHeight, getPlaceholderValue, isEventComposing, normalizeValue, parseInnerHTMLToText } from "./web/utils/inputUtils.js";
++import BrowserUtils from "./web/utils/browserUtils.js";
+ import { idGenerator, parseToReactDOMStyle, processMarkdownStyle } from "./web/utils/webStyleUtils.js";
+ import { forceRefreshAllImages } from "./web/inputElements/inlineImage.js";
+ import { jsx as _jsx } from "react/jsx-runtime";
+@@ -240,8 +241,8 @@ const MarkdownTextInput = /*#__PURE__*/React.forwardRef(({
+     const previousText = divRef.current.value;
+     let parsedText = normalizeValue(inputType === 'pasteText' ? pasteContent.current || '' : parseInnerHTMLToText(e.target, contentSelection.current.start, inputType, multiline));
+ 
+-    // Browsers may also remove nodes when inserting text (e.g. Firefox removes a trailing <br>), so if the DOM lost content, build the value from the inserted text instead
+-    if (inputType === 'insertText' && !isComposing && typeof nativeEvent.data === 'string') {
++    // Firefox can remove a trailing <br> while typing. Other browsers can replace text without first updating the cached selection, so preserve their DOM value.
++    if (BrowserUtils.isFirefox && inputType === 'insertText' && !isComposing && typeof nativeEvent.data === 'string') {
+       const {
+         start,
+         end
+diff --git a/node_modules/@expensify/react-native-live-markdown/src/MarkdownTextInput.web.tsx b/node_modules/@expensify/react-native-live-markdown/src/MarkdownTextInput.web.tsx
+index 33ae63b..bcfa991 100644
+--- a/node_modules/@expensify/react-native-live-markdown/src/MarkdownTextInput.web.tsx
++++ b/node_modules/@expensify/react-native-live-markdown/src/MarkdownTextInput.web.tsx
+@@ -21,6 +21,7 @@ import {getCurrentCursorPosition, removeSelection, setCursorPosition} from './we
+ import './web/MarkdownTextInput.css';
+ import type {MarkdownStyle} from './MarkdownTextInputDecoratorViewNativeComponent';
+ import {getElementHeight, getPlaceholderValue, isEventComposing, normalizeValue, parseInnerHTMLToText} from './web/utils/inputUtils';
++import BrowserUtils from './web/utils/browserUtils';
+ import {idGenerator, parseToReactDOMStyle, processMarkdownStyle} from './web/utils/webStyleUtils';
+ import {forceRefreshAllImages} from './web/inputElements/inlineImage';
+ import type {MarkdownRange, InlineImagesInputProps} from './commonTypes';
+@@ -360,8 +361,8 @@ const MarkdownTextInput = React.forwardRef<MarkdownTextInput, MarkdownTextInputP
+           inputType === 'pasteText' ? pasteContent.current || '' : parseInnerHTMLToText(e.target as MarkdownTextInputElement, contentSelection.current.start, inputType, multiline),
+         );
+ 
+-        // Browsers may also remove nodes when inserting text (e.g. Firefox removes a trailing <br>), so if the DOM lost content, build the value from the inserted text instead
+-        if (inputType === 'insertText' && !isComposing && typeof nativeEvent.data === 'string') {
++        // Firefox can remove a trailing <br> while typing. Other browsers can replace text without first updating the cached selection, so preserve their DOM value.
++        if (BrowserUtils.isFirefox && inputType === 'insertText' && !isComposing && typeof nativeEvent.data === 'string') {
+           const {start, end} = contentSelection.current;
+           const expectedText = normalizeValue(previousText.slice(0, start) + nativeEvent.data + previousText.slice(end));
+           if (parsedText.length !== expectedText.length) {

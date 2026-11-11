@@ -386,6 +386,7 @@ export type {default as SetWorkspaceAutoHarvestingParams} from './SetWorkspaceAu
 export type {default as SetWorkspaceAutoReportingFrequencyParams} from './SetWorkspaceAutoReportingFrequencyParams';
 export type {default as SetGlobalReimbursementFXPreferenceParams} from './SetGlobalReimbursementFXPreferenceParams';
 export type {default as ToggleCollectDepositAccountsParams} from './ToggleCollectDepositAccountsParams';
+export type {default as SetReimbursementCountriesParams} from './SetReimbursementCountriesParams';
 export type {default as SetWorkspaceAutoReportingMonthlyOffsetParams} from './SetWorkspaceAutoReportingMonthlyOffsetParams';
 export type {default as UpdatePolicyTimezoneParams} from './UpdatePolicyTimezoneParams';
 export type {default as SetWorkspaceApprovalModeParams} from './SetWorkspaceApprovalModeParams';
@@ -706,6 +707,7 @@ export type {default as QueueBulkSubmitReportsParams} from './QueueBulkSubmitRep
 export type {default as QueueBulkHoldExpensesParams} from './QueueBulkHoldExpensesParams';
 export type {default as QueueBulkUnholdExpensesParams} from './QueueBulkUnholdExpensesParams';
 export type {default as QueueBulkRejectExpensesParams} from './QueueBulkRejectExpensesParams';
+export type {default as QueueBulkChangeReportPolicyParams} from './QueueBulkChangeReportPolicyParams';
 export type {default as QueueBulkMarkAsExportedParams} from './QueueBulkMarkAsExportedParams';
 export type {default as AssignReportToMeParams} from './AssignReportToMeParams';
 export type {default as AddReportApproverParams} from './AddReportApproverParams';

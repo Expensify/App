@@ -43,7 +43,7 @@ import {
 } from '@libs/TransactionUtils';
 import ViolationsUtils, {syncCustomUnitRateOutOfDateRangeViolation} from '@libs/Violations/ViolationsUtils';
 
-import {getMerchantRuleSuggestionRollback, trackMerchantRuleSuggestion} from '@userActions/MerchantRuleSuggestion';
+import {trackMerchantRuleSuggestion} from '@userActions/MerchantRuleSuggestion';
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import {stringifyWaypointsForAPI} from '@userActions/Transaction';
 
@@ -51,7 +51,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
-import type {MerchantRuleSuggestionField} from '@src/types/onyx/MerchantRuleSuggestion';
 import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
@@ -358,23 +357,6 @@ function updateMoneyRequestDate({
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, params, onyxData);
 }
 
-/**
- * Adds a tracked edit's rollback to the update carrying it, so a rejected edit takes its offer down with it. Must run
- * before the write, since the failure data is read when the request is queued.
- */
-function addMerchantRuleSuggestionRollback(
-    onyxData: OnyxData<UpdateMoneyRequestDataKeys>,
-    transactionID: string | undefined,
-    field: MerchantRuleSuggestionField,
-    editedTagLevels?: number[],
-) {
-    const rollback = getMerchantRuleSuggestionRollback(transactionID, field, editedTagLevels);
-    if (!rollback) {
-        return;
-    }
-    onyxData.failureData?.push(rollback);
-}
-
 /** Updates the billable field of an expense */
 function updateMoneyRequestBillable({
     transactionID,
@@ -446,7 +428,6 @@ function updateMoneyRequestBillable({
         getCurrencySymbol,
         rules,
     });
-    addMerchantRuleSuggestionRollback(onyxData, transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.BILLABLE);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_BILLABLE, params, onyxData);
     trackMerchantRuleSuggestion({
         transactionID,
@@ -532,7 +513,6 @@ function updateMoneyRequestReimbursable({
         getCurrencySymbol,
         rules,
     });
-    addMerchantRuleSuggestionRollback(onyxData, transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.REIMBURSABLE);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_REIMBURSABLE, params, onyxData);
     trackMerchantRuleSuggestion({
         transactionID,
@@ -907,8 +887,6 @@ type UpdateMoneyRequestTagParams = {
     tag: string;
     /** Which level of a multi-level tag was edited, so the "Create a rule" callout can seed that level alone */
     tagListIndex?: number;
-    /** Whether the edit came from a list of expenses, where the "Create a rule" callout has nowhere to appear */
-    isEditedFromExpenseList?: boolean;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
@@ -937,7 +915,6 @@ function updateMoneyRequestTag({
     iouReportOwnerLogin,
     tag,
     tagListIndex,
-    isEditedFromExpenseList,
     policy,
     policyTagList,
     policyRecentlyUsedTags,
@@ -986,14 +963,13 @@ function updateMoneyRequestTag({
     });
     // Callers that edit one level of a multi-level tag say which. The rest, like the Search table, hand over a whole
     // tag, so the edited levels come from comparing it with the one `transaction` still holds. Worked out before the
-    // write, because the rollback below forgets the same levels and the write reads its failure data when queued.
+    // write, because by the time the response lands the transaction already holds the new tag.
     let editedTagLevels: number[] | undefined;
     if (tagListIndex !== undefined) {
         editedTagLevels = [tagListIndex];
     } else if (transaction) {
         editedTagLevels = getChangedTagLevels(getTag(transaction), tag);
     }
-    addMerchantRuleSuggestionRollback(onyxData, transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAG, editedTagLevels);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAG, params, onyxData);
     trackMerchantRuleSuggestion({
         transactionID,
@@ -1004,7 +980,6 @@ function updateMoneyRequestTag({
         transaction,
         parentReport,
         editedTagLevels,
-        isEditedFromExpenseList,
     });
 }
 
@@ -1151,7 +1126,6 @@ function updateMoneyRequestTaxRate({
         rules,
     });
 
-    addMerchantRuleSuggestionRollback(onyxData, transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAX);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_RATE, params, onyxData);
     trackMerchantRuleSuggestion({
         transactionID,
@@ -1350,7 +1324,6 @@ function updateMoneyRequestCategory({
     parentReport,
     iouReportOwnerLogin,
     category,
-    isEditedFromExpenseList,
     policy,
     policyTagList,
     policyCategories,
@@ -1375,8 +1348,6 @@ function updateMoneyRequestCategory({
     parentReport: OnyxEntry<OnyxTypes.Report>;
     iouReportOwnerLogin: string | undefined;
     category: string;
-    /** Whether the edit came from a list of expenses, where the "Create a rule" callout has nowhere to appear */
-    isEditedFromExpenseList?: boolean;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
@@ -1421,7 +1392,6 @@ function updateMoneyRequestCategory({
         getCurrencySymbol,
         rules,
     });
-    addMerchantRuleSuggestionRollback(onyxData, transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.CATEGORY);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY, params, onyxData);
     trackMerchantRuleSuggestion({
         transactionID,
@@ -1431,7 +1401,6 @@ function updateMoneyRequestCategory({
         policyCategories,
         transaction,
         parentReport,
-        isEditedFromExpenseList,
     });
 }
 
@@ -1443,7 +1412,6 @@ function updateMoneyRequestDescription({
     parentReport,
     iouReportOwnerLogin,
     comment,
-    isEditedFromExpenseList,
     policy,
     policyTagList,
     policyCategories,
@@ -1468,8 +1436,6 @@ function updateMoneyRequestDescription({
     parentReport: OnyxEntry<OnyxTypes.Report>;
     iouReportOwnerLogin: string | undefined;
     comment: string;
-    /** Whether the edit came from a list of expenses, where the "Create a rule" callout has nowhere to appear */
-    isEditedFromExpenseList?: boolean;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
@@ -1532,7 +1498,6 @@ function updateMoneyRequestDescription({
     }
     const {params, onyxData} = data;
     params.description = parsedComment;
-    addMerchantRuleSuggestionRollback(onyxData, transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.DESCRIPTION);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION, params, onyxData);
     trackMerchantRuleSuggestion({
         transactionID,
@@ -1542,7 +1507,6 @@ function updateMoneyRequestDescription({
         policyCategories,
         transaction,
         parentReport,
-        isEditedFromExpenseList,
     });
 }
 
@@ -1988,7 +1952,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
           })
         : undefined;
 
-    const transactionDetails = getTransactionDetails(updatedTransaction, undefined, undefined, allowNegative);
+    const transactionDetails = getTransactionDetails(updatedTransaction, undefined, allowNegative);
 
     if (transactionDetails?.waypoints) {
         transactionDetails.waypoints = stringifyWaypointsForAPI(transactionDetails.waypoints as WaypointCollection);

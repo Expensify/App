@@ -23,6 +23,7 @@ const WRITE_COMMANDS = {
     SET_WORKSPACE_AUTO_REPORTING_FREQUENCY: 'SetWorkspaceAutoReportingFrequency',
     SET_GLOBAL_REIMBURSEMENT_FX_PREFERENCE: 'SetGlobalReimbursementFXPreference',
     TOGGLE_COLLECT_DEPOSIT_ACCOUNTS: 'ToggleCollectDepositAccounts',
+    SET_REIMBURSEMENT_COUNTRIES: 'SetReimbursementCountries',
     SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET: 'SetWorkspaceAutoReportingOffset',
     UPDATE_POLICY_TIMEZONE: 'UpdatePolicyTimezone',
     SET_WORKSPACE_APPROVAL_MODE: 'SetWorkspaceApprovalMode',
@@ -694,6 +695,7 @@ const WRITE_COMMANDS = {
     QUEUE_BULK_HOLD_EXPENSES: 'QueueBulkHoldExpenses',
     QUEUE_BULK_UNHOLD_EXPENSES: 'QueueBulkUnholdExpenses',
     QUEUE_BULK_REJECT_EXPENSES: 'QueueBulkRejectExpenses',
+    QUEUE_BULK_CHANGE_REPORT_POLICY: 'QueueBulkChangeReportPolicy',
     QUEUE_BULK_MARK_AS_EXPORTED: 'QueueBulkMarkAsExported',
     CREATE_WORKSPACE_APPROVAL: 'CreateWorkspaceApproval',
     UPDATE_WORKSPACE_APPROVAL: 'UpdateWorkspaceApproval',
@@ -1103,6 +1105,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_FREQUENCY]: Parameters.SetWorkspaceAutoReportingFrequencyParams;
     [WRITE_COMMANDS.SET_GLOBAL_REIMBURSEMENT_FX_PREFERENCE]: Parameters.SetGlobalReimbursementFXPreferenceParams;
     [WRITE_COMMANDS.TOGGLE_COLLECT_DEPOSIT_ACCOUNTS]: Parameters.ToggleCollectDepositAccountsParams;
+    [WRITE_COMMANDS.SET_REIMBURSEMENT_COUNTRIES]: Parameters.SetReimbursementCountriesParams;
     [WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET]: Parameters.SetWorkspaceAutoReportingMonthlyOffsetParams;
     [WRITE_COMMANDS.UPDATE_POLICY_TIMEZONE]: Parameters.UpdatePolicyTimezoneParams;
     [WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE]: Parameters.SetWorkspaceApprovalModeParams;
@@ -1584,6 +1587,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.QUEUE_BULK_HOLD_EXPENSES]: Parameters.QueueBulkHoldExpensesParams;
     [WRITE_COMMANDS.QUEUE_BULK_UNHOLD_EXPENSES]: Parameters.QueueBulkUnholdExpensesParams;
     [WRITE_COMMANDS.QUEUE_BULK_REJECT_EXPENSES]: Parameters.QueueBulkRejectExpensesParams;
+    [WRITE_COMMANDS.QUEUE_BULK_CHANGE_REPORT_POLICY]: Parameters.QueueBulkChangeReportPolicyParams;
     [WRITE_COMMANDS.QUEUE_BULK_MARK_AS_EXPORTED]: Parameters.QueueBulkMarkAsExportedParams;
     [WRITE_COMMANDS.EXPORT_REPORT_TO_CSV]: Parameters.ExportReportCSVParams;
     [WRITE_COMMANDS.CREATE_WORKSPACE_APPROVAL]: Parameters.CreateWorkspaceApprovalParams;
