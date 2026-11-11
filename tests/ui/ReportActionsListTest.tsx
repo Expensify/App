@@ -1590,7 +1590,8 @@ describe('ReportActionsList (body)', () => {
                 // Then only a loaded latest page is marked read; a cached survey alone cannot prove freshness
                 expect(getCapturedVisibleActions()).not.toContain(survey);
                 expect(markNewestActionAsRead).toHaveBeenCalledTimes(hasNewestPage ? 1 : 0);
-                expect(requestLiveTailJump).toHaveBeenCalledTimes(!hasNewestPage && !hasUnreadMarker ? 1 : 0);
+                const shouldRequestLiveTailJump = !hasNewestPage && !hasUnreadMarker;
+                expect(requestLiveTailJump).toHaveBeenCalledTimes(shouldRequestLiveTailJump ? 1 : 0);
                 if (hasUnreadMarker) {
                     expect(scrollToIndex).toHaveBeenCalledWith(0, {viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
                 } else if (hasNewestPage) {

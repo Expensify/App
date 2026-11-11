@@ -32,7 +32,12 @@ function useShouldSkipComposerAutoFocus(report: OnyxEntry<Report>): boolean {
     const [hasExpenseCarousel = false] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, {selector: hasExpenseCarouselSelector});
 
     const isExpenseView = isReportTransactionThread(report) || isOneTransactionReport(report);
-    return !isReady || (isWeb && routeName !== SCREENS.REPORT && hasExpenseCarousel && isExpenseView);
+    if (!isReady) {
+        return true;
+    }
+
+    const shouldPreserveExpenseNavigation = isWeb && routeName !== SCREENS.REPORT && hasExpenseCarousel && isExpenseView;
+    return shouldPreserveExpenseNavigation;
 }
 
 export default useShouldSkipComposerAutoFocus;

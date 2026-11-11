@@ -13,7 +13,8 @@ function useReportActionsListTelemetry({reportID, listID, loadedInitialViewportL
     const {report} = useReportActionsListState();
 
     useEffect(() => {
-        if (!isFocused || shouldShowInitialViewportSkeleton || loadedInitialViewportListID !== listID) {
+        const shouldWaitForVisibleViewport = !isFocused || shouldShowInitialViewportSkeleton || loadedInitialViewportListID !== listID;
+        if (shouldWaitForVisibleViewport) {
             return;
         }
         // onReady positions the list, but only this committed render has removed its cover.

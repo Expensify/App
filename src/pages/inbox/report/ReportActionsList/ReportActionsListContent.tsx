@@ -195,7 +195,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
 
     const {setIsReady} = useActionListReady();
     useEffect(() => {
-        setIsReady(shouldShowConciergeWelcome || (!shouldShowInitialViewportSkeleton && loadedInitialViewportListID === listID));
+        const isComposerReady = shouldShowConciergeWelcome || (!shouldShowInitialViewportSkeleton && loadedInitialViewportListID === listID);
+        setIsReady(isComposerReady);
     }, [listID, loadedInitialViewportListID, setIsReady, shouldShowConciergeWelcome, shouldShowInitialViewportSkeleton]);
 
     const {renderItem, extraData} = useReportActionsListRenderItem({

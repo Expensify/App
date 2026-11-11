@@ -25,7 +25,8 @@ function ChatReportActions({report}: ChatReportActionsProps) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const isAppLoadPending = useIsAppLoadPending();
     const isConciergeMainDM = isConciergeChatReport(report, conciergeReportID);
-    const hasRenderedReportActions = useInitial(isOffline || !isAppLoadPending || isConciergeMainDM ? true : undefined);
+    const shouldMountReportActions = isOffline || !isAppLoadPending || isConciergeMainDM;
+    const hasRenderedReportActions = useInitial(shouldMountReportActions ? true : undefined);
 
     if (!hasRenderedReportActions) {
         return (

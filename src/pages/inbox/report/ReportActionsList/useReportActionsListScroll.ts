@@ -125,7 +125,8 @@ function useReportActionsListScroll({
         // Revealing older actions can make a short session scrollable before the requested history page arrives.
         // Follow the tail only when the reader was actually there; the action-visible threshold is much wider.
         shouldRestoreTailAfterHistoryRevealRef.current = distanceFromBottomRef.current <= 1 && !hasNewerActions;
-        oldestLoadedActionIDAtHistoryRevealRef.current = shouldRestoreTailAfterHistoryRevealRef.current && hasOlderActions ? oldestLoadedActionID : undefined;
+        const shouldWaitForHistoryPage = shouldRestoreTailAfterHistoryRevealRef.current && hasOlderActions;
+        oldestLoadedActionIDAtHistoryRevealRef.current = shouldWaitForHistoryPage ? oldestLoadedActionID : undefined;
         if (shouldRestoreTailAfterHistoryRevealRef.current) {
             shouldFollowEndOnResizeRef.current = true;
         }
@@ -141,12 +142,15 @@ function useReportActionsListScroll({
             return;
         }
         const animationFrame = requestAnimationFrame(() => {
-            if (!shouldRestoreTailAfterHistoryRevealRef.current || !shouldFollowEndOnResizeRef.current) {
+            const shouldSkipTailRestoration = !shouldRestoreTailAfterHistoryRevealRef.current || !shouldFollowEndOnResizeRef.current;
+            if (shouldSkipTailRestoration) {
                 return;
             }
             legendListRef.current?.scrollToEnd({animated: false});
             const hasReceivedHistoryPage = oldestLoadedActionID !== oldestLoadedActionIDAtHistoryRevealRef.current || !hasOlderActions;
-            if (!oldestLoadedActionIDAtHistoryRevealRef.current || (!isLoadingOlderReportActions && (hasReceivedHistoryPage || hasLoadingOlderReportActionsError))) {
+            const hasFinishedHistoryReveal =
+                !oldestLoadedActionIDAtHistoryRevealRef.current || (!isLoadingOlderReportActions && (hasReceivedHistoryPage || hasLoadingOlderReportActionsError));
+            if (hasFinishedHistoryReveal) {
                 shouldRestoreTailAfterHistoryRevealRef.current = false;
             }
         });
@@ -160,7 +164,8 @@ function useReportActionsListScroll({
 
     const expandedFocusIndex = focusRequestedReportActionID ? (reportActionIDToDisplayIndex.get(focusRequestedReportActionID) ?? -1) : -1;
     useEffect(() => {
-        if (expandedFocusIndex < 0 || viewableRowIndexesRef.current.has(expandedFocusIndex)) {
+        const shouldSkipExpandedActionScroll = expandedFocusIndex < 0 || viewableRowIndexesRef.current.has(expandedFocusIndex);
+        if (shouldSkipExpandedActionScroll) {
             return;
         }
 
@@ -256,12 +261,14 @@ function useReportActionsListScroll({
     };
 
     const scheduleEndCorrection = () => {
-        if (readyEndListIDRef.current !== listID || !shouldFollowEndOnResizeRef.current || hasNewerActions || endCorrectionFrameRef.current !== undefined) {
+        const shouldSkipEndCorrection = readyEndListIDRef.current !== listID || !shouldFollowEndOnResizeRef.current || hasNewerActions || endCorrectionFrameRef.current !== undefined;
+        if (shouldSkipEndCorrection) {
             return;
         }
         endCorrectionFrameRef.current = requestAnimationFrame(() => {
             endCorrectionFrameRef.current = undefined;
-            if (readyEndListIDRef.current === listID && shouldFollowEndOnResizeRef.current) {
+            const shouldFollowListEnd = readyEndListIDRef.current === listID && shouldFollowEndOnResizeRef.current;
+            if (shouldFollowListEnd) {
                 legendListRef.current?.scrollToEnd({animated: false});
             }
         });
@@ -305,7 +312,8 @@ function useReportActionsListScroll({
     };
 
     const loadOlderChatsOnStartReached = () => {
-        if (showHiddenHistory || isOffline || !hasOlderActions || !oldestReportActionID || lastRequestedOldestActionIDRef.current === oldestReportActionID) {
+        const shouldSkipOlderPageRequest = showHiddenHistory || isOffline || !hasOlderActions || !oldestReportActionID || lastRequestedOldestActionIDRef.current === oldestReportActionID;
+        if (shouldSkipOlderPageRequest) {
             return;
         }
 
@@ -320,22 +328,26 @@ function useReportActionsListScroll({
         distanceFromBottomRef.current = distanceFromBottom;
         const isNearStart = contentOffset.y <= layoutMeasurement.height * PAGINATION_THRESHOLD;
         const previousMetrics = lastScrollMetricsRef.current;
-        if (readyEndListIDRef.current === listID && !hasNewerActions) {
+        const canFollowListEnd = readyEndListIDRef.current === listID && !hasNewerActions;
+        if (canFollowListEnd) {
             if (distanceFromBottom < CONST.REPORT.ACTIONS.AUTOSCROLL_TO_TOP_THRESHOLD) {
                 // A list opened at an unread or linked message can settle near the end. Following it from there would
                 // push that message out of view as rows resize, so wait until the list reaches the end or the user drags.
-                if (initialScrollIndex === undefined || distanceFromBottom <= 1 || userDraggedListIDRef.current === listID) {
+                const shouldFollowResizingEnd = initialScrollIndex === undefined || distanceFromBottom <= 1 || userDraggedListIDRef.current === listID;
+                if (shouldFollowResizingEnd) {
                     shouldFollowEndOnResizeRef.current = true;
                 }
-            } else if (
-                (previousMetrics && contentOffset.y < previousMetrics.offset - 1) ||
-                (previousMetrics &&
-                    previousMetrics.contentHeight === contentSize.height &&
-                    previousMetrics.viewportHeight === layoutMeasurement.height &&
-                    endCorrectionFrameRef.current === undefined)
-            ) {
-                // A pending history request must not reclaim the end after the reader has moved away.
-                stopFollowingEnd();
+            } else {
+                const hasReaderMovedAwayFromEnd =
+                    (previousMetrics && contentOffset.y < previousMetrics.offset - 1) ||
+                    (previousMetrics &&
+                        previousMetrics.contentHeight === contentSize.height &&
+                        previousMetrics.viewportHeight === layoutMeasurement.height &&
+                        endCorrectionFrameRef.current === undefined);
+                if (hasReaderMovedAwayFromEnd) {
+                    // A pending history request must not reclaim the end after the reader has moved away.
+                    stopFollowingEnd();
+                }
             }
         }
         lastScrollMetricsRef.current = {offset: contentOffset.y, contentHeight: contentSize.height, viewportHeight: layoutMeasurement.height};
@@ -384,7 +396,8 @@ function useReportActionsListScroll({
     });
     const isInitialViewportLoaded = loadedInitialViewportListID === listID;
     useEffect(() => {
-        if (!isInitialViewportLoaded || !shouldShowNewerActionsSkeleton) {
+        const shouldSkipLinkedPageRequest = !isInitialViewportLoaded || !shouldShowNewerActionsSkeleton;
+        if (shouldSkipLinkedPageRequest) {
             return;
         }
         const frame = requestAnimationFrame(loadNewerChatsBelowLinkedAction);
@@ -404,7 +417,8 @@ function useReportActionsListScroll({
     const recordTimeToMeasureItemLayout = (event: LayoutChangeEvent) => {
         onLayout?.(event);
         const state = legendListRef.current?.getState();
-        if (state && readyEndListIDRef.current === listID) {
+        const canMeasureBottomOffset = state && readyEndListIDRef.current === listID;
+        if (canMeasureBottomOffset) {
             const distanceFromBottom = Math.max(0, state.contentLength - state.scrollLength - state.scroll);
             scrollOffsetRef.current = distanceFromBottom;
             distanceFromBottomRef.current = distanceFromBottom;

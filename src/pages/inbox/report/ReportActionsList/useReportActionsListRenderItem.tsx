@@ -141,19 +141,22 @@ function useReportActionsListRenderItem({
         const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
 
         const collapsedSystemMessageRun = systemMessageRun && !systemMessageRun.isExpanded ? systemMessageRun : undefined;
+        const collapsedRunUnreadMarkerReportActionID =
+            unreadMarkerReportActionID && collapsedSystemMessageRun?.reportActionIDs.includes(unreadMarkerReportActionID) && (!shouldUseThreadDividerLine || !shouldHideThreadDividerLine)
+                ? unreadMarkerReportActionID
+                : undefined;
+        const shouldGroupWithPreviousActor =
+            !isAfterCollapsedRun &&
+            !shouldKeepBillPayActorHeader(reportAction, previousReportAction, reportStable, isInvoiceLinkedToBill) &&
+            !isConsecutiveChronosAutomaticTimerAction(reportActionsToRender, canonicalIndex, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
+            isConsecutiveActionMadeByPreviousActor(reportActionsToRender, canonicalIndex, isOffline);
 
         const row = (
             <ReportActionsListRow
                 index={index}
                 isNewest={index === listData.length - 1}
                 collapsedSystemMessageRun={collapsedSystemMessageRun}
-                collapsedSystemMessageRunUnreadMarkerReportActionID={
-                    unreadMarkerReportActionID &&
-                    collapsedSystemMessageRun?.reportActionIDs.includes(unreadMarkerReportActionID) &&
-                    (!shouldUseThreadDividerLine || !shouldHideThreadDividerLine)
-                        ? unreadMarkerReportActionID
-                        : undefined
-                }
+                collapsedSystemMessageRunUnreadMarkerReportActionID={collapsedRunUnreadMarkerReportActionID}
                 expandSystemMessageRun={expandSystemMessageRun}
                 onExpandedSystemMessageReady={reportAction.reportActionID === focusRequestedReportActionID ? onExpandedSystemMessageReady : undefined}
                 hasPreviousMessages={!!hasPreviousMessages}
@@ -166,12 +169,7 @@ function useReportActionsListRenderItem({
                 transactionThreadReport={transactionThreadReport}
                 chatReport={chatReportStable}
                 linkedReportActionID={linkedReportActionID}
-                displayAsGroup={
-                    !isAfterCollapsedRun &&
-                    !shouldKeepBillPayActorHeader(reportAction, previousReportAction, reportStable, isInvoiceLinkedToBill) &&
-                    !isConsecutiveChronosAutomaticTimerAction(reportActionsToRender, canonicalIndex, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
-                    isConsecutiveActionMadeByPreviousActor(reportActionsToRender, canonicalIndex, isOffline)
-                }
+                displayAsGroup={shouldGroupWithPreviousActor}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                 shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
                 shouldDisplayReplyDivider={reportActionsToRender.length > 1}

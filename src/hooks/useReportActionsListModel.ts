@@ -60,7 +60,8 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
     });
     // Cached actions shown offline already have a usable layout. Refresh them in place on reconnect,
     // and keep this visit loaded if its RAM-only entry briefly disappears during optimistic updates.
-    const hasOnceLoadedReportActions = useInitial(reportLoadingState?.hasOnceLoadedReportActions || (isOffline && reportActions.length > 0) ? true : undefined);
+    const hasUsableReportActions = reportLoadingState?.hasOnceLoadedReportActions || (isOffline && reportActions.length > 0);
+    const hasOnceLoadedReportActions = useInitial(hasUsableReportActions ? true : undefined);
     const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
     const isInitialReportLoadPending = !hasOnceLoadedReportActions && (isReportLoadPending || isLoadingInitialReportActions !== false);
     const isLoadingOlderReportActions = reportLoadingState?.isLoadingOlderReportActions;

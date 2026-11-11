@@ -42,7 +42,8 @@ function useReportActionsListData({sortedVisibleReportActions, isOffline, sessio
     // layouts. The hydrated list then mounts from scratch using the full dataset.
     const initialReportActionsSnapshot = useInitial(renderedVisibleReportActions.length > 0 ? renderedVisibleReportActions : undefined);
     const [hasReleasedInitialSnapshot, setHasReleasedInitialSnapshot] = useState(isOffline || !isInitialReportLoadPending || showFullHistory);
-    if (!hasReleasedInitialSnapshot && (isOffline || !isInitialReportLoadPending || showFullHistory)) {
+    const shouldReleaseInitialSnapshot = !hasReleasedInitialSnapshot && (isOffline || !isInitialReportLoadPending || showFullHistory);
+    if (shouldReleaseInitialSnapshot) {
         setHasReleasedInitialSnapshot(true);
     }
     const shouldKeepInitialSnapshot = !hasReleasedInitialSnapshot;

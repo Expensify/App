@@ -54,20 +54,25 @@ function useLinkedReportActionScroll({listID, linkedReportActionID, targetIndex,
     }, [isFocused]);
 
     const positionLinkedAction = useEffectEvent(() => {
-        if (!shouldPositionRef.current || targetIndex < 0) {
+        const shouldSkipPositioning = !shouldPositionRef.current || targetIndex < 0;
+        if (shouldSkipPositioning) {
             return;
         }
         // Once a reply follows a linked final action, normal live-tail following owns the viewport.
-        if (wasLastActionRef.current && !isLastAction) {
+        const didLinkedActionGainReplies = wasLastActionRef.current && !isLastAction;
+        if (didLinkedActionGainReplies) {
             shouldPositionRef.current = false;
             return;
         }
         wasLastActionRef.current = isLastAction;
-        if (Platform.OS === 'android' && !isLastAction && linkedReportActionID) {
+        const shouldCheckAndroidAnchor = Platform.OS === 'android' && !isLastAction && linkedReportActionID;
+        if (shouldCheckAndroidAnchor) {
             const state = getListRef()?.current?.getState?.();
             const position = state?.positionByKey(linkedReportActionID);
             if (position !== undefined && state?.scroll !== undefined && state.contentLength !== undefined && state.scrollLength !== undefined) {
-                const targetOffset = Math.max(0, Math.min(position + (state.headerSize ?? 0) - CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET, state.contentLength - state.scrollLength));
+                const linkedActionOffset = position + (state.headerSize ?? 0) - CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET;
+                const maximumScrollOffset = state.contentLength - state.scrollLength;
+                const targetOffset = Math.max(0, Math.min(linkedActionOffset, maximumScrollOffset));
                 // LegendList includes pending native anchoring in its scroll offset. An imperative
                 // scroll to that same offset would apply the height correction twice on Android.
                 if (Math.abs(targetOffset - state.scroll) <= 1) {
@@ -84,7 +89,8 @@ function useLinkedReportActionScroll({listID, linkedReportActionID, targetIndex,
     // Positioning scrolls LegendList imperatively, so it runs here where it can be cancelled. The size and scroll
     // handlers only bump measurementVersion, so a burst of measurements collapses into one scroll to the latest target.
     useEffect(() => {
-        if (!isFocused || !linkedReportActionID || readyListID !== listID || targetIndex < 0 || !shouldPositionRef.current) {
+        const shouldSkipPositioning = !isFocused || !linkedReportActionID || readyListID !== listID || targetIndex < 0 || !shouldPositionRef.current;
+        if (shouldSkipPositioning) {
             return;
         }
 
@@ -109,7 +115,8 @@ function useLinkedReportActionScroll({listID, linkedReportActionID, targetIndex,
     // On web, the reader can also scroll with the wheel, the scrollbar or the keyboard. Treat that input on the
     // scroll element like a native drag, which hands the viewport back to the reader.
     useEffect(() => {
-        if (Platform.OS !== 'web' || readyListID !== listID) {
+        const shouldSkipWebScrollListeners = Platform.OS !== 'web' || readyListID !== listID;
+        if (shouldSkipWebScrollListeners) {
             return;
         }
         const scrollElement = getListRef()?.current?.getScrollableNode?.();
@@ -134,7 +141,8 @@ function useLinkedReportActionScroll({listID, linkedReportActionID, targetIndex,
 
     const onReady = () => setReadyListID(listID);
     const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        if (!shouldPositionRef.current || readyListID !== listID || !linkedReportActionID || isLastAction) {
+        const shouldIgnoreLinkedActionScroll = !shouldPositionRef.current || readyListID !== listID || !linkedReportActionID || isLastAction;
+        if (shouldIgnoreLinkedActionScroll) {
             return;
         }
         const state = getListRef()?.current?.getState?.();
@@ -143,7 +151,9 @@ function useLinkedReportActionScroll({listID, linkedReportActionID, targetIndex,
             return;
         }
         const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent;
-        const targetOffset = Math.max(0, Math.min(position + (state?.headerSize ?? 0) - CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET, contentSize.height - layoutMeasurement.height));
+        const linkedActionOffset = position + (state?.headerSize ?? 0) - CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET;
+        const maximumScrollOffset = contentSize.height - layoutMeasurement.height;
+        const targetOffset = Math.max(0, Math.min(linkedActionOffset, maximumScrollOffset));
         // Native anchoring can commit after the row-size correction. Check the resulting viewport
         // as well, so that late adjustment cannot move a successfully positioned link out of view.
         if (Math.abs(targetOffset - contentOffset.y) > 1) {
@@ -151,7 +161,8 @@ function useLinkedReportActionScroll({listID, linkedReportActionID, targetIndex,
         }
     };
     const onItemSizeChanged = ({index, size, previous}: {index: number; size: number; previous: number}) => {
-        if (!shouldPositionRef.current || readyListID !== listID || index > targetIndex || size === previous) {
+        const shouldIgnoreItemSizeChange = !shouldPositionRef.current || readyListID !== listID || index > targetIndex || size === previous;
+        if (shouldIgnoreItemSizeChange) {
             return;
         }
         setMeasurementVersion((version) => version + 1);

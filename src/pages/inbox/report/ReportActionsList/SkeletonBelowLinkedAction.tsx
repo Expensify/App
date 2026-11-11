@@ -38,7 +38,8 @@ function SkeletonBelowLinkedAction({linkedActionIndex, hasNewerRows, onNewerRowM
         const checkNewerRowMeasured = () => {
             const listState = getListRef()?.current?.getState?.();
             // A row without a container is off screen, so there is nothing left to cover.
-            if (listState?.sizeAtIndex?.(linkedActionIndex + 1) === undefined && listState?.elementAtIndex?.(linkedActionIndex + 1)) {
+            const shouldWaitForNewerRowMeasurement = listState?.sizeAtIndex?.(linkedActionIndex + 1) === undefined && listState?.elementAtIndex?.(linkedActionIndex + 1);
+            if (shouldWaitForNewerRowMeasurement) {
                 frame = requestAnimationFrame(checkNewerRowMeasured);
                 return;
             }

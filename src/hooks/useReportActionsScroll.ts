@@ -192,12 +192,14 @@ function useReportActionsScroll({
     // Otherwise, prefer the linked action and fall back to the unread marker.
     // Sending from a link clears the route param to an empty string, which must not suppress unread positioning.
     let initialScrollKey = linkedReportActionID;
-    if (!shouldBeAlignedToTop && !linkedReportActionID && unreadMarkerReportActionID) {
+    const shouldPositionAtUnreadMarker = !shouldBeAlignedToTop && !linkedReportActionID && unreadMarkerReportActionID;
+    if (shouldPositionAtUnreadMarker) {
         initialScrollKey = unreadMarkerReportActionID;
     }
 
     // The CREATED action is the top anchor of an aligned-to-top report; scrolling to it is handled by shouldFocusToTopOnMount instead.
-    if (shouldBeAlignedToTop && initialScrollKey && sortedVisibleReportActionsObjects[initialScrollKey]?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+    const isCreatedActionTopAnchor = shouldBeAlignedToTop && initialScrollKey && sortedVisibleReportActionsObjects[initialScrollKey]?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
+    if (isCreatedActionTopAnchor) {
         initialScrollKey = undefined;
     }
 
@@ -229,7 +231,8 @@ function useReportActionsScroll({
         getVisibleIndexRange: () => {
             const list = getListRef()?.current;
             // getLayout is the one accessor that does not throw before FlashList has laid out
-            if (!list || (list.getLayout && !list.getLayout(0))) {
+            const isListLayoutPending = !list || (list.getLayout && !list.getLayout(0));
+            if (isListLayoutPending) {
                 return undefined;
             }
             const range = list.computeVisibleIndices?.();
@@ -355,7 +358,8 @@ function useReportActionsScroll({
     // page loads, so the link can open near the top like any other instead of at the end of a historical page. Removing
     // the skeleton with an intermediate page would shrink the content before LegendList sizes the new rows.
     const [newerActionsSkeletonListID, setNewerActionsSkeletonListID] = useState<string>();
-    if (isLinkedTargetLastRow && hasNewerActions && newerActionsSkeletonListID !== listID) {
+    const shouldStartLinkedActionSkeleton = isLinkedTargetLastRow && hasNewerActions && newerActionsSkeletonListID !== listID;
+    if (shouldStartLinkedActionSkeleton) {
         setNewerActionsSkeletonListID(listID);
     }
     const shouldShowNewerActionsSkeleton = hasNewerActions && (isLinkedTargetLastRow || newerActionsSkeletonListID === listID);

@@ -161,12 +161,14 @@ function useReportActionsNewActionLiveTail({
             callback: () => {
                 // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
                 // they are now in the list.
-                if (!isFromCurrentUser || (!isReportTopmostSplitNavigator() && !Navigation.getReportRHPActiveRoute())) {
+                const shouldIgnoreActionOutsideActiveReport = !isFromCurrentUser || (!isReportTopmostSplitNavigator() && !Navigation.getReportRHPActiveRoute());
+                if (shouldIgnoreActionOutsideActiveReport) {
                     return;
                 }
                 // A realtime echo can represent an edit or deletion, whereas local payload-less
                 // notifications from money requests still need the usual live-tail behavior.
-                if (!action && source === 'realtime') {
+                const isRealtimeEventWithoutAction = !action && source === 'realtime';
+                if (isRealtimeEventWithoutAction) {
                     return;
                 }
 
@@ -183,7 +185,8 @@ function useReportActionsNewActionLiveTail({
                 }
 
                 // Release the old pagination anchor so offline sends appear without waiting for openReport.
-                if (isOffline && linkedReportActionID && action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                const shouldReleaseOfflineLink = isOffline && linkedReportActionID && action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
+                if (shouldReleaseOfflineLink) {
                     liveTailJumpRef.current = {stage: 'await_prune'};
                     setTreatAsNoPaginationAnchor(true);
                     navigation.setParams({reportActionID: ''});
@@ -191,7 +194,8 @@ function useReportActionsNewActionLiveTail({
                 const index = renderedVisibleReportActions.findIndex((item) => item.reportActionID === action?.reportActionID);
                 if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                     setIsFloatingMessageCounterVisible(false);
-                    if (index >= 0 && index < renderedVisibleReportActions.length - 1) {
+                    const isPreviewBeforeNewestAction = index >= 0 && index < renderedVisibleReportActions.length - 1;
+                    if (isPreviewBeforeNewestAction) {
                         setTimeout(() => {
                             reportScrollManager.scrollToIndex(index);
                         }, 100);
@@ -258,7 +262,8 @@ function useReportActionsNewActionLiveTail({
             return;
         }
         // Offline jumps can only reach the newest cached page, which may not contain the newest server message.
-        if (!treatAsNoPaginationAnchor || (!isOffline && !hasNewestReportAction)) {
+        const shouldWaitForLiveTail = !treatAsNoPaginationAnchor || (!isOffline && !hasNewestReportAction);
+        if (shouldWaitForLiveTail) {
             return;
         }
 
