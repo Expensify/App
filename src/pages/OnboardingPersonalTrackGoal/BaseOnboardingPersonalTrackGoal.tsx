@@ -27,8 +27,10 @@ import {setOnboardingPersonalTrackGoal} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef} from 'react';
+import type {ValueOf} from 'type-fest';
 
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -36,6 +38,13 @@ import {View} from 'react-native';
 import type {BaseOnboardingPersonalTrackGoalProps} from './types';
 
 const personalTrackGoalOptions = Object.values(CONST.ONBOARDING_PERSONAL_TRACK_GOALS);
+
+const personalTrackGoalSentryLabels: Record<ValueOf<typeof CONST.ONBOARDING_PERSONAL_TRACK_GOALS>, SentryLabel> = {
+    [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.INVESTMENT_TRACKING]: CONST.SENTRY_LABEL.ONBOARDING.PERSONAL_TRACK_GOAL_ITEM.INVESTMENT_TRACKING,
+    [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.HOUSEHOLD_TRACKING]: CONST.SENTRY_LABEL.ONBOARDING.PERSONAL_TRACK_GOAL_ITEM.HOUSEHOLD_TRACKING,
+    [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SIDEPROJECT_TRACKING]: CONST.SENTRY_LABEL.ONBOARDING.PERSONAL_TRACK_GOAL_ITEM.SIDEPROJECT_TRACKING,
+    [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE]: CONST.SENTRY_LABEL.ONBOARDING.PERSONAL_TRACK_GOAL_ITEM.SOMETHING_ELSE,
+};
 
 function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnboardingPersonalTrackGoalProps) {
     const styles = useThemeStyles();
@@ -105,6 +114,7 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
     const continueButton = (
         <View style={[styles.w100, styles.mb5, styles.mh0, !shouldFooterBeInsideScrollView ? paddingHorizontal : undefined]}>
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.LARGE}
                 onPress={submitSomethingElseGoal}
@@ -152,6 +162,7 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
                         const isSelected = goal === selectedGoal;
                         return (
                             <MenuItem
+                                sentryLabel={personalTrackGoalSentryLabels[goal]}
                                 key={translationKey}
                                 title={translate(translationKey)}
                                 icon={menuIcons[goal]}

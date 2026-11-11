@@ -5,6 +5,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isMobileChrome, isMobileSafari} from '@libs/Browser';
+import {markHadTabNavigation} from '@libs/hadTabNavigation';
 import {isNumeric} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
@@ -21,6 +22,7 @@ import Animated, {useAnimatedStyle, useSharedValue, withDelay, withRepeat, withS
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 
 import FormHelpMessage from './FormHelpMessage';
+import FSClassView from './FSClassView';
 import Text from './Text';
 import TextInput from './TextInput';
 import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
@@ -169,12 +171,17 @@ function ValidateCodeInput({
     const shouldFocusLast = useRef(false);
     const inputWidth = useRef(0);
     const lastFocusedIndex = useRef(0);
+    const focusedIndexRef = useRef(focusedIndex);
     const lastValue = useRef<string | number>(TEXT_INPUT_EMPTY_STATE);
     const valueRef = useRef(value);
 
     useEffect(() => {
         lastValue.current = input.length;
     }, [input.length]);
+
+    useEffect(() => {
+        focusedIndexRef.current = focusedIndex;
+    }, [focusedIndex]);
 
     useEffect(() => {
         // Note: there are circumstances where the value state isn't updated yet
@@ -338,6 +345,49 @@ function ValidateCodeInput({
 
     useValidateCodePaste(inputRef, onChangeText);
 
+    // focus-trap listens for keydown on document in the capture phase and wraps Shift+Tab when this single input is the first
+    // tabbable node. onKeyPress only runs after that focus move, when onBlur has already cleared focusedIndex, so on web we
+    // move between slots from a window capture listener, which runs first, and stop the event before focus-trap sees it.
+    useEffect(() => {
+        if (typeof document === 'undefined') {
+            return;
+        }
+
+        const handleTabKeyDown = (event: globalThis.KeyboardEvent) => {
+            if (event.key !== 'Tab' || event.altKey || event.ctrlKey || event.metaKey || !inputRef.current) {
+                return;
+            }
+
+            // focus-trap compares document.activeElement with its first tabbable node, so on web that must be this input.
+            if (!isTextInputFocused(inputRef) || (inputRef.current instanceof HTMLElement && document.activeElement !== inputRef.current)) {
+                return;
+            }
+
+            const currentIndex = focusedIndexRef.current;
+            if (currentIndex === undefined) {
+                return;
+            }
+
+            const newFocusedIndex = event.shiftKey ? currentIndex - 1 : currentIndex + 1;
+            if (newFocusedIndex < 0 || newFocusedIndex >= maxLength) {
+                return;
+            }
+
+            // The document listener cannot record keyboard navigation once this event is stopped on window.
+            markHadTabNavigation();
+            event.preventDefault();
+            event.stopPropagation();
+            focusedIndexRef.current = newFocusedIndex;
+            setInputAndIndex(newFocusedIndex);
+        };
+
+        window.addEventListener('keydown', handleTabKeyDown, true);
+
+        return () => {
+            window.removeEventListener('keydown', handleTabKeyDown, true);
+        };
+    }, [maxLength, setInputAndIndex]);
+
     /**
      * Handles logic related to certain key presses.
      *
@@ -460,9 +510,9 @@ function ValidateCodeInput({
 
     return (
         <>
-            <View
+            <FSClassView
                 style={[styles.validateCodeInputContainer]}
-                fsClass={CONST.FULLSTORY.CLASS.MASK}
+                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             >
                 <GestureDetector gesture={tapGesture}>
                     {/* Android does not handle touch on invisible Views so I created a wrapper around invisible TextInput just to handle taps */}
@@ -547,7 +597,7 @@ function ValidateCodeInput({
                         </View>
                     );
                 })}
-            </View>
+            </FSClassView>
             {!!errorText && (
                 <FormHelpMessage
                     isError

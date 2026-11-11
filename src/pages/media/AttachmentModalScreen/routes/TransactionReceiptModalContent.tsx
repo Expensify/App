@@ -64,6 +64,20 @@ import {View} from 'react-native';
 
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
+/** Each press turns the PDF a quarter turn counter-clockwise. */
+function getNextPdfRotation(rotation: RotationDegrees): RotationDegrees {
+    switch (rotation) {
+        case 0:
+            return 270;
+        case 270:
+            return 180;
+        case 180:
+            return 90;
+        default:
+            return 0;
+    }
+}
+
 function TransactionReceiptModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.TRANSACTION_RECEIPT>) {
     const {reportID, transactionID, action, iouType: iouTypeParam, readonly: readonlyParam, mergeTransactionID, imageType, isEditingConfirmation, backToReport} = route.params;
 
@@ -350,8 +364,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 return imageUri;
             })
             .then((durableUri) => {
+                // Native image manipulation returns a plain result that points at a file URI, so only a web `File` can be copied into a new `File`.
                 const durableFile =
-                    typeof File !== 'undefined' && file instanceof File
+                    file instanceof File
                         ? Object.assign(new File([file], file.name || filename, {type: file.type}), {uri: durableUri, source: durableUri})
                         : {...file, uri: durableUri, source: durableUri};
                 if (isOdometerImage) {
@@ -535,6 +550,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         footerActionButtons = (
             <View style={[styles.flexRow, styles.gap2, styles.ph5, styles.pb5, styles.justifyContentCenter]}>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.RECEIPT_MODAL.CROP_CANCEL}
                     onPress={exitCropMode}
                     style={styles.transactionReceiptButton}
                 >
@@ -542,6 +558,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     <Button.Text>{translate('common.cancel')}</Button.Text>
                 </Button>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.RECEIPT_MODAL.CROP_SAVE}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={saveCrop}
                     isLoading={isCropSaving}
@@ -560,6 +577,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             <View style={[styles.flexRow, styles.gap2, styles.ph5, styles.pb5, styles.justifyContentCenter]}>
                 {!!shouldShowRotateAndCropReceiptButton && (
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.RECEIPT_MODAL.ROTATE}
                         onPress={rotateReceipt}
                         isLoading={isRotating}
                         isDisabled={isRotating}
@@ -571,6 +589,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 )}
                 {!!shouldShowRotateAndCropReceiptButton && (
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.RECEIPT_MODAL.CROP}
                         onPress={enterCropMode}
                         style={styles.transactionReceiptButton}
                     >
@@ -580,22 +599,8 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 )}
                 {isPDF && !isNative && (
                     <Button
-                        onPress={() =>
-                            setPdfRotation((prev) => {
-                                switch (prev) {
-                                    case 0:
-                                        return 270;
-                                    case 270:
-                                        return 180;
-                                    case 180:
-                                        return 90;
-                                    case 90:
-                                        return 0;
-                                    default:
-                                        return prev;
-                                }
-                            })
-                        }
+                        sentryLabel={CONST.SENTRY_LABEL.RECEIPT_MODAL.ROTATE_PDF}
+                        onPress={() => setPdfRotation(getNextPdfRotation)}
                         style={styles.transactionReceiptButton}
                     >
                         <Button.Icon src={expensifyIcons.Rotate} />
@@ -604,6 +609,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 )}
                 {(shouldShowReplaceReceiptButton || isOdometerImage) && (
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.RECEIPT_MODAL.REPLACE}
                         onPress={() => {
                             const getDestinationRoute = () => {
                                 return isOdometerImage
