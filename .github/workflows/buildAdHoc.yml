@@ -177,7 +177,7 @@ jobs:
           WEB: ${{ needs.buildWeb.result == 'failure' && 'failure' || needs.deployWebAdHoc.result }}
           ANDROID_LINK: ${{ needs.buildAndroid.outputs.ROCK_ARTIFACT_URL }}
           IOS_LINK: ${{ needs.buildIOS.outputs.ROCK_ARTIFACT_URL }}
-          WEB_LINK: https://${{ inputs.APP_PR_NUMBER }}.pr-testing.expensify.com
+          WEB_LINK: https://${{ inputs.APP_PR_NUMBER }}.adhoc.expensify.com
 
       - name: Publish links to apps for download on Expensify/Mobile-Expensify PR
         if: ${{ inputs.MOBILE_EXPENSIFY_PR != '' }}
@@ -222,7 +222,7 @@ jobs:
           script: |
             const prNumber = '${{ inputs.APP_PR_NUMBER }}';
             const webResult = '${{ needs.deployWebAdHoc.result }}';
-            const webLink = prNumber && webResult === 'success' ? `https://${prNumber}.pr-testing.expensify.com` : '';
+            const webLink = prNumber && webResult === 'success' ? `https://${prNumber}.adhoc.expensify.com` : '';
             const androidLink = '${{ needs.buildAndroid.outputs.ROCK_ARTIFACT_URL }}' || '';
             const iosLink = '${{ needs.buildIOS.outputs.ROCK_ARTIFACT_URL }}' || '';
             const mobileExpensifySHA = '${{ steps.getMobileExpensifySHA.outputs.SHA }}' || '';

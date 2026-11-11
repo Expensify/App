@@ -184,9 +184,9 @@ Never commit credentials or `.dev.vars` files here. This is a public repository.
 
 ## PR-testing Worker
 
-Every ad-hoc web build publishes that build's `src/index.ts` and matching web assets to a named [Worker Preview](https://developers.cloudflare.com/workers/previews/) under the existing `pr-testing-expensify` Worker. The Preview name is the PR number, so rebuilding updates that PR's Preview without changing another PR or the parent Worker's production deployment.
+Every ad-hoc web build publishes that build's `src/index.ts` and matching web assets to a named [Worker Preview](https://developers.cloudflare.com/workers/previews/) under the shared `adhoc` Worker. The Preview name is the PR number, so rebuilding updates that PR's Preview without changing another PR or the parent Worker's production deployment.
 
-The public URL stays `https://<PR number>.pr-testing.expensify.com` through a Preview-enabled custom domain on the parent Worker. Ordinary zone routes target production, not Previews. Previews use Workers Static Assets and staging settings, with no R2 or service bindings. A stale tab requesting a chunk absent from the new build gets a 404 and uses the existing reload recovery.
+The public URL is `https://<PR number>.adhoc.expensify.com` through a Preview-only custom domain on the parent Worker. The separate `pr-testing-expensify` Worker and its `*.pr-testing.expensify.com/*` route continue serving legacy S3-backed builds; this pipeline does not update either. Ordinary zone routes target production, not Previews. Previews use Workers Static Assets and staging settings, with no R2 or service bindings. A stale tab requesting a chunk absent from the new build gets a 404 and uses the existing reload recovery.
 
 Closing a PR does not delete its Preview. Cloudflare allows 500 Previews per Worker on paid plans and automatically evicts the least recently deployed Preview at that limit. Each Preview retains up to 100 deployments. These platform retention limits apply even without an application cleanup job.
 
@@ -211,7 +211,7 @@ The existing test-build authorization and reviewed-code confirmation still apply
 
 The `deployWebAdHoc` job runs tooling from the caller workflow's SHA, never from `APP_REF`. Authorized users can select a workflow branch for testing without merging it first. Downloaded artifacts cannot supply deployment targets, hooks or privileged bindings. Only compatibility date and flags are accepted from the branch's runtime manifest. `extractPRTestingAssets` copies validated regular files without following links or exposing source maps. Dependencies and build hooks run without Cloudflare credentials.
 
-The existing `CLOUDFLARE_WORKERS_DEPLOY_TOKEN` repository secret is exposed only to the deploy step. The account ID is configured directly in the workflow. Publication uses `wrangler preview --worker-name pr-testing-expensify --name <PR number>`, not a production deploy or a per-PR route update. Worker Previews are open beta and require Wrangler 4.135.0 or later.
+The existing `CLOUDFLARE_WORKERS_DEPLOY_TOKEN` repository secret is exposed only to the deploy step. The account ID is configured directly in the workflow. Publication uses `wrangler preview --worker-name adhoc --name <PR number>`, not a production deploy or a per-PR route update. Worker Previews are open beta and require Wrangler 4.135.0 or later.
 
 The generated `previews` configuration supplies staging variables, while Static Assets and compatibility settings stay at the top level. `--ignore-base-config` prevents new Previews from inheriting the parent's Preview Base settings. Do not manually attach secrets or privileged bindings to CI Previews: Cloudflare preserves existing Preview secrets across subsequent deployments.
 

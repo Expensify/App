@@ -46,12 +46,12 @@ describe('PR-testing Worker deployment', () => {
                 // When either endpoint fails to identify this build
                 const fetchImpl = async (url) => (new URL(url).pathname === invalidPath ? invalidResponse() : Response.json(IDENTITY));
                 // Then an older healthy response from the other endpoint cannot make verification succeed
-                await expect(verifyPreview('123.pr-testing.expensify.com', IDENTITY, fetchImpl, 1)).rejects.toThrow();
+                await expect(verifyPreview('123.adhoc.expensify.com', IDENTITY, fetchImpl, 1)).rejects.toThrow();
             }
         }
         // When both endpoints return the requested identity
         // Then matching code and asset identities pass verification
-        await expect(verifyPreview('123.pr-testing.expensify.com', IDENTITY, async () => Response.json(IDENTITY), 1)).resolves.toBeUndefined();
+        await expect(verifyPreview('123.adhoc.expensify.com', IDENTITY, async () => Response.json(IDENTITY), 1)).resolves.toBeUndefined();
     });
 
     test('the CLI provides usage and rejects invalid publishing requests without GitHub credentials', () => {
@@ -106,15 +106,15 @@ describe('PR-testing Worker deployment', () => {
             temporaryDirectories.push(packaged);
             const config = await Bun.file(path.join(packaged, 'wrangler.json')).json();
             // Then branch-selected hooks and privileged bindings cannot enter the deployment, and source maps stay private
-            expect(config.name).toBe('pr-testing-expensify');
+            expect(config.name).toBe('adhoc');
             expect(config.previews).toEqual({vars: {ENVIRONMENT: 'staging'}});
             expect([config.routes, config.vars]).toEqual([undefined, undefined]);
             const environment = {WRANGLER_CI_OVERRIDE_NAME: 'production', CLOUDFLARE_API_TOKEN: 'fixture-token'};
             const command = getPreviewCommand(123, 'preview.json', environment);
-            expect(command.args).toEqual(['preview', '--worker-name', 'pr-testing-expensify', '--name', '123', '--ignore-base-config', '--config', 'preview.json']);
+            expect(command.args).toEqual(['preview', '--worker-name', 'adhoc', '--name', '123', '--ignore-base-config', '--config', 'preview.json']);
             expect(command.env).toEqual({CLOUDFLARE_API_TOKEN: 'fixture-token'});
             expect(environment.WRANGLER_CI_OVERRIDE_NAME).toBe('production');
-            expect(getTarget(456).name).toBe('456');
+            expect(getTarget(456)).toEqual({name: '456', hostname: '456.adhoc.expensify.com'});
             expect(config.assets.binding).toBe('ASSETS');
             expect([config.build, config.r2_buckets, config.services]).toEqual([undefined, undefined, undefined]);
             expect(await Bun.file(path.join(packaged, 'dist/app.js.br')).bytes()).toEqual(new Uint8Array([1, 2, 3]));

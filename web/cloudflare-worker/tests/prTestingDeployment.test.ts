@@ -58,7 +58,7 @@ describe('Worker Preview runtime packaging', () => {
             const localConfigPath = path.join(directory, 'wrangler.local.json');
             writeFileSync(localConfigPath, JSON.stringify({...config, name: `preview-${prNumber}`, vars: config.previews.vars, routes: [`${getTarget(prNumber).hostname}/*`]}));
             const {rawConfig: deploymentConfig} = experimental_readRawConfig({config: path.join(directory, 'wrangler.json')});
-            assert.equal(deploymentConfig.name, 'pr-testing-expensify');
+            assert.equal(deploymentConfig.name, 'adhoc');
             assert.equal(deploymentConfig.routes, undefined);
             const dryRun = execFileSync(process.execPath, [path.join(WORKER_DIR, 'node_modules/wrangler/bin/wrangler.js'), 'deploy', '--dry-run', '--config', localConfigPath], {
                 encoding: 'utf8',
@@ -82,17 +82,17 @@ describe('Worker Preview runtime packaging', () => {
         // Given two separately compiled versions of the actual Worker entry point
         for (const prNumber of ['123', '456']) {
             // When each PR hostname is loaded
-            const response = await server.fetch(`https://${prNumber}.pr-testing.expensify.com/`);
+            const response = await server.fetch(`https://${prNumber}.adhoc.expensify.com/`);
             const html = await response.text();
             const nonce = /nonce="([^"]+)"/.exec(html)?.[1];
             // Then the branch-specific code runs with Static Assets and the real staging nonce/CSP policy
             assert.equal(response.headers.get('X-Preview-Branch'), `branch-${prNumber}`);
             assert.ok(nonce);
             assert.ok(response.headers.get('Content-Security-Policy')?.includes(`nonce-${nonce}`));
-            assert.deepEqual(await (await server.fetch(`https://${prNumber}.pr-testing.expensify.com/__expensify_preview`)).json(), identity);
-            assert.deepEqual(await (await server.fetch(`https://${prNumber}.pr-testing.expensify.com/preview-build.json`)).json(), identity);
-            const navigation = await server.fetch(`https://${prNumber}.pr-testing.expensify.com/r/123`, {headers: {'MF-Sec-Fetch-Mode': 'navigate'}});
-            const chunk = await server.fetch(`https://${prNumber}.pr-testing.expensify.com/main-ffffffffffffffff.bundle.js`);
+            assert.deepEqual(await (await server.fetch(`https://${prNumber}.adhoc.expensify.com/__expensify_preview`)).json(), identity);
+            assert.deepEqual(await (await server.fetch(`https://${prNumber}.adhoc.expensify.com/preview-build.json`)).json(), identity);
+            const navigation = await server.fetch(`https://${prNumber}.adhoc.expensify.com/r/123`, {headers: {'MF-Sec-Fetch-Mode': 'navigate'}});
+            const chunk = await server.fetch(`https://${prNumber}.adhoc.expensify.com/main-ffffffffffffffff.bundle.js`);
             assert.match(await navigation.text(), /window.preview/);
             assert.equal(chunk.status, 404);
         }
@@ -112,11 +112,11 @@ describe('Worker Preview runtime packaging', () => {
         // When workerd loads the updated version
         await server.update({workers: [...directories.values()].map((root) => ({configPath: path.join(root, 'wrangler.local.json')}))});
         // Then PR 123 serves the new code/assets while PR 456 remains unchanged
-        assert.equal((await server.fetch('https://123.pr-testing.expensify.com/')).headers.get('X-Preview-Branch'), 'branch-123-v2');
-        assert.deepEqual(await (await server.fetch('https://123.pr-testing.expensify.com/preview-build.json')).json(), nextIdentity);
-        assert.deepEqual(await (await server.fetch('https://123.pr-testing.expensify.com/__expensify_preview')).json(), nextIdentity);
-        assert.equal((await server.fetch('https://456.pr-testing.expensify.com/')).headers.get('X-Preview-Branch'), 'branch-456');
-        assert.deepEqual(await (await server.fetch('https://456.pr-testing.expensify.com/__expensify_preview')).json(), identity);
-        assert.deepEqual(await (await server.fetch('https://456.pr-testing.expensify.com/preview-build.json')).json(), identity);
+        assert.equal((await server.fetch('https://123.adhoc.expensify.com/')).headers.get('X-Preview-Branch'), 'branch-123-v2');
+        assert.deepEqual(await (await server.fetch('https://123.adhoc.expensify.com/preview-build.json')).json(), nextIdentity);
+        assert.deepEqual(await (await server.fetch('https://123.adhoc.expensify.com/__expensify_preview')).json(), nextIdentity);
+        assert.equal((await server.fetch('https://456.adhoc.expensify.com/')).headers.get('X-Preview-Branch'), 'branch-456');
+        assert.deepEqual(await (await server.fetch('https://456.adhoc.expensify.com/__expensify_preview')).json(), identity);
+        assert.deepEqual(await (await server.fetch('https://456.adhoc.expensify.com/preview-build.json')).json(), identity);
     });
 });

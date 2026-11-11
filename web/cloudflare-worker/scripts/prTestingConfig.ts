@@ -8,13 +8,13 @@ type WorkerRuntime = {compatibility_date: string; compatibility_flags: string[]}
 type ExtractAssets = (archive: string, destination: string) => void | Promise<void>;
 
 const STATUS_PATH = '/__expensify_preview';
-const WORKER_NAME = 'pr-testing-expensify';
+const WORKER_NAME = 'adhoc';
 
 function getTarget(prNumber: unknown) {
     if ((typeof prNumber !== 'string' && typeof prNumber !== 'number') || !/^[1-9]\d*$/.test(String(prNumber)) || !Number.isSafeInteger(Number(prNumber))) {
         throw new Error('A positive numeric PR number is required');
     }
-    return {name: String(prNumber), hostname: `${prNumber}.pr-testing.expensify.com`};
+    return {name: String(prNumber), hostname: `${prNumber}.adhoc.expensify.com`};
 }
 
 function getPreviewCommand(prNumber: unknown, configPath: string, environment: Record<string, string | undefined>) {
