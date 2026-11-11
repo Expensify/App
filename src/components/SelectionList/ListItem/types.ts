@@ -55,6 +55,9 @@ type ListItem<K extends string | number = string> = {
     /** Content rendered beside the text (e.g. a badge or inline icon) */
     rightElement?: ReactNode;
 
+    /** Content rendered on the title's line, right after the title (e.g. a "New" badge). Only `SingleSelectListItem` renders it. */
+    titleRightElement?: ReactNode;
+
     /** Standalone control (e.g. a button) rendered after the selection button at the row's end */
     actionElement?: ReactNode;
 

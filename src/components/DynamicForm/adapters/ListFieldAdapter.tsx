@@ -3,6 +3,7 @@ import type {DynamicFormValues} from '@components/DynamicForm/types';
 import getAnswerKeys from '@components/DynamicForm/utils/getAnswerKeys';
 import hasSensitiveAnswer from '@components/DynamicForm/utils/hasSensitiveAnswer';
 import summarizeListItem, {getNumberedItemTitle} from '@components/DynamicForm/utils/summarizeListItem';
+import FSClassView from '@components/FSClassView';
 import ListField from '@components/ListField';
 import type {ListFieldHandle} from '@components/ListField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -169,9 +170,9 @@ function ListFieldAdapter({
     // ListField takes no FullStory class, so the mask goes on a View around it
     return (
         <>
-            <View
+            <FSClassView
                 ref={containerRef}
-                fsClass={forwardedFSClass}
+                forwardedFSClass={forwardedFSClass}
             >
                 <ListField
                     ref={listFieldRef}
@@ -184,7 +185,7 @@ function ListFieldAdapter({
                     onEdit={onEdit ?? ((id) => openModal(items.find((item) => item.id === id)))}
                     onRemove={confirmRemoval}
                 />
-            </View>
+            </FSClassView>
             {!onAdd && (
                 <DynamicFormListItemModal
                     isVisible={!!editingID}

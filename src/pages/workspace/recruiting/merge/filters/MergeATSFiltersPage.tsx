@@ -27,6 +27,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -56,24 +57,27 @@ function MergeATSFiltersPage({
 
     const providerName = getConnectedATSProvider(policy)?.displayName ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.merge_ats;
 
-    const filterRows: Array<{filterType: MergeATSFilterType; toggleTitle: string; rowDescription: string; switchSentryLabel: string}> = [
+    const filterRows: Array<{filterType: MergeATSFilterType; toggleTitle: string; rowDescription: string; switchSentryLabel: SentryLabel; rowSentryLabel: SentryLabel}> = [
         {
             filterType: CONST.MERGE.ATS_FILTER_TYPE.STAGES,
             toggleTitle: translate('workspace.recruiting.filters.stages.toggleTitle'),
             rowDescription: translate('workspace.recruiting.filters.stages.title'),
             switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RECRUITING.MERGE_ATS_STAGES_FILTER_SWITCH,
+            rowSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RECRUITING.MERGE_ATS_FILTER_ROW.STAGES,
         },
         {
             filterType: CONST.MERGE.ATS_FILTER_TYPE.TAGS,
             toggleTitle: translate('workspace.recruiting.filters.tags.toggleTitle'),
             rowDescription: translate('workspace.recruiting.filters.tags.title'),
             switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RECRUITING.MERGE_ATS_TAGS_FILTER_SWITCH,
+            rowSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RECRUITING.MERGE_ATS_FILTER_ROW.TAGS,
         },
         {
             filterType: CONST.MERGE.ATS_FILTER_TYPE.OFFICES,
             toggleTitle: translate('workspace.recruiting.filters.offices.toggleTitle'),
             rowDescription: translate('workspace.recruiting.filters.offices.title'),
             switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RECRUITING.MERGE_ATS_OFFICES_FILTER_SWITCH,
+            rowSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RECRUITING.MERGE_ATS_FILTER_ROW.OFFICES,
         },
     ];
 
@@ -112,7 +116,7 @@ function MergeATSFiltersPage({
                         pendingAction={mergeATS?.config.pendingFields?.filters}
                         contentContainerStyle={[styles.gap3]}
                     >
-                        {filterRows.map(({filterType, toggleTitle, rowDescription, switchSentryLabel}, index) => (
+                        {filterRows.map(({filterType, toggleTitle, rowDescription, switchSentryLabel, rowSentryLabel}, index) => (
                             <React.Fragment key={filterType}>
                                 <ToggleSettingOptionRow
                                     title={toggleTitle}
@@ -125,6 +129,7 @@ function MergeATSFiltersPage({
                                         <>
                                             <View style={styles.mv3}>
                                                 <MenuItemField
+                                                    sentryLabel={rowSentryLabel}
                                                     name={rowDescription}
                                                     value={getMergeATSFilterLabel(filterType, filters, mergeATS?.data, translate)}
                                                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS_FILTER.getRoute(policyID, filterType))}
@@ -147,6 +152,7 @@ function MergeATSFiltersPage({
                         />
                     )}
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RECRUITING.MERGE_ATS_FILTERS_SAVE}
                         size={CONST.BUTTON_SIZE.LARGE}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={handleSave}
