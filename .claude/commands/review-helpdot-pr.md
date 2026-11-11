@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(postPrComment.sh:*),Bash(gh pr diff:*),Bash(gh pr view:*),mcp__github_inline_comment__create_inline_comment
+allowed-tools: Bash(gh pr diff:*),Bash(gh pr view:*),mcp__github_inline_comment__create_inline_comment
 description: Review a HelpDot documentation pull request
 ---
 
@@ -19,9 +19,9 @@ Use the helpdot-inline-reviewer agent to:
 Use the helpdot-summary-reviewer agent to:
 - Analyze the overall quality of all changes using the governance criteria
 - Provide comprehensive assessment with scoring
-- Post one top-level PR comment with summary and recommendations
+- Return the summary markdown without posting it
 
-Run both agents and ensure their feedback is posted to the PR.
+Run both agents. Return the summary reviewer's markdown unchanged as `summary` in your structured output; the workflow posts it as a top-level PR comment.
 
 <important>
 Keep feedback concise.

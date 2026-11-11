@@ -84,9 +84,6 @@ jobs:
         run: |
           addPrReaction.sh "$PR_NUMBER" "eyes"
 
-      - name: Add review scripts to PATH
-        run: echo "$GITHUB_WORKSPACE/.claude/scripts" >> "$GITHUB_PATH"
-
       - name: Setup Node
         if: steps.skip.outputs.skip != 'true' && (steps.filter.outputs.code == 'true' || steps.filter.outputs.docs == 'true')
         uses: ./.github/actions/composite/setupNode
@@ -126,7 +123,20 @@ jobs:
           claude_args: |
             --model claude-opus-4-8
             --effort high
-            --allowedTools "Task,Glob(./**),Grep(./**),Read(./**),Bash(postPrComment.sh:*),Bash(gh pr diff:*),Bash(gh pr view:*),mcp__github_inline_comment__create_inline_comment" --disallowedTools "Read(//proc/**),Grep(//proc/**),Glob(//proc/**)"
+            --allowedTools "Task,Glob(./**),Grep(./**),Read(./**),Bash(gh pr diff:*),Bash(gh pr view:*),mcp__github_inline_comment__create_inline_comment" --disallowedTools "Read(//proc/**),Grep(//proc/**),Glob(//proc/**)" --json-schema '{"type":"object","properties":{"summary":{"type":"string"}},"required":["summary"]}'
+
+      - name: Post docs review summary
+        if: steps.docs-review.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STRUCTURED_OUTPUT: ${{ steps.docs-review.outputs.structured_output }}
+        run: |
+          SUMMARY=$(jq -r '.summary // empty' <<< "$STRUCTURED_OUTPUT")
+          if [[ -z "$SUMMARY" ]]; then
+            echo "::warning::Docs review returned no summary"
+            exit 0
+          fi
+          gh pr comment "$PR_NUMBER" --body "$SUMMARY"
 
       - name: Upload docs transcript
         if: always() && steps.docs-review.outputs.execution_file != ''
