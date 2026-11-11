@@ -56,8 +56,27 @@ describe('MembersNeedCategoryError', () => {
         const result = await membersNeedCategoryError(Promise.resolve(response), buildDisableRequest(), true);
 
         // Then the modal is signalled for that workspace, those members and both categories, and the response is untouched
-        expect(await getModalSignal()).toEqual({policyID: POLICY_ID, accountIDs: [2, 3], categoryNames: ['Fuel', 'Meals']});
+        expect(await getModalSignal()).toEqual({policyID: POLICY_ID, accountIDs: [2, 3], categoryNames: ['Fuel', 'Meals'], isRemovingAccess: false});
         expect(result).toBe(response);
+    });
+
+    it('signals the remove-access modal when the backend rejects a change to who can use a category', async () => {
+        // Given the backend rejected removing two members from Fees, since it's the only category they can use
+        const request: Request<OnyxKey> = {
+            command: WRITE_COMMANDS.SET_POLICY_CATEGORY_MEMBER_VISIBILITY,
+            data: {
+                policyID: POLICY_ID,
+                categoryNames: JSON.stringify(['Fees']),
+                selectedAccountIDList: JSON.stringify([1]),
+                deselectedAccountIDList: JSON.stringify([2, 3]),
+            },
+        };
+
+        // When the response passes through the middleware
+        await membersNeedCategoryError(Promise.resolve(buildResponse()), request, true);
+
+        // Then the modal is signalled with the category's plain name and the remove-access title, since Fees stays enabled
+        expect(await getModalSignal()).toEqual({policyID: POLICY_ID, accountIDs: [2, 3], categoryNames: ['Fees'], isRemovingAccess: true});
     });
 
     it('does nothing when the disable succeeded', async () => {

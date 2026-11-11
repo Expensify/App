@@ -20,6 +20,7 @@ import type {
     SetPolicyCategoryMaxAmountParams,
     SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams,
     SetPolicyCategoryReceiptsRequiredParams,
+    SetPolicyCategoryMemberVisibilityParams,
     SetPolicyCategoryTaxParams,
     SetPolicyMemberCategoryVisibilityParams,
     SetPolicyShowCategoryGLCodesParams,
@@ -2236,9 +2237,116 @@ function setPolicyMemberCategoryVisibility(
     API.write(WRITE_COMMANDS.SET_POLICY_MEMBER_CATEGORY_VISIBILITY, parameters, onyxData);
 }
 
+/**
+ * Sets which members can use the given categories, from the category side. Unlike setPolicyMemberCategoryVisibility,
+ * the server works out each member's new list of categories, so only the categories being changed are updated here.
+ * A member who gets a new restriction also changes other categories' visibleTo, and that comes from the server's MERGE.
+ *
+ * Deselecting every member disables the categories instead, since a category nobody can use shouldn't stay enabled.
+ */
+function setPolicyCategoryMemberVisibility(policyID: string, categoryNames: string[], selectedAccountIDs: number[], deselectedAccountIDs: number[], policyCategories: PolicyCategories) {
+    const isEveryMemberSelected = deselectedAccountIDs.length === 0;
+    const isEveryMemberDeselected = selectedAccountIDs.length === 0;
+    const optimisticCategories: Record<string, NullishDeep<PolicyCategory>> = {};
+    const successCategories: Record<string, NullishDeep<PolicyCategory>> = {};
+    const failureCategories: Record<string, NullishDeep<PolicyCategory>> = {};
+
+    // visibleTo is merged, so members are added with true and removed with null, and null for the whole field opens the
+    // category to everyone. The patch is the same for every category, while the failure patch below depends on each one.
+    const optimisticVisibleTo = isEveryMemberSelected
+        ? null
+        : {
+              ...Object.fromEntries(deselectedAccountIDs.map((accountID) => [accountID, null])),
+              ...Object.fromEntries(selectedAccountIDs.map((accountID) => [accountID, true])),
+          };
+
+    for (const categoryName of categoryNames) {
+        const category = policyCategories[categoryName];
+        const previousVisibleTo = category?.visibleTo ?? null;
+
+        if (isEveryMemberDeselected) {
+            // The server also puts the category back in every member's row, so visibleTo is left for its MERGE and the
+            // category is open to everyone again if an admin re-enables it.
+            optimisticCategories[categoryName] = {
+                enabled: false,
+                errors: null,
+                pendingFields: {enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            };
+            successCategories[categoryName] = {
+                pendingFields: {enabled: null},
+            };
+            failureCategories[categoryName] = {
+                enabled: category?.enabled,
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.updateFailureMessage'),
+                pendingFields: {enabled: null},
+            };
+            continue;
+        }
+
+        if (isEveryMemberSelected && !previousVisibleTo) {
+            continue;
+        }
+
+        // The failure patch removes the members the optimistic patch added, then puts back every member the category had.
+        const failureVisibleTo = previousVisibleTo
+            ? {
+                  ...Object.fromEntries(selectedAccountIDs.filter((accountID) => !previousVisibleTo[accountID]).map((accountID) => [accountID, null])),
+                  ...previousVisibleTo,
+              }
+            : null;
+
+        optimisticCategories[categoryName] = {
+            visibleTo: optimisticVisibleTo,
+            errors: null,
+            pendingFields: {visibleTo: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+        };
+        successCategories[categoryName] = {
+            pendingFields: {visibleTo: null},
+        };
+        failureCategories[categoryName] = {
+            visibleTo: failureVisibleTo,
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.updateFailureMessage'),
+            pendingFields: {visibleTo: null},
+        };
+    }
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: optimisticCategories,
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: successCategories,
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: failureCategories,
+            },
+        ],
+    };
+
+    const parameters: SetPolicyCategoryMemberVisibilityParams = {
+        policyID,
+        categoryNames: JSON.stringify(categoryNames),
+        selectedAccountIDList: JSON.stringify(selectedAccountIDs),
+        deselectedAccountIDList: JSON.stringify(deselectedAccountIDs),
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_MEMBER_VISIBILITY, parameters, onyxData);
+}
+
 /** Signals the "Cannot disable category" modal for members the backend refused to leave without a category. */
-function setMembersNeedCategoryModal(policyID: string, accountIDs: number[], categoryNames: string[]) {
-    Onyx.set(ONYXKEYS.RAM_ONLY_MEMBERS_NEED_CATEGORY_MODAL, {policyID, accountIDs, categoryNames});
+function setMembersNeedCategoryModal(policyID: string, accountIDs: number[], categoryNames: string[], isRemovingAccess = false) {
+    Onyx.set(ONYXKEYS.RAM_ONLY_MEMBERS_NEED_CATEGORY_MODAL, {policyID, accountIDs, categoryNames, isRemovingAccess});
 }
 
 /** Clears the signal for the "Cannot disable category" modal once it has been shown. */
@@ -2365,6 +2473,7 @@ export {
     setPolicyCategoryTaxes,
     setPolicyCustomUnitDefaultCategory,
     setMembersNeedCategoryModal,
+    setPolicyCategoryMemberVisibility,
     setPolicyMemberCategoryVisibility,
     setWorkspaceCategoryDescriptionHint,
     setWorkspaceCategoryEnabled,

@@ -7129,9 +7129,17 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 title: 'Impossible de supprimer ou de désactiver toutes les catégories',
                 description: `Au moins une catégorie doit rester activée, car votre espace de travail exige des catégories.`,
             },
+            visibleTo: 'Visible par',
+            membersCount: ({count}: {count: number}) => ({
+                one: `${count} membre`,
+                other: `${count} membres`,
+            }),
+            visibleToDescription: ({categoryName}: {categoryName: string}) => `Choisissez les membres qui peuvent utiliser la catégorie ${categoryName} lors de la soumission des dépenses.`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Impossible de désactiver ${categoryName}`,
                 bulkTitle: 'Impossible de désactiver ces catégories',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `Impossible de retirer l’accès à ${categoryName}`,
+                bulkRemoveAccessTitle: 'Impossible de retirer l’accès à ces catégories',
                 description: ({count}: {count: number}) => ({
                     one: '1 membre n’aurait plus aucune catégorie à sélectionner. Mettez à jour la visibilité de ses catégories, puis réessayez :',
                     other: `${count} membres se retrouveraient sans aucune catégorie à choisir. Mettez à jour la visibilité de leurs catégories, puis réessayez :`,

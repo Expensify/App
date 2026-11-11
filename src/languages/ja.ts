@@ -6967,9 +6967,17 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: 'すべてのカテゴリを削除または無効にすることはできません',
                 description: `ワークスペースでカテゴリが必須のため、少なくとも1つのカテゴリは有効のままにする必要があります。`,
             },
+            visibleTo: '表示対象',
+            membersCount: ({count}: {count: number}) => ({
+                one: '1人のメンバー',
+                other: `${count}人のメンバー`,
+            }),
+            visibleToDescription: ({categoryName}: {categoryName: string}) => `経費を提出するときに${categoryName}カテゴリを使用できるメンバーを選択してください。`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `${categoryName}を無効にできません`,
                 bulkTitle: 'これらのカテゴリーは無効にできません',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `${categoryName}へのアクセスを削除できません`,
+                bulkRemoveAccessTitle: 'これらのカテゴリーへのアクセスを削除できません',
                 description: ({count}: {count: number}) => ({
                     one: '1人のメンバーが選択できるカテゴリがなくなってしまいます。該当メンバーのカテゴリの表示設定を更新してから、もう一度お試しください。',
                     other: `${count} 人のメンバーが選択できるカテゴリがなくなります。これらのメンバーのカテゴリの表示設定を更新してから、もう一度お試しください。`,

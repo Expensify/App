@@ -18,7 +18,7 @@ function MembersNeedCategoryModal() {
 
     // An effect event, so only a new signal shows the modal, not the member list or translations changing while it's open.
     const showModal = useEffectEvent((signal: MembersNeedCategoryModalSignal) => {
-        showMembersNeedCategoryModal(signal.accountIDs, signal.categoryNames);
+        showMembersNeedCategoryModal(signal.accountIDs, signal.categoryNames, signal.isRemovingAccess);
         clearMembersNeedCategoryModal();
     });
 

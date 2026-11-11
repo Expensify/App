@@ -37,6 +37,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {arePolicyRulesEnabled, getWorkflowApprovalsUnavailable, hasTags, isControlPolicy, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
+import {startSpan} from '@libs/telemetry/activeSpans';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -180,6 +181,14 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
         Navigation.navigate(isQuickSettingsFlow ? buildDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CATEGORY_EDIT.path) : buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_EDIT.path));
     };
 
+    const navigateToVisibleTo = () => {
+        startSpan(CONST.TELEMETRY.SPAN_OPEN_CATEGORY_VISIBLE_TO, {
+            name: CONST.TELEMETRY.SPAN_OPEN_CATEGORY_VISIBLE_TO,
+            op: CONST.TELEMETRY.SPAN_OPEN_CATEGORY_VISIBLE_TO,
+        });
+        Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_VISIBLE_TO.path));
+    };
+
     const deleteCategory = () => {
         deleteWorkspaceCategories(
             policyData,
@@ -212,6 +221,10 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     if (!policyCategory) {
         return <NotFoundPage />;
     }
+
+    // A missing visibleTo means every member can use the category.
+    const visibleToMemberCount = Object.values(policyCategory.visibleTo ?? {}).filter(Boolean).length;
+    const visibleToText = policyCategory.visibleTo ? translate('workspace.categories.membersCount', {count: visibleToMemberCount}) : translate('workspace.common.everyone');
 
     return (
         <AccessOrNotFoundWrapper
@@ -268,6 +281,16 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                             value={decodedCategoryName}
                         />
                     </OfflineWithFeedback>
+                    {isControlPolicy(policy) && (
+                        <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.visibleTo}>
+                            <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_VISIBLE_TO}
+                                name={translate('workspace.categories.visibleTo')}
+                                onPress={canWriteCategories ? navigateToVisibleTo : undefined}
+                                value={visibleToText}
+                            />
+                        </OfflineWithFeedback>
+                    )}
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.['GL Code']}>
                         <MenuItemField
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_GL_CODE}

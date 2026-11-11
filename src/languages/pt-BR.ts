@@ -7067,9 +7067,17 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 title: 'Não é possível excluir ou desativar todas as categorias',
                 description: `Pelo menos uma categoria deve permanecer ativada porque seu workspace exige categorias.`,
             },
+            visibleTo: 'Visível para',
+            membersCount: ({count}: {count: number}) => ({
+                one: `${count} membro`,
+                other: `${count} membros`,
+            }),
+            visibleToDescription: ({categoryName}: {categoryName: string}) => `Escolha quais membros podem usar a categoria ${categoryName} ao enviar despesas.`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Não é possível desativar ${categoryName}`,
                 bulkTitle: 'Não é possível desativar estas categorias',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `Não é possível remover o acesso a ${categoryName}`,
+                bulkRemoveAccessTitle: 'Não é possível remover o acesso a estas categorias',
                 description: ({count}: {count: number}) => ({
                     one: '1 membro ficaria sem categorias para escolher. Atualize a visibilidade das categorias dele e tente novamente:',
                     other: `${count} membros ficariam sem categorias para escolher. Atualize a visibilidade das categorias para eles e tente novamente:`,

@@ -7696,9 +7696,17 @@ const translations = {
                 title: 'Cannot delete or disable all categories',
                 description: `At least one category must remain enabled because your workspace requires categories.`,
             },
+            visibleTo: 'Visible to',
+            membersCount: ({count}: {count: number}) => ({
+                one: '1 member',
+                other: `${count} members`,
+            }),
+            visibleToDescription: ({categoryName}: {categoryName: string}) => `Choose which members can use the ${categoryName} category when submitting expenses.`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Can’t disable ${categoryName}`,
                 bulkTitle: 'Can’t disable these categories',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `Can’t remove access to ${categoryName}`,
+                bulkRemoveAccessTitle: 'Can’t remove access to these categories',
                 description: ({count}: {count: number}) => ({
                     one: '1 member would be left with no categories to choose from. Update their category visibility, then try again:',
                     other: `${count} members would be left with no categories to choose from. Update their category visibility, then try again:`,
