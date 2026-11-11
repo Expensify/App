@@ -546,6 +546,11 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/workspaces/p123/expensify-card/789/verify-work-email')).toBe('/workspaces/p123/expensify-card/789/verify-work-email');
     });
 
+    it('does not rewrite pages opened on top of the work-email page', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/company-cards/feed123/work-email/contact-methods')).toBe('/workspaces/p123/company-cards/feed123/work-email/contact-methods');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/789/work-email/contact-methods')).toBe('/workspaces/p123/expensify-card/789/work-email/contact-methods');
+    });
+
     it('does not rewrite the already-migrated Expensify Card details paths', () => {
         expect(getMatchingNewRoute('/workspaces/p123/expensify-card/card-details/456')).toBe('/workspaces/p123/expensify-card/card-details/456');
         expect(getMatchingNewRoute('/workspaces/p123/expensify-card/card-details/456/edit/limit')).toBe('/workspaces/p123/expensify-card/card-details/456/edit/limit');
