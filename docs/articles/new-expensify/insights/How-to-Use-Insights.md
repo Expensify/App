@@ -42,6 +42,12 @@ To explore the expenses behind an insight, select **More (⋮)** on the visualiz
 
 [Learn how to use search operators to analyze spend](/articles/new-expensify/reports-and-expenses/Using-search-operators).
 
+## How to ask Concierge about an insight
+
+Select **Explain** on a Spend dashboard card or chart to start a Concierge conversation about it. Your selected date, workspace, and group currency are included as context.
+
+[Learn how to use AI insight cards and Explain](/articles/new-expensify/insights/Use-AI-Insight-Cards-and-Explain).
+
 ## How to change how insight data is displayed
 
 Each insight uses a predefined visualization to highlight spending patterns. To explore the same expense data in a different format, open it in **Spend**, where you can switch between bar, line, pie, and table views.
@@ -83,3 +89,11 @@ To export the underlying expenses, open the related results in **Spend** and sel
 - [Explore the Top Spenders Insight](/articles/new-expensify/insights/explore-the-top-spenders-insight)
 - [Explore the Top Merchants Insight](/articles/new-expensify/insights/explore-the-top-merchants-insight)
 - [Explore the Top Categories Insight](/articles/new-expensify/insights/explore-the-top-categories-insight)
+
+# FAQ
+
+## Why are my Insights charts empty or missing AI insight cards?
+
+Charts appear when expense data matches your filters. If they're empty, try a wider **Date** range and check the selected **Workspace**.
+
+AI insight cards need about a month of accessible expense history and a spending pattern that meets the detection rules. They may load after the charts, and enough history doesn't guarantee a card will appear. Charts don't need a month of history.

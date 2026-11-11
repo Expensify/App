@@ -25,6 +25,12 @@ All insights share the same **Date**, **Workspace**, and **Group currency** filt
 
 ![Insights page showing the Spend over time, Top spenders and Top merchant visualizations together.]({{site.url}}/assets/images/insights-page.png){:width="100%"}
 
+## How AI insight cards help explain spending
+
+On the Spend dashboard, AI insight cards highlight spending spikes, trends, and concentrations in your expense data. Rules detect the patterns, and AI writes the summaries. Select **Explain** on a card or chart to discuss it with Concierge.
+
+[Learn how to use AI insight cards and Explain](/articles/new-expensify/insights/Use-AI-Insight-Cards-and-Explain).
+
 ## Who can see Insights
 
 Insights are available to all members, but the data you see depends on your permissions in Expensify.
