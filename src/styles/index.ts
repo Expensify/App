@@ -885,11 +885,37 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.appBG,
         },
 
+        // Drawn as its own layer so the shadow can fade on its own, and only while a collapsed bar peeks over the content.
+        flatNavigationBarPeekShadow: {
+            ...StyleSheet.absoluteFill,
+            boxShadow: theme.shadow,
+        },
+
         flatNavigationBarHeader: {
             flexDirection: 'row',
             alignItems: 'center',
+            justifyContent: 'flex-end',
             height: variables.flatNavigationBarHeaderHeight,
             paddingLeft: variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding,
+            paddingRight: variables.flatNavigationBarHeaderPaddingRight,
+            // The logo fades out in place while the toggle stays, so the header has to clip the logo as the bar narrows.
+            overflow: 'hidden',
+        },
+
+        // Lets the wordmark fade out in place while the toggle is the only thing left in the header.
+        flatNavigationBarLogoContainer: {
+            position: 'absolute',
+            left: variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding,
+            top: 0,
+            bottom: 0,
+            justifyContent: 'center',
+        },
+
+        flatNavigationBarCollapseToggle: {
+            width: variables.iconSizeNormal,
+            height: variables.iconSizeNormal,
+            alignItems: 'center',
+            justifyContent: 'center',
         },
 
         flatNavigationBarCreateButtonContainer: {
@@ -902,6 +928,13 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.flatNavigationBarCreateButtonHeight,
         },
 
+        // Collapsed, the Create button shrinks to a circle. Its container's inset centers it in the rail.
+        flatNavigationBarCreateButtonCompact: {
+            width: variables.flatNavigationBarCreateButtonHeight,
+            borderRadius: variables.componentBorderRadiusRounded,
+            paddingHorizontal: 0,
+        },
+
         flatNavigationBarItem: {
             flexDirection: 'row',
             alignItems: 'center',
@@ -910,6 +943,8 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: variables.flatNavigationBarRowPadding,
             marginHorizontal: variables.flatNavigationBarRowInset,
             borderRadius: variables.componentBorderRadiusNormal,
+            // Labels stay mounted while they fade, so a collapsed row has to clip what no longer fits.
+            overflow: 'hidden',
         },
 
         flatNavigationBarAccountItem: {

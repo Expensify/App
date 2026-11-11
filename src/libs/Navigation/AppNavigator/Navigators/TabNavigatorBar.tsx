@@ -1,10 +1,11 @@
 import {useFullScreenBlockingViewState} from '@components/FullScreenBlockingViewContextProvider';
 import FlatNavigationBar from '@components/Navigation/FlatNavigationBar';
-import {getNavigationBarWidth} from '@components/Navigation/FlatNavigationBar/useNavigationBarWidth';
+import useNavigationBarWidth from '@components/Navigation/FlatNavigationBar/useNavigationBarWidth';
 import useShouldUseFlatNavigationBar from '@components/Navigation/FlatNavigationBar/useShouldUseFlatNavigationBar';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import ROUTE_TO_NAVIGATION_TAB from '@components/Navigation/NavigationTabBar/ROUTE_TO_NAVIGATION_TAB';
+import {COLLAPSE_SURFACE, layoutTransitionStyle, useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import {SetNavigatorTabBarVisibleContext} from '@components/Navigation/TabBarBottomContent/NavigatorTabBarVisibilityProvider';
 
 import usePrevious from '@hooks/usePrevious';
@@ -37,7 +38,8 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const shouldUseFlatNavigationBar = useShouldUseFlatNavigationBar();
-    const navigationBarWidth = getNavigationBarWidth(shouldUseFlatNavigationBar);
+    const navigationBarWidth = useNavigationBarWidth();
+    const {isPeeking: isNavigationBarPeeking} = useSearchSidebarCollapse(COLLAPSE_SURFACE.NAVIGATION_BAR);
     const activeRoute = state.routes[state.index];
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[activeRoute?.name ?? SCREENS.HOME] ?? NAVIGATION_TABS.HOME;
     const isAtRoot = isTabRouteAtRoot(activeRoute);
@@ -96,9 +98,16 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     // When the screen is not blocking the view, we need to raise the tab bar above the screen content so the DebugTabView is visible.
     // The container also spans the sidebar next to the bar, so floating content such as the debug view is not clipped.
     // tabNavigatorBarContainer's negative margin gives that width back, leaving only the bar's width as layout space.
+    // The width is what holds the central pane off the left edge, so it eases with the bar instead of snapping to the new width.
+    // A peeking bar is raised even over a blocking view, since it is drawn over the content.
     return (
         <View
-            style={[styles.tabNavigatorBarContainer, StyleUtils.getWidthStyle(navigationBarWidth + variables.sideBarWithLHBWidth), !isBlockingViewVisible && styles.zIndex1]}
+            style={[
+                styles.tabNavigatorBarContainer,
+                shouldUseFlatNavigationBar && layoutTransitionStyle,
+                StyleUtils.getWidthStyle(navigationBarWidth + variables.sideBarWithLHBWidth),
+                (!isBlockingViewVisible || isNavigationBarPeeking) && styles.zIndex1,
+            ]}
             pointerEvents="box-none"
         >
             {shouldUseFlatNavigationBar ? <FlatNavigationBar selectedTab={selectedTab} /> : <NavigationTabBar selectedTab={selectedTab} />}

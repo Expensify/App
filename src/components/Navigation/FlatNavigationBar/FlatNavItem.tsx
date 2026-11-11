@@ -1,7 +1,9 @@
 import Icon from '@components/Icon';
 import getTabIconFill from '@components/Navigation/NavigationTabBar/getTabIconFill';
+import {getCollapseFadeStyle} from '@components/Navigation/SearchSidebarCollapseStore';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -17,6 +19,7 @@ import type {ColorValue} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
+import Animated from 'react-native-reanimated';
 
 type FlatNavItemProps = {
     /** Translated row label */
@@ -31,6 +34,9 @@ type FlatNavItemProps = {
     rightElement?: React.ReactNode;
 
     isSelected: boolean;
+
+    /** Whether the row keeps only its icon, so the bar can narrow to an icon rail */
+    isCollapsed?: boolean;
 
     /** Draws the row taller than the destination rows, as the Account row is */
     isTall?: boolean;
@@ -59,6 +65,7 @@ function FlatNavItem({
     renderLeftElement,
     rightElement,
     isSelected,
+    isCollapsed = false,
     isTall = false,
     statusIndicatorColor,
     accessibilityLabel,
@@ -78,56 +85,64 @@ function FlatNavItem({
         return isHovered ? styles.highlightBG : undefined;
     };
 
+    // The label and right element stay mounted and fade, rather than disappearing the moment the bar starts narrowing.
+    const collapseFadeStyle = getCollapseFadeStyle(isCollapsed);
+
+    // Always mounted, with the text only while collapsed, so a row does not remount when the bar collapses.
+    // Hovering expands the bar to reveal the full text; keyboard focus leaves it collapsed, so the tooltip informs keyboard users.
     return (
-        <PressableWithFeedback
-            onPress={onPress}
-            role={CONST.ROLE.TAB}
-            accessibilityLabel={accessibilityLabel ?? label}
-            accessibilityState={{selected: isSelected}}
-            sentryLabel={sentryLabel}
-            onHoverIn={onHoverIn}
-            onHoverOut={onHoverOut}
-            style={({hovered}) => [styles.flatNavigationBarItem, isTall && styles.flatNavigationBarAccountItem, getRowBackgroundStyle(hovered)]}
-        >
-            {({hovered}) => {
-                const rowBackgroundColor = getRowBackgroundStyle(hovered)?.backgroundColor;
-                return (
-                    <>
-                        {!!icon && (
-                            <View>
-                                <Icon
-                                    src={icon}
-                                    fill={getTabIconFill(isSelected, hovered, theme)}
-                                    width={variables.iconSizeNormal}
-                                    height={variables.iconSizeNormal}
-                                />
-                                {!!statusIndicatorColor && (
-                                    <View
-                                        testID="FlatNavItemStatusIndicator"
-                                        style={[
-                                            styles.navigationTabBarStatusIndicator,
-                                            styles.statusIndicatorColor(statusIndicatorColor),
-                                            // The dot's stroke reads as a gap cut out of the row, so it takes the row's background.
-                                            !!rowBackgroundColor && StyleUtils.getBorderColorStyle(rowBackgroundColor),
-                                        ]}
+        <Tooltip text={isCollapsed ? label : undefined}>
+            <PressableWithFeedback
+                onPress={onPress}
+                role={CONST.ROLE.TAB}
+                accessibilityLabel={accessibilityLabel ?? label}
+                accessibilityState={{selected: isSelected}}
+                sentryLabel={sentryLabel}
+                onHoverIn={onHoverIn}
+                onHoverOut={onHoverOut}
+                style={({hovered}) => [styles.flatNavigationBarItem, isTall && styles.flatNavigationBarAccountItem, getRowBackgroundStyle(hovered)]}
+            >
+                {({hovered}) => {
+                    const rowBackgroundColor = getRowBackgroundStyle(hovered)?.backgroundColor;
+                    return (
+                        <>
+                            {!!icon && (
+                                <View>
+                                    <Icon
+                                        src={icon}
+                                        fill={getTabIconFill(isSelected, hovered, theme)}
+                                        width={variables.iconSizeNormal}
+                                        height={variables.iconSizeNormal}
                                     />
-                                )}
-                            </View>
-                        )}
-                        {renderLeftElement?.({backgroundColor: rowBackgroundColor})}
-                        <Text
-                            variant={isSelected ? 'textStrong' : 'text'}
-                            color={isSelected || hovered ? theme.text : theme.textSupporting}
-                            numberOfLines={1}
-                            style={styles.flex1}
-                        >
-                            {label}
-                        </Text>
-                        {rightElement}
-                    </>
-                );
-            }}
-        </PressableWithFeedback>
+                                    {!!statusIndicatorColor && (
+                                        <View
+                                            testID="FlatNavItemStatusIndicator"
+                                            style={[
+                                                styles.navigationTabBarStatusIndicator,
+                                                styles.statusIndicatorColor(statusIndicatorColor),
+                                                // The dot's stroke reads as a gap cut out of the row, so it takes the row's background.
+                                                !!rowBackgroundColor && StyleUtils.getBorderColorStyle(rowBackgroundColor),
+                                            ]}
+                                        />
+                                    )}
+                                </View>
+                            )}
+                            {renderLeftElement?.({backgroundColor: rowBackgroundColor})}
+                            <Animated.View style={[styles.flex1, collapseFadeStyle]}>
+                                <Text
+                                    variant={isSelected ? 'textStrong' : 'text'}
+                                    color={isSelected || hovered ? theme.text : theme.textSupporting}
+                                    numberOfLines={1}
+                                >
+                                    {label}
+                                </Text>
+                            </Animated.View>
+                            {!!rightElement && <Animated.View style={collapseFadeStyle}>{rightElement}</Animated.View>}
+                        </>
+                    );
+                }}
+            </PressableWithFeedback>
+        </Tooltip>
     );
 }
 
