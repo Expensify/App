@@ -1569,8 +1569,8 @@ function hasRuleBasedDefaultWorkflow(rules: Record<string, ApprovalWorkflowRule>
  *
  * A policy has a single default workflow, but rules saved before the backend refused a second one can declare several.
  * The first one starting at the default approver wins, as on the Workflows page, or else the first one. That workflow is
- * its submit rule plus the approve rules its chain reaches: they list the same submitters, but so can another default
- * workflow, so the approve rules are found by walking from the first approver.
+ * its submit rule plus the approve rules its chain reaches. Another default workflow can list the same submitters, so the
+ * approve rules are found by walking from the first approver.
  */
 function getDefaultWorkflowRules(rules: Record<string, ApprovalWorkflowRule>, defaultApprover: string): Record<string, ApprovalWorkflowRule> {
     const defaultRuleEntries = Object.entries(rules).filter(([, rule]) => !!rule.isDefaultApprovalWorkflow);
@@ -1581,8 +1581,12 @@ function getDefaultWorkflowRules(rules: Record<string, ApprovalWorkflowRule>, de
     }
 
     const [chosenSubmitRuleID, chosenSubmitRule] = chosenSubmitEntry;
-    const getSubmittersKey = (rule: ApprovalWorkflowRule) => [...extractSubmitterEmails(rule)].sort().join(',');
-    const submittersKey = getSubmittersKey(chosenSubmitRule);
+    // A step two workflows share is saved as one rule listing both workflows' submitters, so a step only has to list all of this workflow's.
+    const workflowSubmitters = extractSubmitterEmails(chosenSubmitRule);
+    const listsWorkflowSubmitters = (rule: ApprovalWorkflowRule) => {
+        const ruleSubmitters = new Set(extractSubmitterEmails(rule));
+        return workflowSubmitters.every((email) => ruleSubmitters.has(email));
+    };
     const workflowRules: Record<string, ApprovalWorkflowRule> = {[chosenSubmitRuleID]: chosenSubmitRule};
     const reachedApprovers = new Set<string>();
     const approversToVisit = [getForwardApprover(chosenSubmitRule)];
@@ -1594,7 +1598,7 @@ function getDefaultWorkflowRules(rules: Record<string, ApprovalWorkflowRule>, de
         reachedApprovers.add(approver);
 
         for (const [ruleID, rule] of defaultRuleEntries) {
-            if (isSubmitRule(rule) || getFilter(rule.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO)?.right !== approver || getSubmittersKey(rule) !== submittersKey) {
+            if (isSubmitRule(rule) || getFilter(rule.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO)?.right !== approver || !listsWorkflowSubmitters(rule)) {
                 continue;
             }
             workflowRules[ruleID] = rule;

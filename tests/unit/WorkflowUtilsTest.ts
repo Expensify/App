@@ -2346,6 +2346,27 @@ describe('WorkflowUtils', () => {
                 );
             });
 
+            it('Should keep the steps the default workflow shares with another default-marked workflow', () => {
+                // Given two default-marked workflows, 1 -> 3 -> 4 for member 10 and 2 -> 3 -> 4 for member 20, whose shared
+                // steps at approvers 3 and 4 are saved as one rule each, listing both members
+                const sharedApprovers = ['3@example.com', '4@example.com'];
+                const isSharedStep = (rule: ApprovalWorkflowRule) => sharedApprovers.some((approver) => JSON.stringify(rule.filters).includes(`"${approver}"`));
+                const firstWorkflowRules = buildApprovalWorkflowRules(buildWorkflow([10], [1, 3, 4], {isDefault: true})).filter((rule) => !isSharedStep(rule));
+                const secondWorkflowRules = buildApprovalWorkflowRules(buildWorkflow([20], [2, 3, 4], {isDefault: true})).filter((rule) => !isSharedStep(rule));
+                const sharedStepRules = buildApprovalWorkflowRules(buildWorkflow([10, 20], [1, 3, 4], {isDefault: true})).filter(isSharedStep);
+                const rules = {
+                    ...Object.fromEntries(firstWorkflowRules.map((rule, index) => [`first${index}`, rule])),
+                    ...Object.fromEntries(secondWorkflowRules.map((rule, index) => [`second${index}`, rule])),
+                    ...Object.fromEntries(sharedStepRules.map((rule, index) => [`shared${index}`, rule])),
+                };
+
+                // When the default workflow's rules are read, with approver 1 as the default approver
+                const defaultWorkflowRules = getDefaultWorkflowRules(rules, '1@example.com');
+
+                // Then approver 1's workflow comes back with its shared steps, so members returned to it still reach approver 4
+                expect(Object.keys(defaultWorkflowRules).sort()).toEqual(['first0', 'first1', 'shared0', 'shared1']);
+            });
+
             it('Should not treat a workflow routed like the other default-marked workflow as the default one', () => {
                 // Given the two default-marked workflows above, with approver 1 as the default approver
                 // When an ordinary workflow approved by approver 2 is saved
