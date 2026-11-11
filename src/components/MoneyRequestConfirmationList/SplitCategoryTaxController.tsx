@@ -68,11 +68,13 @@ function SplitCategoryTaxController({transactionID, transaction, policy, policyC
         // eslint-disable-next-line react-hooks/set-state-in-effect -- which category has been resolved is history, so it cannot be derived from the current render
         setResolvedCategory({value: category});
 
-        if (!category || !transaction) {
+        if (!transaction) {
             return;
         }
 
-        setDraftSplitTransaction(transactionID, transaction, {category}, getCurrencyDecimals, getCurrencySymbol, policy, undefined, undefined, rules);
+        // Clearing the category is replayed too. Its tax falls back to the workspace default, and that fallback is
+        // itself read from the rules, so without the rules the pick left the previous category's tax in place.
+        setDraftSplitTransaction(transactionID, transaction, {category: category ?? ''}, getCurrencyDecimals, getCurrencySymbol, policy, undefined, undefined, rules);
     }, [areRulesLoading, resolvedCategory, category, isEditingSplitBill, transactionID, transaction, policy, rules, getCurrencyDecimals, getCurrencySymbol]);
 
     return null;

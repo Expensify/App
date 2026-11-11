@@ -122,7 +122,7 @@ describe('SplitCategoryTaxController', () => {
         expect(mockSetDraftSplitTransaction).not.toHaveBeenCalled();
     });
 
-    it('leaves the draft alone when the category is cleared', () => {
+    it('replays a category cleared before the rules arrived', () => {
         // Given a split draft with a category, on a screen opened while the rules are on their way
         mockAreRulesLoading = true;
         const {rerender} = render(<SplitCategoryTaxController {...withCategory('Car')} />);
@@ -131,8 +131,19 @@ describe('SplitCategoryTaxController', () => {
         mockAreRulesLoading = false;
         rerender(<SplitCategoryTaxController {...withCategory('')} />);
 
-        // Then nothing is written, because there is no category whose rule could apply
-        expect(mockSetDraftSplitTransaction).not.toHaveBeenCalled();
+        // Then the clear is written again, because the workspace default it falls back to is read from the rules,
+        // so the pick itself left the previous category's tax in place
+        expect(mockSetDraftSplitTransaction).toHaveBeenCalledWith(
+            'txn1',
+            {...transaction, category: ''},
+            {category: ''},
+            expect.any(Function),
+            expect.any(Function),
+            undefined,
+            undefined,
+            undefined,
+            {},
+        );
     });
 
     it('leaves the draft alone when a split is not being edited', () => {
