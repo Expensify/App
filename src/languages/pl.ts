@@ -1284,6 +1284,11 @@ const translations: TranslationDeepObject<typeof en> = {
         viewAll: 'Zobacz wszystko',
         topExpenses: 'Najwyższe wydatki',
         noExpensesInRange: 'Brak wydatków w tym zakresie',
+        efficiency: 'Wydajność',
+        workflowEfficiency: 'Wydajność przepływu pracy',
+        longestToSubmit: 'Najdłużej oczekujące na wysłanie',
+        slowestToApprove: 'Najwolniejszy w zatwierdzaniu',
+        mostTimeToPay: 'Najdłuższy czas na zapłatę',
     },
     allSettingsScreen: {
         subscription: 'Subskrypcja',
@@ -2098,6 +2103,12 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         undeletedExpense: 'przywrócił ten wydatek',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `stawki za przejechany dystans zaktualizowane dla nowej przestrzeni roboczej – ${policyName}`,
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} raport`,
+                other: (count: number) => `raporty: ${formattedCount ?? count}`,
+            };
+        },
     },
     transactionMerge: {
         listPage: {
@@ -10980,6 +10991,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Kwartał',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Osoba zatwierdzająca',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Naruszenie',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Zapłacone przez',
             },
             feed: 'Kanał',
             withdrawalType: {
@@ -11042,6 +11054,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Kwartały',
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Osoby zatwierdzające',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Naruszenia',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Płatnicy',
         },
         moneyRequestReport: {emptyStateTitle: 'Brak wydatków', accessPlaceHolder: 'Otwórz, aby zobaczyć szczegóły'},
         noCategory: 'Brak kategorii',

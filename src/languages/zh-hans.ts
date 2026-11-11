@@ -1207,6 +1207,11 @@ const translations: TranslationDeepObject<typeof en> = {
         viewAll: '查看全部',
         topExpenses: '最高花费',
         noExpensesInRange: '此范围内没有报销费用',
+        efficiency: '效率',
+        workflowEfficiency: '工作流程效率',
+        longestToSubmit: '提交所用时间最长',
+        slowestToApprove: '审批最慢',
+        mostTimeToPay: '最长付款时间',
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -1969,6 +1974,12 @@ const translations: TranslationDeepObject<typeof en> = {
         tagDisabledAlert: {title: '标签已停用', prompt: '请在工作区中启用标签，以便编辑该报销的详细信息或从此报销中删除该标签。', confirmText: '删除标签'},
         undeletedExpense: '恢复了此报销单',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `已为新工作区更新里程报销标准 - ${policyName}`,
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} 报告`,
+                other: (count: number) => `${formattedCount ?? count} 份报销单`,
+            };
+        },
     },
     transactionMerge: {
         listPage: {
@@ -10514,6 +10525,7 @@ ${reportName}`,
                 [CONST.SEARCH.GROUP_BY.QUARTER]: '季度',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: '审批人',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: '违规',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: '付款方',
             },
             feed: '动态',
             withdrawalType: {
@@ -10570,6 +10582,7 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.QUARTER]: '季度',
             [CONST.SEARCH.GROUP_BY.APPROVER]: '审批人',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: '违规',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: '付款方',
         },
         moneyRequestReport: {emptyStateTitle: '暂时没有报销费用', accessPlaceHolder: '展开查看详情'},
         noCategory: '无类别',

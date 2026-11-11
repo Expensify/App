@@ -1261,6 +1261,11 @@ const translations: TranslationDeepObject<typeof en> = {
         viewAll: 'Vedi tutto',
         topExpenses: 'Spese principali',
         noExpensesInRange: 'Nessuna spesa in questo intervallo',
+        efficiency: 'Efficienza',
+        workflowEfficiency: 'Efficienza del flusso di lavoro',
+        longestToSubmit: 'Più lungo per l’invio',
+        slowestToApprove: 'I più lenti ad approvare',
+        mostTimeToPay: 'Tempo massimo per pagare',
     },
     allSettingsScreen: {
         subscription: 'Abbonamento',
@@ -2059,6 +2064,12 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         undeletedExpense: 'ha ripristinato questa spesa',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `tariffe chilometriche aggiornate per il nuovo spazio di lavoro - ${policyName}`,
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} report`,
+                other: (count: number) => `${formattedCount ?? count} report`,
+            };
+        },
     },
     transactionMerge: {
         listPage: {
@@ -10980,6 +10991,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestre',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approvatore',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Violazione',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Pagato da',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -11042,6 +11054,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestri',
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approvatori',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Violazioni',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Pagatori',
         },
         moneyRequestReport: {emptyStateTitle: 'Nessuna spesa ancora', accessPlaceHolder: 'Apri per i dettagli'},
         noCategory: 'Nessuna categoria',

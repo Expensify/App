@@ -1304,6 +1304,11 @@ const translations: TranslationDeepObject<typeof en> = {
         viewAll: 'Προβολή όλων',
         topExpenses: 'Κορυφαίες δαπάνες',
         noExpensesInRange: 'Δεν υπάρχουν δαπάνες σε αυτό το εύρος',
+        efficiency: 'Αποδοτικότητα',
+        workflowEfficiency: 'Αποδοτικότητα ροής εργασιών',
+        longestToSubmit: 'Περισσότερος χρόνος για υποβολή',
+        slowestToApprove: 'Πιο αργοί στην έγκριση',
+        mostTimeToPay: 'Περισσότερος χρόνος για πληρωμή',
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',
@@ -2110,6 +2115,12 @@ const translations: TranslationDeepObject<typeof en> = {
         unholdWhenReadyDM: 'Αποδεσμεύστε τις δαπάνες όταν είστε έτοιμοι να τις στείλετε.',
         undeletedExpense: 'ανέκτησε αυτή τη δαπάνη',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `οι τιμές αποζημίωσης χιλιομέτρων ενημερώθηκαν για το νέο χώρο εργασίας - ${policyName}`,
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} αναφορά`,
+                other: (count: number) => `${formattedCount ?? count} αναφορές`,
+            };
+        },
     },
     transactionMerge: {
         listPage: {
@@ -11244,6 +11255,7 @@ ${reportName}`,
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Τρίμηνο',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Εγκρίνων',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Παράβαση',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Πληρώθηκε από',
             },
             feed: 'Ροή',
             withdrawalType: {
@@ -11310,6 +11322,7 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Τρίμηνα',
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Εγκρίνοντες',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Παραβάσεις',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Πληρωτές',
         },
         moneyRequestReport: {
             emptyStateTitle: 'Καμία δαπάνη ακόμη',

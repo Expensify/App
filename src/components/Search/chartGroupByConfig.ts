@@ -146,6 +146,11 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         // Search has no violation type filter, so a clicked violation opens the chart's whole query
         getFilterQuery: () => '',
     },
+    [CONST.SEARCH.GROUP_BY.PAID_BY]: {
+        titleIconName: 'Users',
+        getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.PAID_BY ? (item.formattedPaidBy ?? '') : ''),
+        getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.PAID_BY ? `${CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY}:${item.accountID}` : ''),
+    },
 };
 
 export default CHART_GROUP_BY_CONFIG;

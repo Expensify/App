@@ -1252,6 +1252,11 @@ const translations: TranslationDeepObject<typeof en> = {
         viewAll: 'Ver todo',
         topExpenses: 'Gastos principales',
         noExpensesInRange: 'No hay gastos en este intervalo',
+        efficiency: 'Eficiencia',
+        workflowEfficiency: 'Eficiencia del flujo de trabajo',
+        longestToSubmit: 'Más lento en enviar',
+        slowestToApprove: 'Más lento en aprobar',
+        mostTimeToPay: 'Más tiempo para pagar',
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
@@ -2047,6 +2052,12 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         undeletedExpense: 'restauró este gasto',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `se han actualizado las tarifas de kilometraje para el nuevo espacio de trabajo: ${policyName}`,
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} informe`,
+                other: (count: number) => `${formattedCount ?? count} informes`,
+            };
+        },
     },
     transactionMerge: {
         listPage: {
@@ -10964,6 +10975,7 @@ ${reportName}`,
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestre',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Aprobador',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Infracción',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Pagado por',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -11011,6 +11023,7 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestres',
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Aprobadores',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Infracciones',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Pagadores',
         },
         moneyRequestReport: {emptyStateTitle: 'Aún no hay gastos', accessPlaceHolder: 'Abrir para ver detalles'},
         noCategory: 'Sin categoría',

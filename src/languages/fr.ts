@@ -1265,6 +1265,11 @@ const translations: TranslationDeepObject<typeof en> = {
         viewAll: 'Tout afficher',
         topExpenses: 'Dépenses principales',
         noExpensesInRange: 'Aucune dépense dans cette plage',
+        efficiency: 'Efficacité',
+        workflowEfficiency: 'Efficacité du flux de travail',
+        longestToSubmit: 'Le plus long à soumettre',
+        slowestToApprove: 'Plus lent à approuver',
+        mostTimeToPay: 'Délai de paiement le plus long',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -2072,6 +2077,12 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         undeletedExpense: 'a restauré cette dépense',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `les taux kilométriques ont été mis à jour pour le nouvel espace de travail - ${policyName}`,
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} note de frais`,
+                other: (count: number) => `${formattedCount ?? count} notes de frais`,
+            };
+        },
     },
     transactionMerge: {
         listPage: {
@@ -11064,6 +11075,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestre',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approbateur',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Infraction',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Payé par',
             },
             feed: 'Fil',
             withdrawalType: {
@@ -11126,6 +11138,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestres',
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approbateurs',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Infractions',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Payeurs',
         },
         moneyRequestReport: {emptyStateTitle: 'Aucune dépense pour l’instant', accessPlaceHolder: 'Ouvrir pour plus de détails'},
         noCategory: 'Aucune catégorie',
