@@ -68,6 +68,7 @@ function renderFAB(isActive = false) {
                 isActive={isActive}
                 accessibilityLabel="fab"
                 role={CONST.ROLE.BUTTON}
+                sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.FLOATING_ACTION_BUTTON}
             />
         </NavigationContainer>,
     );
