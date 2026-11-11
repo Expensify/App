@@ -4139,7 +4139,6 @@ describe('actions/Duplicate', () => {
             // When both expenses are bulk duplicated with that expense report as the target
             bulkDuplicateExpenses({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transactionIDs: ['bulk_source_1', 'bulk_source_2'],
                 allTransactions,
@@ -4239,7 +4238,6 @@ describe('actions/Duplicate', () => {
             // When both expenses are bulk duplicated with that expense report as the target
             bulkDuplicateExpenses({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transactionIDs: ['instant_source_1', 'instant_source_2'],
                 allTransactions,
@@ -4343,7 +4341,6 @@ describe('actions/Duplicate', () => {
             // When both expenses are bulk duplicated onto that report, so the first copy raises its total from 800 to 1300
             bulkDuplicateExpenses({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transactionIDs: ['limit_source_1', 'limit_source_2'],
                 allTransactions,

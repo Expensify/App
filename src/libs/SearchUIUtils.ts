@@ -4309,7 +4309,7 @@ function getTransactionSortValue(transaction: TransactionListItemType, sortingPr
 }
 
 function getTransactionPolicyID(transaction: TransactionListItemType, fallbackPolicyID?: string): string | undefined {
-    const explicitPolicyID = [transaction.policyID, transaction.report?.policyID, transaction.policy?.id].find((policyID): policyID is string => !!policyID);
+    const explicitPolicyID = [transaction.report?.policyID, transaction.policy?.id].find((policyID): policyID is string => !!policyID);
     if (explicitPolicyID) {
         return explicitPolicyID;
     }
@@ -7524,9 +7524,9 @@ function getColumnsToShow({
 
     const {moneyRequestReportActionsByTransactionID} = Array.isArray(data) ? {} : createReportActionsLookupMaps(data);
     const updateColumns = (transaction: OnyxTypes.Transaction) => {
-        const transactionWithSearchFields = transaction as OnyxTypes.Transaction & {policyID?: string; policy?: OnyxTypes.Policy; report?: OnyxTypes.Report};
+        const transactionWithSearchFields = transaction as OnyxTypes.Transaction & {policy?: OnyxTypes.Policy; report?: OnyxTypes.Report};
         const transactionReport = transactionWithSearchFields.report ?? (Array.isArray(data) ? undefined : data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`]);
-        const explicitTransactionPolicyID = [transactionWithSearchFields.policyID, transactionWithSearchFields.policy?.id, transactionReport?.policyID].find(Boolean);
+        const explicitTransactionPolicyID = [transactionReport?.policyID, transactionWithSearchFields.policy?.id].find(Boolean);
         let transactionPolicyID = explicitTransactionPolicyID;
         if (!transactionPolicyID && transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
             transactionPolicyID = fallbackPolicyID;
@@ -8326,6 +8326,7 @@ function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, gro
 }
 
 export {
+    getTransactionPolicyID,
     canBulkMoveReportToPolicy,
     canChangeWorkspaceOfSearchReport,
     doesTransactionMatchFooterTotal,
