@@ -23,6 +23,8 @@ function RenewSubscription({endDate}: RenewSubscriptionProps) {
 
     return (
         <BaseWidgetItem
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM.RENEW_SUBSCRIPTION}
+            buttonSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM_BUTTON.RENEW_SUBSCRIPTION}
             icon={icons.CalendarSolid}
             title={translate('homePage.timeSensitiveSection.renewSubscription.title')}
             subtitle={translate('homePage.timeSensitiveSection.renewSubscription.subtitle', {date: formatSubscriptionEndDate(endDate, dateFnsLocale)})}

@@ -107,6 +107,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
         if (primaryAction === CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD) {
             return (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_HEADER_PRIMARY_ACTION.REMOVE_HOLD}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {
                         if (isDelegateAccessRestricted) {
@@ -137,6 +138,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
         if (primaryAction === CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_RESOLVED) {
             return (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_HEADER_PRIMARY_ACTION.MARK_AS_RESOLVED}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {
                         if (!transaction?.transactionID) {
@@ -153,6 +155,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
         if (primaryAction === CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES) {
             return (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_HEADER_PRIMARY_ACTION.REVIEW_DUPLICATES}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {
                         if (!reportID) {
@@ -169,6 +172,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
         if (primaryAction === CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.KEEP_THIS_ONE) {
             return (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_HEADER_PRIMARY_ACTION.KEEP_THIS_ONE}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {
                         if (!reportID) {
@@ -203,6 +207,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
         if (primaryAction === CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH) {
             return (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_HEADER_PRIMARY_ACTION.MARK_AS_CASH}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {
                         markAsCashAction(transaction?.transactionID, reportID, transactionViolations);
