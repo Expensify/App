@@ -81,7 +81,6 @@ import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {ColorValue} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
@@ -3507,15 +3506,6 @@ function canIOUBePaid(
         return false;
     }
 
-    if (getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
-        if (!onlyShowPayElsewhere) {
-            return false;
-        }
-        if (iouReport?.statusNum !== CONST.REPORT.STATUS_NUM.SUBMITTED) {
-            return false;
-        }
-    }
-
     if (isInvoiceReport(iouReport)) {
         if (isChatReportArchived || iouSettled || isOpenInvoiceReport(iouReport)) {
             return false;
@@ -3524,6 +3514,16 @@ function canIOUBePaid(
             return chatReport?.invoiceReceiver?.accountID === currentUserAccountID;
         }
         return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN;
+    }
+
+    // Invoice payment depends on the receiver policy above, so the sender's reimbursement choice only gates non-invoice reports.
+    if (getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
+        if (!onlyShowPayElsewhere) {
+            return false;
+        }
+        if (iouReport?.statusNum !== CONST.REPORT.STATUS_NUM.SUBMITTED) {
+            return false;
+        }
     }
 
     const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, iouReport, bankAccountList, policy, onlyShowPayElsewhere);
@@ -4067,6 +4067,7 @@ function canDeleteReportAction(
         reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT ||
         reportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
         isCreatedTaskReportAction(reportAction) ||
+        isCreatedSupportTicketReportAction(reportAction) ||
         reportAction?.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE
     ) {
         return false;
@@ -5342,7 +5343,7 @@ function getReasonAndReportActionThatRequiresAttention({
 
     // Only the approver can retry a failed DEW approval, so nobody else should get a green dot for it. The archive
     // check is inline rather than relying on the `isReportArchived` early return below, to keep this branch ahead of
-    // the card fraud alert check. `useOptimisticNextStep` keys the "fix the issues" next step off this exact reason,
+    // the card fraud alert check. `useNextStep` keys the "fix the issues" next step off this exact reason,
     // so demoting the branch would silently drop that next step for the approver.
     if (optionOrReport.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED && !isReportArchived && isReportManager(optionOrReport, currentUserAccountID)) {
         const reportActionsArray = Object.values(reportActions ?? {});
@@ -5940,12 +5941,10 @@ function getTransactionDisplayAmount(transaction: OnyxInputOrEntry<Transaction>,
 
 function getTransactionDetails(
     transaction: OnyxInputOrEntry<Transaction> | TransactionWithOptionalSearchFields,
-    createdDateFormat: string = CONST.DATE.FNS_FORMAT_STRING,
     policy: OnyxEntry<Policy> = undefined,
     allowNegativeAmount = false,
     disableOppositeConversion = false,
     reportOwnerAsAttendee?: Attendee,
-    dateFnsLocale?: DateFnsLocale,
 ): TransactionDetails | undefined {
     if (!transaction) {
         return;
@@ -5955,7 +5954,7 @@ function getTransactionDetails(
     const isFromExpenseReport = isTransactionFromExpenseReport(report, policy);
 
     return {
-        created: getFormattedCreated(transaction, createdDateFormat, dateFnsLocale),
+        created: getFormattedCreated(transaction),
         amount: getTransactionAmount(transaction, isFromExpenseReport, transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, allowNegativeAmount, disableOppositeConversion),
         attendees: getAttendees(transaction, reportOwnerAsAttendee),
         taxAmount: getTaxAmount(transaction, isFromExpenseReport),
@@ -14709,6 +14708,51 @@ function isReportExportedOrPending(reportActions: OnyxEntry<ReportActions> | Rep
     return !!report?.pendingFields?.export || isExported(reportActions, report);
 }
 
+/**
+ * Whether an export this client started is still running.
+ *
+ * There is no client event meaning "the export finished" - the 200 only means the request was accepted, and the real
+ * outcome arrives later over Pusher - so the state is resolved by comparison at read time
+ * rather than cleared from a callback. Nothing is stored, so no stale flag can strand the button and no other flow
+ * has to remember to clear one.
+ *
+ * Ordered the same way `isExported` orders an export against the actions that reset it: the attempt's own timestamp
+ * is read off the action that started it.
+ */
+function isExportInProgress(reportActions: OnyxEntry<ReportActions> | ReportAction[]): boolean {
+    const reportActionList = Array.isArray(reportActions) ? reportActions : Object.values(reportActions ?? {});
+
+    if (reportActionList.length === 0) {
+        return false;
+    }
+
+    let lastExportStartedCreated = '';
+    let lastExportResolvedCreated = '';
+
+    for (const action of reportActionList) {
+        // One action type covers both halves of an export, and only `pendingAction` separates them: a pending one renders
+        // "started exporting this report to ...", anything else renders a finished export. See getExportIntegrationActionFragments.
+        const isExportIntegration = isExportIntegrationAction(action);
+        if (isExportIntegration && action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+            // A rejected request leaves its errors on the started action, and nothing will ever answer it
+            if (isEmptyObject(action.errors) && action.created > lastExportStartedCreated) {
+                lastExportStartedCreated = action.created;
+            }
+            continue;
+        }
+
+        // Every outcome ends the attempt, finished exports and reconciled ones included, unlike `hasExportError` which only
+        // counts failures. A pending one is this client's own optimistic action, which says nothing about what the server did.
+        const isOutcome = (isExportIntegration || isIntegrationMessageAction(action)) && !action.pendingAction;
+        // Resetting the approval state invalidates the export the same way it invalidates a finished one in `isExported`.
+        if ((isOutcome || RESET_APPROVAL_ACTION_TYPES.has(action.actionName)) && action.created > lastExportResolvedCreated) {
+            lastExportResolvedCreated = action.created;
+        }
+    }
+
+    return !!lastExportStartedCreated && lastExportResolvedCreated < lastExportStartedCreated;
+}
+
 function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[], report?: OnyxEntry<Report>) {
     if (report?.hasExportError) {
         return true;
@@ -15560,6 +15604,7 @@ function isSortableColumnName(key: unknown): key is SortableColumnName {
  * Used for sorting transactions in MoneyRequestReportTransactionList.
  */
 function getTransactionSortValue(
+    translate: LocalizedTranslate,
     transaction: Transaction,
     key: SortableColumnName,
     report: Report,
@@ -15608,7 +15653,7 @@ function getTransactionSortValue(
         case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
             return getTaxAmount(transaction, isExpenseReport(report));
         case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
-            return getTaxName(policy, transaction) ?? '';
+            return getTaxName(translate, policy, transaction) ?? '';
         case CONST.SEARCH.TABLE_COLUMNS.CARD:
             return transaction.cardID ?? CONST.DEFAULT_NUMBER_ID;
         case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
@@ -16143,6 +16188,7 @@ export {
     isReportExportedOrPending,
     hasExpensifyGuidesEmails,
     hasExportError,
+    isExportInProgress,
     hasOnlyNonReimbursableTransactions,
     isCardOnlyReport,
     hasSettledZeroReimbursableSpend,

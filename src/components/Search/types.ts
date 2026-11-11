@@ -29,6 +29,7 @@ import type {
     TransactionQuarterGroupListItemType,
     TransactionTagGroupListItemType,
     TransactionApproverGroupListItemType,
+    TransactionViolationGroupListItemType,
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
@@ -459,6 +460,7 @@ type SearchAutocompleteResult = {
 
 type SearchAutocompleteQueryRange = {
     key: SearchFilterKey;
+    negated?: boolean;
     length: number;
     start: number;
     value: string;
@@ -495,7 +497,8 @@ type GroupedItem =
     | TransactionWeekGroupListItemType
     | TransactionYearGroupListItemType
     | TransactionQuarterGroupListItemType
-    | TransactionApproverGroupListItemType;
+    | TransactionApproverGroupListItemType
+    | TransactionViolationGroupListItemType;
 
 type SearchChartDataRow = {
     /** The point plotted on the chart */
