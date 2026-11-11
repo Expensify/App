@@ -420,4 +420,18 @@ describe('getReportHistorySteps', () => {
         // Then the history credits Concierge, like the report conversation does
         expect(steps).toEqual([[translateLocal('reportHistoryPage.submitted'), CONST.ACCOUNT_ID.CONCIERGE]]);
     });
+
+    it('shows the integration a report was exported to', () => {
+        // Given an approved report exported to QuickBooks Online
+        const exportedAction: ReportAction = {
+            ...buildAction('2', CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, FIRST_APPROVER_ACCOUNT_ID, '2026-01-01 10:00:00.000'),
+            message: {type: 'COMMENT', html: 'exported', text: 'exported', label: CONST.EXPORT_LABELS.QBO, lastModified: '2026-01-01 10:00:00.000'},
+        };
+
+        // When the steps are built
+        const steps = getCompletedSteps([exportedAction]);
+
+        // Then the history names the integration, like the report conversation does
+        expect(steps).toEqual([[translateLocal('report.actions.type.exportedToIntegration.automatic', CONST.EXPORT_LABELS.QBO), FIRST_APPROVER_ACCOUNT_ID]]);
+    });
 });
