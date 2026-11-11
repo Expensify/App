@@ -8,24 +8,18 @@ import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 type DatePickerBaseProps = ForwardedFSClassProps & {
-    /**
-     * The datepicker supports any value that `new Date()` can parse.
-     * `onInputChange` would always be called with a Date (or null)
-     */
+    /** The selected date as a `yyyy-MM-dd` string, read with DateUtils.parseCalendarDate. `onInputChange` is called with the picked date in the same format. */
     value?: string;
 
-    /**
-     * The datepicker supports any defaultValue that `new Date()` can parse.
-     * `onInputChange` would always be called with a Date (or null)
-     */
+    /** The date the field starts with when there is no value, in the same format as `value`. When the field is empty, the calendar opens on its month without selecting it. */
     defaultValue?: string;
 
     inputID: string;
 
-    /** A minimum date of calendar to select */
+    /** A minimum date (oldest) allowed to select. The calendar can't move to a month before it. */
     minDate?: Date;
 
-    /** A maximum date of calendar to select */
+    /** A maximum date (latest) allowed to select. The calendar can't move to a month after it. */
     maxDate?: Date;
 
     /** A function that is passed by FormWrapper */
@@ -94,25 +88,22 @@ type DateInputWithPickerProps = DatePickerBaseProps &
     };
 
 type DatePickerProps = {
-    /**
-     * The datepicker supports any value that `new Date()` can parse.
-     * `onInputChange` would always be called with a Date (or null)
-     */
+    /** The selected date as a `yyyy-MM-dd` string, read with DateUtils.parseCalendarDate. `onInputChange` is called with the picked date in the same format. */
     value?: string;
 
-    /**
-     * The datepicker supports any defaultValue that `new Date()` can parse.
-     * `onInputChange` would always be called with a Date (or null)
-     */
+    /** The month the calendar opens on when there is no value, in the same format as `value`. It isn't selected. */
     defaultValue?: string;
 
     inputID: string;
 
-    /** A minimum date of calendar to select */
+    /** A minimum date (oldest) allowed to select. The calendar can't move to a month before it. */
     minDate?: Date;
 
-    /** A maximum date of calendar to select */
+    /** A maximum date (latest) allowed to select. The calendar can't move to a month after it. */
     maxDate?: Date;
+
+    /** Whether a day between minDate and maxDate can be selected. Unlike the bounds, it doesn't limit which months and years can be shown. */
+    isDateSelectable?: (date: Date) => boolean;
 
     /** A function that is passed by FormWrapper */
     onInputChange?: (value: string) => void;
@@ -144,6 +135,13 @@ type DatePickerProps = {
      * Used by inline editing flows that require background dimming.
      */
     shouldEnableMonthYearBackdropInNarrowPane?: boolean;
+
+    /**
+     * Whether to measure the calendar's rendered height instead of assuming `POPOVER_DATE_MIN_HEIGHT`, which only covers
+     * a 5-row month: months that need a sixth week row reach `POPOVER_DATE_MAX_HEIGHT` instead. Needed where the popover
+     * can open above its anchor, or its top edge clips in those months.
+     */
+    shouldMeasureContentHeight?: boolean;
 } & Omit<BaseTextInputProps & PopoverWithMeasuredContentProps, 'anchorRef' | 'children'>;
 
 export type {DateInputWithPickerProps, DatePickerProps};

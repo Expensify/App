@@ -1,5 +1,5 @@
 import ConfirmationPage from '@components/ConfirmationPage';
-import Text from '@components/Text';
+import FixedFooter from '@components/FixedFooter';
 import TextLink from '@components/TextLink';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -43,10 +43,14 @@ function PersonalCardsErrorConfirmation({errorMessage}: PersonalCardsErrorConfir
     };
 
     return (
-        <ConfirmationPage
-            heading={translate('personalCard.bankConnectionError')}
-            description={
-                <Text style={[styles.textSupporting, styles.textAlignCenter]}>
+        <ConfirmationPage>
+            <ConfirmationPage.Content>
+                <ConfirmationPage.Illustration
+                    illustration={illustrations.QuestionMark}
+                    illustrationStyle={styles.errorStateCardIllustration}
+                />
+                <ConfirmationPage.Heading>{translate('personalCard.bankConnectionError')}</ConfirmationPage.Heading>
+                <ConfirmationPage.Description style={styles.textSupporting}>
                     {!!errorMessage && `${errorMessage} `}
                     {translate('personalCard.bankConnectionDescription')}{' '}
                     <TextLink
@@ -55,15 +59,16 @@ function PersonalCardsErrorConfirmation({errorMessage}: PersonalCardsErrorConfir
                     >
                         {translate('personalCard.connectWithPlaid')}
                     </TextLink>
-                </Text>
-            }
-            illustration={illustrations.QuestionMark}
-            shouldShowButton
-            illustrationStyle={styles.errorStateCardIllustration}
-            onButtonPress={onButtonPress}
-            buttonText={translate('common.buttonConfirm')}
-            containerStyle={styles.h100}
-        />
+                </ConfirmationPage.Description>
+            </ConfirmationPage.Content>
+            <FixedFooter>
+                <ConfirmationPage.PrimaryButton
+                    sentryLabel={CONST.SENTRY_LABEL.PERSONAL_CARD.ERROR_CONFIRM}
+                    text={translate('common.buttonConfirm')}
+                    onPress={onButtonPress}
+                />
+            </FixedFooter>
+        </ConfirmationPage>
     );
 }
 

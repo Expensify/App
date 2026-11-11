@@ -74,7 +74,7 @@ jest.mock('@components/Modal/Global/ModalContext', () => {
 jest.mock('react-native-vision-camera', () => ({
     useCameraDevice: jest.fn(() => null),
     useCameraDevices: jest.fn(() => []),
-    useCameraFormat: jest.fn(() => null),
+    usePhotoOutput: jest.fn(() => ({})),
 }));
 
 jest.mock('@pages/iou/request/step/IOURequestStepScan/hooks/useScanRouteParams', () => ({
@@ -104,7 +104,7 @@ function getUserLocationFromOnyx(): Promise<OnyxEntry<UserLocation>> {
             key: ONYXKEYS.USER_LOCATION,
             callback: (val) => {
                 resolve(val);
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
             },
         });
     });

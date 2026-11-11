@@ -85,6 +85,9 @@ function SingleSelectImpl({
     const orderedItems = moveInitialSelectionToTop(items, initialSelectedValues);
     const rowHeight = itemHeight ?? variables.optionRowHeightCompact;
 
+    // Without vertical padding a two line title still fits the row height
+    const rowStyle = [{minHeight: rowHeight}, styles.pv0];
+
     const {options, noResultsFound} = (() => {
         if (isSearchable) {
             const searchLower = debouncedSearchTerm.toLowerCase();
@@ -94,7 +97,7 @@ function SingleSelectImpl({
                     text: item.text,
                     keyForList: item.value,
                     isSelected: selectedItem?.value === item.value,
-                    itemStyle: {minHeight: rowHeight},
+                    itemStyle: rowStyle,
                 }));
             const isEmpty = allOptions.length === 0;
             return {
@@ -108,7 +111,7 @@ function SingleSelectImpl({
                 text: item.text,
                 keyForList: item.value,
                 isSelected: item.value === selectedItem?.value,
-                itemStyle: {minHeight: rowHeight},
+                itemStyle: rowStyle,
             })),
             noResultsFound: false,
         };
@@ -154,6 +157,7 @@ function SingleSelectImpl({
                     data={options}
                     shouldSingleExecuteRowSelect
                     ListItem={SingleSelectListItem}
+                    titleNumberOfLines={2}
                     onSelectRow={updateSelectedItem}
                     textInputOptions={textInputOptions}
                     style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}

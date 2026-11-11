@@ -11,7 +11,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 const PERSONAL_INFO_STEP_KEY = INPUT_IDS.PERSONAL_INFO_STEP;
 const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.FIRST_NAME, PERSONAL_INFO_STEP_KEY.LAST_NAME];
@@ -22,13 +22,14 @@ function LegalNameStep({onNext, onMove, isEditing}: SubPageProps) {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
 
     // Draft is applied by the form itself, so defaults stay on saved wallet details and the profile.
-    const defaultValues = useMemo(() => {
-        const owner = getBankAccountOwnerDetails({walletAdditionalDetails, privatePersonalDetails});
-        return {
-            firstName: owner.legalFirstName,
-            lastName: owner.legalLastName,
-        };
-    }, [privatePersonalDetails, walletAdditionalDetails]);
+    const owner = getBankAccountOwnerDetails({
+        walletAdditionalDetails,
+        privatePersonalDetails,
+    });
+    const defaultValues = {
+        firstName: owner.legalFirstName,
+        lastName: owner.legalLastName,
+    };
 
     const handleSubmit = useWalletAdditionalDetailsStepFormSubmit({
         fieldIds: STEP_FIELDS,

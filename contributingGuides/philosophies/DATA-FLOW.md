@@ -3,6 +3,7 @@
 #### Related Philosophies
 - [Onyx Data Management Philosophy](/contributingGuides/philosophies/ONYX-DATA-MANAGEMENT.md)
 - [Data Binding Philosophy](/contributingGuides/philosophies/DATA-BINDING.md)
+- [Onyx update manager](/contributingGuides/ONYX_UPDATE_MANAGER.md)
 
 This is how data flows through the app:
 

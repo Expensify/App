@@ -91,6 +91,9 @@ type SelectionScreenProps<T = string> = {
     /** Maximum number of title lines per row. Values above 1 let the title wrap instead of truncating */
     titleNumberOfLines?: number;
 
+    /** Maximum number of alternate text lines per row. Values above 1 let the alternate text wrap instead of truncating */
+    alternateNumberOfSupportedLines?: number;
+
     textInputOptions?: {
         /** Label for the text input */
         label?: string;
@@ -136,6 +139,7 @@ function SelectionScreen<T = string>({
     textInputOptions,
     shouldUpdateFocusedIndex = false,
     titleNumberOfLines,
+    alternateNumberOfSupportedLines = 2,
     confirmButtonOptions,
 }: SelectionScreenProps<T>) {
     const {translate} = useLocalize();
@@ -143,6 +147,12 @@ function SelectionScreen<T = string>({
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);
+
+    // Searchable selectors pin the selected option to the top upstream (in useSelectionListSearch or the caller's own
+    // search logic). These anti-jump list props keep that pinned row visible: mount-scroll is off because the pinned
+    // row is already at the top, and maintaining scroll position is disabled so clearing the search returns to the top.
+    // This only applies to searchable selectors.
+    const isSearchableList = !!(shouldShowTextInput ?? textInputOptions?.label);
 
     return (
         <AccessOrNotFoundWrapper
@@ -179,8 +189,10 @@ function SelectionScreen<T = string>({
                         shouldShowTextInput={shouldShowTextInput}
                         listFooterContent={listFooterContent}
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
-                        shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
-                        alternateNumberOfSupportedLines={2}
+                        shouldUpdateFocusedIndex={isSearchableList || shouldUpdateFocusedIndex}
+                        shouldScrollToFocusedIndexOnMount={!isSearchableList}
+                        disableMaintainingScrollPosition={isSearchableList}
+                        alternateNumberOfSupportedLines={alternateNumberOfSupportedLines}
                         titleNumberOfLines={titleNumberOfLines}
                         addBottomSafeAreaPadding
                         confirmButtonOptions={confirmButtonOptions}

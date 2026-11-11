@@ -1,7 +1,7 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LocationPermissionModal from '@components/LocationPermissionModal';
-import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
+import ScanConfirmationList from '@components/MoneyRequestConfirmationList/variants/ScanConfirmationList';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -41,14 +41,14 @@ import DateUtils from '@libs/DateUtils';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import getCurrentPositionWithinCap from '@libs/getCurrentPosition/getCurrentPositionWithinCap';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getExistingTransactionID, isLookingAroundSearchRoutingActive, resolveReportForMoneyRequest} from '@libs/IOUUtils';
+import {getDefaultReimbursableForPolicy, getExistingTransactionID, isLookingAroundSearchRoutingActive, resolveReportForMoneyRequest} from '@libs/IOUUtils';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {rand64} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isGroupPolicy, resolveCurrentTaxCode} from '@libs/PolicyUtils';
+import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import {getReportOrDraftReport, isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
@@ -72,7 +72,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import {showErrorAlert} from './ShareRootPage';
@@ -268,7 +268,7 @@ function SubmitDetailsPage({
                   reportAttributesDerived,
                   reportDraft,
                   currentUserAccountID: currentUserPersonalDetails.accountID,
-                  localize: {translate, dateFnsLocale, convertToDisplayString},
+                  localize: {translate, dateFnsLocale, convertToDisplayString, formatPhoneNumber},
                   rules,
                   // Passing pendingDeleteMemberAccountIDs as undefined is intentional, getMoneyRequestParticipantsFromReport only report-backs policy expense chats, self DMs and invoice rooms.
                   pendingDeleteMemberAccountIDs: undefined,
@@ -286,17 +286,17 @@ function SubmitDetailsPage({
     }, [defaultBillable]);
 
     useEffect(() => {
-        const defaultReimbursable = (isPolicyExpenseChat && isGroupPolicy(policy)) || isCreatingTrackExpense ? (policy?.defaultReimbursable ?? true) : true;
+        const defaultReimbursable = getDefaultReimbursableForPolicy({policy, isPolicyExpenseChat: !!isPolicyExpenseChat, isCreatingTrackExpense});
         setMoneyRequestReimbursable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, defaultReimbursable);
     }, [policy, isPolicyExpenseChat, isCreatingTrackExpense]);
 
-    const setBillable = useCallback((billable: boolean) => {
+    const setBillable = (billable: boolean) => {
         setMoneyRequestBillable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, billable);
-    }, []);
+    };
 
-    const setReimbursable = useCallback((reimbursable: boolean) => {
+    const setReimbursable = (reimbursable: boolean) => {
         setMoneyRequestReimbursable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reimbursable);
-    }, []);
+    };
 
     const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
     const transactionAmount = transaction?.amount ?? 0;
@@ -322,7 +322,7 @@ function SubmitDetailsPage({
 
     const hasNavigationDestination = !!transaction && !!postSubmitNavigationReportID;
     // Empty draft skips REPORT_DRAFT fallback — report must be in COLLECTION.REPORT to render behind the share modal.
-    const destinationReportInCollection = hasNavigationDestination ? getReportOrDraftReport(postSubmitNavigationReportID, undefined, undefined, {}) : undefined;
+    const destinationReportInCollection = hasNavigationDestination ? getReportOrDraftReport({reportID: postSubmitNavigationReportID, reportDraft: {}}) : undefined;
     // Destination report isn't in COLLECTION.REPORT yet (e.g. a recipient with no existing chat) — it will only
     // exist after the expense create writes it optimistically, so pre-mounting is impossible.
     const isDestinationReportMissing = hasNavigationDestination && !destinationReportInCollection?.reportID;
@@ -446,6 +446,7 @@ function SubmitDetailsPage({
                     existingTransaction: transaction,
                     isASAPSubmitBetaEnabled,
                     currentUser: {accountID: currentUserPersonalDetails.accountID, email: currentUserPersonalDetails.login ?? ''},
+                    currentUserPersonalDetails,
                     introSelected,
                     conciergeChat,
                     quickAction,
@@ -577,7 +578,7 @@ function SubmitDetailsPage({
 
     const onSuccess = (file: File, locationPermissionGranted?: boolean) => {
         const receipt: Receipt = file;
-        receipt.state = hasAllManuallyEnteredScanFields(transaction) ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
+        receipt.state = hasAllManuallyEnteredScanFields(transaction, !!isPolicyExpenseChat) ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
         // The share flow builds the receipt here by hand and skips buildReceiptFiles, so this is the only place to stamp
         // the trace id and log the capture.
         const receiptTraceId = mintAndStampReceiptTraceId(receipt);
@@ -702,7 +703,7 @@ function SubmitDetailsPage({
                     style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}
                     onLayout={endOpenSubmitFlowSpan}
                 >
-                    <MoneyRequestConfirmationList
+                    <ScanConfirmationList
                         transaction={transaction}
                         selectedParticipants={participants}
                         // The Share flow never renders an editable participant row (the transaction is not from global create), so there is nothing to open.
@@ -713,7 +714,7 @@ function SubmitDetailsPage({
                         isPolicyExpenseChat={isPolicyExpenseChat}
                         policyID={policy?.id}
                         isConfirming={isConfirming}
-                        onConfirm={() => onConfirm(!hasAllManuallyEnteredScanFields(transaction))}
+                        onConfirm={() => onConfirm(!hasAllManuallyEnteredScanFields(transaction, !!isPolicyExpenseChat))}
                         reportID={reportOrAccountID}
                         // The share flow always creates a Scan expense from the shared file: it is never a split, never
                         // a moved tracked expense and never a test receipt, so the amount / merchant / date are always

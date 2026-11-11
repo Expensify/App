@@ -1,4 +1,4 @@
-import {getMatchingFullScreenRoute} from '@libs/Navigation/helpers/getAdaptedStateFromPath';
+import getMatchingFullScreenRoute from '@libs/Navigation/helpers/getMatchingFullScreenRoute';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import swapBackgroundTabForRHPTarget from '@libs/Navigation/helpers/swapBackgroundTabForRHPTarget';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -13,7 +13,7 @@ import type {NavigationState} from '@react-navigation/native';
 
 import createMock from '../../utils/createMock';
 
-jest.mock('@libs/Navigation/helpers/getAdaptedStateFromPath', () => ({getMatchingFullScreenRoute: jest.fn()}));
+jest.mock('@libs/Navigation/helpers/getMatchingFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/getStateFromPath', () => jest.fn());
 jest.mock('@libs/Navigation/navigationRef', () => ({dispatch: jest.fn()}));
 

@@ -143,6 +143,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
                     </View>
                     <Text style={styles.mb5}>{translate('exportDownload.preparingBody')}</Text>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.EXPORT_DOWNLOAD_STATUS_MODAL.SEND_FROM_CONCIERGE}
                         onPress={handleSendFromConcierge}
                         style={styles.w100}
                     >
@@ -158,6 +159,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
                     <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('exportDownload.conciergeTitle')}</Text>
                     <Text style={styles.mb5}>{translate('exportDownload.conciergeBody')}</Text>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.EXPORT_DOWNLOAD_STATUS_MODAL.GO_TO_CONCIERGE}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={handleGoToConcierge}
                         style={styles.w100}
@@ -165,6 +167,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
                         <Button.Text>{translate('exportDownload.goToConcierge')}</Button.Text>
                     </Button>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.EXPORT_DOWNLOAD_STATUS_MODAL.CLOSE}
                         onPress={onClose}
                         style={[styles.w100, styles.mt3]}
                     >
@@ -180,6 +183,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
                     <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('exportDownload.noReceiptsTitle')}</Text>
                     <Text style={styles.mb5}>{translate('exportDownload.noReceiptsBody')}</Text>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.EXPORT_DOWNLOAD_STATUS_MODAL.CLOSE}
                         onPress={onClose}
                         style={styles.w100}
                     >
@@ -222,6 +226,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
                     {isTruncated && <Text style={styles.mb2}>{translate('exportDownload.truncatedBody')}</Text>}
                     {renderPartialBody()}
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.EXPORT_DOWNLOAD_STATUS_MODAL.DOWNLOAD_FILE}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={handleDownloadFile}
                         style={styles.w100}
@@ -248,6 +253,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
                     <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('exportDownload.failedTitle')}</Text>
                     {!!resolvedFailedBody && <Text style={styles.mb5}>{resolvedFailedBody}</Text>}
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.EXPORT_DOWNLOAD_STATUS_MODAL.CLOSE}
                         onPress={onClose}
                         style={styles.w100}
                     >

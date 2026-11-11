@@ -15,7 +15,7 @@ import {updateCurrentStep} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 
 import OnfidoPrivacy from './OnfidoPrivacy';
 
@@ -42,29 +42,26 @@ function OnfidoStep() {
         setHasUserProceeded(true);
     };
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack();
-    }, []);
+    };
 
-    const goToPreviousStep = useCallback(() => {
+    const goToPreviousStep = () => {
         updateCurrentStep(CONST.WALLET.STEP.ADDITIONAL_DETAILS);
-    }, []);
+    };
 
-    const reportError = useCallback(() => {
-        Growl.error(translate('onfidoStep.genericError'), 10000);
-    }, [translate]);
+    const reportError = () => {
+        Growl.error({bodyText: translate('onfidoStep.genericError'), duration: 10000});
+    };
 
-    const verifyIdentity = useCallback(
-        (data: OnfidoData) => {
-            verifyIdentityAction({
-                onfidoData: JSON.stringify({
-                    ...data,
-                    applicantID: walletOnfidoData?.applicantID,
-                }),
-            });
-        },
-        [walletOnfidoData?.applicantID],
-    );
+    const verifyIdentity = (data: OnfidoData) => {
+        verifyIdentityAction({
+            onfidoData: JSON.stringify({
+                ...data,
+                applicantID: walletOnfidoData?.applicantID,
+            }),
+        });
+    };
 
     return (
         <>

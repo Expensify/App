@@ -1,7 +1,7 @@
 ---
 title: Workspace Workflows
 description: Configure your workspace approval and submission workflows to match your team's needs.
-keywords: [New Expensify, workflows, workflows tabs, submissions, approvals, payments, advanced, approval workflows, delay submission, add approver, connect bank, workspace settings, submission frequency, authorized payer, mark as paid, payer, prevent self-approvals, auto-approve compliant reports, auto-pay approved reports, multiple approval paths, shared approver, forward to different approver]
+keywords: [New Expensify, workflows, workflows tabs, submissions, approvals, payments, advanced, approval workflows, delay submission, add approver, connect bank, workspace settings, submission frequency, authorized payer, mark as paid, payer, prevent self-approvals, prevent marking non-reimbursable reports as paid, auto-approve compliant reports, auto-pay approved reports, multiple approval paths, shared approver, forward to different approver]
 internalScope: Audience is Workspace Admins. Covers configuring approval, submission, reimbursement, and advanced report workflows including choosing an authorized payer; does not cover connecting a bank account.
 description: Configure your workspace submission, approval, and payment workflows to match your team's needs.
 keywords: [New Expensify, workflows, approval workflows, delay submission, add approver, connect bank, workspace settings, submission frequency, authorized payer, mark as paid, payer, who can pay a report]
@@ -65,8 +65,8 @@ Choose how frequently expenses are submitted:
 
 - **Instantly** – Expenses are submitted upon creation.
 - **Daily** – Reports are submitted every evening. Violations are submitted once corrected.
-- **Weekly** – Reports are submitted weekly. Violations are submitted on Sunday after correction.
-- **Twice a month** – Reports are submitted on the 15th and the last day of the month. Violations are submitted at the next applicable date.
+- **Weekly** – Reports are submitted weekly on your selected day. Violations are submitted on the next selected day after correction.
+- **Twice a month** – Reports are submitted on your two selected days of the month. Violations are submitted at the next applicable date.
 - **Monthly** – Reports are submitted once a month on your selected day. Violations are submitted the following month.
 - **By trip** – A report is submitted when no new expenses are added for two full days. A new trip report starts after that.
 - **Manually** – Expenses are automatically added to reports. Reports remain unsubmitted until a member submits them manually.
@@ -97,6 +97,21 @@ Who can pay reports depends on whether a business bank account is connected:
 
 ---
 
+## How to choose who pays currency conversion fees
+
+For cross-border reimbursements, the **Currency conversion fees** setting in the **Payments** section controls whether your company or your employee absorbs the foreign exchange (FX) rate difference and conversion fee when a reimbursement is paid in a currency other than your workspace currency.
+
+1. Go to **Workspaces > [workspace name] > Workflows > Payments > Currency conversion fees**.
+2. Select one of the following:
+   - **Company pays** — Your company absorbs the FX rate difference and conversion fee, so the employee receives the full intended amount in their local currency. Your business bank account is debited more than the report total to cover these costs.
+   - **Employee pays** — The employee absorbs the FX rate difference and conversion fee, so the amount deposited into their account can be less than the report total.
+
+Existing Global Reimbursement setups default to **Employee pays**. New Global Reimbursement setups default to **Company pays**.
+
+**Note:** The **Auto-pay approved reports** threshold applies to the report total and may not include currency conversion fees. When your company pays currency conversion fees, the amount debited from your business bank account can exceed the report total.
+
+---
+
 ## How Advanced workflows work
 
 The **Advanced** tab contains workflow settings that apply to an entire expense report rather than individual expenses.
@@ -104,6 +119,7 @@ The **Advanced** tab contains workflow settings that apply to an entire expense 
 Available settings include:
 
 - **Prevent self-approvals** – Prevents workspace members from approving their own expense reports.
+- **Prevent marking non-reimbursable reports as paid** – Prevents admins from marking reports that contain only non-reimbursable expenses as paid.
 - **Auto-approve compliant reports** – Automatically approves eligible expense reports and lets you randomly audit a percentage of the remaining reports.
 - **Auto-pay approved reports** – Automatically pays approved reports under an amount you set. **Payments** must be configured first.
 
@@ -136,9 +152,8 @@ This happens if the submitter has set a submission frequency on their Individual
 
 ## What time of day are reports submitted when an automated submission frequency is set?
 
-All automatic report submissions occur in the evening Pacific Time (PT).
+All automatic report submissions occur in the evening, based on the workspace **Timezone** in **Workspaces > [workspace name] > Overview**.
 
 ## Can I automatically create separate reports for each of my credit cards?
 
 Not at this time. All expenses are collected into a single report and submitted based on the selected frequency.
-

@@ -4,10 +4,11 @@ import BaseWidgetItem from '@components/BaseWidgetItem';
 
 import useLocalize from '@hooks/useLocalize';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Card} from '@src/types/onyx';
 
 import React from 'react';
@@ -21,11 +22,20 @@ function ActivateCard({card}: ActivateCardProps) {
 
     return (
         <BaseWidgetItem
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM.ACTIVATE_CARD}
+            buttonSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM_BUTTON.ACTIVATE_CARD}
             icon={ExpensifyCardIcon}
             title={translate('homePage.timeSensitiveSection.activateCard.title')}
             subtitle={translate('homePage.timeSensitiveSection.activateCard.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.activateCard.cta')}
-            onCtaPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(String(card.cardID)))}
+            onCtaPress={() =>
+                Navigation.navigate(
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.WALLET_CARD_ACTIVATE.getRoute(String(card.cardID)),
+                        createDynamicRoute(DYNAMIC_ROUTES.WALLET_DOMAIN_CARD.getRoute(String(card.cardID))),
+                    ),
+                )
+            }
             buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
         />
     );

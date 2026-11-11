@@ -12,7 +12,7 @@ import {hasMissingSmartscanFields} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
-import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@src/libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryJSON, getCurrentSearchQueryJSON} from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
@@ -123,6 +123,102 @@ describe('actions/IOU', () => {
     });
 
     describe('shouldOptimisticallyUpdateSearch', () => {
+        it.each([
+            ['merchant:Unique', true],
+            ['merchant:unique', true],
+            ['merchant:Other', false],
+            ['merchant="Unique merchant"', true],
+            ['merchant=Unique', false],
+            ['merchant!=Other', true],
+            ['merchant!="Unique merchant"', false],
+            ['merchant:Other,Unique', true],
+            ['merchant:Other,Elsewhere', false],
+            ['merchant!="Unique merchant",Other', false],
+            ['merchant!=Other,Elsewhere', true],
+            ['merchant:Unique merchant:merchant', true],
+            ['merchant:Unique merchant:Other', false],
+            [`merchant:Unique from:${RORY_ACCOUNT_ID} footerCurrency:EUR`, true],
+            ['merchant:Unique category:Travel', false],
+            ['merchant:Unique policyID:other', false],
+            ['merchant:Unique status:paid', false],
+        ])('evaluates merchant filters before inserting optimistic expenses: %s', (filters, expected) => {
+            // Given a pending expense and the actual parsed merchant query, including its operators and clause groups
+            const transaction = {...createRandomTransaction(1), merchant: 'Unique merchant', modifiedMerchant: undefined};
+            const queryJSON = buildSearchQueryJSON(`type:expense ${filters}`);
+            if (!queryJSON) {
+                throw new Error('Expected a valid merchant query');
+            }
+
+            // When deciding whether to insert the expense without waiting for the server
+            const shouldUpdate = shouldOptimisticallyUpdateSearch(queryJSON, undefined, false, RORY_ACCOUNT_ID, transaction);
+
+            // Then matching merchants are admitted without bypassing other restrictive filters
+            expect(shouldUpdate).toBe(expected);
+        });
+
+        it('matches the edited merchant and requires a transaction to evaluate merchant filters', () => {
+            // Given a transaction whose merchant was edited to match the active filter
+            const queryJSON = buildSearchQueryJSON('type:expense merchant:Unique');
+            if (!queryJSON) {
+                throw new Error('Expected a valid merchant query');
+            }
+            const transaction = {...createRandomTransaction(1), merchant: 'Other', modifiedMerchant: 'Unique'};
+
+            // When evaluating the edited merchant rather than its original value
+            const shouldUpdate = shouldOptimisticallyUpdateSearch(queryJSON, undefined, false, RORY_ACCOUNT_ID, transaction);
+
+            // Then the edit matches, while an unknown transaction is not inserted
+            expect(shouldUpdate).toBe(true);
+            expect(shouldOptimisticallyUpdateSearch(queryJSON, undefined, false, RORY_ACCOUNT_ID)).toBe(false);
+        });
+
+        it('puts a new expense on "My expenses" even when the query carries a Spend footer selection', () => {
+            const transaction = {...createRandomTransaction(1)};
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            // Given "My expenses", whose only filter is the current user
+            const myExpenses = buildSearchQueryJSON(`type:expense from:${RORY_ACCOUNT_ID}`);
+            expect(myExpenses && shouldOptimisticallyUpdateSearch(myExpenses, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
+
+            // Then a footer selection alongside it changes nothing: it picks which figures the footer prints, it does
+            // not narrow the rows, and offline the server's answer never comes to correct the list
+            const withFooterCurrency = buildSearchQueryJSON(`type:expense from:${RORY_ACCOUNT_ID} footerCurrency:EUR`);
+            expect(withFooterCurrency && shouldOptimisticallyUpdateSearch(withFooterCurrency, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
+
+            const withEveryFooterSelection = buildSearchQueryJSON(`type:expense from:${RORY_ACCOUNT_ID} footerCount:reports footerTotal:billable footerCurrency:EUR`);
+            expect(withEveryFooterSelection && shouldOptimisticallyUpdateSearch(withEveryFooterSelection, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
+
+            // While a filter that does narrow the rows still keeps the expense off the list
+            const someoneElsesExpenses = buildSearchQueryJSON(`type:expense from:${RORY_ACCOUNT_ID + 1} footerCurrency:EUR`);
+            expect(someoneElsesExpenses && shouldOptimisticallyUpdateSearch(someoneElsesExpenses, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
+
+            const narrowedByCategory = buildSearchQueryJSON(`type:expense from:${RORY_ACCOUNT_ID} category:Travel footerCurrency:EUR`);
+            expect(narrowedByCategory && shouldOptimisticallyUpdateSearch(narrowedByCategory, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
+        });
+
+        it('leaves a "from" search with a status filter as main had it, with or without a Spend footer selection', () => {
+            const transaction = {...createRandomTransaction(1)};
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            // Given the current user's drafts, which pairs the "from" filter with a status
+            const myDrafts = buildSearchQueryJSON(`type:expense from:${RORY_ACCOUNT_ID} status:drafts`);
+            const myDraftsWithFooterSelection = buildSearchQueryJSON(`type:expense from:${RORY_ACCOUNT_ID} status:drafts footerCurrency:EUR`);
+
+            // Then neither gets a new expense inserted: the footer keys are ignored, and nothing else is widened
+            expect(myDrafts && shouldOptimisticallyUpdateSearch(myDrafts, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
+            expect(myDraftsWithFooterSelection && shouldOptimisticallyUpdateSearch(myDraftsWithFooterSelection, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
+        });
+
         it('when the current hash is submit action query it should only return true if the iou report is in draft state', () => {
             const transaction = {
                 ...createRandomTransaction(1),
@@ -529,6 +625,35 @@ describe('actions/IOU', () => {
     });
 
     describe('getSearchOnyxUpdate', () => {
+        it.each([
+            ['Unique', true],
+            ['Other', false],
+        ])('writes only the matching merchant snapshot before a server response: %s', (merchant, expected) => {
+            // Given an active merchant search with no server snapshot yet
+            const queryJSON = buildSearchQueryJSON('type:expense merchant:Unique');
+            if (!queryJSON) {
+                throw new Error('Expected a valid merchant query');
+            }
+            jest.mocked(getCurrentSearchQueryJSON).mockReturnValueOnce(queryJSON);
+            const transaction = {...createRandomTransaction(1), merchant, modifiedMerchant: undefined};
+
+            // When the expense creation builds its optimistic data, including while offline
+            const result = getSearchOnyxUpdate({
+                transaction,
+                participant: {accountID: 42, login: 'test@test.com'},
+                transactionThreadReportID: undefined,
+                isInvoice: false,
+            });
+            const update = result?.optimisticData?.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`);
+
+            // Then only a matching expense is inserted, with the hash needed to render immediately
+            expect(!!update).toBe(expected);
+            if (expected) {
+                expect(update?.value).toHaveProperty(`data.${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}.merchant`, merchant);
+                expect(update?.value).toHaveProperty('search.hash', queryJSON.hash);
+            }
+        });
+
         it('returns undefined when the participant has no accountID', () => {
             const result = getSearchOnyxUpdate({
                 transaction: {...createRandomTransaction(1)},

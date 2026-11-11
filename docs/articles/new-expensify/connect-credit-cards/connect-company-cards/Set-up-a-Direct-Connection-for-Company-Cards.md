@@ -1,7 +1,7 @@
 ---
 title: Set up a Direct Connection for Company Cards
 description: Learn how to connect a company card account using a direct connection so its cards can be assigned to workspace members and their transactions imported into Expensify.
-keywords: [New Expensify, set up direct company card connection, connect company cards Expensify, direct connection Expensify, direct feed Expensify, Plaid company cards]
+keywords: [New Expensify, set up direct company card connection, connect company cards Expensify, direct connection Expensify, direct feed Expensify, Plaid company cards, pending company card transactions, Plaid pending transactions, company card current balance, company card remaining limit]
 internalScope: Audience is workspace admins and card admins. Covers connecting a company card account using a direct connection or Plaid. Does not cover assigning cards, managing cards, or troubleshooting connections.
 retrievalIntent: How to set up a direct connection to a bank or card provider for company cards.
 contentType: task
@@ -48,6 +48,8 @@ To set up a direct connection, you must:
 
 - Cards with recent expenses appear as a list and can be assigned to workspace members.
 - After a card is assigned, posted transactions import into the assigned member's account automatically as expenses.
+- If the card is connected through Plaid, pending transactions also import. They're marked as pending until they post. [Learn which connections import pending transactions](#do-pending-transactions-import-from-a-direct-connection).
+- For connections made through Plaid, the **Company cards** page shows the account's **Current balance** and **Remaining limit** when your bank reports them.
 
 [Learn how to assign company cards](/articles/new-expensify/connect-credit-cards/configure-and-manage-company-cards/Assign-Company-Cards).
 
@@ -91,6 +93,20 @@ If you're still unable to connect to your bank, you can [import company card tra
 ## Can I connect the same company card account across different workspaces?
 
 Yes, direct connections can be shared across workspaces. [Learn how to share a company card connection across workspaces](/articles/new-expensify/connect-credit-cards/connect-company-cards/Share-a-Company-Card-Connection-Across-Workspaces).
+
+## Do pending transactions import from a direct connection?
+
+Pending transactions import only for cards connected through Plaid (the **Other** option in the bank list). Cards connected to any other bank in the list import transactions after they post, which typically takes 1–3 business days.
+
+When a pending transaction imports:
+
+- It's marked as pending until it posts.
+- It updates automatically when the transaction posts.
+- It's removed if the bank cancels the transaction or it doesn't post.
+
+A report can't be submitted or approved while every expense on it is pending.
+
+If you delete a pending expense, the transaction may import again after it posts.
 
 ## Can I import debit card transactions?
 

@@ -23,6 +23,8 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
  * runs through `useFocusEffect` + a `setTimeout` racing the popover animation, which is verified on device.
  */
 
+jest.mock('@libs/API');
+
 // Capture the props the pickers pass down to SelectionList so we can assert on `textInputOptions.disableAutoFocus`.
 // Prefix `mock` so jest allows the variable inside the factory below.
 const mockSelectionList = jest.fn<null, [SelectionListWithSectionsProps<ListItem>]>(() => null);

@@ -1,28 +1,42 @@
 import {act, render, screen, waitFor} from '@testing-library/react-native';
 
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 import type * as InFlightRequests from '@hooks/useInFlightRequests';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useNetwork from '@hooks/useNetwork';
+import * as NetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
+import usePrevious from '@hooks/usePrevious';
 import type useReportActionsScroll from '@hooks/useReportActionsScroll';
+import * as ReportScrollManager from '@hooks/useReportScrollManager';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+import type useUnreadMarker from '@hooks/useUnreadMarker';
 
 import DateUtils from '@libs/DateUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import Visibility from '@libs/Visibility';
 
+import {useActionListRef} from '@pages/inbox/ActionListContext';
+import type * as ActionListContextModule from '@pages/inbox/ActionListContext';
+import {useConciergeChatHistoryActions, useConciergeChatHistoryState} from '@pages/inbox/ConciergeChatHistoryContext';
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
-import {useConciergeSessionActions, useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 import CollapsedSystemMessages from '@pages/inbox/report/CollapsedSystemMessages';
 import ReportActionsList from '@pages/inbox/report/ReportActionsList';
+import ReportActionsListFloatingMessageCounter from '@pages/inbox/report/ReportActionsList/ReportActionsListFloatingMessageCounter';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
+import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
+import * as ReportActionsNewActionLiveTail from '@pages/inbox/report/useReportActionsNewActionLiveTail';
+import * as ReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
 import useScrollToEditingReportAction from '@pages/inbox/report/useScrollToEditingReportAction';
 
 import CONST from '@src/CONST';
@@ -31,10 +45,12 @@ import {reportActionsListLoadingStateSelector} from '@src/selectors/ReportMetaDa
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type * as ReactNavigation from '@react-navigation/native';
+import type ReactNative from 'react-native';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import {buildSystemAction} from '../utils/ReportTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -45,7 +61,7 @@ jest.mock('@react-navigation/native', () => {
         ...actualNav,
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         useIsFocused: () => mockUseIsFocused(),
-        useRoute: jest.fn(),
+        useRoute: () => ({key: 'Report-test', name: 'Report', params: {}}),
         useNavigationState: jest.fn(),
         createNavigationContainerRef: () => ({
             getState: () => jest.fn(),
@@ -53,7 +69,16 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
+jest.mock('@pages/inbox/ActionListContext', () => ({
+    ...jest.requireActual<typeof ActionListContextModule>('@pages/inbox/ActionListContext'),
+    useActionListRef: jest.fn(() => ({current: null})),
+}));
+
 jest.mock('@hooks/useNetwork', () => jest.fn());
+jest.mock('@pages/inbox/report/AskConciergeWelcome', () => {
+    const {View} = jest.requireActual<typeof ReactNative>('react-native');
+    return () => <View testID="AskConciergeWelcome" />;
+});
 jest.mock('@hooks/useInFlightRequests', () => ({
     ...jest.requireActual<typeof InFlightRequests>('@hooks/useInFlightRequests'),
     useIsReportLoadPending: jest.fn(),
@@ -67,9 +92,9 @@ jest.mock('@hooks/useParentReportAction', () => jest.fn());
 jest.mock('@hooks/useIsInSidePanel', () => jest.fn());
 jest.mock('@hooks/useSidePanelState', () => jest.fn());
 jest.mock('@hooks/useReportTransactionsCollection', () => jest.fn());
-jest.mock('@pages/inbox/ConciergeSessionContext', () => ({
-    useConciergeSessionState: jest.fn(),
-    useConciergeSessionActions: jest.fn(),
+jest.mock('@pages/inbox/ConciergeChatHistoryContext', () => ({
+    useConciergeChatHistoryState: jest.fn(),
+    useConciergeChatHistoryActions: jest.fn(),
 }));
 jest.mock('@pages/inbox/ConciergeDraftContext', () => ({
     useConciergeDraft: jest.fn(),
@@ -88,8 +113,8 @@ const mockUseSidePanelState = useSidePanelState as jest.MockedFunction<typeof us
 const mockUseReportTransactionsCollection = useReportTransactionsCollection as jest.MockedFunction<typeof useReportTransactionsCollection>;
 const mockUseConciergeDraft = useConciergeDraft as jest.MockedFunction<typeof useConciergeDraft>;
 const mockUseConciergeDraftActions = useConciergeDraftActions as jest.MockedFunction<typeof useConciergeDraftActions>;
-const mockUseConciergeSessionState = useConciergeSessionState as jest.MockedFunction<typeof useConciergeSessionState>;
-const mockUseConciergeSessionActions = useConciergeSessionActions as jest.MockedFunction<typeof useConciergeSessionActions>;
+const mockUseConciergeChatHistoryState = useConciergeChatHistoryState as jest.MockedFunction<typeof useConciergeChatHistoryState>;
+const mockUseConciergeChatHistoryActions = useConciergeChatHistoryActions as jest.MockedFunction<typeof useConciergeChatHistoryActions>;
 
 function getMockReportLoadingState(selector: unknown, hasOnceLoadedReportActions = true) {
     return selector === reportActionsListLoadingStateSelector ? {hasOnceLoadedReportActions, isLoadingInitialReportActions: false} : undefined;
@@ -115,6 +140,9 @@ const defaultSidePanelState: ReturnType<typeof useSidePanelState> = {
     shouldHideToolTip: false,
     sidePanelOffset: {current: null} as React.RefObject<never>,
     sidePanelTranslateX: {current: null} as React.RefObject<never>,
+    sidePanelWidth: 375,
+    sidePanelWidthBounds: {min: 375, max: 375},
+    isSidePanelResizable: false,
 };
 
 jest.mock('@hooks/useCopySelectionHelper', () => jest.fn());
@@ -154,18 +182,22 @@ jest.mock('@hooks/useReportActionsScroll', () =>
         onLoad: jest.fn(),
     })),
 );
-jest.mock('@pages/inbox/report/FloatingMessageCounter', () => jest.fn(() => null));
+jest.mock('@pages/inbox/report/ReportActionsList/ReportActionsListFloatingMessageCounter', () => jest.fn(() => null));
 jest.mock('@pages/inbox/report/ReportActionsListPaddingView', () => {
     const reactModule = jest.requireActual<typeof React>('react');
     return jest.fn(({children}: {children: React.ReactNode}) => reactModule.createElement(reactModule.Fragment, null, children));
 });
 jest.mock('@pages/inbox/report/UserTypingEventListener', () => jest.fn(() => null));
 jest.mock('@pages/inbox/report/ReportActionItemCreated', () => jest.fn(() => null));
+jest.mock('@pages/inbox/report/ReportActionsListItemRenderer', () => jest.fn(() => null));
+jest.mock('@pages/inbox/report/CollapsedSystemMessages', () => jest.fn(() => null));
+jest.mock('@pages/inbox/report/ShowPreviousMessagesButton', () => jest.fn(() => null));
 
 type MockInvertedFlashListProps = {
     data?: OnyxTypes.ReportAction[];
     extraData?: unknown;
     renderItem?: (info: {item: OnyxTypes.ReportAction; index: number}) => React.ReactElement | null;
+    onContentSizeChange?: () => void;
 };
 
 const mockInvertedFlashList: jest.MockedFunction<(props: MockInvertedFlashListProps) => null> = jest.requireMock('@components/FlashList/InvertedFlashList');
@@ -175,42 +207,33 @@ const mockReportActionItemCreated: jest.Mock = jest.requireMock('@pages/inbox/re
 const getCapturedVisibleActions = (): OnyxTypes.ReportAction[] | undefined => mockInvertedFlashList.mock.calls.at(-1)?.at(0)?.data;
 const getCapturedListProps = (): MockInvertedFlashListProps | undefined => mockInvertedFlashList.mock.calls.at(-1)?.at(0);
 
+const findRenderedElement = <Props,>(node: React.ReactNode, type: React.ElementType): {props: Props} | undefined => {
+    if (!jest.isMockFunction(type)) {
+        throw new Error('Expected a mocked row component');
+    }
+    type.mockClear();
+    if (React.isValidElement(node)) {
+        render(node);
+    }
+    const lastCall: unknown = type.mock.lastCall;
+    const props = Array.isArray(lastCall) ? (lastCall.at(0) as Props | undefined) : undefined;
+    return props ? {props} : undefined;
+};
+
 const getRenderedReportActionsListItemProps = (
     reportAction: OnyxTypes.ReportAction,
     index = 0,
 ): {shouldDisableContextMenuForConciergeDraft?: boolean; isLatestConciergeFeedbackAction?: boolean; displayAsGroup?: boolean} => {
-    const renderedItem = getCapturedListProps()?.renderItem?.({item: reportAction, index});
+    const props = findRenderedElement<React.ComponentProps<typeof ReportActionsListItemRenderer>>(
+        getCapturedListProps()?.renderItem?.({item: reportAction, index}),
+        ReportActionsListItemRenderer,
+    )?.props;
 
-    if (!React.isValidElement<{children: React.ReactNode}>(renderedItem)) {
-        throw new Error('Expected renderItem to return a React element');
-    }
-
-    const child = React.Children.toArray(renderedItem.props.children).find(
-        (item): item is React.ReactElement<{shouldDisableContextMenuForConciergeDraft?: boolean}> =>
-            React.isValidElement<{shouldDisableContextMenuForConciergeDraft?: boolean}>(item) && 'shouldDisableContextMenuForConciergeDraft' in item.props,
-    );
-
-    if (!child) {
+    if (!props) {
         throw new Error('Expected renderItem to render ReportActionsListItemRenderer');
     }
 
-    return child.props;
-};
-
-const findRenderedElement = <Props,>(node: React.ReactNode, type: React.ElementType): React.ReactElement<Props> | undefined => {
-    if (React.isValidElement<Props>(node) && node.type === type) {
-        return node;
-    }
-    if (!React.isValidElement<{children?: React.ReactNode}>(node)) {
-        return undefined;
-    }
-    for (const child of React.Children.toArray(node.props.children)) {
-        const match = findRenderedElement<Props>(child, type);
-        if (match) {
-            return match;
-        }
-    }
-    return undefined;
+    return props;
 };
 
 const mockUseMarkAsRead: jest.Mock = jest.requireMock('@hooks/useMarkAsRead');
@@ -261,12 +284,7 @@ const mockReportActions: OnyxTypes.ReportAction[] = [
 
 const renderReportActionsList = (props: {reportID?: string} = {}) => {
     const reportID = props.reportID ?? mockReport.reportID;
-    return render(
-        <ReportActionsList
-            reportID={reportID}
-            conciergeChat={undefined}
-        />,
-    );
+    return render(<ReportActionsList reportID={reportID} />);
 };
 
 // useReportActionsListModel derives app-load state from the request queue via useIsAppLoadPending,
@@ -352,8 +370,8 @@ describe('ReportActionsList (body)', () => {
             dispatchLocalDraftEvent: jest.fn(),
             revealDraftFromReportAction: jest.fn(),
         });
-        mockUseConciergeSessionState.mockReturnValue({sessionStartTime: null, showFullHistory: false, hadMessagesAtSessionStart: false});
-        mockUseConciergeSessionActions.mockReturnValue({startSession: jest.fn(), setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
+        mockUseConciergeChatHistoryState.mockReturnValue({showFullHistory: false, isHistoryCollapsedByUser: false});
+        mockUseConciergeChatHistoryActions.mockReturnValue({setShowFullHistory: jest.fn(), collapseHistory: jest.fn()});
 
         mockUseOnyx.mockImplementation(getMockOnyxValue);
     });
@@ -361,6 +379,235 @@ describe('ReportActionsList (body)', () => {
     afterEach(async () => {
         await waitForBatchedUpdatesWithAct();
         await Onyx.clear();
+    });
+
+    it('leaves counter copy subscriptions in the counter wrapper while forwarding report and navigation props', () => {
+        // Given loaded list content with its counter mocked, copy-only reads must not remain in the parent or model hooks.
+        const reportWithPolicy = {...mockReport, policyID: 'counter-policy'};
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockUseOnyx.mockImplementation((key, options) =>
+            key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}` ? [reportWithPolicy, {status: 'loaded'}] : getMockOnyxValue(key, options),
+        );
+        mockUseUnreadMarker.mockReturnValue({unreadMarkerReportActionID: mockReportActions[1].reportActionID, unreadMarkerReportActionIndex: 1});
+
+        // When the public list mounts its loaded content, the wrapper should receive the same report and scroll handlers.
+        renderReportActionsList();
+
+        // Then the list is mounted, but none of the counter's copy subscriptions have leaked above the mocked wrapper.
+        expect(mockInvertedFlashList).toHaveBeenCalled();
+        const subscribedKeys = mockUseOnyx.mock.calls.map(([key]) => key);
+        expect(subscribedKeys).not.toContain(`${ONYXKEYS.COLLECTION.POLICY}${reportWithPolicy.policyID}`);
+        expect(subscribedKeys).not.toContain(ONYXKEYS.COLLECTION.RULE);
+        expect(subscribedKeys).not.toContain(ONYXKEYS.NVP_INTRO_SELECTED);
+        const counterProps = jest.mocked(ReportActionsListFloatingMessageCounter).mock.lastCall?.[0];
+        const scrollResult = mockUseReportActionsScroll.mock.results.at(-1)?.value as ReturnType<typeof useReportActionsScroll> | undefined;
+        expect(counterProps?.report).toBe(reportWithPolicy);
+        expect(counterProps?.hasNewMessages).toBe(true);
+        expect(counterProps?.isActive).toBe(false);
+        expect(counterProps?.onClick).toBe(scrollResult?.scrollToBottomAndMarkReportAsRead);
+        expect(counterProps?.onActionBadgePress).toBe(scrollResult?.scrollToActionBadgeTarget);
+        expect(counterProps).not.toHaveProperty('shouldShowMarkAsDoneCopy');
+    });
+
+    describe('Support survey unread markers', () => {
+        it.each([
+            {hasUnreadMarker: true, hasNewestPage: true},
+            {hasUnreadMarker: false, hasNewestPage: true},
+            {hasUnreadMarker: true, hasNewestPage: false},
+            {hasUnreadMarker: false, hasNewestPage: false},
+        ])('handles a hidden newest survey (latest page loaded: $hasNewestPage, unread marker: $hasUnreadMarker)', ({hasUnreadMarker, hasNewestPage}) => {
+            // Given a cached survey newer than the reply, but not necessarily in the loaded page
+            const reply = {...mockReportActions[1], created: '2023-01-01 00:04:00.000'};
+            const survey = {...reply, reportActionID: 'hidden-survey', actionName: CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY, created: '2023-01-01 00:05:00.000'};
+            const supportReport = {...mockReport, type: CONST.REPORT.TYPE.SUPPORT_TICKET, lastVisibleActionCreated: survey.created};
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUseOnyx.mockImplementation((key, options) =>
+                key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}` ? [supportReport, {status: 'loaded'}] : getMockOnyxValue(key, options),
+            );
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: hasNewestPage ? [survey, reply] : [reply],
+                sortedAllReportActions: [survey, reply],
+                hasNewerActions: !hasNewestPage,
+            });
+            mockUseUnreadMarker.mockReturnValue({unreadMarkerReportActionID: hasUnreadMarker ? reply.reportActionID : null, unreadMarkerReportActionIndex: hasUnreadMarker ? 0 : -1});
+            const markNewestActionAsRead = jest.fn();
+            mockUseMarkAsRead.mockReturnValue({markNewestActionAsRead, completeSkippedMarkAsRead: jest.fn()});
+            const scrollToBottom = jest.fn();
+            const scrollToIndex = jest.fn();
+            const openReportAtLiveTail = jest.fn();
+            const activeRouteSpy = jest.spyOn(Navigation, 'getReportRHPActiveRoute').mockReturnValue('');
+            const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+            const scrollManagerSpy = jest.spyOn(ReportScrollManager, 'default').mockReturnValue(createMock<ReturnType<typeof ReportScrollManager.default>>({scrollToBottom, scrollToIndex}));
+            const trackingSpy = jest
+                .spyOn(ReportUnreadMessageScrollTracking, 'default')
+                .mockReturnValue(createMock<ReturnType<typeof ReportUnreadMessageScrollTracking.default>>({setIsFloatingMessageCounterVisible: jest.fn()}));
+            const liveTailSpy = jest
+                .spyOn(ReportActionsNewActionLiveTail, 'default')
+                .mockReturnValue(createMock<ReturnType<typeof ReportActionsNewActionLiveTail.default>>({openReportAtLiveTail}));
+            const defaultScrollImplementation = mockUseReportActionsScroll.getMockImplementation();
+            mockUseReportActionsScroll.mockImplementation(jest.requireActual<{default: typeof useReportActionsScroll}>('@hooks/useReportActionsScroll').default);
+
+            try {
+                // When the user clicks the counter or Latest with the actual scroll hook mounted
+                renderReportActionsList();
+                const scrollResult = mockUseReportActionsScroll.mock.results.at(-1)?.value as ReturnType<typeof useReportActionsScroll> | undefined;
+                act(() => scrollResult?.scrollToBottomAndMarkReportAsRead());
+
+                // Then only a loaded latest page is marked read; a cached survey alone cannot prove freshness
+                expect(getCapturedVisibleActions()).not.toContain(survey);
+                expect(markNewestActionAsRead).toHaveBeenCalledTimes(hasNewestPage ? 1 : 0);
+                expect(openReportAtLiveTail).toHaveBeenCalledTimes(!hasNewestPage && !hasUnreadMarker ? 1 : 0);
+                if (hasUnreadMarker) {
+                    expect(scrollToIndex).toHaveBeenCalledWith(0);
+                } else {
+                    expect(scrollToBottom).toHaveBeenCalled();
+                }
+            } finally {
+                scrollManagerSpy.mockRestore();
+                trackingSpy.mockRestore();
+                liveTailSpy.mockRestore();
+                activeRouteSpy.mockRestore();
+                navigateSpy.mockRestore();
+                mockUseReportActionsScroll.mockReset();
+                if (defaultScrollImplementation) {
+                    mockUseReportActionsScroll.mockImplementation(defaultScrollImplementation);
+                }
+            }
+        });
+
+        it('keeps the offline unread divider above the reply when a newer survey is hidden', () => {
+            // Given a reply received offline and a newer hidden survey
+            const supportReport = {...mockReport, type: CONST.REPORT.TYPE.SUPPORT_TICKET, lastReadTime: '2023-01-01 00:02:00.000'};
+            const readComment = {...mockReportActions[1], reportActionID: 'read-comment', created: '2023-01-01 00:01:00.000'};
+            const offlineReply = {...readComment, reportActionID: 'offline-reply', created: '2023-01-01 00:04:00.000'};
+            const survey = {...readComment, reportActionID: 'hidden-survey', actionName: CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY, created: '2023-01-01 00:05:00.000'};
+            const actions = [survey, offlineReply, readComment];
+            mockUseCurrentUserPersonalDetails.mockReturnValue({...mockUseCurrentUserPersonalDetails(), timezone: {selected: 'Africa/Abidjan', automatic: false}});
+            mockUseNetwork.mockReturnValue({isOffline: true});
+            const networkSpy = jest.spyOn(NetworkWithOfflineStatus, 'default').mockReturnValue({
+                isOffline: true,
+                lastOfflineAt: {current: new Date('2023-01-01T00:03:00.000Z')},
+                lastOnlineAt: {current: new Date('2023-01-01T00:02:00.000Z')},
+            });
+            mockUseOnyx.mockImplementation((key, options) => {
+                if (key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`) {
+                    return [options?.selector ? (options.selector as (report: OnyxTypes.Report) => OnyxTypes.Report | string | undefined)(supportReport) : supportReport, {status: 'loaded'}];
+                }
+                return getMockOnyxValue(key, options);
+            });
+            mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: actions, sortedAllReportActions: actions});
+            mockUseUnreadMarker.mockImplementation(jest.requireActual<{default: typeof useUnreadMarker}>('@hooks/useUnreadMarker').default);
+            jest.mocked(usePrevious).mockImplementation(jest.requireActual<{default: typeof usePrevious}>('@hooks/usePrevious').default);
+            const focusSpy = jest.spyOn(Visibility, 'hasFocus').mockReturnValue(false);
+
+            try {
+                // When the real unread hook selects the offline boundary in the rendered list
+                render(
+                    <LocaleContextProvider>
+                        <ReportActionsList reportID={mockReport.reportID} />
+                    </LocaleContextProvider>,
+                );
+
+                // Then New belongs to the unread reply, not the older read comment
+                expect(getCapturedVisibleActions()).not.toContain(survey);
+                expect(mockUseReportActionsScroll.mock.lastCall?.[0].unreadMarkerReportActionID).toBe(offlineReply.reportActionID);
+                expect(mockUseReportActionsScroll.mock.lastCall?.[0].unreadMarkerReportActionIndex).toBe(0);
+            } finally {
+                focusSpy.mockRestore();
+                networkSpy.mockRestore();
+                jest.mocked(usePrevious).mockReset();
+            }
+        });
+
+        it.each(['unresolved', 'replaced', 'resolved'] as const)('places the unread marker on a visible reply when the ticket is %s', (ticketState) => {
+            // Given an unread survey from a previous resolution before an unread support reply
+            const supportReport = {
+                ...mockReport,
+                type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+                stateNum: ticketState === 'unresolved' ? CONST.REPORT.STATE_NUM.OPEN : CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: ticketState === 'unresolved' ? CONST.REPORT.STATUS_NUM.OPEN : CONST.REPORT.STATUS_NUM.CLOSED,
+                lastReadTime: '2023-01-01 00:02:00.000',
+            };
+            const readComment = {
+                ...mockReportActions[1],
+                reportActionID: 'read-comment',
+                created: '2023-01-01 00:01:00.000',
+            };
+            const obsoleteSurvey = {
+                ...readComment,
+                reportActionID: 'obsolete-survey',
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY,
+                created: '2023-01-01 00:03:00.000',
+            };
+            const unreadReply = {
+                ...readComment,
+                reportActionID: 'unread-reply',
+                created: '2023-01-01 00:04:00.000',
+            };
+            const resolution = {
+                ...readComment,
+                reportActionID: 'resolution',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
+                created: '2023-01-01 00:05:00.000',
+            };
+            const latestSurvey = {
+                ...obsoleteSurvey,
+                reportActionID: 'latest-survey',
+                created: '2023-01-01 00:06:00.000',
+            };
+            const actions = ticketState === 'unresolved' ? [unreadReply, obsoleteSurvey, readComment] : [latestSurvey, resolution, unreadReply, obsoleteSurvey, readComment];
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUseOnyx.mockImplementation((key, options) => {
+                if (key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`) {
+                    return [supportReport, {status: 'loaded'}];
+                }
+                if (key === `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${mockReport.reportID}`) {
+                    return [ticketState === 'replaced' ? {reopenedAsReportID: 'replacement-ticket'} : {}, {status: 'loaded'}];
+                }
+                return getMockOnyxValue(key, options);
+            });
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: actions,
+                sortedAllReportActions: actions,
+            });
+            mockUseUnreadMarker.mockImplementation(({sortedVisibleReportActions}: Parameters<typeof useUnreadMarker>[0]) => {
+                const [unreadMarkerReportActionID, unreadMarkerReportActionIndex] = getUnreadMarkerReportAction({
+                    visibleReportActions: sortedVisibleReportActions,
+                    earliestReceivedOfflineMessageIndex: undefined,
+                    currentUserAccountID: 100,
+                    prevSortedVisibleReportActionsObjects: {},
+                    unreadMarkerTime: supportReport.lastReadTime,
+                    isScrolledOverThreshold: false,
+                    isOffline: false,
+                    isReversed: false,
+                    hasWindowFocus: false,
+                });
+                return {
+                    unreadMarkerReportActionID,
+                    unreadMarkerReportActionIndex,
+                };
+            });
+
+            // When the ticket opens with unread messages
+            renderReportActionsList();
+
+            // Then the hidden survey cannot take the divider away from the visible reply
+            const visibleActions = getCapturedVisibleActions();
+            expect(visibleActions).not.toContain(obsoleteSurvey);
+            expect(visibleActions?.includes(latestSurvey)).toBe(ticketState === 'resolved');
+            expect(mockUseReportActionsScroll.mock.lastCall?.[0].unreadMarkerReportActionID).toBe(unreadReply.reportActionID);
+            expect(mockUseReportActionsScroll.mock.lastCall?.[0].unreadMarkerReportActionIndex).toBe(visibleActions?.indexOf(unreadReply));
+            const row = findRenderedElement<React.ComponentProps<typeof ReportActionsListItemRenderer>>(
+                getCapturedListProps()?.renderItem?.({
+                    item: unreadReply,
+                    index: visibleActions?.indexOf(unreadReply) ?? -1,
+                }),
+                ReportActionsListItemRenderer,
+            );
+            expect(row?.props.shouldDisplayNewMarker).toBe(true);
+        });
     });
 
     describe('System message presentation', () => {
@@ -484,10 +731,83 @@ describe('ReportActionsList (body)', () => {
             expect(summary?.props.unreadMarkerReportActionID).toBe('system-older');
         });
 
+        it.each([true, false])('keeps the first unread marker with its persisted or synthesized CREATED header (persisted: %s)', (hasPersistedCreatedAction) => {
+            // Given two unread updates whose CREATED header is either persisted or synthesized by expense pagination
+            const created = buildSystemAction('created', {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                created: '2023-01-01 00:00:00.000',
+                actorAccountID: 100,
+            });
+            mockReport.type = CONST.REPORT.TYPE.EXPENSE;
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUseUnreadMarker.mockReturnValue({unreadMarkerReportActionID: 'system-older', unreadMarkerReportActionIndex: 1});
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [getSystemAction(0), getSystemAction(1), ...(hasPersistedCreatedAction ? [created] : [])],
+            });
+
+            // When the unread pair is collapsed, scrolling still targets the summary
+            renderReportActionsList();
+            const collapsedAnchor = getCapturedListProps()?.renderItem?.({item: getSystemAction(0), index: 0});
+            const summary = findRenderedElement<React.ComponentProps<typeof CollapsedSystemMessages>>(collapsedAnchor, CollapsedSystemMessages);
+
+            // Then the visible CREATED header owns NEW in both cases, without changing the collapsed scroll target
+            expect(summary).toBeDefined();
+            expect(summary?.props.unreadMarkerReportActionID).toBeUndefined();
+            expect(mockUseReportActionsScroll.mock.calls.at(-1)?.at(0)).toMatchObject({unreadMarkerReportActionIndex: 0});
+            expect(mockUseReportActionsScroll.mock.calls.at(-1)?.at(0)?.reportActionIDToDisplayIndex?.get('system-older')).toBe(0);
+            const headerAction = getCapturedVisibleActions()?.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+            expect(headerAction).toBeDefined();
+            if (!headerAction) {
+                throw new Error('Expected expense pagination to preserve or synthesize a CREATED header');
+            }
+            const header = getCapturedListProps()?.renderItem?.({item: headerAction, index: 1});
+            expect(findRenderedElement<React.ComponentProps<typeof ReportActionsListItemRenderer>>(header, ReportActionsListItemRenderer)?.props).toMatchObject({
+                shouldHideThreadDividerLine: true,
+                shouldUseThreadDividerLine: true,
+            });
+        });
+
         it('does not collapse passive actions in ordinary chat reports', () => {
             renderSystemActions(CONST.REPORT.TYPE.CHAT);
 
             expect(getCapturedSystemActionIDs()).toEqual(['system-newer', 'system-older', 'chat-boundary']);
+        });
+
+        it('mounts the off-screen oldest update and gives only that row a manual focus request in the inverted list', () => {
+            // Given a newest-first group whose collapsed anchor is its newest member
+            const scrollToIndex = jest.fn();
+            jest.mocked(useActionListRef).mockReturnValue(createMock<ReturnType<typeof useActionListRef>>({current: {scrollToIndex}}));
+            const frames: FrameRequestCallback[] = [];
+            const frameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => frames.push(callback));
+            try {
+                renderSystemActions(CONST.REPORT.TYPE.EXPENSE);
+                const anchor = getCapturedListProps()?.renderItem?.({item: getSystemAction(0), index: 0});
+                const summary = findRenderedElement<React.ComponentProps<typeof CollapsedSystemMessages>>(anchor, CollapsedSystemMessages);
+                expect(summary).toBeDefined();
+
+                // When the user presses the summary
+                act(() => summary?.props.onPress());
+
+                // Then the oldest revealed message owns focus, independent of the inverted data index
+                const oldest = getCapturedListProps()?.renderItem?.({item: getSystemAction(1), index: 1});
+                const newest = getCapturedListProps()?.renderItem?.({item: getSystemAction(0), index: 0});
+                expect(findRenderedElement<React.ComponentProps<typeof ReportActionsListItemRenderer>>(oldest, ReportActionsListItemRenderer)?.props.onExpandedSystemMessageReady).toEqual(
+                    expect.any(Function),
+                );
+                expect(
+                    findRenderedElement<React.ComponentProps<typeof ReportActionsListItemRenderer>>(newest, ReportActionsListItemRenderer)?.props.onExpandedSystemMessageReady,
+                ).toBeUndefined();
+                act(() => {
+                    for (const callback of frames) {
+                        callback(0);
+                    }
+                });
+                expect(scrollToIndex).toHaveBeenCalledWith({index: 1, animated: false, viewPosition: 0.5});
+            } finally {
+                frameSpy.mockRestore();
+                jest.mocked(useActionListRef).mockReturnValue({current: null});
+            }
         });
 
         it('keeps the unread target aligned with a synthetic draft in ordinary chats', () => {
@@ -518,6 +838,10 @@ describe('ReportActionsList (body)', () => {
             });
         });
 
+        afterEach(() => {
+            mockReport.type = undefined;
+        });
+
         const conciergeReply: OnyxTypes.ReportAction = {
             reportID: mockReport.reportID,
             reportActionID: 'concierge-reply',
@@ -541,6 +865,76 @@ describe('ReportActionsList (body)', () => {
             renderReportActionsList();
 
             expect(getRenderedReportActionsListItemProps(conciergeReply).isLatestConciergeFeedbackAction).toBe(true);
+        });
+
+        it('marks a Concierge reply in the transaction thread of a one-expense report', () => {
+            // Given a one-expense report, which shows the comments of its transaction thread that Onyx stores under the thread's reportID
+            const transactionThreadReportID = 'transaction-thread';
+            const transactionID = 'transaction';
+            const expenseAction = {
+                reportID: mockReport.reportID,
+                reportActionID: 'expense',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '2023-01-03',
+                actorAccountID: 123,
+                childReportID: transactionThreadReportID,
+                message: [{type: 'COMMENT', html: '$10.00 expense', text: '$10.00 expense'}],
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: transactionID, IOUReportID: mockReport.reportID, amount: 1000, currency: CONST.CURRENCY.USD},
+                shouldShow: true,
+                pendingAction: null,
+                errors: {},
+            } as OnyxTypes.ReportAction;
+            const threadConciergeReply: OnyxTypes.ReportAction = {...conciergeReply, reportID: transactionThreadReportID};
+            mockReport.type = CONST.REPORT.TYPE.EXPENSE;
+            mockUseReportTransactionsCollection.mockReturnValue({
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {transactionID, reportID: mockReport.reportID} as OnyxTypes.Transaction,
+            });
+            mockUseOnyx.mockImplementation((key, options) => {
+                if (key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`) {
+                    return [[threadConciergeReply], {status: 'loaded'}];
+                }
+                return getMockOnyxValue(key, options);
+            });
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [...mockReportActions, expenseAction],
+            });
+
+            // When the list renders
+            renderReportActionsList();
+
+            // Then the reply shows the prompt, because it is a saved comment even though the expense report does not store it
+            expect(getCapturedVisibleActions()).toContain(threadConciergeReply);
+            expect(getRenderedReportActionsListItemProps(threadConciergeReply).isLatestConciergeFeedbackAction).toBe(true);
+        });
+
+        it('marks the newest reply of Concierge and of each custom agent', () => {
+            // Given a custom agent that replied after Concierge
+            const agentAccountID = 4242;
+            const agentReply: OnyxTypes.ReportAction = {
+                ...conciergeReply,
+                reportActionID: 'agent-reply',
+                created: '2023-01-05',
+                actorAccountID: agentAccountID,
+                person: [{type: 'TEXT', style: 'strong', text: 'Receipt Checker'}],
+            };
+            mockUseOnyx.mockImplementation((key, options) => {
+                if (key === ONYXKEYS.PERSONAL_DETAILS_LIST) {
+                    return [[agentAccountID], {status: 'loaded'}];
+                }
+                return getMockOnyxValue(key, options);
+            });
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [...mockReportActions, conciergeReply, agentReply],
+            });
+
+            // When the list renders
+            renderReportActionsList();
+
+            // Then both replies show the prompt, because the agent reply must not take the prompt away from Concierge
+            expect(getRenderedReportActionsListItemProps(conciergeReply).isLatestConciergeFeedbackAction).toBe(true);
+            expect(getRenderedReportActionsListItemProps(agentReply).isLatestConciergeFeedbackAction).toBe(true);
         });
 
         it('marks nothing while a Concierge answer is still streaming', () => {
@@ -687,6 +1081,30 @@ describe('ReportActionsList (body)', () => {
             });
         });
 
+        it('clears a completed streamed reply when an unrelated survey is filtered out', () => {
+            // Given an unresolved ticket with a saved reply and an obsolete survey.
+            const supportReport = {...mockReport, type: CONST.REPORT.TYPE.SUPPORT_TICKET};
+            const savedReply = {...conciergeDraftReportAction, reportActionID: 'saved-reply'};
+            const survey = {...conciergeDraftReportAction, reportActionID: 'obsolete-survey', actionName: CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY};
+            const actions = [savedReply, survey, ...mockReportActions];
+            const clearDraft = jest.fn();
+            mockUseOnyx.mockImplementation((key, options) =>
+                key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}` ? [supportReport, {status: 'loaded'}] : getMockOnyxValue(key, options),
+            );
+            mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: actions, sortedAllReportActions: actions});
+            mockUseConciergeDraft.mockReturnValue({draftReportAction: savedReply, hasActiveDraft: true, isDraftPendingCompletion: false});
+            mockUseConciergeDraftActions.mockReturnValue({clearDraft, dispatchLocalDraftEvent: jest.fn(), revealDraftFromReportAction: jest.fn()});
+
+            // When survey filtering changes the rendered array without inserting a temporary reply.
+            renderReportActionsList();
+
+            // Then only the saved reply remains, and no synthetic autoscroll or retained reply is needed.
+            expect(getCapturedVisibleActions()?.filter((action) => action.reportActionID === savedReply.reportActionID)).toHaveLength(1);
+            expect(getCapturedVisibleActions()).not.toContain(survey);
+            expect(mockUseReportActionsScroll.mock.calls.at(-1)?.at(0)?.draftAutoScrollKey).toBe('');
+            expect(clearDraft).toHaveBeenCalledTimes(1);
+        });
+
         it('clears a completed draft when its saved action is outside the visible page', async () => {
             // Given a saved reply outside the pagination window while its draft is still revealing
             const persistedReportAction: OnyxTypes.ReportAction = {
@@ -718,10 +1136,7 @@ describe('ReportActionsList (body)', () => {
             // When the list reconciles against all saved actions
             const {rerender} = render(
                 <TestDraftContext.Provider value={revealingDraftState}>
-                    <ReportActionsList
-                        reportID={mockReport.reportID}
-                        conciergeChat={undefined}
-                    />
+                    <ReportActionsList reportID={mockReport.reportID} />
                 </TestDraftContext.Provider>,
             );
 
@@ -735,10 +1150,7 @@ describe('ReportActionsList (body)', () => {
             // When the reveal completes without changing the visible pagination window
             rerender(
                 <TestDraftContext.Provider value={{draftReportAction: persistedReportAction, hasActiveDraft: true, isDraftPendingCompletion: false}}>
-                    <ReportActionsList
-                        reportID={mockReport.reportID}
-                        conciergeChat={undefined}
-                    />
+                    <ReportActionsList reportID={mockReport.reportID} />
                 </TestDraftContext.Provider>,
             );
 
@@ -1038,6 +1450,22 @@ describe('ReportActionsList (body)', () => {
         });
     });
 
+    describe('Pending scroll-to-bottom', () => {
+        it('flushes a pending scroll-to-bottom when the list content size changes', () => {
+            // Given the list is rendered
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            renderReportActionsList();
+
+            // When the list content size changes, as it does once FlashList lays out a newly sent comment. In an
+            // aligned-to-top report this is the only list event that follows, because onLayout does not fire.
+            getCapturedListProps()?.onContentSizeChange?.();
+
+            // Then the pending scroll-to-bottom is flushed, so the list lands on the new comment
+            const scrollHookResult = mockUseReportActionsScroll.mock.results.at(-1)?.value as {flushPendingScrollToBottom: jest.Mock};
+            expect(scrollHookResult.flushPendingScrollToBottom).toHaveBeenCalledTimes(1);
+        });
+    });
+
     describe('Concierge Side Panel', () => {
         const CONCIERGE_REPORT_ID = '123';
         const CURRENT_USER_ACCOUNT_ID = 100;
@@ -1182,10 +1610,9 @@ describe('ReportActionsList (body)', () => {
         });
     });
 
-    describe('Concierge Main DM Hidden History', () => {
+    describe('Concierge Main DM', () => {
         const CONCIERGE_REPORT_ID = '123';
         const CURRENT_USER_ACCOUNT_ID = 100;
-        const SESSION_START = '2024-06-01 12:00:00.000';
 
         const oldReportActions: OnyxTypes.ReportAction[] = [
             {
@@ -1226,37 +1653,13 @@ describe('ReportActionsList (body)', () => {
             },
         ];
 
-        // The session filter keys off the child* fields the backend stamps on a task's parent action.
-        const buildTaskAction = (
-            reportActionID: string,
-            created: string,
-            stateNum: OnyxTypes.ReportAction['childStateNum'],
-            statusNum: OnyxTypes.ReportAction['childStatusNum'],
-        ): OnyxTypes.ReportAction => ({
-            reportActionID,
-            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-            created,
-            actorAccountID: 456,
-            message: [{type: 'COMMENT', html: 'Take a test drive', text: 'Take a test drive'}],
-            originalMessage: {},
-            childType: CONST.REPORT.TYPE.TASK,
-            childReportID: `task-${reportActionID}`,
-            childManagerAccountID: CURRENT_USER_ACCOUNT_ID,
-            childStateNum: stateNum,
-            childStatusNum: statusNum,
-            shouldShow: true,
-            person: [{type: 'TEXT', style: 'strong', text: 'Concierge'}],
-            pendingAction: null,
-            errors: {},
-        });
-
-        const setupMainDMConciergeMocks = (sessionStartTime: string | null = SESSION_START, showFullHistory = false, hasOnceLoadedReportActions = true, hasOutstandingChildTask = false) => {
+        const setupMainDMConciergeMocks = (showFullHistory = false) => {
             jest.spyOn(ReportActionsUtils, 'shouldReportActionBeVisible').mockReturnValue(true);
             mockUseNetwork.mockReturnValue({isOffline: false});
             mockUseIsInSidePanel.mockReturnValue(false);
             mockUseSidePanelState.mockReturnValue(defaultSidePanelState);
-            mockUseConciergeSessionState.mockReturnValue({sessionStartTime, showFullHistory, hadMessagesAtSessionStart: false});
-            mockUseConciergeSessionActions.mockReturnValue({startSession: jest.fn(), setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
+            mockUseConciergeChatHistoryState.mockReturnValue({showFullHistory, isHistoryCollapsedByUser: false});
+            mockUseConciergeChatHistoryActions.mockReturnValue({setShowFullHistory: jest.fn(), collapseHistory: jest.fn()});
 
             mockUseOnyx.mockImplementation((key: string, options) => {
                 if (key === ONYXKEYS.CONCIERGE_REPORT_ID) {
@@ -1269,13 +1672,21 @@ describe('ReportActionsList (body)', () => {
                     return [false, {status: 'loaded'}];
                 }
                 if (key.includes('reportLoadingState')) {
-                    return [getMockReportLoadingState(options?.selector, hasOnceLoadedReportActions), {status: 'loaded'}];
+                    return [getMockReportLoadingState(options?.selector), {status: 'loaded'}];
+                }
+                if (key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}` && options?.selector) {
+                    const reportActions = Object.fromEntries(oldReportActions.map((action) => [action.reportActionID, action]));
+                    return [!!(options.selector as (actions: OnyxTypes.ReportActions) => unknown)(reportActions), {status: 'loaded'}];
                 }
                 if (key.includes('reportActions')) {
                     return [[], {status: 'loaded'}];
                 }
                 if (key === `${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_REPORT_ID}`) {
-                    return [{...mockReport, reportID: CONCIERGE_REPORT_ID, hasOutstandingChildTask}, {status: 'loaded'}];
+                    const conciergeReport = {...mockReport, reportID: CONCIERGE_REPORT_ID};
+                    return [
+                        options?.selector ? (options.selector as (report: OnyxTypes.Report) => OnyxTypes.Report | boolean | undefined)(conciergeReport) : conciergeReport,
+                        {status: 'loaded'},
+                    ];
                 }
                 if (key.includes('report')) {
                     return [undefined, {status: 'loaded'}];
@@ -1284,267 +1695,41 @@ describe('ReportActionsList (body)', () => {
             });
         };
 
-        it('should show greeting and filter old messages when session is active with prior user messages', () => {
+        it('should show the welcome screen in place of the conversation by default', () => {
+            // Given the main Concierge chat where the user asked before, with its history collapsed
             setupMainDMConciergeMocks();
-
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
                 reportActions: oldReportActions,
                 hasOlderActions: false,
             });
 
+            // When the list renders
             renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
-            expect(mockInvertedFlashList).toHaveBeenCalled();
-            const passedActions = getCapturedVisibleActions();
-            expect(passedActions?.some((a) => a.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID)).toBe(true);
-            expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(false);
-            expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(false);
+            // Then the welcome screen shows and the earlier conversation stays behind `View chat history`
+            expect(screen.getByTestId('AskConciergeWelcome')).toBeTruthy();
+            expect(mockInvertedFlashList).not.toHaveBeenCalled();
         });
 
-        it('should keep read history hidden when the Concierge DM still has an outstanding child task', () => {
-            // Regression guard: an incomplete onboarding task used to force `showFullHistory` on permanently,
-            // which both un-hid the history and suppressed the "Show history" button.
-            setupMainDMConciergeMocks(SESSION_START, false, true, true);
-
+        it('should show the whole conversation without a greeting once the history is expanded', () => {
+            // Given the user expanded the main Concierge chat history
+            setupMainDMConciergeMocks(true);
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
                 reportActions: oldReportActions,
                 hasOlderActions: false,
             });
 
+            // When the list renders
             renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
+            // Then every earlier message shows, because only the side panel collapses its history
             expect(mockInvertedFlashList).toHaveBeenCalled();
             const passedActions = getCapturedVisibleActions();
-            expect(passedActions?.some((a) => a.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID)).toBe(true);
-            expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(false);
-            expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(false);
-        });
-
-        it('should keep a still-open child task visible while the rest of the read history stays hidden', () => {
-            setupMainDMConciergeMocks(SESSION_START, false, true, true);
-
-            // An in-session message keeps the list out of welcome mode, so the session filter actually runs.
-            const newUserMessage: OnyxTypes.ReportAction = {
-                reportActionID: 'new-user-msg',
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                created: '2024-06-01 12:05:00.000',
-                actorAccountID: CURRENT_USER_ACCOUNT_ID,
-                message: [{type: 'COMMENT', html: 'Hello', text: 'Hello'}],
-                originalMessage: {},
-                shouldShow: true,
-                person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
-                pendingAction: null,
-                errors: {},
-            };
-
-            mockUsePaginatedReportActions.mockReturnValue({
-                ...defaultPaginatedReportActionsResult,
-                reportActions: [
-                    ...oldReportActions,
-                    buildTaskAction('open-task', '2023-06-15 10:02:00.000', CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN),
-                    buildTaskAction('completed-task', '2023-06-15 10:03:00.000', CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.APPROVED),
-                    newUserMessage,
-                ],
-                hasOlderActions: false,
-            });
-
-            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
-
-            expect(mockInvertedFlashList).toHaveBeenCalled();
-            const passedActions = getCapturedVisibleActions();
-            expect(passedActions?.some((a) => a.reportActionID === 'new-user-msg')).toBe(true);
-            expect(passedActions?.some((a) => a.reportActionID === 'open-task')).toBe(true);
-            expect(passedActions?.some((a) => a.reportActionID === 'completed-task')).toBe(false);
-            expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(false);
-            expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(false);
-        });
-
-        it('should keep a still-open child task visible in the fresh-session welcome view', () => {
-            // Opening the DM without sending anything puts the list in welcome mode, which returns early before the
-            // session filter runs. An open task must still survive that path, or it stays hidden until "Show history".
-            setupMainDMConciergeMocks(SESSION_START, false, true, true);
-
-            mockUsePaginatedReportActions.mockReturnValue({
-                ...defaultPaginatedReportActionsResult,
-                reportActions: [...oldReportActions, buildTaskAction('open-task', '2023-06-15 10:02:00.000', CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN)],
-                hasOlderActions: false,
-            });
-
-            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
-
-            expect(mockInvertedFlashList).toHaveBeenCalled();
-            const passedActions = getCapturedVisibleActions();
-            expect(passedActions?.some((a) => a.reportActionID === 'open-task')).toBe(true);
-            expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(false);
-            expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(false);
-        });
-
-        it('should show all actions when showFullHistory is true', () => {
-            setupMainDMConciergeMocks(SESSION_START, true);
-
-            mockUsePaginatedReportActions.mockReturnValue({
-                ...defaultPaginatedReportActionsResult,
-                reportActions: oldReportActions,
-                hasOlderActions: false,
-            });
-
-            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
-
-            expect(mockInvertedFlashList).toHaveBeenCalled();
-            const passedActions = getCapturedVisibleActions();
+            expect(passedActions?.some((a) => a.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID)).toBe(false);
             expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(true);
             expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(true);
-        });
-
-        it('should show all actions unfiltered when user sends a message in current session', () => {
-            setupMainDMConciergeMocks();
-
-            const actionsWithNewMsg: OnyxTypes.ReportAction[] = [
-                ...oldReportActions,
-                {
-                    reportActionID: 'new-user-msg',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    created: '2024-06-01 12:05:00.000',
-                    actorAccountID: CURRENT_USER_ACCOUNT_ID,
-                    message: [{type: 'COMMENT', html: 'Hello', text: 'Hello'}],
-                    originalMessage: {},
-                    shouldShow: true,
-                    person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
-                    pendingAction: null,
-                    errors: {},
-                },
-            ];
-
-            mockUsePaginatedReportActions.mockReturnValue({
-                ...defaultPaginatedReportActionsResult,
-                reportActions: actionsWithNewMsg,
-                hasOlderActions: false,
-            });
-
-            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
-
-            expect(mockInvertedFlashList).toHaveBeenCalled();
-            const passedActions = getCapturedVisibleActions();
-            // After user sends a message, the greeting stays visible alongside session actions
-            expect(passedActions?.some((a) => a.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID)).toBe(true);
-            expect(passedActions?.some((a) => a.reportActionID === 'new-user-msg')).toBe(true);
-        });
-
-        it('should not show old messages when sessionStartTime is null (session not started)', () => {
-            setupMainDMConciergeMocks(null);
-
-            mockUsePaginatedReportActions.mockReturnValue({
-                ...defaultPaginatedReportActionsResult,
-                reportActions: oldReportActions,
-                hasOlderActions: false,
-            });
-
-            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
-
-            expect(mockInvertedFlashList).toHaveBeenCalled();
-            const passedActions = getCapturedVisibleActions();
-            // With no session, old messages should not be shown
-            expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(false);
-            expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(false);
-        });
-
-        it('should pass through onboarding messages for a new user with no prior messages', () => {
-            setupMainDMConciergeMocks();
-
-            // Only onboarding messages from Concierge, no user messages before session
-            const onboardingActions: OnyxTypes.ReportAction[] = [
-                {
-                    reportActionID: 'created-1',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                    created: '2024-06-01 11:59:00.000',
-                    actorAccountID: 123,
-                    message: [{type: 'COMMENT', html: '', text: ''}],
-                    originalMessage: {},
-                    shouldShow: true,
-                    person: [{type: 'TEXT', style: 'strong', text: 'System'}],
-                    pendingAction: null,
-                    errors: {},
-                },
-                {
-                    reportActionID: 'onboarding-msg',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    created: '2024-06-01 11:59:30.000',
-                    actorAccountID: 456,
-                    message: [{type: 'COMMENT', html: 'Welcome to Expensify!', text: 'Welcome to Expensify!'}],
-                    originalMessage: {},
-                    shouldShow: true,
-                    person: [{type: 'TEXT', style: 'strong', text: 'Concierge'}],
-                    pendingAction: null,
-                    errors: {},
-                },
-            ];
-
-            mockUsePaginatedReportActions.mockReturnValue({
-                ...defaultPaginatedReportActionsResult,
-                reportActions: onboardingActions,
-                hasOlderActions: false,
-            });
-
-            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
-
-            expect(mockInvertedFlashList).toHaveBeenCalled();
-            const passedActions = getCapturedVisibleActions();
-            // New user with no prior messages — onboarding messages pass through (no filtering)
-            expect(passedActions?.some((a) => a.reportActionID === 'onboarding-msg')).toBe(true);
-        });
-
-        it('should call startSession on mount for main DM concierge', () => {
-            const mockStartSession = jest.fn();
-            mockUseConciergeSessionActions.mockReturnValue({startSession: mockStartSession, setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
-            setupMainDMConciergeMocks();
-            mockUseConciergeSessionActions.mockReturnValue({startSession: mockStartSession, setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
-
-            mockUsePaginatedReportActions.mockReturnValue({
-                ...defaultPaginatedReportActionsResult,
-                reportActions: oldReportActions,
-                hasOlderActions: false,
-            });
-
-            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
-
-            expect(mockStartSession).toHaveBeenCalled();
-        });
-
-        it('should render cached actions without a skeleton on refresh when hasOnceLoadedReportActions resets but actions are cached', () => {
-            // Simulates a page refresh: hasOnceLoadedReportActions is RAM-only and resets to false,
-            // but report actions persist in Onyx cache. We should render them immediately (production behavior).
-            setupMainDMConciergeMocks(SESSION_START, false, false);
-
-            mockUsePaginatedReportActions.mockReturnValue({
-                ...defaultPaginatedReportActionsResult,
-                reportActions: oldReportActions,
-                hasOlderActions: false,
-            });
-
-            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
-
-            expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
-            expect(mockInvertedFlashList).toHaveBeenCalled();
-        });
-
-        it('should show a skeleton on a cold load when hasOnceLoadedReportActions is false and there are no cached actions', () => {
-            setupMainDMConciergeMocks(SESSION_START, false, false);
-
-            mockUsePaginatedReportActions.mockReturnValue({
-                ...defaultPaginatedReportActionsResult,
-                reportActions: [],
-                hasOlderActions: false,
-            });
-
-            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
-
-            expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
-            // The concierge-hidden-history skeleton shows while the report is otherwise "ready"; the content
-            // is still not mounted, so the UI-close hooks never run here either.
-            expect(mockUseMarkAsRead).not.toHaveBeenCalled();
-            expect(mockUseReportActionsScroll).not.toHaveBeenCalled();
         });
     });
 });

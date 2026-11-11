@@ -17,6 +17,8 @@ const POLICY_ID = '1';
 function makeHomeAndOfficePolicy(isOfficeWorkArrangement?: boolean, hasOfficeWorkArrangement?: boolean): Policy {
     return {
         ...createRandomPolicy(Number(POLICY_ID)),
+        pendingAction: null,
+        areDistanceRatesEnabled: true,
         commuterExclusions: {
             method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
             ...(isOfficeWorkArrangement === undefined ? {} : {isOfficeWorkArrangement}),
@@ -68,6 +70,19 @@ describe('useTimeSensitiveHomeAddress', () => {
         });
     });
 
+    it('asks for an address when Distance rates are disabled but home and office exclusions remain active', async () => {
+        // Given a workspace whose saved commuter setting is still enforced by the server
+        await setUpWorkspace({...makeHomeAndOfficePolicy(true), areDistanceRatesEnabled: false});
+
+        // When the time sensitive items are resolved
+        const {result} = renderHook(() => useTimeSensitiveHomeAddress());
+
+        // Then the task appears because disabling Distance rates does not remove the commuter setting
+        await waitFor(() => {
+            expect(result.current.shouldShowAddHomeAddress).toBe(true);
+        });
+    });
+
     it('stays quiet when the workspace default is no regular workplace', async () => {
         // Given a workspace on the method whose members have no regular workplace
         await setUpWorkspace(makeHomeAndOfficePolicy(false));
@@ -104,6 +119,22 @@ describe('useTimeSensitiveHomeAddress', () => {
         // Then the task appears, because the server will measure their commute and block the expense without it
         await waitFor(() => {
             expect(result.current.shouldShowAddHomeAddress).toBe(true);
+        });
+    });
+
+    it.each([
+        ['archived', {archivedDate: '2026-10-28 00:00:00.000'}],
+        ['being deleted', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
+    ])('stays quiet when the only workspace measuring commutes from home is %s', async (_case, workspaceState) => {
+        // Given an office-based workspace measuring commutes from home that the member can no longer use
+        await setUpWorkspace({...makeHomeAndOfficePolicy(true), ...workspaceState});
+
+        // When the time sensitive items are resolved
+        const {result} = renderHook(() => useTimeSensitiveHomeAddress());
+
+        // Then the task stays hidden, because the workspace no longer takes expenses that need the address
+        await waitFor(() => {
+            expect(result.current.shouldShowAddHomeAddress).toBe(false);
         });
     });
 });

@@ -4,9 +4,19 @@ import swapBackgroundTabForRHPTarget from '@libs/Navigation/helpers/swapBackgrou
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 
+import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import HomeTaskGroup from '@src/pages/home/HomeTaskGroup';
 import AddHomeAddress from '@src/pages/home/TimeSensitiveSection/items/AddHomeAddress';
+import useTimeSensitiveItems from '@src/pages/home/TimeSensitiveSection/useTimeSensitiveItems';
 import ROUTES from '@src/ROUTES';
-import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
+
+import type * as NativeNavigation from '@react-navigation/native';
+
+import Onyx from 'react-native-onyx';
+
+import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
 
 const mockRootState: ReturnType<typeof navigationRef.getRootState> = {
     key: 'root',
@@ -17,14 +27,14 @@ const mockRootState: ReturnType<typeof navigationRef.getRootState> = {
     stale: false,
 };
 
-jest.mock('@libs/Navigation/Navigation', () => ({
-    __esModule: true,
-    default: {
-        navigate: jest.fn(),
-    },
-}));
+jest.mock('@libs/Navigation/Navigation');
 
 jest.mock('@libs/Navigation/helpers/swapBackgroundTabForRHPTarget');
+
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
+    useFocusEffect: jest.fn(),
+}));
 
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: jest.fn((key: string) => key)})));
 
@@ -34,8 +44,44 @@ jest.mock('@hooks/useLazyAsset', () => ({
     })),
 }));
 
+jest.mock('@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddBankAccount', () =>
+    jest.fn(() => ({
+        shouldShowAddBankAccount: false,
+    })),
+);
+
+jest.mock('@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddPaymentCard', () =>
+    jest.fn(() => ({
+        shouldShowAddPaymentCard: false,
+    })),
+);
+
+jest.mock('@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveCards', () =>
+    jest.fn(() => ({
+        shouldShowAddShippingAddress: false,
+        shouldShowActivateCard: false,
+        shouldShowReviewCardFraud: false,
+        shouldShowAddVirtualCardPersonalDetails: false,
+        cardsNeedingShippingAddress: [],
+        cardsNeedingActivation: [],
+        cardsWithFraud: [],
+        virtualCardsNeedingPersonalDetails: [],
+    })),
+);
+
+jest.mock('@hooks/useCardFeedErrors', () =>
+    jest.fn(() => ({
+        cardsWithBrokenFeedConnection: {},
+        personalCardsWithBrokenConnection: {},
+    })),
+);
+
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({login: 'test@example.com'})));
+
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({shouldUseNarrowLayout: false})));
+
 jest.mock('@hooks/useTheme', () => jest.fn(() => ({white: '#fff'})));
+
 jest.mock('@hooks/useThemeStyles', () =>
     jest.fn(
         () =>
@@ -48,7 +94,69 @@ jest.mock('@hooks/useThemeStyles', () =>
     ),
 );
 
-describe('AddHomeAddress', () => {
+function TimeSensitiveSection() {
+    return (
+        <HomeTaskGroup
+            title="homePage.timeSensitiveSection.title"
+            rows={useTimeSensitiveItems()}
+            expandToggleSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.SECTION_EXPAND_TOGGLE_TIME_SENSITIVE}
+        />
+    );
+}
+
+const renderTimeSensitiveSection = () =>
+    render(
+        <OnyxListItemProvider>
+            <TimeSensitiveSection />
+        </OnyxListItemProvider>,
+    );
+
+describe('TimeSensitiveSection - AddHomeAddress', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        await Onyx.clear();
+        await waitForBatchedUpdates();
+    });
+
+    it('renders AddHomeAddress when an active workspace uses home and office commuter exclusions', async () => {
+        await Onyx.set(ONYXKEYS.ACCOUNT, {validated: true});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {
+            id: '1',
+            name: 'Boulder Development',
+            areDistanceRatesEnabled: true,
+            commuterExclusions: {method: 'homeAndOffice'},
+        });
+        await waitForBatchedUpdates();
+
+        renderTimeSensitiveSection();
+
+        expect(screen.getByText('homePage.timeSensitiveSection.addHomeAddress.title')).toBeTruthy();
+    });
+
+    it('renders AddHomeAddress when distance rates are disabled but commuter exclusions remain active', async () => {
+        // Given the workspace still has a home and office commuter exclusion, which requires a home address even if Distance rates are off
+        await Onyx.set(ONYXKEYS.ACCOUNT, {validated: true});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {
+            id: '1',
+            name: 'Boulder Development',
+            areDistanceRatesEnabled: false,
+            commuterExclusions: {method: 'homeAndOffice'},
+        });
+        await waitForBatchedUpdates();
+
+        // When the time sensitive section renders for the member
+        renderTimeSensitiveSection();
+
+        // Then the home address task remains visible because the saved commuter exclusion is still enforced
+        expect(screen.getByText('homePage.timeSensitiveSection.addHomeAddress.title')).toBeTruthy();
+    });
+});
+
+describe('AddHomeAddress navigation', () => {
     beforeEach(() => {
         jest.mocked(Navigation.navigate).mockClear();
         jest.mocked(swapBackgroundTabForRHPTarget).mockClear();
@@ -59,12 +167,16 @@ describe('AddHomeAddress', () => {
         jest.restoreAllMocks();
     });
 
-    it('opens private personal details on top of the profile page', () => {
+    it('opens the address-only home address page on top of the preferences page', () => {
+        // Given the Home page task asking the member to add the home address their commute is measured from
         render(<AddHomeAddress />);
 
+        // When the member presses its CTA
         fireEvent.press(screen.getByText('homePage.timeSensitiveSection.addHomeAddress.cta'));
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1));
-        expect(swapBackgroundTabForRHPTarget).toHaveBeenCalledWith(mockRootState, ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1));
+        // Then the address-only page opens over the preferences page, so the member is not asked for a legal name,
+        // date of birth, phone number or magic code just to add an address
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_HOME_ADDRESS);
+        expect(swapBackgroundTabForRHPTarget).toHaveBeenCalledWith(mockRootState, ROUTES.SETTINGS_HOME_ADDRESS);
     });
 });

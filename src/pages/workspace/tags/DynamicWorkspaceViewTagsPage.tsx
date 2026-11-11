@@ -2,7 +2,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -35,7 +35,7 @@ import {isDisablingOrDeletingLastEnabledTag} from '@libs/OptionsListUtils';
 import {
     getCleanedTagName,
     getCountOfEnabledTagsOfList,
-    getTagListName,
+    getTagListEntryByOrderWeight,
     hasDependentTags as hasDependentTagsPolicyUtils,
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
 } from '@libs/PolicyUtils';
@@ -54,7 +54,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {ComponentRef} from 'react';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 type DynamicWorkspaceViewTagsProps =
@@ -81,18 +81,18 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
     const policyData = usePolicyData(policyID);
     const {policy, tags: policyTags} = policyData;
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const currentTagListName = useMemo(() => getTagListName(policyTags, orderWeight), [policyTags, orderWeight]);
-    const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
+    const currentPolicyTag = getTagListEntryByOrderWeight(policyTags, orderWeight)?.[1];
+    const currentTagListName = currentPolicyTag?.name ?? '';
+    const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
     const isMultiLevelTags = isMultiLevelTagsPolicyUtils(policyTags);
-    const currentPolicyTag = policyTags?.[currentTagListName];
     const {canWrite: canWriteTags, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW;
     const backPath = useDynamicBackPath(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_LIST_VIEW.path : DYNAMIC_ROUTES.WORKSPACE_TAG_LIST_VIEW.path);
-    const fetchTags = useCallback(() => {
+    const fetchTags = () => {
         openPolicyTagsPage(policyID);
-    }, [policyID]);
+    };
 
-    const filterFunction = useCallback((tag: PolicyTag | undefined) => !!tag && tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, []);
+    const filterFunction = (tag: PolicyTag | undefined) => !!tag && tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     const [selectedTags, setSelectedTags] = useFilteredSelection(currentPolicyTag?.tags, filterFunction);
 
@@ -115,89 +115,72 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
         onNavigationCallBack: () => Navigation.goBack(backPath),
     });
 
-    const updateWorkspaceTagEnabled = useCallback(
-        (value: boolean, tagName: string) => {
-            if (!canWriteTags) {
-                showReadOnlyModal();
-                return;
-            }
+    const updateWorkspaceTagEnabled = (value: boolean, tagName: string) => {
+        if (!canWriteTags) {
+            showReadOnlyModal();
+            return;
+        }
 
-            setWorkspaceTagEnabled(policyData, {[tagName]: {name: tagName, enabled: value}}, orderWeight, isVendorMatchingBetaEnabled);
-        },
-        [canWriteTags, policyData, orderWeight, showReadOnlyModal, isVendorMatchingBetaEnabled],
-    );
+        setWorkspaceTagEnabled(policyData, {[tagName]: {name: tagName, enabled: value}}, orderWeight, isVendorMatchingBetaEnabled);
+    };
 
-    const navigateToTagSettings = useCallback(
-        (tag: PolicyTag) => {
-            if (!canWriteTags) {
-                return;
-            }
+    const navigateToTagSettings = (tag: PolicyTag) => {
+        if (!canWriteTags) {
+            return;
+        }
 
-            const parentTagsFilter = tag?.rules?.parentTagsFilter ?? tag?.parentTagsFilter;
-            const tagSettingsSuffix = appendParentTagsFilter(DYNAMIC_ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(orderWeight, tag.name), parentTagsFilter);
-            const settingsTagSettingsSuffix = appendParentTagsFilter(DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.getRoute(orderWeight, tag.name), parentTagsFilter);
+        const parentTagsFilter = tag?.rules?.parentTagsFilter ?? tag?.parentTagsFilter;
+        const tagSettingsSuffix = appendParentTagsFilter(DYNAMIC_ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(orderWeight, tag.name), parentTagsFilter);
+        const settingsTagSettingsSuffix = appendParentTagsFilter(DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.getRoute(orderWeight, tag.name), parentTagsFilter);
 
-            Navigation.navigate(isQuickSettingsFlow ? createDynamicRoute(settingsTagSettingsSuffix) : createDynamicRoute(tagSettingsSuffix));
-        },
-        [canWriteTags, isQuickSettingsFlow, orderWeight],
-    );
+        Navigation.navigate(isQuickSettingsFlow ? createDynamicRoute(settingsTagSettingsSuffix) : createDynamicRoute(tagSettingsSuffix));
+    };
 
-    const tagRows = useMemo<WorkspaceTagTableRowData[]>(() => {
-        const enabledTagsCount = getCountOfEnabledTagsOfList(currentPolicyTag?.tags);
-
-        return Object.values(currentPolicyTag?.tags ?? {}).reduce<WorkspaceTagTableRowData[]>((acc, tag) => {
-            const isDisabled = tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
-            if (!isOffline && isDisabled) {
-                return acc;
-            }
-
-            const isDisablingLastEnabledTag = isDisablingOrDeletingLastEnabledTag(currentPolicyTag, [tag], enabledTagsCount);
-
-            acc.push({
-                keyForList: hasDependentTags ? `${tag.name}-${tag.rules?.parentTagsFilter ?? ''}` : tag.name,
-                value: tag.name,
-                name: hasDependentTags ? tag.name : getCleanedTagName(tag.name),
-                enabled: tag.enabled,
-                disabled: isDisabled,
-                errors: tag.errors ?? undefined,
-                pendingAction: tag.pendingAction,
-                isLocked: !canWriteTags || isDisablingLastEnabledTag,
-                showEnabledSwitch: !hasDependentTags,
-                action: () => navigateToTagSettings(tag),
-                onToggleEnabled: (enabled: boolean) => {
-                    if (isDisablingLastEnabledTag) {
-                        showConfirmModal({
-                            title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
-                            prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
-                            confirmText: translate('common.buttonConfirm'),
-                            shouldShowCancelButton: false,
-                        });
-                        return;
-                    }
-                    updateWorkspaceTagEnabled(enabled, tag.name);
-                },
-                onClose: () =>
-                    clearPolicyTagErrors({
-                        policyID,
-                        tagName: tag.name,
-                        tagListIndex: orderWeight,
-                        policyTags,
-                    }),
-            });
-
+    const enabledTagsCount = getCountOfEnabledTagsOfList(currentPolicyTag?.tags);
+    const tagRows: WorkspaceTagTableRowData[] = Object.values(currentPolicyTag?.tags ?? {}).reduce<WorkspaceTagTableRowData[]>((acc, tag) => {
+        const isDisabled = tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        if (!isOffline && isDisabled) {
             return acc;
-        }, []);
-    }, [canWriteTags, currentPolicyTag, hasDependentTags, isOffline, navigateToTagSettings, orderWeight, policyID, policyTags, showConfirmModal, translate, updateWorkspaceTagEnabled]);
+        }
+        const isDisablingLastEnabledTag = isDisablingOrDeletingLastEnabledTag(currentPolicyTag, [tag], enabledTagsCount);
+        acc.push({
+            keyForList: hasDependentTags ? `${tag.name}-${tag.rules?.parentTagsFilter ?? ''}` : tag.name,
+            value: tag.name,
+            name: hasDependentTags ? tag.name : getCleanedTagName(tag.name),
+            enabled: tag.enabled,
+            disabled: isDisabled,
+            errors: tag.errors ?? undefined,
+            pendingAction: tag.pendingAction,
+            isLocked: !canWriteTags || isDisablingLastEnabledTag,
+            showEnabledSwitch: !hasDependentTags,
+            action: () => navigateToTagSettings(tag),
+            onToggleEnabled: (enabled: boolean) => {
+                if (isDisablingLastEnabledTag) {
+                    showConfirmModal({
+                        title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
+                        prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
+                        confirmText: translate('common.buttonConfirm'),
+                        shouldShowCancelButton: false,
+                    });
+                    return;
+                }
+                updateWorkspaceTagEnabled(enabled, tag.name);
+            },
+            onClose: () =>
+                clearPolicyTagErrors({
+                    policyID,
+                    tagName: tag.name,
+                    tagListIndex: orderWeight,
+                    policyTags,
+                }),
+        });
+        return acc;
+    }, []);
 
-    const tagListKeyedByName = useMemo(
-        () =>
-            tagRows.reduce<Record<string, WorkspaceTagTableRowData>>((acc, tag) => {
-                acc[tag.value] = tag;
-                return acc;
-            }, {}),
-        [tagRows],
-    );
+    const tagListKeyedByName = tagRows.reduce<Record<string, WorkspaceTagTableRowData>>((acc, tag) => {
+        acc[tag.value] = tag;
+        return acc;
+    }, {});
 
     if (!currentPolicyTag) {
         return <NotFoundPage />;
@@ -292,6 +275,7 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
 
         return (
             <ButtonWithDropdownMenu
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.VIEW_TAGS_BULK_ACTIONS_DROPDOWN}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 buttonRef={dropdownButtonRef}
                 onPress={() => null}
@@ -340,14 +324,14 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
                 pendingAction={currentPolicyTag.pendingAction}
                 errorRowStyles={styles.mh5}
             >
-                <MenuItemWithTopDescription
-                    title={getCleanedTagName(currentPolicyTag.name)}
-                    description={translate(`workspace.tags.customTagName`)}
-                    onPress={navigateToEditTag}
-                    shouldShowRightIcon={canWriteTags}
-                    interactive={canWriteTags}
-                    wrapperStyle={styles.mb5}
-                />
+                <View style={styles.mb5}>
+                    <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.VIEW_TAGS_LIST_NAME}
+                        name={translate(`workspace.tags.customTagName`)}
+                        value={getCleanedTagName(currentPolicyTag.name)}
+                        onPress={canWriteTags ? navigateToEditTag : undefined}
+                    />
+                </View>
             </OfflineWithFeedback>
         </>
     );

@@ -25,7 +25,7 @@ function NetSuiteSetupPage({route}: NetSuiteSetupPageProps) {
             uri={getNetSuiteSetupLink(policyID, accountID, isMigration)}
             testID="NetSuiteSetupPage"
             shouldAppendShortLivedAuthToken
-            backTo={ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}
+            backTo={ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID)}
         />
     );
 }

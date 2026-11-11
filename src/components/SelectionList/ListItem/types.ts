@@ -55,6 +55,9 @@ type ListItem<K extends string | number = string> = {
     /** Content rendered beside the text (e.g. a badge or inline icon) */
     rightElement?: ReactNode;
 
+    /** Content rendered on the title's line, right after the title (e.g. a "New" badge). Only `SingleSelectListItem` renders it. */
+    titleRightElement?: ReactNode;
+
     /** Standalone control (e.g. a button) rendered after the selection button at the row's end */
     actionElement?: ReactNode;
 
@@ -191,6 +194,10 @@ type ListItemPressableProps<TItem extends ListItem> = PropsWithChildren<{
     shouldSyncFocus?: boolean;
     shouldHighlightSelectedItem?: boolean;
     shouldDisableHoverStyle?: boolean;
+
+    /** Whether descendants can use native text selection inside the row */
+    shouldAllowTextSelection?: boolean;
+
     pressableStyle?: StyleProp<ViewStyle>;
     pressableWrapperStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 
