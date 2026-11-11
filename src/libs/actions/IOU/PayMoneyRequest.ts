@@ -1053,7 +1053,7 @@ type PayViaABAFunctionParams = {
  * Downloads the ABA file for paying the given reports. The backend marks them as "paid elsewhere" when it creates the file.
  * Resolves once the download has finished or failed.
  */
-function payViaABA(params: PayViaABAFunctionParams): Promise<void> {
+async function payViaABA(params: PayViaABAFunctionParams): Promise<void> {
     const {
         reportIDs,
         policy,
@@ -1071,7 +1071,7 @@ function payViaABA(params: PayViaABAFunctionParams): Promise<void> {
     } = params;
     if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-        return Promise.resolve();
+        return;
     }
 
     completePaymentOnboarding(CONST.IOU.PAYMENT_SELECTED.BBA, introSelected, isSelfTourViewed, currentUserAccountID, conciergeChat, delegateAccountID);
@@ -1089,6 +1089,9 @@ function payViaABA(params: PayViaABAFunctionParams): Promise<void> {
         hasDownloadFailed = true;
         onDownloadFailed(error);
     };
+
+    // The file download doesn't go through the write queue, so we wait for queued writes to reach the server first
+    await API.waitForWrites(WRITE_COMMANDS.PAY_VIA_ABA);
     return fileDownload(
         translate,
         getCommandURL({command: WRITE_COMMANDS.PAY_VIA_ABA}),

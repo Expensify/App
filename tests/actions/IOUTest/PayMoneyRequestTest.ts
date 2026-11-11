@@ -3111,12 +3111,12 @@ describe('actions/IOU/PayMoneyRequest', () => {
             appendSpy.mockRestore();
         });
 
-        it('downloads the ABA file for a single report, named the way Classic names it', () => {
+        it('downloads the ABA file for a single report, named the way Classic names it', async () => {
             // Given a single report to pay
             const onDownloadFailed = jest.fn();
 
             // When it's paid via ABA
-            payViaABA({...payViaABAParams, reportIDs: ['123'], onDownloadFailed});
+            await payViaABA({...payViaABAParams, reportIDs: ['123'], onDownloadFailed});
 
             // Then the PayViaABA command is posted for that report, paying held expenses too by default, and its response is saved as the report's ABA file
             expect(appendSpy).toHaveBeenCalledWith('reportIDList', '123');
@@ -3188,12 +3188,12 @@ describe('actions/IOU/PayMoneyRequest', () => {
             expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
         });
 
-        it('downloads one ABA file for several reports, named with the date', () => {
+        it('downloads one ABA file for several reports, named with the date', async () => {
             // Given several reports to pay, leaving their held expenses for later
             const reportIDs = ['123', '456'];
 
             // When they're paid via ABA
-            payViaABA({...payViaABAParams, reportIDs, shouldReimburseHeldTransactions: false, onDownloadFailed: jest.fn()});
+            await payViaABA({...payViaABAParams, reportIDs, shouldReimburseHeldTransactions: false, onDownloadFailed: jest.fn()});
 
             // Then one file pays them all, named the way Classic names a bulk ABA file
             expect(appendSpy).toHaveBeenCalledWith('reportIDList', '123,456');
