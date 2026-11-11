@@ -13,6 +13,7 @@ import {
     createMemberCustomFieldsSelector,
     createPoliciesByIDsSelector,
     createWorkspaceListPoliciesSelector,
+    homeAndOfficeCommuterExclusionPolicyNameSelector,
     isAdminForPolicyByIDSelector,
     lastWorkspaceNumberSelector,
     policyNameSelector,
@@ -585,6 +586,20 @@ describe('createFilteredPoliciesInfoSelector', () => {
         expect(result.filteredPoliciesCount).toBe(2);
         expect(result.firstPolicy).toStrictEqual({id: 'p1', ownerAccountID: 1});
     });
+
+    it('excludes workspaces where the member cannot create expenses', () => {
+        // Given an approve-only workspace and a regular member workspace
+        // When "Submit to my employer" counts the workspaces it can route to
+        // Then only the member workspace counts, so the shortcut never picks the approve-only one
+        const policies = {
+            [`${P}p1`]: makePolicy({id: 'p1', role: CONST.POLICY.ROLE.APPROVE_ONLY, ownerAccountID: 1}),
+            [`${P}p2`]: makePolicy({id: 'p2', role: CONST.POLICY.ROLE.USER, ownerAccountID: 2}),
+        };
+        const result = createFilteredPoliciesInfoSelector(userLogin)(policies);
+
+        expect(result.filteredPoliciesCount).toBe(1);
+        expect(result.firstPolicy).toStrictEqual({id: 'p2', ownerAccountID: 2});
+    });
 });
 
 describe('billingRestrictionPolicySelector', () => {
@@ -834,5 +849,43 @@ describe('createIOURequestStartPoliciesSelector', () => {
             [`${P}p1`]: makePolicy({id: 'p1', role: CONST.POLICY.ROLE.ADMIN, areInvoicesEnabled: false}),
         });
         expect(result.canSendInvoiceFromAnyWorkspace).toBe(false);
+    });
+});
+
+describe('homeAndOfficeCommuterExclusionPolicyNameSelector', () => {
+    const P = ONYXKEYS.COLLECTION.POLICY;
+    const makePolicy = (overrides: Partial<Policy>): Policy =>
+        createMock<Policy>({
+            name: 'Workspace',
+            commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE},
+            ...overrides,
+        });
+
+    it('names the active workspace that measures commutes from the home address', () => {
+        // Given an archived workspace and an active one, both measuring commutes from the member's home
+        const policies = {
+            [`${P}archived`]: makePolicy({id: 'archived', name: 'Archived Workspace', archivedDate: '2026-10-28 00:00:00.000'}),
+            [`${P}active`]: makePolicy({id: 'active', name: 'Active Workspace'}),
+        };
+
+        // When resolving which workspace relies on the home address
+        const result = homeAndOfficeCommuterExclusionPolicyNameSelector(policies);
+
+        // Then the active one is named, because an archived workspace no longer takes expenses that need the address
+        expect(result).toBe('Active Workspace');
+    });
+
+    it.each([
+        ['archived', {archivedDate: '2026-10-28 00:00:00.000'}],
+        ['being deleted', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
+    ])('names no workspace when the only one measuring commutes from home is %s', (_case, workspaceState) => {
+        // Given the only workspace measuring commutes from the member's home is no longer usable
+        const policies = {[`${P}p1`]: makePolicy({id: 'p1', ...workspaceState})};
+
+        // When resolving which workspace relies on the home address
+        const result = homeAndOfficeCommuterExclusionPolicyNameSelector(policies);
+
+        // Then none is named, so the profile doesn't point the member at a workspace they can't use
+        expect(result).toBeUndefined();
     });
 });

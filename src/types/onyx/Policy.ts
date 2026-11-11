@@ -30,6 +30,9 @@ type GovernmentRateSnapshot = {
 
     /** Government-published end date (ISO 8601) at the time the rate was copied, omitted if the source rate has none */
     endDate?: string;
+
+    /** Government-published tax reclaimable fraction at the time the rate was copied, omitted if the source rate has none */
+    taxClaimablePercentage?: number;
 };
 
 /** General-purpose optional attributes of the policy distance rate */
@@ -1819,6 +1822,9 @@ type RilletExport = {
     /** Export behavior for non-reimbursable expenses. */
     nonReimbursable: RilletExportNonReimbursable;
 
+    /** Account code where reimbursements land (applicable if `reimbursable` type is REIMBURSEMENT). */
+    reimbursementAccountCode: string;
+
     /** Default vendor to associate with exported transactions. */
     defaultVendorID: string;
 
@@ -2787,7 +2793,7 @@ type ZohoBooksAccount = {
 };
 
 /**
- * Bank or credit card account retrieved from Zoho Books. The backend syncs only active ones, for the company card account picker.
+ * Bank, cash or credit card account retrieved from Zoho Books, for the company card, bill payment and settlement account pickers.
  */
 type ZohoBooksBankAccount = {
     /** Unique identifier of the account. */
@@ -2796,8 +2802,14 @@ type ZohoBooksBankAccount = {
     /** Name of the account. */
     name: string;
 
+    /** Zoho Books account type. */
+    accountType: ZohoBooksAccountType;
+
     /** Currency associated with the account. */
     currency?: string;
+
+    /** Whether the account is active. */
+    isActive: boolean;
 };
 
 /**
@@ -3709,6 +3721,12 @@ type ACHAccount = {
     sharees?: string[];
 };
 
+/** Reimbursement info for a specific country in a policy */
+type ReimbursementCountryInfo = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** ID of the withdrawal account the policy reimburses from in this country, when one is connected */
+    bankAccountID?: number;
+}>;
+
 /** Commuter exclusion configuration for a policy */
 type CommuterExclusions = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** How commuter mileage is excluded */
@@ -4092,7 +4110,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             enabled?: boolean;
 
             /** Countries (keyed by ISO code) where the company has a withdrawal account it can reimburse from */
-            countries?: Record<string, unknown>;
+            countries?: Record<string, ReimbursementCountryInfo>;
         };
 
         /** The set reimburser for the policy */
@@ -4414,6 +4432,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
     | 'isRecruitingEnabled'
     | 'isTimeTrackingEnabled'
     | 'timeTrackingDefaultRate'
+    | 'reimbursementCountries'
 >;
 
 /** Stages of policy connection sync */
@@ -4525,6 +4544,7 @@ export type {
     RilletCoding,
     RilletConnectionsConfig,
     RilletExport,
+    RilletExportReimbursable,
     RilletBankAccount,
     RilletAutoSync,
     RilletSync,

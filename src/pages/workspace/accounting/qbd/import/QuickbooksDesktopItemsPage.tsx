@@ -40,6 +40,7 @@ function QuickbooksDesktopItemsPage({policy}: WithPolicyProps) {
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}
                 switchAccessibilityLabel={translate('workspace.qbd.items')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.IMPORT_ITEMS_SWITCH}
                 isActive={!!qbdConfig?.importItems}
                 onToggle={(isEnabled) => QuickbooksDesktop.updateQuickbooksDesktopSyncItems(policyID, isEnabled, !!qbdConfig?.importItems)}
                 pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.IMPORT_ITEMS], qbdConfig?.pendingFields)}

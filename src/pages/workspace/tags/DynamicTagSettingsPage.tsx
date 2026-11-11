@@ -192,6 +192,7 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
                                     <Switch
                                         isOn={currentPolicyTag.enabled}
                                         accessibilityLabel={translate('workspace.tags.enableTag')}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.SETTINGS_ENABLE_SWITCH}
                                         onToggle={updateWorkspaceTagEnabled}
                                         disabled={!canWriteTags}
                                         disabledAction={withReadOnlyFallback()}
@@ -203,6 +204,7 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
                     )}
                     <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.name}>
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.SETTINGS_NAME}
                             name={translate(`common.name`)}
                             onPress={canWriteTags && !hasDependentTags ? navigateToEditTag : undefined}
                             value={cleanedTagName}
@@ -210,6 +212,7 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.['GL Code']}>
                         <MenuItemWithTopDescription
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.SETTINGS_GL_CODE}
                             description={translate(`workspace.tags.glCode`)}
                             title={currentPolicyTag?.['GL Code']}
                             onPress={navigateToEditGlCode}
@@ -225,6 +228,7 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
                                 <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.tags.tagRules')}</Text>
                             </View>
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.SETTINGS_APPROVER}
                                 name={translate(`workspace.tags.approverDescription`)}
                                 value={approverText}
                                 onPress={canWriteTags ? navigateToEditTagApprover : undefined}
@@ -240,6 +244,7 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
 
                     {canWriteTags && shouldShowDeleteMenuItem && (
                         <MenuItemAction
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.SETTINGS_DELETE}
                             icon={expensifyIcons.Trashcan}
                             title={translate('common.delete')}
                             onPress={async () => {

@@ -4,7 +4,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {ValueOf} from 'type-fest';
 
 import type {CardID} from './Card';
-import type {FeedReimbursable} from './CardFeeds';
+import type {CompanyCardFeedWithNumber, FeedReimbursable} from './CardFeeds';
 import type {PolicyRuleTaxRate} from './ExpenseRule';
 import type {Attendee} from './IOU';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
@@ -103,6 +103,18 @@ type OriginalMessageIOU = {
 
     /** Cross-border FX reimbursement: last 4 of the employee deposit account that was credited */
     creditBankAccountLast4?: string;
+
+    /** Wise payment: total fees, in cents of `currency` */
+    fee?: number;
+
+    /** Wise payment: units of `creditedCurrency` per one unit of `currency` */
+    rate?: number;
+
+    /** Wise payment: amount taken from the company's bank account, in cents of `currency` */
+    debitedAmount?: number;
+
+    /** Wise payment: tax Wise charges on the transfer in some corridors, in cents of `currency` */
+    tax?: number;
 
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
@@ -269,6 +281,9 @@ type OriginalMessageSubmitted = {
 
     expenseReportID?: string;
 
+    /** Account that received this submission, even if the report's current manager later changes. */
+    submittedTo?: number;
+
     /** Was the report submitted via harvesting (delayed submit) */
     harvesting?: boolean;
 
@@ -301,6 +316,9 @@ type OriginalMessageAddExpenseOnSubmitted = {
 type OriginalMessageCreated = {
     /** The account id of the user the report is submitted to */
     submittedTo?: number;
+
+    /** Account of the person who created the bill or processed the invoice for its owner. Bill intake omits this for emailed invoices. */
+    processor?: number;
 };
 
 /** Model of `created report for unapproved transactions` report action */
@@ -1519,6 +1537,9 @@ type OriginalMessageCompanyCardConnectionBroken = {
 
     /** The feed name for which the company card connection was broken */
     feedName: string;
+
+    /** The feed's bank, used as the feed name when the feed has no custom name */
+    bank?: CompanyCardFeedWithNumber;
 };
 
 /**
@@ -1685,6 +1706,23 @@ type OriginalMessageSettlementAccountLocked = {
 
     /** The policy the bank account is connected to and is being notified */
     policyID: string;
+};
+
+/**
+ * Model of the Concierge report action that warns #admins about Auto Pay fees once Global Reimbursements is enabled
+ */
+type OriginalMessageAutoPayFeeDisclosure = {
+    /** The policy that has Auto Pay enabled */
+    policyID: string;
+
+    /** The admin who enabled Global Reimbursements */
+    accountID: number;
+
+    /** The name of the bank, which can be empty */
+    bankName: string;
+
+    /** The last four digits of the bank account number */
+    lastFour: string;
 };
 
 /**
@@ -1860,6 +1898,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED]: OriginalMessageReimbursementDirectorInformationRequired;
     [CONST.REPORT.ACTIONS.TYPE.HOME_ADDRESS_REQUIRED]: OriginalMessageHomeAddressRequired;
     [CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED]: OriginalMessageSettlementAccountLocked;
+    [CONST.REPORT.ACTIONS.TYPE.AUTO_PAY_FEE_DISCLOSURE]: OriginalMessageAutoPayFeeDisclosure;
 } & Omit<OldDotOriginalMessageMap, typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL> &
     Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>, OriginalMessagePolicyChangeLog> &
     Record<PolicyChangeLogCopyReportActionNames, OriginalMessagePolicyChangeCopyLog> & {

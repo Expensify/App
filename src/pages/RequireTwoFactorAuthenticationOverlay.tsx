@@ -149,6 +149,11 @@ function RequireTwoFactorAuthenticationOverlay() {
                                 </View>
                                 <View style={[styles.flexRow, styles.gap2, styles.justifyContentCenter, styles.alignSelfCenter]}>
                                     <Button
+                                        sentryLabel={
+                                            isActingAsDelegate
+                                                ? CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.REQUIRED_OVERLAY_LEAVE_ACCOUNT_BUTTON
+                                                : CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.REQUIRED_OVERLAY_SIGN_OUT_BUTTON
+                                        }
                                         size={CONST.BUTTON_SIZE.LARGE}
                                         isLoading={isEscapeInFlight}
                                         onPress={onEscapePress}
@@ -156,6 +161,7 @@ function RequireTwoFactorAuthenticationOverlay() {
                                         <Button.Text>{translate(isActingAsDelegate ? 'delegate.leaveAccount' : 'initialSettingsPage.signOut')}</Button.Text>
                                     </Button>
                                     <Button
+                                        sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.REQUIRED_OVERLAY_ENABLE_BUTTON}
                                         size={CONST.BUTTON_SIZE.LARGE}
                                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                                         onPress={enableTwoFactorAuth}

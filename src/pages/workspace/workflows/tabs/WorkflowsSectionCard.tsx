@@ -35,6 +35,7 @@ function WorkflowsSectionCard(item: ToggleSettingOptionRowProps) {
                 subtitle={item.subtitle}
                 subtitleStyle={[styles.textLabelSupportingEmptyValue, styles.lh20]}
                 switchAccessibilityLabel={item.switchAccessibilityLabel}
+                switchSentryLabel={item.switchSentryLabel}
                 shouldAnchorSwitchToTop
                 onToggle={item.onToggle}
                 subMenuItems={item.subMenuItems}

@@ -3,11 +3,12 @@ import AmountFilterInput from '@components/Search/FilterComponents/AmountFilterI
 import type {SearchAmountFilterKeys, SearchAmountValues} from '@components/Search/types';
 
 import useAmountFilterCurrency from '@hooks/useAmountFilterCurrency';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import {formatAmountFilterValue, getAmountFilterDisplayValue, getAmountFilterInputValue} from '@libs/SearchAmountFilterUtils';
+import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
@@ -45,7 +46,7 @@ function AmountInput({title, value, name, baseFilterKey, onSave, onBackButtonPre
         <BasePopup
             label={title}
             onApply={() => onSave(formatAmountFilterValue(amount, currency))}
-            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_AMOUNT}
+            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_VALUE.AMOUNT}
             onBackButtonPress={onBackButtonPress}
             shouldSubmitOnEnter
         >
@@ -66,6 +67,7 @@ function AmountInput({title, value, name, baseFilterKey, onSave, onBackButtonPre
 
 function AmountPopup({baseFilterKey, label, value, closeOverlay, updateFilterForm}: AmountPopupProps) {
     const {translate} = useLocalize();
+    const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const [selectedModifier, setSelectedModifier] = useState<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS> | null>(null);
     const [amountValues, setAmountValues] = useState(value);
 
@@ -78,7 +80,7 @@ function AmountPopup({baseFilterKey, label, value, closeOverlay, updateFilterFor
     const modifierConfig = [CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO, CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN, CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN];
 
     const formatAmount = (amount: string | undefined) => {
-        return getAmountFilterDisplayValue(amount, (backendAmount) => convertToFrontendAmountAsString(backendAmount, CONST.DEFAULT_CURRENCY_DECIMALS));
+        return getAmountFilterDisplayValue(amount, convertToDisplayStringWithoutCurrency);
     };
 
     if (selectedModifier) {
@@ -132,10 +134,11 @@ function AmountPopup({baseFilterKey, label, value, closeOverlay, updateFilterFor
         <BasePopup
             label={label}
             onApply={applyChanges}
-            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_AMOUNT}
+            applySentryLabel={FILTER_VIEW_MAP[baseFilterKey].applySentryLabel}
         >
             {modifierConfig.map((modifier) => (
                 <MenuItem
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.AMOUNT_MODIFIER_ITEM}
                     key={modifier}
                     title={title[modifier]}
                     description={formatAmount(amountValues[modifier])}
