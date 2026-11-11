@@ -6830,6 +6830,72 @@ describe('ReportUtils', () => {
             expect(canDeleteMoneyRequestReport(invoiceReport, [transaction], [iouAction], currentUserAccountID, undefined, undefined, undefined, undefined)).toBe(true);
         });
 
+        describe('archived reports', () => {
+            const archivedReport: Report = {
+                reportID: '9101',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                policyID: '9101-policy',
+            };
+            const memberPolicy: Policy = {...createRandomPolicy(9101), id: '9101-policy', role: CONST.POLICY.ROLE.USER};
+
+            afterEach(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`, null);
+            });
+
+            it('should allow the submitter to delete an expense on a report that is not archived', () => {
+                // Given an open expense report that the current user owns and a single expense created by that user
+                const transaction = {...createRandomTransaction(9101), reportID: archivedReport.reportID, managedCard: false};
+                const iouAction = buildIOUActionForTransaction(archivedReport.reportID, transaction.transactionID, currentUserAccountID);
+
+                // When the delete check runs without any archived state
+                const result = canDeleteMoneyRequestReport(archivedReport, [transaction], [iouAction], currentUserAccountID, undefined, undefined, memberPolicy, undefined);
+
+                // Then deletion is allowed, which proves the next tests fail only because of the archived state
+                expect(result).toBe(true);
+            });
+
+            it('should not allow deleting an expense when the caller says the report is archived', () => {
+                // Given the same open expense report and expense as the control case
+                const transaction = {...createRandomTransaction(9102), reportID: archivedReport.reportID, managedCard: false};
+                const iouAction = buildIOUActionForTransaction(archivedReport.reportID, transaction.transactionID, currentUserAccountID);
+
+                // When the caller passes the report as archived
+                const result = canDeleteMoneyRequestReport(archivedReport, [transaction], [iouAction], currentUserAccountID, undefined, undefined, memberPolicy, undefined, false, true);
+
+                // Then Auth would reject the delete with "Report is archived", so the app must not offer it
+                expect(result).toBe(false);
+            });
+
+            it('should not allow deleting an expense when the report is archived in Onyx', async () => {
+                // Given the report has a private_isArchived name-value pair in Onyx
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`, {private_isArchived: DateUtils.getDBTime()});
+                const transaction = {...createRandomTransaction(9103), reportID: archivedReport.reportID, managedCard: false};
+                const iouAction = buildIOUActionForTransaction(archivedReport.reportID, transaction.transactionID, currentUserAccountID);
+
+                // When the caller does not pass the archived flag
+                const result = canDeleteMoneyRequestReport(archivedReport, [transaction], [iouAction], currentUserAccountID, undefined, undefined, memberPolicy, undefined);
+
+                // Then the Onyx state still blocks the delete
+                expect(result).toBe(false);
+            });
+
+            it('should not allow deleting an archived report at report level', async () => {
+                // Given an archived report the user owns
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`, {private_isArchived: DateUtils.getDBTime()});
+                const transaction = {...createRandomTransaction(9104), reportID: archivedReport.reportID, managedCard: false};
+                const iouAction = buildIOUActionForTransaction(archivedReport.reportID, transaction.transactionID, currentUserAccountID);
+
+                // When the report-level delete check runs
+                const result = canDeleteMoneyRequestReport(archivedReport, [transaction], [iouAction], currentUserAccountID, undefined, undefined, memberPolicy, undefined, true);
+
+                // Then the delete is blocked
+                expect(result).toBe(false);
+            });
+        });
+
         describe('draft reports', () => {
             const draftReport: Report = {
                 reportID: '9001',
@@ -7172,6 +7238,69 @@ describe('ReportUtils', () => {
     });
 
     describe('canEditMoneyRequest', () => {
+        describe('archived reports', () => {
+            const iouReport: Report = {
+                reportID: '9201',
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            const buildAction = (transactionID: string): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => ({
+                reportActionID: `${transactionID}-action`,
+                reportID: iouReport.reportID,
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUTransactionID: transactionID,
+                    amount: 530,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'USD 5.30 expense',
+                        text: 'USD 5.30 expense',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        deleted: '',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            });
+
+            afterEach(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`, null);
+            });
+
+            it('should allow the requestor to edit an expense on a report that is not archived', async () => {
+                // Given a processing IOU report and an expense the current user created
+                const transaction = createRandomTransaction(9201);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+
+                // When the edit check runs without archived state
+                const result = canEditMoneyRequest(buildAction(transaction.transactionID), transaction, undefined, false, iouReport);
+
+                // Then editing is allowed, which proves the next test fails only because of the archived state
+                expect(result).toBe(true);
+            });
+
+            it('should not allow editing an expense when the report is archived', async () => {
+                // Given the same report and expense, now archived in Onyx
+                const transaction = createRandomTransaction(9202);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`, {private_isArchived: DateUtils.getDBTime()});
+
+                // When the edit check runs
+                const result = canEditMoneyRequest(buildAction(transaction.transactionID), transaction, undefined, false, iouReport);
+
+                // Then Auth would reject the edit with "Report is archived", so the app must not offer it
+                expect(result).toBe(false);
+            });
+        });
+
         it('it should return false for archived invoice', async () => {
             const invoiceReport: Report = {
                 reportID: '1',

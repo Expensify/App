@@ -3940,7 +3940,12 @@ function canDeleteMoneyRequestReport(
     policy: OnyxEntry<Policy>,
     cardList: OnyxEntry<CardList>,
     isReportLevelDelete = false,
+    isReportArchived = false,
 ): boolean {
+    if (isReportArchived || isArchivedReport(allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`])) {
+        return false;
+    }
+
     const isReportPolicyAdmin = isPolicyAdmin(policy);
     const transaction = reportTransactions.at(0);
     const transactionID = transaction?.transactionID;
@@ -6055,6 +6060,9 @@ function canEditMoneyRequest(
     }
 
     const moneyRequestReport = report ?? getReportOrDraftReport({reportID: String(moneyRequestReportID)});
+    if (isArchivedReport(allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport?.reportID}`])) {
+        return false;
+    }
     // Without an IOU action, the submitter of an expense report stands in for the requester, because only they can add expenses to it.
     // This function has no current-user parameter, so it passes the same module-level account ID that isActionRequestor uses.
     const isRequestor = isActionlessReportedExpense ? isExpenseReport(moneyRequestReport) && isCurrentUserSubmitter(moneyRequestReport, deprecatedCurrentUserAccountID) : isActionRequestor;
