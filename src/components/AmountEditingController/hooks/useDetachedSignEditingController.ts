@@ -75,9 +75,9 @@ function useDetachedSignEditingController({value, onInputChange, allowNegative =
     };
 
     const handleKeyPress = (event: AmountEditingKeyPressEvent) => {
-        const key = event.nativeEvent.key.toLowerCase();
+        const key = event.nativeEvent.key;
 
-        if (key === 'backspace') {
+        if (typeof key === 'string' && key.toLowerCase() === 'backspace') {
             deleteSignBeforeCaret();
         }
 
