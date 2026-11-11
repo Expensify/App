@@ -343,8 +343,21 @@ describe('useTaxAmount', () => {
         // When the hook resolves the tax amount
         const {result} = renderHook(() => useTaxAmount({...baseParams, transaction, isMovingTransactionFromTrackExpense: true}));
 
-        // Then it is kept, because the rate it was charged at is kept too
-        expect(result.current.taxAmountInSmallestCurrencyUnits).toBe(5500);
+        // Then it is kept as it stands, because the rate it was charged at is kept too and a stored amount is
+        // already in the smallest currency units
+        expect(result.current.taxAmountInSmallestCurrencyUnits).toBe(55);
+    });
+
+    it('does not inflate the kept tax amount by converting an amount that is already in the smallest units', () => {
+        // Given a tracked expense carrying $5.00 of tax, whose category carries no rule on the destination workspace
+        const transaction = {...baseTransaction, category: 'Equipment', taxAmount: 500};
+
+        // When the hook resolves the tax amount
+        const {result} = renderHook(() => useTaxAmount({...baseParams, transaction, isMovingTransactionFromTrackExpense: true}));
+
+        // Then $5.00 is written back rather than $500.00, which is what converting a stored amount a second time
+        // would produce
+        expect(result.current.taxAmountInSmallestCurrencyUnits).toBe(500);
     });
 
     it('holds the workspace default back while a moved track expense still carries the rate it arrived with', () => {
@@ -374,7 +387,7 @@ describe('useTaxAmount', () => {
         expect(result.current.shouldHoldBackDefault).toBe(false);
         expect(result.current.defaultTaxCode).toBe('tax_arrived');
         expect(result.current.defaultTaxValue).toBe('5%');
-        expect(result.current.taxAmountInSmallestCurrencyUnits).toBe(5500);
+        expect(result.current.taxAmountInSmallestCurrencyUnits).toBe(55);
     });
 
     it('applies the category rule to the distance rate default category', () => {

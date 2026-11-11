@@ -150,9 +150,10 @@ function useTaxAmount({
     // A category rule on the destination workspace replaces that rate, so the amount has to be charged again.
     const keptTaxAmount = shouldRestoreArrivedTax ? arrivedTax?.taxAmount : transaction?.taxAmount;
     const shouldKeepMovedTaxAmount = isKeepingArrivedTax && !!keptTaxAmount;
-    const taxAmount = shouldKeepMovedTaxAmount ? Math.abs(keptTaxAmount ?? 0) : calculateTaxAmount(taxPercentage, taxableAmount, taxDecimals);
 
-    const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
+    // A kept amount is read off a transaction, which holds it in the smallest currency units already, so only a
+    // freshly calculated one is converted.
+    const taxAmountInSmallestCurrencyUnits = shouldKeepMovedTaxAmount ? Math.abs(keptTaxAmount ?? 0) : convertToBackendAmount(calculateTaxAmount(taxPercentage, taxableAmount, taxDecimals));
 
     return {categoryTaxCode, defaultTaxCode, defaultTaxValue, shouldHoldBackDefault, shouldKeepCurrentTaxSelection, taxAmountInSmallestCurrencyUnits, areRulesLoading};
 }
