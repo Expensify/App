@@ -11,6 +11,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ColorValue} from 'react-native';
 
@@ -40,13 +41,32 @@ type FlatNavItemProps = {
     /** Spoken name of the row, defaults to label */
     accessibilityLabel?: string;
 
-    sentryLabel: string;
+    sentryLabel: SentryLabel;
 
     onPress: () => void;
+
+    /** Called when the pointer moves onto the row */
+    onHoverIn?: () => void;
+
+    /** Called when the pointer leaves the row */
+    onHoverOut?: () => void;
 };
 
 /** Full-width row of the flat navigation bar: an icon or avatar, then the destination's label. */
-function FlatNavItem({label, icon, renderLeftElement, rightElement, isSelected, isTall = false, statusIndicatorColor, accessibilityLabel, sentryLabel, onPress}: FlatNavItemProps) {
+function FlatNavItem({
+    label,
+    icon,
+    renderLeftElement,
+    rightElement,
+    isSelected,
+    isTall = false,
+    statusIndicatorColor,
+    accessibilityLabel,
+    sentryLabel,
+    onPress,
+    onHoverIn,
+    onHoverOut,
+}: FlatNavItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -65,6 +85,8 @@ function FlatNavItem({label, icon, renderLeftElement, rightElement, isSelected, 
             accessibilityLabel={accessibilityLabel ?? label}
             accessibilityState={{selected: isSelected}}
             sentryLabel={sentryLabel}
+            onHoverIn={onHoverIn}
+            onHoverOut={onHoverOut}
             style={({hovered}) => [styles.flatNavigationBarItem, isTall && styles.flatNavigationBarAccountItem, getRowBackgroundStyle(hovered)]}
         >
             {({hovered}) => {

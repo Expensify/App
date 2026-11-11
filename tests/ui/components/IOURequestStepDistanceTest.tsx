@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
+import {setLanguage} from '@rnmapbox/maps';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -41,6 +42,7 @@ jest.mock('@rnmapbox/maps', () => ({
     default: jest.fn(),
     MarkerView: jest.fn(),
     setAccessToken: jest.fn(() => Promise.resolve(null)),
+    setLanguage: jest.fn(() => Promise.resolve()),
 }));
 
 jest.mock('@assets/emojis', () => {
@@ -170,6 +172,7 @@ describe('IOURequestStepDistance', () => {
     });
 
     it('renders the distance step with isSelfTourViewed from onyx', async () => {
+        // Given a signed-in user whose onboarding state and distance draft are available
         await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createMinimalReport(REPORT_ID));
@@ -191,6 +194,7 @@ describe('IOURequestStepDistance', () => {
 
         await waitForBatchedUpdates();
 
+        // When the distance step mounts its native map
         render(
             <OnyxListItemProvider>
                 <CurrentUserPersonalDetailsProvider>
@@ -216,7 +220,8 @@ describe('IOURequestStepDistance', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        // The component renders successfully with the isSelfTourViewed useOnyx hook
+        // Then onboarding state is available and the map requests labels in the app's language
         expect(screen.getByTestId('DynamicIOURequestStepDistance')).toBeTruthy();
+        expect(setLanguage).toHaveBeenCalledWith('en');
     });
 });

@@ -77,6 +77,7 @@ import {
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
     isExpenseReport as isExpenseReportUtils,
+    isExportInProgress,
     isExported as isExportedUtils,
     isHoldCreator,
     isInvoiceReport as isInvoiceReportUtils,
@@ -98,6 +99,7 @@ import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
     hasOnlyPendingCardTransactions,
+    hasOnlyUnsettledExpenses,
     hasReceipt as hasReceiptTransactionUtils,
     hasSmartScanFailedWithMissingFields,
     hasSubmissionBlockingViolations,
@@ -362,6 +364,11 @@ function isApproveAction(
     if (isPreventSelfApprovalEnabled && isReportSubmitter) {
         return false;
     }
+
+    if (hasOnlyUnsettledExpenses(reportTransactions, report)) {
+        return false;
+    }
+
     const isExpenseReport = isExpenseReportUtils(report);
     const reportHasDuplicatedTransactions = reportTransactions.some((transaction) =>
         isDuplicate(transaction, currentUserLogin, currentUserAccountID, report, ownerLogin, policy, violations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID]),
@@ -369,10 +376,6 @@ function isApproveAction(
 
     if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
-    }
-
-    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
-        return false;
     }
 
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations, currentUserLogin, currentUserAccountID, report, ownerLogin, policy);
@@ -1256,9 +1259,10 @@ function getReportAccountingExportActions(
     report: Report,
     bankAccountList: OnyxEntry<BankAccountList>,
     policy?: Policy,
+    reportActions?: OnyxEntry<ReportActions> | ReportAction[],
 ): Array<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>> = [];
-    if (isExportAction(currentUserLogin, report, policy)) {
+    if (isExportAction(currentUserLogin, report, policy) && !isExportInProgress(reportActions)) {
         options.push(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
     }
 
