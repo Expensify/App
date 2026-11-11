@@ -285,7 +285,7 @@ function prepareRejectMoneyRequestData({
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                 value: {
                     reportID: transaction?.reportID ?? reportID,
-                    errorFields: {reject: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpense')},
+                    errorFields: {rejectOther: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpenseContactConcierge')},
                     rejectFailedFromReportID: reportID,
                 },
             });
@@ -364,7 +364,7 @@ function prepareRejectMoneyRequestData({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {
                         reportID,
-                        errorFields: {reject: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpense')},
+                        errorFields: {rejectOther: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpenseContactConcierge')},
                         rejectFailedFromReportID: reportID,
                     },
                 },
@@ -726,7 +726,7 @@ function prepareRejectMoneyRequestData({
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 reportID: transaction?.reportID ?? reportID,
-                errorFields: {reject: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpense')},
+                errorFields: {rejectOther: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpenseContactConcierge')},
                 rejectFailedFromReportID: reportID,
             },
         });
@@ -776,7 +776,7 @@ function prepareRejectMoneyRequestData({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                 value: {
-                    errorFields: {reject: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpense')},
+                    errorFields: {rejectOther: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpenseContactConcierge')},
                     rejectFailedFromReportID: reportID,
                 },
             },
