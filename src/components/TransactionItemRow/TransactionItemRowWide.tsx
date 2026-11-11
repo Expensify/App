@@ -249,7 +249,7 @@ function TransactionItemRowWide({
                         key={column}
                         style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS)]}
                     >
-                        <TextCell text={getViolationsForTransaction(reportActions, transactionItem.transactionID, hasFilterValues, translate)} />
+                        <TextCell text={transactionItem.formattedViolations ?? getViolationsForTransaction(reportActions, transactionItem.transactionID, hasFilterValues, translate)} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE:
