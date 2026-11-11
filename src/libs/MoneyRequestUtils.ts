@@ -10,7 +10,14 @@ import type {ManuallyEnteredScanFields} from './TransactionUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
 import replaceAllDigits from './replaceAllDigits';
 import {isExpenseReport, isExpenseRequest, isPolicyExpenseChat} from './ReportUtils';
-import {doesMoneyRequestDraftHaveUserInput, haveWaypointAddressesChanged, isCreatedMissing, isExpenseUnreported, isPartiallyEnteredScanExpense} from './TransactionUtils';
+import {
+    doesMoneyRequestDraftHaveUserInput,
+    hasValidModifiedAmount,
+    haveWaypointAddressesChanged,
+    isCreatedMissing,
+    isExpenseUnreported,
+    isPartiallyEnteredScanExpense,
+} from './TransactionUtils';
 import {getMerchantError} from './ValidationUtils';
 
 /**
@@ -246,6 +253,11 @@ function shouldShowConfirmationDate(shouldShowSmartScanFields: boolean, isDistan
     return shouldShowSmartScanFields || isDistanceRequest;
 }
 
+/** The amount the money request confirmation works with: an edited amount when there is one, otherwise the original. */
+function getConfirmationAmount(transaction: OnyxEntry<Transaction>): number {
+    return hasValidModifiedAmount(transaction) ? Number(transaction?.modifiedAmount) : (transaction?.amount ?? 0);
+}
+
 type ConfirmationMerchantRequirementParams = {
     isPolicyExpenseChat: boolean;
     isScanRequest: boolean;
@@ -306,6 +318,7 @@ function isConfirmationDateMissing(
 
 export {
     addLeadingZero,
+    getConfirmationAmount,
     isConfirmationAmountMissing,
     isConfirmationDateMissing,
     isConfirmationMerchantMissing,

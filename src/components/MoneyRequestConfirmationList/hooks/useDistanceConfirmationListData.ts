@@ -3,7 +3,8 @@ import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestCo
 import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
-import {getCurrency, hasValidModifiedAmount, isManualDistanceRequest as isManualDistanceRequestUtil} from '@libs/TransactionUtils';
+import {getConfirmationAmount} from '@libs/MoneyRequestUtils';
+import {getCurrency, isManualDistanceRequest as isManualDistanceRequestUtil} from '@libs/TransactionUtils';
 
 import {useConfirmationListDataWithPolicy} from './useConfirmationListData';
 import useConfirmationPolicyData from './useConfirmationPolicyData';
@@ -20,7 +21,7 @@ function useDistanceConfirmationListData(props: MoneyRequestConfirmationListProp
     const policyData = useConfirmationPolicyData({transaction, policyID, action, iouType, isPerDiemRequest});
     const {policy, policyForMovingExpenses} = policyData;
 
-    const iouAmount = hasValidModifiedAmount(transaction) ? Number(transaction?.modifiedAmount) : (transaction?.amount ?? 0);
+    const iouAmount = getConfirmationAmount(transaction);
     const iouCurrencyCode = getCurrency(transaction);
 
     const distanceState = useDistanceRequestState({

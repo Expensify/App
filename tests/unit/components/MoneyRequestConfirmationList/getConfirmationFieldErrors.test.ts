@@ -1,5 +1,5 @@
 import type {GetConfirmationFieldErrorsParams} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
-import getConfirmationFieldErrors, {NO_FIELD_ERRORS} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
+import getConfirmationFieldErrors, {getSiblingFieldErrors, NO_FIELD_ERRORS} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
 
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -246,5 +246,61 @@ describe('getConfirmationFieldErrors', () => {
 
         // Then the amount field isn't flagged, since its errors belong to the footer for this type
         expect(fieldErrors).toBe(NO_FIELD_ERRORS);
+    });
+});
+
+describe('getSiblingFieldErrors', () => {
+    const siblingParams = {...baseParams, canEnterScanFieldsManually: true, isMerchantRequired: false, participants: [WORKSPACE_PARTICIPANT]};
+    const completeFields = {amount: 2500, isAmountSet: true, merchant: 'Hilton', isMerchantSet: true, isCreatedSet: true};
+
+    it('finds nothing without other receipts, or when they were left for SmartScan', () => {
+        // Given a single expense, and a multi-scan whose other receipt the user never touched
+        // When the other receipts are checked
+        // Then nothing blocks, since SmartScan fills in a receipt nobody typed into
+        expect(getSiblingFieldErrors(undefined, siblingParams)).toBeUndefined();
+        expect(getSiblingFieldErrors([createScanDraft()], siblingParams)).toBeUndefined();
+    });
+
+    it('reports a partially filled receipt with the fields it is missing', () => {
+        // Given a multi-scan to a workspace whose other receipt only has its amount entered
+        const sibling = createScanDraft({transactionID: 'txn2', amount: 2500, isAmountSet: true});
+
+        // When the other receipts are checked
+        // Then that receipt is reported with its blank fields, so it can be brought on screen
+        expect(getSiblingFieldErrors([sibling], siblingParams)).toEqual({transactionID: 'txn2', fieldErrors: {date: 'common.error.fieldRequired', merchant: 'common.error.fieldRequired'}});
+    });
+
+    it('reports a complete receipt that holds an invalid merchant, using its own values', () => {
+        // Given a multi-scan whose other receipt is fully filled in with a merchant that isn't allowed
+        const sibling = createScanDraft({...completeFields, transactionID: 'txn2', merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT});
+
+        // When the other receipts are checked with the valid merchant of the receipt on screen in the params
+        // Then the other receipt's own merchant is what gets checked
+        expect(getSiblingFieldErrors([sibling], siblingParams)).toEqual({transactionID: 'txn2', fieldErrors: {merchant: 'iou.error.invalidMerchant'}});
+    });
+
+    it('checks an amount against the recipient on screen, even when the draft of the other receipt has none', () => {
+        // Given a multi-scan whose other receipt has a negative amount and no recipient of its own in its draft
+        const sibling = createScanDraft({...completeFields, transactionID: 'txn2', amount: -1234, participants: undefined});
+        const params = {...siblingParams, iouType: CONST.IOU.TYPE.CREATE, isPolicyExpenseChat: false};
+
+        // When the recipient on screen is a person, and then a workspace
+        const toPerson = getSiblingFieldErrors([sibling], {...params, participants: [P2P_PARTICIPANT]});
+        const toWorkspace = getSiblingFieldErrors([sibling], {...params, participants: [WORKSPACE_PARTICIPANT]});
+
+        // Then the negative amount only blocks for a person, because every receipt goes to the same recipient
+        expect(toPerson).toEqual({transactionID: 'txn2', fieldErrors: {amount: 'common.error.invalidAmount'}});
+        expect(toWorkspace).toBeUndefined();
+    });
+
+    it('returns the first receipt that has a field error', () => {
+        // Given a multi-scan with a valid receipt followed by two receipts holding invalid merchants
+        const valid = createScanDraft({...completeFields, transactionID: 'txn2'});
+        const firstInvalid = createScanDraft({...completeFields, transactionID: 'txn3', merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT});
+        const secondInvalid = createScanDraft({...completeFields, transactionID: 'txn4', merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT});
+
+        // When the other receipts are checked
+        // Then the first one with an error is the one to bring on screen
+        expect(getSiblingFieldErrors([valid, firstInvalid, secondInvalid], siblingParams)?.transactionID).toBe('txn3');
     });
 });

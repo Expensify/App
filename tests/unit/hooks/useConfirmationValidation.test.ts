@@ -1205,33 +1205,55 @@ describe('useConfirmationValidation', () => {
             expect(result.current.validate()).toEqual({errorKey: null});
         });
 
-        it('blocks confirmation when another receipt in a multi-scan is the partially filled one', () => {
+        const COMPLETE_SCAN_FIELDS = {isAmountSet: true, amount: 1000, isMerchantSet: true, merchant: 'Starbucks', isCreatedSet: true, created: '2025-01-15'};
+
+        function createSiblingReceipt(overrides: Partial<OnyxTypes.Transaction>): OnyxTypes.Transaction {
+            return createTransactionBase({
+                transactionID: 'other-txn',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {source: 'https://example.com/receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_READY},
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                ...overrides,
+            });
+        }
+
+        it('blocks confirmation when another receipt in a multi-scan is partially filled', () => {
             // Given a multi-scan whose receipt on screen is complete while a sibling receipt is partially filled
-            const {result} = renderHook(() =>
-                useConfirmationValidation(
-                    createScanValidationParams(
-                        {isAmountSet: true, amount: 1000, isMerchantSet: true, merchant: 'Starbucks', isCreatedSet: true, created: '2025-01-15'},
-                        {iouAmount: 1000, iouMerchant: 'Starbucks', partiallyManuallyFilledScanID: 'other-txn'},
-                    ),
-                ),
-            );
+            const siblingTransactions = [createSiblingReceipt({isAmountSet: true, amount: 1000})];
+            const {result} = renderHook(() => useConfirmationValidation(createScanValidationParams(COMPLETE_SCAN_FIELDS, {iouAmount: 1000, iouMerchant: 'Starbucks', siblingTransactions})));
 
             // When the user confirms
             // Then it is blocked as a field error with nothing flagged on screen, since Create submits every receipt at once and the sibling has to be brought on screen
             expect(result.current.validate()).toEqual({isFieldError: true});
             expect(result.current.fieldErrors).toEqual({});
+            expect(result.current.siblingFieldErrors).toEqual({
+                transactionID: 'other-txn',
+                fieldErrors: {date: 'common.error.fieldRequired', merchant: 'common.error.fieldRequired'},
+            });
         });
 
-        it('lets a multi-scan through once no receipt is left partially filled', () => {
+        it('blocks confirmation when another receipt in a multi-scan is complete but holds an invalid amount', () => {
+            // Given a multi-scan to a person whose receipt on screen is valid while a sibling receipt holds a negative amount
+            const siblingTransactions = [createSiblingReceipt({...COMPLETE_SCAN_FIELDS, amount: -1234})];
             const {result} = renderHook(() =>
-                useConfirmationValidation(
-                    createScanValidationParams(
-                        {isAmountSet: true, amount: 1000, isMerchantSet: true, merchant: 'Starbucks', isCreatedSet: true, created: '2025-01-15'},
-                        {iouAmount: 1000, iouMerchant: 'Starbucks', partiallyManuallyFilledScanID: undefined},
-                    ),
-                ),
+                useConfirmationValidation(createScanValidationParams(COMPLETE_SCAN_FIELDS, {iouType: CONST.IOU.TYPE.CREATE, iouAmount: 1000, iouMerchant: 'Starbucks', siblingTransactions})),
             );
+
+            // When the user confirms from the valid receipt
+            // Then it is blocked, since Create would otherwise submit the invalid receipt along with this one
+            expect(result.current.validate()).toEqual({isFieldError: true});
+            expect(result.current.siblingFieldErrors).toEqual({transactionID: 'other-txn', fieldErrors: {amount: 'common.error.invalidAmount'}});
+        });
+
+        it('lets a multi-scan through once no other receipt has a field error', () => {
+            // Given a multi-scan whose other receipt is complete and valid
+            const siblingTransactions = [createSiblingReceipt(COMPLETE_SCAN_FIELDS)];
+            const {result} = renderHook(() => useConfirmationValidation(createScanValidationParams(COMPLETE_SCAN_FIELDS, {iouAmount: 1000, iouMerchant: 'Starbucks', siblingTransactions})));
+
+            // When the user confirms
+            // Then nothing blocks it
             expect(result.current.validate()).toEqual({errorKey: null});
+            expect(result.current.siblingFieldErrors).toBeUndefined();
         });
 
         it('requires nothing on surfaces that do not expose the scan fields (splits, test receipts)', () => {

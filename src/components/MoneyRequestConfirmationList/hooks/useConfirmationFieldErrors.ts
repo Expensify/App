@@ -2,7 +2,7 @@
  * Owns when the amount, date and merchant errors of the money request confirmation become visible, and the message
  * above its confirm button: a route error, then the summary while one of those errors blocks confirming, then the form error.
  */
-import type {ConfirmationFieldErrors} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
+import type {ConfirmationFieldErrors, SiblingFieldErrors} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
 import {hasBlockingFieldErrors, NO_FIELD_ERRORS} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
 
 import useLocalize from '@hooks/useLocalize';
@@ -13,8 +13,8 @@ type UseConfirmationFieldErrorsParams = {
     /** The errors the amount, date and merchant fields would show now, from `useConfirmationValidation` */
     fieldErrors: ConfirmationFieldErrors;
 
-    /** ID of a partially filled Scan among the transactions being confirmed. Can name a receipt other than this one. */
-    partiallyManuallyFilledScanID: string | undefined;
+    /** The first other receipt of a multi-scan with a field error, from `useConfirmationValidation` */
+    siblingFieldErrors: SiblingFieldErrors | undefined;
 
     /** Brings another receipt of a multi-scan on screen */
     onSwitchToTransaction: ((transactionID: string) => void) | undefined;
@@ -40,7 +40,7 @@ type UseConfirmationFieldErrorsResult = {
 /** The errors themselves are derived from the transaction, so only the fact that a confirm was blocked is kept as state. */
 function useConfirmationFieldErrors({
     fieldErrors,
-    partiallyManuallyFilledScanID,
+    siblingFieldErrors,
     onSwitchToTransaction,
     formErrorMessage,
     routeError,
@@ -48,22 +48,23 @@ function useConfirmationFieldErrors({
     const {translate} = useLocalize();
     const [shouldShowFieldErrors, setShouldShowFieldErrors] = useState(false);
 
-    const hasFieldErrors = hasBlockingFieldErrors(fieldErrors, partiallyManuallyFilledScanID);
+    const hasFieldErrors = hasBlockingFieldErrors(fieldErrors, siblingFieldErrors);
 
     // Hide the errors again once nothing is left to fix, so a field the user empties afterwards is only flagged on the next confirm.
     if (shouldShowFieldErrors && !hasFieldErrors) {
         setShouldShowFieldErrors(false);
     }
 
-    // Validation only checks the values of the receipt on screen, so its errors are fixed first and a partially filled sibling only counts once it has none.
+    // The receipt on screen is fixed first, so the summary only describes another receipt once this one has nothing left to fix.
     const hasFieldErrorsOnScreen = Object.keys(fieldErrors).length > 0;
-    const isRequiredFieldMissing = hasFieldErrorsOnScreen ? Object.values(fieldErrors).includes('common.error.fieldRequired') : !!partiallyManuallyFilledScanID;
+    const blockingFieldErrors = hasFieldErrorsOnScreen ? fieldErrors : (siblingFieldErrors?.fieldErrors ?? NO_FIELD_ERRORS);
+    const isRequiredFieldMissing = Object.values(blockingFieldErrors).includes('common.error.fieldRequired');
 
     const revealFieldErrors = () => {
         setShouldShowFieldErrors(true);
 
-        if (!hasFieldErrorsOnScreen && partiallyManuallyFilledScanID) {
-            onSwitchToTransaction?.(partiallyManuallyFilledScanID);
+        if (!hasFieldErrorsOnScreen && siblingFieldErrors) {
+            onSwitchToTransaction?.(siblingFieldErrors.transactionID);
         }
     };
 

@@ -9,10 +9,10 @@ import usePrevious from '@hooks/usePrevious';
 
 import {getCategoryDescriptionHint, isCategoryDescriptionRequired} from '@libs/CategoryUtils';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
-import {isConfirmationMerchantRequired, shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
+import {getConfirmationAmount, isConfirmationMerchantRequired, shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {arePolicyRulesEnabled, isTaxTrackingEnabled} from '@libs/PolicyUtils';
-import {getCategory, getCurrency, getMerchant, getRateID, hasValidModifiedAmount, isScanRequest as isScanRequestUtil} from '@libs/TransactionUtils';
+import {getCategory, getCurrency, getMerchant, getRateID, isScanRequest as isScanRequestUtil} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 
@@ -57,7 +57,7 @@ function useConfirmationListDataWithPolicy({
     isConfirming,
     shouldShowSmartScanFields = true,
     canEnterScanFieldsManually = false,
-    partiallyManuallyFilledScanID,
+    siblingTransactions,
     hasSmartScanFailed,
     shouldHideToSection = false,
     onConfirm,
@@ -97,7 +97,7 @@ function useConfirmationListDataWithPolicy({
         listRef.current?.scrollInputIntoView(input);
     };
 
-    const iouAmount = hasValidModifiedAmount(transaction) ? Number(transaction?.modifiedAmount) : (transaction?.amount ?? 0);
+    const iouAmount = getConfirmationAmount(transaction);
     const iouCurrencyCode = getCurrency(transaction);
     const iouMerchant = getMerchant(transaction);
     const iouCategory = getCategory(transaction);
@@ -212,7 +212,7 @@ function useConfirmationListDataWithPolicy({
         onOpenParticipantPicker,
     });
 
-    const {validate, fieldErrors} = useConfirmationValidation({
+    const {validate, fieldErrors, siblingFieldErrors} = useConfirmationValidation({
         transaction,
         transactionReport,
         transactionID,
@@ -239,7 +239,7 @@ function useConfirmationListDataWithPolicy({
         routeError,
         canEnterScanFieldsManually,
         isPolicyExpenseChat,
-        partiallyManuallyFilledScanID,
+        siblingTransactions,
         isReadOnly,
         shouldShowDate,
         isTaxAmountEmpty,
@@ -247,7 +247,7 @@ function useConfirmationListDataWithPolicy({
 
     const {visibleFieldErrors, footerErrorMessage, revealFieldErrors} = useConfirmationFieldErrors({
         fieldErrors,
-        partiallyManuallyFilledScanID,
+        siblingFieldErrors,
         onSwitchToTransaction,
         formErrorMessage: errorMessage,
         routeError,

@@ -52,7 +52,6 @@ import {
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
-    isPartiallyEnteredScanExpense,
     isScanning,
     isScanRequest,
 } from '@libs/TransactionUtils';
@@ -369,8 +368,8 @@ function IOURequestStepConfirmationContent({
         }
     }
 
-    // The confirmation only validates the transaction it shows, so find the partially filled one across all receipts.
-    const partiallyManuallyFilledScanID = transactions.find((item) => isPartiallyEnteredScanExpense(item, canEnterScanFieldsManually, isPolicyExpenseChat))?.transactionID;
+    // The pager keeps showing the previous transaction while the next one loads, so comparing against the current ID would leave the incoming receipt out of validation.
+    const siblingTransactions = transactions.filter((item) => item.transactionID !== transaction?.transactionID);
 
     const isFromGlobalCreate = transaction?.isFromGlobalCreate === true || transaction?.isFromFloatingActionButton === true;
 
@@ -653,7 +652,7 @@ function IOURequestStepConfirmationContent({
         isPerDiemRequest,
         shouldShowSmartScanFields,
         canEnterScanFieldsManually,
-        partiallyManuallyFilledScanID,
+        siblingTransactions,
         onSwitchToTransaction: setCurrentTransactionID,
         action,
         isConfirmed,

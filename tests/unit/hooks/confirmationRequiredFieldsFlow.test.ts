@@ -45,7 +45,10 @@ const blankDraft: OnyxTypes.Transaction = {
 };
 
 /** Wires the form error, validation, field error and confirm pieces together the way `useConfirmationListData` does, on a workspace that tracks tax. */
-function useManualWorkspaceConfirmation(transaction: OnyxTypes.Transaction, isTaxAmountEmpty = false) {
+function useManualWorkspaceConfirmation(
+    transaction: OnyxTypes.Transaction,
+    {isTaxAmountEmpty = false, siblingTransactions}: {isTaxAmountEmpty?: boolean; siblingTransactions?: OnyxTypes.Transaction[]} = {},
+) {
     const iouMerchant = getMerchant(transaction);
     const isMerchantRequired = isConfirmationMerchantRequired({isPolicyExpenseChat: true, isScanRequest: false, isEditingSplitBill: false, shouldShowMerchant: true});
     const {formError, setConfirmError, clearConfirmError, errorMessage} = useFormErrorManagement({
@@ -64,7 +67,7 @@ function useManualWorkspaceConfirmation(transaction: OnyxTypes.Transaction, isTa
         shouldShowReadOnlySplits: true,
         isDistanceRequest: false,
     });
-    const {validate, fieldErrors} = useConfirmationValidation({
+    const {validate, fieldErrors, siblingFieldErrors} = useConfirmationValidation({
         transaction,
         transactionReport: undefined,
         transactionID: transaction.transactionID,
@@ -94,10 +97,11 @@ function useManualWorkspaceConfirmation(transaction: OnyxTypes.Transaction, isTa
         isReadOnly: false,
         shouldShowDate: true,
         isTaxAmountEmpty,
+        siblingTransactions,
     });
     const {visibleFieldErrors, footerErrorMessage, revealFieldErrors} = useConfirmationFieldErrors({
         fieldErrors,
-        partiallyManuallyFilledScanID: undefined,
+        siblingFieldErrors,
         onSwitchToTransaction: undefined,
         formErrorMessage: errorMessage,
         routeError: undefined,
@@ -194,7 +198,7 @@ describe('required fields on a manual workspace expense', () => {
         // Given a confirmation of several expenses where Create was blocked by the empty tax amount of the one on screen
         const expenseWithEmptyTax = {...blankDraft, amount: 2500, isAmountSet: true, merchant: 'Hilton', isMerchantSet: true};
         const {result, rerender} = renderHook(
-            ({transaction, isTaxAmountEmpty}: {transaction: OnyxTypes.Transaction; isTaxAmountEmpty: boolean}) => useManualWorkspaceConfirmation(transaction, isTaxAmountEmpty),
+            ({transaction, isTaxAmountEmpty}: {transaction: OnyxTypes.Transaction; isTaxAmountEmpty: boolean}) => useManualWorkspaceConfirmation(transaction, {isTaxAmountEmpty}),
             {
                 initialProps: {transaction: expenseWithEmptyTax, isTaxAmountEmpty: true},
             },
@@ -216,6 +220,35 @@ describe('required fields on a manual workspace expense', () => {
         act(() => result.current.confirm());
 
         // Then the expense is confirmed, since the tax error belonged to the expense that was removed
+        expect(mockOnConfirm).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not submit from a valid expense while another expense still holds an invalid value', () => {
+        // Given a confirmation of two expenses where Create was blocked by a typed merchant that isn't allowed
+        const invalidExpense: OnyxTypes.Transaction = {...blankDraft, amount: 2500, isAmountSet: true, merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, isMerchantSet: true};
+        const validExpense: OnyxTypes.Transaction = {...invalidExpense, transactionID: 'txn2', merchant: 'Hilton'};
+        const {result, rerender} = renderHook(
+            ({transaction, siblingTransactions}: {transaction: OnyxTypes.Transaction; siblingTransactions: OnyxTypes.Transaction[]}) =>
+                useManualWorkspaceConfirmation(transaction, {siblingTransactions}),
+            {initialProps: {transaction: invalidExpense, siblingTransactions: [validExpense]}},
+        );
+        act(() => result.current.confirm());
+        expect(result.current.footerErrorMessage).toBe('common.error.fixErrorsBeforeContinuing');
+
+        // When the user pages to the valid expense and presses Create there
+        rerender({transaction: validExpense, siblingTransactions: [invalidExpense]});
+        act(() => result.current.confirm());
+
+        // Then nothing is submitted and the summary still explains why, since Create submits both expenses
+        expect(mockOnConfirm).not.toHaveBeenCalled();
+        expect(result.current.footerErrorMessage).toBe('common.error.fixErrorsBeforeContinuing');
+
+        // When the other expense's merchant is fixed and the user presses Create
+        rerender({transaction: validExpense, siblingTransactions: [{...invalidExpense, merchant: 'Office Depot'}]});
+        expect(result.current.footerErrorMessage).toBeUndefined();
+        act(() => result.current.confirm());
+
+        // Then both expenses are confirmed
         expect(mockOnConfirm).toHaveBeenCalledTimes(1);
     });
 });

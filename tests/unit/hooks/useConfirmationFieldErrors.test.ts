@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import type {ConfirmationFieldErrors} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
+import type {ConfirmationFieldErrors, SiblingFieldErrors} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
 import {NO_FIELD_ERRORS} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
 import useConfirmationFieldErrors from '@components/MoneyRequestConfirmationList/hooks/useConfirmationFieldErrors';
 
@@ -8,18 +8,20 @@ jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}))
 
 type Props = {
     fieldErrors: ConfirmationFieldErrors;
-    partiallyManuallyFilledScanID?: string;
+    siblingFieldErrors?: SiblingFieldErrors;
     onSwitchToTransaction?: (transactionID: string) => void;
     formErrorMessage?: string;
     routeError?: string;
 };
 
 const MISSING_AMOUNT: ConfirmationFieldErrors = {amount: 'common.error.fieldRequired'};
+const PARTIALLY_FILLED_SIBLING: SiblingFieldErrors = {transactionID: 'txn2', fieldErrors: MISSING_AMOUNT};
+const INVALID_SIBLING: SiblingFieldErrors = {transactionID: 'txn2', fieldErrors: {amount: 'common.error.invalidAmount'}};
 
 function renderFieldErrors(initialProps: Props) {
     return renderHook(
-        ({fieldErrors, partiallyManuallyFilledScanID, onSwitchToTransaction, formErrorMessage, routeError}: Props) =>
-            useConfirmationFieldErrors({fieldErrors, partiallyManuallyFilledScanID, onSwitchToTransaction, formErrorMessage, routeError}),
+        ({fieldErrors, siblingFieldErrors, onSwitchToTransaction, formErrorMessage, routeError}: Props) =>
+            useConfirmationFieldErrors({fieldErrors, siblingFieldErrors, onSwitchToTransaction, formErrorMessage, routeError}),
         {initialProps},
     );
 }
@@ -134,7 +136,7 @@ describe('useConfirmationFieldErrors', () => {
     it('brings the partially filled sibling receipt on screen when the receipt on screen is complete', () => {
         // Given a multi-scan whose receipt on screen is complete while a sibling receipt is partially filled
         const onSwitchToTransaction = jest.fn();
-        const {result} = renderFieldErrors({fieldErrors: NO_FIELD_ERRORS, partiallyManuallyFilledScanID: 'txn2', onSwitchToTransaction});
+        const {result} = renderFieldErrors({fieldErrors: NO_FIELD_ERRORS, siblingFieldErrors: PARTIALLY_FILLED_SIBLING, onSwitchToTransaction});
 
         // When the confirm is blocked by the sibling
         act(() => result.current.revealFieldErrors());
@@ -143,20 +145,33 @@ describe('useConfirmationFieldErrors', () => {
         expect(onSwitchToTransaction).toHaveBeenCalledWith('txn2');
     });
 
+    it('asks to fix the errors when the sibling receipt only holds an invalid value', () => {
+        // Given a multi-scan whose receipt on screen is complete while a sibling receipt holds an invalid amount
+        const onSwitchToTransaction = jest.fn();
+        const {result} = renderFieldErrors({fieldErrors: NO_FIELD_ERRORS, siblingFieldErrors: INVALID_SIBLING, onSwitchToTransaction});
+
+        // When the confirm is blocked by the sibling
+        act(() => result.current.revealFieldErrors());
+
+        // Then the sibling is brought on screen and the summary doesn't ask for fields that aren't missing
+        expect(onSwitchToTransaction).toHaveBeenCalledWith('txn2');
+        expect(result.current.footerErrorMessage).toBe('common.error.fixErrorsBeforeContinuing');
+    });
+
     it('keeps an invalid value on the receipt on screen in view before moving to a partially filled sibling', () => {
         // Given a multi-scan whose receipt on screen has a typed merchant that isn't allowed, while a sibling receipt is partially filled
         const onSwitchToTransaction = jest.fn();
-        const {result, rerender} = renderFieldErrors({fieldErrors: {merchant: 'iou.error.invalidMerchant'}, partiallyManuallyFilledScanID: 'txn2', onSwitchToTransaction});
+        const {result, rerender} = renderFieldErrors({fieldErrors: {merchant: 'iou.error.invalidMerchant'}, siblingFieldErrors: PARTIALLY_FILLED_SIBLING, onSwitchToTransaction});
 
         // When the confirm is blocked
         act(() => result.current.revealFieldErrors());
 
-        // Then the receipt on screen stays, since validation only checks its values, and the summary asks to fix the error it shows
+        // Then the receipt on screen stays, so its error is seen, and the summary asks to fix the error it shows
         expect(onSwitchToTransaction).not.toHaveBeenCalled();
         expect(result.current.footerErrorMessage).toBe('common.error.fixErrorsBeforeContinuing');
 
         // When the user fixes the merchant and confirms again
-        rerender({fieldErrors: NO_FIELD_ERRORS, partiallyManuallyFilledScanID: 'txn2', onSwitchToTransaction});
+        rerender({fieldErrors: NO_FIELD_ERRORS, siblingFieldErrors: PARTIALLY_FILLED_SIBLING, onSwitchToTransaction});
         act(() => result.current.revealFieldErrors());
 
         // Then the partially filled sibling is brought on screen and the summary asks for its required fields
@@ -167,7 +182,7 @@ describe('useConfirmationFieldErrors', () => {
     it('stays on the receipt on screen when one of its own fields is missing', () => {
         // Given a multi-scan whose receipt on screen is missing its amount, while a sibling receipt is also partially filled
         const onSwitchToTransaction = jest.fn();
-        const {result} = renderFieldErrors({fieldErrors: MISSING_AMOUNT, partiallyManuallyFilledScanID: 'txn2', onSwitchToTransaction});
+        const {result} = renderFieldErrors({fieldErrors: MISSING_AMOUNT, siblingFieldErrors: PARTIALLY_FILLED_SIBLING, onSwitchToTransaction});
 
         // When the confirm is blocked
         act(() => result.current.revealFieldErrors());
@@ -177,17 +192,17 @@ describe('useConfirmationFieldErrors', () => {
         expect(result.current.visibleFieldErrors).toEqual(MISSING_AMOUNT);
     });
 
-    it('keeps the summary while a sibling receipt of a multi-scan is still partially filled', () => {
+    it('keeps the summary while a sibling receipt of a multi-scan still has a field error', () => {
         // Given a blocked confirm on a multi-scan whose partially filled receipt is not the one on screen
-        const {result, rerender} = renderFieldErrors({fieldErrors: NO_FIELD_ERRORS, partiallyManuallyFilledScanID: 'txn2'});
+        const {result, rerender} = renderFieldErrors({fieldErrors: NO_FIELD_ERRORS, siblingFieldErrors: PARTIALLY_FILLED_SIBLING});
         act(() => result.current.revealFieldErrors());
 
         // When the complete receipt is still the one on screen
         // Then the summary still explains why the confirm is blocked
         expect(result.current.footerErrorMessage).toBe('iou.error.enterRequiredFields');
 
-        // When no receipt is partially filled any more
-        rerender({fieldErrors: NO_FIELD_ERRORS, partiallyManuallyFilledScanID: undefined});
+        // When no receipt has a field error any more
+        rerender({fieldErrors: NO_FIELD_ERRORS, siblingFieldErrors: undefined});
 
         // Then the summary goes away
         expect(result.current.footerErrorMessage).toBeUndefined();

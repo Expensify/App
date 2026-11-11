@@ -1,5 +1,5 @@
-import type {ConfirmationFieldErrors} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
-import getConfirmationFieldErrors, {hasBlockingFieldErrors} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
+import type {ConfirmationFieldErrors, SiblingFieldErrors} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
+import getConfirmationFieldErrors, {getSiblingFieldErrors, hasBlockingFieldErrors, NO_FIELD_ERRORS} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 
@@ -38,6 +38,9 @@ type UseConfirmationValidationResult = {
 
     /** The errors the amount, date and merchant fields would show now. `validate` blocks on the same map. */
     fieldErrors: ConfirmationFieldErrors;
+
+    /** The first other receipt of a multi-scan with a field error. It is only looked for once the receipt on screen has none, since that one is fixed first. */
+    siblingFieldErrors: SiblingFieldErrors | undefined;
 };
 
 type UseConfirmationValidationParams = {
@@ -118,8 +121,8 @@ type UseConfirmationValidationParams = {
     /** Whether the expense goes to a workspace chat, the only destination where a manually entered Scan needs a merchant */
     isPolicyExpenseChat: boolean;
 
-    /** ID of a partially filled Scan among the transactions being confirmed. Can name a receipt other than this one. */
-    partiallyManuallyFilledScanID?: string;
+    /** The other receipts of a multi-scan, which Create submits together with this one */
+    siblingTransactions?: OnyxTypes.Transaction[];
 
     /** Whether the confirmation fields are read-only (date is not inline-editable) */
     isReadOnly: boolean;
@@ -175,17 +178,15 @@ function useConfirmationValidation({
     routeError,
     canEnterScanFieldsManually,
     isPolicyExpenseChat,
-    partiallyManuallyFilledScanID,
+    siblingTransactions,
     isReadOnly,
     shouldShowDate,
     isTaxAmountEmpty,
 }: UseConfirmationValidationParams): UseConfirmationValidationResult {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const selectedParticipantsCount = selectedParticipants.length;
-    const fieldErrors = getConfirmationFieldErrors(transaction, {
-        iouAmount,
+    const fieldErrorParams = {
         iouType,
-        iouMerchant,
         canEnterScanFieldsManually,
         isPolicyExpenseChat,
         shouldShowDate,
@@ -195,7 +196,9 @@ function useConfirmationValidation({
         isDistanceRequest,
         isTimeRequest,
         currentUserAccountID: currentUserPersonalDetails.accountID,
-    });
+    };
+    const fieldErrors = getConfirmationFieldErrors(transaction, {...fieldErrorParams, iouAmount, iouMerchant});
+    const siblingFieldErrors = fieldErrors === NO_FIELD_ERRORS ? getSiblingFieldErrors(siblingTransactions, {...fieldErrorParams, participants: transaction?.participants}) : undefined;
     const validate = (paymentType?: PaymentMethodType): ValidationResult | null => {
         if (!!routeError || !transactionID) {
             return null;
@@ -205,7 +208,7 @@ function useConfirmationValidation({
             return {errorKey: 'iou.error.noParticipantSelected'};
         }
 
-        if (hasBlockingFieldErrors(fieldErrors, partiallyManuallyFilledScanID)) {
+        if (hasBlockingFieldErrors(fieldErrors, siblingFieldErrors)) {
             return {isFieldError: true};
         }
 
@@ -314,7 +317,7 @@ function useConfirmationValidation({
         return {errorKey: null};
     };
 
-    return {validate, fieldErrors};
+    return {validate, fieldErrors, siblingFieldErrors};
 }
 
 export default useConfirmationValidation;

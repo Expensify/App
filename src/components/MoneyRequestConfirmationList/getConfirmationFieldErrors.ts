@@ -5,8 +5,8 @@
  * button, so those three can't disagree about what is missing.
  */
 import {isP2PRecipient, isParticipantP2P} from '@libs/IOUUtils';
-import {isConfirmationAmountMissing, isConfirmationDateMissing, isConfirmationMerchantMissing, isValidMoneyRequestAmount} from '@libs/MoneyRequestUtils';
-import {isScanRequest} from '@libs/TransactionUtils';
+import {getConfirmationAmount, isConfirmationAmountMissing, isConfirmationDateMissing, isConfirmationMerchantMissing, isValidMoneyRequestAmount} from '@libs/MoneyRequestUtils';
+import {getMerchant, isScanRequest} from '@libs/TransactionUtils';
 import {isInvalidMerchantValue, isMerchantBlank, isValidInputLength} from '@libs/ValidationUtils';
 
 import type {IOUType} from '@src/CONST';
@@ -51,6 +51,16 @@ type GetConfirmationFieldErrorsParams = {
     isTimeRequest: boolean;
 
     currentUserAccountID: number;
+};
+
+type GetSiblingFieldErrorsParams = Omit<GetConfirmationFieldErrorsParams, 'iouAmount' | 'iouMerchant'> & {
+    /** The recipient on screen. Every receipt goes to it, even when another receipt's own draft wasn't updated. */
+    participants: OnyxTypes.Transaction['participants'];
+};
+
+type SiblingFieldErrors = {
+    transactionID: string;
+    fieldErrors: ConfirmationFieldErrors;
 };
 
 /** Returned whenever no field error is shown, so the error state passed down the footer keeps its identity while nothing is flagged. */
@@ -134,11 +144,22 @@ function getConfirmationFieldErrors(transaction: OnyxEntry<OnyxTypes.Transaction
     };
 }
 
-/** Whether a field error blocks confirming. A partially filled sibling receipt of a multi-scan blocks too, since Create submits every receipt at once. */
-function hasBlockingFieldErrors(fieldErrors: ConfirmationFieldErrors, partiallyManuallyFilledScanID: string | undefined): boolean {
-    return Object.keys(fieldErrors).length > 0 || !!partiallyManuallyFilledScanID;
+/** Returns the first other receipt of a multi-scan with a field error, since Create submits every receipt at once. */
+function getSiblingFieldErrors(siblingTransactions: OnyxTypes.Transaction[] | undefined, {participants, ...params}: GetSiblingFieldErrorsParams): SiblingFieldErrors | undefined {
+    for (const sibling of siblingTransactions ?? []) {
+        const fieldErrors = getConfirmationFieldErrors({...sibling, participants}, {...params, iouAmount: getConfirmationAmount(sibling), iouMerchant: getMerchant(sibling)});
+        if (fieldErrors !== NO_FIELD_ERRORS) {
+            return {transactionID: sibling.transactionID, fieldErrors};
+        }
+    }
+    return undefined;
+}
+
+/** Whether a field error blocks confirming, on the receipt on screen or on another receipt of a multi-scan. */
+function hasBlockingFieldErrors(fieldErrors: ConfirmationFieldErrors, siblingFieldErrors: SiblingFieldErrors | undefined): boolean {
+    return Object.keys(fieldErrors).length > 0 || !!siblingFieldErrors;
 }
 
 export default getConfirmationFieldErrors;
-export {NO_FIELD_ERRORS, hasBlockingFieldErrors};
-export type {ConfirmationFieldErrors, GetConfirmationFieldErrorsParams};
+export {NO_FIELD_ERRORS, getSiblingFieldErrors, hasBlockingFieldErrors};
+export type {ConfirmationFieldErrors, GetConfirmationFieldErrorsParams, SiblingFieldErrors};
