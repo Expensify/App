@@ -64,6 +64,7 @@ function renderFAB(isActive = false) {
     render(
         <NavigationContainer>
             <FloatingActionButton
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 onPress={jest.fn()}
                 isActive={isActive}
                 accessibilityLabel="fab"
