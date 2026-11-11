@@ -1495,8 +1495,10 @@ function getFormattedDateRangeForSearch(startDate: string, endDate: string, date
     if (!isValid(start) || !isValid(end)) {
         return '';
     }
-    const shouldIncludeYear = shouldShowFullYear || !isSameYear(start, end) || !shouldOmitCurrentYear || !isThisYear(start) || !isThisYear(end);
-    return formatSearchDateRange(start, end, dateFnsLocale, shouldIncludeYear);
+    // The year is only left out when the caller asks to omit the current one and the whole range falls in it, since the
+    // reader then knows which year is meant. A range in any other year, or across two years, would be ambiguous without it.
+    const shouldOmitYear = !shouldShowFullYear && shouldOmitCurrentYear && isThisYear(start) && isThisYear(end);
+    return formatSearchDateRange(start, end, dateFnsLocale, !shouldOmitYear);
 }
 
 /** Returns a compact date range, e.g. "Sep 1 - 7, ’25". */
