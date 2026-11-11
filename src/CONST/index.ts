@@ -632,14 +632,20 @@ const CONST = {
 
     MERCHANT_NAME_MAX_BYTES: 255,
 
-    /** The subset of EDIT_REQUEST_FIELD a merchant rule can govern, whose edit shows the "Create a rule" callout */
+    /**
+     * The fields a merchant rule can govern, whose edit shows the "Create a rule" callout.
+     *
+     * Named the way the server names them in its `suggestNewRuleCreation` verdict, since that verdict is read by
+     * these keys. A description is `comment` there and a tax rate is `tax`, so the names cannot be taken from
+     * EDIT_REQUEST_FIELD.
+     */
     MERCHANT_RULE_SUGGESTION_FIELDS: {
-        CATEGORY: editRequestFields.CATEGORY,
-        TAG: editRequestFields.TAG,
-        TAX: editRequestFields.TAX_RATE,
-        DESCRIPTION: editRequestFields.DESCRIPTION,
-        BILLABLE: editRequestFields.BILLABLE,
-        REIMBURSABLE: editRequestFields.REIMBURSABLE,
+        CATEGORY: 'category',
+        TAG: 'tag',
+        TAX: 'tax',
+        DESCRIPTION: 'comment',
+        BILLABLE: 'billable',
+        REIMBURSABLE: 'reimbursable',
     },
 
     MASKED_PAN_PREFIX: 'XXXXXXXXXXXX',
@@ -650,6 +656,9 @@ const CONST = {
 
     GENERATED_RULE: {
         PROMPT_MAX_LENGTH: 6000,
+
+        // The slowest answers in the eval take about 13 seconds. After this time, the agent rule saves without an answer.
+        AGENT_RULE_CHECK_TIMEOUT_MS: 20000,
         STATE: {
             RULE: 'rule',
             UNSUPPORTED: 'unsupported',
@@ -1543,6 +1552,7 @@ const CONST = {
         SCAN_FLASH_TORCH: 'scanFlashTorch',
         NEW_DOT_BILL_PAY: 'newDotBillPay',
         HYBRID_WEB: 'hybridWeb',
+        MILEAGE_UI: 'mileageUI',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -2600,6 +2610,10 @@ const CONST = {
             DYNAMIC_EXTERNAL_WORKFLOW_SUBMIT_ERROR: 'dynamicExternalWorkflowSubmitError',
             DYNAMIC_EXTERNAL_WORKFLOW_APPROVE_ERROR: 'dynamicExternalWorkflowApproveError',
             DYNAMIC_EXTERNAL_WORKFLOW_OFFLINE: 'dynamicExternalWorkflowOffline',
+        },
+        AUTO_EXPORT_MESSAGE_KEY: {
+            EXPORTS_AFTER_FINAL_APPROVAL: 'exportsAfterFinalApproval',
+            REIMBURSABLE_EXPORTS_WHEN_PAID: 'outOfPocketExportsWhenPaid',
         },
         ICONS: {
             HOURGLASS: 'hourglass',
@@ -7410,6 +7424,7 @@ const CONST = {
     },
     EMOJI_PICKER_TEXT_INPUT_SIZES: 152,
     EMOJI_PICKER_SKIN_TONE_LIST_HEIGHT: 56,
+    /** @deprecated Position symbol declaratively via JSX order in KeypadAmountEditor or prefixCharacter in AmountFormField.Input. See contributingGuides/NUMBER_WITH_SYMBOL_FORM_MIGRATION.md. */
     TEXT_INPUT_SYMBOL_POSITION: {
         PREFIX: 'prefix',
         SUFFIX: 'suffix',

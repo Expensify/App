@@ -2313,6 +2313,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'le dernier dimanche du mois',
             },
         },
+        autoExport: {
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL]: 'Cette note de frais sera exportée après l’approbation finale.',
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID]: 'Les dépenses remboursables seront exportées lorsque cette note de frais sera payée.',
+        },
     },
     profilePage: {
         profile: 'Profil',
@@ -9322,6 +9326,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 describeRuleForConcierge: 'Décrivez votre règle et Concierge la créera',
                 gotIt: 'Compris',
                 createRule: 'Créer une règle',
+                saveAnyway: 'Enregistrer quand même',
+                checkingRule: 'Vérification de votre règle...',
                 fallbackBanner:
                     'Ce n’est pas une règle standard, nous avons donc rédigé une règle d’agent. Les règles d’agent s’exécutent lorsqu’une dépense ou une note de frais est créée ou mise à jour.',
                 fallbackBannerWithExplanation: (explanation: string) =>

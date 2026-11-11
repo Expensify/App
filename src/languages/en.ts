@@ -2452,6 +2452,10 @@ const translations = {
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'on the last Sunday of the month',
             },
         },
+        autoExport: {
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL]: 'This report will be exported after final approval.',
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID]: 'Reimbursable expenses will be exported when this report is paid.',
+        },
     },
     profilePage: {
         profile: 'Profile',
@@ -10204,6 +10208,8 @@ const translations = {
                 describeRuleForConcierge: 'Describe your rule and Concierge will build it',
                 disclaimer: 'AI agents can make mistakes.',
                 createRule: 'Create rule',
+                saveAnyway: 'Save anyway',
+                checkingRule: 'Checking your rule...',
                 fallbackBanner: "This isn't a standard rule, so we drafted an agent rule. Agent rules run when an expense or report is created or updated.",
                 fallbackBannerWithExplanation: (explanation: string) =>
                     `This isn't a standard rule, so we drafted an agent rule. Agent rules run when an expense or report is created or updated. ${explanation}`,
