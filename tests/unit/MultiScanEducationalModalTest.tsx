@@ -4,9 +4,9 @@ import type {FeatureTrainingModalProps} from '@components/FeatureTrainingModal';
 import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import MultiScanEducationalModalContent from '@components/MultiScanEducationalModalContent';
 
-import useOnyx from '@hooks/useOnyx';
 import type useMultiScanEducationalModal from '@hooks/useMultiScanEducationalModal/index';
 import type useNativeMultiScanEducationalModal from '@hooks/useMultiScanEducationalModal/index.native';
+import useOnyx from '@hooks/useOnyx';
 import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -43,16 +43,13 @@ jest.mock('@userActions/TransactionEdit', () => ({removeTransactionReceipt: jest
 jest.mock('@pages/iou/request/step/IOURequestStepScan/hooks/useScanRouteParams');
 
 function renderMultiScan() {
-    return renderHook(
-        () => ({...useMultiScanState(), ...useMultiScanActions(), styles: useThemeStyles()}),
-        {
-            wrapper: ({children}: {children: React.ReactNode}) => (
-                <ModalProvider>
-                    <MultiScanProvider>{children}</MultiScanProvider>
-                </ModalProvider>
-            ),
-        },
-    );
+    return renderHook(() => ({...useMultiScanState(), ...useMultiScanActions(), styles: useThemeStyles()}), {
+        wrapper: ({children}: {children: React.ReactNode}) => (
+            <ModalProvider>
+                <MultiScanProvider>{children}</MultiScanProvider>
+            </ModalProvider>
+        ),
+    });
 }
 
 describe('multi-scan education', () => {
