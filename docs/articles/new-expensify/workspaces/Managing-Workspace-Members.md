@@ -1,6 +1,6 @@
 ---
 title: Managing Workspace Members in New Expensify
-description: Learn how to add, remove, filter, and manage user roles in a New Expensify workspace.
+description: Learn how to add, remove, filter, and manage user roles and work arrangements in a New Expensify workspace.
 keywords: [New Expensify, workspace members, add user, remove user, user roles, workspace admin, card admin, people admin, payments admin, approve-only, guest, invite users, filter members, role filter, member display name]
 ---
 
@@ -117,6 +117,24 @@ The name applies in every workspace the member belongs to. After it’s saved, o
 
 ---
 
+## How to set a member's work arrangement for commute exclusions
+
+On Control workspaces using **Exclude usual commute**, workspace admins can set each member's **Work arrangement**. Members use the workspace's **Default work arrangement** unless an individual arrangement has been set.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Members**.
+2. Select the member's name.
+3. Select **Work arrangement**.
+4. Choose **Office-based** or **Remote or mobile**. The change saves automatically.
+
+- **Office-based:** The member has a regular office commute. Direct home-to-office trips are excluded, and the usual one-way commute is subtracted from home-to-client or client-to-home trips.
+- **Remote or mobile:** The member works from home or travels between locations with no regular office. Home-and-office commute exclusions do not apply.
+
+Changes apply only to future mileage calculations. Existing mileage expenses are not recalculated. Work arrangement does not affect the **Remove fixed distance** method.
+
+[Learn how to enable home-and-office commute exclusions](/articles/new-expensify/workspaces/Set-distance-rates#how-to-exclude-commutes-using-home-and-office-locations).
+
+---
+
 # Transfer Workspace Ownership
 
 To transfer ownership to another admin:
@@ -196,4 +214,3 @@ At least one value in your **Approval limit** column isn't a valid amount. Enter
 ## Why can't I download a list of workspace members to a CSV file?
 
 Only Workspace admins, People admins, and Editors on Submit workspaces can download the list of workspace members to a CSV file. If you are a Member, Auditor, Card admin, or Payments admin, you will not be able to download the members list.
-
