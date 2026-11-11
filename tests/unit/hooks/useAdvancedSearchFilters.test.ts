@@ -149,6 +149,23 @@ describe('useAdvancedSearchFilters', () => {
                 expect(result.current.flat()).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION);
             });
         });
+
+        it("hides the violation filter when only another workspace's categories have rules", async () => {
+            // Given a migrated Control workspace with no category rules, and a workspace with Rules turned off
+            // that still has leftover category rules, since turning Rules off doesn't clear them
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicy(1, {type: CONST.POLICY.TYPE.CORPORATE, areRulesEnabled: undefined}));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}2`, buildPolicy(2, {areRulesEnabled: false}));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}2`, {Travel: {name: 'Travel', enabled: true, maxExpenseAmount: 5000}});
+            await waitForBatchedUpdates();
+
+            // When the advanced filters are built for expenses
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.EXPENSE), {wrapper});
+            await waitForBatchedUpdates();
+
+            // Then the violation row is left out, because each workspace is checked against its own categories
+            expect(result.current.flat()).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE);
+            expect(result.current.flat()).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION);
+        });
     });
 
     describe('category filter visibility', () => {

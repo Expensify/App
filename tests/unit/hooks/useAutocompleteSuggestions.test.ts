@@ -108,7 +108,7 @@ jest.mock('@libs/SearchQueryUtils', () => ({
 jest.mock('@libs/SearchUIUtils', () => ({
     getDatePresets: jest.fn(() => ['today', 'yesterday', 'lastWeek', 'lastMonth']),
     getHasOptions: jest.fn(() => [{value: 'attachment'}, {value: 'note'}]),
-    hasRulesEnabledPolicy: jest.fn(() => true),
+    getHasOptionAvailability: jest.fn(() => ({shouldShowTag: true, shouldShowCategory: true, shouldShowSubmittedViolation: true, shouldShowApprovedViolation: true})),
 }));
 
 jest.mock('@hooks/useExportedToFilterOptions', () => ({
@@ -122,7 +122,7 @@ jest.mock('@hooks/useExportedToFilterOptions', () => ({
 const {parseForAutocomplete} = jest.requireMock<{parseForAutocomplete: jest.Mock}>('@libs/SearchAutocompleteUtils');
 const {getUserFriendlyKey} = jest.requireMock<{getUserFriendlyKey: jest.Mock}>('@libs/SearchQueryUtils');
 const {getExpensifyTeamExclusions} = jest.requireMock<{getExpensifyTeamExclusions: jest.Mock}>('@libs/PolicyUtils');
-const {hasRulesEnabledPolicy} = jest.requireMock<{hasRulesEnabledPolicy: jest.Mock}>('@libs/SearchUIUtils');
+const {getHasOptionAvailability} = jest.requireMock<{getHasOptionAvailability: jest.Mock}>('@libs/SearchUIUtils');
 const mockedUseNetwork = jest.mocked(useNetwork);
 const mockedOpenSearchCategoryFiltersPage = jest.mocked(openSearchCategoryFiltersPage);
 const mockedGetSearchOptions = jest.mocked(getSearchOptions);
@@ -888,7 +888,7 @@ describe('useAutocompleteSuggestions', () => {
 
         it('suggests nothing when no workspace has Rules enabled', () => {
             // Given none of the user's workspaces has Rules turned on, so the advanced filters hide the violation row too
-            hasRulesEnabledPolicy.mockReturnValueOnce(false);
+            getHasOptionAvailability.mockReturnValueOnce({shouldShowTag: true, shouldShowCategory: true, shouldShowSubmittedViolation: false, shouldShowApprovedViolation: false});
             parseForAutocomplete.mockReturnValue({
                 autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, value: ''},
                 ranges: [],

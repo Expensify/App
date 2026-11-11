@@ -7,7 +7,7 @@ import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isFilterNegatable} from '@libs/SearchQueryUtils';
-import {getHasOptions, getMultiSelectFilterOptions, getSingleSelectFilterOptions, normalizeTripStatuses} from '@libs/SearchUIUtils';
+import {getHasOptions, getMultiSelectFilterOptions, getSingleSelectFilterOptions, getViolationFilterOptions, normalizeTripStatuses} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
@@ -19,7 +19,7 @@ import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import {hasAnyCategoryRulesSelector} from '@selectors/PolicyCategories';
+import {policyIDsWithCategoryRulesSelector} from '@selectors/PolicyCategories';
 import React from 'react';
 
 import BankAccountSelector from './BankAccountSelector';
@@ -115,13 +115,13 @@ function SingleSelectListFilterContent({baseFilterKey, value, selectionListStyle
 function HasMultiSelectListFilterContent({value = [], type = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListStyle, footer, onChange}: HasMultiSelectListFilterContentProps) {
     const {translate} = useLocalize();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [hasCategoryRules = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: hasAnyCategoryRulesSelector});
+    const [policyIDsWithCategoryRules] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: policyIDsWithCategoryRulesSelector});
     const selectedValues = value as string[];
     // Include already-selected values even when the matching workspace feature is off, otherwise
     // toggling another option would call onChange without them and clear the saved/query selection.
     const items = getHasOptions(translate, type, {
         policies: policies ?? {},
-        hasCategoryRules,
+        policyIDsWithCategoryRules,
         selectedValues,
     });
     const multiSelectValues = items.filter((item) => selectedValues.includes(item.value));
@@ -141,7 +141,7 @@ function HasMultiSelectListFilterContent({value = [], type = CONST.SEARCH.DATA_T
 }
 
 function MultiSelectListFilterContent({baseFilterKey, value = [], type = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListStyle, footer, onChange}: MultiSelectListFilterContentProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const shouldReturnTripRooms = useShouldReturnTripRooms(type);
 
     if (baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
@@ -156,7 +156,10 @@ function MultiSelectListFilterContent({baseFilterKey, value = [], type = CONST.S
         );
     }
 
-    const items = getMultiSelectFilterOptions(baseFilterKey, type, translate, undefined, undefined, shouldReturnTripRooms);
+    const items =
+        baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION
+            ? getViolationFilterOptions(translate, localeCompare)
+            : getMultiSelectFilterOptions(baseFilterKey, type, translate, undefined, undefined, shouldReturnTripRooms);
     const selectedValues = shouldReturnTripRooms && baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS ? normalizeTripStatuses(value as string[]) : (value as string[]);
     const multiSelectValues = items.filter((item) => selectedValues.includes(item.value));
 
@@ -166,6 +169,7 @@ function MultiSelectListFilterContent({baseFilterKey, value = [], type = CONST.S
             value={multiSelectValues}
             selectionListStyle={selectionListStyle}
             isNegatable={isFilterNegatable(baseFilterKey)}
+            isSearchable={items.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
             footer={footer}
             onChange={(selectedItems) => {
                 onChange(selectedItems.map((item) => item.value));
