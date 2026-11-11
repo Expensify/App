@@ -187,6 +187,8 @@ import type PrivateSubscription from './PrivateSubscription';
 import type PurchaseList from './PurchaseList';
 import type {Purchases} from './PurchaseList';
 import type QuickAction from './QuickAction';
+import type ReceiptTranslation from './ReceiptTranslation';
+import type {ReceiptTranslationState, TranslatedReceiptRow} from './ReceiptTranslation';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
 import type RecentlyUsedReportFields from './RecentlyUsedReportFields';
 import type RecentlyUsedTags from './RecentlyUsedTags';
@@ -481,6 +483,9 @@ export type {
     CardFeedsStatus,
     CardFeedsStatusByDomainID,
     CompanyCardsLoadingState,
+    ReceiptTranslation,
+    ReceiptTranslationState,
+    TranslatedReceiptRow,
     WorkspaceCardFeedsStatus,
     DomainSettings,
     SaveSearch,

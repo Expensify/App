@@ -29,7 +29,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList} from '@src/types/onyx';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -47,14 +46,14 @@ function WorkspaceMembersChangeWorkArrangementPage({policy, personalDetails, rou
     const {translate} = useLocalize();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
-    const [selection, selectionMetadata] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT);
+    const [selection] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT);
     const [chosenIsOffice, setChosenIsOffice] = useState<boolean>();
 
     // Members picked on another workspace's member list are left out, even when they also belong to this one
     const selectedAccountIDs = selection?.policyID === policyID ? selection.accountIDs : undefined;
 
     // The selection only lives in memory, so it is gone when the page is opened from a link or after a refresh
-    const hasSelectedMembers = isLoadingOnyxValue(selectionMetadata) || !!selectedAccountIDs?.length;
+    const hasSelectedMembers = !!selectedAccountIDs?.length;
     const canChangeWorkArrangement =
         isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) &&
         canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MEMBERS) &&
