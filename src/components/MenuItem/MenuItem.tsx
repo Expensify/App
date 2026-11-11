@@ -802,6 +802,7 @@ function MenuItem({
 
         if (event?.type === 'click') {
             const target = event.currentTarget;
+            // On web the target is a DOM element that can lose focus; native targets have no blur method
             if (target && typeof target === 'object' && 'blur' in target && typeof target.blur === 'function') {
                 target.blur();
             }

@@ -2995,56 +2995,91 @@ function getNoneOption(searchValue: string, isSelected: boolean, translate: Loca
     ];
 }
 
+type SelectedOptionDetailsParams = {
+    privateIsArchivedMap: Record<string, boolean>;
+    currentUserAccountID: number;
+    allPolicies: OnyxCollection<Policy>;
+    translate: LocalizedTranslate;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    dateFnsLocale: DateFnsLocale | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    // Resolves a single report by ID instead of receiving the whole reports collection, so callers only subscribe to the reports they actually need.
+    getReportByID: (reportID: string | undefined) => OnyxEntry<Report>;
+    rules: OnyxCollection<Rule>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
+};
+
+/**
+ * Returns the selected options to show for the search term.
+ * We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
+ * However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
+ * This clears up space on mobile views, where if you create a group with 4+ people you can't see the selected participants and the search results at the same time
+ * If you select a new user you don't have a contact for, they won't get returned as part of a recent report or personal details
+ * This will add them to the list of options, deduping them if they already exist in the other lists
+ */
+function getSelectedOptionsForSearchTerm<TOption extends Participant | SearchOptionData>(
+    searchTerm: string,
+    selectedOptions: TOption[],
+    listedOptions: SearchOptionData[],
+    currentUserAccountID: number,
+    translate: LocalizedTranslate,
+): TOption[] {
+    if (searchTerm === '') {
+        return selectedOptions;
+    }
+
+    const cleanSearchTerm = searchTerm.trim().toLowerCase();
+    return selectedOptions.filter((participant) => {
+        const accountID = participant.accountID ?? null;
+        const isPartOfSearchTerm = doesPersonalDetailMatchSearchTerm(participant, currentUserAccountID, cleanSearchTerm, translate);
+        const isListed = listedOptions.some((option) => option.accountID === accountID);
+        return isPartOfSearchTerm && !isListed;
+    });
+}
+
+function getSelectedOptionWithDetails(participant: Participant | SearchOptionData, params: SelectedOptionDetailsParams) {
+    const {
+        privateIsArchivedMap,
+        currentUserAccountID,
+        allPolicies,
+        translate,
+        convertToDisplayString,
+        dateFnsLocale,
+        formatPhoneNumber,
+        getReportByID,
+        rules,
+        personalDetails,
+        reportAttributesDerived,
+    } = params;
+    const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
+    if (isReportPolicyExpenseChat) {
+        const expenseReport = getReportByID(participant.reportID);
+        const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
+        const expenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
+        return getPolicyExpenseReportOption(
+            participant,
+            privateIsArchived,
+            personalDetails,
+            expenseReport,
+            expenseReportPolicy,
+            {translate, dateFnsLocale, convertToDisplayString, formatPhoneNumber},
+            currentUserAccountID,
+            rules,
+            reportAttributesDerived,
+        );
+    }
+    return getParticipantsOption(participant, personalDetails, translate);
+}
+
 /**
  * Handles the logic for displaying selected participants from the search term
  */
-// eslint-disable-next-line @typescript-eslint/max-params -- Matches the existing formatter contract. Parameter refactoring is tracked in https://github.com/Expensify/App/issues/66415
-function formatSectionsFromSearchTerm(
-    searchTerm: string,
-    selectedOptions: Array<Participant | SearchOptionData>,
-    filteredRecentReports: SearchOptionData[],
-    filteredPersonalDetails: SearchOptionData[],
-    privateIsArchivedMap: Record<string, boolean>,
-    currentUserAccountID: number,
-    allPolicies: OnyxCollection<Policy>,
-    translate: LocalizedTranslate,
-    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
-    dateFnsLocale: DateFnsLocale | undefined,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    // Resolves a single report by ID instead of receiving the whole reports collection, so callers only subscribe to the reports they actually need.
-    getReportByID: (reportID: string | undefined) => OnyxEntry<Report>,
-    rules: OnyxCollection<Rule>,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    shouldGetOptionDetails: true,
-    filteredWorkspaceChats?: SearchOptionData[],
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-): SectionForSearchTerm;
-// eslint-disable-next-line @typescript-eslint/max-params -- Matches the existing formatter contract. Parameter refactoring is tracked in https://github.com/Expensify/App/issues/66415
-function formatSectionsFromSearchTerm(
-    searchTerm: string,
-    selectedOptions: SearchOptionData[],
-    filteredRecentReports: SearchOptionData[],
-    filteredPersonalDetails: SearchOptionData[],
-    privateIsArchivedMap: Record<string, boolean>,
-    currentUserAccountID: number,
-    allPolicies: OnyxCollection<Policy>,
-    translate: LocalizedTranslate,
-    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
-    dateFnsLocale: DateFnsLocale | undefined,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    // Resolves a single report by ID instead of receiving the whole reports collection, so callers only subscribe to the reports they actually need.
-    getReportByID: (reportID: string | undefined) => OnyxEntry<Report>,
-    rules: OnyxCollection<Rule>,
-    personalDetails?: OnyxEntry<PersonalDetailsList>,
-    shouldGetOptionDetails?: boolean,
-    filteredWorkspaceChats?: SearchOptionData[],
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-): SectionForSearchTerm;
 // We'll refactor this function to have less parameters in the future (https://github.com/Expensify/App/issues/66415)
 // eslint-disable-next-line @typescript-eslint/max-params
 function formatSectionsFromSearchTerm(
     searchTerm: string,
-    selectedOptions: Array<Participant | SearchOptionData>,
+    selectedOptions: SearchOptionData[],
     filteredRecentReports: SearchOptionData[],
     filteredPersonalDetails: SearchOptionData[],
     privateIsArchivedMap: Record<string, boolean>,
@@ -3061,79 +3096,46 @@ function formatSectionsFromSearchTerm(
     shouldGetOptionDetails = false,
     filteredWorkspaceChats: SearchOptionData[] = [],
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-): {section: Omit<SectionForSearchTerm['section'], 'data'> & {data: Array<Participant | SectionForSearchTerm['section']['data'][number]>}} {
-    // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
-    // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
-    // This clears up space on mobile views, where if you create a group with 4+ people you can't see the selected participants and the search results at the same time
-    if (searchTerm === '') {
-        return {
-            section: {
-                title: undefined,
-                sectionIndex: 0,
-                data: shouldGetOptionDetails
-                    ? selectedOptions.map((participant) => {
-                          const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                          if (isReportPolicyExpenseChat) {
-                              const expenseReport = getReportByID(participant.reportID);
-                              const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
-                              const expenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
-                              return getPolicyExpenseReportOption(
-                                  participant,
-                                  privateIsArchived,
-                                  personalDetails,
-                                  expenseReport,
-                                  expenseReportPolicy,
-                                  {translate, dateFnsLocale, convertToDisplayString, formatPhoneNumber},
-                                  currentUserAccountID,
-                                  rules,
-                                  reportAttributesDerived,
-                              );
-                          }
-                          return getParticipantsOption(participant, personalDetails, translate);
-                      })
-                    : selectedOptions,
-            },
-        };
-    }
-
-    const cleanSearchTerm = searchTerm.trim().toLowerCase();
-    // If you select a new user you don't have a contact for, they won't get returned as part of a recent report or personal details
-    // This will add them to the list of options, deduping them if they already exist in the other lists
-    const selectedParticipantsWithoutDetails = selectedOptions.filter((participant) => {
-        const accountID = participant.accountID ?? null;
-        const isPartOfSearchTerm = doesPersonalDetailMatchSearchTerm(participant, currentUserAccountID, cleanSearchTerm, translate);
-        const isReportInRecentReports = filteredRecentReports.some((report) => report.accountID === accountID) || filteredWorkspaceChats.some((report) => report.accountID === accountID);
-        const isReportInPersonalDetails = filteredPersonalDetails.some((personalDetail) => personalDetail.accountID === accountID);
-
-        return isPartOfSearchTerm && !isReportInRecentReports && !isReportInPersonalDetails;
-    });
-
+): SectionForSearchTerm {
+    const options = getSelectedOptionsForSearchTerm(
+        searchTerm,
+        selectedOptions,
+        [...filteredRecentReports, ...filteredWorkspaceChats, ...filteredPersonalDetails],
+        currentUserAccountID,
+        translate,
+    );
+    const detailsParams = {
+        privateIsArchivedMap,
+        currentUserAccountID,
+        allPolicies,
+        translate,
+        convertToDisplayString,
+        dateFnsLocale,
+        formatPhoneNumber,
+        getReportByID,
+        rules,
+        personalDetails,
+        reportAttributesDerived,
+    };
     return {
         section: {
             title: undefined,
             sectionIndex: 0,
-            data: shouldGetOptionDetails
-                ? selectedParticipantsWithoutDetails.map((participant) => {
-                      const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                      if (isReportPolicyExpenseChat) {
-                          const expenseReport = getReportByID(participant.reportID);
-                          const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
-                          const expenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
-                          return getPolicyExpenseReportOption(
-                              participant,
-                              privateIsArchived,
-                              personalDetails,
-                              expenseReport,
-                              expenseReportPolicy,
-                              {translate, dateFnsLocale, convertToDisplayString, formatPhoneNumber},
-                              currentUserAccountID,
-                              rules,
-                              reportAttributesDerived,
-                          );
-                      }
-                      return getParticipantsOption(participant, personalDetails, translate);
-                  })
-                : selectedParticipantsWithoutDetails,
+            data: shouldGetOptionDetails ? options.map((option) => getSelectedOptionWithDetails(option, detailsParams)) : options,
+        },
+    };
+}
+
+/**
+ * Returns the section of selected IOU participants for the search term, each with its option details
+ */
+function formatSelectedParticipantsFromSearchTerm(searchTerm: string, participants: Participant[], params: SelectedOptionDetailsParams): SectionForSearchTerm {
+    const options = getSelectedOptionsForSearchTerm(searchTerm, participants, [], params.currentUserAccountID, params.translate);
+    return {
+        section: {
+            title: undefined,
+            sectionIndex: 0,
+            data: options.map((participant) => getSelectedOptionWithDetails(participant, params)),
         },
     };
 }
@@ -3530,6 +3532,7 @@ export {
     filterWorkspaceChats,
     formatMemberForList,
     formatSectionsFromSearchTerm,
+    formatSelectedParticipantsFromSearchTerm,
     getAlternateText,
     getEmptyOptions,
     getHeaderMessage,

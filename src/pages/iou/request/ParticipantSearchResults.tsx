@@ -28,7 +28,7 @@ import goToSettings from '@libs/goToSettings';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 import Navigation from '@libs/Navigation/Navigation';
-import {formatSectionsFromSearchTerm, getHeaderMessage, getParticipantsOption, getPolicyExpenseReportOption, isCurrentUser} from '@libs/OptionsListUtils';
+import {formatSelectedParticipantsFromSearchTerm, getHeaderMessage, getParticipantsOption, getPolicyExpenseReportOption, isCurrentUser} from '@libs/OptionsListUtils';
 import type {Option} from '@libs/OptionsListUtils';
 import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import type {OptionWithKey} from '@libs/OptionsListUtils/types';
@@ -253,7 +253,7 @@ function ParticipantSearchResults({
 
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
-    const updateSelectedParticipants = (options: Array<Participant | OptionData>) => {
+    const handleSelectionChange = (options: Array<Participant | OptionData>) => {
         if (!isIOUSplit) {
             return;
         }
@@ -274,7 +274,7 @@ function ParticipantSearchResults({
             enablePhoneContacts: isNative,
             contactOptions: contacts,
             initialSelected: [...participants],
-            onSelectionChange: updateSelectedParticipants,
+            onSelectionChange: handleSelectionChange,
             onSingleSelect: (option: Participant | OptionData) => {
                 if (isIOUSplit) {
                     return;
@@ -318,11 +318,7 @@ function ParticipantSearchResults({
     let header = '';
     if (areOptionsInitialized && didScreenTransitionEnd) {
         const selectedParticipantKeys = new Set(participants.map((participant) => getParticipantOptionKey(participant)).filter(Boolean));
-        const formatResults = formatSectionsFromSearchTerm(
-            searchTerm,
-            [...participants],
-            [],
-            [],
+        const formatResults = formatSelectedParticipantsFromSearchTerm(searchTerm, [...participants], {
             privateIsArchivedMap,
             currentUserAccountID,
             allPolicies,
@@ -333,10 +329,8 @@ function ParticipantSearchResults({
             getReportByID,
             rules,
             personalDetails,
-            true,
-            undefined,
             reportAttributesDerived,
-        );
+        });
         sections.push({...formatResults.section, sectionIndex: 0});
 
         const workspaceChats = (availableOptions.workspaceChats ?? []).filter(

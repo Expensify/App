@@ -244,6 +244,7 @@ function ImportSpreadsheet({
             <View
                 onLayout={({nativeEvent}) => {
                     const {layout} = nativeEvent;
+                    // Only web layout events include the element's top position
                     if ('top' in layout && typeof layout.top === 'number') {
                         setFileTopPosition(PixelRatio.roundToNearestPixel(layout.top));
                     }
