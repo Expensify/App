@@ -78,6 +78,7 @@ function PersonalCardDetailsHeaderMenu({
                 }}
             >
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.PERSONAL_CARD.NAME}
                     name={translate('workspace.moreFeatures.companyCards.cardName')}
                     onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PERSONAL_CARD_EDIT_NAME.path))}
                     value={
@@ -114,6 +115,7 @@ function PersonalCardDetailsHeaderMenu({
                     }}
                 >
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.PERSONAL_CARD.TRANSACTION_START_DATE}
                         name={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
                         onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PERSONAL_CARD_EDIT_TRANSACTION_START_DATE.path))}
                         value={transactionStartDateTitle}
@@ -125,6 +127,7 @@ function PersonalCardDetailsHeaderMenu({
             <View style={styles.mt4}>
                 {isCSVImportedPersonalCard && (
                     <MenuItemAction
+                        sentryLabel={CONST.SENTRY_LABEL.PERSONAL_CARD.IMPORT_SPREADSHEET}
                         icon={icons.Table}
                         title={translate('spreadsheet.importSpreadsheet')}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute(Number(cardID)))}
@@ -132,6 +135,7 @@ function PersonalCardDetailsHeaderMenu({
                 )}
                 {shouldShowBreakConnection && (
                     <MenuItemAction
+                        sentryLabel={CONST.SENTRY_LABEL.PERSONAL_CARD.BREAK_CONNECTION}
                         icon={icons.Trashcan}
                         isDisabled={isOffline || card?.isLoadingLastUpdated}
                         title="Break connection (Testing)"
@@ -141,6 +145,7 @@ function PersonalCardDetailsHeaderMenu({
                 {isCSVImportedPersonalCard ? (
                     <View style={styles.mb1}>
                         <MenuItemAction
+                            sentryLabel={CONST.SENTRY_LABEL.PERSONAL_CARD.DELETE}
                             icon={icons.Trashcan}
                             title={translate('common.delete')}
                             onPress={onDeleteCard}
@@ -149,6 +154,7 @@ function PersonalCardDetailsHeaderMenu({
                 ) : (
                     <View style={styles.mb1}>
                         <MenuItemAction
+                            sentryLabel={CONST.SENTRY_LABEL.PERSONAL_CARD.REMOVE}
                             icon={expensifyIcons.RemoveMembers}
                             title={translate('workspace.moreFeatures.companyCards.removeCard')}
                             onPress={onUnassignCard}
