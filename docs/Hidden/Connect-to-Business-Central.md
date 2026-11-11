@@ -30,7 +30,7 @@ To connect Business Central, you must:
 
 ## How to create the Microsoft Entra app registration
 
-Use a **Global Administrator** account to grant admin consent in Microsoft Entra.
+Use an account with the **Application Administrator**, **Cloud Application Administrator**, or **Global Administrator** role to grant admin consent for Business Central in Microsoft Entra.
 
 1. In the Microsoft Entra admin center, go to **App registrations > New registration**.
 2. Enter **Expensify** as the name.
@@ -66,9 +66,8 @@ Before connecting, install and configure the Expensify extension in Business Cen
 7. Set **State** to **Enabled**.
 8. If the **App Name** field is available, optionally select **Expensify**.
 9. Under **User Permission Sets**, add `EXY FULLACCESS`.
-10. Select **Grant Consent**.
-11. Sign in with your admin account.
-12. Note your Business Central environment name exactly as it appears, such as **Production**.
+10. If you haven't already granted admin consent in Microsoft Entra, select **Grant Consent** and sign in with your admin account. Otherwise, skip this step.
+11. Note your Business Central environment name exactly as it appears, such as **Production**.
 
 You need the environment name, **Directory (tenant) ID**, **Application (client) ID**, and secret **Value** to connect your workspace.
 
@@ -144,7 +143,7 @@ Entra only shows the **Value** when you create the secret. If you did not save i
 Your account can lack the admin role required to grant consent.
 
 1. In the Microsoft Entra admin center, go to **Users > [user] > Assigned roles**.
-2. Confirm that your account has the **Global Administrator** role, or ask your tenant administrator to grant consent.
+2. Confirm that your account has the **Application Administrator**, **Cloud Application Administrator**, or **Global Administrator** role, or ask your tenant administrator to grant consent.
 
 A tenant created through a Business Central trial sign-up can have no administrator. For an unmanaged tenant, complete an admin takeover in the Microsoft 365 admin center before you grant consent.
 
