@@ -13,7 +13,7 @@ Any member with guest booking permission can book travel for someone who doesn�
 
 Tap the **➕ Create** button at the bottom of your screen, then choose **Book travel**.
 
-You can also select the Search icon, type **Book travel** in the search field, then select the **Book travel** result. **Book travel** appears under the **➕ Create** button when any of your workspaces has Expensify Travel set up, and in the search field only when your default workspace has Expensify Travel enabled.
+You can also select the Search icon, type **Book travel** in the search field, then select the **Book travel** result. **Book travel** appears in both places when any of your accessible workspaces has Expensify Travel enabled and set up. If your default workspace has Travel disabled, either option explains why you can't book travel yet.
 
 If you don’t see **Book travel**, ask a Workspace Admin to [enable Expensify Travel](https://help.expensify.com/articles/travel/company-setup/Enable-Travel-on-a-Workspace) on the workspace. 
 
@@ -75,5 +75,4 @@ This happens when the guest’s email address is already tied to another company
 
 ## Can someone have both a guest and an employee travel profile?
 No. If a person was first booked as a guest and later added as an employee on the same email address, the duplicate profile must be removed before they can book or be booked. Customers can’t delete the guest profile themselves — contact your Account Manager or Concierge to have it removed.
-
 

@@ -12,7 +12,7 @@ Book rental cars quickly and easily through Expensify’s integrated travel port
 
 Tap the **➕ Create** button at the bottom of your screen, then choose **Book travel**.
 
-You can also select the Search icon, type **Book travel** in the search field, then select the **Book travel** result. **Book travel** appears under the **➕ Create** button when any of your workspaces has Expensify Travel set up, and in the search field only when your default workspace has Expensify Travel enabled.
+You can also select the Search icon, type **Book travel** in the search field, then select the **Book travel** result. **Book travel** appears in both places when any of your accessible workspaces has Expensify Travel enabled and set up. If your default workspace has Travel disabled, either option explains why you can't book travel yet.
 
 If you don’t see **Book travel**, ask a Workspace Admin to [enable Expensify Travel](https://help.expensify.com/articles/travel/company-setup/Enable-Travel-on-a-Workspace) on the workspace. 
 
