@@ -3,8 +3,8 @@
  * amount is saved when the input loses focus and the currency as soon as one is picked, through the same write the
  * amount page uses.
  */
+import AmountFormField from '@components/AmountFormField';
 import FormHelpMessage from '@components/FormHelpMessage';
-import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import type {DuplicateTransactionsAndViolations} from '@hooks/useDuplicateTransactionsAndViolations';
@@ -129,27 +129,31 @@ function AmountInputField({
                 launcherRef={currencyButtonRef}
             />
             <View style={[styles.mh4, styles.mv2]}>
-                <NumberWithSymbolForm
+                <AmountFormField
                     key={inputKey}
-                    displayAsTextInput
-                    autoFocus={false}
                     value={inputValue}
                     decimals={decimals}
-                    currency={currency}
-                    symbol={getLocalizedCurrencySymbol(preferredLocale, currency) ?? ''}
-                    label={label}
                     errorText={inputError || errorText}
                     onInputChange={applyTypedAmount}
-                    onFocus={startEditing}
-                    onBlur={saveTypedAmount}
-                    allowNegativeInput={allowNegative}
-                    shouldShowFlipButton={allowNegative}
-                    shouldShowCurrencyButton={isCurrencyEditable}
-                    shouldShowBigNumberPad={false}
-                    onCurrencyButtonPress={() => setIsCurrencyPickerVisible(true)}
-                    currencyButtonRef={currencyButtonRef}
-                    shouldUseBorderlessButtons
-                />
+                    allowNegative={allowNegative}
+                >
+                    <AmountFormField.Input
+                        label={label}
+                        prefixCharacter={getLocalizedCurrencySymbol(preferredLocale, currency) ?? ''}
+                        onFocus={startEditing}
+                        onBlur={saveTypedAmount}
+                    >
+                        <AmountFormField.SignFlipButton shouldUseBorderlessStyle />
+                        {isCurrencyEditable && (
+                            <AmountFormField.CurrencyPickerButton
+                                ref={currencyButtonRef}
+                                currency={currency}
+                                onPress={() => setIsCurrencyPickerVisible(true)}
+                                shouldUseBorderlessStyle
+                            />
+                        )}
+                    </AmountFormField.Input>
+                </AmountFormField>
                 {!!hintText && (
                     <FormHelpMessage
                         isError={false}
