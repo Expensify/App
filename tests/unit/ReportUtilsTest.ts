@@ -23839,6 +23839,121 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('formatPhoneNumber injection for report-preview helpers (issue #66327)', () => {
+        // Unique phone logins per test: getDisplayNameForParticipant caches formatted logins in a module-level cache,
+        // so a never-before-seen login guarantees the injected formatter is actually invoked rather than served from cache.
+        const MANAGER_INJECT = 6_660_001;
+        const MANAGER_DEFAULT = 6_660_002;
+        const MANAGER_BUILD = 6_660_003;
+        const MANAGER_UPDATE = 6_660_004;
+
+        afterEach(async () => {
+            // Given each test seeds its own manager personal details, remove only those so other suites are unaffected
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [MANAGER_INJECT]: null,
+                [MANAGER_DEFAULT]: null,
+                [MANAGER_BUILD]: null,
+                [MANAGER_UPDATE]: null,
+            });
+            await waitForBatchedUpdates();
+        });
+
+        // Seeds an optimistic participant that has only a phone login and no display name, so its rendered name is
+        // exactly `formatPhoneNumber(login)` (see getDisplayNameForParticipant's optimistic-detail early return).
+        const seedPhoneManager = async (accountID: number, login: string) => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [accountID]: {accountID, login, isOptimisticPersonalDetail: true},
+            });
+            await waitForBatchedUpdates();
+        };
+
+        // An unsettled IOU report (not expense) so the message takes the "<payer> owes <amount>" branch, which renders
+        // the manager's name via getDisplayNameForParticipant.
+        const buildUnsettledIOUReport = (seed: number, managerID: number): Report => ({
+            ...createRandomReport(seed, undefined),
+            type: CONST.REPORT.TYPE.IOU,
+            currency: CONST.CURRENCY.USD,
+            managerID,
+            ownerAccountID: currentUserAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            isWaitingOnBankAccount: false,
+        });
+
+        it('getReportPreviewReportActionMessage routes participant names through the injected formatPhoneNumber', async () => {
+            // Given an unsettled IOU report whose manager has only a phone login
+            const login = '+15556660001@expensify.sms';
+            await seedPhoneManager(MANAGER_INJECT, login);
+            const iouReport = buildUnsettledIOUReport(6_660_100, MANAGER_INJECT);
+            const injectedFormatPhoneNumber = jest.fn(() => 'INJECTED_PHONE');
+
+            // When the preview message is generated with an injected formatter
+            const result = getReportPreviewReportActionMessage({reportOrID: iouReport}, getCurrencyDecimalsLocal, injectedFormatPhoneNumber);
+
+            // Then the injected formatter is used to render the manager's name
+            expect(injectedFormatPhoneNumber).toHaveBeenCalledWith(login);
+            expect(result).toContain('INJECTED_PHONE');
+            expect(result).toContain('owes');
+        });
+
+        it('getReportPreviewReportActionMessage keeps working for existing callers that omit formatPhoneNumber', async () => {
+            // Given an unsettled IOU report whose manager has a regular display name
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [MANAGER_DEFAULT]: {accountID: MANAGER_DEFAULT, login: 'manager-default@example.com', firstName: 'Jane', displayName: 'Jane Manager'},
+            });
+            await waitForBatchedUpdates();
+            const iouReport = buildUnsettledIOUReport(6_660_200, MANAGER_DEFAULT);
+
+            // When called without the optional formatPhoneNumber argument (the default formatter is used)
+            const result = getReportPreviewReportActionMessage({reportOrID: iouReport}, getCurrencyDecimalsLocal);
+
+            // Then the message is still produced using the manager's resolved name
+            expect(result).toContain('Jane');
+            expect(result).toContain('owes');
+        });
+
+        it('buildOptimisticReportPreview forwards the injected formatPhoneNumber into the preview message', async () => {
+            // Given an unsettled IOU report whose manager has only a phone login
+            const login = '+15556660003@expensify.sms';
+            await seedPhoneManager(MANAGER_BUILD, login);
+            const chatReport: Report = {...createRandomReport(6_660_300, undefined), type: CONST.REPORT.TYPE.CHAT};
+            const iouReport = buildUnsettledIOUReport(6_660_301, MANAGER_BUILD);
+            const injectedFormatPhoneNumber = jest.fn(() => 'INJECTED_PHONE');
+
+            // When the optimistic preview is built with an injected formatter
+            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimalsLocal, undefined, '', null, undefined, undefined, injectedFormatPhoneNumber);
+
+            // Then the stored preview message is rendered with the injected formatter
+            expect(injectedFormatPhoneNumber).toHaveBeenCalledWith(login);
+            const message = Array.isArray(reportPreviewAction.message) ? reportPreviewAction.message.at(0)?.text : undefined;
+            expect(message).toContain('INJECTED_PHONE');
+        });
+
+        it('updateReportPreview forwards the injected formatPhoneNumber into the preview message', async () => {
+            // Given an unsettled IOU report whose manager has only a phone login, and an existing preview action
+            const login = '+15556660004@expensify.sms';
+            await seedPhoneManager(MANAGER_UPDATE, login);
+            const iouReport = buildUnsettledIOUReport(6_660_401, MANAGER_UPDATE);
+            // A plain mock preview action (not built via buildOptimisticReportPreview) so the phone login is formatted
+            // for the first time inside updateReportPreview, not pre-cached by the build step.
+            const existingPreviewAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                reportActionID: 'preview-6660401',
+                childRecentReceiptTransactionIDs: {},
+                originalMessage: {linkedReportID: iouReport.reportID},
+            });
+            const injectedFormatPhoneNumber = jest.fn(() => 'INJECTED_PHONE');
+
+            // When the preview is updated with an injected formatter
+            const updatedPreviewAction = updateReportPreview(iouReport, existingPreviewAction, getCurrencyDecimalsLocal, false, '', undefined, injectedFormatPhoneNumber);
+
+            // Then the refreshed preview message is rendered with the injected formatter
+            expect(injectedFormatPhoneNumber).toHaveBeenCalledWith(login);
+            const message = Array.isArray(updatedPreviewAction.message) ? updatedPreviewAction.message.at(0)?.text : undefined;
+            expect(message).toContain('INJECTED_PHONE');
+        });
+    });
+
     describe('getUserDetailTooltipText', () => {
         it('routes the display name through the injected translate function', async () => {
             const hiddenAccountID = 778899;

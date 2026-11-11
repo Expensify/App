@@ -7118,6 +7118,8 @@ function getReportPreviewReportActionMessage(
         originalReportAction?: OnyxInputOrEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>;
     },
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    // Defaults to the Onyx.connect-backed formatter so existing callers keep working while call sites are migrated to pass the locale-aware formatter (issue https://github.com/Expensify/App/issues/66327)
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'] = formatPhoneNumberPhoneUtils,
 ): string {
     const {reportOrID, iouReportAction = null, policy} = params;
     const originalReportAction = params.originalReportAction ?? iouReportAction;
@@ -7144,7 +7146,7 @@ function getReportPreviewReportActionMessage(
         : getDisplayNameForParticipant({
               accountID: report.managerID,
               shouldUseShortForm: true,
-              formatPhoneNumber: formatPhoneNumberPhoneUtils,
+              formatPhoneNumber,
               hiddenTranslation: 'Hidden',
           });
 
@@ -7164,7 +7166,7 @@ function getReportPreviewReportActionMessage(
                 : getDisplayNameForParticipant({
                       accountID: report.managerID,
                       shouldUseShortForm: true,
-                      formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                      formatPhoneNumber,
                       hiddenTranslation: 'Hidden',
                   });
         const payerPrefix = payerDisplayName ? `${payerDisplayName} ` : '';
@@ -7181,14 +7183,14 @@ function getReportPreviewReportActionMessage(
             getDisplayNameForParticipant({
                 accountID: report.ownerAccountID,
                 shouldUseShortForm: true,
-                formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                formatPhoneNumber,
                 hiddenTranslation: 'Hidden',
             }) ?? '';
         return `started payment, but is waiting for ${submitterDisplayName} to add a personal bank account.`;
     }
 
     if (containsNonReimbursable) {
-        const ownerName = getDisplayNameForParticipant({accountID: report.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, hiddenTranslation: 'Hidden'}) ?? '';
+        const ownerName = getDisplayNameForParticipant({accountID: report.ownerAccountID, formatPhoneNumber, hiddenTranslation: 'Hidden'}) ?? '';
         return `${ownerName} spent ${formattedAmount}`;
     }
     return `${payerName ?? ''} owes ${formattedAmount}`;
@@ -9331,9 +9333,11 @@ function buildOptimisticReportPreview(
     transaction: OnyxInputOrEntry<Transaction> = null,
     childReportID?: string,
     reportActionID?: string,
+    // Defaults to the Onyx.connect-backed formatter so existing callers keep working while call sites are migrated to pass the locale-aware formatter (issue https://github.com/Expensify/App/issues/66327)
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'] = formatPhoneNumberPhoneUtils,
 ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> {
     const hasReceipt = hasReceiptTransactionUtils(transaction);
-    const message = getReportPreviewReportActionMessage({reportOrID: iouReport}, getCurrencyDecimals);
+    const message = getReportPreviewReportActionMessage({reportOrID: iouReport}, getCurrencyDecimals, formatPhoneNumber);
     const created = DateUtils.getDBTime();
     const reportActorAccountID = (isInvoiceReport(iouReport) || isExpenseReport(iouReport) ? iouReport?.ownerAccountID : iouReport?.managerID) ?? -1;
     const isTestDriveTransaction = !!transaction?.receipt?.isTestDriveReceipt;
@@ -9575,6 +9579,8 @@ function updateReportPreview(
     isPayRequest = false,
     comment = '',
     transaction?: OnyxEntry<Transaction>,
+    // Defaults to the Onyx.connect-backed formatter so existing callers keep working while call sites are migrated to pass the locale-aware formatter (issue https://github.com/Expensify/App/issues/66327)
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'] = formatPhoneNumberPhoneUtils,
 ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> {
     const hasReceipt = hasReceiptTransactionUtils(transaction);
     const recentReceiptTransactions = reportPreviewAction?.childRecentReceiptTransactionIDs ?? {};
@@ -9590,7 +9596,7 @@ function updateReportPreview(
         }
     }
 
-    const message = getReportPreviewReportActionMessage({reportOrID: iouReport, iouReportAction: reportPreviewAction}, getCurrencyDecimals);
+    const message = getReportPreviewReportActionMessage({reportOrID: iouReport, iouReportAction: reportPreviewAction}, getCurrencyDecimals, formatPhoneNumber);
     const originalMessage = getOriginalMessage(reportPreviewAction);
     return {
         ...reportPreviewAction,
