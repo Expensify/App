@@ -68,6 +68,18 @@ function buildTransactionWithRejectError(): Transaction {
     return buildTransaction({errorFields: {reject: {[ERROR_TIMESTAMP]: SERVER_REJECT_MESSAGE}}});
 }
 
+/** A corporate card expense the server refused to reject individually. */
+function buildTransactionWithRejectCorporateCardError(): Transaction {
+    return buildTransaction({
+        errorFields: {rejectCorporateCard: {[ERROR_TIMESTAMP]: 'Corporate card expenses on a statement report cannot be rejected individually. Please reject the entire report instead.'}},
+    });
+}
+
+/** An expense the server rejected with an unexpected error (catch-all). */
+function buildTransactionWithRejectOtherError(): Transaction {
+    return buildTransaction({errorFields: {rejectOther: {[ERROR_TIMESTAMP]: 'This expense could not be rejected. Please contact Concierge for help.'}}});
+}
+
 describe('MoneyRequestReportTransactionItem - reject errors', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -196,5 +208,38 @@ describe('MoneyRequestReportTransactionItem - reject errors', () => {
         const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`);
         expect(transaction?.errorFields?.reject).toBeFalsy();
         expect(transaction).toBeTruthy();
+    });
+
+    it('should show the corporate card translated copy for a rejectCorporateCard error', async () => {
+        // Given: A corporate card expense the server refused to reject individually
+        await renderTransactionItem(buildTransactionWithRejectCorporateCardError());
+
+        // Then: The corporate card message is shown, not the generic one
+        expect(screen.getByText(translateLocal('iou.rejectReport.couldNotRejectCorporateCardExpense'))).toBeOnTheScreen();
+        expect(screen.queryByText(translateLocal('iou.rejectReport.couldNotRejectExpense'))).not.toBeOnTheScreen();
+    });
+
+    it('should show the contact Concierge translated copy for a rejectOther error', async () => {
+        // Given: An expense the server rejected with an unexpected error
+        await renderTransactionItem(buildTransactionWithRejectOtherError());
+
+        // Then: The contact Concierge message is shown
+        expect(screen.getByText(translateLocal('iou.rejectReport.couldNotRejectExpenseContactConcierge'))).toBeOnTheScreen();
+    });
+
+    it('should show the corporate card message when rejectCorporateCard and reject are both set', async () => {
+        // Given: An expense where the server set rejectCorporateCard but failureData also wrote reject
+        await renderTransactionItem(
+            buildTransaction({
+                errorFields: {
+                    rejectCorporateCard: {[ERROR_TIMESTAMP]: 'Corporate card expenses on a statement report cannot be rejected individually. Please reject the entire report instead.'},
+                    reject: {[ERROR_TIMESTAMP]: SERVER_REJECT_MESSAGE},
+                },
+            }),
+        );
+
+        // Then: The more specific corporate card error takes priority over the generic fallback
+        expect(screen.getByText(translateLocal('iou.rejectReport.couldNotRejectCorporateCardExpense'))).toBeOnTheScreen();
+        expect(screen.queryByText(translateLocal('iou.rejectReport.couldNotRejectExpense'))).not.toBeOnTheScreen();
     });
 });

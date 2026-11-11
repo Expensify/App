@@ -7,6 +7,7 @@ import {
     getReportRowPolicy,
     getReportRowPolicyCategories,
     getReportRowReport,
+    getTransactionRejectError,
     getVisibleReportRowViolations,
     isBillableEnabledOnPolicy,
     isEveryReportTransactionSelected,
@@ -218,12 +219,41 @@ describe('MoneyRequestReportUtils', () => {
             // Then nothing may select it, so Select All and a range agree with the checkbox
             expect(isSelectableReportTransaction(transaction)).toBe(false);
         });
+
+        test('refuses an expense with a rejectCorporateCard error, whose checkbox is disabled', () => {
+            // Given a corporate card expense the backend refused to reject individually
+            const transaction = createMock<Transaction>({
+                transactionID: '1',
+                errorFields: {rejectCorporateCard: {[REJECTED_AT]: 'iou.rejectReport.couldNotRejectCorporateCardExpense'}},
+            });
+
+            // When the list asks whether anything may select it
+            // Then nothing may select it
+            expect(isSelectableReportTransaction(transaction)).toBe(false);
+        });
+
+        test('refuses an expense with a rejectOther error, whose checkbox is disabled', () => {
+            // Given an expense the backend rejected with an unexpected error
+            const transaction = createMock<Transaction>({
+                transactionID: '1',
+                errorFields: {rejectOther: {[REJECTED_AT]: 'iou.rejectReport.couldNotRejectExpenseContactConcierge'}},
+            });
+
+            // When the list asks whether anything may select it
+            // Then nothing may select it
+            expect(isSelectableReportTransaction(transaction)).toBe(false);
+        });
     });
 
     describe('isEveryReportTransactionSelected', () => {
         const ordinary = createMock<Transaction>({transactionID: '1'});
         const other = createMock<Transaction>({transactionID: '2'});
         const rejected = createMock<Transaction>({transactionID: '3', errorFields: {reject: {[REJECTED_AT]: 'iou.rejectReport.couldNotRejectExpense'}}});
+        const rejectedCorporateCard = createMock<Transaction>({
+            transactionID: '4',
+            errorFields: {rejectCorporateCard: {[REJECTED_AT]: 'iou.rejectReport.couldNotRejectCorporateCardExpense'}},
+        });
+        const rejectedOther = createMock<Transaction>({transactionID: '5', errorFields: {rejectOther: {[REJECTED_AT]: 'iou.rejectReport.couldNotRejectExpenseContactConcierge'}}});
 
         test('counts a report covered once every row Select All can write is selected', () => {
             // Given a report whose third expense the backend refused to reject, so no checkbox can put it in the selection
@@ -251,6 +281,104 @@ describe('MoneyRequestReportUtils', () => {
             // When a selection is left holding its ID
             // Then it does not read covered: `every` over an empty list is vacuously true, which would offer the actions on nothing
             expect(isEveryReportTransactionSelected([rejected], ['3'])).toBe(false);
+        });
+
+        test('treats a rejectCorporateCard error the same as reject — the row cannot be selected', () => {
+            // Given a report whose only corporate card expense carries a refused reject
+            // When a selection is left holding its ID
+            // Then it does not read covered
+            expect(isEveryReportTransactionSelected([rejectedCorporateCard], ['4'])).toBe(false);
+        });
+
+        test('treats a rejectOther error the same as reject — the row cannot be selected', () => {
+            // Given a report whose only expense carries an unexpected rejection error
+            // When a selection is left holding its ID
+            // Then it does not read covered
+            expect(isEveryReportTransactionSelected([rejectedOther], ['5'])).toBe(false);
+        });
+    });
+
+    describe('getTransactionRejectError', () => {
+        test('returns undefined when the transaction has no reject error', () => {
+            // Given an ordinary expense with no error fields
+            const transaction = createMock<Transaction>({transactionID: '1'});
+
+            // When the error is read
+            // Then nothing is returned
+            expect(getTransactionRejectError(transaction)).toBeUndefined();
+        });
+
+        test('returns the rejectCorporateCard error when only that field is set', () => {
+            // Given a corporate card expense the server refused to reject individually
+            const transaction = createMock<Transaction>({transactionID: '1', errorFields: {rejectCorporateCard: {[REJECTED_AT]: 'some message'}}});
+
+            // When the error is read
+            // Then the corporate card translation path is returned
+            expect(getTransactionRejectError(transaction)?.translationKey).toBe('iou.rejectReport.couldNotRejectCorporateCardExpense');
+        });
+
+        test('returns the reject error when only that field is set', () => {
+            // Given an expense the server recorded as already moved
+            const transaction = createMock<Transaction>({transactionID: '1', errorFields: {reject: {[REJECTED_AT]: 'some message'}}});
+
+            // When the error is read
+            // Then the generic translation path is returned
+            expect(getTransactionRejectError(transaction)?.translationKey).toBe('iou.rejectReport.couldNotRejectExpense');
+        });
+
+        test('returns the rejectOther error when only that field is set', () => {
+            // Given an expense the server rejected with an unexpected 4xx
+            const transaction = createMock<Transaction>({transactionID: '1', errorFields: {rejectOther: {[REJECTED_AT]: 'some message'}}});
+
+            // When the error is read
+            // Then the contact Concierge translation path is returned
+            expect(getTransactionRejectError(transaction)?.translationKey).toBe('iou.rejectReport.couldNotRejectExpenseContactConcierge');
+        });
+
+        test('rejectCorporateCard takes priority over reject when both are set', () => {
+            // Given a corporate card expense where the server set rejectCorporateCard but failureData also set reject
+            const transaction = createMock<Transaction>({
+                transactionID: '1',
+                errorFields: {
+                    rejectCorporateCard: {[REJECTED_AT]: 'corporate card message'},
+                    reject: {[REJECTED_AT]: 'generic message'},
+                },
+            });
+
+            // When the error is read
+            // Then the corporate card error wins, not the generic fallback
+            expect(getTransactionRejectError(transaction)?.translationKey).toBe('iou.rejectReport.couldNotRejectCorporateCardExpense');
+        });
+
+        test('reject takes priority over rejectOther when both are set', () => {
+            // Given an expense where reject and rejectOther are both set
+            const transaction = createMock<Transaction>({
+                transactionID: '1',
+                errorFields: {
+                    reject: {[REJECTED_AT]: 'already moved message'},
+                    rejectOther: {[REJECTED_AT]: 'catch-all message'},
+                },
+            });
+
+            // When the error is read
+            // Then reject wins because rejectOther is the catch-all fallback
+            expect(getTransactionRejectError(transaction)?.translationKey).toBe('iou.rejectReport.couldNotRejectExpense');
+        });
+
+        test('rejectCorporateCard takes priority over all three fields when all are set', () => {
+            // Given an expense with all three reject error fields set simultaneously
+            const transaction = createMock<Transaction>({
+                transactionID: '1',
+                errorFields: {
+                    rejectCorporateCard: {[REJECTED_AT]: 'corporate card message'},
+                    reject: {[REJECTED_AT]: 'generic message'},
+                    rejectOther: {[REJECTED_AT]: 'catch-all message'},
+                },
+            });
+
+            // When the error is read
+            // Then the most specific field wins
+            expect(getTransactionRejectError(transaction)?.translationKey).toBe('iou.rejectReport.couldNotRejectCorporateCardExpense');
         });
     });
 
