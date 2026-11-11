@@ -7,7 +7,7 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isApprovedAction, isForwardedAction, isSubmittedAction, isSubmittedAndClosedAction} from '@libs/ReportActionsUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {shouldRefetchSearchOnReportActionChange} from '@libs/SearchQueryUtils';
-import {isReportActionEntry} from '@libs/SearchUIUtils';
+import {getValidGroupBy, isReportActionEntry} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,6 +19,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
 
+import useIsInPreloadedTab from './useIsInPreloadedTab';
 import useNetwork from './useNetwork';
 import useShouldReturnTripRooms from './useShouldReturnTripRooms';
 
@@ -76,10 +77,12 @@ function useSearchAutoRefetch({
 }: UseSearchAutoRefetch) {
     const isFocused = useIsFocused();
     const {isOffline} = useNetwork();
+    const isInPreloadedTab = useIsInPreloadedTab();
     const searchTriggeredRef = useRef(false);
     const hasPendingSearchRef = useRef(false);
     const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
     const shouldRefetchOnReportActionChange = shouldRefetchSearchOnReportActionChange(queryJSON);
+    const isGroupedSearch = !!getValidGroupBy(queryJSON.groupBy);
     const shouldReturnTripRooms = useShouldReturnTripRooms(queryJSON.type);
 
     const searchResultsData = searchResults?.data;
@@ -99,6 +102,11 @@ function useSearchAutoRefetch({
     useEffect(() => {
         // Trip rows don't change when transactions or report actions do
         if (shouldReturnTripRooms) {
+            return;
+        }
+
+        // A preloaded tab refreshes its whole snapshot on first open, so a refetch deferred while hidden would only repeat it.
+        if (isInPreloadedTab) {
             return;
         }
 
@@ -130,7 +138,9 @@ function useSearchAutoRefetch({
         // The rows and the footer total are served from the Search snapshot, and the footer total is computed by the
         // server, so those edits only become visible after a refetch.
         const hasChangedResultTransaction =
-            !isChat && !hasTransactionsIDsChange && hasChangedTransactionInSearchResults(transactions, transactionsIDs, previousTransactions, previousTransactionsIDsSet, searchResultsData);
+            !isChat &&
+            !hasTransactionsIDsChange &&
+            hasChangedTransactionInSearchResults(transactions, transactionsIDs, previousTransactions, previousTransactionsIDsSet, searchResultsData, isGroupedSearch);
         const hasChangedResultMemberCustomField = !isChat && hasChangedMemberCustomField(memberCustomFields, previousMemberCustomFields);
 
         // Submitting, approving or forwarding a report changes no transaction, but it can move the report's expenses in or out of the results.
@@ -217,10 +227,12 @@ function useSearchAutoRefetch({
         previousMemberCustomFields,
         isChat,
         shouldRefetchOnReportActionChange,
+        isGroupedSearch,
         searchResultsData,
         isOffline,
         searchResults?.search?.isLoading,
         shouldReturnTripRooms,
+        isInPreloadedTab,
     ]);
 
     useEffect(() => {
@@ -303,6 +315,9 @@ function extractReportActionIDsFromSearchResults(searchResultsData: Partial<Sear
  * snapshot keys and never touches the transaction collection.
  *
  * A move counts too: the report row owes its count and total to the snapshot, so a transaction never on screen still invalidates it.
+ *
+ * Grouped results only hold the groups. Their transactions and reports live in each group's child snapshot, so neither
+ * check can tell whether a change touches a group, and any changed transaction counts.
  */
 function hasChangedTransactionInSearchResults(
     transactions: OnyxCollection<Transaction>,
@@ -310,6 +325,7 @@ function hasChangedTransactionInSearchResults(
     previousTransactions: OnyxCollection<Transaction>,
     previousTransactionKeys: Set<string>,
     searchResultsData: Partial<SearchResults['data']> | undefined,
+    isGroupedSearch: boolean,
 ): boolean {
     if (!searchResultsData) {
         return false;
@@ -323,6 +339,9 @@ function hasChangedTransactionInSearchResults(
         const previousTransaction = previousTransactions?.[key];
         if (!transaction?.transactionID || !previousTransactionKeys.has(key) || previousTransaction === transaction) {
             continue;
+        }
+        if (isGroupedSearch) {
+            return true;
         }
         if (transaction.reportID !== previousTransaction?.reportID && (isReportInSearchResults(transaction.reportID) || isReportInSearchResults(previousTransaction?.reportID))) {
             return true;

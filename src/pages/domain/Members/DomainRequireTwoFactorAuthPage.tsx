@@ -8,6 +8,7 @@ import BaseDomainRequireTwoFactorAuthPage from '@pages/domain/BaseDomainRequireT
 
 import {toggleTwoFactorAuthRequiredForDomain} from '@userActions/Domain';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -35,6 +36,7 @@ function DomainRequireTwoFactorAuthPage({route}: DomainRequireTwoFactorAuthPageP
 
     return (
         <BaseDomainRequireTwoFactorAuthPage
+            sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.FORCE_TWO_FACTOR_AUTH_DISABLE}
             domainAccountID={domainAccountID}
             onSubmit={(code: string) => {
                 if (!domainName) {

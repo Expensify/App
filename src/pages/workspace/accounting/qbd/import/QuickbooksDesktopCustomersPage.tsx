@@ -70,7 +70,10 @@ function QuickbooksDesktopCustomersPage({policy}: WithPolicyProps) {
             >
                 <OfflineWithFeedback pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CUSTOMERS], qbdConfig?.pendingFields)}>
                     <View style={styles.mt4}>
-                        <MenuItemSectionRoot onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CUSTOMERS_DISPLAYED_AS.getRoute(policyID))}>
+                        <MenuItemSectionRoot
+                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CUSTOMERS_DISPLAYED_AS.getRoute(policyID))}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.CUSTOMERS_DISPLAYED_AS}
+                        >
                             <MenuItemField.Row
                                 name={translate('workspace.common.displayedAs')}
                                 value={isReportFieldsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
