@@ -3,7 +3,6 @@ name: Cloudflare Worker tests
 on:
   pull_request:
     types: [opened, synchronize]
-    branches-ignore: [production]
     paths:
       - 'web/cloudflare-worker/**'
       # The tests check its inline scripts against the CSP hashes.
@@ -13,7 +12,7 @@ on:
       - '.github/workflows/buildWeb.yml'
       - '.github/workflows/buildAdHoc.yml'
       - 'scripts/deployAdhocCloudflareWorker.ts'
-      - 'scripts/extractPRTestingAssets.ts'
+      - 'scripts/extractAdhocAssets.ts'
       - '.bun-version'
 
 concurrency:

@@ -36,6 +36,7 @@ function RilletExistingConnectionsPage({route}: RilletExistingConnectionsPagePro
         return {
             title: policy.name,
             key: policy.id,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.COPY_EXISTING_CONNECTION,
             avatarID: policy.id,
             icon: policy.avatarURL,
             iconType: CONST.ICON_TYPE_WORKSPACE,
@@ -62,6 +63,7 @@ function RilletExistingConnectionsPage({route}: RilletExistingConnectionsPagePro
             <ScrollView style={[styles.flex1]}>
                 <Text style={[styles.mh5, styles.mb4]}>{translate('workspace.common.existingConnectionsDescription', CONST.POLICY.CONNECTIONS.NAME.RILLET)}</Text>
                 <MenuItemNavigation
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CREATE_NEW_CONNECTION}
                     title={translate('workspace.common.createNewConnection')}
                     icon={icons.LinkCopy}
                     onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_SETUP.getRoute(policyID))}

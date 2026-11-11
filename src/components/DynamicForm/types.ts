@@ -5,6 +5,8 @@ import type {SubPageProps, UseSubPageProps} from '@hooks/useSubPage/types';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {DynamicFormField, DynamicFormFieldType, DynamicFormPage, DynamicFormSchema} from '@src/types/onyx';
 
+import type {ReactNode} from 'react';
+
 import type {DynamicFormFieldsProps} from './components/DynamicFormFields';
 
 /** Current answers keyed by draft key. Address parts sit under `<fieldKey>.<part>`. */
@@ -28,6 +30,12 @@ type DynamicFormFlowProps = Pick<DynamicFormFieldsProps, 'currency' | 'maxFileSi
 
     /** Title of the confirmation page */
     confirmationTitle: string;
+
+    /** Text under the confirmation page's title */
+    confirmationSubtitle?: string;
+
+    /** Drawn on the confirmation page between the answers and Confirm, such as a terms checkbox. Confirm calls `onSubmit`, where the screen can check it before it sends anything. */
+    children?: ReactNode;
 
     /** testID of the screen wrapper */
     testID: string;
@@ -63,6 +71,12 @@ type DynamicFormFlowProps = Pick<DynamicFormFieldsProps, 'currency' | 'maxFileSi
      */
     isSavingPages?: boolean;
 
+    /** Shows the Next and Confirm buttons loading while the screen asks for requirements that match a new answer, so the user does not move on with fields that are about to change */
+    isRefreshingRequirements?: boolean;
+
+    /** Error from asking for new requirements, shown on every fields page, since the answer that asked for them can be on any page */
+    refreshError?: string;
+
     /** Pages whose `onPageSubmit` save has not gone through, so a new visit starts on the first one shown instead of where the draft leaves off */
     unsavedPageKeys?: string[];
 
@@ -83,7 +97,19 @@ type DynamicFormFlowProps = Pick<DynamicFormFieldsProps, 'currency' | 'maxFileSi
 type DynamicFormSubPageProps = SubPageProps &
     Pick<
         DynamicFormFlowProps,
-        'formID' | 'currency' | 'maxFileSize' | 'onRefreshRequirements' | 'confirmationTitle' | 'isSubmitting' | 'submitError' | 'isSavingPages' | 'shouldDisableNextWhenOffline'
+        | 'formID'
+        | 'currency'
+        | 'maxFileSize'
+        | 'onRefreshRequirements'
+        | 'confirmationTitle'
+        | 'confirmationSubtitle'
+        | 'children'
+        | 'isSubmitting'
+        | 'submitError'
+        | 'isSavingPages'
+        | 'isRefreshingRequirements'
+        | 'refreshError'
+        | 'shouldDisableNextWhenOffline'
     > & {
         pages: DynamicFormPage[];
 
@@ -101,6 +127,9 @@ type DynamicFormSubPageProps = SubPageProps &
 
         /** The last page submits the form, since no confirmation page follows */
         isLastPage: boolean;
+
+        /** Confirm was pressed while a field had no valid answer, so the confirmation page marks the rows to fix */
+        shouldShowFieldErrors?: boolean;
 
         /** Saves a list entry from its editor page. Without `itemID` it adds a new entry. */
         onListItemSave: (listKey: string, itemID: string | undefined, answers: DynamicFormValues) => void;

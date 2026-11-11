@@ -5,7 +5,7 @@
     "description": "Cloudflare Worker that serves the New Expensify web build with Workers Static Assets.",
     "type": "module",
     "exports": {
-        "./pr-testing-config": "./scripts/prTestingConfig.ts"
+        "./adhoc-config": "./scripts/adhocConfig.ts"
     },
     "scripts": {
         "prepare-dist": "./scripts/prepareDist.sh",

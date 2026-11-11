@@ -96,7 +96,8 @@ function getCalendarNamePatterns(groupBy: TimeGroupBy, periodStart: Date, period
     switch (groupBy) {
         case CONST.SEARCH.GROUP_BY.DAY:
             if (differenceInCalendarDays(periodEnd, periodStart) < DAYS_IN_WEEK) {
-                return {label: 'EEE', shortLabel: 'EEE', seriesLabel: 'MMM d, yyyy'};
+                // The series label only names a period for display, so it uses the app's abbreviated date format.
+                return {label: 'EEE', shortLabel: 'EEE', seriesLabel: CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT};
             }
             if (isSameMonth(periodStart, periodEnd)) {
                 return {label: 'do', shortLabel: 'do', seriesLabel: 'LLLL yyyy'};
@@ -178,7 +179,7 @@ function formatDates({start, end}: ChartPeriod, dateFnsLocale: LocaleContextProp
     const isWholeUnit = (toStart: (date: Date) => Date, toEnd: (date: Date) => Date) => isSameDay(startDate, toStart(startDate)) && isSameDay(endDate, toEnd(startDate));
 
     if (isSameDay(startDate, endDate)) {
-        return format(startDate, 'MMM d, yyyy', {locale: dateFnsLocale});
+        return format(startDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, {locale: dateFnsLocale});
     }
     if (isWholeUnit(startOfYear, endOfYear)) {
         return format(startDate, 'yyyy', {locale: dateFnsLocale});

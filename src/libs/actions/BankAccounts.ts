@@ -1339,15 +1339,12 @@ function clearCorpayBankAccountFields() {
 }
 
 function getWiseBankAccountFields(country: string, currency?: string, inputs?: Record<string, unknown>) {
-    const parameters: GetWiseBankAccountFieldsParams = {country, currency};
-    if (inputs) {
-        parameters.inputs = JSON.stringify(inputs);
-    }
-    const onyxData: OnyxData<typeof ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS> = {
+    const parameters: GetWiseBankAccountFieldsParams = {country, currency, inputs: inputs && JSON.stringify(inputs)};
+    const onyxData: OnyxData<typeof ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS,
+                key: ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS,
                 value: {
                     isLoading: true,
                     errors: null,
@@ -1357,7 +1354,7 @@ function getWiseBankAccountFields(country: string, currency?: string, inputs?: R
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS,
+                key: ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS,
                 value: {
                     errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
@@ -1366,7 +1363,7 @@ function getWiseBankAccountFields(country: string, currency?: string, inputs?: R
         finallyData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS,
+                key: ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS,
                 value: {
                     isLoading: false,
                 },
@@ -1384,13 +1381,31 @@ function createWiseBankAccount(country: string, currency: string | undefined, in
     const onyxData: AnyOnyxData = {
         optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, value: {isLoading: true, isSuccess: null, errors: null, errorFields: null}}],
         successData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, value: {isSuccess: true}}],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM,
+                // Key 0 so a server-sent error always sorts newer than this fallback, even with device clock skew
+                value: {errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure', 0)},
+            },
+        ],
         finallyData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, value: {isLoading: false}}],
     };
     API.write(WRITE_COMMANDS.CREATE_WISE_BANK_ACCOUNT, parameters, onyxData);
 }
 
 function clearWiseBankAccountFields() {
-    Onyx.set(ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS, null);
+    Onyx.set(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS, null);
+}
+
+/** Drops the form but keeps the picked country, since the country list opens as a new screen that starts on the stored country */
+function clearWiseBankAccountFieldsKeepingCountry(country: string) {
+    Onyx.set(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS, {country});
+}
+
+/** Drops the result of the last submit, so the next visit opens on the form instead of the success screen */
+function clearWiseBankAccountForm() {
+    Onyx.merge(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, {isSuccess: null, errors: null, errorFields: null});
 }
 
 function clearReimbursementAccountBankCreation() {
@@ -2162,6 +2177,8 @@ export {
     clearReimbursementAccountSaveCorpayOnboardingDirectorInformation,
     clearCorpayBankAccountFields,
     clearWiseBankAccountFields,
+    clearWiseBankAccountFieldsKeepingCountry,
+    clearWiseBankAccountForm,
     createWiseBankAccount,
     finishCorpayBankAccountOnboarding,
     shareBankAccountAndSetPayer,
