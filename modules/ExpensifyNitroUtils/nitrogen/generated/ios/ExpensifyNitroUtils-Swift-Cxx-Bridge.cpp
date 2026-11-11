@@ -11,6 +11,7 @@
 #include "ExpensifyNitroUtils-Swift-Cxx-Umbrella.hpp"
 #include "HybridAppStartTimeModuleSpecSwift.hpp"
 #include "HybridContactsModuleSpecSwift.hpp"
+#include "HybridDocumentDetectorModuleSpecSwift.hpp"
 #include <NitroModules/NitroDefines.hpp>
 
 namespace margelo::nitro::utils::bridge::swift {
@@ -60,6 +61,22 @@ namespace margelo::nitro::utils::bridge::swift {
     }
     #endif
     ExpensifyNitroUtils::HybridContactsModuleSpec_cxx& swiftPart = swiftWrapper->getSwiftPart();
+    return swiftPart.toUnsafe();
+  }
+  
+  // pragma MARK: std::shared_ptr<HybridDocumentDetectorModuleSpec>
+  std::shared_ptr<HybridDocumentDetectorModuleSpec> create_std__shared_ptr_HybridDocumentDetectorModuleSpec_(void* NON_NULL swiftUnsafePointer) noexcept {
+    ExpensifyNitroUtils::HybridDocumentDetectorModuleSpec_cxx swiftPart = ExpensifyNitroUtils::HybridDocumentDetectorModuleSpec_cxx::fromUnsafe(swiftUnsafePointer);
+    return std::make_shared<margelo::nitro::utils::HybridDocumentDetectorModuleSpecSwift>(swiftPart);
+  }
+  void* NON_NULL get_std__shared_ptr_HybridDocumentDetectorModuleSpec_(std__shared_ptr_HybridDocumentDetectorModuleSpec_ cppType) {
+    std::shared_ptr<margelo::nitro::utils::HybridDocumentDetectorModuleSpecSwift> swiftWrapper = std::dynamic_pointer_cast<margelo::nitro::utils::HybridDocumentDetectorModuleSpecSwift>(cppType);
+    #ifdef NITRO_DEBUG
+    if (swiftWrapper == nullptr) [[unlikely]] {
+      throw std::runtime_error("Class \"HybridDocumentDetectorModuleSpec\" is not implemented in Swift!");
+    }
+    #endif
+    ExpensifyNitroUtils::HybridDocumentDetectorModuleSpec_cxx& swiftPart = swiftWrapper->getSwiftPart();
     return swiftPart.toUnsafe();
   }
 

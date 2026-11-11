@@ -4349,6 +4349,14 @@ const staticStyles = (theme: ThemeColors) =>
             gap: 8,
         },
 
+        receiptEnhancementToastContainer: {
+            ...positioning.pAbsolute,
+            ...positioning.l0,
+            ...positioning.r0,
+            bottom: 32,
+            alignItems: 'center',
+        },
+
         // Float above the receipt to avoid zooming with it.
         receiptPageCountBadge: {
             ...RECEIPT_PAGE_BADGE_POSITION,

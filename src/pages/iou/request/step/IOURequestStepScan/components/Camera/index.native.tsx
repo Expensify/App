@@ -3,11 +3,13 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useNativeCamera from '@hooks/useNativeCamera';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useReceiptPhotoOutput from '@hooks/useReceiptPhotoOutput';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {setIsReceiptEnhancementEnabled} from '@libs/actions/ReceiptEnhancement';
 import cameraPlatformConfig from '@libs/cameraCapture/platformConfig';
 import type CapturedPhoto from '@libs/cameraCapture/types';
 import {getErrorMessage} from '@libs/ErrorUtils';
@@ -25,6 +27,11 @@ import {useMultiScanActions, useMultiScanState} from '@pages/iou/request/step/IO
 import MultiScanEducationalModal from '@pages/iou/request/step/IOURequestStepScan/components/MultiScanEducationalModal';
 import ReceiptPreviews from '@pages/iou/request/step/IOURequestStepScan/components/ReceiptPreviews';
 import ScannerControlsBar from '@pages/iou/request/step/IOURequestStepScan/components/ScannerControlsBar';
+import DocumentDetection from '@pages/iou/request/step/IOURequestStepScan/documentDetection/DocumentDetection';
+import type {DocumentEdgeDetection} from '@pages/iou/request/step/IOURequestStepScan/documentDetection/DocumentDetection';
+import DocumentOutline from '@pages/iou/request/step/IOURequestStepScan/documentDetection/DocumentOutline';
+import isDocumentDetectionSupported from '@pages/iou/request/step/IOURequestStepScan/documentDetection/isDocumentDetectionSupported';
+import ReceiptEnhancementToast from '@pages/iou/request/step/IOURequestStepScan/documentDetection/ReceiptEnhancementToast';
 import useCameraInitTelemetry from '@pages/iou/request/step/IOURequestStepScan/hooks/useCameraInitTelemetry';
 import usePhotoUpgrade from '@pages/iou/request/step/IOURequestStepScan/hooks/usePhotoUpgrade';
 import isCameraClosedError from '@pages/iou/request/step/IOURequestStepScan/isCameraClosedError';
@@ -32,10 +39,11 @@ import shouldLightFlashWithTorch, {getTorchFallbackReason} from '@pages/iou/requ
 import startReceiptPrepareSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startReceiptPrepareSpan';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import {useNavigation} from '@react-navigation/native';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Alert, View} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import {useAnimatedStyle, useSharedValue, withSequence, withTiming} from 'react-native-reanimated';
@@ -89,6 +97,30 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         cameraFocusIndicatorAnimatedStyle,
     } = useNativeCamera({onFocusStart, onFocusCleanup});
 
+    const canUseReceiptEnhancement = isDocumentDetectionSupported() && isBetaEnabled(CONST.BETAS.RECEIPT_ENHANCEMENT);
+    const [isReceiptEnhancementEnabled = false] = useOnyx(ONYXKEYS.IS_RECEIPT_ENHANCEMENT_ENABLED);
+    const [isReceiptEnhancementToastVisible, setIsReceiptEnhancementToastVisible] = useState(false);
+    const shouldDetectDocument = canUseReceiptEnhancement && isReceiptEnhancementEnabled && !isMultiScanEnabled;
+
+    const toggleReceiptEnhancement = () => {
+        setIsReceiptEnhancementEnabled(!isReceiptEnhancementEnabled);
+        setIsReceiptEnhancementToastVisible(!isReceiptEnhancementEnabled);
+    };
+
+    const hideReceiptEnhancementToast = () => setIsReceiptEnhancementToastVisible(false);
+
+    const toggleMultiScanAndHideToast = () => {
+        hideReceiptEnhancementToast();
+        toggleMultiScan();
+    };
+
+    const setIsAttachmentPickerActiveAndHideToast = (isActive: boolean) => {
+        if (isActive) {
+            hideReceiptEnhancementToast();
+        }
+        setIsAttachmentPickerActive(isActive);
+    };
+
     const isTorchRequested = shouldLightFlashWithTorch({
         flash,
         hasFlash,
@@ -122,8 +154,8 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
             });
     };
 
-    const {photoOutput, cameraAspectRatio, updatePhotoResolution} = useReceiptPhotoOutput(cameraPlatformConfig.scanQualityPrioritization, isInLandscapeMode);
-    const outputs = [photoOutput];
+    // VisionCamera restarts the session, blanking the preview, whenever an output or the photo size changes.
+    const {photoOutput, cameraAspectRatio, updatePhotoResolution} = useReceiptPhotoOutput(cameraPlatformConfig.scanQualityPrioritization, isInLandscapeMode, canUseReceiptEnhancement);
 
     // Blink animation for shutter feedback
     const blinkOpacity = useSharedValue(0);
@@ -163,6 +195,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
     };
 
     const capturePhoto = () => {
+        hideReceiptEnhancementToast();
         const torchFallbackReason = isTorchRequested
             ? getTorchFallbackReason({torchMode: camera.current?.controller?.torchMode, msSinceTorchRequested: Date.now() - torchRequestedAt.current})
             : undefined;
@@ -293,89 +326,117 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         return null;
     }
 
-    return (
-        <View
-            style={styles.flex1}
-            onLayout={onLayout}
-        >
-            <View style={[styles.flex1, isInLandscapeMode && styles.flexRow]}>
-                <View style={[styles.flex1]}>
-                    {cameraPermissionStatus !== RESULTS.GRANTED && (
-                        <CameraPermissionPrompt
-                            isInLandscapeMode={isInLandscapeMode}
-                            onPress={capturePhoto}
-                        />
-                    )}
-                    {cameraPermissionStatus === RESULTS.GRANTED && device == null && (
-                        <View style={[styles.cameraView]}>
-                            <ActivityIndicator
-                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                style={[styles.flex1]}
-                                color={theme.textSupporting}
+    const renderCamera = (detection: DocumentEdgeDetection | null) => {
+        const outputs = detection ? [photoOutput, detection.frameOutput] : [photoOutput];
+        return (
+            <View
+                style={styles.flex1}
+                onLayout={onLayout}
+            >
+                <View style={[styles.flex1, isInLandscapeMode && styles.flexRow]}>
+                    <View style={[styles.flex1]}>
+                        {cameraPermissionStatus !== RESULTS.GRANTED && (
+                            <CameraPermissionPrompt
+                                isInLandscapeMode={isInLandscapeMode}
+                                onPress={capturePhoto}
                             />
-                        </View>
-                    )}
-                    {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
-                        <CameraViewport
-                            camera={camera}
-                            device={device}
-                            outputs={outputs}
-                            cameraAspectRatio={cameraAspectRatio}
-                            isInLandscapeMode={isInLandscapeMode}
-                            tapGesture={tapGesture}
-                            cameraFocusIndicatorAnimatedStyle={cameraFocusIndicatorAnimatedStyle}
-                            blinkStyle={blinkStyle}
-                            isAttachmentPickerActive={isAttachmentPickerActive}
-                            didCapturePhoto={didCapturePhoto}
-                            hasPendingPhotoCapture={hasPendingPhotoCapture}
-                            onConfigured={finishCameraSetup}
-                            onStarted={relightTorchAfterRestart}
-                            onSessionConfigSelected={handleSessionConfigSelected}
-                            shouldShowFlashButton={canUseMultiScan}
-                            cameraPermissionStatus={cameraPermissionStatus}
-                            flash={flash}
-                            hasFlash={hasFlash}
-                            setFlash={setFlash}
-                            isTorchOn={isTorchRequested}
+                        )}
+                        {cameraPermissionStatus === RESULTS.GRANTED && device == null && (
+                            <View style={[styles.cameraView]}>
+                                <ActivityIndicator
+                                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                    style={[styles.flex1]}
+                                    color={theme.textSupporting}
+                                />
+                            </View>
+                        )}
+                        {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
+                            <CameraViewport
+                                camera={camera}
+                                device={device}
+                                outputs={outputs}
+                                cameraAspectRatio={cameraAspectRatio}
+                                isInLandscapeMode={isInLandscapeMode}
+                                tapGesture={tapGesture}
+                                cameraFocusIndicatorAnimatedStyle={cameraFocusIndicatorAnimatedStyle}
+                                blinkStyle={blinkStyle}
+                                isAttachmentPickerActive={isAttachmentPickerActive}
+                                didCapturePhoto={didCapturePhoto}
+                                hasPendingPhotoCapture={hasPendingPhotoCapture}
+                                onConfigured={finishCameraSetup}
+                                onStarted={relightTorchAfterRestart}
+                                onSessionConfigSelected={handleSessionConfigSelected}
+                                // With receipt enhancement, the controls bar shows flash next to the shutter, so the viewport doesn't show it too.
+                                shouldShowFlashButton={canUseMultiScan && !canUseReceiptEnhancement}
+                                cameraPermissionStatus={cameraPermissionStatus}
+                                flash={flash}
+                                hasFlash={hasFlash}
+                                setFlash={setFlash}
+                                overlay={
+                                    detection && shouldDetectDocument && !didCapturePhoto ? (
+                                        <>
+                                            <DocumentOutline
+                                                edge={detection.edge}
+                                                isHidden={detection.isMoving}
+                                            />
+                                            {isReceiptEnhancementToastVisible && <ReceiptEnhancementToast onHide={hideReceiptEnhancementToast} />}
+                                        </>
+                                    ) : null
+                                }
+                                isTorchOn={isTorchRequested}
+                            />
+                        )}
+                    </View>
+
+                    <ScannerControlsBar
+                        isInLandscapeMode={isInLandscapeMode}
+                        isMultiScanEnabled={isMultiScanEnabled}
+                        canUseMultiScan={canUseMultiScan}
+                        shouldAcceptMultipleFiles={shouldAcceptMultipleFiles}
+                        cameraPermissionStatus={cameraPermissionStatus}
+                        flash={flash}
+                        hasFlash={hasFlash}
+                        setFlash={setFlash}
+                        setIsAttachmentPickerActive={setIsAttachmentPickerActiveAndHideToast}
+                        onAttachmentPickerStatusChange={onAttachmentPickerStatusChange}
+                        onPicked={onPicked}
+                        capturePhoto={capturePhoto}
+                        toggleMultiScan={toggleMultiScanAndHideToast}
+                        isReceiptEnhancementEnabled={isReceiptEnhancementEnabled}
+                        toggleReceiptEnhancement={canUseReceiptEnhancement ? toggleReceiptEnhancement : undefined}
+                    />
+
+                    {canUseMultiScan && !!onMultiScanSubmit && isInLandscapeMode && (
+                        <ReceiptPreviews
+                            isMultiScanEnabled={isMultiScanEnabled}
+                            submit={onMultiScanSubmit}
+                            isCapturingPhoto={didCapturePhoto}
+                            isInLandscapeMode
                         />
                     )}
                 </View>
 
-                <ScannerControlsBar
-                    isInLandscapeMode={isInLandscapeMode}
-                    isMultiScanEnabled={isMultiScanEnabled}
-                    canUseMultiScan={canUseMultiScan}
-                    shouldAcceptMultipleFiles={shouldAcceptMultipleFiles}
-                    cameraPermissionStatus={cameraPermissionStatus}
-                    flash={flash}
-                    hasFlash={hasFlash}
-                    setFlash={setFlash}
-                    setIsAttachmentPickerActive={setIsAttachmentPickerActive}
-                    onAttachmentPickerStatusChange={onAttachmentPickerStatusChange}
-                    onPicked={onPicked}
-                    capturePhoto={capturePhoto}
-                    toggleMultiScan={toggleMultiScan}
-                />
-
-                {canUseMultiScan && !!onMultiScanSubmit && isInLandscapeMode && (
+                {canUseMultiScan && !!onMultiScanSubmit && !isInLandscapeMode && (
                     <ReceiptPreviews
                         isMultiScanEnabled={isMultiScanEnabled}
                         submit={onMultiScanSubmit}
                         isCapturingPhoto={didCapturePhoto}
-                        isInLandscapeMode
                     />
                 )}
+                <MultiScanEducationalModal />
             </View>
+        );
+    };
 
-            {canUseMultiScan && !!onMultiScanSubmit && !isInLandscapeMode && (
-                <ReceiptPreviews
-                    isMultiScanEnabled={isMultiScanEnabled}
-                    submit={onMultiScanSubmit}
-                    isCapturingPhoto={didCapturePhoto}
-                />
-            )}
-            <MultiScanEducationalModal />
-        </View>
+    return canUseReceiptEnhancement ? (
+        <DocumentDetection
+            cameraRef={camera}
+            isEnabled={shouldDetectDocument}
+        >
+            {renderCamera}
+        </DocumentDetection>
+    ) : (
+        renderCamera(null)
     );
 }
 

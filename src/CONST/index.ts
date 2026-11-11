@@ -1551,6 +1551,7 @@ const CONST = {
         FLAT_NAV: 'flatNav',
         CATEGORY_VISIBILITY: 'categoryVisibility',
         SCAN_FLASH_TORCH: 'scanFlashTorch',
+        RECEIPT_ENHANCEMENT: 'receiptEnhancement',
         NEW_DOT_BILL_PAY: 'newDotBillPay',
         HYBRID_WEB: 'hybridWeb',
         MILEAGE_UI: 'mileageUI',

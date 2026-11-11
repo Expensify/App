@@ -22,6 +22,8 @@ Pod::Spec.new do |s|
     "cpp/**/*.{hpp,cpp}",
   ]
 
+  s.frameworks = "Vision"
+
   s.pod_target_xcconfig = {
     "HEADER_SEARCH_PATHS" => [
       "${PODS_ROOT}/RCT-Folly",

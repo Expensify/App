@@ -1403,6 +1403,8 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'flits',
         flipCamera: 'camera omdraaien',
         multiScan: 'meerscannen',
+        receiptEnhancements: 'Bonverbeteringen',
+        receiptEnhancementsEnabled: 'Bonverbeteringen ingeschakeld',
         shutter: 'sluiter',
         gallery: 'galerij',
         deleteReceipt: 'Bon verwijderen',

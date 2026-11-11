@@ -69,6 +69,7 @@
         "focus-trap",
         "react-native-quick-crypto",
         "react-native-quick-base64",
+        "react-native-vision-camera-worklets",
         "@babel/plugin-proposal-private-methods",
         "@babel/plugin-proposal-private-property-in-object",
         "@babel/plugin-transform-export-namespace-from",
