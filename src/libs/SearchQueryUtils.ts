@@ -858,20 +858,7 @@ function getQueryWithFooterSelection(
  * search snapshots can still include FORWARDED actions with violation data.
  */
 function queryHasViolationFilter(queryJSON: SearchQueryJSON | undefined): boolean {
-    const hasFilterGroups = queryJSON?.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) ?? [];
-    if (hasFilterGroups.length === 0) {
-        return false;
-    }
-
-    return hasFilterGroups.some((group) =>
-        group.filters.some((filter) => {
-            if (filter.operator !== CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
-                return false;
-            }
-            const value = filter.value.toString();
-            return value === CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION || value === CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION;
-        }),
-    );
+    return hasValuesIncludeViolationFilter(getPositiveHasFilterValues(queryJSON));
 }
 
 function isHasFilterValue(value: string): value is HasFilterValue {
