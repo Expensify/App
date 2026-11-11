@@ -209,6 +209,7 @@ import {showSupportalPermissionDenied} from '@userActions/App';
 import {cacheAttachment, removeCachedAttachment} from '@userActions/Attachment';
 import {clearByKey} from '@userActions/CachedPDFPaths';
 import {setDownload} from '@userActions/Download';
+import {getAllTransactions} from '@userActions/IOU';
 import {close} from '@userActions/Modal';
 import navigateFromNotification from '@userActions/navigateFromNotification';
 import {getAll} from '@userActions/PersistedRequests';
@@ -1989,12 +1990,17 @@ function openReport(params: OpenReportActionParams) {
         optimisticIOUAction.avatar = submitterPersonalDetails?.avatar;
 
         // We have a case where the transaction data is only available from the snapshot
-        // So we need to add the transaction data to Onyx so it's available when opening the report
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-            value: transaction,
-        });
+        // So we need to add the transaction data to Onyx so it's available when opening the report.
+        // Only when Onyx has nothing for it: callers pass a copy they captured earlier, and writing that over a
+        // transaction already in Onyx reverts whatever changed in between. A merge is one such change, and this
+        // runs again from the report screen after it, so the expense would snap back to its pre-merge values.
+        if (!getAllTransactions()[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: transaction,
+            });
+        }
 
         // Add violations if they exist. This is needed when opening from search results where
         // violations are in the snapshot but not yet synced to the main collections, so we need

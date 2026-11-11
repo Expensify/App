@@ -723,6 +723,18 @@ function mergeTransactionRequest({
             // the source keeps its pending-delete styling while offline and is removed once the merge succeeds. The
             // successData above only clears pendingAction and errors, which would leave the card behind, so drop it.
             if (mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                // The surviving expense's optimistic action lands in this same report, so leaving the source on
+                // pending-delete styling shows two expenses side by side until the merge succeeds. Drop it outright,
+                // which is what the report looks like once the response arrives. The helper's failureData merges the
+                // whole action back, so a failure still restores it.
+                sourceTransactionOptimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
+                    value: {
+                        [sourceIouAction.reportActionID]: null,
+                    },
+                });
+
                 sourceTransactionSuccessData.push({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
