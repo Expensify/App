@@ -5,14 +5,11 @@ keywords: [New Expensify, Dynamics 365 Business Central, Business Central, D365,
 internalScope: Audience is workspace admins connecting Dynamics 365 Business Central as an accounting integration. Covers prerequisites, Microsoft Entra app registration, extension setup, Business Central app permissions, authentication, subsidiary selection, and disconnecting. Does not cover import, export, advanced settings, vendor matching, or Dynamics 365 Finance and Operations.
 contentType: task
 order: 1
-noindex: true
-sitemap: false
 ---
 
 <!-- cspell:ignore FULLACCESS AADSTS -->
 
 # Connect to Dynamics 365 Business Central
-
 
 Connect Dynamics 365 Business Central to your Expensify workspace to sync accounting data. Once connected, Expensify can import accounts, dimensions, vendors, and tax rates from Business Central and export approved reports back to it.
 
@@ -25,8 +22,6 @@ To connect Business Central, you must:
 - Be a workspace admin with a workspace on the Control plan.
 - Have access to a Business Central environment where you can install extensions.
 - Have a Microsoft Entra app registration for Expensify, including its Tenant ID, Client ID, and Client secret.
-
-**Note:** Business Central is rolling out gradually. If you don't see it under **Accounting**, it isn't available for your workspace yet.
 
 ## How to create the Microsoft Entra app registration
 
@@ -57,7 +52,7 @@ For a video walkthrough, watch [how to set up Business Central for Expensify](ht
 
 Before connecting, install and configure the Expensify extension in Business Central.
 
-1. Install the Expensify extension from Microsoft Marketplace in your Business Central environment.
+1. Install the [Expensify extension from Microsoft Marketplace](https://marketplace.microsoft.com/en-us/product/PUBID.expensifyinc1782923272301%7CAID.expensify%7CPAPPID.a7371368-7aed-4a6e-8ee7-f4bc757e0de3-preview?tab=DetailsAndSupport&flightCodes=7a84bb70e21c482f9b47d94f74cdc758) in your Business Central environment.
 2. Complete the extension setup, including the journal batch, templates, and number series Expensify will use to create records.
 3. Search for **Microsoft Entra Applications** in Business Central.
 4. Select **New**.
@@ -126,11 +121,28 @@ Disconnecting stops syncing with Business Central and removes the connection fro
 
 # FAQ
 
+## Where can I download the Expensify extension for Dynamics 365 Business Central?
+
+You can install the [Expensify extension from Microsoft Marketplace](https://marketplace.microsoft.com/en-us/product/PUBID.expensifyinc1782923272301%7CAID.expensify%7CPAPPID.a7371368-7aed-4a6e-8ee7-f4bc757e0de3-preview?tab=DetailsAndSupport&flightCodes=7a84bb70e21c482f9b47d94f74cdc758). You'll need access to a Business Central environment where you can install extensions.
+
+## What information do I need to connect Business Central to Expensify?
+
+You'll need the following information:
+
+- **Tenant ID:** Your Microsoft Entra tenant ID.
+- **Environment name:** Your Business Central environment name, such as Production.
+- **Client ID:** The application ID from your Microsoft Entra app registration.
+- **Client secret:** The client secret from that app registration.
+
+You must also install and configure the Expensify extension in Business Central before connecting.
+
+## Can I connect other Microsoft Dynamics products to Expensify?
+
+The direct integration only supports Dynamics 365 Business Central. To export expenses to Dynamics 365 Finance and Operations or other Microsoft Dynamics products, use a flat-file export instead. Learn more about [indirect accounting integrations](/articles/new-expensify/connections/Indirect-Accounting-Integrations).
+
 ## Why don't I see tax settings after connecting?
 
-Expensify only displays **Taxes** when your Business Central company has VAT posting setups.
-
-US companies typically don't have VAT posting setups, so tax settings may not appear.
+Expensify only displays **Taxes** when your Business Central company has VAT posting setups. US companies typically don't have VAT posting setups, so tax settings may not appear.
 
 ## Which client secret value do I use?
 
