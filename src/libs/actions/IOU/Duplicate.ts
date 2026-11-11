@@ -820,6 +820,7 @@ type DuplicateExpenseTransactionParams = {
     existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
     optimisticReportPreviewActionID?: string;
     currentUser: CurrentUser;
+    currentUserPersonalDetails?: CurrentUserPersonalDetails;
     currentUserLocalCurrency: string | undefined;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
@@ -853,6 +854,7 @@ function duplicateExpenseTransaction({
     existingIOUReport,
     optimisticReportPreviewActionID: externalReportPreviewActionID,
     currentUser,
+    currentUserPersonalDetails,
     currentUserLocalCurrency,
     isTrackIntentUser,
     delegateAccountID,
@@ -955,6 +957,7 @@ function duplicateExpenseTransaction({
             isDraftPolicy: false,
             isDraftChatReport: false,
             currentUser: {accountID: currentUserAccountID, email: currentUserLogin},
+            currentUserPersonalDetails,
             introSelected,
             conciergeChat,
             quickAction,
@@ -1291,6 +1294,7 @@ type BulkDuplicateExpensesParams = {
     transactionDrafts: Record<string, OnyxTypes.Transaction> | undefined;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     currentUser: CurrentUser;
+    currentUserPersonalDetails?: CurrentUserPersonalDetails;
     currentUserLocalCurrency: string | undefined;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
@@ -1320,6 +1324,7 @@ function bulkDuplicateExpenses({
     transactionDrafts,
     recentWaypoints,
     currentUser,
+    currentUserPersonalDetails,
     currentUserLocalCurrency,
     isTrackIntentUser,
     delegateAccountID,
@@ -1427,6 +1432,7 @@ function bulkDuplicateExpenses({
             existingIOUReport: optimisticIOUReport,
             optimisticReportPreviewActionID: currentReportPreviewActionID,
             currentUser,
+            currentUserPersonalDetails,
             currentUserLocalCurrency,
             isTrackIntentUser,
             delegateAccountID,
