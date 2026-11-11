@@ -79,13 +79,12 @@ type BuildOptimisticNextStepParams = {
     personalDetailsByLogins?: PersonalDetailsByLogin;
 };
 
-/** The backend still sends the legacy ETA key for older clients, so a custom schedule is read from the schedule fields sent with it. */
+/** The backend still sends the legacy ETA key for older clients, so the submission schedule is read from the schedule fields sent with it. */
 function getScheduleETA(eta: ReportNextStep['eta'], translate: LocaleContextProps['translate'], dateFnsLocale: DateFnsLocale | undefined): string | undefined {
     const frequency = eta?.autoReportingFrequency;
     const {offset, secondOffset} = getAutoReportingOffsetsForFrequency(frequency, {offset: eta?.autoReportingOffset, secondOffset: eta?.autoReportingOffsetSecondSemiMonthly});
     const formatDay = (day: number) => format(setDate(new Date(), day), CONST.DATE.ORDINAL_DAY_OF_MONTH, {locale: dateFnsLocale});
 
-    // Default schedules keep their legacy ETA text
     switch (frequency) {
         case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY:
             if (offset === CONST.POLICY.AUTO_REPORTING_WEEKDAYS.SUNDAY) {
@@ -94,9 +93,7 @@ function getScheduleETA(eta: ReportNextStep['eta'], translate: LocaleContextProp
             return translate(`nextStep.scheduleEta.weekly.${getWeekdayKey(Number(offset))}`);
         case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY: {
             const sortedOffsets = sortSemiMonthlyOffsets({offset, secondOffset});
-            const isDefaultSchedule =
-                sortedOffsets.offset === CONST.POLICY.AUTO_REPORTING_DEFAULT_SEMI_MONTHLY_OFFSET && sortedOffsets.secondOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH;
-            if (typeof sortedOffsets.offset !== 'number' || isDefaultSchedule) {
+            if (typeof sortedOffsets.offset !== 'number') {
                 return undefined;
             }
             const firstDay = formatDay(sortedOffsets.offset);
