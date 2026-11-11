@@ -49,6 +49,7 @@ function WorkspaceRoomsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
 
     return (
         <Table.Row
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ROOMS.ROW}
             interactive
             rowIndex={rowIndex}
             accessibilityLabel={item.name}

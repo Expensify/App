@@ -21,6 +21,7 @@ import type {
     SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams,
     SetPolicyCategoryReceiptsRequiredParams,
     SetPolicyCategoryTaxParams,
+    SetPolicyMemberCategoryVisibilityParams,
     SetPolicyShowCategoryGLCodesParams,
     SetWorkspaceCategoriesEnabledParams,
     SetWorkspaceCategoryDescriptionHintParams,
@@ -47,13 +48,13 @@ import {getFinishOnboardingTaskOnyxData, withReviewWorkspaceSettingsTaskData} fr
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyCategory, Report, ReportAction} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyCategory, PolicyEmployee, PolicyEmployeeList, Report, ReportAction} from '@src/types/onyx';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type {ApprovalRule, CustomUnit, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
 
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
 
 import lodashCloneDeep from 'lodash/cloneDeep';
@@ -2113,6 +2114,147 @@ function movePolicyCategoryTax(
     }
 }
 
+/**
+ * Sets which enabled categories the given members can use. A category open to everyone (`visibleTo` is null) is
+ * restricted to every other workspace member when the given members lose access to it.
+ *
+ * The pending state and any error live on the members themselves (`memberLogins` are their employeeList keys), so they
+ * show on the member that was changed rather than on every category the change touched.
+ */
+function setPolicyMemberCategoryVisibility(
+    policyID: string,
+    accountIDs: number[],
+    categories: string[],
+    policyCategories: PolicyCategories,
+    policyMemberAccountIDs: number[],
+    memberLogins: string[],
+) {
+    const selectedCategories = new Set(categories);
+    const optimisticCategories: Record<string, NullishDeep<PolicyCategory>> = {};
+    const successCategories: Record<string, NullishDeep<PolicyCategory>> = {};
+    const failureCategories: Record<string, NullishDeep<PolicyCategory>> = {};
+
+    for (const category of Object.values(policyCategories)) {
+        if (!category.enabled) {
+            continue;
+        }
+
+        const previousVisibleTo = category.visibleTo ?? null;
+        const shouldBeVisible = selectedCategories.has(category.name);
+
+        // visibleTo is merged, so an existing restriction is changed by patching only the members that move: true adds
+        // a member and null removes one. The failure patch is the inverse, so it puts back exactly what was there.
+        let optimisticVisibleTo: Record<string, boolean | null> | null;
+        let failureVisibleTo: Record<string, boolean | null> | null;
+        if (!previousVisibleTo) {
+            if (shouldBeVisible) {
+                continue;
+            }
+            optimisticVisibleTo = Object.fromEntries(policyMemberAccountIDs.filter((accountID) => !accountIDs.includes(accountID)).map((accountID) => [accountID, true]));
+            failureVisibleTo = null;
+        } else {
+            const changedAccountIDs = accountIDs.filter((accountID) => !!previousVisibleTo[accountID] !== shouldBeVisible);
+            if (changedAccountIDs.length === 0) {
+                continue;
+            }
+            optimisticVisibleTo = Object.fromEntries(changedAccountIDs.map((accountID) => [accountID, shouldBeVisible ? true : null]));
+            failureVisibleTo = Object.fromEntries(changedAccountIDs.map((accountID) => [accountID, shouldBeVisible ? null : true]));
+        }
+
+        optimisticCategories[category.name] = {
+            visibleTo: optimisticVisibleTo,
+            pendingFields: {visibleTo: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+        };
+        successCategories[category.name] = {
+            pendingFields: {visibleTo: null},
+        };
+        failureCategories[category.name] = {
+            visibleTo: failureVisibleTo,
+            pendingFields: {visibleTo: null},
+        };
+    }
+
+    const buildEmployeeList = (employee: PolicyEmployee): PolicyEmployeeList => Object.fromEntries(memberLogins.map((login) => [login, employee]));
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES | typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: optimisticCategories,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    employeeList: buildEmployeeList({
+                        pendingFields: {categoryVisibility: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                        errorFields: {categoryVisibility: null},
+                    }),
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: successCategories,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    employeeList: buildEmployeeList({pendingFields: {categoryVisibility: null}}),
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: failureCategories,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    employeeList: buildEmployeeList({
+                        pendingFields: {categoryVisibility: null},
+                        errorFields: {categoryVisibility: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                    }),
+                },
+            },
+        ],
+    };
+
+    const parameters: SetPolicyMemberCategoryVisibilityParams = {
+        policyID,
+        accountIDList: JSON.stringify(accountIDs),
+        categories: JSON.stringify(categories),
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_MEMBER_CATEGORY_VISIBILITY, parameters, onyxData);
+}
+
+/** Signals the "Cannot disable category" modal for members the backend refused to leave without a category. */
+function setMembersNeedCategoryModal(policyID: string, accountIDs: number[], categoryNames: string[]) {
+    Onyx.set(ONYXKEYS.RAM_ONLY_MEMBERS_NEED_CATEGORY_MODAL, {policyID, accountIDs, categoryNames});
+}
+
+/** Clears the signal for the "Cannot disable category" modal once it has been shown. */
+function clearMembersNeedCategoryModal() {
+    Onyx.set(ONYXKEYS.RAM_ONLY_MEMBERS_NEED_CATEGORY_MODAL, null);
+}
+
+/** Dismisses the error left on a member by a failed category visibility change. */
+function clearPolicyMemberCategoryVisibilityError(policyID: string, memberLogin: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        employeeList: {
+            [memberLogin]: {errorFields: {categoryVisibility: null}},
+        },
+    });
+}
+
 function setPolicyCategoryAttendeesRequired(
     policyID: string,
     categoryName: string,
@@ -2193,10 +2335,12 @@ function setPolicyCategoryAttendeesRequired(
 }
 
 export {
+    clearMembersNeedCategoryModal,
     clearCategoryErrors,
     deletePolicyCategoryTax,
     deletePolicyCategoryTaxes,
     createPolicyCategory,
+    clearPolicyMemberCategoryVisibilityError,
     deleteWorkspaceCategories,
     downloadCategoriesCSV,
     enablePolicyCategories,
@@ -2220,6 +2364,8 @@ export {
     setPolicyCategoryTax,
     setPolicyCategoryTaxes,
     setPolicyCustomUnitDefaultCategory,
+    setMembersNeedCategoryModal,
+    setPolicyMemberCategoryVisibility,
     setWorkspaceCategoryDescriptionHint,
     setWorkspaceCategoryEnabled,
     setWorkspaceRequiresCategory,

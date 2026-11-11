@@ -56,8 +56,9 @@ Both journals must be selected before the liability credit card can be created.
 
 1. Go to **Settings > Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
-4. Click **Sync Now**.
+3. Select **Connections**, then select **Configure** next to Sage Intacct.
+4. Select **More (⋮)**.
+5. Select **Sync now**.
 
 If the journals are configured correctly, the sync should complete successfully.
 

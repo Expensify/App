@@ -9,8 +9,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import Navigation from '@libs/Navigation/Navigation';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -27,11 +25,23 @@ type CurrencyPickerProps = {
 
     excludeCurrencies?: string[];
 
+    /** Whether the picker includes an option to clear the selected currency. */
+    shouldAllowEmptySelection?: boolean;
+
     /** The button that opens the picker. When passed, focus returns to it after the picker closes. */
     launcherRef?: FocusTrapForModalProps['launcherRef'];
 };
 
-function IOURequestStepCurrencyModal({isPickerVisible, hidePickerModal, headerText, value, excludeCurrencies, launcherRef, onInputChange = () => {}}: CurrencyPickerProps) {
+function IOURequestStepCurrencyModal({
+    isPickerVisible,
+    hidePickerModal,
+    headerText,
+    value,
+    excludeCurrencies,
+    shouldAllowEmptySelection = false,
+    launcherRef,
+    onInputChange = () => {},
+}: CurrencyPickerProps) {
     const {translate} = useLocalize();
     const [recentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const styles = useThemeStyles();
@@ -50,7 +60,7 @@ function IOURequestStepCurrencyModal({isPickerVisible, hidePickerModal, headerTe
             shouldEnableNewFocusManagement
             shouldReturnFocus={!!launcherRef}
             launcherRef={launcherRef}
-            onBackdropPress={Navigation.dismissModal}
+            onBackdropPress={hidePickerModal}
             shouldUseModalPaddingStyle={false}
             shouldHandleNavigationBack
             enableEdgeToEdgeBottomSafeAreaPadding
@@ -72,6 +82,7 @@ function IOURequestStepCurrencyModal({isPickerVisible, hidePickerModal, headerTe
                     onSelect={updateInput}
                     searchInputLabel={translate('common.search')}
                     excludedCurrencies={excludeCurrencies}
+                    shouldAllowEmptySelection={shouldAllowEmptySelection}
                     addBottomSafeAreaPadding
                 />
             </ScreenWrapper>

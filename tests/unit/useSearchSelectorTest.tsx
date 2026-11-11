@@ -1133,3 +1133,129 @@ describe('useSearchSelector search term trimming', () => {
         expect(mockGetValidOptions.mock.calls.at(-1)?.[7]?.searchString).toBe('+12345678901');
     });
 });
+
+describe('useSearchSelector memoization', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        mockFilteredOptions.personalDetails = [];
+        mockGetValidOptions.mockReturnValue({
+            options: {
+                ...EMPTY_OPTIONS,
+                personalDetails: [EXISTING_CONTACT, SECOND_CONTACT],
+            },
+            hasMore: false,
+        });
+        await act(async () => {
+            await Onyx.clear();
+            await Onyx.multiSet(
+                createMock<OnyxMultiSetInput>({
+                    [ONYXKEYS.SESSION]: {accountID: MOCK_ACCOUNT_ID, email: MOCK_EMAIL},
+                    [ONYXKEYS.BETAS]: [],
+                    [ONYXKEYS.COUNTRY_CODE]: CONST.DEFAULT_COUNTRY_CODE,
+                }),
+            );
+        });
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    afterAll(async () => {
+        await act(async () => {
+            await Onyx.clear();
+        });
+    });
+
+    it('does not recompute the option lists when the parent only passes new callbacks', async () => {
+        // Given a selector in multiple selection mode whose onSelectionChange callback can change between renders
+        const {result, rerender} = renderHook(
+            ({onSelectionChange}: {onSelectionChange: (options: OptionData[]) => void}) =>
+                useSearchSelectorBase({
+                    selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+                    searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+                    onSelectionChange,
+                }),
+            {initialProps: {onSelectionChange: jest.fn()}},
+        );
+        await waitForBatchedUpdatesWithAct();
+        const getValidOptionsCallCount = mockGetValidOptions.mock.calls.length;
+        const initialAvailableOptions = result.current.availableOptions;
+
+        // When the parent re-renders with a new callback reference and no data change
+        rerender({onSelectionChange: jest.fn()});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then getValidOptions keeps its call count and availableOptions keeps its reference,
+        // because changing only onSelectionChange leaves the option inputs unchanged.
+        expect(mockGetValidOptions).toHaveBeenCalledTimes(getValidOptionsCallCount);
+        expect(result.current.availableOptions).toBe(initialAvailableOptions);
+    });
+
+    it('updates the available options when the selection changes', async () => {
+        // Given a multi-select search selector with nothing selected
+        const {result} = renderHook(() =>
+            useSearchSelectorBase({
+                selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+            }),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // When an option is selected
+        act(() => {
+            result.current.toggleSelection(EXISTING_CONTACT);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then availableOptions.personalDetails is recomputed rather than served stale, excluding the selected contact
+        expect(result.current.availableOptions.personalDetails.map((option) => option.login)).not.toContain(EXISTING_CONTACT.login);
+    });
+
+    it('does not cancel pending page load when parent re-renders during the debounce window', async () => {
+        jest.useFakeTimers();
+
+        // Given a search selector with more options to load and a parent that passes inline callbacks
+        mockGetValidOptions.mockReturnValue({
+            options: {
+                ...EMPTY_OPTIONS,
+                personalDetails: [EXISTING_CONTACT, SECOND_CONTACT],
+            },
+            hasMore: true,
+        });
+
+        const {result, rerender} = renderHook(
+            ({onSelectionChange}: {onSelectionChange: (options: OptionData[]) => void}) =>
+                useSearchSelectorBase({
+                    selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+                    searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+                    onSelectionChange,
+                    maxResultsPerPage: 5,
+                }),
+            {initialProps: {onSelectionChange: jest.fn()}},
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // When onListEndReached starts the 300 ms debounce and the parent renders again after 150 ms
+        act(() => {
+            result.current.onListEndReached();
+        });
+        act(() => {
+            jest.advanceTimersByTime(150);
+        });
+        rerender({onSelectionChange: jest.fn()});
+        await waitForBatchedUpdatesWithAct();
+
+        // Advance past the remainder of the debounce delay
+        await act(async () => {
+            jest.advanceTimersByTime(200);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the pending page load completes rather than getting cancelled by the re-render, increasing maxElements from 5 to 10
+        expect(mockGetValidOptions.mock.calls.at(-1)?.[7]?.maxElements).toBe(10);
+
+        jest.useRealTimers();
+    });
+});

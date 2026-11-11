@@ -98,6 +98,7 @@ function ReservationView({reservation, onPress, isCancelled}: ReservationViewPro
 
     return (
         <MenuItemWithTopDescription
+            sentryLabel={CONST.SENTRY_LABEL.TRIP_ROOM_PREVIEW.RESERVATION}
             description={displayDescription}
             descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
             titleComponent={titleComponent}
@@ -201,7 +202,10 @@ function TripRoomPreview({action, containerStyles, isHovered = false}: TripRoomP
                             <Text style={[styles.headerText, styles.lineHeightXLarge]}>{displayAmount}</Text>
                         </View>
 
-                        <Button onPress={navigateToTrip}>
+                        <Button
+                            onPress={navigateToTrip}
+                            sentryLabel={CONST.SENTRY_LABEL.TRIP_ROOM_PREVIEW.VIEW_BUTTON}
+                        >
                             <Button.Text>{translate('common.view')}</Button.Text>
                         </Button>
                     </View>

@@ -444,7 +444,7 @@ jobs:
   iosUploadTestflight:
     name: Upload iOS to TestFlight
     needs: [prep, iosBuild]
-    runs-on: blacksmith-12vcpu-macos-latest
+    runs-on: blacksmith-12vcpu-macos-27
     if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     steps:
       - name: Checkout
@@ -526,7 +526,7 @@ jobs:
   iosSubmit:
     name: Submit iOS for production rollout
     needs: [prep, iosBuild, iosUploadTestflight]
-    runs-on: blacksmith-12vcpu-macos-latest
+    runs-on: blacksmith-12vcpu-macos-27
     if: ${{ always() && !cancelled() && needs.prep.outputs.DEPLOY_ENV == 'production' && needs.iosBuild.result != 'failure' && needs.iosUploadTestflight.result != 'failure' }}
     steps:
       - name: Checkout
@@ -961,10 +961,10 @@ jobs:
   autoRetestRequestForCP:
     name: File retest request for cherry-picked deploy-blocker fixes
     runs-on: blacksmith-2vcpu-ubuntu-2404
-    # androidSubmit/iosSubmit always skip on staging (they're prod-only), so the implicit
-    # success() check would skip this job too unless we override it with always().
-    if: ${{ always() && github.repository == 'Expensify/App' && needs.prep.outputs.DEPLOY_ENV == 'staging' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
-    needs: [prep, checkDeploymentSuccess]
+    # A later staging deploy can supersede a cherry-pick, even if it was not itself a cherry-pick.
+    # always() lets this run when production-only submit jobs are skipped on staging.
+    if: ${{ always() && !cancelled() && github.repository == 'Expensify/App' && needs.prep.outputs.DEPLOY_ENV == 'staging' && needs.deployChecklist.result == 'success' && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
+    needs: [prep, deployChecklist, checkDeploymentSuccess]
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0

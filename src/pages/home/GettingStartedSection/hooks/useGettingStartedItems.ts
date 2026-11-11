@@ -42,8 +42,23 @@ import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 
 const MIN_MEMBERS_FOR_ACCOUNTANT_INVITED = 2;
 
+type GettingStartedItemKey =
+    | 'createWorkspace'
+    | 'createExpense'
+    | 'customizeExpenseCategories'
+    | 'customizeSpendCategories'
+    | 'customizeCategories'
+    | 'linkPersonalCard'
+    | 'linkCompanyCards'
+    | 'issueExpensifyCards'
+    | 'setupTravel'
+    | 'inviteAccountant'
+    | 'connectAccounting'
+    | 'configureApprovals'
+    | 'setupRules';
+
 type GettingStartedItem = {
-    key: string;
+    key: GettingStartedItemKey;
     label: string;
     subText: string;
     isComplete: boolean;
@@ -296,7 +311,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             label: integrationName ? translate('homePage.gettingStartedSection.connectAccounting', {integrationName}) : translate('homePage.gettingStartedSection.connectAccountingDefault'),
             subText: translate('homePage.gettingStartedSection.connectAccountingSubText'),
             isComplete: !!getValidConnectedIntegration(policy) || Object.values(policy?.connections ?? {}).some((conn) => !!conn?.lastSync?.successfulDate),
-            route: ROUTES.WORKSPACE_ACCOUNTING.getRoute(activePolicyID),
+            route: ROUTES.WORKSPACE_CONNECTIONS.getRoute(activePolicyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.ACCOUNTING),
         });
     } else if (policy.areCategoriesEnabled) {
         items.push({
@@ -363,4 +378,4 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
 }
 
 export default useGettingStartedItems;
-export type {GettingStartedItem};
+export type {GettingStartedItem, GettingStartedItemKey};

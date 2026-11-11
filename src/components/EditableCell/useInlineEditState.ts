@@ -109,7 +109,7 @@ function useInlineEditState<T>(
         cancelEditing();
     }, [canEdit, cancelEditing, isEditing, isAwaitingConfirm]);
 
-    return {isEditing, isAwaitingConfirm, localValue, setLocalValue, startEditing, save, cancelEditing};
+    return {isEditing, isAwaitingConfirm, hasUnsavedEdits, localValue, setLocalValue, startEditing, save, cancelEditing};
 }
 
 export default useInlineEditState;

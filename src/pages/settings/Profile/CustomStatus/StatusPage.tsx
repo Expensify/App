@@ -5,8 +5,9 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -139,6 +140,7 @@ function StatusPage() {
 
     const saveButton = (
         <Button
+            sentryLabel={CONST.SENTRY_LABEL.CUSTOM_STATUS.SAVE}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             size={CONST.BUTTON_SIZE.LARGE}
             style={styles.w100}
@@ -202,19 +204,20 @@ function StatusPage() {
                             inputID={INPUT_IDS.STATUS_TEXT}
                             role={CONST.ROLE.PRESENTATION}
                             label={translate('statusPage.message')}
-                            accessibilityLabel={INPUT_IDS.STATUS_TEXT}
                             defaultValue={defaultText}
                         />
                     </View>
-                    <MenuItemWithTopDescription
-                        title={customClearAfter}
-                        description={translate('statusPage.clearAfter')}
-                        shouldShowRightIcon
+                    <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.CUSTOM_STATUS.CLEAR_AFTER}
+                        name={translate('statusPage.clearAfter')}
+                        value={customClearAfter}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER)}
-                        brickRoadIndicator={brickRoadIndicator}
-                    />
+                    >
+                        {!!brickRoadIndicator && <MenuItem.BrickRoadIndicator status={brickRoadIndicator} />}
+                    </MenuItemField>
                     {(!!currentUserEmojiCode || !!currentUserStatusText) && (
                         <MenuItemAction
+                            sentryLabel={CONST.SENTRY_LABEL.CUSTOM_STATUS.CLEAR_STATUS}
                             title={translate('statusPage.clearStatus')}
                             icon={icons.Trashcan}
                             onPress={clearStatus}

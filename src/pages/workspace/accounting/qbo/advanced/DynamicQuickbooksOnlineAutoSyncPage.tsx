@@ -65,6 +65,7 @@ function DynamicQuickbooksOnlineAutoSyncPage({policy, route}: WithPolicyConnecti
                     isActive={!!config?.autoSync?.enabled}
                     wrapperStyle={[styles.pv2, styles.mh5]}
                     switchAccessibilityLabel={translate('workspace.qbo.advancedConfig.autoSyncDescription', integrationName)}
+                    switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.AUTO_SYNC_SWITCH}
                     shouldPlaceSubtitleBelowSwitch
                     onCloseError={() => clearQuickbooksOnlineAutoSyncErrorField(policyID)}
                     onToggle={(isEnabled) => updateQuickbooksOnlineAutoSync(policyID, isEnabled)}
@@ -74,6 +75,7 @@ function DynamicQuickbooksOnlineAutoSyncPage({policy, route}: WithPolicyConnecti
                 {!!config?.autoSync?.enabled && (
                     <OfflineWithFeedback pendingAction={pendingAction}>
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.ACCOUNTING_METHOD}
                             value={
                                 accountingMethod === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL
                                     ? translate(`workspace.qbo.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL}` as TranslationPaths)

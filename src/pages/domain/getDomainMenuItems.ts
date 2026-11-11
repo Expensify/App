@@ -10,6 +10,7 @@ import SCREENS from '@src/SCREENS';
 import type {Domain} from '@src/types/onyx';
 import type DomainErrors from '@src/types/onyx/DomainErrors';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
@@ -24,6 +25,9 @@ type DomainMenuItem = {
 
     /** Icon displayed next to the menu item label. */
     icon: IconAsset;
+
+    /** Sentry label for the menu item */
+    sentryLabel: SentryLabel;
 
     /** Route opened when the menu item is selected. */
     route: Route;
@@ -60,6 +64,7 @@ function getDomainMenuItems({domainAccountID, domainErrors, hasPendingAdminReque
     return [
         {
             translationKey: 'domain.domainMembers',
+            sentryLabel: CONST.SENTRY_LABEL.DOMAIN.INITIAL.MEMBERS,
             icon: icons.User,
             route: ROUTES.DOMAIN_MEMBERS.getRoute(domainAccountID),
             screenName: SCREENS.DOMAIN.MEMBERS,
@@ -67,6 +72,7 @@ function getDomainMenuItems({domainAccountID, domainErrors, hasPendingAdminReque
         },
         {
             translationKey: 'domain.domainAdmins',
+            sentryLabel: CONST.SENTRY_LABEL.DOMAIN.INITIAL.ADMINS,
             icon: icons.UserShield,
             route: ROUTES.DOMAIN_ADMINS.getRoute(domainAccountID),
             screenName: SCREENS.DOMAIN.ADMINS,
@@ -74,6 +80,7 @@ function getDomainMenuItems({domainAccountID, domainErrors, hasPendingAdminReque
         },
         {
             translationKey: 'domain.groups.title',
+            sentryLabel: CONST.SENTRY_LABEL.DOMAIN.INITIAL.GROUPS,
             icon: icons.Users,
             route: ROUTES.DOMAIN_GROUPS.getRoute(domainAccountID),
             screenName: SCREENS.DOMAIN.GROUPS,
@@ -81,6 +88,7 @@ function getDomainMenuItems({domainAccountID, domainErrors, hasPendingAdminReque
         },
         {
             translationKey: 'domain.saml',
+            sentryLabel: CONST.SENTRY_LABEL.DOMAIN.INITIAL.SAML,
             icon: icons.UserLock,
             route: ROUTES.DOMAIN_SAML.getRoute(domainAccountID),
             screenName: SCREENS.DOMAIN.SAML,

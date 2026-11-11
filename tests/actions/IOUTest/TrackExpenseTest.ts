@@ -17,6 +17,7 @@ import {isReceiptError} from '@libs/ErrorUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, isActionableTrackExpense, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
+import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import {getValidWaypoints, isDistanceRequest as isDistanceRequestUtil} from '@libs/TransactionUtils';
 
@@ -162,6 +163,7 @@ describe('actions/IOU/TrackExpense', () => {
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
             const hiddenReportsToDisplay = SidebarUtils.getReportsToDisplayInLHN({
                 currentReportId: undefined,
+                policies: {},
                 reports: {[selfDMReportKey]: selfDMReport},
                 isDefaultRoomsBetaEnabled: false,
                 priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -175,6 +177,7 @@ describe('actions/IOU/TrackExpense', () => {
                 reportAttributes: undefined,
                 guideAccountIDs: [],
                 conciergeReportID: undefined,
+                session: undefined,
             });
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${distanceTransaction.transactionID}`, distanceTransaction);
@@ -222,6 +225,7 @@ describe('actions/IOU/TrackExpense', () => {
 
             const optimisticReportsToDisplay = SidebarUtils.getReportsToDisplayInLHN({
                 currentReportId: 'different-report-id',
+                policies: {},
                 reports: {[selfDMReportKey]: optimisticSelfDMReport},
                 isDefaultRoomsBetaEnabled: false,
                 priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -235,6 +239,7 @@ describe('actions/IOU/TrackExpense', () => {
                 reportAttributes: undefined,
                 guideAccountIDs: [],
                 conciergeReportID: undefined,
+                session: undefined,
             });
 
             expect(hiddenReportsToDisplay).not.toHaveProperty(selfDMReportKey);
@@ -350,7 +355,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
                     callback: (transactions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         const trackedExpenseTransaction = Object.values(transactions ?? {}).at(0);
 
                         // Then the transaction must remain a distance request
@@ -366,7 +371,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                     callback: (reportActions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reportActions);
                     },
                 });
@@ -461,7 +466,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
                     callback: (transactions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         const categorizedTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`];
 
                         // Then the transaction must remain a distance request, ensuring that the optimistic data is correctly built and the transaction type remains accurate.
@@ -482,7 +487,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
                     callback: (quickAction) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve();
 
                         // Then the quickAction.action should be set to REQUEST_DISTANCE
@@ -555,7 +560,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -616,7 +621,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -625,7 +630,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -703,7 +708,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -764,7 +769,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -773,7 +778,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -855,7 +860,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -916,7 +921,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -1000,7 +1005,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -1065,7 +1070,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     callback: (reports) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reports);
                     },
                 });
@@ -1172,7 +1177,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -1234,7 +1239,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${accountantExpenseChatID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -1243,7 +1248,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedExpenseReportID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -1367,6 +1372,42 @@ describe('actions/IOU/TrackExpense', () => {
             expect(Math.abs(createdTransaction?.amount ?? 0)).toBe(testAmount);
             expect(createdTransaction?.currency).toBe(testCurrency);
             expect(createdTransaction?.merchant).toBe(testMerchant);
+        });
+
+        it('should use the passed currentUserPersonalDetails in the optimistic search snapshot instead of the Onyx personal details', async () => {
+            // Given a self-DM and Onyx personal details that differ from the details the caller passes in
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-current-user-details',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL, displayName: 'Onyx Display Name', avatar: 'https://example.com/onyx-avatar.png'},
+            });
+            await waitForBatchedUpdates();
+
+            const passedPersonalDetails = {
+                accountID: RORY_ACCOUNT_ID,
+                login: RORY_EMAIL,
+                displayName: 'Passed Display Name',
+                avatar: 'https://example.com/passed-avatar.png',
+            };
+
+            // When tracking an expense while passing the current user's details explicitly
+            trackExpense({
+                ...getDefaultTrackExpenseParams(selfDMReport),
+                currentUserPersonalDetails: passedPersonalDetails,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the default Spend > Expenses optimistic snapshot uses the passed details, not the ones from Onyx.
+            // getSearchOnyxUpdate silently falls back to the Onyx subscription, so without this assertion a dropped
+            // pass-through would only show up as stale avatars/names in search results.
+            const searchHash = buildSearchQueryJSON(buildCannedSearchQuery())?.hash;
+            const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`);
+            const optimisticPersonalDetails = snapshot?.data?.[ONYXKEYS.PERSONAL_DETAILS_LIST]?.[RORY_ACCOUNT_ID];
+            expect(optimisticPersonalDetails?.displayName).toBe(passedPersonalDetails.displayName);
+            expect(optimisticPersonalDetails?.avatar).toBe(passedPersonalDetails.avatar);
         });
 
         it('should create actionable track expense whisper for selfDM reports', async () => {
@@ -1898,7 +1939,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     callback: (val) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(val);
                     },
                 });
@@ -1921,7 +1962,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     callback: (val) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(val);
                     },
                 });
@@ -2534,7 +2575,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     callback: (reports) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reports);
                     },
                 });
@@ -2562,7 +2603,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                     callback: (actions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(actions);
                     },
                 });
@@ -2581,7 +2622,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
                     callback: (transactions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(transactions);
                     },
                 });
@@ -2636,7 +2677,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report).toBeTruthy();
                         resolve();
                     },
@@ -2675,7 +2716,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                     callback: (actions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(actions);
                     },
                 });
@@ -2753,7 +2794,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report).toBeTruthy();
                         resolve();
                     },
@@ -2915,7 +2956,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     callback: (actions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(actions);
                     },
                 });
@@ -2925,7 +2966,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                     callback: (actions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(actions);
                     },
                 });
@@ -2935,7 +2976,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
                     callback: (actions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(actions);
                     },
                 });
@@ -3101,6 +3142,7 @@ describe('actions/IOU/TrackExpense', () => {
                     isTrackIntentUser: false,
                     formatPhoneNumber,
                     rules: undefined,
+                    chatReportActions: undefined,
                 });
             }).not.toThrow();
         });
@@ -3178,6 +3220,7 @@ describe('actions/IOU/TrackExpense', () => {
                     isTrackIntentUser: false,
                     formatPhoneNumber,
                     rules: undefined,
+                    chatReportActions: undefined,
                 });
             }).not.toThrow();
         });
@@ -3225,6 +3268,7 @@ describe('actions/IOU/TrackExpense', () => {
                     isTrackIntentUser: false,
                     formatPhoneNumber,
                     rules: undefined,
+                    chatReportActions: undefined,
                 });
             }).not.toThrow();
         });
@@ -3272,8 +3316,122 @@ describe('actions/IOU/TrackExpense', () => {
                     isTrackIntentUser: false,
                     formatPhoneNumber,
                     rules: undefined,
+                    chatReportActions: undefined,
                 });
             }).not.toThrow();
+        });
+
+        it('should reuse the report preview action passed via chatReportActions', async () => {
+            // Given a tracked expense in the self DM and a target IOU report whose REPORT_PREVIEW action is supplied
+            // only through the chatReportActions param. It is deliberately never written to Onyx, so the deprecated
+            // report actions fallback inside getReportPreviewReportAction cannot be its source.
+            const currentUserAccountID = 40;
+            const currentUserEmail = 'user4@test.com';
+            const payerAccountID = 41;
+            const payerEmail = 'payer4@test.com';
+            const selfDMReportID = 'selfDM400';
+            const targetReportID = 'iouReport400';
+            const chatReportID = 'chatReport400';
+            const transactionID = 'transaction400';
+            const trackExpenseActionID = 'trackExpenseAction400';
+            const reportPreviewActionID = 'reportPreviewAction400';
+
+            const participants = {
+                [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                [payerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            };
+            const selfDMReport: Report = {
+                reportID: selfDMReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                ownerAccountID: currentUserAccountID,
+                participants: {
+                    [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+            const iouReport: Report = {
+                reportID: targetReportID,
+                type: CONST.REPORT.TYPE.IOU,
+                chatReportID,
+                ownerAccountID: currentUserAccountID,
+                managerID: payerAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                currency: 'USD',
+                total: 0,
+                participants,
+            };
+            const chatReport: Report = {
+                reportID: chatReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                iouReportID: targetReportID,
+                participants,
+            };
+            const transaction: Transaction = {
+                transactionID,
+                reportID: selfDMReportID,
+                amount: 1000,
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                created: DateUtils.getDBTime(),
+                comment: {comment: 'Test expense'},
+            };
+            const selfDMReportActions: ReportActions = {
+                [trackExpenseActionID]: {
+                    reportActionID: trackExpenseActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    created: DateUtils.getDBTime(),
+                    childReportID: 'transactionThread400',
+                    originalMessage: {IOUTransactionID: transactionID, type: CONST.IOU.REPORT_ACTION_TYPE.TRACK, amount: 1000, currency: 'USD'},
+                } as ReportAction,
+            };
+            const chatReportActions: ReportActions = {
+                [reportPreviewActionID]: {
+                    reportActionID: reportPreviewActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    created: '2024-01-02 00:00:00',
+                    message: [{type: 'COMMENT', html: '', text: ''}],
+                    originalMessage: {linkedReportID: targetReportID},
+                } as ReportAction,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, selfDMReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`, iouReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            // When the tracked expense is moved to the IOU report.
+            convertBulkTrackedExpensesToIOU({
+                isVendorMatchingBetaEnabled: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                transactions: [transaction],
+                iouReport,
+                chatReport,
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: currentUserAccountID,
+                currentUserEmailParam: currentUserEmail,
+                transactionViolations: {},
+                policyRecentlyUsedCurrencies: [],
+                quickAction: undefined,
+                personalDetails: {[payerAccountID]: {accountID: payerAccountID, login: payerEmail}},
+                policyTagList: undefined,
+                selfDMReportActions,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                rules: undefined,
+                chatReportActions,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the chat report ends up with a single preview action, the supplied one, instead of a new optimistic one,
+            // proving chatReportActions reaches getMoneyRequestInformation as the actions of the chat report it resolves.
+            const updatedChatReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`);
+            const reportPreviewActions = Object.values(updatedChatReportActions ?? {}).filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW);
+            expect(reportPreviewActions).toHaveLength(1);
+            expect(reportPreviewActions.at(0)?.reportActionID).toBe(reportPreviewActionID);
         });
     });
 

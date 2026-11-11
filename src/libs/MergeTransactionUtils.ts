@@ -606,7 +606,7 @@ function getDisplayValue(
             return translate('common.none');
         }
 
-        return transaction?.reportName ?? getReportName(getReportOrDraftReport(SafeString(fieldValue), reports));
+        return transaction?.reportName ?? getReportName(getReportOrDraftReport({reportID: SafeString(fieldValue), searchReports: reports}));
     }
     if (field === 'attendees') {
         return Array.isArray(fieldValue) ? getAttendeesListDisplayString(fieldValue, formatPhoneNumber, localeCompare) : '';
@@ -660,8 +660,8 @@ function buildMergeFieldsData({
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     reports: Array<OnyxEntry<Report>>;
 }): MergeFieldData[] {
-    const targetTransactionDetails = getTransactionDetails(targetTransaction, undefined, undefined, undefined, undefined, targetReportOwnerAsAttendee);
-    const sourceTransactionDetails = getTransactionDetails(sourceTransaction, undefined, undefined, undefined, undefined, sourceReportOwnerAsAttendee);
+    const targetTransactionDetails = getTransactionDetails(targetTransaction, undefined, undefined, undefined, targetReportOwnerAsAttendee);
+    const sourceTransactionDetails = getTransactionDetails(sourceTransaction, undefined, undefined, undefined, sourceReportOwnerAsAttendee);
 
     if (!targetTransaction || !sourceTransaction || !targetTransactionDetails || !sourceTransactionDetails) {
         return [];
@@ -827,7 +827,7 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
     }
 
     if (field === 'reportID') {
-        const reportName = transaction?.reportName?.length ? transaction?.reportName : getReportName(getReportOrDraftReport(getReportIDForExpense(transaction), searchReports));
+        const reportName = transaction?.reportName?.length ? transaction?.reportName : getReportName(getReportOrDraftReport({reportID: getReportIDForExpense(transaction), searchReports}));
         updatedValues.reportName = reportName.length ? reportName : null;
 
         // Moving the expense to another workspace changes whether that workspace excludes commuter distance from it,

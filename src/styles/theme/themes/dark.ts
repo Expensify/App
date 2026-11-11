@@ -99,6 +99,8 @@ const darkTheme = {
     badgeDangerBG: colors.tangerine700,
     badgeSuccessText: colors.green200,
     badgeDangerText: colors.tangerine200,
+    badgeInfoBG: colors.blue700,
+    badgeInfoText: colors.blue200,
     badgeAdHoc: colors.pink600,
     badgeAdHocHover: colors.pink700,
     badgeOfferBG: colors.pink700,
@@ -209,6 +211,10 @@ const darkTheme = {
         unreported: {
             backgroundColor: colors.productDark400,
             textColor: colors.productDark900,
+        },
+        canceled: {
+            backgroundColor: colors.yellow700,
+            textColor: colors.yellow200,
         },
     },
 

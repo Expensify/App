@@ -14,7 +14,7 @@ function getTableColumnWidths(): Promise<TableColumnWidths | undefined> {
         const connection = Onyx.connect({
             key: ONYXKEYS.TABLE_COLUMN_WIDTHS,
             callback: (value) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(value);
             },
         });
