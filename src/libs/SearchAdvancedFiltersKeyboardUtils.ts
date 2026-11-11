@@ -23,9 +23,16 @@ function isCaretAtEdge(target: EventTarget | null, edge: 'start' | 'end'): boole
     return edge === 'start' ? target.selectionStart === 0 : target.selectionEnd === target.value.length;
 }
 
-/** Focuses the first control in the container. Hidden filter contents stay in the DOM, so only a laid out control counts. */
+/** Rows and the text a filter is picked with, which come after the "Is" and "Is not" buttons of a negatable filter. */
+const FILTER_VALUE_SELECTOR = 'input, textarea, [role="textbox"], [role="option"], [role="checkbox"], [role="radio"]';
+
+/**
+ * Focuses the search or first row of the shown content, or else its first control. Hidden filter contents stay in the
+ * DOM, so only a laid out element counts.
+ */
 function focusFirstShownControl(container: HTMLElement): boolean {
-    const firstControl = Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).find((element) => element.getClientRects().length > 0);
+    const findFirstShown = (selector: string) => Array.from(container.querySelectorAll<HTMLElement>(selector)).find((element) => element.getClientRects().length > 0);
+    const firstControl = findFirstShown(FILTER_VALUE_SELECTOR) ?? findFirstShown(FOCUSABLE_SELECTOR);
     if (!firstControl) {
         return false;
     }

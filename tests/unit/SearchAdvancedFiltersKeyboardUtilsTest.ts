@@ -1,5 +1,7 @@
 import {focusFirstShownControl, getAdjacentRow, isCaretAtEdge} from '@libs/SearchAdvancedFiltersKeyboardUtils';
 
+import CONST from '@src/CONST';
+
 const ROWS = ['describeSearch', 'type', 'status', 'date'];
 
 /** jsdom lays nothing out, so a control counts as shown only when the test says so. */
@@ -101,6 +103,45 @@ describe('focusFirstShownControl', () => {
         // Then it lands in the shown content
         expect(hasFocused).toBe(true);
         expect(document.activeElement).toBe(shownInput);
+    });
+
+    it.each([
+        ['search input', 'input', undefined],
+        ['list row', 'div', CONST.ROLE.CHECKBOX],
+    ])('focuses the %s ahead of the "Is" button of a negatable filter', (_case, tagName, role) => {
+        // Given a negatable filter whose "Is" button comes before the values it filters by
+        const container = document.createElement('div');
+        const isButton = document.createElement('button');
+        const value = document.createElement(tagName);
+        value.tabIndex = 0;
+        if (role) {
+            value.setAttribute('role', role);
+        }
+        container.append(isButton, value);
+        document.body.appendChild(container);
+        setShown(isButton, true);
+        setShown(value, true);
+
+        // When the focus is moved into the content
+        focusFirstShownControl(container);
+
+        // Then it lands where the arrow keys pick a value, so the "Is" button is reached with Tab only
+        expect(document.activeElement).toBe(value);
+    });
+
+    it('falls back to the first control when the content has no search or rows', () => {
+        // Given content made only of buttons, such as the date presets
+        const container = document.createElement('div');
+        const button = document.createElement('button');
+        container.appendChild(button);
+        document.body.appendChild(container);
+        setShown(button, true);
+
+        // When the focus is moved into the content
+        focusFirstShownControl(container);
+
+        // Then the first button takes the focus
+        expect(document.activeElement).toBe(button);
     });
 
     it('leaves the focus where it is when no control is shown', () => {
