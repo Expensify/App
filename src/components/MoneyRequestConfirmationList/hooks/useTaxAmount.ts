@@ -77,7 +77,10 @@ function useTaxAmount({
     const hasCurrencyChanged = transaction?.currency !== previousTransactionCurrency;
     // The distance rate's default category is written by CategoryDefaultsSetter after this runs, so the rule is
     // resolved against the category the expense is about to carry rather than the empty one this render still sees.
-    const category = transaction?.category || (isDistanceRequest ? (getDistanceRateCustomUnit(policy)?.defaultCategory ?? '') : '');
+    // The rate is read into its own value so React Compiler can cache the lookup. The hooks below split the block
+    // it used to be cached in, which left it running on every render.
+    const distanceRateCustomUnit = isDistanceRequest ? getDistanceRateCustomUnit(policy) : undefined;
+    const category = transaction?.category || (distanceRateCustomUnit?.defaultCategory ?? '');
     // The category whose rate the expense is currently carrying, which only moves on once a rate has been resolved
     // for it. While the rules are loading nothing is resolved, so a category picked in that window stays pending
     // here until they land. Tracking the last rendered category instead would let the change pass unseen, and the
