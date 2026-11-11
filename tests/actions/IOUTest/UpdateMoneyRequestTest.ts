@@ -2481,6 +2481,47 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             const updates = [...(onyxData.optimisticData ?? []), ...(onyxData.failureData ?? [])];
             expect(updates.map((update) => update.key)).not.toContain(`${ONYXKEYS.COLLECTION.REPORT}undefined`);
         });
+
+        it('builds the optimistic transaction from the passed transaction when it is not stored in Onyx', async () => {
+            // Given a track expense that only exists in memory (no Onyx.set for the TRANSACTION key)
+            const transactionID = 'track_in_memory_transaction';
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'self-dm-in-memory',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const transactionThreadReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: 'transaction-thread-in-memory',
+                type: CONST.REPORT.TYPE.CHAT,
+                parentReportID: selfDMReport.reportID,
+                parentReportActionID: 'parent-report-action',
+            };
+            const transaction: Transaction = {
+                ...createRandomTransaction(3),
+                transactionID,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                amount: 10000,
+                currency: CONST.CURRENCY.USD,
+            };
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`)).toBeUndefined();
+
+            // When building the params for an amount change without the transaction being written to Onyx
+            const {onyxData} = getUpdateTrackExpenseParams({
+                transactionID,
+                transaction,
+                transactionThread: transactionThreadReport,
+                transactionThreadParentReport: selfDMReport,
+                transactionChanges: {amount: 20000},
+                policy: createRandomPolicy(1),
+                delegateAccountID: undefined,
+                currencyContext: {getCurrencyDecimals: getCurrencyDecimalsLocal, getCurrencySymbol: getCurrencySymbolLocal},
+            });
+
+            // Then the optimistic transaction is still built from the passed object rather than read back from Onyx
+            const optimisticTransaction = onyxData.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(optimisticTransaction?.value).toMatchObject({modifiedAmount: -20000});
+        });
     });
 
     describe('updateMoneyRequestDate distance rate recalculation', () => {
