@@ -1,4 +1,5 @@
 /** Preview identity verification and artifact security without live deployments. */
+// cspell:ignore expensfy
 import {afterEach, describe, expect, test} from 'bun:test';
 
 import {createConfig, getIdentity, getPreviewCommand, getTarget, prepareDirectory, STATUS_PATH} from '@expensify/new-expensify-cloudflare-worker/adhoc-config';
@@ -106,12 +107,12 @@ describe('Ad-hoc Worker deployment', () => {
             temporaryDirectories.push(packaged);
             const config = await Bun.file(path.join(packaged, 'wrangler.json')).json();
             // Then branch-selected hooks and privileged bindings cannot enter the deployment, and source maps stay private
-            expect(config.name).toBe('adhoc');
+            expect(config.name).toBe('new-expensfy-adhoc');
             expect(config.previews).toEqual({vars: {ENVIRONMENT: 'staging'}});
             expect([config.routes, config.vars]).toEqual([undefined, undefined]);
             const environment = {WRANGLER_CI_OVERRIDE_NAME: 'production', CLOUDFLARE_API_TOKEN: 'fixture-token'};
             const command = getPreviewCommand(123, 'preview.json', environment);
-            expect(command.args).toEqual(['preview', '--worker-name', 'adhoc', '--name', '123', '--ignore-base-config', '--config', 'preview.json']);
+            expect(command.args).toEqual(['preview', '--worker-name', 'new-expensfy-adhoc', '--name', '123', '--ignore-base-config', '--config', 'preview.json']);
             expect(command.env).toEqual({CLOUDFLARE_API_TOKEN: 'fixture-token'});
             expect(environment.WRANGLER_CI_OVERRIDE_NAME).toBe('production');
             expect(getTarget(456)).toEqual({name: '456', hostname: '456.adhoc.expensify.com'});
