@@ -11,9 +11,13 @@ import type {PieSliceAngle, PieSliceValue, PlotBounds} from '@components/HTMLEng
 const MOCK_LINE_HEIGHT = 10;
 
 jest.mock('@shopify/react-native-skia', () => ({
+    FontHinting: {None: 0},
     Skia: {
         Font: jest.fn(() => ({
             getMetrics: () => ({ascent: MOCK_LINE_HEIGHT / 2, descent: MOCK_LINE_HEIGHT / 2, leading: 0}),
+            setSubpixel: jest.fn(),
+            setLinearMetrics: jest.fn(),
+            setHinting: jest.fn(),
         })),
     },
 }));

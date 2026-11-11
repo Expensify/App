@@ -1,5 +1,6 @@
 import {LEFT_AXIS_LABEL_OFFSET_MAX} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import type {CartesianChartProps, PartialProcessNodeResult, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import createVictoryChartFont from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/createVictoryChartFont';
 import getFontGlyphWidth from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getFontGlyphWidth';
 import {
     parseAttributeAsNumber,
@@ -12,8 +13,6 @@ import parseRawAxisStyle from '@components/HTMLEngineProvider/HTMLRenderers/Vict
 import type {SkFont, SkTypeface} from '@shopify/react-native-skia';
 import type {TNode} from 'react-native-render-html';
 import type {XAxisSide, YAxisSide} from 'victory-native';
-
-import {Skia} from '@shopify/react-native-skia';
 
 /**
  * For y-axis this returns the widest rendered label plus its offset from the axis line
@@ -53,7 +52,7 @@ function parseVictoryAxisNode(tnode: TNode, typeface: SkTypeface | null, rootPro
     const lineWidth = style?.grid?.strokeWidth !== undefined ? Number(style.grid.strokeWidth) : 0;
     const labelColor = style?.tickLabels?.fill !== undefined ? String(style.tickLabels.fill) : undefined;
     const fontSize = style?.tickLabels?.fontSize !== undefined ? Number(style.tickLabels.fontSize) : undefined;
-    const font = typeface && fontSize ? Skia.Font(typeface, fontSize) : null;
+    const font = typeface && fontSize ? createVictoryChartFont(typeface, fontSize) : null;
     const labelsForMeasurement = tickValues?.map(formatLabel) ?? tickFormat;
     const rawLabelOffset = style?.tickLabels?.padding !== undefined ? Number(style.tickLabels.padding) : undefined;
 

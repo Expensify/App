@@ -40,7 +40,12 @@ function getUngroupedBarWidth(chartBounds: ChartBounds, pointCount: number, cust
     return ((1 - BAR_INNER_PADDING) * domainWidth) / denominator;
 }
 
-function getGroupedBarGeometry(chartBounds: ChartBounds, pointCount: number, group: BarGroupLayoutConfig, pixelScale: number): Pick<BarInteractionGeometry, 'width'> & {centerOffset: number} {
+function getGroupedBarGeometry(
+    chartBounds: ChartBounds,
+    pointCount: number,
+    group: BarGroupLayoutConfig,
+    pixelScale: number,
+): Pick<BarInteractionGeometry, 'width'> & {centerOffset: number} {
     const groupCount = group.yKeys.length;
     const boundSize = chartBounds.right - chartBounds.left;
     const barWidth = scalePixels(group.barWidth, pixelScale);

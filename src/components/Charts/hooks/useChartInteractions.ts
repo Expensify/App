@@ -332,10 +332,7 @@ function useChartInteractions({
         if (!chartInteractionState.isActive.get()) {
             return;
         }
-        updateHoverAt(
-            chartInteractionState.cursor.x.get() - deltaX,
-            chartInteractionState.cursor.y.get() - deltaY,
-        );
+        updateHoverAt(chartInteractionState.cursor.x.get() - deltaX, chartInteractionState.cursor.y.get() - deltaY);
     };
 
     const onChartMoved = (deltaX: number, deltaY: number) => scheduleOnUI(handleChartMoved, deltaX, deltaY);

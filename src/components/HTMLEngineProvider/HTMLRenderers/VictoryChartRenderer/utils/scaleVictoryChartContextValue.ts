@@ -3,8 +3,7 @@ import type {LabelItem, LegendItem} from '@components/HTMLEngineProvider/HTMLRen
 
 import type {SkFont, SkTypeface} from '@shopify/react-native-skia';
 
-import {Skia} from '@shopify/react-native-skia';
-
+import createVictoryChartFont from './createVictoryChartFont';
 import scalePixels from './scalePixels';
 
 /**
@@ -74,7 +73,7 @@ function scaleFont(font: SkFont | null | undefined, scale: number, typeface: SkT
     if (!font || !typeface) {
         return font;
     }
-    return Skia.Font(typeface, font.getSize() * scale);
+    return createVictoryChartFont(typeface, font.getSize() * scale);
 }
 
 function scaleAxis<TAxis extends {lineWidth?: number; labelOffset?: number; font?: SkFont | null} | undefined>(axis: TAxis, scale: number, typeface: SkTypeface | null): TAxis {
@@ -119,6 +118,9 @@ function scaleVictoryChartContextValue(value: VictoryChartContextValue, scale: n
  * An effect cleanup is the wrong owner for them. React also runs cleanups when an Activity hides a screen, and
  * reconnects the same context value when the screen is shown again, so the chart would be left drawing with
  * disposed fonts. A context value that is never committed would not be cleaned up at all.
+ *
+ * Where the JS runtime has no FinalizationRegistry, the fonts are not disposed explicitly and are freed when
+ * their Skia host objects are garbage collected instead.
  */
 const scaledFontsRegistry =
     typeof FinalizationRegistry === 'undefined'
