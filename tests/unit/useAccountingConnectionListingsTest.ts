@@ -141,4 +141,20 @@ describe('useAccountingConnectionListings', () => {
         expect(zohoBooks?.connectError).toBe(connectError);
         expect(findListing(CONST.POLICY.CONNECTIONS.NAME.XERO, policyWithConnectError)?.connectError).toBeUndefined();
     });
+
+    it('should hide a failed Zoho Books connect error once another accounting integration is connected', () => {
+        // Given Zoho Books failed to connect, and the admin then connected Campfire instead, which leaves the saved Zoho Books error in place
+        mockEnabledBetas = [CONST.BETAS.ZOHO_BOOKS];
+        mockConnectedIntegration = CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE;
+        const policyWithConnectError: Policy = {
+            ...policy,
+            connectErrors: {[CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: 'Zoho Books organizations with multiple locations are not supported yet.'},
+        };
+
+        // When the accounting listings are built
+        const zohoBooks = findListing(CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS, policyWithConnectError);
+
+        // Then the Zoho Books card shows no error, because the workspace is already connected to accounting and the old failure no longer applies
+        expect(zohoBooks?.connectError).toBeUndefined();
+    });
 });
