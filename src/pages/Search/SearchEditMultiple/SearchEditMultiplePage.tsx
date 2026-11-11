@@ -427,6 +427,7 @@ function SearchEditMultiplePage() {
     const canOpenListInDropdown = !!policyID;
     const selectedTaxRate = draftTransaction?.taxCode ? (getTaxName(policy, draftTransaction) ?? '') : '';
     const taxRateName = policy?.taxRates?.name ?? translate('common.tax');
+    const lockedAmountTitle = draftAmount !== undefined ? convertToDisplayStringWithoutCurrency(draftAmount, currency) : '';
 
     return (
         <ScreenWrapper
@@ -451,7 +452,7 @@ function SearchEditMultiplePage() {
                     {isAmountDisabled ? (
                         <ExpenseFieldRow
                             name={translate('iou.amount')}
-                            value={draftAmount !== undefined ? convertToDisplayStringWithoutCurrency(draftAmount, currency) : ''}
+                            value={lockedAmountTitle}
                             isInteractive={false}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.AMOUNT_FIELD}
                         />
