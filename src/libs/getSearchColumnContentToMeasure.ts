@@ -17,6 +17,7 @@ import type {MeasurableFont} from './measureTextWidth/types';
 import {getCompanyCardDescription} from './CardUtils';
 import {getCategoryGLCode, getDecodedLeafCategoryName, isCategoryMissing} from './CategoryUtils';
 import getBase62ReportID from './getBase62ReportID';
+import measureTextWidth from './measureTextWidth';
 import {getTagGLCode, getVendorDisplayName} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
 import {getPolicyName, getReportStatusTranslation} from './ReportUtils';
@@ -392,6 +393,24 @@ function getSearchColumnContentToMeasure(column: SearchColumnType, item: SearchL
     return getGroupNameColumnContentToMeasure(column, item, translate) ?? [];
 }
 
+/**
+ * How wide a heading's label renders, or `null` when the platform can't measure text. `labelGap` is the gap between the
+ * label's text and its sort arrow.
+ *
+ * Uses the bold weight and reserves the sort arrow even when unsorted, so sorting a column never changes the result.
+ */
+function measureSearchHeaderLabelWidth(text: string, labelGap: number): number | null {
+    const textWidth = measureTextWidth(text, {fontSize: textVariants.microStrong.fontSize, fontWeight: '700'});
+    return textWidth === null ? null : textWidth + labelGap + variables.iconSizeExtraSmall;
+}
+
 export default getSearchColumnContentToMeasure;
-export {DYNAMICALLY_SIZED_SEARCH_COLUMNS, HUGGED_SEARCH_COLUMNS, SEARCH_COLUMN_HEADER_TRANSLATION_KEYS, getSearchColumnEditButtonReserve, getSearchColumnExtraWidth};
+export {
+    DYNAMICALLY_SIZED_SEARCH_COLUMNS,
+    HUGGED_SEARCH_COLUMNS,
+    SEARCH_COLUMN_HEADER_TRANSLATION_KEYS,
+    getSearchColumnEditButtonReserve,
+    getSearchColumnExtraWidth,
+    measureSearchHeaderLabelWidth,
+};
 export type {SearchColumnMeasurementContext};

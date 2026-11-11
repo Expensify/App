@@ -4279,6 +4279,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** All the integration connections attached to the policy */
         connections?: Partial<Connections>;
 
+        /** Why a connect flow that left the app (e.g. an OAuth window) failed, keyed by the integration that failed to connect */
+        connectErrors?: Partial<Record<ConnectionName, string | null>>;
+
         /** Report fields attached to the policy */
         fieldList?: Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyReportField, 'defaultValue' | 'deletable'>>;
 
