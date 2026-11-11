@@ -49,7 +49,6 @@ import {
 import {isInvalidMerchantValue, isValidDate, isValidInputLength} from '@libs/ValidationUtils';
 
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
-import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import variables from '@styles/variables';
 
@@ -61,11 +60,13 @@ import type {TransactionChanges} from '@src/types/onyx/Transaction';
 import type {GestureResponderEvent} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
+import noop from 'lodash/noop';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import SearchEditMultipleAttendeePills from './SearchEditMultipleAttendeePills';
 import SearchEditMultipleAttendeesDropdown from './SearchEditMultipleAttendeesDropdown';
+import SearchEditMultipleBooleanDropdown from './SearchEditMultipleBooleanDropdown';
 import SearchEditMultipleCategoryDropdown from './SearchEditMultipleCategoryDropdown';
 import SearchEditMultipleTagDropdown from './SearchEditMultipleTagDropdown';
 import SearchEditMultipleTaxDropdown from './SearchEditMultipleTaxDropdown';
@@ -271,13 +272,24 @@ function SearchEditMultiplePage() {
         updateBulkEditDraftTransaction({currency: newCurrency});
     };
 
-    // The toggles start off, as nothing is pending. Switching one on, or back off, records that value for every expense.
-    const saveDraftReimbursable = (isOn: boolean) => {
-        updateBulkEditDraftTransaction({reimbursable: isOn});
+    // `null` is "Don't change", which drops the pending change so each expense keeps its own value.
+    const saveDraftReimbursable = (value: boolean | null) => {
+        updateBulkEditDraftTransaction({reimbursable: value});
     };
 
-    const saveDraftBillable = (isOn: boolean) => {
-        updateBulkEditDraftTransaction({billable: isOn});
+    const saveDraftBillable = (value: boolean | null) => {
+        updateBulkEditDraftTransaction({billable: value});
+    };
+
+    // An empty row means nothing is pending, as on the other fields. Once a value is picked the row shows it.
+    const getPendingBooleanTitle = (value: boolean | null | undefined) => {
+        if (value === true) {
+            return translate('common.yes');
+        }
+        if (value === false) {
+            return translate('common.no');
+        }
+        return '';
     };
 
     const saveDraftMerchant = (newMerchant: string) => {
@@ -590,30 +602,42 @@ function SearchEditMultiplePage() {
                         />
                     )}
                     {areSelectedTransactionsReimbursable && (
-                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}>
-                            <ToggleSettingOptionRow
-                                switchAccessibilityLabel={translate('common.reimbursable')}
-                                switchSentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.REIMBURSABLE_FIELD}
-                                title={translate('common.reimbursable')}
-                                onToggle={saveDraftReimbursable}
-                                isActive={draftTransaction?.reimbursable ?? false}
-                                disabled={hasPartiallyEditableReimbursableTransaction}
-                                wrapperStyle={styles.flex1}
-                            />
-                        </View>
+                        <ExpenseFieldDropdown
+                            name={translate('common.reimbursable')}
+                            value={getPendingBooleanTitle(draftTransaction?.reimbursable)}
+                            // The list needs no workspace, so it always opens in place and there is no page to fall back to
+                            onPress={noop}
+                            shouldOpenInDropdown={!hasPartiallyEditableReimbursableTransaction}
+                            renderDropdown={(dropdownProps) => (
+                                <SearchEditMultipleBooleanDropdown
+                                    {...dropdownProps}
+                                    title={translate('common.reimbursable')}
+                                    selectedValue={draftTransaction?.reimbursable}
+                                    onSelected={saveDraftReimbursable}
+                                />
+                            )}
+                            isInteractive={!hasPartiallyEditableReimbursableTransaction}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.REIMBURSABLE_FIELD}
+                        />
                     )}
                     {areSelectedTransactionsBillable && (
-                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}>
-                            <ToggleSettingOptionRow
-                                switchAccessibilityLabel={translate('common.billable')}
-                                switchSentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.BILLABLE_FIELD}
-                                title={translate('common.billable')}
-                                onToggle={saveDraftBillable}
-                                isActive={draftTransaction?.billable ?? false}
-                                disabled={isBillableDisabled}
-                                wrapperStyle={styles.flex1}
-                            />
-                        </View>
+                        <ExpenseFieldDropdown
+                            name={translate('common.billable')}
+                            value={getPendingBooleanTitle(draftTransaction?.billable)}
+                            // The list needs no workspace, so it always opens in place and there is no page to fall back to
+                            onPress={noop}
+                            shouldOpenInDropdown={!isBillableDisabled}
+                            renderDropdown={(dropdownProps) => (
+                                <SearchEditMultipleBooleanDropdown
+                                    {...dropdownProps}
+                                    title={translate('common.billable')}
+                                    selectedValue={draftTransaction?.billable}
+                                    onSelected={saveDraftBillable}
+                                />
+                            )}
+                            isInteractive={!isBillableDisabled}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.BILLABLE_FIELD}
+                        />
                     )}
                     {areAttendeesEnabled && (
                         <ExpenseFieldDropdown

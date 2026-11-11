@@ -1,5 +1,6 @@
 import {act, render, screen} from '@testing-library/react-native';
 
+import type {AnchoredSelectionListPopoverProps} from '@components/AnchoredSelectionListPopover';
 import type {AttendeePickerModalProps} from '@components/AttendeePicker/AttendeePickerModal';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -10,6 +11,8 @@ import type {TaxPickerModalProps} from '@components/TaxPicker/TaxPickerModal';
 
 import SearchEditMultipleAttendeePills from '@pages/Search/SearchEditMultiple/SearchEditMultipleAttendeePills';
 import SearchEditMultipleAttendeesDropdown from '@pages/Search/SearchEditMultiple/SearchEditMultipleAttendeesDropdown';
+import SearchEditMultipleBooleanDropdown from '@pages/Search/SearchEditMultiple/SearchEditMultipleBooleanDropdown';
+import type {BooleanOption} from '@pages/Search/SearchEditMultiple/SearchEditMultipleBooleanDropdown';
 import SearchEditMultipleTagDropdown from '@pages/Search/SearchEditMultiple/SearchEditMultipleTagDropdown';
 import SearchEditMultipleTaxDropdown from '@pages/Search/SearchEditMultiple/SearchEditMultipleTaxDropdown';
 
@@ -44,6 +47,21 @@ jest.mock('@components/TaxPicker/TaxPickerModal', () => (props: TaxPickerModalPr
 let mockAttendeeModalProps: AttendeePickerModalProps | undefined;
 jest.mock('@components/AttendeePicker/AttendeePickerModal', () => (props: AttendeePickerModalProps) => {
     mockAttendeeModalProps = props;
+    return null;
+});
+
+// The yes/no list has no picker of its own, so the container shows the list as-is and the list records what it was handed.
+jest.mock(
+    '@components/AnchoredSelectionListPopover',
+    () =>
+        ({children}: AnchoredSelectionListPopoverProps) =>
+            children,
+);
+
+type BooleanListProps = {data: BooleanOption[]; onSelectRow: (option: BooleanOption) => void};
+let mockBooleanListProps: BooleanListProps | undefined;
+jest.mock('@components/SelectionList', () => (props: BooleanListProps) => {
+    mockBooleanListProps = props;
     return null;
 });
 
@@ -85,6 +103,7 @@ describe('SearchEditMultiple dropdowns', () => {
         mockTagModalProps = undefined;
         mockTaxModalProps = undefined;
         mockAttendeeModalProps = undefined;
+        mockBooleanListProps = undefined;
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -235,6 +254,65 @@ describe('SearchEditMultiple dropdowns', () => {
             const draft = await getOnyxValue(DRAFT_KEY);
             expect(draft?.comment?.attendees).toBeUndefined();
             expect(onClose).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('reimbursable and billable', () => {
+        const renderBooleanDropdown = (selectedValue: boolean | null | undefined, onSelected: jest.Mock, onClose: jest.Mock = jest.fn()) =>
+            render(
+                <SearchEditMultipleBooleanDropdown
+                    {...getPopoverProps(onClose)}
+                    title="Reimbursable"
+                    selectedValue={selectedValue}
+                    onSelected={onSelected}
+                />,
+            );
+        const pickOption = (keyForList: string) => {
+            const option = mockBooleanListProps?.data.find((item) => item.keyForList === keyForList);
+            if (!option) {
+                throw new Error(`No "${keyForList}" option`);
+            }
+            act(() => mockBooleanListProps?.onSelectRow(option));
+        };
+
+        it("picks Don't change until a value is chosen, so an untouched field leaves each expense as it is", () => {
+            // Given a field nothing has been picked for yet
+            // When its list opens
+            renderBooleanDropdown(undefined, jest.fn());
+
+            // Then "Don't change" is picked, with Yes and No offered beside it
+            expect(mockBooleanListProps?.data.map(({keyForList, isSelected}) => ({keyForList, isSelected}))).toEqual([
+                {keyForList: 'dontChange', isSelected: true},
+                {keyForList: CONST.SEARCH.BOOLEAN.YES, isSelected: false},
+                {keyForList: CONST.SEARCH.BOOLEAN.NO, isSelected: false},
+            ]);
+        });
+
+        it('records No for every expense when it is picked, and closes the list', () => {
+            // Given a field nothing has been picked for yet
+            const onSelected = jest.fn();
+            const onClose = jest.fn();
+            renderBooleanDropdown(undefined, onSelected, onClose);
+
+            // When No is picked
+            pickOption(CONST.SEARCH.BOOLEAN.NO);
+
+            // Then No is recorded, which a switch could not tell apart from leaving the field alone
+            expect(onSelected).toHaveBeenCalledWith(false);
+            expect(onClose).toHaveBeenCalled();
+        });
+
+        it("drops a picked value when Don't change is chosen", () => {
+            // Given a field set to Yes earlier in this bulk edit
+            const onSelected = jest.fn();
+            renderBooleanDropdown(true, onSelected);
+            expect(mockBooleanListProps?.data.find((item) => item.isSelected)?.keyForList).toBe(CONST.SEARCH.BOOLEAN.YES);
+
+            // When "Don't change" is picked
+            pickOption('dontChange');
+
+            // Then the pending value is dropped, so each expense keeps its own
+            expect(onSelected).toHaveBeenCalledWith(null);
         });
     });
 

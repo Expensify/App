@@ -205,31 +205,40 @@ describe('SearchEditMultiplePage', () => {
         // Given a selection whose every expense can still be edited
         await selectTransactions([OPEN_TRANSACTION_ID]);
 
-        // When the page renders and the Reimbursable toggle is switched on, then the changes are saved
+        // When the page renders
         renderPage();
         await waitForBatchedUpdatesWithAct();
-        fireEvent.press(screen.getByRole('switch', {name: 'Reimbursable'}));
+
+        // Then the Reimbursable row opens its list in place
+        expect(mockShouldOpenInDropdownByRow.Reimbursable).toBe(true);
+    });
+
+    it('sets every selected expense to non-reimbursable when No is picked', async () => {
+        // Given a selection whose Reimbursable was set to No, which a switch could not tell apart from leaving it alone
+        await selectTransactions([OPEN_TRANSACTION_ID], {reimbursable: false});
+
+        // When the changes are saved
+        renderPage();
         await waitForBatchedUpdatesWithAct();
         fireEvent.press(screen.getByText('Save'));
         await waitForBatchedUpdatesWithAct();
 
-        // Then every selected expense is marked reimbursable
-        expect(updateMultipleMoneyRequests).toHaveBeenCalledWith(expect.objectContaining({changes: {reimbursable: true}}));
+        // Then every selected expense is marked non-reimbursable
+        expect(updateMultipleMoneyRequests).toHaveBeenCalledWith(expect.objectContaining({changes: {reimbursable: false}}));
     });
 
     it('locks Reimbursable when the selection contains a marked-as-done expense', async () => {
         // Given a selection with an expense whose report is closed, which locks Reimbursable
         await selectTransactions([OPEN_TRANSACTION_ID, DONE_TRANSACTION_ID]);
 
-        // When the page renders and the locked Reimbursable toggle is pressed, then the changes are saved
+        // When the page renders and the changes are saved
         renderPage();
-        await waitForBatchedUpdatesWithAct();
-        fireEvent.press(screen.getByRole('switch', {name: 'Reimbursable, Locked'}));
         await waitForBatchedUpdatesWithAct();
         fireEvent.press(screen.getByText('Save'));
         await waitForBatchedUpdatesWithAct();
 
-        // Then the toggle records nothing, so there is no change to apply
+        // Then the Reimbursable row can't open its list, and nothing is pending to apply
+        expect(mockShouldOpenInDropdownByRow.Reimbursable).toBe(false);
         expect(updateMultipleMoneyRequests).not.toHaveBeenCalled();
     });
 

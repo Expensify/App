@@ -556,6 +556,7 @@ const SENTRY_LABEL = {
         BILLABLE_FIELD: 'SearchEditMultiple-BillableField',
         REIMBURSABLE_FIELD: 'SearchEditMultiple-ReimbursableField',
         ATTENDEES_FIELD: 'SearchEditMultiple-AttendeesField',
+        BOOLEAN_DROPDOWN_BACK_BUTTON: 'SearchEditMultiple-BooleanDropdownBackButton',
         SAVE_BUTTON: 'SearchEditMultiple-SaveButton',
     },
     INSIGHTS: {
