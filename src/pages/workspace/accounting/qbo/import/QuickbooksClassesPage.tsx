@@ -54,6 +54,7 @@ function QuickbooksClassesPage({policy}: WithPolicyProps) {
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}
                 switchAccessibilityLabel={translate('workspace.qbo.classes')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.IMPORT_CLASSES_SWITCH}
                 isActive={isSwitchOn}
                 onToggle={() =>
                     updateQuickbooksOnlineSyncClasses(policyID, isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG, qboConfig?.syncClasses)
@@ -68,7 +69,10 @@ function QuickbooksClassesPage({policy}: WithPolicyProps) {
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_CLASSES], qboConfig?.pendingFields)}>
                     <View style={styles.mt4}>
-                        <MenuItemSectionRoot onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES_DISPLAYED_AS.getRoute(policyID))}>
+                        <MenuItemSectionRoot
+                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES_DISPLAYED_AS.getRoute(policyID))}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.CLASSES_DISPLAYED_AS}
+                        >
                             <MenuItemField.Row
                                 name={translate('workspace.common.displayedAs')}
                                 value={isReportFieldsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}

@@ -47,7 +47,7 @@ function SageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
     const backTo = route.params?.backTo;
 
     const goBack = () => {
-        Navigation.goBack(backTo ?? (policyID && createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID))));
+        Navigation.goBack(backTo ?? (policyID && createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.path, ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))));
     };
 
     // Don't show guides if the current user is not a guide themselves or an Expensify employee
@@ -86,8 +86,8 @@ function SageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
 
     const headerContent = (
         <View style={[styles.pb2, styles.ph5]}>
-            <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.sageIntacct.exportPreferredExporterNote')}</Text>
-            <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.sageIntacct.exportPreferredExporterSubNote')}</Text>
+            <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.accounting.exportPreferredExporterNote')}</Text>
+            <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.accounting.exportPreferredExporterSubNote')}</Text>
         </View>
     );
 

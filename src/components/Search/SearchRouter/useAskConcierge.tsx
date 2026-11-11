@@ -14,7 +14,10 @@ import {createTaskFromMarkdown} from '@userActions/Task';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {SidePanelContext} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import {getReportParentReportID} from '@selectors/Report';
 
 /**
  * Returns a callback that opens the side panel (or Concierge chat on native)
@@ -28,9 +31,9 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
     const sidePanelReportID = useSidePanelReportID();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const {openConciergeAnywhere, isInSidePanel} = useOpenConciergeAnywhere();
-    const [sidePanelReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(sidePanelReportID)}`);
+    const [sidePanelParentReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(sidePanelReportID)}`, {selector: getReportParentReportID});
 
-    const isSidePanelOnConciergeThread = !!conciergeReportID && sidePanelReport?.parentReportID === conciergeReportID;
+    const isSidePanelOnConciergeThread = !!conciergeReportID && sidePanelParentReportID === conciergeReportID;
     const targetReportID = !forceConcierge && isInSidePanel && sidePanelReportID && !isSidePanelOnConciergeThread ? sidePanelReportID : conciergeReportID;
     const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(targetReportID)}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -42,7 +45,7 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
 
     const shouldRespondInThread = targetReportID === conciergeReportID;
 
-    const askConcierge = (searchQuery: string) => {
+    const askConcierge = (searchQuery: string, sidePanelContext?: SidePanelContext) => {
         const trimmedQuery = searchQuery.trim();
         if (!trimmedQuery || !shouldShowAskConcierge) {
             return;
@@ -65,6 +68,7 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
             currentUserAccountID,
             shouldPlaySound: true,
             isInSidePanel,
+            sidePanelContext,
             delegateAccountID,
             conciergeReportID,
             conciergeThreadReportID,

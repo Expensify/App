@@ -6,6 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import BillingBanner from '@pages/settings/Subscription/CardSection/BillingBanner/BillingBanner';
 
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -20,7 +21,7 @@ type WiseGlobalReimbursementsBannerProps = {
     onDismissPress: () => void;
 
     /** Sentry labels of the "Get started" and close buttons */
-    sentryLabels: {CTA: string; DISMISS: string};
+    sentryLabels: {CTA: SentryLabel; DISMISS: SentryLabel};
 };
 
 /** The "Pay people worldwide" banner promoting Wise global reimbursements. Callers decide when it shows and what its buttons do */

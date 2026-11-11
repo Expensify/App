@@ -3,7 +3,7 @@ name: Spell check
 on:
   pull_request:
     types: [opened, synchronize]
-    branches: [main, staging]
+    branches: [main, staging, production]
 
 jobs:
   spellcheck:
