@@ -238,6 +238,7 @@ type DeleteTrackExpenseParams = {
     isSingleTransactionView: boolean | undefined;
     isChatReportArchived: boolean | undefined;
     isChatIOUReportArchived: boolean | undefined;
+    isArchivedIOUReport: boolean;
     allTransactionViolationsParam: OnyxCollection<OnyxTypes.TransactionViolations>;
     currentUserAccountID: number;
     currentUserEmail: string;
@@ -785,6 +786,8 @@ function getDeleteTrackExpenseInformation({
         shouldDeleteTransactionThread,
         transactionThread,
         currentUserAccountID,
+        // isArchivedIOUReport is only read when reportAction is passed, and this call updates the transaction thread without one.
+        isArchivedIOUReport: false,
         transactionThreadReportActionsParam: transactionThreadReportActions,
     });
     optimisticData.push(...cleanUpTransactionThreadReportOnyxData.optimisticData);
@@ -3123,6 +3126,7 @@ function deleteTrackExpense({
     isSingleTransactionView = false,
     isChatReportArchived,
     isChatIOUReportArchived,
+    isArchivedIOUReport,
     allTransactionViolationsParam,
     currentUserAccountID,
     currentUserEmail,
@@ -3162,6 +3166,7 @@ function deleteTrackExpense({
             iouReportTransactions,
             chatReport: chatIOUReport,
             isChatIOUReportArchived,
+            isArchivedIOUReport,
             isSingleTransactionView,
             allTransactionViolationsParam,
             currentUserAccountID,

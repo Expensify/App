@@ -67,6 +67,7 @@ function useReportDetailsRequestData(reportID: string): ReportDetailsRequestData
         : undefined;
     const requestParentReportAction = caseID === CASES.MONEY_REPORT ? transactionThreadParentReportAction : parentReportAction;
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
+    const isArchivedIOUReport = useReportIsArchived(iouReport?.reportID);
     const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const iouReportTransactionsCollection = useReportTransactionsCollection(iouReport?.reportID);
     const iouReportTransactions = Object.values(iouReportTransactionsCollection);
@@ -104,6 +105,7 @@ function useReportDetailsRequestData(reportID: string): ReportDetailsRequestData
         iouReport,
         chatIOUReport,
         isChatIOUReportArchived,
+        isArchivedIOUReport,
         iouPolicy,
         iouReportTransactions,
         requestParentReportActionChildReport,

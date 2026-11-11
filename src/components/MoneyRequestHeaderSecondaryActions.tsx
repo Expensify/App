@@ -210,6 +210,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const iouReportTransactionsCollection = useReportTransactionsCollection(iouReport?.reportID);
     const iouReportTransactions = Object.values(iouReportTransactionsCollection);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
+    const isArchivedIOUReport = useReportIsArchived(iouReport?.reportID);
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -618,6 +619,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                             isSingleTransactionView: true,
                             isChatReportArchived: isParentReportArchived,
                             isChatIOUReportArchived,
+                            isArchivedIOUReport,
                             allTransactionViolationsParam: allTransactionViolations,
                             currentUserAccountID: accountID,
                             currentUserEmail: currentUserLogin ?? '',

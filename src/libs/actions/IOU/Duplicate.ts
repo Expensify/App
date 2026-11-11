@@ -25,6 +25,7 @@ import {
     generateReportID,
     getReimbursableTotal,
     getTransactionDetails,
+    isArchivedReport,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {
@@ -186,6 +187,7 @@ type MergeDuplicatesFuncParams = MergeDuplicatesTransactionParams & {
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
     allReportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
     allReportsList: OnyxCollection<OnyxTypes.Report>;
+    allReportNameValuePairsList?: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
 };
 
 type ResolveDuplicatesFuncParams = MergeDuplicatesTransactionParams & {
@@ -207,6 +209,7 @@ function mergeDuplicates({
     allTransactionViolations,
     allReportActionsList,
     allReportsList,
+    allReportNameValuePairsList,
     ...params
 }: MergeDuplicatesFuncParams) {
     const {transaction: originalSelectedTransaction, transactionList, ...restParams} = params;
@@ -334,6 +337,7 @@ function mergeDuplicates({
                 transactionThread,
                 iouReport,
                 chatReport,
+                isArchivedIOUReport: isArchivedReport(allReportNameValuePairsList?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`]),
                 transactionThreadReportActionsParam: allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`],
             });
             cleanUpTransactionThreadReportsOptimisticData.push(...cleanUp.optimisticData);

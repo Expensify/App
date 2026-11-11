@@ -18,6 +18,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -102,6 +103,8 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const [sourceActionIOUReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(sourceIOUReportID)}`);
     const [sourceActionChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(sourceActionIOUReport?.chatReportID)}`);
 
+    const isSourceActionIOUReportArchived = useReportIsArchived(sourceIOUReportID);
+
     // Build the merged transaction data for display
     const mergedTransactionData = buildMergedTransactionData(targetTransaction, mergeTransaction);
 
@@ -151,6 +154,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
             sourceActionIOUReport,
             sourceActionChatReport,
             rules,
+            isSourceActionIOUReportArchived,
         });
 
         const reportIDToDismiss = reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? reportID : undefined;
