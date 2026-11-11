@@ -55,3 +55,12 @@ Each patch is the build output of its upstream PR, so it changes exactly what th
 - E/App issue: 🛑
 - PR introducing patch: https://github.com/Expensify/App/pull/100733
 - Reproduction: On Android, clear the cache and open a chat from an LHN row with a Fix action, so it opens at the linked expense. The highlighted expense should come to rest a little below the top of the list and stay there.
+
+### [@legendapp+list+3.7.2+007+keep-native-content-in-place-on-header-resize.patch](@legendapp+list+3.7.2+007+keep-native-content-in-place-on-header-resize.patch)
+
+- Reason: LegendList keeps the visible items in place when the list header resizes above the viewport, but only on web. While offline, a chat shows a loading placeholder as the list header, and when it disappears on reconnect, the messages on screen moved by its height on iOS and Android. This patch makes header size changes above the viewport keep the visible items in place on every platform. On Android, it first accounts for the scroll offset Android clamps when the content shrinks, as LegendList already does for item size changes.
+- Scope: All bundles, and only header size changes above the viewport. Web behaves as before.
+- Upstream PR/issue: https://github.com/LegendApp/legend-list/pull/607
+- E/App issue: 🛑
+- PR introducing patch: https://github.com/Expensify/App/pull/100733
+- Reproduction: On iOS or Android, open a chat with more history than the first page. Turn off the network connection. Turn the network connection back on. The messages on screen should not move when the placeholder above them disappears.
