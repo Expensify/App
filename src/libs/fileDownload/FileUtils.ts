@@ -11,7 +11,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject, ImagePickerResponse} from '@src/types/utils/Attachment';
 
 import type {ReactNativeBlobUtilReadStream} from 'react-native-blob-util';
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
 import mimeDb from 'mime-db';
@@ -630,11 +630,7 @@ const getImageDimensionsFromFileHeader = (blob: Blob): Promise<{width: number; h
     return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = () => {
-            if (!(reader.result instanceof ArrayBuffer)) {
-                resolve(null);
-                return;
-            }
-            const arr = new Uint8Array(reader.result);
+            const arr = new Uint8Array(reader.result as ArrayBuffer);
 
             // Check for JPEG (starts with 0xFF 0xD8)
             if (arr[0] === 0xff && arr[1] === 0xd8) {
@@ -747,16 +743,15 @@ const resizeImageIfNeeded = (file: FileObject) => {
         .then((result) => createFile(result));
 };
 
-const isValidReceiptExtension = (file: FileObject) => {
-    const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
-    const normalizedExtension = fileExtension.toLowerCase();
-    return CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.some((extension) => extension === normalizedExtension);
-};
-
 const validateReceipt = (file: FileObject, setUploadReceiptError: (isInvalid: boolean, title: TranslationPaths, reason: TranslationPaths) => void) => {
     return validateImageForCorruption(file)
         .then(() => {
-            if (!isValidReceiptExtension(file)) {
+            const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
+            if (
+                !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
+                    fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>,
+                )
+            ) {
                 setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
                 return false;
             }
@@ -776,6 +771,13 @@ const validateReceipt = (file: FileObject, setUploadReceiptError: (isInvalid: bo
             setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
             return false;
         });
+};
+
+const isValidReceiptExtension = (file: FileObject) => {
+    const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
+    return CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
+        fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>,
+    );
 };
 
 const hasHeicOrHeifExtension = (file: FileObject) => {
@@ -1006,7 +1008,7 @@ const canvasFallback = (blob: Blob, fileName: string): Promise<File> => {
 function getFileWithUri(file: File) {
     const newFile = file;
     newFile.uri = URL.createObjectURL(newFile);
-    return newFile;
+    return newFile as FileObject;
 }
 
 function getFilesFromClipboardEvent(event: DragEvent) {
@@ -1018,15 +1020,15 @@ function getFilesFromClipboardEvent(event: DragEvent) {
     return Array.from(files).map((file) => getFileWithUri(file));
 }
 
-function cleanFileObject(fileObject: FileObject): FileObject | null {
+function cleanFileObject(fileObject: FileObject): FileObject {
     if ('getAsFile' in fileObject && typeof fileObject.getAsFile === 'function') {
-        return fileObject.getAsFile();
+        return fileObject.getAsFile() as FileObject;
     }
 
     return fileObject;
 }
 
-function cleanFileObjectName(fileObject: FileObject | null): FileObject | null {
+function cleanFileObjectName(fileObject: FileObject): FileObject {
     if (fileObject instanceof File) {
         const cleanName = cleanFileName(fileObject.name);
         if (fileObject.name !== cleanName) {

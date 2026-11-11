@@ -1,10 +1,10 @@
-import type {AvatarCommonProps, AvatarPrimitivesCommonProps} from '@components/Avatar/types';
+import type {AvatarPrimitivesCommonProps} from '@components/Avatar/types';
 import Image from '@components/Image';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -17,7 +17,7 @@ type AvatarImageProps = AvatarPrimitivesCommonProps & {
     onImageError: () => void;
 
     /** Styles for View wrapping Icon / Image. */
-    imageStyles?: AvatarCommonProps['imageStyles'];
+    imageStyles?: StyleProp<ViewStyle & ImageStyle>;
 
     /** Additional styles for Icon */
     imageContainerAdditionalStyles?: StyleProp<ViewStyle>;

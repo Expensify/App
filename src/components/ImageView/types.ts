@@ -1,14 +1,14 @@
 import type {Attachment} from '@components/Attachments/types';
 import type {ZoomRange} from '@components/MultiGestureCanvas/types';
 
-import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 type ImageViewProps = Pick<Attachment, 'attachmentID'> & {
     /** Whether source url requires authentication */
     isAuthTokenRequired?: boolean;
 
-    /** Static assets and URI sources retain their original identity. */
-    url: string | ImageSourcePropType;
+    /** URL to full-sized image, or a static image asset on native */
+    url: string | number;
 
     fileName: string;
 

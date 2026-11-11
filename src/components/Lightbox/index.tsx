@@ -49,7 +49,7 @@ type LightboxProps = Pick<Attachment, 'attachmentID'> & {
     /** Whether source url requires authentication */
     isAuthTokenRequired?: boolean;
 
-    /** Static assets and URI sources retain their original identity. */
+    /** URI to full-sized attachment, or a static image asset on native */
     uri: ImageViewProps['url'];
 
     /** Triggers whenever the zoom scale changes */
@@ -210,7 +210,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
 
     const imagePriority = getImagePriority(isActive, isLightboxVisible);
 
-    const isALocalFile = (typeof uri === 'string' || typeof uri === 'number') && isLocalFile(uri);
+    const isALocalFile = isLocalFile(uri);
     const shouldShowOfflineIndicator = isOffline && !isLoading && !isALocalFile;
     const shouldShowLoadingIndicator = !isImageLoaded && !shouldShowOfflineIndicator && !hasLoadFailed && !hasLoadTimedOut;
 

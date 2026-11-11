@@ -116,7 +116,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
 
     // isLocalToUserDeviceFile means the file is located on the user device,
     // not loaded on the server yet (the user is offline when loading this file in fact)
-    let isLocalToUserDeviceFile = (typeof url === 'string' || typeof url === 'number') && isLocalFile(url);
+    let isLocalToUserDeviceFile = isLocalFile(url);
     if (isLocalToUserDeviceFile && typeof url === 'string' && url.startsWith('/chat-attachments')) {
         isLocalToUserDeviceFile = false;
     }
@@ -129,8 +129,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     if (canUseTouchScreen) {
         return (
             <Lightbox
-                // eslint-disable-next-line @typescript-eslint/no-base-to-string -- Preserve React's existing plain object and array key collisions.
-                key={typeof url === 'string' || typeof url === 'number' ? url : String(url)}
+                key={url}
                 uri={url}
                 isAuthTokenRequired={isAuthTokenRequired}
                 onError={onError}

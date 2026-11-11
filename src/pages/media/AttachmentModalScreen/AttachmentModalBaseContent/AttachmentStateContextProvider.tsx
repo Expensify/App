@@ -1,15 +1,8 @@
 import type {AttachmentSource} from '@components/Attachments/types';
-import type {BaseImageProps} from '@components/Image/types';
 
 import React, {createContext, useState} from 'react';
 
-type AttachmentStateSource = AttachmentSource | BaseImageProps['source'];
-
-function convertSourceToString(source: AttachmentStateSource) {
-    // Absent sources must still fail before any cache state is written.
-    if (source === undefined) {
-        throw new TypeError('Cannot convert undefined attachment source');
-    }
+function convertSourceToString(source: AttachmentSource) {
     if (typeof source === 'string' || typeof source === 'number') {
         return source.toString();
     }
@@ -23,9 +16,9 @@ function convertSourceToString(source: AttachmentStateSource) {
 }
 
 type AttachmentStateContextType = {
-    setAttachmentLoaded: (key: AttachmentStateSource, state?: boolean) => void;
+    setAttachmentLoaded: (key: AttachmentSource, state?: boolean) => void;
     clearAttachmentLoaded: () => void;
-    isAttachmentLoaded: (key: AttachmentStateSource) => boolean;
+    isAttachmentLoaded: (key: AttachmentSource) => boolean;
 };
 
 const AttachmentStateContext = createContext<AttachmentStateContextType>({
@@ -40,7 +33,7 @@ type Props = {
 
 function AttachmentStateContextProvider({children}: Props) {
     const [attachmentLoaded, setAttachmentLoadedState] = useState<Record<string, boolean>>({});
-    const setAttachmentLoaded = (key: AttachmentStateSource, state = true) => {
+    const setAttachmentLoaded = (key: AttachmentSource, state = true) => {
         const url = convertSourceToString(key);
         if (!url) {
             return;
@@ -55,7 +48,7 @@ function AttachmentStateContextProvider({children}: Props) {
         setAttachmentLoadedState({});
     };
 
-    const isAttachmentLoaded = (key: AttachmentStateSource) => attachmentLoaded?.[convertSourceToString(key)] === true;
+    const isAttachmentLoaded = (key: AttachmentSource) => attachmentLoaded?.[convertSourceToString(key)] === true;
     const value = {setAttachmentLoaded, clearAttachmentLoaded, isAttachmentLoaded};
     return <AttachmentStateContext.Provider value={value}>{children}</AttachmentStateContext.Provider>;
 }
