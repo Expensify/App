@@ -413,6 +413,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
                 <View style={[styles.flex1]}>
                     <View style={[styles.searchListHeaderContainerStyle, styles.pv3, styles.ph5, styles.flexRow, styles.alignItemsCenter]}>
                         <Checkbox
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COPY_SETTINGS_SELECT_FEATURES_SELECT_ALL}
                             accessibilityLabel={translate('accessibilityHints.selectAllFeatures')}
                             isChecked={selectableFeatures.length > 0 && selectableFeatures.every((part) => selectedAvailableFeatures.includes(part))}
                             isIndeterminate={selectedAvailableFeatures.length > 0 && selectedAvailableFeatures.length < selectableFeatures.length}

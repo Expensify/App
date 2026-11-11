@@ -8,7 +8,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -18,7 +18,7 @@ import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 
-type AnimatedCollapsibleProps = WithSentryLabel & {
+type AnimatedCollapsibleProps = WithRequiredSentryLabel & {
     isExpanded: boolean;
 
     /** Element that is inside the collapsible area */

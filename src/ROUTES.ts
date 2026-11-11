@@ -242,18 +242,15 @@ const DYNAMIC_ROUTES = {
         path: 'accept-terms',
         entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO],
     },
-    WISE_MORE_INFO_NEEDED: {
-        path: 'more-info-needed',
-        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO],
-    },
     WISE_KYC_REVIEW: {
         path: 'kyc-review',
-        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_MORE_INFO_NEEDED],
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ONBOARDING_STATUS],
     },
     WISE_ONBOARDING_STATUS: {
         path: 'status',
         entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO],
-        getRoute: (status: ValueOf<typeof CONST.WISE.ONBOARDING_STATUS_PAGE>) => getUrlWithParams('status', {status}),
+        // Wise's redirect after its KYC form adds the form's outcome as `status`
+        getRoute: (kycReviewFormStatus: string) => getUrlWithParams('status', {status: kycReviewFormStatus}),
         queryParams: ['status'],
     },
     BANK_ACCOUNT_LINK_PLAID: {
@@ -341,6 +338,10 @@ const DYNAMIC_ROUTES = {
             SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
             SCREENS.REPORT_CHANGE_WORKSPACE.DYNAMIC_ROOT,
         ],
+    },
+    PAYMENT_DETAILS: {
+        path: 'payment-details',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
     },
     EDIT_REPORT_FIELD: {
         path: 'edit/policyField/:policyID/:fieldID',
@@ -1490,6 +1491,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.WORKSPACE.ACCOUNTING.RILLET_CARD_ACCOUNT_CARD_LIST,
             SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_CARD_ACCOUNT_CARD_LIST,
             SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_CARD_ACCOUNT_CARD_LIST,
+            SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_CARD_ACCOUNT_CARD_LIST,
             SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_CARD_ACCOUNT_CARD_LIST,
         ],
         getRoute: (feed: CardFeedWithDomainID, cardID: string) => `edit/export/${encodeURIComponent(feed)}/${encodeURIComponent(cardID)}` as const,
@@ -2456,6 +2458,7 @@ const ROUTES = {
         },
     },
     SEARCH_REJECT_REASON_RHP: 'search/reject',
+    SEARCH_CHANGE_WORKSPACE_RHP: 'search/change-workspace/search',
     SEARCH_EDIT_MULTIPLE_TRANSACTIONS_RHP: 'search/edit-multiple-transactions',
     SEARCH_EDIT_MULTIPLE_AMOUNT_RHP: 'search/edit-multiple/amount',
     SEARCH_EDIT_MULTIPLE_DESCRIPTION_RHP: 'search/edit-multiple/description',
@@ -2867,7 +2870,16 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, backTo?: string, secureKey?: string, isPendingCreation?: boolean, sourceReportID?: string) => {
+        getRoute: (
+            reportID: string | undefined,
+            reportActionID?: string,
+            referrer?: string,
+            backTo?: string,
+            secureKey?: string,
+            isPendingCreation?: boolean,
+            sourceReportID?: string,
+            sourcePolicyID?: string,
+        ) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the REPORT_WITH_ID route');
                 return getUrlWithBackToParam(ROUTES.HOME, backTo);
@@ -2889,6 +2901,10 @@ const ROUTES = {
             // Threaded on the route so it stays scoped to this Concierge navigation entry instead of a global key.
             if (sourceReportID) {
                 queryParams.push(`sourceReportID=${encodeURIComponent(sourceReportID)}`);
+            }
+            // The workspace page the user was viewing when they opened Concierge from the side-pane button (native).
+            if (sourcePolicyID) {
+                queryParams.push(`sourcePolicyID=${encodeURIComponent(sourcePolicyID)}`);
             }
 
             const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
@@ -3547,6 +3563,15 @@ const ROUTES = {
             return `workspaces/${policyID}/workflows/currency-conversion-fees` as const;
         },
     },
+    WORKSPACE_WORKFLOWS_REIMBURSEMENT_COUNTRIES: {
+        route: 'workspaces/:policyID/workflows/reimbursement-countries',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS_REIMBURSEMENT_COUNTRIES route');
+            }
+            return `workspaces/${policyID}/workflows/reimbursement-countries` as const;
+        },
+    },
     WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET: {
         route: 'workspaces/:policyID/workflows/auto-reporting-frequency/monthly-offset',
         getRoute: (policyID: string | undefined) => {
@@ -3983,6 +4008,10 @@ const ROUTES = {
     WORKSPACE_MEMBER_DETAILS_ROLE: {
         route: 'workspaces/:policyID/members/:accountID/role',
         getRoute: (policyID: string, accountID: number) => `workspaces/${policyID}/members/${accountID}/role` as const,
+    },
+    WORKSPACE_MEMBER_DETAILS_CATEGORY_VISIBILITY: {
+        route: 'workspaces/:policyID/members/:accountID/category-visibility',
+        getRoute: (policyID: string, accountID: number) => `workspaces/${policyID}/members/${accountID}/category-visibility` as const,
     },
     WORKSPACE_MEMBER_WORK_ARRANGEMENT: {
         route: 'workspaces/:policyID/members/:accountID/work-arrangement',
@@ -4813,6 +4842,22 @@ const ROUTES = {
     POLICY_ACCOUNTING_ZOHO_BOOKS_COMPANY_CARD_ACCOUNT: {
         route: 'workspaces/:policyID/accounting/zoho-books/export/company-card-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/export/company-card-account` as const,
+    },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_CARD_PROGRAM_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/zoho-books/export/card-program-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/export/card-program-account` as const,
+    },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_CARD_PROGRAM_ACCOUNT_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/zoho-books/export/card-program-account/:feed',
+        getRoute: (policyID: string, feed: CardFeedWithDomainID) => `workspaces/${policyID}/accounting/zoho-books/export/card-program-account/${encodeURIComponent(feed)}` as const,
+    },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/zoho-books/export/card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/export/card-account` as const,
+    },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_CARD_ACCOUNT_CARD_LIST: {
+        route: 'workspaces/:policyID/accounting/zoho-books/export/card-account/:feed',
+        getRoute: (policyID: string, feed: CardFeedWithDomainID) => `workspaces/${policyID}/accounting/zoho-books/export/card-account/${encodeURIComponent(feed)}` as const,
     },
     POLICY_ACCOUNTING_ZOHO_BOOKS_EXISTING_CONNECTIONS: {
         route: 'workspaces/:policyID/accounting/zoho-books/existing-connections',

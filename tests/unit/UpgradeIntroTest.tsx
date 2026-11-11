@@ -46,6 +46,7 @@ describe('UpgradeIntro', () => {
                 feature={feature}
                 policyID="policy-1"
                 onUpgrade={jest.fn()}
+                upgradeSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.UPGRADE_PLAN.CONTROL}
             />,
         );
         // Then the icon registry wins and the illustration flag stays set, because that flag controls the icon size and styles on the card
@@ -64,6 +65,7 @@ describe('UpgradeIntro', () => {
                     feature={CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals}
                     policyID="policy-1"
                     onUpgrade={jest.fn()}
+                    upgradeSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.UPGRADE_PLAN.CONTROL}
                 />,
             ),
         ).toThrow(`Missing icons: ${mockMissingIcon}`);
@@ -71,7 +73,12 @@ describe('UpgradeIntro', () => {
     it('shows the generic view without a feature', () => {
         // Given no feature and no workspace, so there is no feature card to show
         // When the upgrade intro decides what to show
-        render(<UpgradeIntro onUpgrade={jest.fn()} />);
+        render(
+            <UpgradeIntro
+                onUpgrade={jest.fn()}
+                upgradeSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.UPGRADE_PLAN.CONTROL}
+            />,
+        );
         // Then the generic view is shown, so the user still sees the price and can go to a workspace to upgrade
         expect(screen.getByText('generic upgrade')).toBeTruthy();
     });
@@ -83,6 +90,7 @@ describe('UpgradeIntro', () => {
                 feature={CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals}
                 policyID="policy-1"
                 onUpgrade={jest.fn()}
+                upgradeSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.UPGRADE_PLAN.CONTROL}
             />,
         );
         // Then the card receives a zero border radius; only this prop is covered, because UpgradeIntroView ignores the style for a non-illustration icon such as this one

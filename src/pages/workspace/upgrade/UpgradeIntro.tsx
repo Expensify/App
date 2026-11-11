@@ -11,6 +11,7 @@ import {isSubmitPolicy} from '@libs/PolicyUtils';
 import CONST, {SUBMIT_FEATURE_IDS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ValueOf} from 'type-fest';
 
@@ -24,6 +25,7 @@ type Props = {
     loading?: boolean;
     feature?: ValueOf<Omit<typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING, typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id>>;
     onUpgrade: () => void;
+    upgradeSentryLabel: SentryLabel;
     /** Whether is categorizing the expense */
     isCategorizing?: boolean;
     /** Whether is adding an unreported expense to a report */
@@ -35,7 +37,7 @@ type Props = {
     upgradePlanType?: ValueOf<typeof CONST.POLICY.TYPE>;
 };
 
-function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing, isDistanceRateUpgrade, isReporting, policyID, backTo, upgradePlanType}: Props) {
+function UpgradeIntro({feature, onUpgrade, upgradeSentryLabel, buttonDisabled, loading, isCategorizing, isDistanceRateUpgrade, isReporting, policyID, backTo, upgradePlanType}: Props) {
     const styles = useThemeStyles();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isCurrentPolicySubmit = isSubmitPolicy(policy);
@@ -84,6 +86,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'DigitsSquare',
         'BusinessCentralSquare',
         'AdvancedApprovalsSquare',
         'Unlock',
@@ -106,6 +109,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
         return (
             <GenericFeaturesView
                 onUpgrade={onUpgrade}
+                upgradeSentryLabel={upgradeSentryLabel}
                 buttonDisabled={buttonDisabled}
                 formattedPrice={formattedPrice}
                 loading={loading}
@@ -151,6 +155,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
             onlyAvailableOnPlanHTML={onlyAvailableOnPlanHTML}
             buttonText={buttonText}
             onUpgrade={onUpgrade}
+            upgradeSentryLabel={upgradeSentryLabel}
             buttonDisabled={buttonDisabled}
             loading={loading}
         />

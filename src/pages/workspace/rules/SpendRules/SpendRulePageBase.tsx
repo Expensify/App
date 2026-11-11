@@ -52,6 +52,7 @@ import ROUTES from '@src/ROUTES';
 import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import type {GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ValueOf} from 'type-fest';
 
@@ -371,7 +372,19 @@ function SpendRulePageBase({policyID, ruleID, testID, upgradeBackTo}: SpendRuleP
 
     const spendRuleSectionSentryLabel = CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SECTION_ITEM;
 
-    const renderEditableMenuItem = ({description, title, onPress, sentryLabel, icon}: {description: string; title: string; onPress: () => void; sentryLabel: string; icon?: IconAsset}) => (
+    const renderEditableMenuItem = ({
+        description,
+        title,
+        onPress,
+        sentryLabel,
+        icon,
+    }: {
+        description: string;
+        title: string;
+        onPress: () => void;
+        sentryLabel: SentryLabel;
+        icon?: IconAsset;
+    }) => (
         <MenuItemWithTopDescription
             description={description}
             onPress={canWriteSpendRules ? onPress : undefined}
