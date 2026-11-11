@@ -6398,6 +6398,7 @@ describe('ReportUtils', () => {
                 expenseReport,
                 getCurrencyDecimalsLocal,
                 undefined,
+                undefined,
                 '',
                 expenseTransaction,
                 expenseReport.reportID,
@@ -23921,7 +23922,7 @@ describe('ReportUtils', () => {
             const injectedFormatPhoneNumber = jest.fn(() => 'INJECTED_PHONE');
 
             // When the optimistic preview is built with an injected formatter
-            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimalsLocal, undefined, '', null, undefined, undefined, injectedFormatPhoneNumber);
+            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimalsLocal, undefined, injectedFormatPhoneNumber, '', null);
 
             // Then the stored preview message is rendered with the injected formatter
             expect(injectedFormatPhoneNumber).toHaveBeenCalledWith(login);
@@ -29287,7 +29288,7 @@ describe('ReportUtils', () => {
         };
 
         // REPORT_PREVIEW action that sits in the chat report and links to the expense report
-        const reportPreviewAction = buildOptimisticReportPreview(chatReport, expenseReport, getCurrencyDecimalsLocal, undefined, '', transaction);
+        const reportPreviewAction = buildOptimisticReportPreview(chatReport, expenseReport, getCurrencyDecimalsLocal, undefined, undefined, '', transaction);
 
         beforeAll(async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});

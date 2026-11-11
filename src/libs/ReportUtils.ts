@@ -9329,12 +9329,12 @@ function buildOptimisticReportPreview(
     iouReport: Report,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     delegateAccountIDParam: number | undefined,
+    // Placed first among the optional params so migrating call sites never need placeholder arguments. Defaults to the Onyx.connect-backed formatter so existing callers keep working until they pass the locale-aware formatter (issue https://github.com/Expensify/App/issues/66327)
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'] = formatPhoneNumberPhoneUtils,
     comment = '',
     transaction: OnyxInputOrEntry<Transaction> = null,
     childReportID?: string,
     reportActionID?: string,
-    // Defaults to the Onyx.connect-backed formatter so existing callers keep working while call sites are migrated to pass the locale-aware formatter (issue https://github.com/Expensify/App/issues/66327)
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'] = formatPhoneNumberPhoneUtils,
 ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> {
     const hasReceipt = hasReceiptTransactionUtils(transaction);
     const message = getReportPreviewReportActionMessage({reportOrID: iouReport}, getCurrencyDecimals, formatPhoneNumber);

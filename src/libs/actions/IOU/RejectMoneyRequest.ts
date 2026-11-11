@@ -530,7 +530,7 @@ function prepareRejectMoneyRequestData({
                 delegateAccountIDParam: delegateAccountID,
             });
 
-            reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, getCurrencyDecimals, delegateAccountID, undefined, transaction);
+            reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, getCurrencyDecimals, delegateAccountID, undefined, undefined, transaction);
             // The reject action posted below already tells the user this expense left the report,
             // so a MOVED_TRANSACTION action in the same thread would repeat it
             createdIOUReportActionID = iouAction.reportActionID;

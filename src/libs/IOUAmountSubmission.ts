@@ -393,6 +393,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
     const executeExpenseWrite = (overrides: WriteOverrides) => {
         if (isTrackExpenseSubmit) {
             trackExpense({
+                formatPhoneNumber,
                 report,
                 isDraftPolicy: false,
                 isDraftChatReport: !!isDraftChatReport,

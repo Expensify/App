@@ -415,6 +415,7 @@ function SubmitDetailsPage({
         const performExpenseCreate = () => {
             if (isSelfDM(report)) {
                 trackExpense({
+                    formatPhoneNumber,
                     getCurrencyDecimals,
                     report: report ?? {reportID: reportOrAccountID},
                     isDraftPolicy: false,

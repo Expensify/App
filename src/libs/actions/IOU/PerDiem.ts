@@ -621,13 +621,14 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewReportAction(chatReport.reportID, iouReport.reportID);
 
     if (reportPreviewAction) {
-        reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, getCurrencyDecimals, false, comment, optimisticTransaction);
+        reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, getCurrencyDecimals, false, comment, optimisticTransaction, formatPhoneNumber);
     } else {
         reportPreviewAction = buildOptimisticReportPreview(
             chatReport,
             iouReport,
             getCurrencyDecimals,
             delegateAccountID,
+            formatPhoneNumber,
             comment,
             optimisticTransaction,
             undefined,

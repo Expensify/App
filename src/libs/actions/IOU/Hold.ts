@@ -856,6 +856,8 @@ function getReportFromHoldRequestsOnyxData({
               optimisticExpenseReport,
               getCurrencyDecimals,
               delegateAccountID,
+              // formatPhoneNumber defaults to the Onyx.connect formatter until this flow is migrated (issue https://github.com/Expensify/App/issues/66327)
+              undefined,
               '',
               firstHoldTransaction,
               optimisticExpenseReport.reportID,
