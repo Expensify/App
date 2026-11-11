@@ -2,10 +2,15 @@ import {
     formatRequireItemizedReceiptsOverText,
     getAvailableNonPersonalPolicyCategories,
     getCategoryDefaultTaxRate,
+    getCategoryDescriptionHint,
     getCategoryGLCode,
     getCategoryNameError,
     getDecodedFullCategoryName,
     getDecodedLeafCategoryName,
+    getMemberVisibleCategoryNames,
+    getMembersWithoutVisibleCategories,
+    getVisibleCategories,
+    hasAnyCategoryGLCode,
     hasAnyCategoryRules,
     isCategoryDescriptionRequired,
     isCategoryMissing,
@@ -21,6 +26,9 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
 import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
+
+/** Builds a visibleTo map, keyed by accountID like the server sends it */
+const buildVisibleTo = (...accountIDs: number[]): Record<string, boolean> => Object.fromEntries(accountIDs.map((accountID) => [accountID, true]));
 
 describe(`isMissingCategory`, () => {
     it('returns true if category is undefined', () => {
@@ -83,6 +91,51 @@ describe('formatRequireItemizedReceiptsOverText', () => {
         } as Policy;
         const result = formatRequireItemizedReceiptsOverText(translateLocal, policyWithUndefinedItemizedReceipt, undefined, convertToDisplayString);
         expect(result).toBe(translateLocal('workspace.rules.categoryRules.requireItemizedReceiptsOverList.never'));
+    });
+});
+
+describe('getCategoryDescriptionHint', () => {
+    const mockPolicyCategories: PolicyCategories = {
+        Advertising: {
+            commentHint: 'Client name',
+            enabled: true,
+            name: 'Advertising',
+        },
+        Meals: {
+            enabled: true,
+            name: 'Meals',
+        },
+    };
+
+    it('returns the hint when the category has one and rules are enabled', () => {
+        // Given a category with a description hint on a workspace with Rules on
+        // When the hint is looked up
+        // Then the saved hint is returned so the description field can show it
+        expect(getCategoryDescriptionHint(mockPolicyCategories, 'Advertising', true)).toBe('Client name');
+    });
+
+    it('returns an empty string when rules are not enabled, even if the category has a hint', () => {
+        // Given a category that kept its hint but its workspace has Rules off (for example a duplicated workspace)
+        // When the hint is looked up
+        // Then no hint is returned, because category rules don't apply without Rules
+        expect(getCategoryDescriptionHint(mockPolicyCategories, 'Advertising', false)).toBe('');
+        expect(getCategoryDescriptionHint(mockPolicyCategories, 'Advertising', undefined)).toBe('');
+    });
+
+    it('returns an empty string when the category has no hint', () => {
+        // Given a category without a description hint
+        // When the hint is looked up
+        // Then nothing is returned
+        expect(getCategoryDescriptionHint(mockPolicyCategories, 'Meals', true)).toBe('');
+    });
+
+    it('returns an empty string when no category is selected or categories are missing', () => {
+        // Given no selected category, an unknown category, or no loaded categories
+        // When the hint is looked up
+        // Then nothing is returned instead of throwing
+        expect(getCategoryDescriptionHint(mockPolicyCategories, undefined, true)).toBe('');
+        expect(getCategoryDescriptionHint(mockPolicyCategories, 'NonExistentCategory', true)).toBe('');
+        expect(getCategoryDescriptionHint(undefined, 'Advertising', true)).toBe('');
     });
 });
 
@@ -475,6 +528,51 @@ describe('getCategoryGLCode', () => {
     });
 });
 
+describe('hasAnyCategoryGLCode', () => {
+    it('returns false when the workspace has no categories', () => {
+        // Given no categories, there is no GL code to pick, so the Category GL code cell must stay read-only
+        // When / Then
+        expect(hasAnyCategoryGLCode(undefined)).toBe(false);
+        expect(hasAnyCategoryGLCode({})).toBe(false);
+    });
+
+    it('returns false when every GL code is missing or blank', () => {
+        // Given categories whose GL codes are missing, empty, whitespace or only quotes
+        const categories: PolicyCategories = {
+            Meals: {enabled: true, name: 'Meals', pendingAction: null},
+            Travel: {enabled: true, name: 'Travel', pendingAction: null, 'GL Code': ''}, // eslint-disable-line @typescript-eslint/naming-convention
+            Fuel: {enabled: true, name: 'Fuel', pendingAction: null, 'GL Code': '   '}, // eslint-disable-line @typescript-eslint/naming-convention
+            Rent: {enabled: true, name: 'Rent', pendingAction: null, 'GL Code': '""'}, // eslint-disable-line @typescript-eslint/naming-convention
+        };
+
+        // When / Then a blank code does not count as a GL code
+        expect(hasAnyCategoryGLCode(categories)).toBe(false);
+    });
+
+    it('returns true when at least one category has a GL code', () => {
+        // Given a mix of categories with and without a GL code
+        const categories: PolicyCategories = {
+            Meals: {enabled: true, name: 'Meals', pendingAction: null},
+            Travel: {enabled: true, name: 'Travel', pendingAction: null, 'GL Code': '1200'}, // eslint-disable-line @typescript-eslint/naming-convention
+        };
+
+        // When / Then one code is enough to keep the cell editable
+        expect(hasAnyCategoryGLCode(categories)).toBe(true);
+    });
+
+    it('returns false when the only GL codes are on disabled or pending-deletion categories', () => {
+        // Given GL codes only on categories the category picker won't let the user select
+        const categories: PolicyCategories = {
+            Meals: {enabled: true, name: 'Meals', pendingAction: null},
+            Travel: {enabled: false, name: 'Travel', pendingAction: null, 'GL Code': '1200'}, // eslint-disable-line @typescript-eslint/naming-convention
+            Fuel: {enabled: true, name: 'Fuel', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, 'GL Code': '1300'}, // eslint-disable-line @typescript-eslint/naming-convention
+        };
+
+        // When / Then the cell stays read-only, because the picker would offer no GL code to pick
+        expect(hasAnyCategoryGLCode(categories)).toBe(false);
+    });
+});
+
 describe('getCategoryNameError', () => {
     const encodedFoodAndDrink = 'Food &amp; Drink';
     const categories: PolicyCategories = {
@@ -514,6 +612,20 @@ describe('getCategoryNameError', () => {
         expect(getCategoryNameError(categories, 'Food')).toBe(CONST.INPUT_VALIDATION_ERRORS.EXISTING);
         expect(getCategoryNameError(categories, 'Food', 'Food')).toBeUndefined();
     });
+
+    it('flags an HTML-like name the Name page already rejects', () => {
+        // Given a category the admin is renaming from the table
+        // When the new name is an HTML-like token such as </>
+        // Then the name is invalid, because the Name page blocks it and the table must not save it
+        expect(getCategoryNameError(categories, '</>', 'Food')).toBe(CONST.INPUT_VALIDATION_ERRORS.INVALID);
+    });
+
+    it('allows a whitelisted angle-bracket token', () => {
+        // Given a category the admin is renaming
+        // When the new name is a harmless token the Name page already allows, such as <>
+        // Then the name is valid, so the table and the Name page stay in agreement
+        expect(getCategoryNameError(categories, '<>', 'Food')).toBeUndefined();
+    });
 });
 
 describe('getCategoryDefaultTaxRate', () => {
@@ -540,5 +652,110 @@ describe('getCategoryDefaultTaxRate', () => {
             tax: {field_id_TAX: {externalID: 'id_TAX_B'}},
         };
         expect(getCategoryDefaultTaxRate([tagNamedAfterTheCategory], 'Travel', 'id_TAX_DEFAULT')).toBe('id_TAX_DEFAULT');
+    });
+});
+
+describe('getMemberVisibleCategoryNames', () => {
+    const policyCategories: PolicyCategories = {
+        Travel: {name: 'Travel', enabled: true, visibleTo: null},
+        Meals: {name: 'Meals', enabled: true, visibleTo: buildVisibleTo(1, 2)},
+        Software: {name: 'Software', enabled: true, visibleTo: buildVisibleTo(2)},
+        Office: {name: 'Office', enabled: false},
+    };
+
+    it('returns the enabled categories open to everyone or to the member', () => {
+        // Given a member who is listed on one restricted category but not another
+        // When we get the categories they can use
+        const visibleCategoryNames = getMemberVisibleCategoryNames(policyCategories, 1);
+
+        // Then the unrestricted category and the one listing them are returned, and the disabled one is not
+        expect(visibleCategoryNames).toEqual(['Travel', 'Meals']);
+    });
+
+    it('returns nothing when there are no categories', () => {
+        // Given a workspace whose categories haven't loaded
+        // When we get the categories a member can use
+        const visibleCategoryNames = getMemberVisibleCategoryNames(undefined, 1);
+
+        // Then there are none, rather than a crash
+        expect(visibleCategoryNames).toEqual([]);
+    });
+});
+
+describe('getMembersWithoutVisibleCategories', () => {
+    // Alice (1) is unrestricted, Bob (2) can only use Fuel, and Carol (3) can use Fuel and Meals.
+    const policyCategories: PolicyCategories = {
+        Travel: {name: 'Travel', enabled: true, visibleTo: buildVisibleTo(1)},
+        Meals: {name: 'Meals', enabled: true, visibleTo: buildVisibleTo(1, 3)},
+        Fuel: {name: 'Fuel', enabled: true, visibleTo: buildVisibleTo(1, 2, 3)},
+        Office: {name: 'Office', enabled: false, visibleTo: buildVisibleTo(1, 2)},
+    };
+
+    it('returns only the members left without an enabled category', () => {
+        // Given Fuel is Bob's only enabled category, while Carol also has Meals and Alice can use everything
+        // When Fuel is about to be disabled
+        const members = getMembersWithoutVisibleCategories(policyCategories, ['Fuel'], [1, 2, 3]);
+
+        // Then only Bob is blocked; his disabled Office category doesn't count as one he can still use
+        expect(members).toEqual([2]);
+    });
+
+    it('counts every category being disabled at once', () => {
+        // Given Carol can only use Fuel and Meals
+        // When both are disabled together in bulk
+        const members = getMembersWithoutVisibleCategories(policyCategories, ['Fuel', 'Meals'], [1, 2, 3]);
+
+        // Then Bob and Carol are both blocked
+        expect(members).toEqual([2, 3]);
+    });
+
+    it("leaves out members who can't use any of the categories being disabled", () => {
+        // Given Dave (4) can't use any enabled category, for example because he was invited after the restrictions were set
+        // When Travel is disabled
+        const members = getMembersWithoutVisibleCategories(policyCategories, ['Travel'], [4]);
+
+        // Then he isn't blocked, since disabling Travel takes nothing away from him
+        expect(members).toEqual([]);
+    });
+
+    it('returns nothing when no category is restricted', () => {
+        // Given every category is open to everyone, as it is before any admin sets a restriction
+        const unrestrictedCategories: PolicyCategories = {
+            Travel: {name: 'Travel', enabled: true, visibleTo: null},
+            Meals: {name: 'Meals', enabled: true},
+        };
+
+        // When one is disabled
+        const members = getMembersWithoutVisibleCategories(unrestrictedCategories, ['Travel'], [1, 2]);
+
+        // Then no one is blocked, so the check needs no beta
+        expect(members).toEqual([]);
+    });
+});
+
+describe('getVisibleCategories', () => {
+    const policyCategories: PolicyCategories = {
+        Travel: {name: 'Travel', enabled: true, visibleTo: null},
+        Meals: {name: 'Meals', enabled: true, visibleTo: buildVisibleTo(1, 2)},
+        Software: {name: 'Software', enabled: true, visibleTo: buildVisibleTo(2)},
+        Office: {name: 'Office', enabled: false, visibleTo: buildVisibleTo(2)},
+    };
+
+    it("keeps only the categories the expense's owner can use", () => {
+        // Given an owner who is on Meals' list but not on Software's or Office's
+        // When the picker's categories are filtered for them
+        const visibleCategories = getVisibleCategories(policyCategories, 1);
+
+        // Then the category open to everyone and the one listing them are kept, keyed as before
+        expect(Object.keys(visibleCategories)).toEqual(['Travel', 'Meals']);
+    });
+
+    it('keeps disabled categories the owner can use, since the picker filters those out itself', () => {
+        // Given an owner who is on the list of a disabled category
+        // When the picker's categories are filtered for them
+        const visibleCategories = getVisibleCategories(policyCategories, 2);
+
+        // Then the disabled one is still there, so filtering doesn't change how disabled categories are handled
+        expect(Object.keys(visibleCategories)).toEqual(['Travel', 'Meals', 'Software', 'Office']);
     });
 });

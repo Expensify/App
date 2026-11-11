@@ -34,12 +34,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {BankName} from '@src/types/onyx/Bank';
-import type {ConnectionName} from '@src/types/onyx/Policy';
 
 import {useNavigationState} from '@react-navigation/native';
 import {isExpensifyCardContinuousReconciliationEnabledSelector} from '@selectors/Card';
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceSettlementAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT>;
@@ -89,12 +87,12 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
     const domainName = settings?.domainName ?? getDomainNameForPolicy(policyID);
     const hasActiveAccountingConnection = !!(policy?.connections && Object.keys(policy.connections).length > 0);
 
-    const fetchPolicyAccountingData = useCallback(() => {
+    const fetchPolicyAccountingData = () => {
         if (!policyID) {
             return;
         }
         openPolicyAccountingPage(policyID);
-    }, [policyID]);
+    };
 
     useEffect(() => {
         if (!cardSettings || !hasActiveAccountingConnection || continuousReconciliation !== undefined || reconciliationConnection !== undefined) {
@@ -104,7 +102,7 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
     }, [cardSettings, hasActiveAccountingConnection, continuousReconciliation, reconciliationConnection, fetchPolicyAccountingData]);
 
     const eligibleBankAccountsOptions: BankAccountListItem[] = eligibleBankAccounts.map((bankAccount) => {
-        const bankName = (bankAccount.accountData?.addressName ?? '') as BankName;
+        const bankName = bankAccount.accountData?.addressName ?? '';
         const bankAccountNumber = bankAccount.accountData?.accountNumber ?? '';
         const bankAccountID = bankAccount.accountData?.bankAccountID ?? bankAccount.methodID;
 
@@ -121,7 +119,7 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
     const fallbackBankAccountOption: BankAccountListItem = {
         value: paymentBankAccountID,
         text: paymentBankAccountAddressName ?? '',
-        leftElement: <BankAccountListItemLeftElement bankName={(paymentBankAccountAddressName ?? '') as BankName} />,
+        leftElement: <BankAccountListItemLeftElement bankName={paymentBankAccountAddressName ?? ''} />,
         alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(paymentBankAccountNumberFromCardSettings ?? '')}`,
         keyForList: paymentBankAccountID?.toString() ?? '',
         isSelected: true,
@@ -134,13 +132,14 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
             Log.alert('[WorkspaceSettlementAccountPage] handleSelectAccount called without a detected card program key');
             return;
         }
-        updateSettlementAccountCard(domainName, defaultFundID, policyID, programKey, value, paymentBankAccountID);
+        // Only Travel Billing sets this root pending field, its error must survive for its rollback
+        const isTravelSettlementAccountPending = !!cardSettings?.pendingFields?.paymentBankAccountID;
+        updateSettlementAccountCard(domainName, defaultFundID, policyID, programKey, value, paymentBankAccountID, isTravelSettlementAccountPending);
         Navigation.goBack();
     };
 
     const getCustomListHeaderContent = () => {
-        const connectionName = reconciliationConnection ?? '';
-        const connectionParam = getRouteParamForConnection(connectionName as ConnectionName);
+        const connectionParam = reconciliationConnection ? getRouteParamForConnection(reconciliationConnection) : undefined;
 
         return (
             <>
@@ -192,3 +191,4 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
 }
 
 export default DynamicWorkspaceSettlementAccountPage;
+export type {WorkspaceSettlementAccountPageProps};

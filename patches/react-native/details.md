@@ -9,10 +9,16 @@
 
 ### [react-native+0.86.0+002+fixMVCPAndroid.patch](react-native+0.86.0+002+fixMVCPAndroid.patch)
 
-- Reason: Fixes content jumping issues with `MaintainVisibleContentPosition` on Android, particularly in bidirectional pagination scenarios. The patch makes two key improvements:
+- Reason: Fixes content jumping issues with `MaintainVisibleContentPosition` on Android, particularly in bidirectional pagination scenarios. The patch:
   1. Changes when the first visible view is calculated - now happens on scroll events instead of during Fabric's willMountItems lifecycle, which was causing incorrect updates
   2. Improves first visible view selection logic to handle Fabric's z-index-based view reordering by finding the view with the smallest position that's still greater than the scroll position
-- Upstream PR/issue: https://github.com/facebook/react-native/pull/46247
+  3. Preserves a positioned, zero-sized first child as a scroll anchor. LegendList moves this anchor to compensate for item measurements. Selecting its surrounding container or rejecting its empty frame prevents native scroll compensation and makes the chat jump as estimated rows shrink. LegendList 3.7 places the anchor at its adjustment offset plus 10,000,000 pixels, beyond the viewport. The strict visibility check also prevents a fixed, zero-sized spacer at or above the scroll offset in another scroll view from taking over its visible-content anchor.
+- Scope: This changes Android `MaintainVisibleContentPosition` for every React Native scroll view that enables it, not only the report-action list. Keep this in mind when updating React Native or investigating anchoring in other scroll views.
+- Upstream PR/issue: https://github.com/react/react-native/pull/57959 merged on 2026-10-28 as [9bc1a28a9623419d62eb350acd0c172644e2c022](https://github.com/react/react-native/commit/9bc1a28a9623419d62eb350acd0c172644e2c022). It ports the original Android MVCP proposal and includes z-index anchor selection and support for LegendList's positioned, zero-sized anchor.
+- Expected release: React Native 0.89.0, [currently scheduled for 2026-12-07](https://reactnative.dev/releases/overview), unless cherry-picked into an earlier release. The fix landed after the 0.88 branch cut and before the scheduled 0.89 branch cut on 2026-11-03.
+- Reproducer: https://github.com/react/react-native/pull/59360 adds the RNTester reproduction, without a runtime fix. The standalone reproduction and proposed anchor patch are in https://github.com/margelo/react-native-mvcp-reproducer.
+- Earlier proposal: https://github.com/react/react-native/pull/46247 closed without merging.
+- Removal: Expected to be removable when the adopted React Native release contains `9bc1a28`. Before removing it, verify bidirectional pagination, changing row heights, and LegendList's positioned-anchor corrections with the patch disabled. Keep it on React Native 0.86 unless the upstream fix is backported.
 - E/App issue: 🛑
 - PR Introducing Patch: https://github.com/Expensify/App/pull/46315 (introduced), https://github.com/Expensify/App/pull/45289 (refactored)
 
@@ -72,6 +78,7 @@
     - Fixes an issue where pasted image displays as binary text on some Android devices where rich clipboard data is stored in binary form
     - Fixes an issue where pasting from WPS Office app crashes the app on Android where its content URI is not recognized by Android `ContentResolver`
     - Fixes an issue where mentions copied from mWeb and pasted on Android are not displayed.
+    - Fixes an issue on iOS where pasting an image failed with "We couldn't process this image" when the first image representation on the pasteboard (e.g. HEIC) could not be read: unreadable representations are now skipped, HEIC/HEIF is tried last so a PNG or JPEG of the same image is used directly when the pasteboard offers one (no HEIC to JPEG conversion needed), the decoded `UIImage` is used as a fallback, and no file is emitted when nothing can be read.
 - Upstream PR/issue: https://github.com/facebook/react-native/pull/45425
 - Upstream RFC: https://github.com/s77rt/discussions-and-proposals/blob/TextInput-onPaste/proposals/0000-textinput-onpaste.md
 - E/App issue:
@@ -128,7 +135,7 @@
 
 ### [react-native+0.86.0+017+publish-gradle.patch](react-native+0.86.0+017+publish-gradle.patch)
 
-- Reason: This patch customizes the Gradle publishing script to allow publishing our custom React Native artifacts to GitHub Packages.
+- Reason: This patch customizes the Gradle publishing script to allow publishing our custom React Native artifacts to GitHub Packages. The POM records the patches hash and the Hermes version the artifact was compiled against, which `scripts/artifacts-utils/lib/artifactsResolver.ts` matches before consuming an artifact.
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
 - PR Introducing Patch: https://github.com/Expensify/App/pull/59738
@@ -144,10 +151,10 @@
 
 ### [react-native+0.86.0+019+fix-modal-transparent-navigation-bar.patch](react-native+0.86.0+019+fix-modal-transparent-navigation-bar.patch)
 
-- Reason: This patch fixes an issue where it is not possible to enable a transparent navigation bar on Android
+- Reason: This patch fixes an issue where it is not possible to enable a transparent navigation bar on Android, and keeps the modal's system bar icons in sync with the activity. The `dialog === newDialog` check in the call that `showOrUpdate()` posts fixes the fatal `IllegalStateException: dialog must exist when we call updateProperties` behind `APP-M66`, which happens when the modal is dismissed before that call runs. Keep this check when regenerating the patch.
 - Upstream PR/issue: 🛑
-- E/App issue: [#69005](https://github.com/Expensify/App/issues/69005)
-- PR introducing patch: [#69004](https://github.com/Expensify/App/pull/69004)
+- E/App issue: [#69005](https://github.com/Expensify/App/issues/69005), [#103778](https://github.com/Expensify/App/issues/103778)
+- PR introducing patch: [#69004](https://github.com/Expensify/App/pull/69004) (introduced), [#104689](https://github.com/Expensify/App/pull/104689) (`APP-M66` guard)
 
 ### [react-native+0.86.0+021+perf-increase-initial-heap-size.patch](react-native+0.86.0+021+perf-increase-initial-heap-size.patch)
 
@@ -382,3 +389,28 @@
 - E/App issue: https://github.com/Expensify/App/issues/102741
 - PR introducing patch: https://github.com/Expensify/App/pull/102901
 - 0.86.0 migration note: drop this patch once the adopted React Native release contains `361bc24`.
+
+### [react-native+0.86.0+047+soft-fail-removeViewAt-non-ViewGroup-parent-APP-H7A.patch](react-native+0.86.0+047+soft-fail-removeViewAt-non-ViewGroup-parent-APP-H7A.patch)
+
+- Reason: Fixes the fatal `IllegalStateException: Unable to remove a view from a view that is not a ViewGroup` behind `APP-H7A`. `SurfaceMountingManager.removeViewAt` throws when the parent tag has a `ViewState` whose view is null or not a `ViewGroup`. It is the `Remove` counterpart of `APP-K0G` (`+045`), with the same sources: a placeholder `ViewState` with no view created by `updateEventEmitter`, delayed deletes during touches, and differ flatten/unflatten bugs (`+046` closes one of them). `IntBufferBatchMountItem` is not retryable, so the throw kills the app. A view that is not a `ViewGroup` cannot hold children, so the removal is a no-op. The patch soft-logs a `ReactNoCrashSoftException` with the parent view class and returns, which is the upstream fix. If the child is still attached to a stale native parent, the next `addViewAt` of that child already detaches it (the "View already has a parent" branch), so nothing crashes later. The log message keeps 0.86.0's wording and adds `ParentView` the same way `+045` does. Unlike upstream, the patch also covers a null `parentView`: 0.86.0 has no `checkNotNull(parentView)` before this check, so null falls into the same branch, while upstream still crashes on it.
+- Upstream PR/issue: [react-native#57860](https://github.com/react/react-native/pull/57860) / [react-native@3f553d7](https://github.com/react/react-native/commit/3f553d76bc3f4f57e62653d11bab415a21cd02a8)
+- E/App issue: https://github.com/Expensify/App/issues/103369
+- PR introducing patch: https://github.com/Expensify/App/pull/103447
+- 0.86.0 migration note: the adopted release containing `3f553d7` is not enough to drop this patch. `0.87.0` still throws here and already has `checkNotNull(parentView)` right before this check. `0.88` soft-fails a non-`ViewGroup` parent but keeps that `checkNotNull`, so a null `parentView` (the placeholder `ViewState` from [react-native#58526](https://github.com/react/react-native/issues/58526)) still crashes. On the 0.88 upgrade, reduce it to soft-failing the `checkNotNull` only. Drop it once upstream handles a null `parentView` in `removeViewAt`.
+
+### [react-native+0.86.0+048+fix-hermes-tarball-root-after-repo-move.patch](react-native+0.86.0+048+fix-hermes-tarball-root-after-repo-move.patch)
+
+- Reason: Fixes Android builds that compile React Native from source (the artifacts publish workflow, any build that misses the prebuilt artifacts, `BUILD_RN_FROM_SOURCE=1`) failing at `hermes-engine:configureBuildForHermes` with `The source directory ".../sdks/hermes" does not appear to contain CMakeLists.txt`. On 2026-10-28 `facebook/hermes` moved to `meta/hermes`. The old tarball URL still redirects, but GitHub names the archive's top-level folder `<owner>-<repo>-<sha>`, so it is now `meta-hermes-<sha>/` and `unzipHermes` only flattened `facebook-hermes-*`, leaving the sources one level too deep. The patch is the upstream fix: download from `meta/hermes` and strip the single top-level folder whatever its name (`includeEmptyDirs = false` keeps the empty wrapper folder from being recreated), the same way `ReactAndroid/build.gradle.kts` extracts folly, fmt and fast_float. It leaves the `doLast` step from `+024` untouched, which depends on `sdks/hermes` being flattened correctly.
+- Upstream PR/issue: [react-native#59587](https://github.com/react/react-native/issues/59587) / [react-native#59589](https://github.com/react/react-native/pull/59589) ([react-native@f6a5042](https://github.com/react/react-native/commit/f6a5042c8)), merged to `main` on 2026-10-28, not in any `0.86.x` release (`0.86.3` predates the move) nor on `0.86-stable`.
+- E/App issue: https://github.com/Expensify/App/issues/105383
+- PR introducing patch: https://github.com/Expensify/App/pull/105381
+- 0.86.0 migration note: drop once we adopt a React Native release that contains `f6a5042`. Adding this patch changes the patches hash, so merging it republishes the prebuilt artifacts; that publish is also the first CI build from source since the move, so confirm it passes.
+
+### [react-native+0.86.0+049+fix-stale-mvcp-anchor-ios.patch](react-native+0.86.0+049+fix-stale-mvcp-anchor-ios.patch)
+
+- Reason: The report page goes blank after adding a second expense to a chat that is scrolled up, on iOS. `RCTScrollViewComponentView`'s `_adjustForMaintainVisibleContentPosition` never validates the anchor view it saved in `_prepareForMaintainVisibleScrollPosition`. Its only guard sits behind `ReactNativeFeatureFlags::enableViewCulling()`, which defaults to `false` in 0.86 and is not overridden in App — so the guard is dead code. When the list crosses the 250 px threshold, `maintainVisibleContentPosition` is disabled and re-enabled; flash-list patch 007 only passes the prop to the native ScrollView while it is enabled, so the prop is removed and re-added, and the first commit after it comes back reuses whatever anchor iOS saved last time. A nil or recycled anchor reads `frame.origin.y == 0` against a recorded 1,000,000 (where flash-list parks its `ScrollAnchor`), giving a `deltaY` of roughly −1,000,000. The list ends up parked where nothing is materialized: a blank page. This patch replaces the flag-gated block with the three unconditional abort conditions upstream added — nil, tag (view recycled), and superview (view deleted) — which is also what Android already does.
+- Blast radius: iOS only, and confined to the MVCP adjustment path. The new conditions can only cause an early `return`, i.e. skip a scroll-offset correction that would have been computed from an invalid anchor. Cases where the anchor is still valid are unchanged.
+- Upstream PR/issue: [react/react-native#57294](https://github.com/react/react-native/pull/57294) — landed as [`3b90423`](https://github.com/facebook/react-native/commit/3b90423076cfa5d5310bb0190cd1abb69f72dc40) (the PR shows as closed because it was imported through Meta's internal system rather than merged directly), fixes [#25239](https://github.com/facebook/react-native/issues/25239).
+- E/App issue: https://github.com/Expensify/App/issues/100303
+- PR introducing patch: this PR.
+- 0.86.0 migration note: **drop this patch on the RN 0.88 upgrade** — the unconditional `_firstVisibleView.tag` and `superview` guards are present in `0.88-stable` and absent from `v0.87.1`, which still has only the `enableViewCulling()`-gated check.

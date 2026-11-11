@@ -18,6 +18,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getAutoUpdateGovernmentRateCountry, isSharedGovernmentRateCurrency} from '@libs/PolicyDistanceRatesUtils';
 import {
     canEditWorkspaceSettings,
     canModifyPlan,
@@ -61,7 +62,7 @@ import {
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {ownerPoliciesSelector} from '@src/selectors/Policy';
+import {canEditAnyWorkspaceSettingsSelector, ownerPoliciesSelector} from '@src/selectors/Policy';
 import type {Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -134,6 +135,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     const ownerPoliciesSelectorWithAccountID = (policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID);
     const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: ownerPoliciesSelectorWithAccountID});
+    const canEditAnyWorkspaceSettingsSelectorWithLogin = (policies: OnyxCollection<Policy>) => canEditAnyWorkspaceSettingsSelector(policies, email);
+    const [canEditAnyWorkspaceSettings] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: canEditAnyWorkspaceSettingsSelectorWithLogin});
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {isOffline} = useNetwork();
     const canPerformUpgrade = canModifyPlan(ownerPolicies, policy) || isUpgradingFromSubmitPolicy;
@@ -188,8 +191,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.id:
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.id:
                 return Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.id:
+                // Connections upgrades for HR and passes itself as the page to return to
+                return Navigation.goBack(route.params.backTo ?? ROUTES.WORKSPACE_CONNECTIONS_HR.getRoute(policyID));
             default:
                 return route.params.backTo ? Navigation.goBack(route.params.backTo) : Navigation.goBack();
         }
@@ -202,8 +207,20 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             });
             return;
         }
+        if (
+            feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.governmentDistanceRates.id &&
+            policyID &&
+            isSharedGovernmentRateCurrency(policy?.outputCurrency) &&
+            !getAutoUpdateGovernmentRateCountry(policy)
+        ) {
+            Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_GOVERNMENT_RATE_COUNTRY.getRoute(policyID), {forceReplace: true});
+            return;
+        }
         goBack();
     };
+
+    const requiredPlan = upgradeFeatureByAlias && 'requiredPlan' in upgradeFeatureByAlias ? upgradeFeatureByAlias.requiredPlan : undefined;
+    const upgradeTargetType = isUpgradingFromSubmitPolicy ? (upgradePlanType ?? requiredPlan ?? CONST.POLICY.TYPE.TEAM) : CONST.POLICY.TYPE.CORPORATE;
 
     const onUpgradeToCorporate = () => {
         if (!canPerformUpgrade || !policy) {
@@ -211,9 +228,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }
 
         if (isUpgradingFromSubmitPolicy) {
-            const requiredPlan = upgradeFeatureByAlias && 'requiredPlan' in upgradeFeatureByAlias ? upgradeFeatureByAlias.requiredPlan : undefined;
-            const targetType = upgradePlanType ?? requiredPlan ?? CONST.POLICY.TYPE.TEAM;
-            upgradeSubmit(policy, targetType, email, accountID, priorFirstDayFreeTrial, priorLastDayFreeTrial, reportID);
+            upgradeSubmit(policy, upgradeTargetType, email, accountID, priorFirstDayFreeTrial, priorLastDayFreeTrial, reportID);
             return;
         }
 
@@ -294,11 +309,15 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                     enablePolicyRules(policy, true, isVendorMatchingBetaEnabled, false, policyDataRef.current);
                 }
                 break;
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.governmentDistanceRates.id:
-                if (distanceRateCustomUnit) {
-                    setWorkspaceDistanceAutoUpdate(policyID, distanceRateCustomUnit, true, governmentMileageRates ?? [], policy?.outputCurrency);
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.governmentDistanceRates.id: {
+                const storedGovernmentRateCountry = getAutoUpdateGovernmentRateCountry(policy);
+                const isSharedCurrency = isSharedGovernmentRateCurrency(policy?.outputCurrency);
+                if (!policy || !distanceRateCustomUnit || (isSharedCurrency && !storedGovernmentRateCountry)) {
+                    break;
                 }
+                setWorkspaceDistanceAutoUpdate(policy, true, governmentMileageRates ?? [], isSharedCurrency ? storedGovernmentRateCountry : undefined);
                 break;
+            }
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.publicReceiptVisibility.id:
                 setPolicyReceiptVisibilityPublic(policyID, true, policy?.isReceiptVisibilityPublic);
                 break;
@@ -310,10 +329,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 enablePerDiem(policyID, true, perDiemCustomUnit?.customUnitID, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.id:
-                enablePolicyHR(policyID, true);
+                enablePolicyHR(policyID, true, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.recruiting.id:
-                enablePolicyRecruiting(policyID, true);
+                enablePolicyRecruiting(policyID, true, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id:
@@ -376,7 +395,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     // Editors can view the intro but only admins can upgrade, so we separate
     // access (canEditWorkspaceSettings) from the upgrade action (canPerformUpgrade).
-    if (policy ? !canEditWorkspaceSettings(policy) : !canPerformUpgrade) {
+    // Without a workspace in the route the page only pitches Control and links to the workspace list, so being able
+    // to edit any workspace is enough to view it.
+    const canViewUpgradePage = policy ? canEditWorkspaceSettings(policy) : canPerformUpgrade || !!canEditAnyWorkspaceSettings;
+    if (!canViewUpgradePage) {
         return <NotFoundPage />;
     }
 
@@ -401,6 +423,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 {!!policy && isUpgraded && (
                     <UpgradeConfirmation
                         afterUpgradeAcknowledged={afterUpgradeAcknowledged}
+                        confirmSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.CONFIRMATION_GOT_IT}
                         policyName={policy.name}
                         planName={getUserFriendlyWorkspaceType(policy.type, translate)}
                     />
@@ -410,6 +433,11 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                         policyID={policyID}
                         feature={feature}
                         onUpgrade={onUpgradeToCorporate}
+                        upgradeSentryLabel={
+                            upgradeTargetType === CONST.POLICY.TYPE.TEAM
+                                ? CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.UPGRADE_PLAN.COLLECT
+                                : CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.UPGRADE_PLAN.CONTROL
+                        }
                         buttonDisabled={isOffline || !canPerformUpgrade}
                         loading={policy?.isPendingUpgrade}
                         backTo={route.params.backTo}

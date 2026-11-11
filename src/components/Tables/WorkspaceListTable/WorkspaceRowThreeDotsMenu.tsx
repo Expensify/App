@@ -1,5 +1,6 @@
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
+import type {ThreeDotsMenuHandle} from '@components/ThreeDotsMenu/types';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -10,9 +11,12 @@ import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearCopyPolicySettings} from '@libs/actions/Policy/CopyPolicySettings';
-import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
+import {callIfAuthenticated} from '@libs/actions/Session';
 import Navigation from '@libs/Navigation/Navigation';
+import {canRoleCreateExpenses, canUnarchivePolicy} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
+
+import UnarchiveWorkspaceFlow from '@pages/workspace/archiveWorkspace/UnarchiveWorkspaceFlow';
 
 import {setNameValuePair} from '@userActions/User';
 
@@ -22,10 +26,12 @@ import ROUTES from '@src/ROUTES';
 import {canDowngradeSelector} from '@src/selectors/Account';
 import {createOwnedPaidPoliciesCountsSelector} from '@src/selectors/Policy';
 
+import type {RefObject} from 'react';
 import type {ValueOf} from 'type-fest';
 
 import {useIsFocused} from '@react-navigation/core';
-import React, {useEffect, useRef, useState} from 'react';
+import {authTokenTypeSelector} from '@selectors/Session';
+import React, {useEffect, useState} from 'react';
 
 import type {WorkspaceRowData} from '.';
 
@@ -46,6 +52,9 @@ type WorkspaceRowThreeDotsMenuProps = {
 
     /** ID of the workspace with a deletion in progress, if any */
     pendingDeletePolicyID?: string;
+
+    /** Ref to the menu, shared with the row so it can re-measure the open menu when the row moves */
+    threeDotsMenuRef: RefObject<ThreeDotsMenuHandle | null>;
 };
 
 /**
@@ -53,13 +62,13 @@ type WorkspaceRowThreeDotsMenuProps = {
  * primitive-valued subscriptions, and mounts the leave/transfer flows on demand so their heavier
  * subscriptions (the full policy entry) exist only while the corresponding action is in progress.
  */
-function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace, pendingDeletePolicyID}: WorkspaceRowThreeDotsMenuProps) {
-    const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);
+function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace, pendingDeletePolicyID, threeDotsMenuRef}: WorkspaceRowThreeDotsMenuProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
-    const icons = useMemoizedLazyExpensifyIcons(['Box', 'Building', 'Exit', 'Plus', 'Copy', 'Star', 'Trashcan', 'Transfer']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowCircleClockwise', 'Box', 'Building', 'Exit', 'Plus', 'Copy', 'Star', 'Trashcan', 'Transfer']);
     const canArchivePolicies = isBetaEnabled(CONST.BETAS.ARCHIVE_POLICIES);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -87,7 +96,7 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
             return;
         }
         threeDotsMenuRef?.current?.hidePopoverMenu();
-    }, [isLoadingBill]);
+    }, [isLoadingBill, threeDotsMenuRef]);
 
     const isDefault = activePolicyID === item.policyID;
     const isOwner = item.ownerAccountID === currentUserPersonalDetails.accountID;
@@ -106,7 +115,7 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
             menuItems.push({
                 icon: icons.Exit,
                 text: translate('common.leave'),
-                onSelected: callFunctionIfActionIsAllowed(() => setActiveAction(CONST.POLICY.THREE_DOT_MENU_ACTION.LEAVE)),
+                onSelected: callIfAuthenticated(() => setActiveAction(CONST.POLICY.THREE_DOT_MENU_ACTION.LEAVE), session),
                 shouldCallAfterModalHide: true,
             });
         }
@@ -132,7 +141,8 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
             }
         }
 
-        if (!isDefault && !item?.isJoinRequestPending && !isRestrictedToPreferredPolicy) {
+        // Making the workspace the default would break expense creation routing for members without create-expenses permission.
+        if (!isDefault && !item?.isJoinRequestPending && !isRestrictedToPreferredPolicy && canRoleCreateExpenses(item.role)) {
             menuItems.push({
                 icon: icons.Star,
                 text: translate('workspace.common.setAsDefault'),
@@ -170,6 +180,15 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
         }
     }
 
+    if (canUnarchivePolicy(item.isArchived, item.ownerAccountID, currentUserPersonalDetails.accountID, canArchivePolicies)) {
+        menuItems.push({
+            icon: icons.ArrowCircleClockwise,
+            text: translate('workspace.common.unarchive'),
+            onSelected: callIfAuthenticated(() => setActiveAction(CONST.POLICY.THREE_DOT_MENU_ACTION.UNARCHIVE), session),
+            shouldCallAfterModalHide: true,
+        });
+    }
+
     // Transferring ownership applies to both active and archived workspaces, so it lives outside the split above.
     if (isAdmin && !isOwner && canRenderTransferOwnerButton) {
         menuItems.push({
@@ -196,6 +215,12 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
             />
             {activeAction === CONST.POLICY.THREE_DOT_MENU_ACTION.LEAVE && (
                 <LeaveWorkspaceFlow
+                    policyID={item.policyID}
+                    onDismiss={() => setActiveAction(undefined)}
+                />
+            )}
+            {activeAction === CONST.POLICY.THREE_DOT_MENU_ACTION.UNARCHIVE && (
+                <UnarchiveWorkspaceFlow
                     policyID={item.policyID}
                     onDismiss={() => setActiveAction(undefined)}
                 />

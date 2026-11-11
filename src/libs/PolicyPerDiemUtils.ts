@@ -8,22 +8,28 @@ import CONST from '@src/CONST';
 
 import {convertToBackendAmount} from './CurrencyUtils';
 import StringUtils from './StringUtils';
+import {containsHtmlTag} from './ValidationUtils';
 
 /** The reason a proposed per diem destination or subrate name is invalid. */
-type PerDiemNameError = typeof CONST.INPUT_VALIDATION_ERRORS.REQUIRED | typeof CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
+type PerDiemNameError = typeof CONST.INPUT_VALIDATION_ERRORS.REQUIRED | typeof CONST.INPUT_VALIDATION_ERRORS.INVALID | typeof CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
 
 /** The reason a proposed per diem amount is invalid. Shared by the RHP edit form and inline table editing. */
 type PerDiemAmountError = typeof CONST.INPUT_VALIDATION_ERRORS.REQUIRED;
 
 /**
  * Validates a per diem destination or subrate name against the same rules as the RHP edit forms
- * (required and max length). Returns an error code, or undefined when the name is valid.
+ * (required, HTML-like characters, and max length). Returns an error code, or undefined when the name is valid.
  */
 function getPerDiemNameError(newName: string): PerDiemNameError | undefined {
     const sanitized = StringUtils.sanitizeName(newName);
 
     if (StringUtils.isEmptyString(sanitized)) {
         return CONST.INPUT_VALIDATION_ERRORS.REQUIRED;
+    }
+
+    // The Name page rejects these in FormProvider. Inline rename only calls this helper, so `</>` would otherwise save from the table.
+    if (containsHtmlTag(sanitized)) {
+        return CONST.INPUT_VALIDATION_ERRORS.INVALID;
     }
 
     // Spread to count Unicode code points rather than UTF-16 code units.
@@ -39,6 +45,8 @@ function getPerDiemNameErrorMessage(translate: LocaleContextProps['translate'], 
     switch (error) {
         case CONST.INPUT_VALIDATION_ERRORS.REQUIRED:
             return translate('common.error.fieldRequired');
+        case CONST.INPUT_VALIDATION_ERRORS.INVALID:
+            return translate('common.error.invalidCharacter');
         case CONST.INPUT_VALIDATION_ERRORS.TOO_LONG:
         default:
             return translate('common.error.characterLimitExceedCounter', [...StringUtils.sanitizeName(name)].length, CONST.MAX_LENGTH_256);

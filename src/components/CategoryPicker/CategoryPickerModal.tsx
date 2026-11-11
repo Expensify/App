@@ -1,87 +1,90 @@
-import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
-import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
+import AnchoredSelectionListPopover from '@components/AnchoredSelectionListPopover';
+import type {AnchoredSelectionListPopoverProps} from '@components/AnchoredSelectionListPopover';
+import Icon from '@components/Icon';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {ListItem} from '@components/SelectionList/types';
+import Tooltip from '@components/Tooltip';
 
-import useKeyboardState from '@hooks/useKeyboardState';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
+import useTheme from '@hooks/useTheme';
 
-import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
+import {getEnabledCategoriesCount, getVisibleCategories} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import getSelectionListPopoverContentHeight from '@libs/getSelectionListPopoverContentHeight';
+import startOpenCategoryPickerSpan from '@libs/telemetry/startOpenCategoryPickerSpan';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
-import type {ComponentRef} from 'react';
-
-import React, {useRef, useState} from 'react';
-import {View} from 'react-native';
+import policyCategoriesVisibilitySelector from '@selectors/PolicyCategories';
+import React, {useLayoutEffect, useState} from 'react';
 
 import CategoryPicker from '.';
 
-const DEFAULT_ANCHOR_ALIGNMENT = {
-    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-};
-
 type CategoryPickerModalProps = {
-    onClose: () => void;
-
     /** The policy whose categories should be shown */
     policyID: string | undefined;
 
     selectedCategory?: string;
 
+    /** Whether to show GL codes under each category regardless of the workspace setting */
+    shouldAlwaysShowGLCode?: boolean;
+
+    /** Number of enabled categories at which the search input appears. The content height estimate uses the same value. */
+    searchInputThreshold?: number;
+
     /** Called when the user confirms a category selection */
     onSelected?: (item: ListItem) => void;
 
-    /** Width of the pop-over. Defaults to the standard dropdown width, a field row passes its own width instead */
-    popoverWidth?: number;
+    /** Shows a header with a back button and an add button, for users who can add a category to the workspace */
+    onAddCategory?: () => void;
 
-    /** Height of the pop-over. Defaults to the standard dropdown height, a caller short on room passes a smaller one */
-    popoverHeight?: number;
+    /** Sentry label for the add button, so each caller's presses are attributed to it */
+    addCategorySentryLabel?: SentryLabel;
 
-    /** Whether the pop-over shrinks to the height its list needs, treating `popoverHeight` as a ceiling. */
-    shouldFitContentHeight?: boolean;
+    /** Receives the searched-for name when the user taps the create row. The row is offered only when this is passed. */
+    onCreateCategory?: (categoryName: string) => void;
 
-    /** Whether the pop-over may flip to the other side of the anchor when it overflows. It shifts by a whole pop-over height, so a caller that already picked the side turns this off. */
-    shouldSwitchPositionIfOverflow?: boolean;
-} & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
+    /** The account the expense belongs to, passed only when the current user owns it, so the list shows just the categories they can use */
+    ownerAccountID?: number;
+} & Omit<AnchoredSelectionListPopoverProps, 'optionCount' | 'isSearchable' | 'title' | 'backButtonSentryLabel' | 'headerActions' | 'shouldShowHeader' | 'children'>;
 
 function CategoryPickerModal({
-    isVisible,
-    onClose,
-    anchorPosition,
     policyID,
     selectedCategory,
+    shouldAlwaysShowGLCode = false,
+    searchInputThreshold = CONST.STANDARD_LIST_ITEM_LIMIT,
     onSelected,
-    anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
-    shouldMeasureAnchorPositionFromTop = false,
-    popoverWidth = CONST.POPOVER_DROPDOWN_WIDTH,
-    popoverHeight = CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
-    shouldFitContentHeight = false,
-    shouldSwitchPositionIfOverflow = true,
+    onAddCategory,
+    addCategorySentryLabel,
+    onCreateCategory,
+    ownerAccountID,
+    isVisible,
+    onClose,
+    ...popoverProps
 }: CategoryPickerModalProps) {
-    const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision (bottom-docked only when isSmallScreenWidth)
-    const {isSmallScreenWidth} = useResponsiveLayout();
-    const {isKeyboardActive} = useKeyboardState();
-    const anchorRef = useRef<ComponentRef<typeof View>>(null);
+    const theme = useTheme();
+    const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
 
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`, {selector: getEnabledCategoriesCount});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`, {selector: policyCategoriesVisibilitySelector});
     const [renderedRowCount, setRenderedRowCount] = useState<number>();
 
-    const categoriesCount = policyCategories ?? 0;
-    const isSearchable = categoriesCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const estimatedContentHeight = getSelectionListPopoverContentHeight({optionCount: Math.max(renderedRowCount ?? categoriesCount, 1), isSearchable});
+    // Counts what the picker lists, so the search input shows only when the owner's own list is long enough.
+    const categoriesCount = getEnabledCategoriesCount(ownerAccountID === undefined || !policyCategories ? policyCategories : getVisibleCategories(policyCategories, ownerAccountID));
 
-    // A bottom sheet is sized by the screen, so the content estimate only applies to the pop-over.
-    const resolvedHeight = shouldFitContentHeight && !isSmallScreenWidth ? Math.min(popoverHeight, estimatedContentHeight) : popoverHeight;
-    const popoverDimensions = {width: popoverWidth, height: resolvedHeight};
+    // A layout effect, so the span starts before the picker's own effects run and can end it. The popover only renders
+    // the picker while it's open, so the picker mounts again on every open.
+    useLayoutEffect(() => {
+        if (!isVisible) {
+            return;
+        }
+        startOpenCategoryPickerSpan();
+    }, [isVisible]);
 
     const handleCategorySelect = (item: ListItem) => {
         // If clicking the same category that's already selected, treat it as deselection
@@ -93,34 +96,54 @@ function CategoryPickerModal({
         onClose();
     };
 
+    const createCategory = (categoryName: string) => {
+        onCreateCategory?.(categoryName);
+        onClose();
+    };
+
     return (
-        <PopoverWithMeasuredContent
-            anchorRef={anchorRef}
+        <AnchoredSelectionListPopover
+            {...popoverProps}
             isVisible={isVisible}
             onClose={onClose}
-            anchorPosition={anchorPosition}
-            popoverDimensions={popoverDimensions}
-            anchorAlignment={anchorAlignment}
-            innerContainerStyle={isSmallScreenWidth ? undefined : StyleUtils.getWidthStyle(popoverDimensions.width)}
-            restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
-            shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
-            shouldEnableNewFocusManagement
-            shouldMeasureAnchorPositionFromTop={shouldMeasureAnchorPositionFromTop}
-            shouldSkipRemeasurement
-            shouldDisplayBelowModals
-            enableEdgeToEdgeBottomSafeAreaPadding
+            optionCount={renderedRowCount ?? categoriesCount}
+            isSearchable={categoriesCount >= searchInputThreshold}
+            title={translate('common.category')}
+            backButtonSentryLabel={CONST.SENTRY_LABEL.CATEGORY_PICKER_MODAL.BACK_BUTTON}
+            shouldShowHeader={!!onAddCategory}
+            headerActions={
+                !!onAddCategory && (
+                    <Tooltip text={translate('workspace.categories.addCategory')}>
+                        <PressableWithFeedback
+                            accessibilityLabel={translate('workspace.categories.addCategory')}
+                            role={CONST.ROLE.BUTTON}
+                            onPress={onAddCategory}
+                            shouldUseAutoHitSlop
+                            sentryLabel={addCategorySentryLabel}
+                        >
+                            <Icon
+                                src={icons.Plus}
+                                fill={theme.icon}
+                                width={variables.iconSizeNormal}
+                                height={variables.iconSizeNormal}
+                            />
+                        </PressableWithFeedback>
+                    </Tooltip>
+                )
+            }
         >
-            <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.pt4]}>
-                <CategoryPicker
-                    onRenderedRowCountChange={setRenderedRowCount}
-                    selectedCategory={selectedCategory}
-                    policyID={policyID}
-                    onSubmit={handleCategorySelect}
-                    addBottomSafeAreaPadding={isSmallScreenWidth && !isKeyboardActive}
-                    shouldAutoFocusSearchInput
-                />
-            </View>
-        </PopoverWithMeasuredContent>
+            <CategoryPicker
+                onRenderedRowCountChange={setRenderedRowCount}
+                selectedCategory={selectedCategory}
+                policyID={policyID}
+                onSubmit={handleCategorySelect}
+                onCreateCategory={onCreateCategory ? createCategory : undefined}
+                shouldAutoFocusSearchInput
+                shouldAlwaysShowGLCode={shouldAlwaysShowGLCode}
+                searchInputThreshold={searchInputThreshold}
+                ownerAccountID={ownerAccountID}
+            />
+        </AnchoredSelectionListPopover>
     );
 }
 

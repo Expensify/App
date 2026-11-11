@@ -22,7 +22,7 @@ import {clearXeroErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 function XeroBillPaymentAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
@@ -33,39 +33,30 @@ function XeroBillPaymentAccountSelectorPage({policy}: WithPolicyConnectionsProps
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const {config} = policy?.connections?.xero ?? {};
     const {reimbursementAccountID, syncReimbursedReports} = policy?.connections?.xero?.config.sync ?? {};
-    const xeroSelectorOptions = useMemo<SelectorType[]>(() => getXeroBankAccounts(policy ?? undefined, reimbursementAccountID), [reimbursementAccountID, policy]);
+    const xeroSelectorOptions: SelectorType[] = getXeroBankAccounts(policy ?? undefined, reimbursementAccountID);
 
-    const listHeaderComponent = useMemo(
-        () => (
-            <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.xero.advancedConfig.xeroBillPaymentAccountDescription')}</Text>
-            </View>
-        ),
-        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
+    const listHeaderComponent = (
+        <View style={[styles.pb2, styles.ph5]}>
+            <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.xero.advancedConfig.xeroBillPaymentAccountDescription')}</Text>
+        </View>
     );
 
-    const initiallyFocusedOptionKey = useMemo(() => xeroSelectorOptions?.find((mode) => mode.isSelected)?.keyForList, [xeroSelectorOptions]);
+    const initiallyFocusedOptionKey = xeroSelectorOptions?.find((mode) => mode.isSelected)?.keyForList;
 
-    const updateAccount = useCallback(
-        ({value}: SelectorType) => {
-            updateXeroSyncReimbursementAccountID(policyID, value, reimbursementAccountID);
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID));
-        },
-        [policyID, reimbursementAccountID],
-    );
+    const updateAccount = ({value}: SelectorType) => {
+        updateXeroSyncReimbursementAccountID(policyID, value, reimbursementAccountID);
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID));
+    };
 
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.xero.noAccountsFound')}
-                subtitle={translate('workspace.xero.noAccountsFoundDescription')}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [translate, styles.pb10, illustrations.Telescope],
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.xero.noAccountsFound')}
+            subtitle={translate('workspace.xero.noAccountsFoundDescription')}
+            containerStyle={styles.pb10}
+        />
     );
 
     return (

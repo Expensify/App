@@ -55,6 +55,30 @@ describe('CurrencyUtils', () => {
         );
     });
 
+    describe('hasSpaceBetweenSymbolAndAmount', () => {
+        test('Returns false when the locale format keeps the symbol flush with the amount', async () => {
+            // Given an English locale, where USD is formatted as "$0.00" with no gap
+            await IntlStore.load(CONST.LOCALES.EN);
+
+            // When the inline editor asks whether the preview inserts a space
+            const hasSpace = CurrencyUtils.hasSpaceBetweenSymbolAndAmount(CONST.LOCALES.EN, CONST.CURRENCY.USD);
+
+            // Then no extra padding is applied, so English USD does not gain a gap the preview does not have
+            expect(hasSpace).toBe(false);
+        });
+
+        test('Returns true when the locale format separates the symbol and the amount', async () => {
+            // Given an English locale, where CZK is formatted as "CZK 0.00"
+            await IntlStore.load(CONST.LOCALES.EN);
+
+            // When the inline editor asks whether the preview inserts a space
+            const hasSpace = CurrencyUtils.hasSpaceBetweenSymbolAndAmount(CONST.LOCALES.EN, 'CZK');
+
+            // Then the editor can pad the symbol so edit mode matches the preview
+            expect(hasSpace).toBe(true);
+        });
+    });
+
     describe('convertToBackendAmount', () => {
         test.each([
             [25, 2500],

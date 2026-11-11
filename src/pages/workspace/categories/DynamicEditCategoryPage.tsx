@@ -6,6 +6,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getCategoryNameError, getCategoryNameErrorMessage, getDecodedCategoryName} from '@libs/CategoryUtils';
@@ -24,7 +25,7 @@ import type ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 import CategoryForm from './CategoryForm';
 
@@ -44,35 +45,30 @@ function DynamicEditCategoryPage({route}: DynamicEditCategoryPageProps) {
     const settingsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_CATEGORY_EDIT.path);
     const workspaceBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_EDIT.path);
     const decodedCategoryName = getDecodedCategoryName(currentCategoryName);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM> = {};
-            const nameError = getCategoryNameError(policyCategories, values.categoryName, decodedCategoryName);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM> = {};
+        const nameError = getCategoryNameError(policyCategories, values.categoryName, decodedCategoryName);
 
-            if (nameError) {
-                errors.categoryName = getCategoryNameErrorMessage(translate, nameError, values.categoryName);
-            }
-            return errors;
-        },
-        [policyCategories, decodedCategoryName, translate],
-    );
+        if (nameError) {
+            errors.categoryName = getCategoryNameErrorMessage(translate, nameError, values.categoryName);
+        }
+        return errors;
+    };
 
-    const editCategory = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
-            const newCategoryName = StringUtils.sanitizeName(values.categoryName);
-            // Do not call the API if the edited category name is the same as the current category name
-            if (decodedCategoryName !== newCategoryName) {
-                renamePolicyCategory(policyData, {oldName: currentCategoryName, newName: newCategoryName}, isVendorMatchingBetaEnabled);
-            }
+    const editCategory = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
+        const newCategoryName = StringUtils.sanitizeName(values.categoryName);
+        // Do not call the API if the edited category name is the same as the current category name
+        if (decodedCategoryName !== newCategoryName) {
+            renamePolicyCategory(policyData, {oldName: currentCategoryName, newName: newCategoryName}, isVendorMatchingBetaEnabled, getReviewWorkspaceSettingsTaskCompletion());
+        }
 
-            // Ensure Onyx.update is executed before navigation to prevent UI blinking issues, affecting the category name and rate.
-            Navigation.setNavigationActionToMicrotaskQueue(() => {
-                Navigation.goBack(isQuickSettingsFlow ? settingsBackPath : workspaceBackPath, {compareParams: false});
-            });
-        },
-        [decodedCategoryName, currentCategoryName, policyData, isQuickSettingsFlow, settingsBackPath, workspaceBackPath, isVendorMatchingBetaEnabled],
-    );
+        // Ensure Onyx.update is executed before navigation to prevent UI blinking issues, affecting the category name and rate.
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.goBack(isQuickSettingsFlow ? settingsBackPath : workspaceBackPath, {compareParams: false});
+        });
+    };
 
     return (
         <AccessOrNotFoundWrapper

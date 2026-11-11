@@ -3,9 +3,9 @@ import setupSentry from '@src/setup/telemetry/setupSentry';
 import type {Integration} from '@sentry/core';
 
 /**
- * Sentry runs event processors in integration order, so registering `classCallCheckNoiseFilterIntegration`
- * before the `thirdPartyErrorFilterIntegration` that writes the tag it reads makes it inert. The native index
- * stubs both to `undefined`, hence the mock, which also lets us observe the order `setupSentry` builds.
+ * Sentry runs event processors in integration order, so registering a noise filter before the
+ * `thirdPartyErrorFilterIntegration` that writes the tag it reads makes it inert. The native index stubs all of
+ * them to `undefined`, hence the mock, which also lets us observe the order `setupSentry` builds.
  */
 jest.mock('@libs/telemetry/integrations', () => ({
     navigationIntegration: {name: 'Navigation'},
@@ -16,6 +16,7 @@ jest.mock('@libs/telemetry/integrations', () => ({
     reportingObserverIntegration: undefined,
     thirdPartyErrorFilterIntegration: {name: 'ThirdPartyErrorsFilter'},
     classCallCheckNoiseFilterIntegration: {name: 'ClassCallCheckNoiseFilter'},
+    googleTranslateRecursionNoiseFilterIntegration: {name: 'GoogleTranslateRecursionNoiseFilter'},
 }));
 
 jest.mock('@sentry/react-native', () => ({
@@ -35,12 +36,15 @@ describe('setupSentry integration order', () => {
         jest.clearAllMocks();
     });
 
-    it('registers thirdPartyErrorFilter before classCallCheckNoiseFilter, whose predicate reads its tag', () => {
+    it.each(['ClassCallCheckNoiseFilter', 'GoogleTranslateRecursionNoiseFilter'])('registers thirdPartyErrorFilter before %s, whose predicate reads its tag', (filterName) => {
+        // Given a noise filter that reads the `third_party_code` tag
+        // When setupSentry builds its integration list
         const names = initIntegrationNames();
 
+        // Then the tagger runs first, or the filter would see untagged events and go inert
         expect(names).toContain('ThirdPartyErrorsFilter');
-        expect(names).toContain('ClassCallCheckNoiseFilter');
-        expect(names.indexOf('ThirdPartyErrorsFilter')).toBeLessThan(names.indexOf('ClassCallCheckNoiseFilter'));
+        expect(names).toContain(filterName);
+        expect(names.indexOf('ThirdPartyErrorsFilter')).toBeLessThan(names.indexOf(filterName));
     });
 
     it('drops the integrations that are stubbed out on the current platform', () => {

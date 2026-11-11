@@ -1,6 +1,6 @@
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {useCallback, useEffect, useRef} from 'react';
+import {useEffect, useRef} from 'react';
 
 import useOnyx from './useOnyx';
 
@@ -33,7 +33,7 @@ export default function useReimbursementAccountSubmitCallback(onSubmit?: () => v
         onSubmit?.();
     }, [reimbursementAccount?.isLoading, reimbursementAccount?.errors, onSubmit]);
 
-    return useCallback(() => {
+    return () => {
         isSubmittingRef.current = true;
-    }, []);
+    };
 }

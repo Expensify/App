@@ -14,6 +14,7 @@ import {openOldDotLink} from '@libs/actions/Link';
 import {AddWorkEmail} from '@libs/actions/Session';
 import * as SessionActions from '@libs/actions/Session';
 import * as TaskActions from '@libs/actions/Task';
+import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
@@ -323,6 +324,67 @@ function AddWorkEmailWithDomainControlledError() {
     });
     AddWorkEmail(workEmail);
     return waitForBatchedUpdates().then(() => (HttpUtils.xhr = originalXhr));
+}
+
+async function renderWorkEmailPageWithTypedEmail(email: string) {
+    await TestHelper.signInWithTestUser();
+    await act(async () => {
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, isFromPublicDomain: true});
+        await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+    });
+    const result = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
+    await waitForBatchedUpdatesWithAct();
+    fireEvent.changeText(screen.getByLabelText(TestHelper.translateLocal('common.workEmail')), email);
+    await waitForBatchedUpdatesWithAct();
+    return result;
+}
+
+// The device back button, the browser back button and a deep link opened during onboarding all only set this message
+async function pressBackButton() {
+    await act(async () => {
+        await Onyx.set(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.purpose.errorBackButton');
+    });
+    await waitForBatchedUpdatesWithAct();
+}
+
+async function pressAddWorkEmail() {
+    fireEvent.press(screen.getByRole('button', {name: TestHelper.translateLocal('onboarding.workEmail.addWorkEmail')}));
+    await waitForBatchedUpdatesWithAct();
+}
+
+async function waitForMilliseconds(milliseconds: number) {
+    await act(async () => {
+        await new Promise((resolve) => {
+            setTimeout(resolve, milliseconds);
+        });
+    });
+}
+
+// FormProvider ignores presses that come within a second of the previous one, so a second press must wait it out to reach the submit at all
+async function waitForSubmitDebounce() {
+    await waitForMilliseconds(1100);
+}
+
+// A press reaches onSubmit only after a timeout and the keyboard dismissal, so a check that nothing was sent must wait for both
+async function waitForSubmitToSettle() {
+    await waitForMilliseconds(300);
+}
+
+function getAddWorkEmailRequestCount(xhrSpy: jest.SpyInstance) {
+    return xhrSpy.mock.calls.filter(([command]) => command === SIDE_EFFECT_REQUEST_COMMANDS.ADD_WORK_EMAIL).length;
+}
+
+function mockPendingAddWorkEmail() {
+    let resolveAddWorkEmail: (response: OnyxResponse<typeof ONYXKEYS.NVP_ONBOARDING>) => void = () => {};
+    const xhrSpy = jest.spyOn(HttpUtils, 'xhr').mockImplementation((command) => {
+        if (command !== SIDE_EFFECT_REQUEST_COMMANDS.ADD_WORK_EMAIL) {
+            return Promise.resolve({jsonCode: 200});
+        }
+        return new Promise((resolve) => {
+            resolveAddWorkEmail = resolve;
+        });
+    });
+    return {xhrSpy, answerAddWorkEmail: () => resolveAddWorkEmail({jsonCode: 200})};
 }
 
 describe('OnboardingWorkEmail Page', () => {
@@ -963,7 +1025,7 @@ describe('OnboardingWorkEmail Page', () => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
         });
         expect(screen.queryByText(TestHelper.translateLocal('onboarding.workEmailValidationError.sameAsSignupEmail'))).not.toBeOnTheScreen();
-        expect(xhrSpy.mock.calls.filter(([command]) => command === 'AddWorkEmail')).toHaveLength(0);
+        expect(getAddWorkEmailRequestCount(xhrSpy)).toBe(0);
 
         xhrSpy.mockRestore();
         unmount();
@@ -998,7 +1060,7 @@ describe('OnboardingWorkEmail Page', () => {
 
         // Then the new email is sent to the backend, because only the email that is already the account's login skips the request
         await waitFor(() => {
-            expect(xhrSpy.mock.calls.filter(([command]) => command === 'AddWorkEmail')).toHaveLength(1);
+            expect(getAddWorkEmailRequestCount(xhrSpy)).toBe(1);
         });
         await waitFor(() => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
@@ -1043,11 +1105,133 @@ describe('OnboardingWorkEmail Page', () => {
         await waitFor(() => {
             expect(screen.getByText(TestHelper.translateLocal('onboarding.workEmailValidationError.publicEmail'))).toBeOnTheScreen();
         });
-        expect(xhrSpy.mock.calls.filter(([command]) => command === 'AddWorkEmail')).toHaveLength(0);
+        expect(getAddWorkEmailRequestCount(xhrSpy)).toBe(0);
 
         xhrSpy.mockRestore();
         unmount();
         await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should show the back button message once and still let the user submit a work email', async () => {
+        // Given an unvalidated user who typed a work email and then pressed the device or browser back button
+        const {unmount} = await renderWorkEmailPageWithTypedEmail(workEmail);
+        const xhrSpy = jest.spyOn(HttpUtils, 'xhr').mockImplementation(() => {
+            const mockedResponse: OnyxResponse<typeof ONYXKEYS.NVP_ONBOARDING> = {
+                jsonCode: 200,
+                onyxData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_ONBOARDING, value: {shouldValidate: false}}],
+            };
+            return Promise.resolve(mockedResponse);
+        });
+        try {
+            await pressBackButton();
+
+            // Then the message shows once, and never as an error on the form, which is what would block the submit
+            expect(screen.getAllByText(TestHelper.translateLocal('onboarding.purpose.errorBackButton'))).toHaveLength(1);
+            expect((await getOnyxValue(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM))?.errors).toBeFalsy();
+
+            // When the user presses "Add work email" without editing the email
+            await pressAddWorkEmail();
+
+            // Then the email is sent, because the back button message doesn't count as an error on the form
+            await waitFor(() => {
+                expect(getAddWorkEmailRequestCount(xhrSpy)).toBe(1);
+            });
+        } finally {
+            xhrSpy.mockRestore();
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        }
+    });
+
+    it('should keep the work email form loading while its request is pending after the back button message was shown', async () => {
+        // Given the back button message is showing and the AddWorkEmail request doesn't answer until the end of the test
+        const {unmount} = await renderWorkEmailPageWithTypedEmail(workEmail);
+        const {xhrSpy, answerAddWorkEmail} = mockPendingAddWorkEmail();
+        try {
+            await pressBackButton();
+
+            // When the user submits
+            await pressAddWorkEmail();
+
+            // Then the back button message is gone, and clearing it doesn't stop the loading while the request is still pending
+            await waitFor(() => {
+                expect(getAddWorkEmailRequestCount(xhrSpy)).toBe(1);
+            });
+            expect(screen.queryByText(TestHelper.translateLocal('onboarding.purpose.errorBackButton'))).not.toBeOnTheScreen();
+            expect((await getOnyxValue(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM))?.isLoading).toBe(true);
+
+            // When the user presses "Add work email" again before the request answers
+            await waitForSubmitDebounce();
+            await pressAddWorkEmail();
+            await waitForSubmitToSettle();
+
+            // Then the same email isn't sent a second time
+            expect(getAddWorkEmailRequestCount(xhrSpy)).toBe(1);
+        } finally {
+            answerAddWorkEmail();
+            await waitForBatchedUpdatesWithAct();
+            xhrSpy.mockRestore();
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        }
+    });
+
+    it('should keep the work email form loading when the back button is pressed while its request is pending', async () => {
+        // Given an unvalidated user who submitted a work email whose AddWorkEmail request doesn't answer until the end of the test
+        const {unmount} = await renderWorkEmailPageWithTypedEmail(workEmail);
+        const {xhrSpy, answerAddWorkEmail} = mockPendingAddWorkEmail();
+        try {
+            await pressAddWorkEmail();
+            await waitFor(() => {
+                expect(getAddWorkEmailRequestCount(xhrSpy)).toBe(1);
+            });
+
+            // When the user presses the device or browser back button before the request answers
+            await pressBackButton();
+
+            // Then the message shows once, the form gets no error, and the form stays loading
+            expect(screen.getAllByText(TestHelper.translateLocal('onboarding.purpose.errorBackButton'))).toHaveLength(1);
+            const form = await getOnyxValue(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM);
+            expect(form?.errors).toBeFalsy();
+            expect(form?.isLoading).toBe(true);
+
+            // When the user presses "Add work email" again before the request answers
+            await waitForSubmitDebounce();
+            await pressAddWorkEmail();
+            await waitForSubmitToSettle();
+
+            // Then the same email isn't sent a second time
+            expect(getAddWorkEmailRequestCount(xhrSpy)).toBe(1);
+        } finally {
+            answerAddWorkEmail();
+            await waitForBatchedUpdatesWithAct();
+            xhrSpy.mockRestore();
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        }
+    });
+
+    it('should clear the back button message when the user submits an email that fails validation', async () => {
+        // Given an unvalidated user with an invalid email typed and the back button message showing
+        const {unmount} = await renderWorkEmailPageWithTypedEmail('not-an-email');
+        const xhrSpy = jest.spyOn(HttpUtils, 'xhr');
+        try {
+            await pressBackButton();
+
+            // When the user presses "Add work email"
+            await pressAddWorkEmail();
+
+            // Then only the validation error shows, because pressing the button replaces the back button message, and nothing is sent
+            await waitFor(() => {
+                expect(screen.getByText(TestHelper.translateLocal('onboarding.workEmailValidationError.publicEmail'))).toBeOnTheScreen();
+            });
+            expect(screen.queryByText(TestHelper.translateLocal('onboarding.purpose.errorBackButton'))).not.toBeOnTheScreen();
+            expect(getAddWorkEmailRequestCount(xhrSpy)).toBe(0);
+        } finally {
+            xhrSpy.mockRestore();
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        }
     });
 });
 

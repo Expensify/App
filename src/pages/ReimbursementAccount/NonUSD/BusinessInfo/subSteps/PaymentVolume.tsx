@@ -11,7 +11,7 @@ import getListOptionsFromCorpayPicklist from '@pages/ReimbursementAccount/NonUSD
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 type PaymentVolumeProps = SubPageProps;
 
@@ -27,26 +27,20 @@ function PaymentVolume({onNext, onMove, isEditing}: PaymentVolumeProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const {currency} = getCurrencyForNonUSDBankAccount(policy, reimbursementAccountDraft, reimbursementAccount);
 
-    const annualVolumeRangeListOptions = useMemo(
-        () => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.AnnualVolumeRange),
-        [corpayOnboardingFields?.picklists.AnnualVolumeRange],
-    );
+    const annualVolumeRangeListOptions = getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.AnnualVolumeRange);
 
     const annualVolumeDefaultValue = reimbursementAccount?.achData?.corpay?.[ANNUAL_VOLUME] ?? '';
 
-    const pushRowFields = useMemo(
-        () => [
-            {
-                inputID: ANNUAL_VOLUME,
-                defaultValue: annualVolumeDefaultValue,
-                options: annualVolumeRangeListOptions,
-                description: translate('businessInfoStep.annualPaymentVolumeInCurrency', currency),
-                modalHeaderTitle: translate('businessInfoStep.selectAnnualPaymentVolume'),
-                searchInputTitle: translate('businessInfoStep.findAnnualPaymentVolume'),
-            },
-        ],
-        [annualVolumeDefaultValue, annualVolumeRangeListOptions, translate, currency],
-    );
+    const pushRowFields = [
+        {
+            inputID: ANNUAL_VOLUME,
+            defaultValue: annualVolumeDefaultValue,
+            options: annualVolumeRangeListOptions,
+            description: translate('businessInfoStep.annualPaymentVolumeInCurrency', currency),
+            modalHeaderTitle: translate('businessInfoStep.selectAnnualPaymentVolume'),
+            searchInputTitle: translate('businessInfoStep.findAnnualPaymentVolume'),
+        },
+    ];
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,

@@ -1,6 +1,29 @@
 import sanitizeLogParams, {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
 
 describe('sanitizeLogParams', () => {
+    it('redacts wallet authentication and provisioning material from API logs', () => {
+        // Given signed wallet request fields and encrypted provisioning fields can pass through the API logger.
+        const params = {
+            command: 'CreateDigitalWallet',
+            cardID: 123,
+            data: {
+                signedChallenge: '{"signature":"secret"}',
+                nonce: 'nonce',
+                nonceSignature: 'signature',
+                certificates: '["certificate"]',
+                encryptedPassData: 'encrypted',
+                activationData: 'activation',
+                ephemeralPublicKey: 'ephemeral',
+                opaquePaymentCard: 'opaque',
+            },
+        };
+        // When the shared API logging boundary sanitizes these parameters.
+        const result = sanitizeLogParams(params);
+        // Then secrets are redacted without changing the actual wire input or nonsensitive identifiers.
+        expect(result).toEqual({command: 'CreateDigitalWallet', cardID: 123, data: Object.fromEntries(Object.keys(params.data).map((key) => [key, '<redacted>']))});
+        expect(params.data.signedChallenge).toBe('{"signature":"secret"}');
+    });
+
     it('redacts known sensitive keys', () => {
         const result = sanitizeLogParams({authToken: 'secret', password: 'hunter2', token: 'abc'});
         expect(result).toEqual({authToken: '<redacted>', password: '<redacted>', token: '<redacted>'});
@@ -28,6 +51,17 @@ describe('sanitizeLogParams', () => {
                 addressZip: '94105',
             },
         });
+    });
+
+    it('redacts the inputs of a Wise onboarding page, which can hold an SSN', () => {
+        // Given the parameters of a page save whose inputs carry an SSN, which the API logs before sending
+        const params = {command: 'UpdateWiseOnboardingAdditionalData', step: 'representative', inputs: JSON.stringify({ssn: '123456789'})};
+
+        // When they are sanitized for the logs
+        const result = sanitizeLogParams(params);
+
+        // Then the inputs are redacted, so the SSN never reaches the server logs, and the rest stays readable
+        expect(result).toEqual({command: 'UpdateWiseOnboardingAdditionalData', step: 'representative', inputs: '<redacted>'});
     });
 
     it('leaves non-sensitive keys untouched', () => {

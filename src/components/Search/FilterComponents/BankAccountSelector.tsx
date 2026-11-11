@@ -179,6 +179,7 @@ function BankAccountSelector({value = [], selectionListTextInputStyle, selection
                 <SelectionListWithSections<BankAccountFilterItem>
                     sections={sections}
                     ListItem={MultiSelectListItem}
+                    titleNumberOfLines={2}
                     onSelectRow={updateSelection}
                     shouldPreventDefaultFocusOnSelectRow={false}
                     shouldShowTextInput={shouldShowSearchInput}

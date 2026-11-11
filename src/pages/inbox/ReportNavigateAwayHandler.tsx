@@ -27,6 +27,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused, useRoute} from '@react-navigation/native';
+import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import {useEffect, useEffectEvent, useRef} from 'react';
 
 import useReportWasDeleted from './hooks/useReportWasDeleted';
@@ -77,6 +78,7 @@ function ReportNavigateAwayHandler() {
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const isSelfTourViewed = onboarding?.selfTourViewed;
+    const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboarding);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const parentReportAction = useParentReportAction(report);
@@ -95,6 +97,7 @@ function ReportNavigateAwayHandler() {
     // a temporary Onyx SET that wipes the report; by the time effects fire, report is undefined
     // so we must persist the value in a ref updated synchronously during render. See issue #84248.
     const isCurrentRouteOwnWorkspaceChatRef = useIsOwnWorkspaceChatRef(report, reportIDFromRoute);
+    const isPendingCreationFromRoute = route.name === SCREENS.REPORT ? route.params?.isPendingCreation === 'true' : false;
 
     const firstRender = useRef(true);
 
@@ -144,7 +147,15 @@ function ReportNavigateAwayHandler() {
         }
 
         Navigation.isNavigationReady().then(() => {
-            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, conciergePersonalDetails, shouldDismissModal: false});
+            navigateToConciergeChat({
+                conciergeReportID,
+                introSelected,
+                currentUserAccountID,
+                isSelfTourViewed,
+                hasCompletedGuidedSetupFlow,
+                conciergePersonalDetails,
+                shouldDismissModal: false,
+            });
         });
     });
 
@@ -220,6 +231,11 @@ function ReportNavigateAwayHandler() {
             return;
         }
 
+        // A report still pending creation was never created, so its removal is a failed create that the opener handles.
+        if (isPendingCreationFromRoute) {
+            return;
+        }
+
         Navigation.isNavigationReady().then(() => {
             // Drop the deleted report from the split navigator stack before navigating away. Otherwise, it stays
             // mounted underneath the destination, and tapping back refocuses it and re-triggers this effect,
@@ -235,17 +251,19 @@ function ReportNavigateAwayHandler() {
             }
 
             // Fallback to Concierge
-            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, conciergePersonalDetails});
+            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, conciergePersonalDetails});
         });
     }, [
         reportWasDeleted,
         previousReportWasDeleted,
         isFocused,
+        isPendingCreationFromRoute,
         deletedReportParentID,
         conciergeReportID,
         introSelected,
         currentUserAccountID,
         isSelfTourViewed,
+        hasCompletedGuidedSetupFlow,
         conciergePersonalDetails,
         reportIDFromRoute,
     ]);

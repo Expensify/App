@@ -7,18 +7,18 @@ import useAttendees from '@hooks/useAttendees';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import usePrevious from '@hooks/usePrevious';
 
-import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
+import {getCategoryDescriptionHint, isCategoryDescriptionRequired} from '@libs/CategoryUtils';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
 import {shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {arePolicyRulesEnabled, isTaxTrackingEnabled} from '@libs/PolicyUtils';
-import {getCategory, getCurrency, getMerchant, getRateID, hasValidModifiedAmount} from '@libs/TransactionUtils';
+import {getCategory, getCurrency, getMerchant, getRateID, hasValidModifiedAmount, isScanRequest as isScanRequestUtil} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
 import {useIsFocused} from '@react-navigation/native';
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 
 import type {ConfirmationDistanceState, ConfirmationListData, UseConfirmationListDataParams} from './types';
 
@@ -58,7 +58,6 @@ function useConfirmationListDataWithPolicy({
     isEditingSplitBill,
     expensesNumber = 0,
     receiptOptions,
-    isParticipantPickerVisible = false,
     onToggleBillable,
     onToggleReimbursable,
     isConfirmed,
@@ -76,6 +75,7 @@ function useConfirmationListDataWithPolicy({
     isPerDiemRequest = false,
     isTimeRequest = false,
     isDistanceRequest = false,
+    isScanRequest: isScanRequestProp = false,
     distanceState,
 }: UseConfirmationListDataParams): ConfirmationListData {
     // Every distance branch below goes inert for the variants that pass no distance state.
@@ -100,9 +100,9 @@ function useConfirmationListDataWithPolicy({
 
     // In the new manual expense flow the inline fields live in the list footer, so they can be hidden behind the keyboard.
     // We let those fields ask the list to scroll them into view when focused.
-    const scrollFocusedInputIntoView = useCallback((input: MeasurableInput) => {
+    const scrollFocusedInputIntoView = (input: MeasurableInput) => {
         listRef.current?.scrollInputIntoView(input);
-    }, []);
+    };
 
     const iouAmount = hasValidModifiedAmount(transaction) ? Number(transaction?.modifiedAmount) : (transaction?.amount ?? 0);
     const iouCurrencyCode = getCurrency(transaction);
@@ -127,7 +127,10 @@ function useConfirmationListDataWithPolicy({
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat || isTrackExpense, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
 
-    const {amountToBeUsed, formattedAmount, formattedAmountPerAttendee, isScanRequest} = useConfirmationAmount({
+    // In the share flow, the caller knows it is a scan before the draft is initialized.
+    const isScanRequest = isScanRequestProp || isScanRequestUtil(transaction);
+
+    const {amountToBeUsed, formattedAmount, formattedAmountPerAttendee} = useConfirmationAmount({
         transaction,
         iouAmount,
         iouCurrencyCode,
@@ -138,6 +141,7 @@ function useConfirmationListDataWithPolicy({
         distanceRequestAmount,
         distanceCurrency,
         isPerDiemRequest,
+        isScanRequest,
         prevSubRates,
     });
 
@@ -188,7 +192,12 @@ function useConfirmationListDataWithPolicy({
 
     const isCategoryRequired = !!policy?.requiresCategory && !isTypeInvoice;
 
-    const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, iouCategory, arePolicyRulesEnabled(policy, policyCategories));
+    const areRulesEnabled = arePolicyRulesEnabled(policy, policyCategories);
+    const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, iouCategory, areRulesEnabled);
+
+    // Only show the hint when the expense goes to a workspace with Rules on, matching when categories are shown,
+    // so a track expense in Self DM doesn't pick up the hint from the fallback default workspace.
+    const descriptionHint = getCategoryDescriptionHint(policyCategories, iouCategory, (isPolicyExpenseChat || isTypeInvoice) && areRulesEnabled);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
@@ -248,6 +257,7 @@ function useConfirmationListDataWithPolicy({
         isTimeRequest,
         routeError,
         canEnterScanFieldsManually,
+        isPolicyExpenseChat,
         partiallyManuallyFilledScanID,
         isReadOnly,
         shouldShowDate,
@@ -279,7 +289,7 @@ function useConfirmationListDataWithPolicy({
     });
 
     const amountDisplay = {amount: amountToBeUsed, formattedAmount, formattedAmountPerAttendee};
-    const requiredFlags = {isCategoryRequired, isMerchantRequired, isDescriptionRequired};
+    const requiredFlags = {isCategoryRequired, isMerchantRequired, isDescriptionRequired, descriptionHint};
     const visibilityFlags = {
         shouldShowSmartScanFields,
         shouldShowAmountField: !isPerDiemRequest,
@@ -287,7 +297,6 @@ function useConfirmationListDataWithPolicy({
         shouldShowCategories,
         shouldShowTax,
         hasParticipantSection: sections.length > 0,
-        isParticipantPickerVisible,
     };
     const errorState = {shouldDisplayFieldError, formError, clearFormErrors, setFormError};
 
@@ -334,6 +343,7 @@ function useConfirmationListDataWithPolicy({
                 didConfirm: !!didConfirm,
                 canEnterScanFieldsManually,
                 isPolicyExpenseChat,
+                isScanRequest,
                 isEditingSplitBill,
                 scrollFocusedInputIntoView,
                 onSubmitForm: confirm,
@@ -411,7 +421,7 @@ function useConfirmationListDataWithPolicy({
  * from it. The distance variant needs the policy before it can build its distance state, so it goes through
  * `useDistanceConfirmationListData` instead.
  */
-function useConfirmationListData(props: MoneyRequestConfirmationListProps) {
+function useConfirmationListData(props: MoneyRequestConfirmationListProps & Pick<UseConfirmationListDataParams, 'isScanRequest'>) {
     const {transaction, policyID, action, iouType, isPerDiemRequest} = props;
     const policyData = useConfirmationPolicyData({transaction, policyID, action, iouType, isPerDiemRequest});
 

@@ -1,6 +1,7 @@
 import PromotedActionsBar from '@components/PromotedActionsBar';
 import type {PromotedAction, PromotedActionsBarProps} from '@components/PromotedActionsBar';
 
+import CONST from '@src/CONST';
 import variables from '@src/styles/variables';
 
 import React from 'react';
@@ -32,18 +33,21 @@ const promotedActions = [
         key: 'join',
         icon: 'CommentBubbles',
         translationKey: 'common.message',
+        sentryLabel: CONST.SENTRY_LABEL.PROMOTED_ACTIONS_BAR.MESSAGE,
         onSelected: () => {},
     },
     {
         key: 'pin',
         icon: 'Pin',
         translationKey: 'common.pin',
+        sentryLabel: CONST.SENTRY_LABEL.PROMOTED_ACTIONS_BAR.PIN,
         onSelected: () => {},
     },
     {
         key: 'share',
         icon: 'QrCode',
         translationKey: 'common.share',
+        sentryLabel: CONST.SENTRY_LABEL.PROMOTED_ACTIONS_BAR.SHARE,
         onSelected: () => {},
     },
 ] satisfies PromotedAction[];
@@ -52,6 +56,7 @@ const defaultPromotedAction = {
     key: '',
     icon: 'ChatBubbles',
     translationKey: 'common.join',
+    sentryLabel: CONST.SENTRY_LABEL.PROMOTED_ACTIONS_BAR.JOIN,
     onSelected: () => {},
 } satisfies PromotedAction;
 

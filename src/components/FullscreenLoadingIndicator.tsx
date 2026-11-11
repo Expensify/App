@@ -21,7 +21,7 @@ type FullScreenLoadingIndicatorProps = {
     style?: StyleProp<ViewStyle>;
     iconSize?: FullScreenLoadingIndicatorIconSize;
 
-    /** Whether the "Go Back" button appears after a timeout. */
+    /** Whether the "Go Back" button appears after a timeout. Defaults to true, pass false where going back is dead or harmful (e.g. global overlays, or a transition that is mid sign-out). */
     shouldUseGoBackButton?: boolean;
 
     onGoBack?: () => void;
@@ -35,7 +35,7 @@ type FullScreenLoadingIndicatorProps = {
 function FullScreenLoadingIndicator({
     style,
     iconSize = CONST.ACTIVITY_INDICATOR_SIZE.LARGE,
-    shouldUseGoBackButton = false,
+    shouldUseGoBackButton = true,
     onGoBack = Navigation.goBack,
     testID = '',
     extraLoadingContext,
@@ -68,7 +68,10 @@ function FullScreenLoadingIndicator({
                         <View style={styles.pv4}>
                             <Text>{translate('common.thisIsTakingLongerThanExpected')}</Text>
                         </View>
-                        <Button onPress={() => onGoBack()}>
+                        <Button
+                            onPress={() => onGoBack()}
+                            sentryLabel={CONST.SENTRY_LABEL.FULLSCREEN_LOADING_INDICATOR.GO_BACK}
+                        >
                             <Button.Text>{translate('common.goBack')}</Button.Text>
                         </Button>
                     </View>

@@ -3,6 +3,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
@@ -16,7 +17,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
@@ -31,13 +32,16 @@ function AddPersonalNewCardPage() {
     const [addNewPersonalCardFeed, addNewPersonalCardFeedMetadata] = useOnyx(ONYXKEYS.ADD_NEW_PERSONAL_CARD);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const {currentStep} = addNewPersonalCardFeed ?? {};
     const [isModalVisible, setIsModalVisible] = useState(false);
     const {showConfirmModal} = useConfirmModal();
     const {translate} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const isAddCardFeedLoading = isLoadingOnyxValue(addNewPersonalCardFeedMetadata);
 
     useEffect(() => {
@@ -47,7 +51,7 @@ function AddPersonalNewCardPage() {
     }, []);
 
     if (isAddCardFeedLoading) {
-        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
+        return <FullScreenLoadingIndicator />;
     }
 
     let CurrentStep: React.JSX.Element;
@@ -77,7 +81,15 @@ function AddPersonalNewCardPage() {
                                 if (result.action !== ModalActions.CONFIRM) {
                                     return;
                                 }
-                                navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, conciergePersonalDetails});
+                                navigateToConciergeChat({
+                                    conciergeReportID,
+                                    introSelected,
+                                    currentUserAccountID,
+                                    isSelfTourViewed,
+                                    hasCompletedGuidedSetupFlow,
+                                    conciergePersonalDetails,
+                                    delegateAccountID,
+                                });
                             })
                             .finally(() => {
                                 setIsModalVisible(false);
