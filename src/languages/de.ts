@@ -1419,6 +1419,14 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase2: 'oder ziehe eine hierher und lege sie ab',
         },
         pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Seite ${page} von ${pageCount}`,
+        translate: 'Übersetzen',
+        viewOriginal: 'Original anzeigen',
+        translationDisclaimer: 'KI kann Fehler machen. Bitte prüfen Sie das Original noch einmal.',
+        translationError: {
+            unreadable: 'Wir konnten diesen Beleg nicht deutlich genug lesen, um ihn zu übersetzen.',
+            alreadyInLanguage: 'Dieser Beleg ist bereits in Ihrer Sprache.',
+            generic: 'Wir konnten diese Quittung nicht übersetzen. Bitte versuchen Sie es erneut.',
+        },
     },
     quickAction: {
         scanReceipt: 'Beleg scannen',

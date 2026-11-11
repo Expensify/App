@@ -7440,22 +7440,40 @@ function getPendingDeleteMemberAccountIDs(pendingChatMembers: PendingChatMember[
     return pendingChatMembers.filter((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).map((member) => member.accountID);
 }
 
+type GetParentNavigationSubtitleParams = {
+    report: OnyxEntry<Report>;
+
+    /** The policy the subtitle names as the workspace. On an invoice this is the sender's workspace, as opposed to `invoiceReceiverPolicy`. */
+    policy: OnyxEntry<Policy>;
+
+    /**
+     * The policy of the business receiving the invoice, i.e. the policy whose ID `getInvoiceReceiverPolicyID` reads
+     * off the parent report. Only used for invoice reports and invoice rooms.
+     */
+    invoiceReceiverPolicy: OnyxEntry<Policy>;
+
+    translate: LocalizedTranslate;
+
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+
+    /** The parent report's resolved name, which takes precedence over the `reportName` stored on the parent report. */
+    parentReportName: string | undefined;
+
+    isParentReportArchived?: boolean;
+};
+
 /**
  * Gets the parent navigation subtitle for the report
- *
- * @param invoiceReceiverPolicy - The policy of the business receiving the invoice, i.e. the policy whose ID
- * `getInvoiceReceiverPolicyID` reads off the parent report. Only used for invoice reports and invoice rooms.
  */
-function getParentNavigationSubtitle(
-    report: OnyxEntry<Report>,
-    policy: OnyxEntry<Policy>,
-    invoiceReceiverPolicy: OnyxEntry<Policy>,
-    conciergeReportID: string | undefined,
-    translate: LocalizedTranslate,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    parentReportName: string | undefined,
+function getParentNavigationSubtitle({
+    report,
+    policy,
+    invoiceReceiverPolicy,
+    translate,
+    formatPhoneNumber,
+    parentReportName,
     isParentReportArchived = false,
-): ParentNavigationSummaryParams {
+}: GetParentNavigationSubtitleParams): ParentNavigationSummaryParams {
     // Bills have no parent chat, so their subtitle contains only the policy name.
     if (isBillReport(report)) {
         return {workspaceName: getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')})};
@@ -15604,6 +15622,7 @@ function isSortableColumnName(key: unknown): key is SortableColumnName {
  * Used for sorting transactions in MoneyRequestReportTransactionList.
  */
 function getTransactionSortValue(
+    translate: LocalizedTranslate,
     transaction: Transaction,
     key: SortableColumnName,
     report: Report,
@@ -15652,7 +15671,7 @@ function getTransactionSortValue(
         case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
             return getTaxAmount(transaction, isExpenseReport(report));
         case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
-            return getTaxName(policy, transaction) ?? '';
+            return getTaxName(translate, policy, transaction) ?? '';
         case CONST.SEARCH.TABLE_COLUMNS.CARD:
             return transaction.cardID ?? CONST.DEFAULT_NUMBER_ID;
         case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:

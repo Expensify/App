@@ -1550,6 +1550,7 @@ const CONST = {
         TRAVEL_APPROVAL: 'travelApproval',
         FLAT_NAV: 'flatNav',
         CATEGORY_VISIBILITY: 'categoryVisibility',
+        RECEIPT_TRANSLATION: 'receiptTranslation',
         SCAN_FLASH_TORCH: 'scanFlashTorch',
         NEW_DOT_BILL_PAY: 'newDotBillPay',
         HYBRID_WEB: 'hybridWeb',
@@ -2020,6 +2021,31 @@ const CONST = {
 
         // Elements with this data attribute pause the hover zoom while the pointer is over them
         HOVER_ZOOM_EXCLUDED_ELEMENT: 'receipt-hover-zoom-excluded',
+
+        TRANSLATION_SCAN_DURATION: 1000,
+        TRANSLATION_SCAN_LINE_HEIGHT: 8,
+        TRANSLATION_SCAN_TINT_OPACITY: 0.2,
+        TRANSLATION_ROW_TYPE: {
+            HEADING: 'heading',
+            TEXT: 'text',
+            LABEL_VALUE: 'labelValue',
+            ITEM: 'item',
+            TOTAL: 'total',
+            DIVIDER: 'divider',
+        },
+        TRANSLATION_ROW_ALIGN: {
+            LEFT: 'left',
+            CENTER: 'center',
+        },
+        TRANSLATION_STATE: {
+            TRANSLATED: 'translated',
+            UNREADABLE: 'unreadable',
+            ALREADY_IN_LANGUAGE: 'alreadyInLanguage',
+        },
+        TRANSLATION_REQUEST_STATE: {
+            LOADING: 'loading',
+            LOADED: 'loaded',
+        },
     },
     RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN: 120,
     REPORT: {

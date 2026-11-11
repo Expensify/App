@@ -1416,6 +1416,14 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase2: 'of sleep ze hier naartoe',
         },
         pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Pagina ${page} van ${pageCount}`,
+        translate: 'Vertalen',
+        viewOriginal: 'Origineel weergeven',
+        translationDisclaimer: 'AI kan fouten maken. Controleer alsjeblieft het origineel nog een keer.',
+        translationError: {
+            unreadable: 'We konden deze bon niet duidelijk genoeg lezen om hem te vertalen.',
+            alreadyInLanguage: 'Deze bon is al in jouw taal.',
+            generic: 'We konden deze bon niet vertalen. Probeer het opnieuw.',
+        },
     },
     quickAction: {
         scanReceipt: 'Bon scannen',

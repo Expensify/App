@@ -1019,7 +1019,7 @@
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/originalMessage"	23
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	7
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	16
-"../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	31
+"../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	30
 "../../src/libs/ReportUtils.ts"	"import/no-cycle"	5
 "../../src/libs/ReportUtils.ts"	"rulesdir/no-onyx-connect"	13
 "../../src/libs/sanitizeLogParams.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1048,7 +1048,6 @@
 "../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1
 "../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/TransactionUtils/index.ts"	"import/no-cycle"	6
-"../../src/libs/TransactionUtils/tax.ts"	"@typescript-eslint/no-deprecated/translateLocal"	1
 "../../src/libs/TransactionUtils/tax.ts"	"import/no-cycle"	1
 "../../src/libs/TransactionUtils/violations.ts"	"import/no-cycle"	2
 "../../src/libs/UnreadIndicatorUpdater/index.ts"	"no-restricted-imports"	1

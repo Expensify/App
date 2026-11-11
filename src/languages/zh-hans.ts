@@ -1358,6 +1358,10 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase2: '或将文件拖放到此处',
         },
         pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `第 ${page} 页，共 ${pageCount} 页`,
+        translate: '翻译',
+        viewOriginal: '查看原文',
+        translationDisclaimer: 'AI 可能会出错。请再次核对原文。',
+        translationError: {unreadable: '我们无法清晰读取此收据，因而无法对其进行翻译。', alreadyInLanguage: '该收据已经是你的语言了。', generic: '我们无法翻译此收据。请重试。'},
     },
     quickAction: {
         scanReceipt: '扫描收据',

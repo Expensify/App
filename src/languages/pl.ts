@@ -1456,6 +1456,14 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase2: 'lub przeciągnij i upuść tutaj',
         },
         pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Strona ${page} z ${pageCount}`,
+        translate: 'Przetłumacz',
+        viewOriginal: 'Zobacz oryginał',
+        translationDisclaimer: 'AI może się mylić. Sprawdź proszę oryginał.',
+        translationError: {
+            unreadable: 'Nie mogliśmy odczytać tego paragonu wystarczająco wyraźnie, aby go przetłumaczyć.',
+            alreadyInLanguage: 'Ten paragon jest już w twoim języku.',
+            generic: 'Nie udało się przetłumaczyć tego paragonu. Spróbuj ponownie.',
+        },
     },
     quickAction: {
         scanReceipt: 'Zeskanuj paragon',
