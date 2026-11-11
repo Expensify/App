@@ -1,5 +1,4 @@
 /** Simulate isolated Worker Previews in workerd with trusted packaging, real branch code and Static Assets. */
-// cspell:ignore expensfy
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import {cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
@@ -59,7 +58,7 @@ describe('Worker Preview runtime packaging', () => {
             const localConfigPath = path.join(directory, 'wrangler.local.json');
             writeFileSync(localConfigPath, JSON.stringify({...config, name: `preview-${prNumber}`, vars: config.previews.vars, routes: [`${getTarget(prNumber).hostname}/*`]}));
             const {rawConfig: deploymentConfig} = experimental_readRawConfig({config: path.join(directory, 'wrangler.json')});
-            assert.equal(deploymentConfig.name, 'new-expensfy-adhoc');
+            assert.equal(deploymentConfig.name, 'new-expensify-adhoc');
             assert.equal(deploymentConfig.routes, undefined);
             const dryRun = execFileSync(process.execPath, [path.join(WORKER_DIR, 'node_modules/wrangler/bin/wrangler.js'), 'deploy', '--dry-run', '--config', localConfigPath], {
                 encoding: 'utf8',
