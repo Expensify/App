@@ -11867,6 +11867,67 @@ describe('ReportUtils', () => {
             expect(canDeleteReportAction(moneyRequestAction, expenseReport.reportID, transaction, undefined, undefined, currentUserAccountID, undefined, undefined, undefined)).toBe(false);
         });
 
+        it('should only let the owner delete an expense from an open expense report when the report is not archived', async () => {
+            // Given an unrestricted expense on an open expense report owned by the current user
+            const expenseReport = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: currentUserAccountID,
+            };
+            const moneyRequestAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: expenseReport.reportID,
+                originalMessage: {
+                    IOUTransactionID: '1',
+                    amount: 100,
+                    participantAccountID: 1,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: expenseReport.reportID,
+                managedCard: false,
+                comment: {},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+
+            // When checking delete permission without and with the archived flag
+            const canDeleteWhenOpen = canDeleteReportAction(
+                moneyRequestAction,
+                expenseReport.reportID,
+                transaction,
+                undefined,
+                undefined,
+                currentUserAccountID,
+                undefined,
+                undefined,
+                undefined,
+                false,
+            );
+            const canDeleteWhenArchived = canDeleteReportAction(
+                moneyRequestAction,
+                expenseReport.reportID,
+                transaction,
+                undefined,
+                undefined,
+                currentUserAccountID,
+                undefined,
+                undefined,
+                undefined,
+                true,
+            );
+
+            // Then deletion is allowed on the open report and blocked once the report is archived
+            expect(canDeleteWhenOpen).toBe(true);
+            expect(canDeleteWhenArchived).toBe(false);
+        });
+
         it('should let an admin delete a draft report they did not submit from its report preview', async () => {
             // Given an open (draft) expense report submitted by someone else, on a policy the current user administers
             const draftReport = {

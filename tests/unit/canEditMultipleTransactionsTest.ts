@@ -133,6 +133,22 @@ describe('canEditMultipleTransactions', () => {
         expect(result).toBe(false);
     });
 
+    it('returns false when a selected expense is on a report that is archived in the search snapshot', () => {
+        // Given two editable expenses where the second expense's report is archived only in the search snapshot
+        const {transaction1, transaction2, reports, policies, reportActions, report2} = buildTestData();
+        const snapshotData = {
+            [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report2.reportID}`]: {private_isArchived: '2024-01-01 00:00:00'},
+        } as unknown as SearchResults['data'];
+
+        // When checking whether both expenses can be bulk edited with and without the snapshot
+        const resultWithSnapshot = canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies, undefined, false, snapshotData);
+        const resultWithoutSnapshot = canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies, undefined);
+
+        // Then bulk edit is blocked only when the snapshot marks the report as archived
+        expect(resultWithSnapshot).toBe(false);
+        expect(resultWithoutSnapshot).toBe(true);
+    });
+
     it('returns false when any selected transaction has no editable fields', () => {
         // Given a second expense on another member's open report, in a workspace where the current user isn't an admin
         const {transaction1, transaction2, reports, policies, reportActions, report2, policy2, reportAction2} = buildTestData();
