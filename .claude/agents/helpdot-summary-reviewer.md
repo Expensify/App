@@ -36,7 +36,7 @@ Derive your scores from the governance files above:
 
 ## Output Format
 
-Provide your assessment as a **top-level PR comment** using this format:
+Return your assessment as markdown using this format (the workflow posts it as a top-level PR comment):
 
 ## HelpDot Documentation Review
 
@@ -69,5 +69,5 @@ Provide your assessment as a **top-level PR comment** using this format:
 3. **Look for patterns and overall quality trends** within the diff
 4. **Provide balanced feedback** (both positive and areas for improvement) — only for the proposed changes
 5. **Focus on the big picture** rather than individual line issues
-6. **Use Bash(gh pr comment:*) tool** to post the summary comment
+6. **Return the summary as your final response** without posting it
 7. **Reference that inline comments provide specific details**
