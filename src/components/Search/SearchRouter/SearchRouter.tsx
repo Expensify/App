@@ -231,7 +231,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const navigationSuggestions = useNavigationSuggestions(textInputValue, isSearchRouterActive);
 
     const contextualReport = useReportOrReportDraft(contextualReportID);
-    const contextualReportParentAction = useParentReportAction(contextualReport);
+    const contextualReportParentAction = useParentReportAction(contextualReport, {shouldIgnoreThreadReplies: true});
     const [contextualReportPendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(contextualReport?.reportID)}`, {
         selector: pendingDeleteMemberAccountIDsSelector,
     });
