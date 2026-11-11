@@ -543,9 +543,9 @@ function getOngoingRequest(): AnyRequest | null {
     return ongoingRequest;
 }
 
-/** The request being sent comes first, since it was taken from the front of the queue */
+/** The request being sent comes first, since it was taken from the front of the queue, and saves made before the queue loaded come last */
 function getAllIncludingOngoing(): AnyRequest[] {
-    return ongoingRequest ? [ongoingRequest, ...persistedRequests] : persistedRequests;
+    return [...(ongoingRequest ? [ongoingRequest] : []), ...persistedRequests, ...pendingSaveOperations];
 }
 
 /**
