@@ -131,8 +131,8 @@ function useMoneyRequestReportSortedTransactions({
 
     const sortedTransactions: TransactionWithOptionalHighlight[] = [...transactions].sort((a, b) =>
         compareValues(
-            getTransactionSortValue(a, sortBy, report, policy, policyCategories, policyTagLists),
-            getTransactionSortValue(b, sortBy, report, policy, policyCategories, policyTagLists),
+            getTransactionSortValue(translate, a, sortBy, report, policy, policyCategories, policyTagLists),
+            getTransactionSortValue(translate, b, sortBy, report, policy, policyCategories, policyTagLists),
             sortOrder,
             sortBy,
             localeCompare,

@@ -1251,6 +1251,11 @@ const translations: TranslationDeepObject<typeof en> = {
         viewAll: 'すべて表示',
         topExpenses: '上位の経費',
         noExpensesInRange: 'この範囲内に経費はありません',
+        efficiency: '効率',
+        workflowEfficiency: 'ワークフロー効率',
+        longestToSubmit: '提出まで最も長い順',
+        slowestToApprove: '承認が最も遅い',
+        mostTimeToPay: '支払いまで最も時間がかかる',
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -1406,6 +1411,14 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase2: 'または、ここにファイルをドラッグ＆ドロップしてください',
         },
         pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `${pageCount} ページ中 ${page} ページ目`,
+        translate: '翻訳',
+        viewOriginal: '元の内容を表示',
+        translationDisclaimer: 'AI は誤りを犯すことがあります。必ず原文を再確認してください。',
+        translationError: {
+            unreadable: 'この領収書は内容が不鮮明なため、翻訳できませんでした。',
+            alreadyInLanguage: 'このレシートはすでにお使いの言語になっています。',
+            generic: 'この領収書を翻訳できませんでした。もう一度お試しください。',
+        },
     },
     quickAction: {
         scanReceipt: 'レシートをスキャン',
@@ -2035,6 +2048,12 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         undeletedExpense: 'この経費を復元しました',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `新しいワークスペース「${policyName}」の距離単価を更新しました`,
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} レポート`,
+                other: (count: number) => `${formattedCount ?? count} レポート`,
+            };
+        },
     },
     transactionMerge: {
         listPage: {
@@ -9933,6 +9952,25 @@ ${reportName}`,
             return `「${categoryName}」カテゴリの明細付きレシートを${newValue}に変更しました（以前は${oldValue}）`;
         },
         setCategoryName: (oldName: string, newName: string) => `カテゴリ名を「${oldName}」から「${newName}」に変更しました`,
+        setCategoryVisibility: (members: string, categories: string) => `${members}が${categories}のみを表示できるように設定しました`,
+        changedCategoryVisibility: (members: string, categories: string) => `${members} が ${categories} のみを表示するように変更しました`,
+        clearedCategoryVisibility: (members: string) => `${members} がすべてのカテゴリを表示できるように変更しました`,
+        quotedCategoryName: (categoryName: string) => `「${categoryName}」`,
+        oneCategory: (categoryName: string) => `${categoryName} カテゴリ`,
+        someCategories: (categoryList: string) => `カテゴリ${categoryList}`,
+        everyone: '全員',
+        categoryCount: ({count}: {count: number}) => ({
+            one: '1 件のカテゴリ',
+            other: `${count} 個のカテゴリ`,
+        }),
+        memberCount: ({count}: {count: number}) => ({
+            one: 'メンバー 1 人',
+            other: `${count} 名のメンバー`,
+        }),
+        categoryVisibilityCategoriesList: (categoryList: string) => `カテゴリ：${categoryList}`,
+        categoryVisibilityMembersList: (memberList: string) => `メンバー：${memberList}`,
+        categoryVisibilityReasonDeleted: '。唯一のカテゴリが削除されたためです。必要に応じてカテゴリの表示設定を更新してください。',
+        categoryVisibilityReasonDisabled: '、そのユーザーの唯一のカテゴリが無効になっているためです。必要に応じてカテゴリの表示設定を更新してください。',
         updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `カテゴリ「${categoryName}」から説明のヒント「${oldValue}」を削除しました`;
@@ -10798,6 +10836,7 @@ ${reportName}`,
                 [CONST.SEARCH.GROUP_BY.QUARTER]: '四半期',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: '承認者',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: '違反',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: '支払元',
             },
             feed: 'フィード',
             withdrawalType: {
@@ -10854,6 +10893,7 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.QUARTER]: '四半期',
             [CONST.SEARCH.GROUP_BY.APPROVER]: '承認者',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: '違反',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: '支払者',
         },
         moneyRequestReport: {emptyStateTitle: 'まだ経費がありません', accessPlaceHolder: '詳細を開く'},
         noCategory: 'カテゴリなし',
