@@ -26,4 +26,4 @@ index df72cad..44cff1b 100644
 +        includeEmptyDirs = false
        }
        into(hermesDir)
-       doLast {
+     }
