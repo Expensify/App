@@ -10,6 +10,9 @@ import type {SearchHeaderOptionValue} from '@hooks/useSearchBulkActions';
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {getLastPolicyPaymentMethod, queueBulkPayReports} from '@libs/actions/Search';
 import type * as SearchActions from '@libs/actions/Search';
+import Navigation from '@libs/Navigation/Navigation';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import type * as SubscriptionUtilsModule from '@libs/SubscriptionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -112,6 +115,11 @@ jest.mock('@libs/actions/Report', () => ({
 
 jest.mock('@libs/actions/User', () => ({
     setNameValuePair: jest.fn(),
+}));
+
+jest.mock('@libs/SubscriptionUtils', () => ({
+    ...jest.requireActual<typeof SubscriptionUtilsModule>('@libs/SubscriptionUtils'),
+    shouldRestrictUserBillableActions: jest.fn(() => false),
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -309,6 +317,7 @@ describe('useSearchBulkActions - Pay option', () => {
         mockBulkPayButtonOptions = [{text: 'Pay with bank account', key: CONST.IOU.PAYMENT_TYPE.VBBA}];
         mockAreAllMatchingItemsSelected = false;
         mockExcludedTransactions = {};
+        jest.mocked(shouldRestrictUserBillableActions).mockImplementation(() => false);
         await Onyx.clear();
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
         mockSelectedReports = [];
@@ -484,6 +493,29 @@ describe('useSearchBulkActions - Pay option', () => {
         await waitFor(() => {
             expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
         });
+    });
+
+    it('queues the Select all payment when only a report that cannot be paid is in a restricted workspace', async () => {
+        // Given "Select all" where report 2 cannot be paid and its workspace has billing restrictions
+        mockAreAllMatchingItemsSelected = true;
+        mockBulkPayButtonOptions = [{text: 'Mark as paid', key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}];
+        mockSelectedReports = [makeSelectedReport({canPay: true}), makeSelectedReport({reportID: '2', policyID: 'policy2', canPay: false, action: CONST.SEARCH.ACTION_TYPES.VIEW})];
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy2`, {id: 'policy2', role: CONST.POLICY.ROLE.ADMIN});
+        jest.mocked(shouldRestrictUserBillableActions).mockImplementation((policy) => policy?.id === 'policy2');
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+        await waitFor(() => {
+            expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
+        });
+
+        // When the user selects the Pay option
+        await act(async () => {
+            await getPayOptionFromResult(result.current.headerButtonsOptions)?.onSelected?.();
+        });
+
+        // Then the payment is queued, because report 2 is not one that gets paid
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+        expect(queueBulkPayReports).toHaveBeenCalledTimes(1);
     });
 
     it('hides the Pay option under Select all when no loaded report is payable', async () => {

@@ -1706,7 +1706,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const selectedOptions = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
             const expenseReportBankAccountID = additionalData?.bankAccountID;
 
-            const restrictedPolicyID = getRestrictedPolicyID(selectedOptions, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies, accountID);
+            const restrictedPolicyID = getRestrictedPolicyID(
+                selectedReports.length ? payableSelectedReports : selectedOptions,
+                userBillingGracePeriodEnds,
+                ownerBillingGracePeriodEnd,
+                amountOwed,
+                policies,
+                accountID,
+            );
             if (restrictedPolicyID) {
                 Log.info('[BulkPay] Blocking bulk pay: billable actions are restricted', false, {policyID: restrictedPolicyID});
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
@@ -2044,6 +2051,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             isBetaEnabled,
             isDelegateAccessRestricted,
             selectedReports,
+            payableSelectedReports,
             selectedTransactions,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
