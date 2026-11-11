@@ -244,7 +244,10 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                     );
                 })}
 
-                <MenuItemSectionRoot onPress={addAdditionalApprover}>
+                <MenuItemSectionRoot
+                    onPress={addAdditionalApprover}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_EDITOR_ADDITIONAL_APPROVER}
+                >
                     <MenuItemField.Row name={approverCount > 0 ? translate('workflowsCreateApprovalsPage.additionalApprover') : translate('workflowsPage.approver')}>
                         {!!approvalWorkflow?.errors?.additionalApprover && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                         <MenuItem.Chevron />
@@ -259,7 +262,10 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
 
                 {!!removeApprovalWorkflow && !approvalWorkflow.isDefault && (
                     <View style={styles.mt6}>
-                        <MenuItemSectionRoot onPress={removeApprovalWorkflow}>
+                        <MenuItemSectionRoot
+                            onPress={removeApprovalWorkflow}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_EDITOR_DELETE}
+                        >
                             <MenuItem.Row>
                                 <MenuItem.Leading>
                                     <MenuItem.Icon src={icons.Trashcan} />

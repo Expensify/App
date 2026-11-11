@@ -222,6 +222,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                         {isEditFlow && (
                             <View style={styles.mh5}>
                                 <MenuItemWithTopDescription
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_LIMIT_APPROVER}
                                     accessibilityLabel={approverDisplayName}
                                     titleStyle={styles.textNormalThemeText}
                                     description={translate('workflowsPage.approver')}
@@ -315,6 +316,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
 
                     <FixedFooter addBottomSafeAreaPadding>
                         <Button
+                            sentryLabel={isEditFlow ? CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_LIMIT_SUBMIT.SAVE : CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_LIMIT_SUBMIT.NEXT}
                             size={CONST.BUTTON_SIZE.LARGE}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={handleSubmit}

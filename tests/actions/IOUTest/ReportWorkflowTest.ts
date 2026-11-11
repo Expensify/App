@@ -5685,6 +5685,62 @@ describe('actions/IOU/ReportWorkflow', () => {
                     expect(previewAction).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
                 });
         });
+
+        it.each([
+            {
+                description: "keeps the server's when-paid export timing on final approval",
+                autoExportMessageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID,
+                expectedAutoExport: {messageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID},
+            },
+            {
+                description: "clears the server's after-final-approval export timing on final approval",
+                autoExportMessageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL,
+                expectedAutoExport: undefined,
+            },
+        ])('$description', async ({autoExportMessageKey, expectedAutoExport}) => {
+            // Given a report waiting for its final approver, whose next step from the server includes an export timing
+            const reportWithAutoExport: Report = {
+                ...expenseReport,
+                managerID: adminAccountID,
+                nextStep: {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID: adminAccountID,
+                    autoExport: {messageKey: autoExportMessageKey},
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportWithAutoExport.reportID}`, reportWithAutoExport);
+            await Onyx.set(ONYXKEYS.SESSION, {
+                email: adminEmail,
+                accountID: adminAccountID,
+            });
+
+            // When the admin approves it
+            approveMoneyRequest({
+                rules: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                personalDetailsByLogins: {},
+                expenseReport: reportWithAutoExport,
+                expenseReportPolicy: policy,
+                currentUserAccountIDParam: adminAccountID,
+                currentUserEmailParam: adminEmail,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                ownerLogin: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the optimistic merge keeps the timing while reimbursable spend waits for payment, and clears it otherwise
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportWithAutoExport.reportID}`);
+            expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
+            expect(updatedReport?.nextStep?.autoExport).toEqual(expectedAutoExport);
+        });
     });
 
     describe('approveMoneyRequest partially', () => {
@@ -5801,6 +5857,85 @@ describe('actions/IOU/ReportWorkflow', () => {
             const newExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newExpenseReportID}`);
             expect(newExpenseReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
             expect(newExpenseReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+        });
+
+        it('keeps only the unheld total on the approved report when the policy chat is not loaded', async () => {
+            // Given a vacation delegate approving a report whose policy expense chat was never opened, with one expense on hold
+            await Onyx.set(ONYXKEYS.SESSION, {
+                email: adminEmail,
+                accountID: adminAccountID,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, null);
+            const expenseReportWithHeldAmount: Report = {
+                ...expenseReport,
+                total: -1000,
+                nonReimbursableTotal: 0,
+                unheldTotal: -600,
+                unheldNonReimbursableTotal: 0,
+                reimbursableTotal: -1000,
+                unheldReimbursableTotal: -600,
+            };
+            const heldTransaction = {
+                ...buildOptimisticTransaction({
+                    transactionParams: {amount: -400, currency: 'USD', reportID: expenseReport.reportID},
+                }),
+            };
+            heldTransaction.comment = {...heldTransaction.comment, hold: 'Waiting on a receipt'};
+            const heldAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: heldTransaction.amount,
+                currency: 'USD',
+                comment: '',
+                participants: [],
+                transactionID: heldTransaction.transactionID,
+                iouReportID: expenseReport.reportID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+            const reportCollection: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`]: expenseReportWithHeldAmount,
+            };
+            const transactionCollection: TransactionCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${heldTransaction.transactionID}`]: heldTransaction,
+            };
+            const actionCollection: ReportActionsCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`]: {
+                    [heldAction.reportActionID]: heldAction,
+                },
+            };
+            await Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection});
+            await waitForBatchedUpdates();
+
+            // When only the unheld expenses are approved
+            const newExpenseReportID = approveMoneyRequest({
+                personalDetailsByLogins: {},
+                rules: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                expenseReport: expenseReportWithHeldAmount,
+                expenseReportPolicy: policy,
+                currentUserAccountIDParam: adminAccountID,
+                currentUserEmailParam: adminEmail,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                full: false,
+                ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                ownerLogin: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the report the approver returns to shows only the unheld total, and the held amount lives on its own expense report
+            const approvedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect(approvedReport?.total).toBe(-600);
+            expect(approvedReport?.reimbursableTotal).toBe(-600);
+
+            const heldReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newExpenseReportID}`);
+            expect(heldReport?.type).toBe(CONST.REPORT.TYPE.EXPENSE);
+            expect(heldReport?.total).toBe(-400);
+            expect(heldReport?.chatReportID).toBe(expenseReport.chatReportID);
         });
     });
 

@@ -2294,6 +2294,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'op de laatste zondag van de maand',
             },
         },
+        autoExport: {
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL]: 'Dit rapport wordt geëxporteerd na de definitieve goedkeuring.',
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID]: 'Vergoedbare uitgaven worden geëxporteerd zodra dit rapport is betaald.',
+        },
     },
     profilePage: {
         profile: 'Profiel',
@@ -9212,6 +9216,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 describeRuleForConcierge: 'Beschrijf je regel en Concierge bouwt hem voor je',
                 gotIt: 'Begrepen',
                 createRule: 'Regel maken',
+                saveAnyway: 'Toch opslaan',
+                checkingRule: 'Je regel wordt gecontroleerd...',
                 fallbackBanner:
                     'Dit is geen standaardregel, dus hebben we een agentregel opgesteld. Agentregels worden uitgevoerd wanneer een declaratie of rapport wordt aangemaakt of bijgewerkt.',
                 fallbackBannerWithExplanation: (explanation: string) =>
@@ -9676,6 +9682,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         digits: {
             updateCurrencyTitle: 'Werkruimtevaluta bijwerken?',
             updateCurrencyPrompt: 'Digits is momenteel alleen beschikbaar voor in de VS gevestigde bedrijven die in USD werken.',
+            importDescription: 'Kies welke Digits-configuraties je wilt importeren.',
+            accountTypesDescription: 'Je Digits-accounts worden geïmporteerd als categorieën.',
+            enableNewAccountsTitle: 'Nieuw geïmporteerde rekeningen inschakelen',
+            enableNewAccountsDescription: 'Nieuwe Digits-accounts zullen beschikbaar zijn als categorieën.',
+            dimensionsImport: 'Alle Digits-dimensies worden geïmporteerd als tags.',
+            departments: 'Afdelingen',
         },
         zohoBooks: {
             organization: 'Zoho Books-organisatie',

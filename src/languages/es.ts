@@ -2286,6 +2286,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'el último domingo del mes',
             },
         },
+        autoExport: {
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL]: 'Este informe se exportará después de la aprobación final.',
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID]: 'Los gastos reembolsables se exportarán cuando se pague este informe.',
+        },
     },
     profilePage: {
         profile: 'Perfil',
@@ -9367,6 +9371,8 @@ ${reportName}`,
                 describeRuleForConcierge: 'Describe tu regla y Concierge la creará',
                 gotIt: 'Entendido',
                 createRule: 'Crear regla',
+                saveAnyway: 'Guardar de todos modos',
+                checkingRule: 'Comprobando tu regla...',
                 fallbackBanner: 'Esta no es una regla estándar, así que redactamos una regla de agente. Las reglas de agente se ejecutan cuando se crea o actualiza un gasto o un informe.',
                 fallbackBannerWithExplanation: (explanation: string) =>
                     `Esta no es una regla estándar, así que redactamos una regla de agente. Las reglas de agente se ejecutan cuando se crea o actualiza un gasto o un informe. ${explanation}`,
@@ -9654,6 +9660,12 @@ ${reportName}`,
         digits: {
             updateCurrencyTitle: '¿Actualizar la moneda del espacio de trabajo?',
             updateCurrencyPrompt: 'Digits actualmente solo está disponible para empresas con sede en EE. UU. que operan en USD.',
+            importDescription: 'Elige qué configuraciones de Digits quieres importar.',
+            accountTypesDescription: 'Tus cuentas de Digits se importarán como categorías.',
+            enableNewAccountsTitle: 'Habilitar cuentas recién importadas',
+            enableNewAccountsDescription: 'Las nuevas cuentas de Digits estarán disponibles como categorías.',
+            dimensionsImport: 'Todas las dimensiones de Digits se importan como etiquetas.',
+            departments: 'Departamentos',
         },
         zohoBooks: {
             organization: 'Organización Zoho Books',

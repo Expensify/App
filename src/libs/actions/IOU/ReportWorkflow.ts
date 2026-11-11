@@ -439,7 +439,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     let optimisticHoldReportExpenseActionIDs;
     let optimisticReportActionCopyIDs;
     let optimisticCreatedReportForUnapprovedTransactionsActionID;
-    if (!full && !!chatReport && !!expenseReport) {
+    if (!full && !!expenseReport) {
         const originalCreated = getReportOriginalCreationTimestamp(expenseReport);
         const holdReportOnyxData = getReportFromHoldRequestsOnyxData({
             chatReport,
@@ -454,7 +454,12 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             rules,
         });
 
-        const parentChatKeys = new Set<string>([`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`]);
+        // A vacation delegate can approve before the policy chat is ever loaded, so chatReport is missing.
+        // Hold skips parent-chat updates in that case; fall back to the id on the expense report so the filter still matches when the chat is loaded.
+        const parentChatReportID = chatReport?.reportID ?? expenseReport.chatReportID;
+        const parentChatKeys = new Set<string>(
+            parentChatReportID ? [`${ONYXKEYS.COLLECTION.REPORT}${parentChatReportID}`, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentChatReportID}`] : [],
+        );
         const shouldSkipParentChatUpdates = expenseReport.hasParentAccess === false;
         const filterParentChatUpdates = <TUpdate extends {key: string}>(updates: TUpdate[]) =>
             shouldSkipParentChatUpdates ? updates.filter((update) => !parentChatKeys.has(update.key)) : updates;

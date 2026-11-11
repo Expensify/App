@@ -2338,6 +2338,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'w ostatnią niedzielę miesiąca',
             },
         },
+        autoExport: {
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL]: 'Ten raport zostanie wyeksportowany po ostatecznym zatwierdzeniu.',
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID]: 'Wydatki podlegające zwrotowi zostaną wyeksportowane, gdy ten raport zostanie opłacony.',
+        },
     },
     profilePage: {
         profile: 'Profil',
@@ -9247,6 +9251,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 describeRuleForConcierge: 'Opisz swoją regułę, a Concierge ją utworzy',
                 gotIt: 'Jasne',
                 createRule: 'Utwórz regułę',
+                saveAnyway: 'Zapisz mimo to',
+                checkingRule: 'Sprawdzanie reguły...',
                 fallbackBanner:
                     'To nie jest standardowa reguła, więc przygotowaliśmy regułę agenta. Reguły agenta są uruchamiane, gdy wydatek lub raport zostanie utworzony albo zaktualizowany.',
                 fallbackBannerWithExplanation: (explanation: string) =>
@@ -9702,6 +9708,12 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         digits: {
             updateCurrencyTitle: 'Zaktualizować walutę przestrzeni roboczej?',
             updateCurrencyPrompt: 'Digits jest obecnie dostępny tylko dla firm z siedzibą w USA, które działają w USD.',
+            importDescription: 'Wybierz, które konfiguracje Digits zaimportować.',
+            accountTypesDescription: 'Twoje konta Digits zostaną zaimportowane jako kategorie.',
+            enableNewAccountsTitle: 'Włącz nowo zaimportowane konta',
+            enableNewAccountsDescription: 'Nowe konta Digits będą dostępne jako kategorie.',
+            dimensionsImport: 'Wszystkie wymiary Digits są importowane jako tagi.',
+            departments: 'Działy',
         },
         zohoBooks: {
             organization: 'Organizacja Zoho Books',

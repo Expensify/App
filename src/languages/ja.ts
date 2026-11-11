@@ -2279,6 +2279,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: '毎月の最終日曜日に',
             },
         },
+        autoExport: {
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL]: 'このレポートは、最終承認後にエクスポートされます。',
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID]: 'このレポートが支払われると、立替経費がエクスポートされます。',
+        },
     },
     profilePage: {
         profile: 'プロフィール',
@@ -9106,6 +9110,8 @@ ${reportName}`,
                 describeRuleForConcierge: 'ルールの内容を入力すると、Concierge が自動作成します',
                 gotIt: '了解しました',
                 createRule: 'ルールを作成',
+                saveAnyway: 'このまま保存',
+                checkingRule: 'ルールを確認しています...',
                 fallbackBanner: 'これは標準ルールではないため、エージェントルールを作成しました。エージェントルールは、経費またはレポートが作成または更新されたときに実行されます。',
                 fallbackBannerWithExplanation: (explanation: string) =>
                     `これは標準ルールではないため、エージェントルールを作成しました。エージェントルールは、経費またはレポートが作成または更新されたときに実行されます。${explanation}`,
@@ -9551,6 +9557,12 @@ ${reportName}`,
         digits: {
             updateCurrencyTitle: 'ワークスペースの通貨を更新しますか？',
             updateCurrencyPrompt: 'Digits は現在、USD で運営されている米国拠点の企業のみご利用いただけます。',
+            importDescription: 'インポートする Digits の設定を選択してください。',
+            accountTypesDescription: 'Digits の勘定科目はカテゴリとしてインポートされます。',
+            enableNewAccountsTitle: '新しくインポートされた口座を有効にする',
+            enableNewAccountsDescription: '新しい Digits アカウントはカテゴリーとして利用できるようになります。',
+            dimensionsImport: 'すべての Digits ディメンションはタグとしてインポートされます。',
+            departments: '部門',
         },
         zohoBooks: {
             organization: 'Zoho Books 組織',
