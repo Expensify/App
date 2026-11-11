@@ -92,53 +92,6 @@ describe('applyContentChanges', () => {
     });
 });
 
-describe('wrapResultID and unwrapResultID', () => {
-    it('returns the server result ID for the same seatbelt generation', () => {
-        // Given a server result ID stamped with generation 3
-        const wrapped = LSPUtils.wrapResultID('server-7', 3);
-
-        // When the editor sends it back while the generation is still 3
-        const unwrapped = LSPUtils.unwrapResultID(wrapped, 3);
-
-        // Then the server gets its own ID back and can answer "unchanged"
-        expect(unwrapped).toBe('server-7');
-    });
-
-    it('drops a result ID from an older seatbelt generation', () => {
-        // Given a result ID stamped before the TSV changed
-        const wrapped = LSPUtils.wrapResultID('server-7', 3);
-
-        // When the editor sends it back after the generation moved to 4
-        const unwrapped = LSPUtils.unwrapResultID(wrapped, 4);
-
-        // Then it is dropped, so the server sends full diagnostics checked against the new baseline
-        expect(unwrapped).toBeUndefined();
-    });
-
-    it('keeps a server result ID that contains the separator', () => {
-        // Given a server ID that happens to contain the separator character
-        const wrapped = LSPUtils.wrapResultID('a|b', 1);
-
-        // When it is unwrapped for the same generation
-        const unwrapped = LSPUtils.unwrapResultID(wrapped, 1);
-
-        // Then only the generation prefix is removed
-        expect(unwrapped).toBe('a|b');
-    });
-
-    it('passes through a missing result ID', () => {
-        // Given a report without a result ID, which LSP allows
-
-        // When it is wrapped and the editor later omits it
-        const wrapped = LSPUtils.wrapResultID(undefined, 1);
-        const unwrapped = LSPUtils.unwrapResultID(undefined, 1);
-
-        // Then nothing is invented on either side
-        expect(wrapped).toBeUndefined();
-        expect(unwrapped).toBeUndefined();
-    });
-});
-
 describe('toLintMessage', () => {
     it('maps the oxlint code to the ESLint rule ID and LSP positions to 1-based ones', () => {
         // Given an oxlint diagnostic at 0-based line 2, character 4

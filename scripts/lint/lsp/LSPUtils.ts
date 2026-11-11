@@ -1,6 +1,6 @@
 /**
  * Language server helpers for the oxlint seatbelt wrapper: type guards for JSON-RPC payloads, unsaved
- * document edits, versioned result IDs and the mapping between LSP diagnostics and lint messages.
+ * document edits and the mapping between LSP diagnostics and lint messages.
  */
 import {fileURLToPath} from 'node:url';
 
@@ -33,7 +33,6 @@ type DiagnosticLintMessage = LintMessage & {diagnostic: LSPDiagnostic};
 
 const LSP_SEVERITY = {ERROR: 1, WARNING: 2} as const;
 const ORIGINAL_DIAGNOSTIC_KEY = 'oxlintSeatbeltOriginal';
-const RESULT_ID_SEPARATOR = '|';
 const FILE_URI_SCHEME = 'file:';
 
 function isRecord(value: unknown): value is JSONObject {
@@ -92,22 +91,6 @@ function toFilePath(uri: string): string | undefined {
     return uri.startsWith(FILE_URI_SCHEME) ? fileURLToPath(uri) : undefined;
 }
 
-function wrapResultID(resultID: unknown, generation: number): unknown {
-    return typeof resultID === 'string' ? `${generation}${RESULT_ID_SEPARATOR}${resultID}` : resultID;
-}
-
-/** Returns the server's result ID, or undefined when it was stamped with a different seatbelt generation. */
-function unwrapResultID(resultID: unknown, generation: number): string | undefined {
-    if (typeof resultID !== 'string') {
-        return undefined;
-    }
-    const separatorIndex = resultID.indexOf(RESULT_ID_SEPARATOR);
-    if (separatorIndex < 0 || resultID.slice(0, separatorIndex) !== String(generation)) {
-        return undefined;
-    }
-    return resultID.slice(separatorIndex + 1);
-}
-
 function toLintSeverity(diagnostic: LSPDiagnostic): LintSeverity {
     // LSP treats a missing severity as the client's default, which is an error in VS Code.
     return diagnostic.severity === undefined || diagnostic.severity === LSP_SEVERITY.ERROR ? LINT_SEVERITY.ERROR : LINT_SEVERITY.WARNING;
@@ -154,8 +137,6 @@ const LSPUtils = {
     toDiagnostic,
     toFilePath,
     toLintMessage,
-    unwrapResultID,
-    wrapResultID,
 };
 
 export default LSPUtils;

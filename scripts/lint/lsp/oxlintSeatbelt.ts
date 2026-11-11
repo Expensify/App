@@ -7,11 +7,11 @@
  *
  * VS Code: set `"oxc.path.oxlint": "scripts/lint/lsp/oxlintSeatbelt.ts"`. See contributingGuides/LINTING.md.
  */
-import {readFileSync, statSync, watchFile} from 'node:fs';
+import {readFileSync, statSync} from 'node:fs';
 import path from 'node:path';
 
 import type {SeatbeltFileData} from '../processors/Seatbelt';
-import type {LintMessage, ProcessorContext} from '../types';
+import type {LintMessage} from '../types';
 import type {JSONObject, LSPDiagnostic} from './LSPUtils';
 
 // The helper is ESM (.mjs). Bun resolves it without the extension.
@@ -24,43 +24,29 @@ import LSPUtils from './LSPUtils';
 import MessageReader, {encodeMessage} from './MessageReader';
 
 const LOG_PREFIX = '[oxlint-seatbelt]';
-const JSONRPC_VERSION = '2.0';
-const SEATBELT_POLL_INTERVAL_MS = 1000;
 const STREAM_FAILURE_EXIT_CODE = 1;
-const REFRESH_REQUEST_ID_PREFIX = 'oxlint-seatbelt-refresh-';
 const LSP_FLAG = '--lsp';
 const METHOD = {
-    INITIALIZE: 'initialize',
     DID_OPEN: 'textDocument/didOpen',
     DID_CHANGE: 'textDocument/didChange',
     DID_CLOSE: 'textDocument/didClose',
     CODE_ACTION: 'textDocument/codeAction',
     PUBLISH_DIAGNOSTICS: 'textDocument/publishDiagnostics',
     DOCUMENT_DIAGNOSTIC: 'textDocument/diagnostic',
-    WORKSPACE_DIAGNOSTIC: 'workspace/diagnostic',
-    DIAGNOSTIC_REFRESH: 'workspace/diagnostic/refresh',
 } as const;
-
-type PendingPull = {method: typeof METHOD.DOCUMENT_DIAGNOSTIC | typeof METHOD.WORKSPACE_DIAGNOSTIC; uri?: string; generation: number};
 
 const projectRoot = path.resolve(import.meta.dir, '../../..');
 const oxlintBin = path.join(projectRoot, 'node_modules', '.bin', 'oxlint');
 // An empty env so a shell's SEATBELT_* or CI values never change what the editor shows.
 const seatbeltOptions = resolveSeatbeltOptions(projectRoot, {});
-// Unsaved text changes on every keystroke, so the disk cache and worker pool of `ReactCompilerFilter` would miss every time.
-const compilerVerdicts = new Map<string, {source: string; memoized: boolean}>();
-// The filter only passes unsaved text to the check, so files that are not open are read here.
-const reactCompilerFilter = new ReactCompilerFilter((source, filePath) => isMemoizedByCompiler(filePath, source || readFileSync(filePath, 'utf8')));
+// Checked in process because unsaved text misses the disk cache of the default worker check. The filter only passes unsaved text, so closed files are read here.
+const reactCompilerFilter = new ReactCompilerFilter((source, filePath) => isFileMemoized(source || readFileSync(filePath, 'utf8'), filePath));
 const stratifyNoDeprecated = new StratifyNoDeprecated();
 
 const documents = new Map<string, string>();
-const pushedDiagnostics = new Map<string, {params: JSONObject; diagnostics: LSPDiagnostic[]}>();
-const pendingPulls = new Map<unknown, PendingPull>();
+// VS Code pulls diagnostics, and the reply does not repeat which file it is for.
+const pendingPullURIs = new Map<unknown, string>();
 let seatbeltCache: {mtimeMs: number; data: Map<string, SeatbeltFileData>} | undefined;
-// Bumped when the TSV changes, so the editor drops pull results computed against the old baseline.
-let seatbeltGeneration = 0;
-let clientSupportsRefresh = false;
-let refreshRequestCount = 0;
 
 // Not scripts/utils/Logger: its colors and emojis show up as raw escape codes in the editor's output panel.
 function log(...args: unknown[]): void {
@@ -75,16 +61,6 @@ function loadSeatbeltData(): Map<string, SeatbeltFileData> {
     return seatbeltCache.data;
 }
 
-function isMemoizedByCompiler(filePath: string, source: string): boolean {
-    const cached = compilerVerdicts.get(filePath);
-    if (cached?.source === source) {
-        return cached.memoized;
-    }
-    const memoized = isFileMemoized(source, filePath);
-    compilerVerdicts.set(filePath, {source, memoized});
-    return memoized;
-}
-
 async function applyLintProcessors(uri: string, diagnostics: LSPDiagnostic[]): Promise<LSPDiagnostic[]> {
     const filePath = LSPUtils.toFilePath(uri);
     if (!filePath || diagnostics.length === 0) {
@@ -92,7 +68,7 @@ async function applyLintProcessors(uri: string, diagnostics: LSPDiagnostic[]): P
     }
     try {
         const source = documents.get(uri);
-        const context: ProcessorContext = {projectRoot, lintedFiles: [filePath], sources: source === undefined ? undefined : new Map([[filePath, source]])};
+        const context = {projectRoot, lintedFiles: [filePath], sources: source === undefined ? undefined : new Map([[filePath, source]])};
         let messages: LintMessage[] = diagnostics.map((diagnostic) => LSPUtils.toLintMessage(filePath, diagnostic));
         // Same order as the processor list in scripts/lint/index.ts.
         messages = await reactCompilerFilter.process(messages, context);
@@ -110,37 +86,6 @@ async function applyLintProcessors(uri: string, diagnostics: LSPDiagnostic[]): P
     }
 }
 
-/** Stamps the result with the generation the request was made under, since an unchanged reply keeps the editor's older diagnostics. */
-async function transformReport(uri: string, report: unknown, generation: number): Promise<unknown> {
-    if (!LSPUtils.isRecord(report)) {
-        return report;
-    }
-    const next: JSONObject = {...report, resultId: LSPUtils.wrapResultID(report.resultId, generation)};
-    if (LSPUtils.isDiagnosticList(report.items)) {
-        next.items = await applyLintProcessors(uri, report.items);
-    }
-    if (LSPUtils.isRecord(report.relatedDocuments)) {
-        const related = await Promise.all(
-            Object.entries(report.relatedDocuments).map(async ([relatedURI, relatedReport]) => [relatedURI, await transformReport(relatedURI, relatedReport, generation)]),
-        );
-        next.relatedDocuments = Object.fromEntries(related);
-    }
-    return next;
-}
-
-async function transformPullResult(request: PendingPull, result: unknown): Promise<unknown> {
-    if (request.method === METHOD.DOCUMENT_DIAGNOSTIC && request.uri) {
-        return transformReport(request.uri, result, request.generation);
-    }
-    if (request.method === METHOD.WORKSPACE_DIAGNOSTIC && LSPUtils.isRecord(result) && Array.isArray(result.items)) {
-        const items = await Promise.all(
-            result.items.map((item: unknown) => (LSPUtils.isRecord(item) && typeof item.uri === 'string' ? transformReport(item.uri, item, request.generation) : item)),
-        );
-        return {...result, items};
-    }
-    return result;
-}
-
 // Editors other than VS Code may start the script without `--lsp`, and plain oxlint would lint the folder instead.
 const oxlintArgs = process.argv.slice(2);
 const server = Bun.spawn([oxlintBin, ...oxlintArgs, ...(oxlintArgs.includes(LSP_FLAG) ? [] : [LSP_FLAG])], {stdin: 'pipe', stdout: 'pipe', stderr: 'inherit'});
@@ -154,7 +99,7 @@ function sendToClient(message: JSONObject): void {
     process.stdout.write(encodeMessage(message));
 }
 
-/** Records editor state the processors need and rewrites the requests that carry values this wrapper changed. */
+/** Records the unsaved text the processors need, and gives the server back its own diagnostics in code action requests. */
 function prepareClientMessage(message: JSONObject): JSONObject {
     const {method, params} = message;
     if (!LSPUtils.isRecord(params)) {
@@ -162,79 +107,48 @@ function prepareClientMessage(message: JSONObject): JSONObject {
     }
     const textDocument = LSPUtils.isRecord(params.textDocument) ? params.textDocument : undefined;
     const uri = typeof textDocument?.uri === 'string' ? textDocument.uri : undefined;
+    if (!uri) {
+        return message;
+    }
 
     switch (method) {
-        case METHOD.INITIALIZE: {
-            const {capabilities} = params;
-            clientSupportsRefresh =
-                LSPUtils.isRecord(capabilities) &&
-                LSPUtils.isRecord(capabilities.workspace) &&
-                LSPUtils.isRecord(capabilities.workspace.diagnostics) &&
-                capabilities.workspace.diagnostics.refreshSupport === true;
-            return message;
-        }
         case METHOD.DID_OPEN:
-            if (uri && typeof textDocument?.text === 'string') {
+            if (typeof textDocument?.text === 'string') {
                 documents.set(uri, textDocument.text);
             }
             return message;
         case METHOD.DID_CHANGE:
-            if (uri) {
-                documents.set(uri, LSPUtils.applyContentChanges(documents.get(uri) ?? '', params.contentChanges));
-            }
+            documents.set(uri, LSPUtils.applyContentChanges(documents.get(uri) ?? '', params.contentChanges));
             return message;
-        case METHOD.DID_CLOSE: {
-            if (!uri) {
-                return message;
-            }
+        case METHOD.DID_CLOSE:
             documents.delete(uri);
-            pushedDiagnostics.delete(uri);
-            const filePath = LSPUtils.toFilePath(uri);
-            if (filePath) {
-                compilerVerdicts.delete(filePath);
-            }
             return message;
-        }
+        case METHOD.DOCUMENT_DIAGNOSTIC:
+            pendingPullURIs.set(message.id, uri);
+            return message;
         case METHOD.CODE_ACTION:
             if (!LSPUtils.isRecord(params.context) || !Array.isArray(params.context.diagnostics)) {
                 return message;
             }
             return {...message, params: {...params, context: {...params.context, diagnostics: params.context.diagnostics.map(LSPUtils.restoreDiagnostic)}}};
-        case METHOD.DOCUMENT_DIAGNOSTIC:
-            pendingPulls.set(message.id, {method, uri, generation: seatbeltGeneration});
-            return {...message, params: {...params, previousResultId: LSPUtils.unwrapResultID(params.previousResultId, seatbeltGeneration)}};
-        case METHOD.WORKSPACE_DIAGNOSTIC: {
-            if (!Array.isArray(params.previousResultIds)) {
-                return message;
-            }
-            pendingPulls.set(message.id, {method, generation: seatbeltGeneration});
-            const previousResultIds = params.previousResultIds.flatMap((previous: unknown) => {
-                if (!LSPUtils.isRecord(previous)) {
-                    return [];
-                }
-                const value = LSPUtils.unwrapResultID(previous.value, seatbeltGeneration);
-                return value === undefined ? [] : [{...previous, value}];
-            });
-            return {...message, params: {...params, previousResultIds}};
-        }
         default:
             return message;
     }
 }
 
 async function handleServerMessage(message: JSONObject): Promise<void> {
-    const {params} = message;
+    const {params, result} = message;
     const uri = LSPUtils.isRecord(params) ? params.uri : undefined;
     if (message.method === METHOD.PUBLISH_DIAGNOSTICS && LSPUtils.isRecord(params) && typeof uri === 'string' && LSPUtils.isDiagnosticList(params.diagnostics)) {
-        pushedDiagnostics.set(uri, {params, diagnostics: params.diagnostics});
         sendToClient({...message, params: {...params, diagnostics: await applyLintProcessors(uri, params.diagnostics)}});
         return;
     }
-    const pull = message.method === undefined ? pendingPulls.get(message.id) : undefined;
-    if (pull) {
-        pendingPulls.delete(message.id);
-        if ('result' in message) {
-            sendToClient({...message, result: await transformPullResult(pull, message.result)});
+    const pullURI = message.method === undefined ? pendingPullURIs.get(message.id) : undefined;
+    if (pullURI !== undefined) {
+        pendingPullURIs.delete(message.id);
+        // An "unchanged" reply has no items, and the editor keeps the ones this wrapper already processed.
+        if (LSPUtils.isRecord(result) && LSPUtils.isDiagnosticList(result.items)) {
+            sendToClient({...message, result: {...result, items: await applyLintProcessors(pullURI, result.items)}});
             return;
         }
     }
@@ -246,29 +160,7 @@ let serverQueue = Promise.resolve();
 const serverReader = new MessageReader((message) => {
     serverQueue = serverQueue.then(() => handleServerMessage(message)).catch((error: unknown) => log('failed to forward a server message:', error));
 });
-
-const clientReader = new MessageReader((message) => {
-    // Responses to the refresh requests this wrapper sends belong to no server request.
-    if (typeof message.id === 'string' && message.id.startsWith(REFRESH_REQUEST_ID_PREFIX) && message.method === undefined) {
-        return;
-    }
-    sendToServer(prepareClientMessage(message));
-});
-
-watchFile(seatbeltOptions.seatbeltFile, {interval: SEATBELT_POLL_INTERVAL_MS}, () => {
-    seatbeltGeneration++;
-    serverQueue = serverQueue
-        .then(async () => {
-            for (const [uri, {params, diagnostics}] of pushedDiagnostics) {
-                sendToClient({jsonrpc: JSONRPC_VERSION, method: METHOD.PUBLISH_DIAGNOSTICS, params: {...params, diagnostics: await applyLintProcessors(uri, diagnostics)}});
-            }
-            if (clientSupportsRefresh) {
-                refreshRequestCount++;
-                sendToClient({jsonrpc: JSONRPC_VERSION, id: `${REFRESH_REQUEST_ID_PREFIX}${refreshRequestCount}`, method: METHOD.DIAGNOSTIC_REFRESH});
-            }
-        })
-        .catch((error: unknown) => log('failed to refresh diagnostics after a seatbelt change:', error));
-});
+const clientReader = new MessageReader((message) => sendToServer(prepareClientMessage(message)));
 
 // A live process that no longer forwards messages looks hung to the editor, which only restarts servers that exit.
 function exitAfterStreamFailure(reason: string, error: unknown): never {
