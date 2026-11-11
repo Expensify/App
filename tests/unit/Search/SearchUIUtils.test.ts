@@ -5,7 +5,14 @@ import type {SearchQueryJSON} from '@components/Search/types';
 
 import {convertToDisplayStringWithoutCurrencyForLocale, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {getDateDisplayValue, getSections, getSortedTransactionData, isTransactionCategoryGroupListItemType, isTransactionMonthGroupListItemType, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
+import {
+    getDateDisplayValue,
+    getSections,
+    getSortedTransactionData,
+    isTransactionCategoryGroupListItemType,
+    isTransactionMonthGroupListItemType,
+    mapFiltersFormToLabelValueList,
+} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
