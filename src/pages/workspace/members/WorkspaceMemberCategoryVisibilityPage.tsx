@@ -204,6 +204,7 @@ function WorkspaceMemberCategoryVisibilityPage({policy, route}: WorkspaceMemberC
                         }
                         footerContent={
                             <FormAlertWithSubmitButton
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.CATEGORY_VISIBILITY_SAVE}
                                 buttonText={translate('common.save')}
                                 isAlertVisible={false}
                                 onSubmit={handleSave}

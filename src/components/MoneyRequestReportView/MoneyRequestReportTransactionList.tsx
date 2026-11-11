@@ -427,6 +427,7 @@ function MoneyRequestReportTransactionList({
                 )}
                 {!shouldUseNarrowLayout && !isExpenseReportViewFromIOUReport && (
                     <LinkButton
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT.COLUMNS_BUTTON}
                         size={CONST.BUTTON_SIZE.SMALL}
                         onPress={openColumnsPage}
                     >

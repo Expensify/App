@@ -71,7 +71,7 @@ function usePerDiemSubmission({
     backToReport,
     onExpenseWriteWillStart,
 }: UsePerDiemSubmissionParams): SubmissionHandle {
-    const {formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
@@ -130,7 +130,6 @@ function usePerDiemSubmission({
                 const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
 
                 submitPerDiemExpenseForSelfDM({
-                    dateFnsLocale,
                     getCurrencyDecimals,
                     writeBarrier,
                     selfDMReport,
@@ -195,7 +194,6 @@ function usePerDiemSubmission({
 
         const result = submitPerDiemExpenseIOUActions({
             isVendorMatchingBetaEnabled,
-            dateFnsLocale,
             getCurrencyDecimals,
             writeBarrier,
             report,

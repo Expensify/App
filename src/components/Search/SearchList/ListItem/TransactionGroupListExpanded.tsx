@@ -449,6 +449,7 @@ function TransactionGroupListExpandedImpl({
             {shouldDisplayShowMoreButton && !shouldDisplayLoadingIndicator && (
                 <View style={[styles.w100, styles.flexRow, isLargeScreenWidth && styles.pl10]}>
                     <LinkButton
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_SHOW_MORE_BUTTON}
                         onPress={onShowMoreButtonPress}
                         isNested
                         size={CONST.BUTTON_SIZE.MEDIUM}
