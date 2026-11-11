@@ -273,7 +273,8 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         value: updatedExpenseReport,
     });
 
-    if (chatReport) {
+    // An approver without parent access never receives the server reset of hasOutstandingChildRequest, so skip the optimistic update. undefined means access is unknown, so the update still runs.
+    if (chatReport && expenseReport.hasParentAccess !== false) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}`,
@@ -347,15 +348,17 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             | typeof ONYXKEYS.COLLECTION.TRANSACTION
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
         >
-    > = [
-        {
+    > = [];
+
+    if (expenseReport.hasParentAccess !== false) {
+        failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}`,
             value: {
                 hasOutstandingChildRequest: chatReport?.hasOutstandingChildRequest,
             },
-        },
-    ];
+        });
+    }
 
     if (!isDEWPolicy) {
         failureData.push({
@@ -436,7 +439,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     let optimisticHoldReportExpenseActionIDs;
     let optimisticReportActionCopyIDs;
     let optimisticCreatedReportForUnapprovedTransactionsActionID;
-    if (!full && !!chatReport && !!expenseReport) {
+    if (!full && !!expenseReport) {
         const originalCreated = getReportOriginalCreationTimestamp(expenseReport);
         const holdReportOnyxData = getReportFromHoldRequestsOnyxData({
             chatReport,
@@ -451,9 +454,19 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             rules,
         });
 
-        optimisticData.push(...holdReportOnyxData.optimisticData);
-        successData.push(...holdReportOnyxData.successData);
-        failureData.push(...holdReportOnyxData.failureData);
+        // A vacation delegate can approve before the policy chat is ever loaded, so chatReport is missing.
+        // Hold skips parent-chat updates in that case; fall back to the id on the expense report so the filter still matches when the chat is loaded.
+        const parentChatReportID = chatReport?.reportID ?? expenseReport.chatReportID;
+        const parentChatKeys = new Set<string>(
+            parentChatReportID ? [`${ONYXKEYS.COLLECTION.REPORT}${parentChatReportID}`, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentChatReportID}`] : [],
+        );
+        const shouldSkipParentChatUpdates = expenseReport.hasParentAccess === false;
+        const filterParentChatUpdates = <TUpdate extends {key: string}>(updates: TUpdate[]) =>
+            shouldSkipParentChatUpdates ? updates.filter((update) => !parentChatKeys.has(update.key)) : updates;
+
+        optimisticData.push(...filterParentChatUpdates(holdReportOnyxData.optimisticData));
+        successData.push(...filterParentChatUpdates(holdReportOnyxData.successData));
+        failureData.push(...filterParentChatUpdates(holdReportOnyxData.failureData));
         optimisticHoldReportID = holdReportOnyxData.optimisticHoldReportID;
         optimisticHoldActionID = holdReportOnyxData.optimisticHoldActionID;
         optimisticCreatedReportForUnapprovedTransactionsActionID = holdReportOnyxData.optimisticCreatedReportForUnapprovedTransactionsActionID;

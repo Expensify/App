@@ -662,8 +662,8 @@ function buildMergeFieldsData({
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     reports: Array<OnyxEntry<Report>>;
 }): MergeFieldData[] {
-    const targetTransactionDetails = getTransactionDetails(targetTransaction, undefined, undefined, undefined, undefined, targetReportOwnerAsAttendee);
-    const sourceTransactionDetails = getTransactionDetails(sourceTransaction, undefined, undefined, undefined, undefined, sourceReportOwnerAsAttendee);
+    const targetTransactionDetails = getTransactionDetails(targetTransaction, undefined, undefined, undefined, targetReportOwnerAsAttendee);
+    const sourceTransactionDetails = getTransactionDetails(sourceTransaction, undefined, undefined, undefined, sourceReportOwnerAsAttendee);
 
     if (!targetTransaction || !sourceTransaction || !targetTransactionDetails || !sourceTransactionDetails) {
         return [];

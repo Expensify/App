@@ -6,6 +6,7 @@ import type CONST from '@src/CONST';
 import type {KeyboardTypeOptions, NativeSyntheticEvent, StyleProp, TextInputSelectionChangeEvent, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
+/** @deprecated Use AmountFormFieldProps or KeypadAmountEditorProps instead. See contributingGuides/NUMBER_WITH_SYMBOL_FORM_MIGRATION.md. */
 type BaseTextInputWithSymbolProps = {
     formattedAmount: string;
 
@@ -97,6 +98,7 @@ type BaseTextInputWithSymbolProps = {
     | 'shouldAllowFocusInLandscapeMode'
 >;
 
+/** @deprecated Use AmountFormFieldProps or KeypadAmountEditorProps instead. See contributingGuides/NUMBER_WITH_SYMBOL_FORM_MIGRATION.md. */
 type TextInputWithSymbolProps = Omit<BaseTextInputWithSymbolProps, 'onSelectionChange'> & {
     onSelectionChange?: (start: number, end: number) => void;
 };

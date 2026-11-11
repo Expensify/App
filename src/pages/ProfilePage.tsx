@@ -50,7 +50,7 @@ import {openAgentsPage} from '@userActions/Agent';
 import {openExternalLink} from '@userActions/Link';
 import {openPublicProfilePage} from '@userActions/PersonalDetails';
 import {hasErrorInPrivateNotes} from '@userActions/Report';
-import {callFunctionIfActionIsAllowed, isAnonymousUser as isAnonymousUserSession} from '@userActions/Session';
+import {callIfAuthenticated, isAnonymousUser as isAnonymousUserSession} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -344,7 +344,7 @@ function ProfilePage({route}: ProfilePageProps) {
                         )}
                         {Permissions.canUsePrivateNotes() && !isEmptyObject(report) && !!report.reportID && !isCurrentUser && (
                             <MenuItem.Root
-                                onPress={callFunctionIfActionIsAllowed(() => navigateToPrivateNotes(report, currentUserAccountID, true), false, session)}
+                                onPress={callIfAuthenticated(() => navigateToPrivateNotes(report, currentUserAccountID, true), session)}
                                 sentryLabel={CONST.SENTRY_LABEL.PROFILE_PAGE.PRIVATE_NOTES}
                             >
                                 <MenuItem.Row>
