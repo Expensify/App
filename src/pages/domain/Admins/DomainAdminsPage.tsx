@@ -171,6 +171,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const headerContent = isAdmin ? (
         <View style={[styles.flexRow, styles.gap2, !shouldDisplayButtonsInSeparateLine && styles.pr2]}>
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADMINS.ADD_ADMIN}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_ADMIN.getRoute(domainAccountID))}
                 innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
@@ -180,6 +181,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                 <Button.Text>{translate('domain.admins.addAdmin')}</Button.Text>
             </Button>
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADMINS.SETTINGS}
                 onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID))}
                 innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
                 style={shouldDisplayButtonsInSeparateLine && [styles.flexGrow0, styles.mb3]}

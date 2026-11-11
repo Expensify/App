@@ -109,6 +109,7 @@ function ConnectionsMergeProviderCard({card, policy, handleConnect, onDisconnect
                             onClose={() => clearMergeConnectionErrorField(policy?.id, card.connectionName, row.field)}
                         >
                             <RowMenuItem
+                                sentryLabel={row.sentryLabel}
                                 description={row.description}
                                 title={row.title}
                                 icon={row.icon}

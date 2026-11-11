@@ -8,6 +8,7 @@
  *   - `check-changed`    -- check files changed in a PR, enforce:
  *       1. New files with components/hooks must compile
  *       2. Modified files must not regress (compiled on main -> must compile on PR)
+ *       3. Modified files must not lose caching (a call cached on main -> must stay cached on PR)
  */
 import CLI from 'expensify-common/CLI';
 import fs from 'fs';
@@ -15,11 +16,13 @@ import path from 'path';
 
 // eslint-disable-next-line import/extensions
 import type {CompilationResult, CompilerError} from '../config/reactCompiler/checkWithOxc.mjs';
+import type {LostCacheGuard} from './utils/findLostCacheGuards';
 
 // The checker is ESM (.mjs); Bun resolves it with the extension.
 // eslint-disable-next-line import/extensions
-import checkReactCompilerCompliance from '../config/reactCompiler/checkWithOxc.mjs';
+import checkReactCompilerCompliance, {shouldSkipReactCompiler} from '../config/reactCompiler/checkWithOxc.mjs';
 import FileUtils from './utils/FileUtils';
+import findLostCacheGuards from './utils/findLostCacheGuards';
 import Git from './utils/Git';
 import {error as logError, errorDetail as logErrorDetail, info as logInfo, success as logSuccess, warn as logWarn} from './utils/Logger';
 
@@ -41,6 +44,18 @@ function printErrors(filename: string, errors: CompilerError[]): void {
     for (const error of errors) {
         const location = formatErrorLocation(filename, error);
         logErrorDetail(`${location}: ${error.reason}`);
+    }
+    if (IS_CI) {
+        console.log('::endgroup::');
+    }
+}
+
+function printLostCacheGuards(filename: string, lostGuards: LostCacheGuard[]): void {
+    if (IS_CI) {
+        console.log(`::group::${filename} (${lostGuards.length} lost cache guard${lostGuards.length === 1 ? '' : 's'})`);
+    }
+    for (const {functionName, call} of lostGuards) {
+        logErrorDetail(call === undefined ? `${functionName}: no longer compiled` : `${functionName}: ${call} now runs on every render`);
     }
     if (IS_CI) {
         console.log('::endgroup::');
@@ -94,6 +109,7 @@ function getMainSource(ref: string, mainPath: string): string | undefined {
  * Check files changed in a PR for React Compiler compliance.
  * Rule 1: New files with components/hooks must compile.
  * Rule 2: Modified files must not regress (compiled on main -> must compile on PR).
+ * Rule 3: Modified files must not lose caching (a call cached on main -> must stay cached on PR).
  */
 async function checkChangedFiles(remote: string, verbose: boolean): Promise<boolean> {
     const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
@@ -120,7 +136,13 @@ async function checkChangedFiles(remote: string, verbose: boolean): Promise<bool
         const branchResult = checkReactCompilerCompliance(source, absolutePath);
 
         if (branchResult.status !== 'failed') {
-            if (verbose) {
+            const mainSource = status === 'added' || shouldSkipReactCompiler(filename) ? undefined : getMainSource(mainBaseCommitHash, previousFilename ?? filename);
+            const lostGuards = mainSource === undefined ? [] : findLostCacheGuards(mainSource, source, absolutePath, previousFilename ?? absolutePath);
+            if (lostGuards.length > 0) {
+                failures.push({file: filename, reason: 'Calls that the React Compiler cached on main run on every render on this branch'});
+                logError(`FAILED  ${filename} (lost caching: cached on main)`);
+                printLostCacheGuards(filename, lostGuards);
+            } else if (verbose) {
                 logSuccess(`OK  ${filename} (${branchResult.status})`);
             }
             continue;

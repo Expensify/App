@@ -48,6 +48,7 @@ function AgentsPage() {
 
     const newAgentButton = hasAgents ? (
         <Button
+            sentryLabel={CONST.SENTRY_LABEL.AGENTS.NEW_AGENT}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_NEW.getRoute()))}
             style={!shouldDisplayButtonsInSeparateLine && styles.pr2}
@@ -77,6 +78,7 @@ function AgentsPage() {
 
     const headerButtons = shouldShowBulkActionsButton ? (
         <ButtonWithDropdownMenu<DeepValueOf<typeof CONST.AGENTS.BULK_ACTION_TYPES>>
+            sentryLabel={CONST.SENTRY_LABEL.AGENTS.BULK_ACTIONS}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             shouldAlwaysShowDropdownMenu
             customText={translate('workspace.common.selected', {count: selectedAgentKeys.length})}

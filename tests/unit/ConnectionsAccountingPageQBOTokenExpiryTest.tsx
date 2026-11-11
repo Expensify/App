@@ -6,8 +6,6 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type TextComponent from '@components/Text';
 
-import DateUtils from '@libs/DateUtils';
-
 import ConnectionsAccountingPage from '@pages/workspace/connections/ConnectionsAccountingPage';
 
 import CONST from '@src/CONST';
@@ -143,8 +141,10 @@ function buildQBOPolicy(refreshTokenExpiresAt: Date, isAuthenticationError = fal
     };
 }
 
+// The expiry dates are relative to today, so the expected text is built with `Intl` directly rather than with the
+// helper the page uses, which would hide a regression in it.
 function formatExpiryDate(expiryDate: Date): string {
-    return DateUtils.formatWithUTCTimeZone(expiryDate.toISOString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT, undefined);
+    return expiryDate.toLocaleDateString('en-US', {year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC'});
 }
 
 async function renderPage(PageUnderTest: React.ComponentType<{policy: Policy}>, policy: Policy) {

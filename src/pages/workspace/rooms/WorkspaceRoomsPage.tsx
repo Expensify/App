@@ -165,6 +165,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
         shouldUseNarrowLayout && canCreateRooms ? (
             <View style={[pageGutter, styles.pb3]}>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ROOMS_CREATE}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
                     style={styles.w100}
@@ -186,15 +187,15 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
             >
                 <HeaderCentralPane title={translate('workspace.common.rooms')}>
                     {!shouldUseNarrowLayout && canCreateRooms && (
-                        <View style={styles.pr2}>
-                            <Button
-                                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
-                            >
-                                <Button.Icon src={headerIcons.Plus} />
-                                <Button.Text>{translate('common.create')}</Button.Text>
-                            </Button>
-                        </View>
+                        <Button
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ROOMS_CREATE}
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
+                            style={styles.pr2}
+                        >
+                            <Button.Icon src={headerIcons.Plus} />
+                            <Button.Text>{translate('common.create')}</Button.Text>
+                        </Button>
                     )}
                 </HeaderCentralPane>
 
