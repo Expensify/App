@@ -1,5 +1,6 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDuplicateReportsStatus from '@hooks/useDuplicateReportsStatus';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -82,6 +83,13 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
     const [rawTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`);
     const {duplicateTransactions} = useDuplicateTransactionsAndViolations(transaction?.transactionID ? [transaction.transactionID] : []);
+    const duplicateTransactionIDs = rawTransactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
+    const loadedDuplicateTransactions = Object.values(duplicateTransactions ?? {}).filter(
+        (duplicate): duplicate is NonNullable<typeof duplicate> => !!duplicate && duplicate.transactionID !== transaction?.transactionID,
+    );
+    const {hasUnloadedReport: hasUnloadedDuplicateReport} = useDuplicateReportsStatus(loadedDuplicateTransactions);
+    // Same rule as the review page: a duplicate missing from Onyx would be left out of the merge.
+    const hasUnloadedDuplicate = hasUnloadedDuplicateReport || loadedDuplicateTransactions.length < duplicateTransactionIDs.length;
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
@@ -152,6 +160,9 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
         }
 
         if (primaryAction === CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.KEEP_THIS_ONE) {
+            if (hasUnloadedDuplicate) {
+                return null;
+            }
             return (
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -169,9 +180,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
                                 route.params.backTo ?? Navigation.getActiveRoute(),
                                 reportID,
                                 transaction,
-                                removeSettledAndApprovedTransactions(
-                                    Object.values(duplicateTransactions ?? {}).filter((t): t is NonNullable<typeof t> => !!t && t.transactionID !== transaction?.transactionID),
-                                ),
+                                removeSettledAndApprovedTransactions(loadedDuplicateTransactions),
                                 policy,
                                 policyCategories,
                                 policyTags ?? {},

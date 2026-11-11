@@ -4,7 +4,9 @@
  */
 import {isReportApproved, isSettled} from '@libs/ReportUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Transaction} from '@src/types/onyx';
 
 import useOnyx from './useOnyx';
 
@@ -15,7 +17,8 @@ type DuplicateReportsStatus = {
 
 const DEFAULT_STATUS: DuplicateReportsStatus = {hasSettledOrApprovedReport: false, hasUnloadedReport: false};
 
-function useDuplicateReportsStatus(reportIDs: string[]): DuplicateReportsStatus {
+function useDuplicateReportsStatus(transactions: Transaction[]): DuplicateReportsStatus {
+    const reportIDs = transactions.map((transaction) => transaction.reportID).filter((reportID): reportID is string => !!reportID && reportID !== CONST.REPORT.UNREPORTED_REPORT_ID);
     const [status = DEFAULT_STATUS] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: (reports) => {
             let hasSettledOrApprovedReport = false;

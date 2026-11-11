@@ -116,8 +116,7 @@ function DynamicReviewPage() {
     const [selectedTransactionPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${selectedTransactionReport?.policyID}`);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
-    const duplicateReportIDs = transactions.map((transaction) => transaction.reportID).filter((reportID): reportID is string => !!reportID && reportID !== CONST.REPORT.UNREPORTED_REPORT_ID);
-    const {hasSettledOrApprovedReport: hasSettledOrApprovedTransaction, hasUnloadedReport} = useDuplicateReportsStatus(duplicateReportIDs);
+    const {hasSettledOrApprovedReport: hasSettledOrApprovedTransaction, hasUnloadedReport} = useDuplicateReportsStatus(transactions);
     // A duplicate that isn't loaded yet, or whose report isn't, may be approved or paid, and merging it fails server-side.
     const hasUnloadedTransaction = transactions.length < transactionIDs.length;
     const canKeepSelected = !hasSettledOrApprovedTransaction && !hasUnloadedReport && !hasUnloadedTransaction;
@@ -168,12 +167,13 @@ function DynamicReviewPage() {
         guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
     ]);
 
+    // Runs again on reconnect, because an offline fetch never sets the loading flag and the page would wait on it.
     useEffect(() => {
-        if (!transactionID) {
+        if (!transactionID || isOffline) {
             return;
         }
         getDuplicateTransactionDetails(transactionID);
-    }, [transactionID]);
+    }, [transactionID, isOffline]);
 
     useEffect(() => {
         if (!isDeleteNavigateBackToThisReview || !wasTransactionDeleted) {
@@ -323,6 +323,9 @@ function DynamicReviewPage() {
                         contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5]}
                     >
                         {!!hasSettledOrApprovedTransaction && <Text style={[styles.textNormal, styles.colorMuted, styles.mb5]}>{translate('iou.someDuplicatesArePaid')}</Text>}
+                        {!hasSettledOrApprovedTransaction && !canKeepSelected && (
+                            <Text style={[styles.textNormal, styles.colorMuted, styles.mb5]}>{translate('iou.someDuplicatesAreUnavailable')}</Text>
+                        )}
                         <DuplicateTransactionsList
                             transactions={transactions}
                             selectedTransactionID={effectiveSelectedTransactionID}

@@ -1793,6 +1793,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensesOnHold: 'Tutte le spese sono state messe in sospeso. Controlla i commenti per conoscere i prossimi passaggi.',
         expenseDuplicate: 'Questa spesa ha dettagli simili a un’altra. Controlla i duplicati per continuare.',
         someDuplicatesArePaid: 'Alcuni di questi duplicati sono già stati approvati o pagati.',
+        someDuplicatesAreUnavailable: 'Non è stato possibile caricare alcuni di questi duplicati, quindi puoi solo conservarli tutti.',
         reviewDuplicates: 'Controlla duplicati',
         keepAll: 'Mantieni tutto',
         keepSelected: 'Mantieni selezionati',

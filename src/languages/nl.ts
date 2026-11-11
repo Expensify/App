@@ -1792,6 +1792,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensesOnHold: 'Alle declaraties zijn gepauzeerd. Bekijk de opmerkingen voor de volgende stappen.',
         expenseDuplicate: 'Deze uitgave heeft vergelijkbare details als een andere. Controleer de doublures om door te gaan.',
         someDuplicatesArePaid: 'Sommige van deze duplicaten zijn al goedgekeurd of betaald.',
+        someDuplicatesAreUnavailable: 'Sommige van deze duplicaten konden niet worden geladen, dus je kunt ze alleen allemaal behouden.',
         reviewDuplicates: 'Dubbele items controleren',
         keepAll: 'Alles behouden',
         keepSelected: 'Selectie behouden',

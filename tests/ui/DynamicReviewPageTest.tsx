@@ -8,6 +8,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import useNetwork from '@hooks/useNetwork';
 
+import {getDuplicateTransactionDetails} from '@libs/actions/Transaction';
 import navigationRef from '@libs/Navigation/navigationRef';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 
@@ -106,6 +107,7 @@ const renderPage = async () => {
 
 const keepAllLabel = () => TestHelper.translateLocal('iou.keepAll');
 const keepSelectedLabel = () => TestHelper.translateLocal('iou.keepSelected');
+const unavailableMessage = () => TestHelper.translateLocal('iou.someDuplicatesAreUnavailable');
 
 describe('Reviewing duplicates that load late', () => {
     beforeAll(() => {
@@ -114,6 +116,7 @@ describe('Reviewing duplicates that load late', () => {
 
     beforeEach(async () => {
         jest.mocked(useNetwork).mockReturnValue({isOffline: false});
+        jest.mocked(getDuplicateTransactionDetails).mockClear();
         await act(async () => {
             await Onyx.clear();
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
@@ -191,6 +194,7 @@ describe('Reviewing duplicates that load late', () => {
         expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeNull();
         expect(screen.getByText(keepAllLabel())).toBeOnTheScreen();
         expect(screen.getByText(TestHelper.translateLocal('iou.someDuplicatesArePaid'))).toBeOnTheScreen();
+        expect(screen.queryByText(unavailableMessage())).not.toBeOnTheScreen();
         expect(screen.queryByText(keepSelectedLabel())).not.toBeOnTheScreen();
     });
 
@@ -208,6 +212,7 @@ describe('Reviewing duplicates that load late', () => {
         expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeNull();
         expect(screen.getByText(keepAllLabel())).toBeOnTheScreen();
         expect(screen.getByText(keepSelectedLabel())).toBeOnTheScreen();
+        expect(screen.queryByText(unavailableMessage())).not.toBeOnTheScreen();
     });
 
     it('stops loading but hides Keep selected when the request finishes without the other duplicate', async () => {
@@ -219,10 +224,11 @@ describe('Reviewing duplicates that load late', () => {
         // When the review opens
         await renderPage();
 
-        // Then the user isn't stuck on the loader, and Keep selected stays hidden because the duplicate could be paid
+        // Then the user isn't stuck on the loader, and Keep selected stays hidden because the duplicate could be paid, and the user is told why
         expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeNull();
         expect(screen.getByText(keepAllLabel())).toBeOnTheScreen();
         expect(screen.queryByText(keepSelectedLabel())).not.toBeOnTheScreen();
+        expect(screen.getByText(unavailableMessage())).toBeOnTheScreen();
     });
 
     it('hides Keep selected when the other duplicate is loaded but its report is not', async () => {
@@ -238,6 +244,7 @@ describe('Reviewing duplicates that load late', () => {
         // Then Keep selected stays hidden, because the missing report could be approved or paid
         expect(screen.getByText(keepAllLabel())).toBeOnTheScreen();
         expect(screen.queryByText(keepSelectedLabel())).not.toBeOnTheScreen();
+        expect(screen.getByText(unavailableMessage())).toBeOnTheScreen();
     });
 
     it('skips the loader offline, because the request cannot finish', async () => {
@@ -251,5 +258,23 @@ describe('Reviewing duplicates that load late', () => {
         expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeNull();
         expect(screen.getByText(keepAllLabel())).toBeOnTheScreen();
         expect(screen.queryByText(keepSelectedLabel())).not.toBeOnTheScreen();
+        expect(screen.getByText(unavailableMessage())).toBeOnTheScreen();
+    });
+
+    it('fetches the duplicates when the app reconnects after opening offline', async () => {
+        // Given the review was opened offline, where the fetch is skipped because it couldn't set the loading flag
+        jest.mocked(useNetwork).mockReturnValue({isOffline: true});
+        await renderPage();
+        expect(getDuplicateTransactionDetails).not.toHaveBeenCalled();
+
+        // When the app comes back online and the page renders again
+        jest.mocked(useNetwork).mockReturnValue({isOffline: false});
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}unrelated`, []);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the duplicates are fetched, so the loader that now shows has a request that will end it
+        expect(getDuplicateTransactionDetails).toHaveBeenCalledWith(DRAFT_TRANSACTION_ID);
     });
 });
