@@ -800,7 +800,7 @@ describe('ExpenseDefaultRuleUtils', () => {
             expect(getCategoryOnlyExpenseDefaultTaxID(rules, policyID, 'Meals')).toBe('id_TAX_RATE_1');
         });
 
-        it('picks the same rule whichever order the collection happens to list two rules for the category in', () => {
+        it('takes the newest rule whichever order the collection happens to list two rules for the category in', () => {
             // Given two rules on the same category, created a day apart and setting different rates
             const categoryFilter = {left: 'category', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']} satisfies RuleFilterNode;
             const older = buildRule(categoryFilter, 'id_TAX_RATE_1', '2026-01-01T00:00:00Z');
@@ -810,12 +810,13 @@ describe('ExpenseDefaultRuleUtils', () => {
             const newerFirst = getCategoryOnlyExpenseDefaultTaxID({[`${ONYXKEYS.COLLECTION.RULE}2`]: newer, [`${ONYXKEYS.COLLECTION.RULE}1`]: older}, policyID, 'Travel');
             const olderFirst = getCategoryOnlyExpenseDefaultTaxID({[`${ONYXKEYS.COLLECTION.RULE}1`]: older, [`${ONYXKEYS.COLLECTION.RULE}2`]: newer}, policyID, 'Travel');
 
-            // Then the same rule wins both times, so the rate does not depend on the order the response arrived in
-            expect(newerFirst).toBe('id_TAX_RATE_1');
-            expect(olderFirst).toBe('id_TAX_RATE_1');
+            // Then the newer rule's rate wins both times, because the engine applies the older one first and the
+            // newer one writes over it, and the rate does not depend on the order the response arrived in
+            expect(newerFirst).toBe('id_TAX_RATE_2');
+            expect(olderFirst).toBe('id_TAX_RATE_2');
         });
 
-        it('leaves a rule that carries no age behind one that does', () => {
+        it('applies a rule that carries no age after one that does', () => {
             // Given two rules on the same category, one of them stored without a created timestamp
             const categoryFilter = {left: 'category', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']} satisfies RuleFilterNode;
             const aged = buildRule(categoryFilter, 'id_TAX_RATE_1', '2026-01-01T00:00:00Z');
@@ -824,7 +825,30 @@ describe('ExpenseDefaultRuleUtils', () => {
             // When the rate is resolved from a collection listing the ageless one first
             const taxID = getCategoryOnlyExpenseDefaultTaxID({[`${ONYXKEYS.COLLECTION.RULE}2`]: ageless, [`${ONYXKEYS.COLLECTION.RULE}1`]: aged}, policyID, 'Travel');
 
-            // Then the rule that does carry an age wins, because an unknown age does not predate anything
+            // Then the ageless rule's rate wins, because an unknown age does not predate anything and so is applied
+            // last, over the rate the aged rule set
+            expect(taxID).toBe('id_TAX_RATE_2');
+        });
+
+        it('keeps the rate an earlier rule set when a later rule on the same category sets no tax', () => {
+            // Given an older rule setting a tax on the category and a newer one setting only its billable flag
+            const categoryFilter = {left: 'category', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']} satisfies RuleFilterNode;
+            const taxed = buildRule(categoryFilter, 'id_TAX_RATE_1', '2026-01-01T00:00:00Z');
+            const billableAction: ExpenseDefaultAction = {name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.BILLABLE, value: true};
+            const untaxed: Rule = {
+                scope: CONST.RULES.SCOPE.POLICY,
+                scopeID: policyID,
+                triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+                filters: categoryFilter,
+                created: '2026-01-02T00:00:00Z',
+                actions: toIndexMap([billableAction]),
+            };
+
+            // When the rate is resolved
+            const taxID = getCategoryOnlyExpenseDefaultTaxID({[`${ONYXKEYS.COLLECTION.RULE}1`]: taxed, [`${ONYXKEYS.COLLECTION.RULE}2`]: untaxed}, policyID, 'Travel');
+
+            // Then the older rule's rate stands, because the engine writes each field the rules set and the newer
+            // rule sets no tax to write over it
             expect(taxID).toBe('id_TAX_RATE_1');
         });
 

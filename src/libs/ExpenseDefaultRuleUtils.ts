@@ -160,11 +160,9 @@ function isPolicyScopedRule(rule: Rule | undefined, policyID: string | undefined
 /**
  * The order rules are applied in, oldest first, falling back to the ID for two rules created in the same moment.
  *
- * The oldest wins because that is what the admin is told when saving a rule matching what another one already
- * matches: the rule they already have takes priority over the new one. Every expense default is written with the
- * same `priority`, so there is nothing for that field to decide between two of them. Leaving the rules in Onyx
- * key order instead would hand it to whichever one the `GetRules` response happened to list first, which is not
- * an order the client picks or can repeat.
+ * Every expense default is written with the same `priority`, so there is nothing for that field to decide between
+ * two of them. Leaving the rules in Onyx key order instead would hand the outcome to whichever one the `GetRules`
+ * response happened to list first, which is not an order the client picks or can repeat.
  */
 function compareByApplicationOrder({ruleID: ruleIDA, rule: ruleA}: RuleWithID, {ruleID: ruleIDB, rule: ruleB}: RuleWithID): number {
     if (ruleA.created !== ruleB.created) {
@@ -636,6 +634,10 @@ function getCategoryOnlyFilterValues(rule: Rule): Array<string | number> {
  * Only a rule matching on the category alone counts. A rule that also matches on a merchant or a tag is narrower
  * than the category, so taking its tax here would put that rate on expenses the rule never meant to reach.
  *
+ * The engine applies every matching rule in turn and each one writes over what the last left, so where two rules
+ * put a tax on the same category the newest is the rate the expense ends up with. Stopping at the first match
+ * would predict a rate the server then replaces.
+ *
  * A rule pending delete is skipped, so an expense does not pick up a rate that is on its way out.
  */
 function getCategoryOnlyExpenseDefaultTaxID(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined, categoryName: string | undefined): string | undefined {
@@ -643,18 +645,17 @@ function getCategoryOnlyExpenseDefaultTaxID(rulesCollection: OnyxCollection<Rule
         return undefined;
     }
 
+    let appliedTaxID: string | undefined;
+
     for (const {rule} of getPolicyExpenseDefaultRules(rulesCollection, policyID, true)) {
         if (!getCategoryOnlyFilterValues(rule).includes(categoryName)) {
             continue;
         }
 
-        const taxID = getExpenseDefaultTaxID(rule);
-        if (taxID) {
-            return taxID;
-        }
+        appliedTaxID = getExpenseDefaultTaxID(rule) ?? appliedTaxID;
     }
 
-    return undefined;
+    return appliedTaxID;
 }
 
 /** Whether the policy has an expense default that puts a tax rate on a category. */
