@@ -6,9 +6,9 @@
     "compatibility_date": "2026-09-26",
     "workers_dev": false,
     "preview_urls": false,
-    // Runs before `wrangler dev` and `wrangler deploy` (from this directory), so .assetsignore is always applied to the upload.
+    // This fixture fails before publication to verify that a failed build preserves the served Preview.
     "build": {
-        "command": "./scripts/prepareDist.sh",
+        "command": "node -e \"throw new Error('Intentional E2E build failure')\"",
         "watch_dir": "src",
     },
     // Issues groups uncaught exceptions, 5xx responses and console.error calls. Each environment's observability block
