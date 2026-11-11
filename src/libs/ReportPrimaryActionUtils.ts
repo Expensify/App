@@ -61,14 +61,15 @@ import {
     isReportApproved as isReportApprovedUtils,
     isReportManager,
     isSettled,
+    isExportInProgress,
 } from './ReportUtils';
 import {
     allHavePendingRTERViolation,
     getTransactionViolations,
+    hasOnlyUnsettledExpenses,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
-    isPending,
     isScanning,
     isTransactionSubmittable,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
@@ -211,7 +212,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], curr
         return false;
     }
 
-    return !reportTransactions.every((transaction) => isPending(transaction));
+    return !hasOnlyUnsettledExpenses(reportTransactions, report);
 }
 
 function isPrimaryPayAction({
@@ -291,6 +292,10 @@ function isPrimaryPayAction({
 
 function isExportAction(report: Report, currentUserLogin: string, policy?: Policy, reportActions?: ReportAction[], options?: IsExportActionOptions) {
     if (!policy) {
+        return false;
+    }
+
+    if (isExportInProgress(reportActions)) {
         return false;
     }
 

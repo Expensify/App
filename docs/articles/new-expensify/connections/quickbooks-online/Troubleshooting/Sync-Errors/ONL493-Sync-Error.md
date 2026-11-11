@@ -49,8 +49,8 @@ After creating the correct account type:
 1. Return to Expensify.
 2. Go to the **Workspaces** navigation tab.
 3. Select your Workspace.
-4. Click **Accounting**.
-5. Click the **three-dot icon** next to the QuickBooks Online connection.
+4. Select **Connections**, then select **Configure** next to QuickBooks Online.
+5. Select **More (⋮)**.
 6. Select **Sync now**.
 7. Reconfigure the export account if needed.
 8. Retry the export.
@@ -65,7 +65,7 @@ If you do not want to create a new account in QuickBooks Online, you can change 
 
 1. Go to the **Workspaces** navigation tab on the left.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**, then select **Configure** next to QuickBooks Online.
 4. Click **Export**.
 5. Select a different export type that matches an existing account in QuickBooks Online.
 6. Click **Save**.
@@ -74,7 +74,7 @@ If you do not want to create a new account in QuickBooks Online, you can change 
 
 1. Tap the **Workspaces** navigation tab on the bottom.
 2. Select your Workspace.
-3. Tap **Accounting**.
+3. Select **Connections**, then select **Configure** next to QuickBooks Online.
 4. Tap **Export**.
 5. Select a different export type that matches an existing account.
 6. Tap **Save**.
