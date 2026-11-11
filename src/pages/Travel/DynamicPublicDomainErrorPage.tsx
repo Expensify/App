@@ -50,6 +50,7 @@ function DynamicPublicDomainErrorPage({route}: DynamicPublicDomainErrorPageProps
                 </View>
                 <FixedFooter>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.TRAVEL.PUBLIC_DOMAIN_ERROR_CONFIRM}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         style={[styles.w100]}
