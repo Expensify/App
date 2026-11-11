@@ -17,6 +17,13 @@ import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import React from 'react';
 import {View} from 'react-native';
 
+const ROW_SENTRY_LABELS = {
+    [INPUT_IDS.SEGMENT_NAME]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CONFIRM_CUSTOM_SEGMENT_ROW.SEGMENT_NAME,
+    [INPUT_IDS.INTERNAL_ID]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CONFIRM_CUSTOM_SEGMENT_ROW.INTERNAL_ID,
+    [INPUT_IDS.SCRIPT_ID]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CONFIRM_CUSTOM_SEGMENT_ROW.SCRIPT_ID,
+    [INPUT_IDS.MAPPING]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CONFIRM_CUSTOM_SEGMENT_ROW.MAPPING,
+};
+
 function ConfirmCustomSegmentStep({onMove, customSegmentType, netSuiteCustomFieldFormValues: values, onNext}: CustomFieldSubPageWithPolicy) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -38,6 +45,7 @@ function ConfirmCustomSegmentStep({onMove, customSegmentType, netSuiteCustomFiel
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('workspace.common.letsDoubleCheck')}</Text>
             {fieldNames.map((fieldName, index) => (
                 <MenuItemField
+                    sentryLabel={ROW_SENTRY_LABELS[fieldName]}
                     key={fieldName}
                     name={translate(
                         `workspace.netsuite.import.importCustomFields.customSegments.fields.${
@@ -54,6 +62,7 @@ function ConfirmCustomSegmentStep({onMove, customSegmentType, netSuiteCustomFiel
             ))}
             <View style={[styles.ph5, styles.pb5, styles.flexGrow1, styles.justifyContentEnd]}>
                 <ButtonDisabledWhenOffline
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CONFIRM_CUSTOM_SEGMENT_SUBMIT}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.w100]}

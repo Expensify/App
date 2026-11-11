@@ -23,7 +23,7 @@ import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collec
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
-import {formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal} from '../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
@@ -4379,7 +4379,7 @@ describe('TransactionUtils', () => {
                 taxValue: '5%',
             });
 
-            const result = TransactionUtils.getTaxRateTitle(policy, transaction, false, undefined);
+            const result = TransactionUtils.getTaxRateTitle(translateLocal, policy, transaction, false, undefined);
 
             expect(result).toBe('Tax Rate 1 (5%)');
         });
@@ -4390,7 +4390,7 @@ describe('TransactionUtils', () => {
                 taxValue: '15%',
             });
 
-            const result = TransactionUtils.getTaxRateTitle(policy, transaction, true, policyForMovingExpenses);
+            const result = TransactionUtils.getTaxRateTitle(translateLocal, policy, transaction, true, policyForMovingExpenses);
 
             expect(result).toBe('Tax Rate 1 - Default Policy (15%)');
         });
@@ -4401,7 +4401,7 @@ describe('TransactionUtils', () => {
                 taxValue: '5%',
             });
 
-            const result = TransactionUtils.getTaxRateTitle(policy, transaction, true, policyForMovingExpenses);
+            const result = TransactionUtils.getTaxRateTitle(translateLocal, policy, transaction, true, policyForMovingExpenses);
 
             expect(result).toBe('Tax Rate 1 (5%)');
         });
@@ -4412,7 +4412,7 @@ describe('TransactionUtils', () => {
                 taxValue: undefined,
             });
 
-            const result = TransactionUtils.getTaxRateTitle(policy, transaction, false, undefined);
+            const result = TransactionUtils.getTaxRateTitle(translateLocal, policy, transaction, false, undefined);
 
             expect(result).toBe('Tax exempt (0%) • Default');
         });
@@ -4428,7 +4428,7 @@ describe('TransactionUtils', () => {
                 taxValue: undefined,
             });
 
-            const result = TransactionUtils.getTaxRateTitle(policyWithTrackingDisabled, transaction, false, undefined);
+            const result = TransactionUtils.getTaxRateTitle(translateLocal, policyWithTrackingDisabled, transaction, false, undefined);
 
             expect(result).toBe('');
         });
@@ -4439,7 +4439,7 @@ describe('TransactionUtils', () => {
                 taxValue: '10%',
             });
 
-            const result = TransactionUtils.getTaxRateTitle(undefined, transaction, false, undefined);
+            const result = TransactionUtils.getTaxRateTitle(translateLocal, undefined, transaction, false, undefined);
 
             expect(result).toBe('');
         });
