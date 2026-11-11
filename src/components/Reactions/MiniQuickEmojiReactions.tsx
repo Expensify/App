@@ -16,7 +16,7 @@ import getButtonState from '@libs/getButtonState';
 import variables from '@styles/variables';
 
 import {emojiPickerRef, showEmojiPicker} from '@userActions/EmojiPickerAction';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -81,7 +81,7 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
                     key={emoji.name}
                     isDelayButtonStateComplete={false}
                     tooltipText={`:${getLocalizedEmojiName(emoji.name, preferredLocale)}:`}
-                    onPress={callFunctionIfActionIsAllowed(() => onEmojiSelected(emoji, emojiReactions, preferredSkinTone), false, session)}
+                    onPress={callIfAuthenticated(() => onEmojiSelected(emoji, emojiReactions, preferredSkinTone), session)}
                     sentryLabel={CONST.SENTRY_LABEL.MINI_CONTEXT_MENU.QUICK_REACTION}
                 >
                     <Text
@@ -94,17 +94,13 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
             ))}
             <BaseMiniContextMenuItem
                 ref={ref}
-                onPress={callFunctionIfActionIsAllowed(
-                    () => {
-                        if (!emojiPickerRef.current?.isEmojiPickerVisible) {
-                            openEmojiPicker();
-                        } else {
-                            emojiPickerRef.current?.hideEmojiPicker();
-                        }
-                    },
-                    false,
-                    session,
-                )}
+                onPress={callIfAuthenticated(() => {
+                    if (!emojiPickerRef.current?.isEmojiPickerVisible) {
+                        openEmojiPicker();
+                    } else {
+                        emojiPickerRef.current?.hideEmojiPicker();
+                    }
+                }, session)}
                 isDelayButtonStateComplete={false}
                 tooltipText={translate('emojiReactions.addReactionTooltip')}
                 sentryLabel={CONST.SENTRY_LABEL.MINI_CONTEXT_MENU.EMOJI_PICKER_BUTTON}
