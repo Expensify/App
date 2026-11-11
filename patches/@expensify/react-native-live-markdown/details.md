@@ -7,3 +7,10 @@
 - Upstream PR/issue: https://github.com/Expensify/react-native-live-markdown/pull/776 (on hold until the library can rely on React Native 0.88; drop this patch once the app upgrades to a release that contains it)
 - E/App issue: https://github.com/Expensify/App/issues/98254
 - PR introducing patch: https://github.com/Expensify/App/pull/102415
+
+### [@expensify+react-native-live-markdown+0.1.371+002+preserve-browser-text-replacements.patch](@expensify+react-native-live-markdown+0.1.371+002+preserve-browser-text-replacements.patch)
+
+- Reason: Chrome and Safari can replace text before the cached selection changes. Reconstructing every `insertText` event from that selection restores the word the browser replaced. Limit reconstruction to Firefox, where it preserves a line break removed while typing after a code fence. Native markdown handling and Firefox behavior are unchanged.
+- Upstream PR/issue: No upstream PR yet; this is a contained web mitigation for the deploy blocker. The original macOS keyboard event sequence still needs verification before an upstream change.
+- E/App issue: https://github.com/Expensify/App/issues/106439
+- PR introducing patch: https://github.com/Expensify/App/pull/106440

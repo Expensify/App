@@ -90,7 +90,10 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                             key={menuItem.id}
                             pendingAction={settingsPendingAction([`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${menuItem.id}`], xeroConfig?.pendingFields)}
                         >
-                            <MenuItemSectionRoot onPress={menuItem.onPress}>
+                            <MenuItemSectionRoot
+                                onPress={menuItem.onPress}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.TRACKING_CATEGORY_ROW}
+                            >
                                 <MenuItemField.Row
                                     name={menuItem.description}
                                     value={menuItem.title}

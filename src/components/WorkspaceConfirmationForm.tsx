@@ -190,6 +190,7 @@ function WorkspaceConfirmationForm({
                     <Text style={[styles.mb3, styles.webViewStyles.baseFontStyle, styles.textSupporting]}>{translate('workspace.emptyWorkspace.subtitle')}</Text>
                 </View>
                 <AvatarWithImagePicker
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONFIRMATION_FORM_AVATAR}
                     isUsingDefaultAvatar={!stashedLocalAvatarImage}
                     source={stashedLocalAvatarImage}
                     avatar={workspaceAvatarNode}

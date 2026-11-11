@@ -132,6 +132,7 @@ import Navigation from './Navigation/Navigation';
 import {hasKey} from './ObjectUtils';
 import Parser from './Parser';
 import {getLoginByAccountID, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {isMapOrGPSRequired} from './PolicyDistanceRatesUtils';
 import {
     arePaymentsEnabled,
     arePolicyRulesEnabled,
@@ -145,6 +146,7 @@ import {
     isControlPolicy,
     isGroupPolicy,
     isPaidGroupPolicy,
+    getPolicyRole,
     isPolicyAdmin,
     isPolicyApprover,
     isPolicyPayer,
@@ -172,6 +174,7 @@ import {
 } from './ReportActionsUtils';
 import {getReportName} from './ReportNameUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
+import {isChangeWorkspaceAction} from './ReportSecondaryActionUtils';
 import {
     canApproveIOU,
     canIOUBePaid,
@@ -208,6 +211,7 @@ import {
     isPayOptional,
     isProcessingReport,
     isSettled,
+    isWorkspaceEligibleForReportChange,
     shouldReportShowSubscript,
 } from './ReportUtils';
 import {getAmountFilterDisplayValue} from './SearchAmountFilterUtils';
@@ -251,7 +255,10 @@ import {
     getMerchant as getTransactionMerchant,
     getTransactionViolations,
     hasDisplayableMCC,
+    hasAppliedCommuterExclusion,
     isDeletedTransaction,
+    isManualDistanceRequest,
+    isOdometerDistanceRequest,
     isOnHold,
     isScanning,
     isViolationDismissed,
@@ -5347,6 +5354,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
                 emptyState: {
                     title: 'search.searchResults.emptyResults.title',
                     subtitle: 'search.searchResults.emptyResults.subtitle',
+                    shouldShowResetFilters: true,
                 },
             });
         }
@@ -8006,6 +8014,64 @@ function navigateToSearchRHP(route: {route: string; getRoute: (backTo?: string) 
     }
 }
 
+type CanChangeWorkspaceOfSearchReportParams = {
+    report: OnyxEntry<OnyxTypes.Report>;
+    /** The report in Onyx, which an export after the search updates while the search results keep the old flag */
+    liveReport: OnyxEntry<OnyxTypes.Report>;
+    reportTransactions: OnyxTypes.Transaction[] | undefined;
+    currentSearchResults: SearchResults['data'] | undefined;
+    allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
+    policies: OnyxCollection<OnyxTypes.Policy>;
+    currentUserLogin: string | undefined;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+};
+
+/** Whether a report on Search can change workspace, by the same rules as Change workspace on the report itself. */
+function canChangeWorkspaceOfSearchReport({
+    report,
+    liveReport,
+    reportTransactions,
+    currentSearchResults,
+    allReportActions,
+    policies,
+    currentUserLogin,
+    personalDetails,
+}: CanChangeWorkspaceOfSearchReportParams): boolean {
+    if (!report || !isExpenseReportUtil(report) || reportTransactions?.some(hasAppliedCommuterExclusion)) {
+        return false;
+    }
+    const reportToCheck = liveReport?.isExportedToIntegration === undefined ? report : {...report, isExportedToIntegration: liveReport.isExportedToIntegration};
+    // The export check falls back to the report's whole history, which the snapshot may only hold part of
+    const reportActions = Object.values(getReportActionsFromSearchSnapshot(report.reportID, currentSearchResults, allReportActions, true) ?? {});
+    const submitterLogin = getLoginByAccountID(report.ownerAccountID, personalDetails);
+    return (
+        isChangeWorkspaceAction(reportToCheck, policies, currentUserLogin ?? '', submitterLogin, reportActions) &&
+        Object.values(policies ?? {}).some(
+            (policy) => !!policy && policy.id !== report.policyID && canBulkMoveReportToPolicy(report, reportTransactions, policy, submitterLogin, currentUserLogin),
+        )
+    );
+}
+
+/** Whether a bulk workspace change can move the report to the workspace, which needs the submitter there already since it can't invite them. */
+function canBulkMoveReportToPolicy(
+    report: OnyxTypes.Report,
+    reportTransactions: OnyxTypes.Transaction[] | undefined,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    submitterLogin: string | undefined,
+    currentUserLogin: string | undefined,
+): boolean {
+    // The current user's own workspaces can come without an employee list, and their role already says they're on it
+    const isSubmitterOnPolicy = submitterLogin === currentUserLogin ? !!policy?.role : !!getPolicyRole(policy, submitterLogin, false);
+    // Manual and odometer distances have no route, which a workspace that needs map or GPS rejects
+    const hasDistanceWithoutRoute = isMapOrGPSRequired(policy) && !!reportTransactions?.some((transaction) => isManualDistanceRequest(transaction) || isOdometerDistanceRequest(transaction));
+    return (
+        isSubmitterOnPolicy &&
+        !hasDistanceWithoutRoute &&
+        isWorkspaceEligibleForReportChange(submitterLogin, policy, report) &&
+        (!isSettled(report) || isPolicyAdmin(policy, currentUserLogin))
+    );
+}
+
 function shouldShowDeleteOption(
     selectedTransactions: Record<string, SelectedTransactionInfo>,
     currentSearchResults: SearchResults['data'] | undefined,
@@ -8175,6 +8241,8 @@ function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, gro
 }
 
 export {
+    canBulkMoveReportToPolicy,
+    canChangeWorkspaceOfSearchReport,
     doesTransactionMatchFooterTotal,
     getSnapshotFooterTotal,
     getSearchBulkEditPolicyID,

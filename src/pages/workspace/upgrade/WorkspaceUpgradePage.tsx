@@ -219,15 +219,16 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         goBack();
     };
 
+    const requiredPlan = upgradeFeatureByAlias && 'requiredPlan' in upgradeFeatureByAlias ? upgradeFeatureByAlias.requiredPlan : undefined;
+    const upgradeTargetType = isUpgradingFromSubmitPolicy ? (upgradePlanType ?? requiredPlan ?? CONST.POLICY.TYPE.TEAM) : CONST.POLICY.TYPE.CORPORATE;
+
     const onUpgradeToCorporate = () => {
         if (!canPerformUpgrade || !policy) {
             return;
         }
 
         if (isUpgradingFromSubmitPolicy) {
-            const requiredPlan = upgradeFeatureByAlias && 'requiredPlan' in upgradeFeatureByAlias ? upgradeFeatureByAlias.requiredPlan : undefined;
-            const targetType = upgradePlanType ?? requiredPlan ?? CONST.POLICY.TYPE.TEAM;
-            upgradeSubmit(policy, targetType, email, accountID, priorFirstDayFreeTrial, priorLastDayFreeTrial, reportID);
+            upgradeSubmit(policy, upgradeTargetType, email, accountID, priorFirstDayFreeTrial, priorLastDayFreeTrial, reportID);
             return;
         }
 
@@ -422,6 +423,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 {!!policy && isUpgraded && (
                     <UpgradeConfirmation
                         afterUpgradeAcknowledged={afterUpgradeAcknowledged}
+                        confirmSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.CONFIRMATION_GOT_IT}
                         policyName={policy.name}
                         planName={getUserFriendlyWorkspaceType(policy.type, translate)}
                     />
@@ -431,6 +433,11 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                         policyID={policyID}
                         feature={feature}
                         onUpgrade={onUpgradeToCorporate}
+                        upgradeSentryLabel={
+                            upgradeTargetType === CONST.POLICY.TYPE.TEAM
+                                ? CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.UPGRADE_PLAN.COLLECT
+                                : CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.UPGRADE_PLAN.CONTROL
+                        }
                         buttonDisabled={isOffline || !canPerformUpgrade}
                         loading={policy?.isPendingUpgrade}
                         backTo={route.params.backTo}
