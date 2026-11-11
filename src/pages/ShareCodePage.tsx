@@ -215,6 +215,7 @@ function ShareCodePage({report, policy, backTo, shouldShowQRCodeOnly = false}: S
                 {!shouldShowQRCodeOnly && (
                     <View style={themeStyles.mt9}>
                         <ContextMenuItem
+                            sentryLabel={CONST.SENTRY_LABEL.SHARE_CODE.COPY_BUTTON}
                             isAnonymousAction
                             text={translate('qrCodes.copy')}
                             icon={icons.Copy}
@@ -227,7 +228,10 @@ function ShareCodePage({report, policy, backTo, shouldShowQRCodeOnly = false}: S
                         We shouldn't introduce platform specific code in our codebase.
                         This is a temporary solution while Web is not supported for the QR code download feature */}
                         {shouldAllowDownloadQRCode && (
-                            <MenuItem.Root onPress={() => qrCodeRef.current?.download?.()}>
+                            <MenuItem.Root
+                                onPress={() => qrCodeRef.current?.download?.()}
+                                sentryLabel={CONST.SENTRY_LABEL.SHARE_CODE.DOWNLOAD_BUTTON}
+                            >
                                 <MenuItem.Row>
                                     <MenuItem.Leading>
                                         <MenuItem.Icon src={icons.Download} />
@@ -240,6 +244,7 @@ function ShareCodePage({report, policy, backTo, shouldShowQRCodeOnly = false}: S
                         )}
 
                         <MenuItemNavigation
+                            sentryLabel={CONST.SENTRY_LABEL.SHARE_CODE.REFERRAL_ITEM}
                             title={translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText`)}
                             icon={icons.Cash}
                             onPress={() => {
