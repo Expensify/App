@@ -84,6 +84,7 @@ function ReportVirtualCardFraudConfirmationPage({
                     <Text style={[themeStyles.textSupporting, themeStyles.alignSelfCenter, themeStyles.mt2, themeStyles.textAlignCenter]}>{translate(description)}</Text>
                 </ScrollView>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.REPORT_FRAUD_CONFIRMATION_CLOSE}
                     onPress={close}
                     style={themeStyles.justifyContentEnd}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}

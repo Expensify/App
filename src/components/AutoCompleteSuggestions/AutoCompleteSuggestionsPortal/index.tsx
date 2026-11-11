@@ -4,6 +4,8 @@ import useStyleUtils from '@hooks/useStyleUtils';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
+
 import type {ReactElement} from 'react';
 
 import React from 'react';
@@ -50,6 +52,7 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({
             <>
                 <TransparentOverlay
                     onPress={resetSuggestions}
+                    sentryLabel={CONST.SENTRY_LABEL.BASE_AUTO_COMPLETE_SUGGESTIONS.OVERLAY}
                     style={zIndexStyle}
                 />
                 <View style={[StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom: bottom - getBottomSuggestionPadding(isMenuAbove)}), zIndexStyle]}>

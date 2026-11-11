@@ -62,7 +62,11 @@ jest.mock('@pages/ErrorPage/NotFoundPage', () => {
 });
 jest.mock('@userActions/DynamicForm', () => ({...jest.requireActual<Record<string, unknown>>('@userActions/DynamicForm'), saveDraftAnswers: jest.fn()}));
 jest.mock('@userActions/BankAccounts', () => ({hideBankAccountErrors: jest.fn(), openReimbursementAccountPage: jest.fn()}));
-jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'settings/wallet/global-reimbursements/1'));
+const INTRO_PATH = 'settings/wallet/global-reimbursements/1';
+
+// The real hook reads the root state, which a deep link fills only after the page renders
+let mockBackPath = INTRO_PATH;
+jest.mock('@hooks/useDynamicBackPath', () => () => mockBackPath);
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
 
 const ELIGIBLE_BANK_ACCOUNT: BankAccount = {
@@ -160,6 +164,7 @@ describe('WiseBusinessOnboardingPage', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockBackPath = INTRO_PATH;
         jest.mocked(saveDraftAnswers).mockImplementation(saveDraftAnswersToOnyx);
         setHasRadio(true);
         await Onyx.clear();
@@ -402,6 +407,48 @@ describe('WiseBusinessOnboardingPage', () => {
         // Then the user sees not found instead of the form
         expect(screen.getByTestId(NOT_FOUND_TEST_ID)).toBeOnTheScreen();
         expect(screen.queryByTestId(FLOW_TEST_ID)).not.toBeOnTheScreen();
+    });
+
+    it('opens the status page instead of the form once the business is submitted', async () => {
+        // Given a bank account whose business is already submitted to Wise
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+        const submittedBankAccount: BankAccount = {
+            ...ELIGIBLE_BANK_ACCOUNT,
+            accountData: {...ELIGIBLE_BANK_ACCOUNT.accountData, additionalData: {wise: {status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW}}},
+        };
+
+        // When one of the form's pages opens for it
+        await renderPage({bankAccount: submittedBankAccount, subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY});
+
+        // Then the status page replaces it, since there is nothing left to submit, and the form never shows nor reads or prefills its answers
+        expect(navigateSpy).toHaveBeenCalledTimes(1);
+        expect(openReimbursementAccountPage).not.toHaveBeenCalled();
+        expect(saveDraftAnswers).not.toHaveBeenCalled();
+        expect(navigateSpy).toHaveBeenCalledWith('settings/wallet/global-reimbursements/1/status', {forceReplace: true});
+        expect(screen.queryByTestId(FLOW_TEST_ID)).not.toBeOnTheScreen();
+    });
+
+    it('waits for the intro path before opening the status page from a deep link', async () => {
+        // Given a submitted business and a deep link that renders the page before the root state holds it, so the back path is empty
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+        mockBackPath = '';
+        const submittedBankAccount: BankAccount = {
+            ...ELIGIBLE_BANK_ACCOUNT,
+            accountData: {...ELIGIBLE_BANK_ACCOUNT.accountData, additionalData: {wise: {status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED}}},
+        };
+        await renderPage({bankAccount: submittedBankAccount});
+
+        // Then it does not navigate yet, since a status route built on an empty path does not exist
+        expect(navigateSpy).not.toHaveBeenCalled();
+
+        // When the root state catches up and the back path becomes the intro, which the page sees on its next render
+        mockBackPath = INTRO_PATH;
+        await act(() => Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {[BANK_ACCOUNT_ID]: {title: 'Checking'}}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the status page replaces the form over the intro
+        expect(navigateSpy).toHaveBeenCalledTimes(1);
+        expect(navigateSpy).toHaveBeenCalledWith('settings/wallet/global-reimbursements/1/status', {forceReplace: true});
     });
 
     it('puts the saved file keys in the draft once a page save returns them', async () => {

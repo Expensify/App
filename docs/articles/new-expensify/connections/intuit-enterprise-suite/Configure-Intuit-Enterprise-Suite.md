@@ -24,8 +24,8 @@ Once configured, you can:
 Each workspace has its own Intuit Enterprise Suite integration. To view or update the configuration settings:
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile) select **Workspaces > [workspace name]**.
-2. Select **Accounting**.
-3. On the Intuit Enterprise Suite connection, choose **Import**, **Export**, or **Advanced**.
+2. Select **Connections**, then select **Configure** next to Intuit Enterprise Suite.
+3. Select **Import**, **Export**, or **Advanced**.
 
 ![Accounting page showing the Intuit Enterprise Suite connection]({{site.url}}/assets/images/Accounting_Intuit-Enterprise-Suite.png){:width="100%"}
 
@@ -80,4 +80,4 @@ No. Custom dimensions always import as tags.
 
 ## Who can configure Intuit Enterprise Suite settings?
 
-Workspace admins on the Control plan with **Accounting** enabled under **More features** and Intuit Enterprise Suite connected to the workspace.
+Workspace admins on the Control plan with Intuit Enterprise Suite connected to the workspace.

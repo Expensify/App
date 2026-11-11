@@ -9,7 +9,7 @@ import type {AgentRuleWithID} from '@libs/AgentRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import {clearPolicyAgentRuleErrors} from '@userActions/Policy/Rules';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,7 +47,7 @@ function AgentRulesList({policyID, rules, canWriteRules, showReadOnlyModal, list
 
         Navigation.navigate(ROUTES.RULES_AGENT_EDIT.getRoute(policyID, ruleID));
     };
-    const editAgentRule = callFunctionIfActionIsAllowed(handleEditAgentRule, false, session);
+    const editAgentRule = callIfAuthenticated(handleEditAgentRule, session);
 
     return (
         <View style={listContainerStyle}>
