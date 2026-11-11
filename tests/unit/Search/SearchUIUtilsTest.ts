@@ -16716,6 +16716,27 @@ describe('SearchUIUtils', () => {
                 ),
             ).toBe(`${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingTag')}, ${translateLocal('violations.shortName.overLimit')}`);
         });
+
+        test('lists each label once, alphabetically, even when different violation names share a label', () => {
+            // Given a submit snapshot whose names are out of label order, two of which share the "Receipt required" label
+            const reportActions = [
+                createSubmittedAction({
+                    transactions: {
+                        [transactionIDForViolations]: [
+                            {name: CONST.VIOLATIONS.RECEIPT_REQUIRED},
+                            {name: CONST.VIOLATIONS.MISSING_CATEGORY},
+                            {name: CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT},
+                        ],
+                    },
+                }),
+            ];
+
+            // When the violations are read for a submitted-violation search
+            const violations = SearchUIUtils.getViolationsForTransaction(reportActions, transactionIDForViolations, [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION], translateLocal);
+
+            // Then the shared label shows once and the labels read alphabetically, matching the key the Violations column sorts by
+            expect(violations).toBe(`${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.receiptRequired')}`);
+        });
     });
 
     describe('getGroupColumnWidthFlags', () => {
