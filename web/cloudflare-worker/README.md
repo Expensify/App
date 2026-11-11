@@ -57,7 +57,7 @@ Use your chosen `WEB_PORT` if different. This is a local API, not a separate hos
 
 ### 1. Install
 
-This package is an npm workspace, so root `npm install` links it and installs its dependencies. Shared packaging helpers are imported through `@expensify/new-expensify-cloudflare-worker/pr-testing-config`.
+This package is an npm workspace, so root `npm install` links it and installs its dependencies. Shared packaging helpers are imported through `@expensify/new-expensify-cloudflare-worker/adhoc-config`.
 
 The separate Worker lockfile is retained for lightweight deployment/test jobs and the local CLI bootstrap. To install only that locked toolchain, without installing the whole App workspace graph:
 
@@ -182,7 +182,7 @@ npx wrangler deploy --dry-run --env test-staging
 
 Never commit credentials or `.dev.vars` files here. This is a public repository. Account and zone IDs are nonsecret deployment identifiers.
 
-## PR-testing Worker
+## Ad-hoc Worker
 
 Every ad-hoc web build publishes that build's `src/index.ts` and matching web assets to a named [Worker Preview](https://developers.cloudflare.com/workers/previews/) under the shared `adhoc` Worker. The Preview name is the PR number, so rebuilding updates that PR's Preview without changing another PR or the parent Worker's production deployment.
 
@@ -205,11 +205,11 @@ Cloudflare (request handling):
 
 **The runtime is shared with the main app Worker.** `buildWeb` bundles the existing `web/cloudflare-worker/src/index.ts` from the same App SHA as the web build. CSP, nonces, security headers, Brotli, caching and SPA routing are not reimplemented in the CI tooling. The preview wrapper answers the reserved build-status endpoint and delegates every application request unchanged. `scripts/deployAdhocCloudflareWorker.ts` runs only in CI.
 
-The deployment CLI runs in Bun with TypeScript and the shared `expensify-common/CLI` parser. It publishes and verifies the Preview without GitHub API calls. Pure typed packaging helpers in `web/cloudflare-worker/scripts/prTestingConfig.ts` are shared with the standalone workerd tests without pulling the App CLI dependencies into that package.
+The deployment CLI runs in Bun with TypeScript and the shared `expensify-common/CLI` parser. It publishes and verifies the Preview without GitHub API calls. Pure typed packaging helpers in `web/cloudflare-worker/scripts/adhocConfig.ts` are shared with the standalone workerd tests without pulling the App CLI dependencies into that package.
 
 The existing test-build authorization and reviewed-code confirmation still apply. Callers resolve the build ref, and `buildWeb.yml` outputs the actual checked-out commit SHA after compiling the web app and bundling the Worker without Cloudflare credentials. Publication stamps the code and assets with that SHA and the current workflow run/attempt.
 
-The `deployWebAdHoc` job runs tooling from the caller workflow's SHA, never from `APP_REF`. Authorized users can select a workflow branch for testing without merging it first. Downloaded artifacts cannot supply deployment targets, hooks or privileged bindings. Only compatibility date and flags are accepted from the branch's runtime manifest. `extractPRTestingAssets` copies validated regular files without following links or exposing source maps. Dependencies and build hooks run without Cloudflare credentials.
+The `deployWebAdHoc` job runs tooling from the caller workflow's SHA, never from `APP_REF`. Authorized users can select a workflow branch for testing without merging it first. Downloaded artifacts cannot supply deployment targets, hooks or privileged bindings. Only compatibility date and flags are accepted from the branch's runtime manifest. `extractAdhocAssets` copies validated regular files without following links or exposing source maps. Dependencies and build hooks run without Cloudflare credentials.
 
 The existing `CLOUDFLARE_WORKERS_DEPLOY_TOKEN` repository secret is exposed only to the deploy step. The account ID is configured directly in the workflow. Publication uses `wrangler preview --worker-name adhoc --name <PR number>`, not a production deploy or a per-PR route update. Worker Previews are open beta and require Wrangler 4.135.0 or later.
 

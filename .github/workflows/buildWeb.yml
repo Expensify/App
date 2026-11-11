@@ -87,13 +87,13 @@ jobs:
           if ! node -e 'const fs = require("node:fs"); const expected = JSON.parse(fs.readFileSync("package.json", "utf8")).devDependencies.wrangler; process.exit(require("wrangler/package.json").version === expected ? 0 : 1)' 2>/dev/null; then
             npm ci --workspaces=false
           fi
-          npx wrangler deploy --dry-run --env staging --outdir ../../pr-testing-worker
+          npx wrangler deploy --dry-run --env staging --outdir ../../adhoc-worker
           node --input-type=module <<'NODE'
           import {writeFileSync} from 'node:fs';
           import {experimental_readRawConfig} from 'wrangler';
           const {rawConfig} = experimental_readRawConfig({config: 'wrangler.jsonc'});
           const runtime = {...rawConfig, ...rawConfig.env?.staging};
-          writeFileSync('../../pr-testing-worker/runtime.json', JSON.stringify({
+          writeFileSync('../../adhoc-worker/runtime.json', JSON.stringify({
             compatibility_date: runtime.compatibility_date,
             compatibility_flags: runtime.compatibility_flags ?? [],
           }));
@@ -105,8 +105,8 @@ jobs:
         if: ${{ inputs.build-preview-worker }}
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
-          name: pr-testing-worker-artifact
-          path: ./pr-testing-worker
+          name: adhoc-worker-artifact
+          path: ./adhoc-worker
           if-no-files-found: error
 
       - name: Upload web sourcemaps artifact

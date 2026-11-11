@@ -60,7 +60,7 @@ function PaymentHistoryTable() {
                     <PaymentHistoryTableRow
                         key={row.purchaseID}
                         row={row}
-                        dateLabel={DateUtils.formatWithUTCTimeZone(row.created, CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale) || row.created}
+                        dateLabel={DateUtils.formatToLongDateInUTC(row.created, dateFnsLocale) || row.created}
                         shouldShowDivider={index < rows.length - 1}
                     />
                 ))}

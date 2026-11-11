@@ -134,19 +134,19 @@ jobs:
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: web-build-tar-gz-artifact
-          path: ${{ runner.temp }}/pr-testing-artifacts/assets
+          path: ${{ runner.temp }}/adhoc-artifacts/assets
 
       - name: Download the branch Worker bundle as data
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
-          name: pr-testing-worker-artifact
-          path: ${{ runner.temp }}/pr-testing-artifacts/worker
+          name: adhoc-worker-artifact
+          path: ${{ runner.temp }}/adhoc-artifacts/worker
 
       - name: Deploy and verify the PR Preview and assets together
         run: |
           bun scripts/deployAdhocCloudflareWorker.ts \
             --pr-number ${{ inputs.APP_PR_NUMBER }} --sha ${{ needs.buildWeb.outputs.BUILD_SHA }} \
-            --artifact-directory "${{ runner.temp }}/pr-testing-artifacts"
+            --artifact-directory "${{ runner.temp }}/adhoc-artifacts"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_WORKERS_DEPLOY_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: 3eb3df6f8c190fa13c3fc0a53c30af1a

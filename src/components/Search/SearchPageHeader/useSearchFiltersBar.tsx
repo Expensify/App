@@ -7,7 +7,7 @@ import ReportFieldPopup from '@components/Search/FilterDropdowns/ReportFieldPopu
 import TextFilterPopup from '@components/Search/FilterDropdowns/TextFilterPopup';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
-import type {SearchFilterKey, SearchQueryJSON} from '@components/Search/types';
+import type {SearchQueryJSON} from '@components/Search/types';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -17,11 +17,11 @@ import {shouldShowInitialCategoryFilterLoading} from '@hooks/useSearchFilterSync
 import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 
 import {close} from '@libs/actions/Modal';
-import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
-import {buildQueryStringWithResetFilters, hasFiltersChangedFromDefault, isSearchQuerySavable, removeNegation} from '@libs/SearchQueryUtils';
+import {isSearchQuerySavable, removeNegation} from '@libs/SearchQueryUtils';
 import {
+    FILTER_VIEW_MAP,
     getFiltersFormWithTripRoomStatuses,
     getFilterViewLabelKey,
     isAmountFilterKey,
@@ -37,17 +37,17 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ReactNode} from 'react';
 
 import React from 'react';
 
 import DatePickerFilterPopup from './DatePickerFilterPopup';
+import useSearchFiltersReset from './useSearchFiltersReset';
 
-type FilterItem = WithSentryLabel & {
+type FilterItem = WithRequiredSentryLabel & {
     PopoverComponent: (props: PopoverComponentProps) => ReactNode;
     onClosePress: (() => void) | undefined;
     onLandscapePress?: () => void;
@@ -70,10 +70,6 @@ type FilterPopupProps = {
     setPopoverWidth: PopoverComponentProps['setPopoverWidth'];
     updateFilterForm: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
-
-function getFilterSentryLabel(filterKey: SearchAdvancedFiltersKey | SearchFilterKey) {
-    return `Search-Filter-${filterKey}`;
-}
 
 function FilterPopup({baseFilterKey, isDefault, searchAdvancedFiltersForm, closeOverlay, setPopoverWidth, updateFilterForm}: FilterPopupProps) {
     const {translate} = useLocalize();
@@ -200,7 +196,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                     />
                 </ListFilterHeightContextProvider>
             ),
-            sentryLabel: getFilterSentryLabel(filterKey),
+            sentryLabel: FILTER_VIEW_MAP[removeNegation(filterKey)].filterSentryLabel,
             onLandscapePress: () => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS_CONTENT.getRoute(removeNegation(filterKey), true)),
             onClosePress:
                 isDefault && !isSavedSearch
@@ -239,22 +235,14 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
         }),
     );
 
-    const resetFilters = () => {
-        if (!currentSearchQueryJSON) {
-            return;
-        }
-
-        Navigation.setParams({q: buildQueryStringWithResetFilters(currentSearchQueryJSON, currentDefaultSearchQueryJSON), rawQuery: undefined});
-        setSearchContext(false);
-    };
+    const {canReset, resetFilters} = useSearchFiltersReset();
     const isCategoryFilterLoading = shouldShowInitialCategoryFilterLoading(queryJSON, areCategoriesLoaded, isLoadingCategories, isOffline);
-    const hasDefaultQuery = !!currentDefaultSearchQueryJSON && !!currentSearchQueryJSON;
 
     return {
         filters,
         hasErrors: Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline,
         shouldShowFiltersBarLoading: shouldShowFiltersBarLoading || isCategoryFilterLoading,
-        canReset: hasDefaultQuery ? hasFiltersChangedFromDefault(currentSearchQueryJSON, currentDefaultSearchQueryJSON) : filters.length > 0,
+        canReset,
         canSave: isSearchQuerySavable(currentSearchQueryJSON, currentDefaultSearchQueryJSON),
         resetFilters,
     };

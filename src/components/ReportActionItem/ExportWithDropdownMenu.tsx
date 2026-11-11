@@ -21,7 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportActions} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -29,7 +29,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React from 'react';
 import {StyleSheet} from 'react-native';
 
-type ExportWithDropdownMenuProps = WithSentryLabel & {
+type ExportWithDropdownMenuProps = WithRequiredSentryLabel & {
     report: OnyxEntry<Report>;
 
     reportActions: OnyxEntry<ReportActions>;

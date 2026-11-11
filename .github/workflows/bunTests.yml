@@ -4,11 +4,11 @@ on:
   workflow_call:
   pull_request:
     types: [opened, synchronize]
-    branches-ignore: [production]
     paths:
       - 'server/**'
       - 'src/**'
       - 'tests/tooling/**'
+      - '.claude/skills/**'
       - 'tests/utils/**'
       - '.github/actions/javascript/**'
       - '.github/libs/**'
