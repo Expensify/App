@@ -9241,6 +9241,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 describeRuleForConcierge: 'Descrivi la tua regola e Concierge la creerà',
                 gotIt: 'Capito',
                 createRule: 'Crea regola',
+                saveAnyway: 'Salva comunque',
+                checkingRule: 'Verifica della tua regola in corso...',
                 fallbackBanner:
                     'Questa non è una regola standard, quindi abbiamo creato una regola agente. Le regole agente vengono eseguite quando una spesa o un report viene creato o aggiornato.',
                 fallbackBannerWithExplanation: (explanation: string) =>
@@ -9704,6 +9706,12 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         digits: {
             updateCurrencyTitle: 'Aggiornare la valuta dello spazio di lavoro?',
             updateCurrencyPrompt: 'Digits è attualmente disponibile solo per le aziende con sede negli Stati Uniti che operano in USD.',
+            importDescription: 'Scegli quali configurazioni Digits importare.',
+            accountTypesDescription: 'I tuoi conti Digits verranno importati come categorie.',
+            enableNewAccountsTitle: 'Abilita i conti appena importati',
+            enableNewAccountsDescription: 'I nuovi conti Digits saranno disponibili come categorie.',
+            dimensionsImport: 'Tutte le dimensioni Digits vengono importate come tag.',
+            departments: 'Reparti',
         },
         zohoBooks: {
             organization: 'Organizzazione Zoho Books',

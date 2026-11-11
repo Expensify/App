@@ -7079,6 +7079,12 @@ const translations = {
         digits: {
             updateCurrencyTitle: 'Update workspace currency?',
             updateCurrencyPrompt: 'Digits is currently only available for US-based companies that operate in USD.',
+            importDescription: 'Choose which Digits configurations to import.',
+            accountTypesDescription: 'Your Digits accounts will import as categories.',
+            enableNewAccountsTitle: 'Enable newly imported accounts',
+            enableNewAccountsDescription: 'New Digits accounts will be available as categories.',
+            dimensionsImport: 'All Digits dimensions import as tags.',
+            departments: 'Departments',
         },
         zohoBooks: {
             organization: 'Zoho Books organization',
@@ -10198,6 +10204,8 @@ const translations = {
                 describeRuleForConcierge: 'Describe your rule and Concierge will build it',
                 disclaimer: 'AI agents can make mistakes.',
                 createRule: 'Create rule',
+                saveAnyway: 'Save anyway',
+                checkingRule: 'Checking your rule...',
                 fallbackBanner: "This isn't a standard rule, so we drafted an agent rule. Agent rules run when an expense or report is created or updated.",
                 fallbackBannerWithExplanation: (explanation: string) =>
                     `This isn't a standard rule, so we drafted an agent rule. Agent rules run when an expense or report is created or updated. ${explanation}`,

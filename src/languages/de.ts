@@ -9294,6 +9294,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 describeRuleForConcierge: 'Beschreiben Sie Ihre Regel und Concierge erstellt sie',
                 gotIt: 'Verstanden',
                 createRule: 'Regel erstellen',
+                saveAnyway: 'Trotzdem speichern',
+                checkingRule: 'Ihre Regel wird geprüft...',
                 fallbackBanner:
                     'Dies ist keine Standardregel, daher haben wir eine Agentenregel erstellt. Agentenregeln werden ausgeführt, wenn eine Ausgabe oder ein Bericht erstellt oder aktualisiert wird.',
                 fallbackBannerWithExplanation: (explanation: string) =>
@@ -9762,6 +9764,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         digits: {
             updateCurrencyTitle: 'Arbeitsbereichswährung aktualisieren?',
             updateCurrencyPrompt: 'Digits ist derzeit nur für Unternehmen mit Sitz in den USA verfügbar, die in USD arbeiten.',
+            importDescription: 'Wählen Sie, welche Digits-Konfigurationen importiert werden sollen.',
+            accountTypesDescription: 'Ihre Digits-Konten werden als Kategorien importiert.',
+            enableNewAccountsTitle: 'Neu importierte Konten aktivieren',
+            enableNewAccountsDescription: 'Neue Digits-Konten werden als Kategorien verfügbar sein.',
+            dimensionsImport: 'Alle Digits-Dimensionen werden als Tags importiert.',
+            departments: 'Abteilungen',
         },
         zohoBooks: {
             organization: 'Zoho Books-Organisation',

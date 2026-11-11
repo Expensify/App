@@ -46,7 +46,6 @@ type WorkspaceMemberRoleListProps = {
     role: string | undefined;
     policy: OnyxEntry<Policy>;
     navigateBackTo?: Route;
-    isLoading?: boolean;
     onSelectRole?: (value: ListItemType) => void;
 
     /** When provided, restricts the selectable roles to this set (e.g. an Authorized Payer may only be an Admin or Payments Admin) */
@@ -154,7 +153,6 @@ function WorkspaceMemberRoleList({
     role,
     policy,
     navigateBackTo = undefined,
-    isLoading = false,
     onSelectRole = () => {},
     allowedRoles = undefined,
     confirmButtonOptions = undefined,
@@ -249,25 +247,23 @@ function WorkspaceMemberRoleList({
                 title={translate('common.role')}
                 onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
             />
-            {!isLoading && (
-                <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
-                    <SelectionListWithSections
-                        sections={sections}
-                        ListItem={SingleSelectListItem}
-                        onSelectRow={onSelectRole}
-                        confirmButtonOptions={confirmButtonOptions}
-                        footerContent={footerContent}
-                        customListHeaderContent={
-                            <View style={[styles.renderHTML, styles.ph5, styles.pv3]}>
-                                <RenderHTML html={translate('workspace.common.roleSelectorDescription')} />
-                            </View>
-                        }
-                        shouldSingleExecuteRowSelect={!confirmButtonOptions?.showButton}
-                        initiallyFocusedItemKey={availableRoleItems.find((item) => item.isSelected)?.keyForList}
-                        addBottomSafeAreaPadding
-                    />
-                </View>
-            )}
+            <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
+                <SelectionListWithSections
+                    sections={sections}
+                    ListItem={SingleSelectListItem}
+                    onSelectRow={onSelectRole}
+                    confirmButtonOptions={confirmButtonOptions}
+                    footerContent={footerContent}
+                    customListHeaderContent={
+                        <View style={[styles.renderHTML, styles.ph5, styles.pv3]}>
+                            <RenderHTML html={translate('workspace.common.roleSelectorDescription')} />
+                        </View>
+                    }
+                    shouldSingleExecuteRowSelect={!confirmButtonOptions?.showButton}
+                    initiallyFocusedItemKey={availableRoleItems.find((item) => item.isSelected)?.keyForList}
+                    addBottomSafeAreaPadding
+                />
+            </View>
         </>
     );
 }

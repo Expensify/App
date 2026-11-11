@@ -9748,6 +9748,8 @@ ${reportName}`,
                 describeRuleHeadline: 'Περιγράψτε τον κανόνα σας',
                 describeRuleForConcierge: 'Περιγράψτε τον κανόνα σας και το Concierge θα τον δημιουργήσει',
                 createRule: 'Δημιουργία κανόνα',
+                saveAnyway: 'Αποθήκευση ούτως ή άλλως',
+                checkingRule: 'Γίνεται έλεγχος του κανόνα σας...',
                 fallbackBanner:
                     'Αυτός δεν είναι τυπικός κανόνας, οπότε συντάξαμε έναν κανόνα πράκτορα. Οι κανόνες πράκτορα εκτελούνται όταν δημιουργείται ή ενημερώνεται ένα έξοδο ή μια αναφορά.',
                 fallbackBannerWithExplanation: (explanation: string) =>
@@ -9919,6 +9921,12 @@ ${reportName}`,
         digits: {
             updateCurrencyTitle: 'Ενημέρωση νομίσματος χώρου εργασίας;',
             updateCurrencyPrompt: 'Το Digits είναι προς το παρόν διαθέσιμο μόνο για εταιρείες με έδρα στις ΗΠΑ που λειτουργούν σε USD.',
+            importDescription: 'Επιλέξτε ποιες διαμορφώσεις Digits θέλετε να εισαγάγετε.',
+            accountTypesDescription: 'Οι λογαριασμοί σας στο Digits θα εισαχθούν ως κατηγορίες.',
+            enableNewAccountsTitle: 'Ενεργοποίηση νεοεισαγόμενων λογαριασμών',
+            enableNewAccountsDescription: 'Οι νέοι λογαριασμοί Digits θα είναι διαθέσιμοι ως κατηγορίες.',
+            dimensionsImport: 'Όλες οι διαστάσεις Digits εισάγονται ως ετικέτες.',
+            departments: 'Τμήματα',
         },
         zohoBooks: {
             organization: 'Οργανισμός Zoho Books',
