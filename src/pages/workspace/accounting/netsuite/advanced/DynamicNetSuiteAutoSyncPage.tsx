@@ -82,6 +82,7 @@ function DynamicNetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps
                 >
                     <OfflineWithFeedback pendingAction={pendingAction}>
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.ACCOUNTING_METHOD}
                             value={
                                 accountingMethod === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL
                                     ? translate(`workspace.netsuite.advancedConfig.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL}` as TranslationPaths)

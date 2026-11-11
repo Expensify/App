@@ -94,6 +94,7 @@ paid = "paid"i { return "paid"; }
 exported = "exported"i { return "exported"; }
 posted = "posted"i { return "posted"; }
 withdrawn = "withdrawn"i { return "withdrawn"; }
+workflowStage = "workflowStage"i / "workflow-stage"i { return "workflowStage"; }
 groupBy = "groupBy"i / "group-by"i { return "groupBy"; }
 limit = "limit"i { return "limit"; }
 feed = "feed"i { return "feed"; }

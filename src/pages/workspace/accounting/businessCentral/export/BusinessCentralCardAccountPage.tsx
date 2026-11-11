@@ -81,6 +81,7 @@ function BusinessCentralCardAccountPage({policy}: WithPolicyConnectionsProps) {
                             )}
                         >
                             <MenuItem.Root
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL.CARD_ACCOUNT_FEED_ROW}
                                 onPress={callIfAuthenticated(
                                     () => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_CARD_ACCOUNT_CARD_LIST.getRoute(policyID, feedWithDomainID)) : undefined),
                                     session,

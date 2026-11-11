@@ -82,6 +82,7 @@ function DynamicNetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConn
                 pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.INVOICE_ITEM], config?.pendingFields)}
             >
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.INVOICE_ITEM}
                     name={translate('workspace.netsuite.invoiceItem.label')}
                     onPress={() => {
                         if (!policyID) {
@@ -147,6 +148,7 @@ function DynamicNetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConn
                 addBottomSafeAreaPadding
             >
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.INVOICE_ITEM_PREFERENCE_SAVE}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={savePreference}

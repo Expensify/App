@@ -51,7 +51,7 @@ describe('level-aware tag queries', () => {
 
     it.each(['', 'US:New\\: York'])('drills into only the clicked group under parent %j', (parentTagPath) => {
         // Given a leaf containing separators and quotes, with the chart narrowed by workspace
-        const item = createMock<TransactionTagGroupListItemType>({tag: 'R&D: "West"\\Branch', tagLevel: 3, parentTagPath});
+        const item = createMock<TransactionTagGroupListItemType>({groupedBy: CONST.SEARCH.GROUP_BY.TAG, tag: 'R&D: "West"\\Branch', tagLevel: 3, parentTagPath});
         const chart = buildSearchQueryJSON('groupBy:tag tagLevel:3 limit:5 policyID:A1 date:last-month');
 
         // When the user opens that bar on Spend

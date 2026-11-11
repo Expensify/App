@@ -62,6 +62,7 @@ function DateTimeSelector({errorText = '', name, value, onInputChange, ref}: Dat
 
     return (
         <MenuItem.Root
+            sentryLabel={CONST.SENTRY_LABEL.DEBUG.DATE_TIME_SELECTOR}
             onPress={callIfAuthenticated(() => {
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.DETAILS_DATE_TIME_PICKER.getRoute(name, value)));
             }, session)}

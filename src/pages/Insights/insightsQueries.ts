@@ -74,6 +74,12 @@ function buildComplianceFilters(filters: InsightsFilters) {
     return commonFilters ? {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: commonFilters, right: actionDates} : actionDates;
 }
 
+/** Builds the query with the dashboard's data type */
+function buildDashboardQuery(query: SearchQueryString, dashboard: InsightsDashboardID): Readonly<SearchQueryJSON> | undefined {
+    // Added to the built string, since building it from form values with this type would drop filters that type's Search doesn't support, like the group-by
+    return buildSearchQueryJSON(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${INSIGHTS_DASHBOARD_SPECS[dashboard].queryType} ${query}`);
+}
+
 /** Builds the dashboard-wide query the whole page is narrowed by. Keeps the grouping the user picked, Running total included, so reopening the dashboard restores it. `getQueryGroupBy` resolves it to a real bucket for the backend request. */
 function buildInsightsQueryString(filters: InsightsFilters): SearchQueryString {
     // Running total is a display grouping outside the Search grammar, so it isn't a SearchGroupBy. The serializer writes it verbatim and the Insights parser reads it back.
@@ -88,7 +94,7 @@ function buildInsightsQueryString(filters: InsightsFilters): SearchQueryString {
 
 /** Builds a chart's query with the page's filters applied. */
 function applyInsightsFilters(chart: InsightsChartSpec, filters: InsightsFilters, compare?: SearchCompareMode): SearchQueryString {
-    return buildQueryStringFromFilterFormValues(
+    const query = buildQueryStringFromFilterFormValues(
         {
             ...buildFilterFormValues(filters, true, chart.dateFilterKey),
             has: chart.has,
@@ -99,6 +105,8 @@ function applyInsightsFilters(chart: InsightsChartSpec, filters: InsightsFilters
         },
         {sortBy: chart.sortBy, sortOrder: chart.sortOrder, limit: chart.limit},
     );
+    // Appended, since the workflow stage isn't a filter the Search filter form has
+    return chart.workflowStage ? `${query} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.WORKFLOW_STAGE}:${chart.workflowStage}` : query;
 }
 
 type InsightsChartQuery = {
@@ -116,13 +124,17 @@ type InsightsGraphHashes = {
 type InsightsGraphHashEntry = [InsightsGraphKey, InsightsGraphHashes];
 
 /** Returns the chart's graph slot paired with the hashes its current period, previous period and average are stored under. */
-function buildSnapshotHashEntry({chart, queryJSON, previousPeriodQueryJSON, averageQueryJSON}: InsightsChartQuery, filters: InsightsFilters): InsightsGraphHashEntry | undefined {
+function buildSnapshotHashEntry(
+    {chart, queryJSON, previousPeriodQueryJSON, averageQueryJSON}: InsightsChartQuery,
+    dashboard: InsightsDashboardID,
+    filters: InsightsFilters,
+): InsightsGraphHashEntry | undefined {
     const snapshotHash = queryJSON?.hash;
     if (!snapshotHash) {
         return undefined;
     }
     const previousPeriodSnapshotHash = previousPeriodQueryJSON?.hash;
-    const averageSnapshotHash = (averageQueryJSON ?? buildSearchQueryJSON(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.AVERAGE)))?.hash;
+    const averageSnapshotHash = (averageQueryJSON ?? buildDashboardQuery(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.AVERAGE), dashboard))?.hash;
     if (!previousPeriodSnapshotHash || !averageSnapshotHash) {
         return undefined;
     }
@@ -149,7 +161,7 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
     const dashboardFilters = {...filters, tagLevel: dashboard === CONST.INSIGHTS.DASHBOARD.SPEND ? (filters.tagLevel ?? CONST.INSIGHTS.DEFAULT_TAG_LEVEL) : undefined};
     // The backend saves inputQuery as the dashboard's filters, so it keeps the Group by the user picked, not the one fitted to the date range
     const inputQuery = buildInsightsQueryString(dashboardFilters);
-    const queryJSON = buildSearchQueryJSON(buildInsightsQueryString({...dashboardFilters, groupBy: getQueryGroupBy(filters), compare: undefined}));
+    const queryJSON = buildDashboardQuery(buildInsightsQueryString({...dashboardFilters, groupBy: getQueryGroupBy(filters), compare: undefined}), dashboard);
     if (!queryJSON) {
         return undefined;
     }
@@ -157,18 +169,21 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
     const spec = INSIGHTS_DASHBOARD_SPECS[dashboard];
     const buildChartQuery = (chart: InsightsChartSpec): InsightsChartQuery => ({
         chart,
-        queryJSON: buildSearchQueryJSON(applyInsightsFilters(chart, filters)),
-        previousPeriodQueryJSON: buildSearchQueryJSON(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD)),
-        ...(chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS && {averageQueryJSON: buildSearchQueryJSON(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.AVERAGE))}),
+        queryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters), dashboard),
+        previousPeriodQueryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD), dashboard),
+        ...(chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS && {averageQueryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.AVERAGE), dashboard)}),
     });
     const headlineChart = buildChartQuery(spec.headlineChart);
     const supportingCharts = supportingChartSpecs.map(buildChartQuery);
-    const graphEntries = [headlineChart, ...supportingCharts].map((chartQuery) => buildSnapshotHashEntry(chartQuery, filters)).filter((entry): entry is InsightsGraphHashEntry => !!entry);
+    const graphEntries = [headlineChart, ...supportingCharts]
+        .map((chartQuery) => buildSnapshotHashEntry(chartQuery, dashboard, filters))
+        .filter((entry): entry is InsightsGraphHashEntry => !!entry);
     const insightsHashes: InsightsDashboard['graphs'] = Object.fromEntries(graphEntries);
 
     return {
         jsonQuery: JSON.stringify({
             hash: queryJSON.hash,
+            type: queryJSON.type,
             groupBy: queryJSON.groupBy,
             ...(dashboard === CONST.INSIGHTS.DASHBOARD.SPEND && {tagLevel: dashboardFilters.tagLevel}),
             filters: dashboard === CONST.INSIGHTS.DASHBOARD.COMPLIANCE ? buildComplianceFilters(filters) : queryJSON.filters,

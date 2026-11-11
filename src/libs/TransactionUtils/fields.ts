@@ -8,8 +8,6 @@ import CONST from '@src/CONST';
 import type {OnyxInputOrEntry, Transaction} from '@src/types/onyx';
 import type {UnreportedTransaction} from '@src/types/onyx/Transaction';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
-
 /**
  * Return the currency field from the transaction, return the modifiedCurrency if present.
  */
@@ -26,11 +24,11 @@ function getCreated(transaction: OnyxInputOrEntry<Transaction>): string {
 }
 
 /**
- * Return the created field from the transaction, return the modifiedCreated if present.
+ * Return the created field from the transaction as yyyy-MM-dd, using the modifiedCreated if present. It is the same in
+ * every language, so a date shown to the user is formatted from it with the user's locale.
  */
-function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING, dateFnsLocale?: DateFnsLocale): string {
-    const created = getCreated(transaction);
-    return DateUtils.formatWithUTCTimeZone(created, dateFormat, dateFnsLocale);
+function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>): string {
+    return DateUtils.formatMachineDateWithUTCTimeZone(getCreated(transaction));
 }
 
 /**
