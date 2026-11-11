@@ -129,6 +129,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
 
     const footerContent = (
         <FormAlertWithSubmitButton
+            sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADMINS.ADD_ADMIN_INVITE}
             isDisabled={selectedOptions.length === 0}
             isAlertVisible={false}
             buttonText={translate('common.invite')}

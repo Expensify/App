@@ -62,6 +62,7 @@ function DynamicXeroAutoSyncPage({policy}: WithPolicyConnectionsProps) {
                     title={translate('workspace.accounting.autoSync')}
                     subtitle={translate('workspace.xero.advancedConfig.autoSyncDescription')}
                     switchAccessibilityLabel={translate('workspace.xero.advancedConfig.autoSyncDescription')}
+                    switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.AUTO_SYNC_SWITCH}
                     isActive={!!autoSync?.enabled}
                     wrapperStyle={[styles.pv2, styles.mh5]}
                     shouldPlaceSubtitleBelowSwitch
@@ -81,6 +82,7 @@ function DynamicXeroAutoSyncPage({policy}: WithPolicyConnectionsProps) {
                 {!!autoSync?.enabled && (
                     <OfflineWithFeedback pendingAction={pendingAction}>
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.ACCOUNTING_METHOD}
                             value={
                                 accountingMethod === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL
                                     ? translate(`workspace.xero.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL}` as TranslationPaths)

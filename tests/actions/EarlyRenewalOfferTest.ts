@@ -51,7 +51,7 @@ describe('actions/EarlyRenewalOffer', () => {
         let eligibility: unknown;
         const connection = Onyx.connectWithoutView({key: ONYXKEYS.EARLY_RENEWAL_OFFER_ELIGIBILITY, callback: (value) => (eligibility = value)});
         await waitForBatchedUpdates();
-        Onyx.disconnect(connection);
+        connection.unsubscribe();
         expect(eligibility).toEqual({canClaim: true});
     });
 });

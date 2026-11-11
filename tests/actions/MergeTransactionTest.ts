@@ -477,7 +477,7 @@ describe('mergeTransactionRequest', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`,
                 callback: (transaction) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(transaction ?? null);
                 },
             });
@@ -487,7 +487,7 @@ describe('mergeTransactionRequest', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`,
                 callback: (transaction) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(transaction ?? null);
                 },
             });
@@ -497,7 +497,7 @@ describe('mergeTransactionRequest', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT}${sourceExpenseReport.reportID}`,
                 callback: (report) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(report ?? null);
                 },
             });
@@ -507,7 +507,7 @@ describe('mergeTransactionRequest', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`,
                 callback: (transaction) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(transaction ?? null);
                 },
             });
@@ -605,7 +605,7 @@ describe('mergeTransactionRequest', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`,
                 callback: (transaction) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(transaction ?? null);
                 },
             });
@@ -740,7 +740,7 @@ describe('mergeTransactionRequest', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`,
                 callback: (transaction) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(transaction ?? null);
                 },
             });
@@ -750,7 +750,7 @@ describe('mergeTransactionRequest', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`,
                 callback: (transaction) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(transaction ?? null);
                 },
             });
@@ -760,7 +760,7 @@ describe('mergeTransactionRequest', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT}${targetExpenseReport.reportID}`,
                 callback: (report) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(report ?? null);
                 },
             });
@@ -770,7 +770,7 @@ describe('mergeTransactionRequest', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT}${sourceExpenseReport.reportID}`,
                 callback: (report) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(report ?? null);
                 },
             });
@@ -880,7 +880,7 @@ describe('mergeTransactionRequest', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`,
                 callback: (transaction) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(transaction ?? null);
                 },
             });
@@ -890,7 +890,7 @@ describe('mergeTransactionRequest', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`,
                 callback: (transaction) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(transaction ?? null);
                 },
             });
@@ -900,7 +900,7 @@ describe('mergeTransactionRequest', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT}${sourceReport.reportID}`,
                 callback: (report) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(report ?? null);
                 },
             });
@@ -995,7 +995,7 @@ describe('mergeTransactionRequest', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${targetTransaction.transactionID}`,
                 callback: (violations) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(violations ?? null);
                 },
             });
@@ -1026,7 +1026,7 @@ describe('mergeTransactionRequest', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT}${targetReport.reportID}`,
                 callback: (report) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(report ?? null);
                 },
             });
@@ -1039,7 +1039,7 @@ describe('mergeTransactionRequest', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceExpenseReport.reportID}`,
                 callback: (actions) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(actions ?? null);
                 },
             });
@@ -1064,7 +1064,7 @@ describe('mergeTransactionRequest', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadID}`,
                 callback: (report) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(report ?? null);
                 },
             });
@@ -1091,7 +1091,7 @@ describe('mergeTransactionRequest', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceExpenseReport.reportID}`,
                 callback: (actions) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(actions ?? null);
                 },
             });
@@ -1103,7 +1103,7 @@ describe('mergeTransactionRequest', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadID}`,
                 callback: (report) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(report ?? null);
                 },
             });
@@ -1232,7 +1232,7 @@ describe('mergeTransactionRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${sourceReport.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(report ?? null);
                     },
                 });
@@ -1246,7 +1246,7 @@ describe('mergeTransactionRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
                     callback: (val) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(val ?? null);
                     },
                 });
@@ -1366,7 +1366,7 @@ describe('mergeTransactionRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report).toBeTruthy();
                         resolve();
                     },
@@ -1449,7 +1449,7 @@ describe('mergeTransactionRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report?.reportID).toBeFalsy();
                         resolve();
                     },
@@ -1471,7 +1471,7 @@ describe('mergeTransactionRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report).toBeFalsy();
                         resolve();
                     },
@@ -1555,7 +1555,7 @@ describe('mergeTransactionRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report).toBeTruthy();
                         resolve();
                     },
@@ -1604,7 +1604,7 @@ describe('mergeTransactionRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report?.reportID).toBeFalsy();
                         resolve();
                     },
@@ -1620,7 +1620,7 @@ describe('mergeTransactionRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report).toBeFalsy();
                         resolve();
                     },
@@ -2549,7 +2549,7 @@ describe('setupMergeTransactionData', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`,
                 callback: (transaction) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(transaction ?? null);
                 },
             });
@@ -2592,7 +2592,7 @@ describe('setMergeTransactionKey', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`,
                 callback: (transaction) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(transaction ?? null);
                 },
             });

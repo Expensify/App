@@ -34,6 +34,7 @@ import {
 
 import {clearByKey as clearPdfByOnyxKey} from '@userActions/CachedPDFPaths';
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
+import type {ReportHierarchyInfo} from '@userActions/ClearReportActionErrors';
 import {optimisticReportLastData} from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -107,6 +108,7 @@ type PrepareToCleanUpMoneyRequestParams = {
     transactionIDsPendingDeletion?: string[];
     selectedTransactionIDs?: string[];
     policy?: OnyxEntry<OnyxTypes.Policy>;
+    currentUserAccountID: number;
     chatReportActions?: OnyxEntry<OnyxTypes.ReportActions>;
 };
 
@@ -124,6 +126,7 @@ function prepareToCleanUpMoneyRequest({
     transactionIDsPendingDeletion,
     selectedTransactionIDs,
     policy,
+    currentUserAccountID,
     chatReportActions,
 }: PrepareToCleanUpMoneyRequestParams): PrepareToCleanUpMoneyRequestResult {
     const allTransactions = getAllTransactions();
@@ -279,7 +282,7 @@ function prepareToCleanUpMoneyRequest({
     }
 
     if (updatedIOUReport) {
-        const lastVisibleAction = getLastVisibleAction(iouReport?.reportID, canUserPerformWriteAction, updatedReportAction);
+        const lastVisibleAction = getLastVisibleAction(iouReport?.reportID, canUserPerformWriteAction, updatedReportAction, undefined, undefined, currentUserAccountID);
         const iouReportLastMessageText = getLastVisibleMessage(iouReport?.reportID, canUserPerformWriteAction, updatedReportAction).lastMessageText;
         updatedIOUReport.lastMessageText = iouReportLastMessageText;
         updatedIOUReport.lastVisibleActionCreated = lastVisibleAction?.created;
@@ -358,6 +361,7 @@ function getNavigationUrlOnMoneyRequestDelete(
     chatReport: OnyxEntry<OnyxTypes.Report>,
     isChatReportArchived: boolean | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    currentUserAccountID: number,
     isSingleTransactionView = false,
     chatReportActions?: OnyxEntry<OnyxTypes.ReportActions>,
 ): Route | undefined {
@@ -372,6 +376,7 @@ function getNavigationUrlOnMoneyRequestDelete(
         chatReport,
         isChatReportArchived,
         getCurrencyDecimals,
+        currentUserAccountID,
         chatReportActions,
     });
 
@@ -417,6 +422,7 @@ type CleanUpMoneyRequestParams = {
     isOffline: boolean;
     isSingleTransactionView?: boolean;
     policy?: OnyxEntry<OnyxTypes.Policy>;
+    parentHierarchicalReports: OnyxCollection<ReportHierarchyInfo>;
     chatReportActions?: OnyxEntry<OnyxTypes.ReportActions>;
 };
 
@@ -435,6 +441,7 @@ function cleanUpMoneyRequest({
     isOffline,
     isSingleTransactionView = false,
     policy,
+    parentHierarchicalReports,
     chatReportActions,
 }: CleanUpMoneyRequestParams) {
     const {shouldDeleteTransactionThread, shouldDeleteIOUReport, updatedReportAction, updatedIOUReport, updatedReportPreviewAction, transactionThreadID, reportPreviewAction} =
@@ -449,6 +456,7 @@ function cleanUpMoneyRequest({
             getCurrencyDecimals,
             shouldRemoveIOUTransactionID: false,
             policy,
+            currentUserAccountID,
             chatReportActions,
         });
 
@@ -460,6 +468,7 @@ function cleanUpMoneyRequest({
         chatReport,
         isChatIOUReportArchived,
         getCurrencyDecimals,
+        currentUserAccountID,
         isSingleTransactionView,
         chatReportActions,
     );
@@ -624,7 +633,7 @@ function cleanUpMoneyRequest({
     }
 
     if (!shouldDeleteIOUReport) {
-        clearAllRelatedReportActionErrors({reportID, reportAction, originalReportID, isOffline});
+        clearAllRelatedReportActionErrors({reportID, reportAction, originalReportID, isOffline, reports: parentHierarchicalReports});
     }
 
     // First, update the reportActions to ensure related actions are not displayed.
@@ -632,7 +641,7 @@ function cleanUpMoneyRequest({
         Navigation.goBack(urlToNavigateBack, {
             afterTransition: () => {
                 if (shouldDeleteIOUReport) {
-                    clearAllRelatedReportActionErrors({reportID, reportAction, originalReportID, isOffline});
+                    clearAllRelatedReportActionErrors({reportID, reportAction, originalReportID, isOffline, reports: parentHierarchicalReports});
                 }
                 Onyx.update(onyxUpdates);
             },
@@ -872,6 +881,7 @@ function deleteMoneyRequest({
         transactionIDsPendingDeletion,
         selectedTransactionIDs,
         policy,
+        currentUserAccountID,
         chatReportActions,
     });
 
@@ -883,6 +893,7 @@ function deleteMoneyRequest({
         chatReport,
         isChatIOUReportArchived,
         getCurrencyDecimals,
+        currentUserAccountID,
         isSingleTransactionView,
         chatReportActions,
     );
