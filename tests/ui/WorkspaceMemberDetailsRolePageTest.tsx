@@ -13,14 +13,13 @@ import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {addMembersToWorkspace, updateWorkspaceMembersRole} from '@libs/actions/Policy/Member';
+import type * as PolicyMemberActions from '@libs/actions/Policy/Member';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import {flush as flushSequentialQueue} from '@libs/Network/SequentialQueue';
 import {getPersonalDetailsOnyxDataForOptimisticUsers} from '@libs/PersonalDetailsUtils';
 import {generateAccountID} from '@libs/UserUtils';
-
-import type * as PolicyMemberActions from '@libs/actions/Policy/Member';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -36,8 +35,8 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
-import * as LHNTestUtils from '../utils/LHNTestUtils';
 import getOnyxValue from '../utils/getOnyxValue';
+import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 

@@ -14,14 +14,13 @@ import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {addMembersToWorkspace} from '@libs/actions/Policy/Member';
 import {dismissAddedWithPrimaryLoginMessages, updateMemberCustomField} from '@libs/actions/Policy/Policy';
+import type * as PolicyActions from '@libs/actions/Policy/Policy';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import {flush as flushSequentialQueue} from '@libs/Network/SequentialQueue';
 import {getPersonalDetailsOnyxDataForOptimisticUsers} from '@libs/PersonalDetailsUtils';
 import {generateAccountID} from '@libs/UserUtils';
-
-import type * as PolicyActions from '@libs/actions/Policy/Policy';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -37,8 +36,8 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
-import * as LHNTestUtils from '../utils/LHNTestUtils';
 import getOnyxValue from '../utils/getOnyxValue';
+import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -189,23 +188,24 @@ describe('WorkspaceMemberCustomFieldPage', () => {
         mockFetch.pause();
         mockFetch.mockAPICommand(WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE, () => ({
             jsonCode: responseType === 'failed' ? 400 : 200,
-            onyxData: responseType === 'failed'
-                ? []
-                : [
-                      {
-                          onyxMethod: Onyx.METHOD.MERGE,
-                          key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
-                          value: {
-                              employeeList: {[secondaryEmail]: null, [primaryEmail]: {email: primaryEmail, role: CONST.POLICY.ROLE.USER}},
-                              ...(responseType === 'mapped' ? {primaryLoginsInvited: {[secondaryEmail]: primaryEmail}} : {}),
+            onyxData:
+                responseType === 'failed'
+                    ? []
+                    : [
+                          {
+                              onyxMethod: Onyx.METHOD.MERGE,
+                              key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                              value: {
+                                  employeeList: {[secondaryEmail]: null, [primaryEmail]: {email: primaryEmail, role: CONST.POLICY.ROLE.USER}},
+                                  ...(responseType === 'mapped' ? {primaryLoginsInvited: {[secondaryEmail]: primaryEmail}} : {}),
+                              },
                           },
-                      },
-                      {
-                          onyxMethod: Onyx.METHOD.MERGE,
-                          key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                          value: {[primaryAccountID]: TestHelper.buildPersonalDetails(primaryEmail, primaryAccountID, 'Primary')},
-                      },
-                  ],
+                          {
+                              onyxMethod: Onyx.METHOD.MERGE,
+                              key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                              value: {[primaryAccountID]: TestHelper.buildPersonalDetails(primaryEmail, primaryAccountID, 'Primary')},
+                          },
+                      ],
         }));
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
@@ -351,8 +351,7 @@ describe('WorkspaceMemberCustomFieldPage', () => {
             // Given the route already identifies the real account, even though its login is still secondary
             const {unmount} = await openEditor(primaryAccountID);
             const updatePolicy = () => Onyx.merge(policyKey, {employeeList: {[secondaryEmail]: null, [primaryEmail]: {email: primaryEmail, role: CONST.POLICY.ROLE.USER}}});
-            const updatePersonalDetails = () =>
-                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[primaryAccountID]: TestHelper.buildPersonalDetails(primaryEmail, primaryAccountID, 'Primary')});
+            const updatePersonalDetails = () => Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[primaryAccountID]: TestHelper.buildPersonalDetails(primaryEmail, primaryAccountID, 'Primary')});
 
             // When the login and employee replacement are separate committed deliveries in either order
             await act(async () => {

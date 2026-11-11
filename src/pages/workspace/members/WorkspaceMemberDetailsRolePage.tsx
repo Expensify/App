@@ -52,13 +52,15 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
     // The Authorized Payer (reimburser) must stay a valid payer, so restrict them to the roles that can pay (for example Admin or Payments Admin).
     const isReimburser = isPolicyReimburser(policy, memberLogin);
     const allowedRoles = getAllowedRolesForMember(policy, memberLogin);
-    // Go back with the route's accountID so it matches the details screen below, which keeps the optimistic accountID it was opened with.
-    const memberDetailsRoute = ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, routeAccountID);
     useRedirectSubmitWorkspaceFeatureUpgrade({
         policy,
-        backTo: memberDetailsRoute,
+        backTo: ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, routeAccountID),
         upgradeFeatureAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias,
     });
+
+    // Compute the shared route after the hooks so the compiler can cache it and the Save handler.
+    // Keep the route's accountID so Back matches the details screen below, even when that ID is optimistic.
+    const memberDetailsRoute = ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, routeAccountID);
 
     const saveRole = () => {
         if (!selectedRole || selectedRole === member?.role) {

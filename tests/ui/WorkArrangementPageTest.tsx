@@ -21,8 +21,8 @@ import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList, Policy} from '@src/types/onyx';
 
-import type React from 'react';
 import type * as ReactNavigation from '@react-navigation/native';
+import type React from 'react';
 import type {PropsWithChildren} from 'react';
 
 import Onyx from 'react-native-onyx';
