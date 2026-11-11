@@ -326,7 +326,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
           ]
         : [];
     const getHeaderButtons = () => {
-        const headerButtonsRowStyle = [styles.flexRow, styles.gap2, !shouldShowSelector && shouldDisplayButtonsInSeparateLine && styles.mb3];
+        const headerButtonsRowStyle = [styles.flexRow, styles.gap2, !shouldShowSelector && (shouldDisplayButtonsInSeparateLine ? styles.mb3 : styles.pr2)];
 
         const shouldShowBulkSelectionDropdown = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : selectedCardIDs.length > 0;
 

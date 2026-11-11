@@ -568,7 +568,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         if (!canWriteTags || !isSelectionEnabled || (shouldUseNarrowLayout ? !isMobileSelectionModeEnabled : selectedTagKeys.length === 0)) {
             const hasPrimaryActions = canWriteTags && !hasAccountingConnections && !isMultiLevelTags && hasVisibleTags;
             return (
-                <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
+                <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine ? styles.mb3 : styles.pr2]}>
                     {hasPrimaryActions && (
                         <Button
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -693,7 +693,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 size={CONST.BUTTON_SIZE.MEDIUM}
                 customText={translate('workspace.common.selected', {count: selectedTagKeys.length})}
                 options={options}
-                style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
+                style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : styles.pr2}
                 isDisabled={!selectedTagKeys.length}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.BULK_ACTIONS_DROPDOWN}
                 testID="WorkspaceTagsPage-header-dropdown-menu-button"

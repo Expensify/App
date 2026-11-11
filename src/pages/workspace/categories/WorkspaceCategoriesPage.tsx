@@ -547,7 +547,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     customText={translate('workspace.common.selected', {count: selectedCategoryKeys.length})}
                     options={options}
                     isSplitButton={false}
-                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
+                    style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : styles.pr2}
                     isDisabled={!selectedCategoryKeys.length}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.BULK_ACTIONS_DROPDOWN}
                     testID="WorkspaceCategoriesPage-header-dropdown-menu-button"
@@ -556,7 +556,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }
         const shouldShowAddCategory = canWriteCategories && !policyHasAccountingConnections && hasVisibleCategories;
         return (
-            <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
+            <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine ? styles.mb3 : styles.pr2]}>
                 {shouldShowAddCategory && (
                     <Button
                         variant={CONST.BUTTON_VARIANT.SUCCESS}

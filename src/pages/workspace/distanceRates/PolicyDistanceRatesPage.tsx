@@ -381,7 +381,7 @@ function PolicyDistanceRatesPage({
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     const headerButtons = canWriteDistanceRates ? (
-        <View style={[!isInLandscapeMode && styles.w100, styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
+        <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine ? [styles.w100, styles.mb3] : styles.pr2]}>
             {(shouldUseNarrowLayout ? !isMobileSelectionModeEnabled : selectedDistanceRates.length === 0) ? (
                 <>
                     <Button

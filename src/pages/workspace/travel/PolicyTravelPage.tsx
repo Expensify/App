@@ -129,6 +129,7 @@ function WorkspaceTravelPage({
                             options={secondaryActions}
                             isSplitButton={false}
                             shouldUseOptionIcon
+                            style={styles.pr2}
                         />
                     )}
                 </HeaderCentralPane>

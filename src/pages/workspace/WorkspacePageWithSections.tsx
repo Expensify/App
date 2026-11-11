@@ -207,7 +207,7 @@ function WorkspacePageWithSections({
                     onBackButtonPress={handleOnBackButtonPress}
                     isHeadline={shouldUseHeadlineHeader}
                 >
-                    {headerContent}
+                    {!!headerContent && <View style={styles.pr2}>{headerContent}</View>}
                 </HeaderCentralPane>
                 {!isOffline && (isLoading || shouldShowInitialLoading) && shouldShowLoading && isFocused ? (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>

@@ -7,7 +7,6 @@ import type {DomainMemberRowData, DomainMembersTableFilterKey} from '@components
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -62,7 +61,6 @@ function BaseDomainMembersPage({
     shouldShowGroupColumn,
 }: BaseDomainMembersPageProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
@@ -79,7 +77,7 @@ function BaseDomainMembersPage({
                     onBackButtonPress={onBackButtonPress}
                     isHeadline={!useSelectionModeHeader}
                 >
-                    {!shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
+                    {!shouldDisplayButtonsInSeparateLine && headerContent}
                 </HeaderCentralPane>
                 {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={pageGutter}>{headerContent}</View>}
                 <DomainMembersTable

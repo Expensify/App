@@ -50,6 +50,7 @@ function AgentsPage() {
         <Button
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_NEW.getRoute()))}
+            style={!shouldDisplayButtonsInSeparateLine && styles.pr2}
         >
             <Button.Icon src={icons.Plus} />
             <Button.Text>{translate('agentsPage.newAgent')}</Button.Text>
@@ -84,6 +85,7 @@ function AgentsPage() {
             options={bulkActionsButtonOptions}
             isSplitButton={false}
             isDisabled={!selectedAgentKeys.length}
+            wrapperStyle={!shouldDisplayButtonsInSeparateLine && styles.pr2}
         />
     ) : (
         newAgentButton

@@ -169,7 +169,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     const headerContent = isAdmin ? (
-        <View style={[styles.flexRow, styles.gap2]}>
+        <View style={[styles.flexRow, styles.gap2, !shouldDisplayButtonsInSeparateLine && styles.pr2]}>
             <Button
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_ADMIN.getRoute(domainAccountID))}
@@ -182,7 +182,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             <Button
                 onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID))}
                 innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
-                style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow0, styles.mb3] : undefined}
+                style={shouldDisplayButtonsInSeparateLine && [styles.flexGrow0, styles.mb3]}
             >
                 <Button.Icon
                     src={hasSettingsErrors ? icons.DotIndicator : icons.Gear}

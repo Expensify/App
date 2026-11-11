@@ -286,7 +286,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     customText={translate('workspace.common.selected', {count: selectedSubRateKeys.length})}
                     options={options}
                     isSplitButton={false}
-                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
+                    style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : styles.pr2}
                     isDisabled={!selectedSubRateKeys.length}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.PER_DIEM.BULK_ACTIONS_DROPDOWN}
                 />
@@ -298,7 +298,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         }
 
         return (
-            <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
+            <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine ? styles.mb3 : styles.pr2]}>
                 <ButtonWithDropdownMenu
                     onPress={() => {}}
                     shouldAlwaysShowDropdownMenu
