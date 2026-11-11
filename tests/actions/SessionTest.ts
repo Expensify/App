@@ -1083,7 +1083,7 @@ describe('Session', () => {
                 }),
             );
             const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
-            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, '/search?q=status:outstanding', 'user@saml.example.com');
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', undefined, true, '/search?q=status:outstanding', 'user@saml.example.com');
             await waitForBatchedUpdates();
 
             // When the sign-in stores the SAML account's session before the protected routes mount
