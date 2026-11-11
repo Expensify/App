@@ -2397,6 +2397,32 @@ describe('ReportActionsUtils', () => {
             expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
         });
 
+        it.each([
+            {description: 'an empty message array', message: []},
+            {description: 'empty message HTML', message: [{html: '', text: '', type: CONST.REPORT.MESSAGE.TYPE.COMMENT}]},
+        ])('should keep ACTION_DELEGATE_SUBMIT visible with $description', ({message}) => {
+            // Given a live delegate submit action whose text is generated from originalMessage
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT,
+                reportActionID: '1',
+                created: '2026-11-10 12:00:00.000',
+                message,
+                originalMessage: {
+                    originalManager: 'manager@example.com',
+                    delegate: 'delegate@example.com',
+                    isOnPolicy: false,
+                },
+            };
+
+            // When checking the action before OpenReport supplies rendered message fragments
+            const isDeleted = ReportActionsUtils.isDeletedAction(reportAction);
+            const isVisible = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID);
+
+            // Then the system message is visible immediately, without reopening the report
+            expect(isDeleted).toBe(false);
+            expect(isVisible).toBe(true);
+        });
+
         it('should return false for CARD_ISSUED_VIRTUAL action with empty message array', () => {
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL> = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
