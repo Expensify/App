@@ -70,16 +70,22 @@ describe('usePaymentOptions', () => {
     });
 
     it('keeps ready personal and business accounts with absent state and excludes incomplete accounts and funds', () => {
-        // Given mixed bank and fund methods, when the hook builds invoice menus, then only ready banks appear.
+        // Given ready, incomplete and card payment methods, set up in beforeEach
+        // When the invoice payment menus are built for a supported currency
         const {result} = renderHook(() => usePaymentOptions({iouReport: invoice, onPress: jest.fn(), currency: CONST.CURRENCY.USD, policyID: undefined}));
+
+        // Then only the ready bank account of each type is offered, because incomplete accounts and cards cannot pay an invoice
         expect(mockFormatPaymentMethods).toHaveBeenCalledWith(bankAccounts, funds, expect.anything(), expect.any(Function));
         expect(menuTitles(result.current, 0)).toEqual(['Personal ready', 'iou.payElsewhere', 'bankAccount.addBankAccount']);
         expect(menuTitles(result.current, 1)).toEqual(['Business ready', 'bankAccount.addBankAccount', 'iou.payElsewhere']);
     });
 
     it('hides Expensify invoice methods for unsupported currency', () => {
-        // Given an unsupported currency, when the hook builds invoice menus, then no bank payment method is shown.
+        // Given the same payment methods and an invoice in a currency that Expensify cannot pay
+        // When the invoice payment menus are built
         const {result} = renderHook(() => usePaymentOptions({iouReport: invoice, onPress: jest.fn(), currency: 'JPY', policyID: undefined}));
+
+        // Then no bank account is offered, so the user is not shown a payment that would fail
         expect(menuTitles(result.current, 0)).not.toContain('Personal ready');
         expect(menuTitles(result.current, 1)).not.toContain('Business ready');
     });

@@ -4,22 +4,35 @@ import CONST from '@src/CONST';
 
 describe('buildSpendRuleAST', () => {
     it('returns no rule when no criteria or cards are supplied', () => {
-        // Given an empty form, when the real builder runs, then there is no filter to save.
-        expect(buildSpendRuleAST({})).toBeUndefined();
+        // Given a spend rule form with no criteria and no cards
+        const spendRuleValues = {};
+
+        // When the rule is built
+        const rule = buildSpendRuleAST(spendRuleValues);
+
+        // Then there is no rule, because there is nothing to filter on
+        expect(rule).toBeUndefined();
     });
 
     it('keeps a card-only rule and its original creation time', () => {
-        // Given a card and an existing timestamp, when rebuilding, then both survive unchanged.
-        expect(buildSpendRuleAST({cardIDs: ['card-1']}, '2025-01-01')?.filters).toEqual({
+        // Given a rule with only a card, edited after it was first created
+        const created = '2025-01-01';
+
+        // When the rule is rebuilt
+        const rule = buildSpendRuleAST({cardIDs: ['card-1']}, created);
+
+        // Then it filters on the card alone and keeps its original creation time
+        expect(rule?.filters).toEqual({
             left: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
             operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
             right: ['card-1'],
         });
-        expect(buildSpendRuleAST({cardIDs: ['card-1']}, '2025-01-01')?.created).toBe('2025-01-01');
+        expect(rule?.created).toBe(created);
     });
 
     it.each([CONST.SPEND_RULES.ACTION.ALLOW, CONST.SPEND_RULES.ACTION.BLOCK])('preserves mixed criteria grouping for %s', (action) => {
-        // Given all conditional nodes, when building a rule, then every node is present in the intended grouping.
+        // Given a rule with a card, merchants, a category, a currency and a maximum amount
+        // When the rule is built
         const rule = buildSpendRuleAST(
             {
                 cardIDs: ['card-1'],
@@ -32,6 +45,8 @@ describe('buildSpendRuleAST', () => {
             },
             '2025-01-01',
         );
+
+        // Then every criterion is kept and grouped as before, because the missing nodes are now filtered with a typed check
         expect(rule?.created).toBe('2025-01-01');
         expect(rule?.action).toBe(action);
         expect(rule?.filters).toMatchObject({
