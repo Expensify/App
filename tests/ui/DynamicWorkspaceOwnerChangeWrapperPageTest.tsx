@@ -148,6 +148,20 @@ describe('DynamicWorkspaceOwnerChangeWrapperPage', () => {
         expect(Navigation.navigate).toHaveBeenCalledTimes(1);
     });
 
+    it('starts a new transfer when an earlier transfer of this workspace finished', async () => {
+        // Given an earlier transfer finished while the user was away, so the workspace is still marked as transferred
+        await setPolicies(createOwnerPolicy('1', {isChangeOwnerSuccessful: true}), createOwnerPolicy('2'));
+        mockCheckBulkTransferPolicyBillingOwner.mockResolvedValue([]);
+
+        // When the user opens the transfer flow again
+        renderOwnerChangePage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then a new transfer starts instead of the success page opening
+        expect(requestWorkspaceOwnerChange).toHaveBeenCalledWith(expect.objectContaining({id: '1'}), CURRENT_USER_ACCOUNT_ID, 'admin@example.com');
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
     it('continues with this workspace only when the user picks it', async () => {
         // Given the user is asked whether to take over both of the owner's workspaces
         await setPolicies(createOwnerPolicy('1'), createOwnerPolicy('2'));

@@ -29,7 +29,7 @@ import type SCREENS from '@src/SCREENS';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import {createOwnedPaidAdminPolicyIDsSelector} from '@selectors/Policy';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import WorkspaceOwnerChangeAllWorkspacesCheck from './WorkspaceOwnerChangeAllWorkspacesCheck';
@@ -59,6 +59,10 @@ function DynamicWorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}
     const isCheckingTransferablePolicies = otherOwnerPolicyIDs.length > 0 && !transferablePolicyIDs;
     const shouldShowAllWorkspacesCheck = !!transferablePolicyIDs && transferablePolicyIDs.length > 1;
     const [isTakingOverAllWorkspaces, setIsTakingOverAllWorkspaces] = useState(false);
+    const hasStartedTransferRef = useRef(false);
+
+    // An earlier transfer's result stays on the policy until this visit's request starts loading
+    const hasTransferStartedLoadingRef = useRef(false);
 
     useNavigateToCardAuthenticationOnLink();
 
@@ -77,9 +81,10 @@ function DynamicWorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}
     };
 
     useEffect(() => {
-        if (isLoadingPolicy || policy?.isChangeOwnerFailed || policy?.isChangeOwnerSuccessful) {
+        if (isLoadingPolicy || hasStartedTransferRef.current) {
             return;
         }
+        hasStartedTransferRef.current = true;
         if (otherOwnerPolicyIDs.length === 0) {
             requestWorkspaceOwnerChange(policy, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
             return;
@@ -98,12 +103,20 @@ function DynamicWorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}
         });
         return () => {
             ignore = true;
+            hasStartedTransferRef.current = false;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- each run starts a new transfer, so it runs once per policy load
     }, [policyID, isLoadingPolicy]);
 
     useEffect(() => {
-        if (!policy || policy?.isLoading) {
+        if (!policy) {
+            return;
+        }
+        if (policy.isLoading) {
+            hasTransferStartedLoadingRef.current = true;
+            return;
+        }
+        if (!hasTransferStartedLoadingRef.current) {
             return;
         }
 
