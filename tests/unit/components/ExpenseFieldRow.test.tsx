@@ -1,5 +1,6 @@
 import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import ExpenseFieldRow from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldRow';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,6 +16,9 @@ import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 const FIELD_NAME = 'Category';
 const FIELD_VALUE = 'Travel';
 const RIGHT_LABEL = 'Automatic';
+const ACCESSIBILITY_LABEL = 'Attendees, John Doe';
+const ERROR_TEXT = 'Multiple attendees required for this category';
+const REVIEW_REQUIRED = 'Your review is required';
 
 // `MenuItem.Root` drops a press it was handed no event for, so every press here carries one.
 const pressRow = () => fireEvent.press(screen.getByTestId('category-row'), {nativeEvent: {}});
@@ -34,6 +38,7 @@ describe('ExpenseFieldRow', () => {
             // Given a row whose label answers "what goes here" rather than describing the value
             render(
                 <ExpenseFieldRow
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     value={FIELD_VALUE}
                     rightLabel={RIGHT_LABEL}
@@ -51,6 +56,7 @@ describe('ExpenseFieldRow', () => {
             // Given a row whose label describes the value itself, e.g. a category Concierge picked
             render(
                 <ExpenseFieldRow
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     value={FIELD_VALUE}
                     rightLabel={RIGHT_LABEL}
@@ -68,6 +74,7 @@ describe('ExpenseFieldRow', () => {
             // Given a row with no value yet
             render(
                 <ExpenseFieldRow
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     rightLabel={RIGHT_LABEL}
                     onPress={jest.fn()}
@@ -86,6 +93,7 @@ describe('ExpenseFieldRow', () => {
             const onPress = jest.fn();
             render(
                 <ExpenseFieldRow
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     value={FIELD_VALUE}
                     onPress={onPress}
@@ -108,6 +116,7 @@ describe('ExpenseFieldRow', () => {
             const onPress = jest.fn();
             render(
                 <ExpenseFieldRow
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     value={FIELD_VALUE}
                     onPress={onPress}
@@ -127,6 +136,7 @@ describe('ExpenseFieldRow', () => {
             const onPress = jest.fn();
             render(
                 <ExpenseFieldRow
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     value={FIELD_VALUE}
                     isInteractive={false}
@@ -150,6 +160,7 @@ describe('ExpenseFieldRow', () => {
             // Given a row whose list is open
             render(
                 <ExpenseFieldRow
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     value={FIELD_VALUE}
                     onPress={jest.fn()}
@@ -170,6 +181,7 @@ describe('ExpenseFieldRow', () => {
             // Given a dropdown row whose list is not open
             render(
                 <ExpenseFieldRow
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     value={FIELD_VALUE}
                     onPress={jest.fn()}
@@ -187,6 +199,7 @@ describe('ExpenseFieldRow', () => {
             // Given a row that opens a page rather than a list in place
             render(
                 <ExpenseFieldRow
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     value={FIELD_VALUE}
                     onPress={jest.fn()}
@@ -202,6 +215,47 @@ describe('ExpenseFieldRow', () => {
         });
     });
 
+    describe('error announcement', () => {
+        it('announces that the row needs a review after the label', async () => {
+            // Given a row in an error state that names itself, the way the Attendees row does
+            render(
+                <LocaleContextProvider>
+                    <ExpenseFieldRow
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                        name={FIELD_NAME}
+                        value={FIELD_VALUE}
+                        accessibilityLabel={ACCESSIBILITY_LABEL}
+                        errorText={ERROR_TEXT}
+                        onPress={jest.fn()}
+                    />
+                </LocaleContextProvider>,
+            );
+
+            // When the row is read out
+            // Then the review prompt follows the label, since the error message sits outside the focusable row
+            expect(await screen.findByLabelText(`${ACCESSIBILITY_LABEL}. ${REVIEW_REQUIRED}`)).toBeOnTheScreen();
+        });
+
+        it('says nothing about a review while the field has no error', async () => {
+            // Given a row with no error
+            render(
+                <LocaleContextProvider>
+                    <ExpenseFieldRow
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                        name={FIELD_NAME}
+                        value={FIELD_VALUE}
+                        accessibilityLabel={ACCESSIBILITY_LABEL}
+                        onPress={jest.fn()}
+                    />
+                </LocaleContextProvider>,
+            );
+
+            // When the row is read out
+            // Then only its label is announced
+            expect(await screen.findByLabelText(ACCESSIBILITY_LABEL)).toBeOnTheScreen();
+        });
+    });
+
     describe('read-only presentation', () => {
         it('renders a field the user cannot change as a disabled input', () => {
             const {result} = renderHook(() => useThemeStyles());
@@ -209,6 +263,7 @@ describe('ExpenseFieldRow', () => {
             // Given a field nobody can change
             render(
                 <ExpenseFieldRow
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     value={FIELD_VALUE}
                     isInteractive={false}

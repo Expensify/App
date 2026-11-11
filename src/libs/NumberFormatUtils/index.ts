@@ -4,6 +4,7 @@ import memoize from '@libs/memoize';
 
 import CONST from '@src/CONST';
 import type Locale from '@src/types/onyx/Locale';
+import type {Unit} from '@src/types/onyx/Policy';
 
 // Polyfill the Intl API if locale data is not as expected
 intlPolyfill();
@@ -45,10 +46,24 @@ function formatToParts(locale: Locale | undefined, number: number, options?: Int
 }
 
 /**
+ * Formats a distance that is already expressed in the given unit (mi/km) into localized parts, so the caller can
+ * render the number and the unit in the order, spacing, and spelling the locale uses (e.g. "12.50 mi", "12,50 km", "12.50英里").
+ */
+function formatDistanceToParts(locale: Locale | undefined, distanceInUnits: number, unit: Unit): Intl.NumberFormatPart[] {
+    return formatToParts(locale, distanceInUnits, {
+        style: 'unit',
+        unit: unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'mile' : 'kilometer',
+        unitDisplay: 'short',
+        minimumFractionDigits: CONST.DISTANCE_DECIMAL_PLACES,
+        maximumFractionDigits: CONST.DISTANCE_DECIMAL_PLACES,
+    });
+}
+
+/**
  * Test-only: clears the malformed-currency deduplication so warn-assertion tests don't pollute each other.
  */
 function resetMalformedCurrenciesForTesting() {
     warnedMalformedCurrencies.clear();
 }
 
-export {format, formatToParts, resetMalformedCurrenciesForTesting};
+export {format, formatToParts, formatDistanceToParts, resetMalformedCurrenciesForTesting};

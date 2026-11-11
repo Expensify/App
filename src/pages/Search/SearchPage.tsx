@@ -6,12 +6,17 @@ import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/Playbac
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
 import useHasFilterBars from '@hooks/useHasFilterBars';
+import useHasTabBeenShown from '@hooks/useHasTabBeenShown';
+import useIsInPreloadedTab from '@hooks/useIsInPreloadedTab';
 import useLocalize from '@hooks/useLocalize';
+import useMarkPreloadedTabContentReady from '@hooks/useMarkPreloadedTabContentReady';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import {PaymentContextProvider} from '@hooks/usePaymentContext';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useReleaseOptionListCaches from '@hooks/useReleaseOptionListCaches';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchListContentContainerStyle from '@hooks/useSearchListContentContainerStyle';
 import useSearchOverlay from '@hooks/useSearchOverlay';
 import useSearchPageSetup from '@hooks/useSearchPageSetup';
 import useSeedMyExpensesSearch from '@hooks/useSeedMyExpensesSearch';
@@ -19,16 +24,18 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {searchInServer} from '@libs/actions/Report';
 import {clearFooterConversion, search} from '@libs/actions/Search';
+import {isStaleWideTabPreMountRouteKey} from '@libs/Navigation/helpers/wideTabPreMountRouteKey';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {isQueryARefinement} from '@libs/SearchQueryRefinement';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults} from '@src/types/onyx';
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import Animated from 'react-native-reanimated';
 
 import SearchPageNarrow from './SearchPageNarrow';
@@ -48,10 +55,14 @@ function SearchPage({route}: SearchPageProps) {
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
     const hasFilterBars = useHasFilterBars();
+    const searchListContentContainerStyle = useSearchListContentContainerStyle(hasFilterBars);
 
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
 
-    useSearchPageSetup(currentSearchQueryJSON);
+    // Until Spend is first shown, it neither requests a search nor saves its default query over the latest search that the
+    // Spend tab reopens.
+    const hasSpendBeenShown = useHasTabBeenShown(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+    useSearchPageSetup(hasSpendBeenShown ? currentSearchQueryJSON : undefined);
     useSeedMyExpensesSearch();
     useReleaseOptionListCaches();
 
@@ -86,8 +97,10 @@ function SearchPage({route}: SearchPageProps) {
         searchResults = lastNonEmptySearchResults;
     }
 
+    // Resets the shared video player only once a preloaded tab is opened.
+    const isInPreloadedTab = useIsInPreloadedTab();
     useEffect(() => {
-        if (shouldUseNarrowLayout) {
+        if (shouldUseNarrowLayout || isInPreloadedTab) {
             return;
         }
         resetVideoPlayerData();
@@ -98,10 +111,19 @@ function SearchPage({route}: SearchPageProps) {
             resetVideoPlayerData();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [isInPreloadedTab]);
 
     // Converted footer totals are ephemeral, session-scoped display data, so drop them when leaving Search.
-    useEffect(() => () => clearFooterConversion(), []);
+    // A cancelled wide submit pre-mount was never shown, so its unmount must not drop the totals of the visible Search.
+    useEffect(
+        () => () => {
+            if (isStaleWideTabPreMountRouteKey(route.key)) {
+                return;
+            }
+            clearFooterConversion();
+        },
+        [route.key],
+    );
 
     const prevIsLoading = usePrevious(currentSearchResults?.isLoading);
 
@@ -141,23 +163,26 @@ function SearchPage({route}: SearchPageProps) {
 
     // Only a filter refinement is worth holding for. A sidebar item or saved search is a different search, so its
     // results area starts from the skeleton rather than showing rows that belong to the query the user just left.
-    const shouldHoldLastResolvedSearch = !isSearchResolvedForCurrentQuery && !!lastResolvedSearch && !hasStaleHoldTimedOut && isQueryARefinement(currentSearchQueryJSON?.inputQuery);
+    const shouldHoldLastResolvedSearch =
+        !shouldUseLiveData && !isSearchResolvedForCurrentQuery && !!lastResolvedSearch && !hasStaleHoldTimedOut && isQueryARefinement(currentSearchQueryJSON?.inputQuery);
     const contentQueryJSON = shouldHoldLastResolvedSearch ? lastResolvedSearch.queryJSON : currentSearchQueryJSON;
     const contentSearchResults = shouldHoldLastResolvedSearch ? lastResolvedSearch.searchResults : searchResults;
 
-    const handleSearchAction = useCallback((value: SearchParams | string) => {
+    const {isBetaEnabled} = usePermissions();
+    const isTravelApprovalEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_APPROVAL);
+    const handleSearchAction = (value: SearchParams | string) => {
         if (typeof value === 'string') {
             searchInServer(value);
         } else {
-            search(value);
+            search({...value, shouldReturnTripRooms: isTravelApprovalEnabled});
         }
-    }, []);
+    };
 
-    const onSortPressedCallback = useCallback(() => {
+    const onSortPressedCallback = () => {
         setIsSorting(true);
-    }, []);
+    };
 
-    const overlayContentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles(hasFilterBars) : undefined;
+    const overlayContentContainerStyle = !isMobileSelectionModeEnabled ? searchListContentContainerStyle : undefined;
     const overlayEndSubmitSpans = useEndSubmitNavigationSpans();
     const {searchOverlayContent, onSearchContentReady, isOverlayActive} = useSearchOverlay({
         searchResults,
@@ -168,6 +193,11 @@ function SearchPage({route}: SearchPageProps) {
         contentContainerStyle: overlayContentContainerStyle,
         onDestinationVisible: overlayEndSubmitSpans,
     });
+    const markPreloadedTabContentReady = useMarkPreloadedTabContentReady();
+    const onContentReady = () => {
+        onSearchContentReady();
+        markPreloadedTabContentReady();
+    };
 
     return (
         <ReportSubmitToPopoverHost anchorAlignment={SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT}>
@@ -182,7 +212,7 @@ function SearchPage({route}: SearchPageProps) {
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                             onSortPressedCallback={onSortPressedCallback}
                             searchOverlayContent={searchOverlayContent}
-                            onSearchContentReady={onSearchContentReady}
+                            onSearchContentReady={onContentReady}
                             hasFilterBars={hasFilterBars}
                             isOverlayActive={isOverlayActive}
                         />
@@ -197,7 +227,7 @@ function SearchPage({route}: SearchPageProps) {
                             onSortPressedCallback={onSortPressedCallback}
                             route={route}
                             searchOverlayContent={searchOverlayContent}
-                            onSearchContentReady={onSearchContentReady}
+                            onSearchContentReady={onContentReady}
                         />
                     )}
                 </Animated.View>

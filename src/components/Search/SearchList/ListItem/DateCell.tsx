@@ -32,9 +32,10 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, shouldUseL
     const styles = useThemeStyles();
     const {isInNarrowPaneModal} = useResponsiveLayout();
     const {getLocalDateFromDatetime, dateFnsLocale} = useLocalize();
-    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
+    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, anchorAlignment, shouldOpenAbove, startEditing, cancelEditing, handleSave} = usePopoverEditState({
         canEdit,
         value: date,
+        popoverHeight: CONST.POPOVER_DATE_MAX_HEIGHT,
         onSave,
     });
 
@@ -42,13 +43,9 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, shouldUseL
     if (shouldUseLocalTimeZone && date) {
         const localDate = getLocalDateFromDatetime(date);
         const isPastYear = localDate.getFullYear() !== getLocalDateFromDatetime().getFullYear();
-        formattedDate = format(localDate, isPastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT, {locale: dateFnsLocale});
+        formattedDate = isPastYear ? format(localDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, {locale: dateFnsLocale}) : DateUtils.formatToMonthDay(localDate, dateFnsLocale);
     } else {
-        formattedDate = DateUtils.formatWithUTCTimeZone(
-            date,
-            DateUtils.doesDateBelongToAPastYear(date) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
-            dateFnsLocale,
-        );
+        formattedDate = DateUtils.formatToMonthDayWithOptionalYearInUTC(date, dateFnsLocale);
     }
     const displayText = suffixText ? `${formattedDate} • ${suffixText}` : formattedDate;
 
@@ -57,6 +54,7 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, shouldUseL
             text={displayText}
             shouldShowTooltip={showTooltip}
             style={[styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.mutedNormalTextLabel, !!suffixText && styles.flexShrink1]}
+            isSelectable
         />
     );
 
@@ -73,13 +71,12 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, shouldUseL
                     onClose={cancelEditing}
                     onSelected={handleSave}
                     anchorPosition={popoverPosition}
-                    anchorAlignment={{
-                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                    }}
-                    shouldPositionFromTop={!isInverted}
-                    minDate={CONST.CALENDAR_PICKER.MIN_DATE}
-                    maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                    anchorAlignment={anchorAlignment}
+                    shouldMeasureContentHeight
+                    windowMargin={CONST.MODAL.POPOVER_MENU_PADDING}
+                    shouldPositionFromTop={!shouldOpenAbove}
+                    shouldSwitchPositionIfOverflow={false}
+                    isDateSelectable={DateUtils.isWithinCalendarPickerRange}
                     inputID="EditableDateCell"
                     shouldEnableMonthYearBackdropInNarrowPane={isEditing && isInNarrowPaneModal}
                 />

@@ -3,7 +3,6 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 
-import {payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
 import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 
 import CONST from '@src/CONST';
@@ -23,9 +22,12 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
 import useOnyx from './useOnyx';
 import usePayChatReportActions from './usePayChatReportActions';
+import usePayWithWiseQuote from './usePayWithWiseQuote';
 import usePermissions from './usePermissions';
+import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
 import {usePersonalDetail} from './usePersonalDetails';
 import usePolicy from './usePolicy';
+import useReportTransactions from './useReportTransactions';
 
 type ActionHandledType = DeepValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE.PAY | typeof CONST.IOU.REPORT_ACTION_TYPE.APPROVE>;
 
@@ -40,6 +42,7 @@ type UseHoldMenuSubmitParams = {
 };
 
 function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, paymentType, methodID, onClose, onConfirm}: UseHoldMenuSubmitParams) {
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -47,6 +50,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const activePolicy = usePolicy(activePolicyID);
     const policy = usePolicy(moneyRequestReport?.policyID);
     const chatReportPolicy = usePolicy(chatReport?.policyID);
+    const moneyRequestReportTransactions = useReportTransactions(moneyRequestReport?.reportID);
     const getChatReportActions = usePayChatReportActions(chatReport, undefined);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
@@ -55,12 +59,14 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [ownerLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
     const {isBetaEnabled} = usePermissions();
+    const {payWithWiseQuote} = usePayWithWiseQuote();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const delegateAccountID = useDelegateAccountID();
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
 
@@ -81,11 +87,12 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
         // like the last message text/time so it doesn't re-render on every new message). The pay/approve actions
         // restore the report on failure by merging it back in, so we grab the full reports here to make sure the
         // chat's last message comes back correctly if the payment fails.
-        const currentMoneyRequestReport = getReportOrDraftReport(moneyRequestReport?.reportID) ?? moneyRequestReport;
-        const currentChatReport = getReportOrDraftReport(chatReport?.reportID) ?? chatReport;
+        const currentMoneyRequestReport = getReportOrDraftReport({reportID: moneyRequestReport?.reportID}) ?? moneyRequestReport;
+        const currentChatReport = getReportOrDraftReport({reportID: chatReport?.reportID}) ?? chatReport;
 
         if (isApprove) {
             approveMoneyRequest({
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
                 getCurrencyDecimals,
                 expenseReport: currentMoneyRequestReport,
                 rules,
@@ -105,12 +112,14 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 isTrackIntentUser,
             });
         } else if (currentChatReport && paymentType) {
-            payMoneyRequest({
+            payWithWiseQuote({
+                bankAccountList,
                 isASAPSubmitBetaEnabled,
                 getCurrencyDecimals,
                 paymentType,
                 chatReport: currentChatReport,
                 iouReport: currentMoneyRequestReport,
+                iouReportTransactions: moneyRequestReportTransactions,
                 introSelected,
                 currentUserAccountID: currentUserDetails.accountID,
                 currentUserLogin: currentUserDetails.login ?? '',
@@ -123,6 +132,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 methodID,
+                isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
                 onPaid: animationCallback,
                 chatReportActions: getChatReportActions(false),
                 delegateAccountID,

@@ -1,8 +1,10 @@
 import DateUtils from '@libs/DateUtils';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isCurrentActionUnread, isReportPreviewAction} from '@libs/ReportActionsUtils';
-import {isArchivedNonExpenseReport, isUnread} from '@libs/ReportUtils';
+import {getReportNotificationPreference, isArchivedNonExpenseReport, isUnread} from '@libs/ReportUtils';
+import {getLHNUnreadState} from '@libs/SidebarUtils';
 import Visibility from '@libs/Visibility';
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -16,15 +18,15 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import {useCallback, useEffect, useEffectEvent, useRef, useState} from 'react';
+import {useEffect, useEffectEvent, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 
 import useAppFocusEvent from './useAppFocusEvent';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsAnonymousUser from './useIsAnonymousUser';
 import useIsHiddenWideTabPreMount from './useIsHiddenWideTabPreMount';
-import useIsInPreloadedTab from './useIsInPreloadedTab';
 import useIsReportActionsLoaded from './useIsReportActionsLoaded';
+import useIsReportOutOfSight from './useIsReportOutOfSight';
 import {useDerivedIsEmptyReport} from './useReportAttributes';
 import useReportIsArchived from './useReportIsArchived';
 
@@ -121,13 +123,10 @@ function useMarkAsRead({
     const isReportArchived = useReportIsArchived(reportID);
     const derivedIsEmptyReport = useDerivedIsEmptyReport(reportID);
     const isReportActionsLoaded = useIsReportActionsLoaded(reportID);
-    // A preloaded tab mounts this screen before the user opens it. Marking read assumes the user is looking,
-    // so hold every readNewestAction until the tab is focused, which drops the preloaded flag.
-    const isInPreloadedTab = useIsInPreloadedTab();
-
-    // A hidden wide submit pre-mount is held the same way until its reveal.
+    // A preloaded tab or a hidden wide submit pre-mount mounts this screen before the user sees it. Marking read assumes the
+    // user is looking, so hold every readNewestAction until the tab is focused or the pre-mount is revealed.
+    const isHiddenFromUser = useIsReportOutOfSight();
     const isHiddenPreMount = useIsHiddenWideTabPreMount();
-    const isHiddenFromUser = isInPreloadedTab || isHiddenPreMount;
 
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     useEffect(() => {
@@ -140,7 +139,7 @@ function useMarkAsRead({
     // A visible browser window can regain OS focus without any visibility change, and nothing else re-runs the
     // read catch-up in that case, so bump a counter on app focus to re-run it.
     const [appFocusCount, setAppFocusCount] = useState(0);
-    useAppFocusEvent(useCallback(() => setAppFocusCount((count) => count + 1), []));
+    useAppFocusEvent(() => setAppFocusCount((count) => count + 1));
 
     const readActionSkippedRef = useRef(false);
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
@@ -180,6 +179,45 @@ function useMarkAsRead({
         });
         return () => subscription.remove();
     }, [reportID, isAnonymousUser]);
+
+    // Telemetry for reports that had unread messages but the LHN did not show as unread before they were opened.
+    // Runs once per opened report, before the initial mark-as-read merges a new lastReadTime, and relies only on the
+    // report's own fields so a wrong derived or LHN value cannot hide the mismatch.
+    useEffect(() => {
+        if (isHiddenFromUser || isAnonymousUser || !report?.reportID) {
+            return;
+        }
+
+        const notificationPreference = getReportNotificationPreference(report);
+        const isUnreadByReportFields =
+            report.type === CONST.REPORT.TYPE.CHAT &&
+            !!report.lastVisibleActionCreated &&
+            report.lastVisibleActionCreated > (report.lastReadTime ?? '') &&
+            !!report.lastActorAccountID &&
+            report.lastActorAccountID !== currentUserAccountID &&
+            notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE &&
+            notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+        if (!isUnreadByReportFields) {
+            return;
+        }
+
+        const lhnUnreadState = getLHNUnreadState(report.reportID);
+        if (lhnUnreadState === 'unread') {
+            return;
+        }
+
+        Log.info('[LHNUnread] Opened unread report that LHN did not show as unread', false, {
+            reportID: report.reportID,
+            lhnUnreadState,
+            derivedIsEmptyReport,
+            hasLastMessageText: !!report.lastMessageText,
+            lastVisibleActionCreated: report.lastVisibleActionCreated,
+            lastReadTime: report.lastReadTime,
+            notificationPreference,
+        });
+        // Only the report ID and hidden flag should re-run this. The report fields are read as of the open.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [reportID, isHiddenFromUser]);
 
     useEffect(() => {
         // Skip while preloaded without latching, so the effect re-runs and marks read once the tab is focused.

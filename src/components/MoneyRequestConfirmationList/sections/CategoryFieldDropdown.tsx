@@ -3,11 +3,19 @@ import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/
 import usePolicyCategoriesForConfirmation from '@components/MoneyRequestConfirmationList/hooks/usePolicyCategoriesForConfirmation';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useCreateAndApplyCategory from '@hooks/useCreateAndApplyCategory';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyData from '@hooks/usePolicyData';
 import useUpdateTransactionCategory from '@hooks/useUpdateTransactionCategory';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -25,6 +33,9 @@ type CategoryFieldDropdownProps = ExpenseFieldDropdownRenderProps & {
 
     /** Category the expense already holds, so the list can mark it */
     selectedCategory: string;
+
+    /** Whether the user can add a category to the workspace from the list */
+    canAddCategory: boolean;
 };
 
 /**
@@ -32,8 +43,10 @@ type CategoryFieldDropdownProps = ExpenseFieldDropdownRenderProps & {
  * opened, keeping its Onyx subscriptions off the form's first render, and saves through the same hook the
  * full-page selector uses so both leave the expense in the same state.
  */
-function CategoryFieldDropdown({transactionID, policy, selectedCategory, onClose, ...popoverProps}: CategoryFieldDropdownProps) {
-    const {reportID, isEditingSplitBill, action} = useConfirmationFields();
+function CategoryFieldDropdown({transactionID, policy, selectedCategory, canAddCategory, onClose, ...popoverProps}: CategoryFieldDropdownProps) {
+    const {reportID, isEditingSplitBill, action, iouType} = useConfirmationFields();
+    // The confirmation form only ever holds the current user's own expense.
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
@@ -49,6 +62,20 @@ function CategoryFieldDropdown({transactionID, policy, selectedCategory, onClose
         isEditing: action === CONST.IOU.ACTION.EDIT,
         isEditingSplit: isEditingSplitBill,
     });
+    // Only the create row's re-enable path reads this, so skip the report scan when the row can't show.
+    const policyData = usePolicyData(canAddCategory ? policy?.id : undefined);
+    // Creating a category requires a real workspace. Writing to a draft would clear its default categories.
+    const isDraftOnlyPolicy = !policyData.policy?.id || policyData.policy.id !== policy?.id;
+    const canCreateSearchedCategory = canAddCategory && !isDraftOnlyPolicy;
+    const createAndApplyCategory = useCreateAndApplyCategory({policyID: policy?.id, policyData, updateCategory});
+
+    const openAddCategory = () => {
+        onClose();
+        TransitionTracker.runAfterTransitions({
+            callback: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY_CREATE.getRoute({action, iouType, transactionID, reportID}))),
+            waitForUpcomingTransition: true,
+        });
+    };
 
     const handleSelected = (item: ListItem) => {
         // `CategoryPickerModal` hands back an empty item when the selected category is tapped again, clearing it.
@@ -63,6 +90,10 @@ function CategoryFieldDropdown({transactionID, policy, selectedCategory, onClose
             policyID={policy?.id}
             selectedCategory={selectedCategory}
             onSelected={handleSelected}
+            onAddCategory={canAddCategory ? openAddCategory : undefined}
+            addCategorySentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.ADD_CATEGORY_BUTTON}
+            onCreateCategory={canCreateSearchedCategory ? createAndApplyCategory : undefined}
+            ownerAccountID={currentUserAccountID}
         />
     );
 }

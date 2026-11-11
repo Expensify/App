@@ -1,3 +1,6 @@
+/**
+ * Helpers for detecting whether a path targets the join-workspace Concierge task onboarding screens.
+ */
 import {getSearchParamFromPath} from '@libs/Url';
 
 import ROUTES from '@src/ROUTES';

@@ -21,7 +21,7 @@ Learn how to configure the settings for your Xero integration, including import 
 Each Workspace has a unique Xero configuration. To view or update it:
 
 1. In the left-hand menu, select **Settings > Workspaces**, then choose your Workspace.
-2. From the Workspace menu, click **Accounting**.
+2. In the navigation menu, select **Connections**, then select **Configure** next to Xero.
 
 ---
 
@@ -49,12 +49,12 @@ Export settings determine how Expensify sends data to Xero.
 
 - **Preferred exporter** – Assign a Workspace Admin to automatically receive reports to export.
   - Other Workspace Admins can still export to Xero.
-  - If card-specific export settings are configured under your domain, the Preferred Exporter must be a Domain Admin.
 
 - **Export out-of-pocket expenses as** – All out-of-pocket expenses are exported as purchase bills (not editable).
 - **Purchase bill date** – Choose to use the date of the last expense, submitted date, or export date.
 - **Export invoices as** – All invoices export as sales invoices (not editable).
-- **Export Consolidated Travel Billing expenses as** – If Consolidated Travel Billing is enabled, travel expenses export as bank transactions. Click to select the **Travel payable account** where travel expenses will post in Xero.
+- **Export Consolidated Travel Billing expenses as** – If Consolidated Travel Billing is enabled, travel expenses export as bank transactions. Click to open the **Consolidated Travel Billing** page, then select the **Travel payable account** where travel expenses will post in Xero.
+- **Sync Consolidated Travel Billing settlements** – This toggle is on the **Consolidated Travel Billing** page, below **Travel payable account**. Turn it on to continuously reconcile settlements through Xero. Turning it on opens a picker where you choose the **Reconciliation account** that matches your settlement account, and that account then appears in a **Reconciliation account** row below the toggle. The toggle stays locked until you select a **Travel payable account** and enable **Auto-sync** on the **Advanced** page.
 - **Export company card expenses as** – All company card expenses are exported as bank transactions (not editable).
 - **Xero bank account** – Select the account to post non-reimbursable expenses.
 - **Default vendor** – Select a supplier to apply to company card (non-reimbursable) expenses that don't have a supplier assigned when they export to Xero.
@@ -81,7 +81,6 @@ Advanced settings control sync frequency and automation.
   - Debits the FX expense account and credits cash
   - Uses the memo “Foreign Exchange Fees for Expensify report [reportID]”
   - Only exports if this account is mapped
-
 
 ---
 

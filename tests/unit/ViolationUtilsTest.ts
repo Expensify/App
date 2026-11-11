@@ -2,7 +2,13 @@ import {beforeEach} from '@jest/globals';
 
 import Permissions from '@libs/Permissions';
 import {getTransactionViolations, hasWarningTypeViolation, isViolationDismissed} from '@libs/TransactionUtils';
-import ViolationsUtils, {filterReceiptViolations, getIsViolationFixed, isHardViolationOrRateDateWarning, syncCustomUnitRateOutOfDateRangeViolation} from '@libs/Violations/ViolationsUtils';
+import ViolationsUtils, {
+    filterReceiptViolations,
+    getIsViolationFixed,
+    isHardViolationOrRateDateWarning,
+    syncCustomUnitOutOfPolicyViolation,
+    syncCustomUnitRateOutOfDateRangeViolation,
+} from '@libs/Violations/ViolationsUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -30,6 +36,12 @@ jest.mock('@expensify/react-native-hybrid-app', () => ({
 
 const categoryOutOfPolicyViolation = {
     name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    showInReview: true,
+};
+
+const restrictedCategoryViolation = {
+    name: CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED,
     type: CONST.VIOLATION_TYPES.VIOLATION,
     showInReview: true,
 };
@@ -119,13 +131,6 @@ const inactiveVendorViolation = {
     name: CONST.VIOLATIONS.INACTIVE_VENDOR,
     type: CONST.VIOLATION_TYPES.VIOLATION,
     showInReview: true,
-};
-
-const inactiveSupplierViolation = {
-    name: CONST.VIOLATIONS.INACTIVE_VENDOR,
-    type: CONST.VIOLATION_TYPES.VIOLATION,
-    showInReview: true,
-    data: {isSupplierViolation: true},
 };
 
 const smartScanFailedViolation = {
@@ -263,8 +268,53 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toContainEqual(customUnitOutOfPolicyViolation);
         });
 
-        it('should remove the customUnitOutOfPolicy violation if the rate exists but is disabled', () => {
+        it('should add the customUnitOutOfPolicy violation if the distance rate exists but is disabled', () => {
             const customUnitRateID = 'rate_id';
+            transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.DISTANCE;
+            policy.customUnits = {
+                unitId: {
+                    attributes: {unit: 'mi'},
+                    customUnitID: 'unitId',
+                    defaultCategory: 'Car',
+                    enabled: true,
+                    name: 'Distance',
+                    rates: {
+                        [customUnitRateID]: {
+                            currency: 'USD',
+                            customUnitRateID,
+                            enabled: false,
+                            name: 'Default Rate',
+                            rate: 65.5,
+                        },
+                    },
+                },
+            };
+            const result = ViolationsUtils.getViolationsOnyxData({
+                isVendorMatchingBetaEnabled: false,
+                ownerLogin: undefined,
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
+            expect(result.value).toContainEqual(
+                expect.objectContaining({
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                }),
+            );
+        });
+
+        it('should not add customUnitOutOfPolicy for an unreported distance expense with a disabled rate', () => {
+            const customUnitRateID = 'rate_id';
+            transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.DISTANCE;
+            transaction.reportID = CONST.REPORT.UNREPORTED_REPORT_ID;
+            transactionViolations = [customUnitOutOfPolicyViolation];
             policy.customUnits = {
                 unitId: {
                     attributes: {unit: 'mi'},
@@ -814,6 +864,193 @@ describe('getViolationsOnyxData', () => {
                     },
                 }),
             );
+        });
+    });
+
+    describe('syncCustomUnitOutOfPolicyViolation', () => {
+        const customUnitRateID = 'rate_id';
+
+        beforeEach(() => {
+            transactionViolations = [];
+            transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.DISTANCE;
+            transaction.comment = {
+                ...transaction.comment,
+                customUnit: {
+                    ...(transaction?.comment?.customUnit ?? {}),
+                    customUnitRateID,
+                },
+            };
+            policy.customUnits = {
+                unitId: {
+                    attributes: {unit: 'mi'},
+                    customUnitID: 'unitId',
+                    defaultCategory: 'Car',
+                    enabled: true,
+                    name: 'Distance',
+                    rates: {
+                        [customUnitRateID]: {
+                            currency: 'USD',
+                            customUnitRateID,
+                            enabled: true,
+                            name: 'Default Rate',
+                            rate: 65.5,
+                        },
+                    },
+                },
+            };
+        });
+
+        it('should add the customUnitOutOfPolicy violation when the distance rate is disabled', () => {
+            const rate = policy.customUnits?.unitId.rates[customUnitRateID];
+            if (rate) {
+                rate.enabled = false;
+            }
+
+            const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
+
+            expect(result).toContainEqual(
+                expect.objectContaining({
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                }),
+            );
+        });
+
+        it('should not add customUnitOutOfPolicy for an unreported self-DM distance expense with a disabled workspace rate', () => {
+            const rate = policy.customUnits?.unitId.rates[customUnitRateID];
+            if (rate) {
+                rate.enabled = false;
+            }
+            // Self-DM Track expenses are stored unreported. Passing a boolean hid the broken report lookup.
+            transaction.reportID = CONST.REPORT.UNREPORTED_REPORT_ID;
+
+            const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
+
+            expect(result).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
+
+        it('should keep a server customUnitOutOfPolicy violation when the resolved rate is enabled', () => {
+            transactionViolations = [
+                {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                },
+            ];
+
+            const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
+
+            expect(result).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
+
+        it('should leave per-diem customUnitOutOfPolicy violations untouched', () => {
+            transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.PER_DIEM;
+            transaction.comment = {
+                ...transaction.comment,
+                customUnit: {
+                    ...(transaction?.comment?.customUnit ?? {}),
+                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    customUnitRateID: 'per_diem_rate_id',
+                },
+            };
+            transactionViolations = [
+                {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                },
+            ];
+
+            const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
+
+            expect(result).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
+
+        it('should keep customUnitOutOfPolicy for non-distance non-per-diem transactions', () => {
+            transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL;
+            transaction.comment = {...transaction.comment, customUnit: undefined};
+            transactionViolations = [
+                {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                },
+            ];
+
+            const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
+
+            expect(result).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
+
+        it('should keep customUnitOutOfPolicy for a P2P rate when participants is missing', () => {
+            transaction.comment = {
+                ...transaction.comment,
+                customUnit: {
+                    ...(transaction?.comment?.customUnit ?? {}),
+                    customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+                },
+            };
+            transaction.participants = undefined;
+            transactionViolations = [
+                {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                },
+            ];
+
+            const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
+
+            expect(result).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
+
+        it('should not add customUnitOutOfPolicy when the rate cannot be resolved (Track unresolvable-rate case)', () => {
+            // Self-DM / Track distance expenses often have no resolvable workspace rate.
+            // Sync must not invent a false "Rate not valid" violation in that case.
+            policy.customUnits = {};
+
+            const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
+
+            expect(result).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
+
+        it('should preserve customUnitOutOfPolicy when the workspace rate was deleted', () => {
+            transactionViolations = [
+                {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                },
+            ];
+            transaction.participants = [{accountID: 1, login: 'admin@expensify.com', isPolicyExpenseChat: true}];
+            policy.customUnits = {};
+
+            const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
+
+            expect(result).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
+
+        it('should preserve customUnitOutOfPolicy for FAKE_P2P_ID on a policy expense chat', () => {
+            transactionViolations = [
+                {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                },
+            ];
+            transaction.comment = {
+                ...transaction.comment,
+                customUnit: {
+                    ...(transaction?.comment?.customUnit ?? {}),
+                    customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+                },
+            };
+            transaction.participants = [{accountID: 1, login: 'admin@expensify.com', isPolicyExpenseChat: true}];
+
+            const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
+
+            expect(result).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
         });
     });
 
@@ -1610,6 +1847,91 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
             expect(result.value).toEqual(expect.arrayContaining([categoryOutOfPolicyViolation, ...transactionViolations]));
+        });
+
+        it('should remove the categoryNotAllowed violation when the owner can use the new category', () => {
+            // Given an expense with categoryNotAllowed, recoded to a category the owner can see
+            const ownerAccountID = 1;
+            policyCategories = {Food: {name: 'Food', enabled: true, visibleTo: {[ownerAccountID]: true}}};
+            const iouReport = createMock<Report>({reportID: '1234', type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID});
+
+            // When the violations are recalculated
+            const result = ViolationsUtils.getViolationsOnyxData({
+                isVendorMatchingBetaEnabled: false,
+                ownerLogin: undefined,
+                updatedTransaction: transaction,
+                transactionViolations: [restrictedCategoryViolation],
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+                iouReport,
+            });
+
+            // Then the violation is removed
+            expect(result.value).not.toContainEqual(restrictedCategoryViolation);
+        });
+
+        it.each([
+            [false, ''],
+            [false, undefined],
+            [false, CONST.SEARCH.CATEGORY_DEFAULT_VALUE],
+            [false, CONST.SEARCH.CATEGORY_EMPTY_VALUE],
+            [true, ''],
+            [true, undefined],
+            [true, CONST.SEARCH.CATEGORY_DEFAULT_VALUE],
+            [true, CONST.SEARCH.CATEGORY_EMPTY_VALUE],
+        ])('should clear categoryNotAllowed when requiresCategory is %s and category is %s', (requiresCategory, category) => {
+            // Given an expense with a restricted category warning and no owner account ID available
+            policy.requiresCategory = requiresCategory;
+            transaction.category = category;
+
+            // When the category is cleared, its restriction no longer applies
+            const result = ViolationsUtils.getViolationsOnyxData({
+                isVendorMatchingBetaEnabled: false,
+                ownerLogin: undefined,
+                updatedTransaction: transaction,
+                transactionViolations: [restrictedCategoryViolation],
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
+            // Then only the required category warning depends on the policy setting
+            expect(result.value).not.toContainEqual(restrictedCategoryViolation);
+            if (requiresCategory) {
+                expect(result.value).toContainEqual(missingCategoryViolation);
+            } else {
+                expect(result.value).not.toContainEqual(missingCategoryViolation);
+            }
+        });
+
+        it('should keep the categoryNotAllowed violation when the owner still cannot use the category', () => {
+            // Given an expense with categoryNotAllowed, coded to a category only another member can see
+            const ownerAccountID = 1;
+            const otherAccountID = 2;
+            policyCategories = {Food: {name: 'Food', enabled: true, visibleTo: {[otherAccountID]: true}}};
+            const iouReport = createMock<Report>({reportID: '1234', type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID});
+
+            // When the violations are recalculated
+            const result = ViolationsUtils.getViolationsOnyxData({
+                isVendorMatchingBetaEnabled: false,
+                ownerLogin: undefined,
+                updatedTransaction: transaction,
+                transactionViolations: [restrictedCategoryViolation],
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+                iouReport,
+            });
+
+            // Then the violation stays
+            expect(result.value).toContainEqual(restrictedCategoryViolation);
         });
 
         it('should not include a categoryOutOfPolicy violation when category is in policy', () => {
@@ -3184,7 +3506,7 @@ describe('getViolationsOnyxData', () => {
 
         // Pass a `vendors` array to control the synced list, or `null` to simulate the list still
         // hydrating (`data.vendors` absent, so `isMatchingVendorListLoaded` returns false).
-        const policyWithQBOVendorFeature = (vendors: Array<{id: string; name: string; currency: string}> | null = [{id: 'v-active', name: 'Acme Co', currency: 'USD'}]) =>
+        const policyWithQBOVendorFeature = (vendors: Array<{id: string; name: string; currency: string}> | null = [{id: 'vActive', name: 'Acme Co', currency: 'USD'}]) =>
             createMock<Policy>({
                 requiresTag: false,
                 requiresCategory: false,
@@ -3251,7 +3573,31 @@ describe('getViolationsOnyxData', () => {
 
         it('removes an existing violation when the vendor is restored in the policy list', () => {
             policy = policyWithQBOVendorFeature();
-            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', wasManuallySet: true}};
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'vActive', wasManuallySet: true}};
+            const result = ViolationsUtils.getViolationsOnyxData({
+                isVendorMatchingBetaEnabled: true,
+                ownerLogin: undefined,
+                updatedTransaction: transaction,
+                transactionViolations: [inactiveVendorViolation],
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+                policyVendors: {
+                    vActive: {
+                        externalID: 'vActive',
+                        name: 'Acme Co',
+                        enabled: true,
+                    },
+                },
+            });
+            expect(result.value).not.toContainEqual(inactiveVendorViolation);
+        });
+
+        it('preserves an existing violation when policyVendors is not provided even if the vendor is in the raw integration list', () => {
+            policy = policyWithQBOVendorFeature();
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'vActive', wasManuallySet: true}};
             const result = ViolationsUtils.getViolationsOnyxData({
                 isVendorMatchingBetaEnabled: true,
                 ownerLogin: undefined,
@@ -3263,11 +3609,11 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            expect(result.value).not.toContainEqual(inactiveVendorViolation);
+            expect(result.value).toContainEqual(inactiveVendorViolation);
         });
 
         it('adds the violation when the vendor remains in the raw integration list but is disabled in policyVendors', () => {
-            const activeVendorID = 'v-active';
+            const activeVendorID = 'vActive';
             policy = policyWithQBOVendorFeature();
             transaction.comment = {...transaction.comment, vendor: {externalID: activeVendorID, wasManuallySet: true}};
             const policyVendors: PolicyVendors = {
@@ -3293,7 +3639,7 @@ describe('getViolationsOnyxData', () => {
         });
 
         it('retains an existing violation through an optimistic update while the vendor remains disabled in policyVendors', () => {
-            const activeVendorID = 'v-active';
+            const activeVendorID = 'vActive';
             policy = policyWithQBOVendorFeature();
             transaction.comment = {...transaction.comment, vendor: {externalID: activeVendorID, wasManuallySet: true}};
             const policyVendors: PolicyVendors = {
@@ -3319,7 +3665,7 @@ describe('getViolationsOnyxData', () => {
         });
 
         it('removes an existing violation when the vendor is re-enabled in policyVendors', () => {
-            const activeVendorID = 'v-active';
+            const activeVendorID = 'vActive';
             policy = policyWithQBOVendorFeature();
             transaction.comment = {...transaction.comment, vendor: {externalID: activeVendorID, wasManuallySet: true}};
             const policyVendors: PolicyVendors = {
@@ -3345,7 +3691,7 @@ describe('getViolationsOnyxData', () => {
         });
 
         it('leaves the violation untouched when the active integration vendor list is not loaded yet even if policyVendors is present', () => {
-            const activeVendorID = 'v-active';
+            const activeVendorID = 'vActive';
             policy = policyWithQBOVendorFeature(null);
             transaction.comment = {...transaction.comment, vendor: {externalID: activeVendorID, wasManuallySet: true}};
             const policyVendors: PolicyVendors = {
@@ -3394,11 +3740,11 @@ describe('getViolationsOnyxData', () => {
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                         config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL},
-                        data: {vendors: [{id: 'v-active', name: 'Acme Co', currency: 'USD'}]},
+                        data: {vendors: [{id: 'vActive', name: 'Acme Co', currency: 'USD'}]},
                     },
                 },
             });
-            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', wasManuallySet: true}};
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'vActive', wasManuallySet: true}};
             const result = ViolationsUtils.getViolationsOnyxData({
                 isVendorMatchingBetaEnabled: true,
                 ownerLogin: undefined,
@@ -3472,7 +3818,7 @@ describe('getViolationsOnyxData', () => {
         it('preserves an existing violation while the QBO vendor list is still hydrating', () => {
             // Given the vendor list is still hydrating but an inactive-vendor violation already exists from a prior real check
             policy = policyWithQBOVendorFeature(null);
-            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', wasManuallySet: true}};
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'vActive', wasManuallySet: true}};
 
             // When violations are recomputed
             const result = ViolationsUtils.getViolationsOnyxData({
@@ -3496,7 +3842,7 @@ describe('getViolationsOnyxData', () => {
             // hydrating. Intacct vendors carry the display name in `value`.
             const policyWithIntacctVendorFeature = (
                 nonReimbursable: SageIntacctExportConfig['nonReimbursable'] = CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE,
-                vendors: Array<{id: string; name: string; value: string}> | null = [{id: 'iv-active', name: 'V001', value: 'Acme Intacct'}],
+                vendors: Array<{id: string; name: string; value: string}> | null = [{id: 'ivActive', name: 'V001', value: 'Acme Intacct'}],
             ) =>
                 createMock<Policy>({
                     requiresTag: false,
@@ -3524,14 +3870,13 @@ describe('getViolationsOnyxData', () => {
                     hasDependentTags: false,
                     isInvoiceTransaction: false,
                 });
-                // Intacct is not a supplier source, so the plain vendor violation (no isSupplierViolation flag) is expected.
                 expect(result.value).toEqual(expect.arrayContaining([inactiveVendorViolation]));
             });
 
             it('does not add the violation when the Intacct vendor is in the synced list', () => {
                 isBetaEnabledSpy.mockImplementation(() => false);
                 policy = policyWithIntacctVendorFeature();
-                transaction.comment = {...transaction.comment, vendor: {externalID: 'iv-active', wasManuallySet: true}};
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'ivActive', wasManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
                     ownerLogin: undefined,
                     isVendorMatchingBetaEnabled: false,
@@ -3603,12 +3948,12 @@ describe('getViolationsOnyxData', () => {
                     },
                 });
 
-            it('adds the violation with isSupplierViolation flag when the Xero supplier ID is not in the synced contacts list', () => {
-                // Xero is the active matching source — the violation must carry the isSupplierViolation
-                // flag so the render layer uses the "Supplier no longer valid" copy that matches the
-                // rest of the Xero UI (picker, default-supplier row).
+            it('adds the violation when the Xero supplier ID is not in the synced contacts list', () => {
+                // Given a Xero workspace and a transaction whose vendor is missing from the synced contacts
                 policy = policyWithXeroVendorFeature();
                 transaction.comment = {...transaction.comment, vendor: {externalID: 'xcMissing', wasManuallySet: true}};
+
+                // When violations are recomputed
                 const result = ViolationsUtils.getViolationsOnyxData({
                     isVendorMatchingBetaEnabled: true,
                     ownerLogin: undefined,
@@ -3620,67 +3965,9 @@ describe('getViolationsOnyxData', () => {
                     hasDependentTags: false,
                     isInvoiceTransaction: false,
                 });
-                expect(result.value).toEqual(expect.arrayContaining([inactiveSupplierViolation]));
-            });
 
-            it('backfills isSupplierViolation on an existing server-fired violation when Xero is the active matching source', () => {
-                // The backend can fire `inactiveVendor` directly (e.g. after a supplier deletion +
-                // sync) — that violation has no `data.isSupplierViolation` flag, so the render
-                // layer would default to the "Vendor" wording even though the rest of the Xero UI
-                // shows "Supplier". The reconciliation pass must stamp the flag on existing
-                // violations so the copy matches.
-                policy = policyWithXeroVendorFeature();
-                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcMissing', wasManuallySet: true}};
-                const result = ViolationsUtils.getViolationsOnyxData({
-                    isVendorMatchingBetaEnabled: true,
-                    ownerLogin: undefined,
-                    updatedTransaction: transaction,
-                    transactionViolations: [inactiveVendorViolation],
-                    policy,
-                    policyTagList: policyTags,
-                    policyCategories,
-                    hasDependentTags: false,
-                    isInvoiceTransaction: false,
-                });
-                expect(result.value).toEqual(expect.arrayContaining([inactiveSupplierViolation]));
-                expect(result.value).not.toContainEqual(inactiveVendorViolation);
-            });
-
-            it('strips a stale isSupplierViolation flag when the active matching source switched back from Xero to QBO', () => {
-                // Dual-connected: QBO is in CC export mode (now the active matching source), Xero
-                // is also connected with supplier data. An existing violation still carries the
-                // supplier flag from when Xero was previously active. The reconciliation must
-                // strip the stale flag so the render layer renders "Vendor" copy that matches the
-                // QBO picker, not the stale "Supplier" wording.
-                const xeroPolicyContacts = {xcActive: {id: 'xcActive', name: 'Acme Xero', email: 'acme@example.com'}};
-                policy = createMock<Policy>({
-                    requiresTag: false,
-                    requiresCategory: false,
-                    connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
-                            config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
-                            data: {vendors: [{id: 'v-active', name: 'Acme QBO', currency: 'USD'}]},
-                        },
-                        [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
-                            config: {isConfigured: true},
-                            data: {contacts: xeroPolicyContacts},
-                        },
-                    },
-                });
-                transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', wasManuallySet: true}};
-                const result = ViolationsUtils.getViolationsOnyxData({
-                    isVendorMatchingBetaEnabled: true,
-                    ownerLogin: undefined,
-                    updatedTransaction: transaction,
-                    transactionViolations: [inactiveSupplierViolation],
-                    policy,
-                    policyTagList: policyTags,
-                    policyCategories,
-                    hasDependentTags: false,
-                    isInvoiceTransaction: false,
-                });
-                expect(result.value).toContainEqual(inactiveVendorViolation);
-                expect(result.value).not.toContainEqual(inactiveSupplierViolation);
+                // Then the plain inactive vendor violation is added, the same as for every other integration
+                expect(result.value).toEqual(expect.arrayContaining([inactiveVendorViolation]));
             });
 
             it('removes an existing violation when the Xero supplier is restored in the contacts list', () => {
@@ -3696,6 +3983,13 @@ describe('getViolationsOnyxData', () => {
                     policyCategories,
                     hasDependentTags: false,
                     isInvoiceTransaction: false,
+                    policyVendors: {
+                        xcActive: {
+                            externalID: 'xcActive',
+                            name: 'Acme Xero',
+                            enabled: true,
+                        },
+                    },
                 });
                 expect(result.value).not.toContainEqual(inactiveVendorViolation);
             });
@@ -3760,8 +4054,8 @@ describe('getViolationsOnyxData', () => {
                     isInvoiceTransaction: false,
                 });
 
-                // Then the violation is added with the supplier wording because Xero does not depend on the beta
-                expect(result.value).toEqual(expect.arrayContaining([inactiveSupplierViolation]));
+                // Then the violation is added because Xero does not depend on the beta
+                expect(result.value).toEqual(expect.arrayContaining([inactiveVendorViolation]));
             });
 
             it('removes an existing violation when the Xero connection is not configured with the beta disabled', () => {
@@ -3784,7 +4078,7 @@ describe('getViolationsOnyxData', () => {
                     isVendorMatchingBetaEnabled: false,
                     ownerLogin: undefined,
                     updatedTransaction: transaction,
-                    transactionViolations: [inactiveSupplierViolation],
+                    transactionViolations: [inactiveVendorViolation],
                     policy,
                     policyTagList: policyTags,
                     policyCategories,
@@ -3808,7 +4102,7 @@ describe('getViolationsOnyxData', () => {
                     connections: {
                         [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                             config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
-                            data: {vendors: [{id: 'v-active', name: 'Acme QBO', currency: 'USD'}]},
+                            data: {vendors: [{id: 'vActive', name: 'Acme QBO', currency: 'USD'}]},
                         },
                         [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
                             config: {},
@@ -4825,12 +5119,6 @@ describe('hasVisibleViolationsForUser', () => {
 });
 
 describe('getIsViolationFixed', () => {
-    const mockCurrentUserPersonalDetails = {
-        accountID: 1,
-        login: 'user@example.com',
-        email: 'user@example.com',
-    };
-
     const defaultParams = {
         category: '',
         tag: '',
@@ -4839,7 +5127,7 @@ describe('getIsViolationFixed', () => {
         policyTagLists: undefined,
         policyTaxRates: undefined,
         iouAttendees: undefined,
-        currentUserPersonalDetails: mockCurrentUserPersonalDetails,
+        ownerLogin: 'user@example.com',
         isAttendeeTrackingEnabled: false,
     };
 

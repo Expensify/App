@@ -92,12 +92,6 @@ describe('DynamicReportDetailsPage', () => {
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
         } as ReportAction;
 
-        const report: Report = {
-            ...createRandomReport(Number(reportID), undefined),
-            parentReportID,
-            parentReportActionID: parentActionID,
-        };
-
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, createRandomReport(Number(parentReportID), undefined));
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
@@ -109,12 +103,7 @@ describe('DynamicReportDetailsPage', () => {
             <OnyxListItemProvider>
                 <LocaleContextProvider>
                     <DynamicReportDetailsPage
-                        isLoadingReportData={false}
                         navigation={navigationMock}
-                        policy={undefined}
-                        report={report}
-                        reportMetadata={undefined}
-                        reportLoadingState={undefined}
                         route={getRouteMock(reportID)}
                     />
                 </LocaleContextProvider>
@@ -182,12 +171,7 @@ describe('DynamicReportDetailsPage', () => {
                 <CurrentUserPersonalDetailsContext.Provider value={{accountID: currentUserAccountID}}>
                     <LocaleContextProvider>
                         <DynamicReportDetailsPage
-                            isLoadingReportData={false}
                             navigation={navigationMock}
-                            policy={undefined}
-                            report={taskReport}
-                            reportMetadata={undefined}
-                            reportLoadingState={undefined}
                             route={getRouteMock(reportID)}
                         />
                     </LocaleContextProvider>
@@ -247,12 +231,7 @@ describe('DynamicReportDetailsPage', () => {
                     <CurrentUserPersonalDetailsContext.Provider value={{accountID: currentUserAccountID}}>
                         <LocaleContextProvider>
                             <DynamicReportDetailsPage
-                                isLoadingReportData={false}
                                 navigation={navigationMock}
-                                policy={policy}
-                                report={report}
-                                reportMetadata={undefined}
-                                reportLoadingState={undefined}
                                 route={getRouteMock(reportID)}
                             />
                         </LocaleContextProvider>

@@ -24,7 +24,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTaxCodeForm';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type WorkspaceTaxCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAX_CODE>;
@@ -41,46 +41,40 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
     const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
     const isTaxCodeCustomized = isTaxCodeCustomizedUtil(currentTaxCode, policy);
 
-    const setTaxCode = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_CODE_FORM>) => {
-            const newTaxCode = values.taxCode.trim();
-            if (currentTaxCode === newTaxCode && isTaxCodeCustomized) {
-                Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, currentTaxCode));
-                return;
-            }
-
-            if (!policy?.taxRates?.taxes[currentTaxCode]) {
-                return;
-            }
-            setPolicyTaxCode(
-                policyID,
-                currentTaxCode,
-                newTaxCode,
-                policy?.taxRates?.taxes[currentTaxCode],
-                policy?.taxRates?.foreignTaxDefault,
-                policy?.taxRates?.defaultExternalID,
-                distanceRateCustomUnit,
-                policy?.rules?.expenseRules,
-            );
+    const setTaxCode = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_CODE_FORM>) => {
+        const newTaxCode = values.taxCode.trim();
+        if (currentTaxCode === newTaxCode && isTaxCodeCustomized) {
             Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, currentTaxCode));
-        },
-        [currentTaxCode, policyID, policy?.taxRates, policy?.rules?.expenseRules, distanceRateCustomUnit, isTaxCodeCustomized],
-    );
+            return;
+        }
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_CODE_FORM>) => {
-            if (!policy) {
-                return {};
-            }
-            const newTaxCode = values.taxCode.trim();
-            if (newTaxCode === currentTaxCode) {
-                return {};
-            }
+        if (!policy?.taxRates?.taxes[currentTaxCode]) {
+            return;
+        }
+        setPolicyTaxCode(
+            policyID,
+            currentTaxCode,
+            newTaxCode,
+            policy?.taxRates?.taxes[currentTaxCode],
+            policy?.taxRates?.foreignTaxDefault,
+            policy?.taxRates?.defaultExternalID,
+            distanceRateCustomUnit,
+            policy?.rules?.expenseRules,
+        );
+        Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, currentTaxCode));
+    };
 
-            return validateTaxCode(policy, values, translate);
-        },
-        [currentTaxCode, policy, translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_CODE_FORM>) => {
+        if (!policy) {
+            return {};
+        }
+        const newTaxCode = values.taxCode.trim();
+        if (newTaxCode === currentTaxCode) {
+            return {};
+        }
+
+        return validateTaxCode(policy, values, translate);
+    };
 
     return (
         <AccessOrNotFoundWrapper

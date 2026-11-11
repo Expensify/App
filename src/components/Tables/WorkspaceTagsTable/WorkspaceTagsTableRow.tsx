@@ -167,6 +167,7 @@ export default function WorkspaceTagsTableRow({
                                 disabled={isSwitchControlDisabled}
                                 pending={item.pending}
                                 accessibilityLabel={`${switchAccessibilityLabel}: ${item.name}`}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.ROW_ENABLE_SWITCH}
                                 onToggle={handleSwitchToggle}
                             />
                         </View>

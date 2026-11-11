@@ -11,7 +11,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 type BusinessTypeProps = SubPageProps;
 
@@ -28,59 +28,44 @@ function BusinessType({onNext, isEditing, onMove}: BusinessTypeProps) {
     const country = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '';
     const isBusinessTypeRequired = country !== CONST.COUNTRY.CA;
 
-    const incorporationTypeListOptions = useMemo(() => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.ApplicantType), [corpayOnboardingFields?.picklists.ApplicantType]);
-    const natureOfBusinessListOptions = useMemo(
-        () => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.NatureOfBusiness),
-        [corpayOnboardingFields?.picklists.NatureOfBusiness],
-    );
-    const businessTypeListOptions = useMemo(() => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.BusinessType), [corpayOnboardingFields?.picklists.BusinessType]);
+    const incorporationTypeListOptions = getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.ApplicantType);
+    const natureOfBusinessListOptions = getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.NatureOfBusiness);
+    const businessTypeListOptions = getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.BusinessType);
 
     const incorporationTypeDefaultValue = reimbursementAccount?.achData?.corpay?.[APPLICANT_TYPE_ID] ?? '';
     const businessCategoryDefaultValue = reimbursementAccount?.achData?.corpay?.[BUSINESS_CATEGORY] ?? '';
     const businessTypeDefaultValue = reimbursementAccount?.achData?.corpay?.[BUSINESS_TYPE_ID] ?? '';
 
-    const pushRowFields = useMemo(
-        () => [
-            {
-                inputID: APPLICANT_TYPE_ID,
-                defaultValue: incorporationTypeDefaultValue,
-                options: incorporationTypeListOptions,
-                description: translate('businessInfoStep.incorporationTypeName'),
-                modalHeaderTitle: translate('businessInfoStep.selectIncorporationType'),
-                searchInputTitle: translate('businessInfoStep.findIncorporationType'),
-            },
-            {
-                inputID: BUSINESS_CATEGORY,
-                defaultValue: businessCategoryDefaultValue,
-                options: natureOfBusinessListOptions,
-                description: translate('businessInfoStep.businessCategory'),
-                modalHeaderTitle: translate('businessInfoStep.selectBusinessCategory'),
-                searchInputTitle: translate('businessInfoStep.findBusinessCategory'),
-            },
-            ...(isBusinessTypeRequired
-                ? [
-                      {
-                          inputID: BUSINESS_TYPE_ID,
-                          defaultValue: businessTypeDefaultValue,
-                          options: businessTypeListOptions,
-                          description: translate('businessInfoStep.businessType'),
-                          modalHeaderTitle: translate('businessInfoStep.selectBusinessType'),
-                          searchInputTitle: translate('businessInfoStep.findBusinessType'),
-                      },
-                  ]
-                : []),
-        ],
-        [
-            businessCategoryDefaultValue,
-            businessTypeDefaultValue,
-            businessTypeListOptions,
-            incorporationTypeDefaultValue,
-            incorporationTypeListOptions,
-            isBusinessTypeRequired,
-            natureOfBusinessListOptions,
-            translate,
-        ],
-    );
+    const pushRowFields = [
+        {
+            inputID: APPLICANT_TYPE_ID,
+            defaultValue: incorporationTypeDefaultValue,
+            options: incorporationTypeListOptions,
+            description: translate('businessInfoStep.incorporationTypeName'),
+            modalHeaderTitle: translate('businessInfoStep.selectIncorporationType'),
+            searchInputTitle: translate('businessInfoStep.findIncorporationType'),
+        },
+        {
+            inputID: BUSINESS_CATEGORY,
+            defaultValue: businessCategoryDefaultValue,
+            options: natureOfBusinessListOptions,
+            description: translate('businessInfoStep.businessCategory'),
+            modalHeaderTitle: translate('businessInfoStep.selectBusinessCategory'),
+            searchInputTitle: translate('businessInfoStep.findBusinessCategory'),
+        },
+        ...(isBusinessTypeRequired
+            ? [
+                  {
+                      inputID: BUSINESS_TYPE_ID,
+                      defaultValue: businessTypeDefaultValue,
+                      options: businessTypeListOptions,
+                      description: translate('businessInfoStep.businessType'),
+                      modalHeaderTitle: translate('businessInfoStep.selectBusinessType'),
+                      searchInputTitle: translate('businessInfoStep.findBusinessType'),
+                  },
+              ]
+            : []),
+    ];
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: isBusinessTypeRequired ? STEP_FIELDS : STEP_FIELDS_WITHOUT_BUSINESS_TYPE,

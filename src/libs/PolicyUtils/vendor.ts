@@ -36,15 +36,12 @@ function isIntacctVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
  * configuration gate — mirrors `Xero::hasVendorFeature` on the PHP side. The `isConfigured` check
  * matters because Integration-Server clears that flag during a Xero tenant switch while the old
  * tenant's `data.contacts` lingers until the next sync repopulates it; without the gate the
- * Supplier picker would render stale contacts from the previous tenant and a user-pick during
+ * vendor picker would render stale contacts from the previous tenant and a user-pick during
  * that window would persist a now-invalid `comment.vendor.externalID` that flips inactive the
  * moment the new sync completes.
  *
  * This is the *eligibility* predicate used by `hasVendorFeature`, NOT the source predicate — on
- * dual-connected workspaces QBO/Intacct precedence still applies in `getMatchingVendors`. Use
- * `isXeroActiveMatchingSource` when the question is "is Xero the integration whose vendors are
- * actually being shown to the user?" (e.g. for the Supplier/Vendor label flip in the expense row,
- * picker, and modified-expense fragments).
+ * dual-connected workspaces QBO/Intacct precedence still applies in `getMatchingVendors`.
  */
 function isXeroVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
     return !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]?.config?.isConfigured;
@@ -84,18 +81,6 @@ function isCertiniaVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
 }
 
 /**
- * True when Xero is the *active* vendor-matching source for the workspace — i.e. Xero is
- * connected AND neither QBO nor Intacct is in a vendor-matching export mode. Mirrors the precedence
- * in `getActiveVendorMatchingIntegration` (QBO → Intacct → Xero → Rillet → DualEntry → Campfire → Business Central → Certinia) so the UI labels, copy, and
- * inactive-vendor guardrail stay bound to whichever integration's vendor list is actually being consulted.
- * Without this scoping, a workspace with active QBO matching + a lingering Xero connection would render
- * QBO vendors under the "Supplier" label.
- */
-function isXeroActiveMatchingSource(policy: OnyxEntry<Policy>): boolean {
-    return getActiveVendorMatchingIntegration(policy) === CONST.POLICY.CONNECTIONS.NAME.XERO;
-}
-
-/**
  * Vendor matching feature gate. Returns true when a supported accounting integration is connected
  * with a non-reimbursable export type that scopes the vendor field. Mirrors the per-integration
  * `hasVendorFeature` checks on the PHP side so the App and backend agree on which workspaces see
@@ -130,10 +115,23 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
 }
 
 /**
- * Search spans every workspace at once, so the vendor column is offered when any workspace has the vendor feature.
+ * Search spans every workspace at once, so the vendor filter and column are offered when any workspace has the vendor feature.
  */
 function hasVendorFeatureOnAnyPolicy(policies: OnyxCollection<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
     return Object.values(policies ?? {}).some((policy) => hasVendorFeature(policy, isVendorMatchingBetaEnabled));
+}
+
+/**
+ * IDs of the workspaces that have the vendor feature, so the Search vendor filter only offers their vendor lists.
+ */
+function getVendorFeaturePolicyIDs(policies: OnyxCollection<Policy>, isVendorMatchingBetaEnabled: boolean): string[] {
+    const policyIDs: string[] = [];
+    for (const policy of Object.values(policies ?? {})) {
+        if (policy?.id && hasVendorFeature(policy, isVendorMatchingBetaEnabled)) {
+            policyIDs.push(policy.id);
+        }
+    }
+    return policyIDs;
 }
 
 /**
@@ -463,8 +461,8 @@ function getVendorEmptyState(policy: OnyxEntry<Policy>, translate: LocaleContext
             };
         case CONST.POLICY.CONNECTIONS.NAME.XERO:
             return {
-                title: translate('workspace.xero.noSuppliersFound'),
-                subtitle: translate('workspace.xero.noSuppliersFoundDescription'),
+                title: translate('workspace.xero.noVendorsFound'),
+                subtitle: translate('workspace.xero.noVendorsFoundDescription'),
             };
         case CONST.POLICY.CONNECTIONS.NAME.RILLET:
             return {
@@ -525,6 +523,14 @@ function getCampfireVendors(policy: OnyxEntry<Policy>): Vendor[] {
         .map((vendor) => ({id: vendor.id, name: vendor.name, currency: '', email: vendor.email ?? ''}));
 }
 
+/** Zoho Books export settings use only active vendor-type records, never customers or inactive vendors */
+function getZohoBooksVendors(policy: OnyxEntry<Policy>): Vendor[] {
+    const vendors = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]?.data?.vendors;
+    return (vendors ?? [])
+        .filter((vendor) => !!vendor.id && vendor.isActive === true && vendor.vendorType === CONST.ZOHO_BOOKS_VENDOR_TYPE.VENDOR)
+        .map((vendor) => ({id: vendor.id, name: vendor.name, currency: '', email: vendor.email ?? ''}));
+}
+
 /** DualEntry export settings and expense matching must use vendors available to the selected company */
 function getDualEntryVendors(policy: OnyxEntry<Policy>): Vendor[] {
     const connection = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.DUALENTRY];
@@ -571,14 +577,15 @@ export {
     getXeroSuppliers,
     getDualEntryVendors,
     getCampfireVendors,
+    getZohoBooksVendors,
     getCertiniaVendors,
     isRilletVendorMatchingActive,
     isBusinessCentralVendorMatchingActive,
     isDualEntryVendorMatchingActive,
     isCertiniaVendorMatchingActive,
-    isXeroActiveMatchingSource,
     isXeroVendorMatchingActive,
     hasVendorFeature,
     hasVendorFeatureOnAnyPolicy,
+    getVendorFeaturePolicyIDs,
     isMatchingVendorListLoaded,
 };

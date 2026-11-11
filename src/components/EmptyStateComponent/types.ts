@@ -4,6 +4,7 @@ import type {ButtonVariant} from '@styles/utils/types';
 
 import type CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ImageStyle} from 'expo-image';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
@@ -20,6 +21,7 @@ type EmptyStateButton = {
     innerStyles?: StyleProp<ViewStyle>;
     hoverStyles?: StyleProp<ViewStyle>;
     dropDownOptions?: Array<DropdownOption<ValueOf<typeof CONST.REPORT.ADD_EXPENSE_OPTIONS>>>;
+    sentryLabel?: SentryLabel;
 };
 
 type EmptyStateComponentProps = {

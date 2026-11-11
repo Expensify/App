@@ -6,6 +6,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
@@ -19,18 +20,21 @@ import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {selectReusableRoute} from '@libs/actions/ReusableDistanceRoutes';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
-import {filterRoutes, getRouteEndpoints} from '@libs/ReusableDistanceRoutesUtils';
+import {filterRoutes, getAvailableReusableDistanceRoutes, getRouteEndpoints} from '@libs/ReusableDistanceRoutesUtils';
 import {getRateID} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {ReusableDistanceRoute} from '@src/types/onyx';
+import type {ReusableDistanceRoute, Transaction} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 
 import type {ReuseRouteListItemData} from './ReuseRouteListItem';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -50,13 +54,14 @@ type IOURequestStepReuseRouteProps = WithCurrentUserPersonalDetailsProps &
 function IOURequestStepReuseRoute({
     report,
     route: {
-        params: {action, iouType, transactionID, reportID},
+        params: {action, iouType, transactionID, reportID, backToReport},
     },
     transaction,
     currentUserPersonalDetails,
 }: IOURequestStepReuseRouteProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
     const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType});
     const personalPolicy = usePersonalPolicy();
@@ -70,6 +75,10 @@ function IOURequestStepReuseRoute({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [reusableDistanceRoutes] = useOnyx(ONYXKEYS.REUSABLE_DISTANCE_ROUTES);
+    const availableRoutesSelector = (transactions: OnyxCollection<Transaction>) => getAvailableReusableDistanceRoutes(reusableDistanceRoutes, transactions, isOffline);
+    const [availableRoutes] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: availableRoutesSelector,
+    });
     const [isLoadingReusableDistanceRoutes] = useOnyx(ONYXKEYS.IS_LOADING_REUSABLE_DISTANCE_ROUTES);
     const [searchValue, setSearchValue] = useState('');
     const [selectedRoute, setSelectedRoute] = useState<ReusableDistanceRoute | null>(null);
@@ -102,13 +111,11 @@ function IOURequestStepReuseRoute({
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or
     // this is a workspace request and the workspace requires a category or a tag
-    const shouldSkipConfirmation: boolean = useMemo(() => {
-        if (!skipConfirmation || !report?.reportID) {
-            return false;
-        }
-
-        return iouType !== CONST.IOU.TYPE.SPLIT && !isArchived && !(isPolicyExpenseChatUtil(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
-    }, [report, skipConfirmation, policy?.requiresCategory, policy?.requiresTag, isArchived, iouType]);
+    const shouldSkipConfirmation: boolean =
+        !(!skipConfirmation || !report?.reportID) &&
+        iouType !== CONST.IOU.TYPE.SPLIT &&
+        !isArchived &&
+        !(isPolicyExpenseChatUtil(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
 
     const navigateToNextStep = useDistanceNavigation({
         iouType,
@@ -125,7 +132,7 @@ function IOURequestStepReuseRoute({
         currentUserAccountID: currentUserPersonalDetails.accountID,
         currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
         backTo: undefined,
-        backToReport: undefined,
+        backToReport,
         shouldSkipConfirmation,
         defaultExpensePolicy,
         isArchived,
@@ -148,19 +155,21 @@ function IOURequestStepReuseRoute({
         // eslint-disable-next-line react-hooks/exhaustive-deps -- navigateToNextStep is rebuilt every render, only a new selection should trigger navigation
     }, [selectedRoute]);
 
+    const distanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction, policy});
+
     const selectRoute = (item: ReuseRouteListItemData) => {
         if (isNavigatingRef.current || selectedRoute) {
             return;
         }
         isNavigatingRef.current = true;
-        selectReusableRoute(transactionID, item.route, transaction?.comment?.waypoints)
+        selectReusableRoute(transactionID, item.route, transaction?.comment?.waypoints, distanceUnit)
             .then(() => setSelectedRoute(item.route))
             .catch(() => {
                 isNavigatingRef.current = false;
             });
     };
 
-    const routes = reusableDistanceRoutes ?? [];
+    const routes = availableRoutes ?? [];
     const filteredRoutes = filterRoutes(routes, searchValue);
     const data: ReuseRouteListItemData[] = filteredRoutes.map((route) => ({
         route,
@@ -181,31 +190,27 @@ function IOURequestStepReuseRoute({
             testID="IOURequestStepReuseRoute"
             includeSafeAreaPaddingBottom
         >
-            {({didScreenTransitionEnd}) => {
-                if (!didScreenTransitionEnd) {
-                    return null;
-                }
-                return (
-                    <>
-                        <Text style={[styles.ph5, styles.pb2, styles.textSupporting]}>{translate('distance.choosePreviousRoute')}</Text>
-                        <SelectionList
-                            data={data}
-                            onSelectRow={selectRoute}
-                            textInputOptions={{
-                                label: translate('distance.findARoute'),
-                                value: searchValue,
-                                onChangeText: setSearchValue,
-                                headerMessage,
-                            }}
-                            ListItem={ReuseRouteListItem}
-                            shouldShowLoadingPlaceholder={!!isLoadingReusableDistanceRoutes && routes.length === 0}
-                            customLoadingPlaceholder={<ReuseRouteSkeleton fixedNumItems={3} />}
-                            shouldShowListEmptyContent={false}
-                            shouldSingleExecuteRowSelect
-                        />
-                    </>
-                );
-            }}
+            {({didScreenTransitionEnd}) => (
+                <>
+                    <Text style={[styles.ph5, styles.pb2, styles.textSupporting]}>{translate('distance.choosePreviousRoute')}</Text>
+                    <SelectionList
+                        data={data}
+                        onSelectRow={selectRoute}
+                        textInputOptions={{
+                            label: translate('distance.findARoute'),
+                            value: searchValue,
+                            onChangeText: setSearchValue,
+                            headerMessage,
+                        }}
+                        ListItem={ReuseRouteListItem}
+                        shouldShowLoadingPlaceholder={!didScreenTransitionEnd || (!!isLoadingReusableDistanceRoutes && routes.length === 0)}
+                        customLoadingPlaceholder={<ReuseRouteSkeleton fixedNumItems={3} />}
+                        shouldShowListEmptyContent={false}
+                        shouldSingleExecuteRowSelect
+                        disableMaintainingScrollPosition
+                    />
+                </>
+            )}
         </StepScreenWrapper>
     );
 }

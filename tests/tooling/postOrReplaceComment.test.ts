@@ -110,7 +110,7 @@ const webQRCode = `![Web](https://api.qrserver.com/v1/create-qr-code/?size=120x1
 const repository = `${context.repo.owner}/${context.repo.repo}`;
 
 const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, and Web. Happy testing! :test_tube::test_tube:
-Built from App PR Expensify/App#12 Mobile-Expensify PR Expensify/Mobile-Expensify#13.
+Built from App PR Expensify/App#12 with Mobile-Expensify PR Expensify/Mobile-Expensify#13.
 | Android :robot:  | iOS :apple: |
 | ------------- | ------------- |
 | ${androidLink}  | ${iOSLink}  |
@@ -127,7 +127,7 @@ Built from App PR Expensify/App#12 Mobile-Expensify PR Expensify/Mobile-Expensif
 `;
 
 const onlyAppMessage = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, and Web. Happy testing! :test_tube::test_tube:
-Built from App PR Expensify/App#12.
+Built from App PR Expensify/App#12 with the pinned Mobile-Expensify submodule.
 | Android :robot:  | iOS :apple: |
 | ------------- | ------------- |
 | ${androidLink}  | ⏩ SKIPPED ⏩  |
@@ -137,6 +137,23 @@ Built from App PR Expensify/App#12.
 | ------------- |
 | ⏩ SKIPPED ⏩  |
 | The build for Web was skipped  |
+
+---
+
+:eyes: [View the workflow run that generated this build](https://github.com/${repository}/actions/runs/1234) :eyes:
+`;
+
+const mobileExpensifyMainMessage = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, and Web. Happy testing! :test_tube::test_tube:
+Built from App PR Expensify/App#12 with Mobile-Expensify \`main\`.
+| Android :robot:  | iOS :apple: |
+| ------------- | ------------- |
+| ${androidLink}  | ${iOSLink}  |
+| ${androidQRCode}  | ${iOSQRCode}  |
+
+| Web :spider_web: |
+| ------------- |
+| ${webLink}  |
+| ${webQRCode}  |
 
 ---
 
@@ -195,6 +212,7 @@ describe('postOrReplaceComment action tests', () => {
             REPO: CONST.APP_REPO,
             APP_PR_NUMBER: '12',
             MOBILE_EXPENSIFY_PR_NUMBER: '13',
+            MOBILE_EXPENSIFY_REF: 'abc123',
             COMMENT_PREFIX: testBuildCommentPrefix,
             COMMENT_BODY: '',
             ANDROID: 'success',
@@ -216,6 +234,7 @@ describe('postOrReplaceComment action tests', () => {
             REPO: CONST.APP_REPO,
             APP_PR_NUMBER: '12',
             MOBILE_EXPENSIFY_PR_NUMBER: '',
+            MOBILE_EXPENSIFY_REF: '',
             COMMENT_PREFIX: testBuildCommentPrefix,
             COMMENT_BODY: '',
             ANDROID: 'success',
@@ -230,11 +249,39 @@ describe('postOrReplaceComment action tests', () => {
         expect(createCommentMock).toHaveBeenCalledWith(CONST.APP_REPO, 12, onlyAppMessage);
     });
 
+    test('Test GH action when the build used Mobile-Expensify main', async () => {
+        // Given an App PR build that was triggered with MOBILE_EXPENSIFY_MAIN, so no Mobile-Expensify PR was resolved and the ref is main
+        mockInputs({
+            REPO: CONST.APP_REPO,
+            APP_PR_NUMBER: '12',
+            MOBILE_EXPENSIFY_PR_NUMBER: '',
+            MOBILE_EXPENSIFY_REF: 'main',
+            COMMENT_PREFIX: testBuildCommentPrefix,
+            COMMENT_BODY: '',
+            ANDROID: 'success',
+            IOS: 'success',
+            WEB: 'success',
+            ANDROID_LINK: androidLink,
+            IOS_LINK: iOSLink,
+            WEB_LINK: webLink,
+        });
+        createCommentMock.mockResolvedValue(createMock<CreateCommentResponse>({}));
+
+        // When the action posts the test build comment
+        await ghAction();
+
+        // Then the comment reports Mobile-Expensify main as the source, so reviewers can confirm the requested source was used
+        expectPreviousCommentToBeHidden();
+        expect(createCommentMock).toHaveBeenCalledTimes(1);
+        expect(createCommentMock).toHaveBeenCalledWith(CONST.APP_REPO, 12, mobileExpensifyMainMessage);
+    });
+
     test('Test GH action when only Mobile-Expensify PR number is provided', async () => {
         mockInputs({
             REPO: CONST.MOBILE_EXPENSIFY_REPO,
             APP_PR_NUMBER: '',
             MOBILE_EXPENSIFY_PR_NUMBER: '13',
+            MOBILE_EXPENSIFY_REF: 'abc123',
             COMMENT_PREFIX: testBuildCommentPrefix,
             COMMENT_BODY: '',
             ANDROID: 'success',

@@ -5,6 +5,8 @@ type ImportContactButtonProps = {
     inputHelperText?: string;
     // eslint-disable-next-line react/no-unused-prop-types
     isInSearch?: boolean;
+    // eslint-disable-next-line react/no-unused-prop-types
+    onPress?: () => void;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

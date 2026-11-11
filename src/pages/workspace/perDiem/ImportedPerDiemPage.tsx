@@ -25,7 +25,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Rate} from '@src/types/onyx/Policy';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useState} from 'react';
 
@@ -55,7 +54,7 @@ type ImportedPerDiemPageProps = PlatformStackScreenProps<SettingsNavigatorParamL
 function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
     const {translate} = useLocalize();
     const {currencyList} = useCurrencyListState();
-    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [isImportingPerDiemRates, setIsImportingPerDiemRates] = useState(false);
     const {containsHeader = true} = spreadsheet ?? {};
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
@@ -107,6 +106,9 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
                 errors = {};
             }
         }
+        if (!perDiemCustomUnit?.customUnitID) {
+            errors.missingPerDiemUnit = translate('workspace.perDiem.missingPerDiemUnit');
+        }
         return errors;
     };
 
@@ -152,10 +154,6 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
             closeImportPageAndModal();
         }
     };
-
-    if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
-        return;
-    }
 
     const spreadsheetColumns = spreadsheet?.data;
     if (!spreadsheetColumns) {

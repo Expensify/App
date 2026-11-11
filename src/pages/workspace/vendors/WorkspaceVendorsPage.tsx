@@ -15,6 +15,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
@@ -23,7 +24,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {clearVendorErrors, setPolicyVendorsEnabled} from '@libs/actions/Policy/Vendor';
+import {clearVendorErrors, openPolicyVendorsPage, setPolicyVendorsEnabled} from '@libs/actions/Policy/Vendor';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -41,7 +42,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type VendorBulkActionsProps = {
@@ -57,6 +58,9 @@ function VendorBulkActions({policyID, selectedVendorKeys, policyVendors, default
     const {translate} = useLocalize();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close']);
+    const policyData = usePolicyData(policyID);
+    const {isBetaEnabled} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
 
     const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
     const disabledVendors = selectedVendorKeys.filter((id) => !policyVendors?.[id]?.enabled);
@@ -72,6 +76,8 @@ function VendorBulkActions({policyID, selectedVendorKeys, policyVendors, default
                     vendorIDs: disabledVendors,
                     enabled: true,
                     policyVendors,
+                    policyData,
+                    isVendorMatchingBetaEnabled,
                 });
             },
         });
@@ -90,13 +96,11 @@ function VendorBulkActions({policyID, selectedVendorKeys, policyVendors, default
                     vendorIDs: vendorsToDisable,
                     enabled: false,
                     policyVendors,
+                    policyData,
+                    isVendorMatchingBetaEnabled,
                 });
             },
         });
-    }
-
-    if (options.length === 0) {
-        return null;
     }
 
     return (
@@ -109,8 +113,8 @@ function VendorBulkActions({policyID, selectedVendorKeys, policyVendors, default
             options={options}
             isSplitButton={false}
             style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
-            isDisabled={!selectedVendorKeys.length}
-            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.INITIAL.VENDORS}
+            isDisabled={!selectedVendorKeys.length || options.length === 0}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.VENDORS.BULK_ACTIONS_DROPDOWN}
             testID="WorkspaceVendorsPage-header-dropdown-menu-button"
         />
     );
@@ -126,23 +130,38 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBetaEnabled} = usePermissions();
-    const {isOffline} = useNetwork();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {canWrite: canWriteVendors, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.VENDORS);
 
     const [policyVendors] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${policyID}`);
+    const policyData = usePolicyData(policyID);
     const [selectedVendorKeys, setSelectedVendorKeys] = useFilteredSelection(policyVendors, (vendor) => !!vendor);
 
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.vendors');
 
     const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
     const isFeatureAvailable = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
+
+    // Stale sessions may never have received the policyVendors_ collection, so fetch it if missing.
+    const fetchVendors = () => {
+        if (!isFeatureAvailable) {
+            return;
+        }
+        openPolicyVendorsPage(policyID);
+    };
+
+    const {isOffline} = useNetwork({onReconnect: fetchVendors});
+
+    useEffect(() => {
+        fetchVendors();
+        // Run only on mount because reconnect re-fetches are handled by useNetwork above.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const connectedIntegration = getActiveVendorMatchingIntegration(policy);
     const currentConnectionName = connectedIntegration ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectedIntegration] : undefined;
     const defaultVendorID = getDefaultVendorID(policy, connectedIntegration);
-
-    const canSelectMultiple = canWriteVendors && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
 
     const clearTableSelection = () => {
         setSelectedVendorKeys((prev) => (prev.length > 0 ? [] : prev));
@@ -170,6 +189,8 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
             vendorIDs: [vendorID],
             enabled,
             policyVendors,
+            policyData,
+            isVendorMatchingBetaEnabled,
         });
     };
 
@@ -183,7 +204,6 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
             keyForList: vendor.externalID,
             name: vendor.name,
             enabled: vendor.enabled,
-            disabled: !canWriteVendors,
             isLocked,
             errors: vendor.errors ?? undefined,
             pendingAction: vendor.pendingAction,
@@ -203,9 +223,9 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
         </View>
     ) : undefined;
 
-    const canShowBulkActions = canWriteVendors && selectedVendorKeys.length > 0;
-    const isLoading = !isOffline && policyVendors === undefined;
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
+    const canShowBulkActions = canWriteVendors && (selectedVendorKeys.length > 0 || selectionModeHeader);
+    const isLoading = !isOffline && policyVendors === undefined;
 
     return (
         <AccessOrNotFoundWrapper
@@ -268,7 +288,7 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
                 {!isLoading && (
                     <WorkspaceVendorsTable
                         vendors={vendorRows}
-                        selectionEnabled={canSelectMultiple}
+                        selectionEnabled={canWriteVendors}
                         selectedKeys={selectedVendorKeys}
                         onRowSelectionChange={setSelectedVendorKeys}
                         headerComponent={headerContent}

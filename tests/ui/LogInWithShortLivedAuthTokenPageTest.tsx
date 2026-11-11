@@ -2,14 +2,17 @@ import {act, render} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 
+import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PublicScreensParamList} from '@libs/Navigation/types';
 
 import LogInWithShortLivedAuthTokenPage from '@pages/LogInWithShortLivedAuthTokenPage';
 
-import {signInWithShortLivedAuthToken} from '@userActions/Session';
+import {signInWithShortLivedAuthToken, signInWithSupportAuthToken} from '@userActions/Session';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import {NavigationContainer} from '@react-navigation/native';
@@ -25,7 +28,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@userActions/Session', () => ({
-    signInWithShortLivedAuthToken: jest.fn(() => Promise.resolve()),
+    signInWithShortLivedAuthToken: jest.fn(),
     signInWithSupportAuthToken: jest.fn(),
     setAccountError: jest.fn(),
 }));
@@ -71,7 +74,7 @@ describe('LogInWithShortLivedAuthTokenPage', () => {
         renderPage({shortLivedAuthToken: 'token', isSAML: true, shouldForceLogin: ''});
         await waitForBatchedUpdatesWithAct();
 
-        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', undefined, true, '/search?q=status:outstanding', undefined);
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding', undefined);
     });
 
     it('passes the stored login to the sign-in so it can compare against the signed-in session', async () => {
@@ -83,14 +86,14 @@ describe('LogInWithShortLivedAuthTokenPage', () => {
         renderPage({shortLivedAuthToken: 'token', isSAML: true, shouldForceLogin: ''});
         await waitForBatchedUpdatesWithAct();
 
-        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', undefined, true, '/search?q=status:outstanding', 'user@saml.example.com');
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding', 'user@saml.example.com');
     });
 
     it('signs in with SAML without a landing page when nothing was kept', async () => {
         renderPage({shortLivedAuthToken: 'token', isSAML: true, shouldForceLogin: ''});
         await waitForBatchedUpdatesWithAct();
 
-        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', undefined, true, undefined, undefined);
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, undefined, undefined);
     });
 
     it('signs in with a SAML token while the account is still marked loading by a forced re-auth', async () => {
@@ -102,7 +105,7 @@ describe('LogInWithShortLivedAuthTokenPage', () => {
         renderPage({shortLivedAuthToken: 'token', isSAML: true, shouldForceLogin: ''});
         await waitForBatchedUpdatesWithAct();
 
-        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', undefined, true, '/search?q=status:outstanding', undefined);
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding', undefined);
     });
 
     it('waits for the account while it is loading for a non-SAML sign-in', async () => {
@@ -124,6 +127,20 @@ describe('LogInWithShortLivedAuthTokenPage', () => {
         renderPage({shortLivedAuthToken: 'token', shouldForceLogin: ''});
         await waitForBatchedUpdatesWithAct();
 
-        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', undefined, false, undefined, undefined);
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', false, undefined, undefined);
+    });
+
+    it('leaves the transition URL in place after a support sign-in', async () => {
+        // Given a supportal link that names a report action in the customer's account
+        const reportRoute = ROUTES.REPORT_WITH_ID.getRoute('123', '456');
+
+        // When the signed-out transition page handles the support token
+        renderPage({shortLivedAuthToken: 'token', authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT, exitTo: reportRoute, shouldForceLogin: ''});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the page only signs in, because the signed-in screens read exitTo from the /transition URL and a navigation here would replace it
+        expect(signInWithSupportAuthToken).toHaveBeenCalledWith('token');
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 });

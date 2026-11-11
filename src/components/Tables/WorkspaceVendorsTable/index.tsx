@@ -23,7 +23,6 @@ type WorkspaceVendorTableColumnKey = 'name' | 'enabled';
 type WorkspaceVendorTableRowData = TableData & {
     name: string;
     enabled: boolean;
-    disabled: boolean;
     isLocked: boolean;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
@@ -89,10 +88,10 @@ function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys 
 
         return (
             <Table.Row
-                interactive={false}
+                interactive={selectionEnabled}
                 accessibilityLabel={accessibilityLabel}
                 rowIndex={index}
-                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.INITIAL.VENDORS}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.VENDORS.ROW}
                 disabled={item.disabled}
                 offlineWithFeedback={{
                     errors: item.errors,
@@ -111,8 +110,9 @@ function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys 
                     <Switch
                         isOn={item.enabled}
                         showLockIcon={item.isLocked}
-                        disabled={item.disabled || item.isLocked}
+                        disabled={item.disabled}
                         accessibilityLabel={`${translate('workspace.vendors.enableVendor')}: ${item.name}`}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.VENDORS.ROW_ENABLE_SWITCH}
                         onToggle={item.onToggleEnabled}
                     />
                 </View>
@@ -139,7 +139,7 @@ function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys 
             <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.EmptyState
                 title={translate('workspace.vendors.emptyTitle')}
-                subtitleText={translate('workspace.vendors.emptySubtitle')}
+                subtitle={translate('workspace.vendors.emptySubtitle')}
             />
             <Table.NoResultsState />
             <Table.Header />

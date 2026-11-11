@@ -1,0 +1,228 @@
+diff --git a/node_modules/@legendapp/list/react-native.js b/node_modules/@legendapp/list/react-native.js
+--- a/node_modules/@legendapp/list/react-native.js
++++ b/node_modules/@legendapp/list/react-native.js
+@@ -518,7 +518,9 @@
+ var ENABLE_DEBUG_VIEW = IS_DEV && false;
+ 
+ // src/core/cancelImperativeScroll.ts
+-function cancelScrollCompletionChecks({ scheduledWork }) {
++function cancelScrollCompletionChecks(state) {
++  const { scheduledWork } = state;
++  state.silentInitialScrollReturn = void 0;
+   scheduledWork.cancel("checkFinishedScrollFrame");
+   scheduledWork.cancel("checkFinishedScrollRetryFrame");
+   scheduledWork.cancel("checkFinishedScrollFallback");
+@@ -1051,6 +1053,20 @@
+ }
+ 
+ // src/utils/requestAdjust.ts
++function shiftNativeInitialScrollTarget(state, positionDiff) {
++  const scrollingTo = state.scrollingTo;
++  if (Platform.OS === "web" || !(scrollingTo == null ? void 0 : scrollingTo.isInitialScroll) || scrollingTo.animated) {
++    return;
++  }
++  scrollingTo.offset += positionDiff;
++  if (scrollingTo.targetOffset !== void 0) {
++    scrollingTo.targetOffset += positionDiff;
++  }
++  const watchdog = initialScrollWatchdog.get(state);
++  if (watchdog) {
++    watchdog.targetOffset += positionDiff;
++  }
++}
+ function requestAdjust(ctx, positionDiff, source) {
+   var _a3;
+   const state = ctx.state;
+@@ -1070,6 +1086,7 @@
+       state.userScrollContentSize += positionDiff;
+     }
+     state.scrollForNextCalculateItemsInView = void 0;
++    shiftNativeInitialScrollTarget(state, positionDiff);
+     const readyToRender = peek$(ctx, "readyToRender");
+     if (readyToRender) {
+       doit();
+@@ -1101,8 +1118,11 @@
+       }
+     } else {
+       state.adjustingFromInitialMount = (state.adjustingFromInitialMount || 0) + 1;
++      const nativeScrollEpoch = state.nativeScrollEpoch;
+       requestAnimationFrame(() => {
+-        doit();
++        if (state.nativeScrollEpoch === nativeScrollEpoch) {
++          doit();
++        }
+         state.adjustingFromInitialMount = (state.adjustingFromInitialMount || 1) - 1;
+         if (!state.adjustingFromInitialMount) {
+           setInitialRenderState(ctx, {});
+@@ -2435,9 +2455,10 @@
+ 
+ // src/core/finishScrollTo.ts
+ function finishScrollTo(ctx) {
+-  var _a3, _b, _c;
++  var _a3, _b, _c, _d;
+   const state = ctx.state;
+   if (state == null ? void 0 : state.scrollingTo) {
++    (_d = state.silentInitialScrollReturn) == null ? void 0 : _d.call(state);
+     cancelScrollCompletionChecks(state);
+     const resolvePendingScroll = ((_a3 = ctx.scrollRequestTracker) == null ? void 0 : _a3.isWaitingToRun()) ? void 0 : state.pendingScrollResolve;
+     if (resolvePendingScroll) {
+@@ -2558,7 +2579,10 @@
+   }
+ }
+ function scrollToFallbackOffset(ctx, offset, animated = false) {
+-  var _a3;
++  var _a3, _b;
++  if (Platform.OS !== "web") {
++    ctx.state.nativeScrollEpoch = ((_b = ctx.state.nativeScrollEpoch) != null ? _b : 0) + 1;
++  }
+   (_a3 = ctx.state.refScroller.current) == null ? void 0 : _a3.scrollTo({ animated, ...getNativeScrollPoint(ctx, offset) });
+ }
+ function checkFinishedScrollFallback(ctx) {
+@@ -2608,10 +2632,13 @@
+         const jiggleOffset = targetOffset >= SILENT_INITIAL_SCROLL_TARGET_EPSILON ? targetOffset - SILENT_INITIAL_SCROLL_TARGET_EPSILON : targetOffset + SILENT_INITIAL_SCROLL_TARGET_EPSILON;
+         initialScrollCompletion.markSilentInitialScrollRetry(state);
+         scrollToFallbackOffset(ctx, jiggleOffset);
+-        state.scheduledWork.frame(
+-          () => scrollToFallbackOffset(ctx, targetOffset),
+-          "checkFinishedScrollRetryFrame"
+-        );
++        const returnToTarget = () => {
++          var _a4, _b2;
++          state.silentInitialScrollReturn = void 0;
++          scrollToFallbackOffset(ctx, (_b2 = (_a4 = initialScrollWatchdog.get(state)) == null ? void 0 : _a4.targetOffset) != null ? _b2 : targetOffset);
++        };
++        state.silentInitialScrollReturn = returnToTarget;
++        state.scheduledWork.frame(returnToTarget, "checkFinishedScrollRetryFrame");
+         scheduleFallbackCheck(SILENT_INITIAL_SCROLL_RETRY_DELAY_MS);
+       } else if (shouldRetryUnalignedEndScroll) {
+         scrollToFallbackOffset(ctx, completionState.clampedTargetOffset, !!isStillScrollingTo.animated);
+@@ -2640,6 +2667,7 @@
+ 
+ // src/core/doScrollTo.native.ts
+ function doScrollTo(ctx, params) {
++  var _nativeScrollEpoch;
+   const state = ctx.state;
+   const { animated, horizontal, isInitialScroll, offset } = params;
+   const isAnimated = !!animated;
+@@ -2650,6 +2678,7 @@
+   }
+   if (!params.isAdjustment) {
+     state.userScrollContentSize = void 0;
++    state.nativeScrollEpoch = ((_nativeScrollEpoch = state.nativeScrollEpoch) != null ? _nativeScrollEpoch : 0) + 1;
+   }
+   scroller.scrollTo({ animated: isAnimated, ...getNativeScrollPoint(ctx, offset, horizontal) });
+   if (isInitialScroll) {
+diff --git a/node_modules/@legendapp/list/react-native.mjs b/node_modules/@legendapp/list/react-native.mjs
+--- a/node_modules/@legendapp/list/react-native.mjs
++++ b/node_modules/@legendapp/list/react-native.mjs
+@@ -497,7 +497,9 @@
+ var ENABLE_DEBUG_VIEW = IS_DEV && false;
+ 
+ // src/core/cancelImperativeScroll.ts
+-function cancelScrollCompletionChecks({ scheduledWork }) {
++function cancelScrollCompletionChecks(state) {
++  const { scheduledWork } = state;
++  state.silentInitialScrollReturn = void 0;
+   scheduledWork.cancel("checkFinishedScrollFrame");
+   scheduledWork.cancel("checkFinishedScrollRetryFrame");
+   scheduledWork.cancel("checkFinishedScrollFallback");
+@@ -1030,6 +1032,20 @@
+ }
+ 
+ // src/utils/requestAdjust.ts
++function shiftNativeInitialScrollTarget(state, positionDiff) {
++  const scrollingTo = state.scrollingTo;
++  if (Platform.OS === "web" || !(scrollingTo == null ? void 0 : scrollingTo.isInitialScroll) || scrollingTo.animated) {
++    return;
++  }
++  scrollingTo.offset += positionDiff;
++  if (scrollingTo.targetOffset !== void 0) {
++    scrollingTo.targetOffset += positionDiff;
++  }
++  const watchdog = initialScrollWatchdog.get(state);
++  if (watchdog) {
++    watchdog.targetOffset += positionDiff;
++  }
++}
+ function requestAdjust(ctx, positionDiff, source) {
+   var _a3;
+   const state = ctx.state;
+@@ -1049,6 +1065,7 @@
+       state.userScrollContentSize += positionDiff;
+     }
+     state.scrollForNextCalculateItemsInView = void 0;
++    shiftNativeInitialScrollTarget(state, positionDiff);
+     const readyToRender = peek$(ctx, "readyToRender");
+     if (readyToRender) {
+       doit();
+@@ -1080,8 +1097,11 @@
+       }
+     } else {
+       state.adjustingFromInitialMount = (state.adjustingFromInitialMount || 0) + 1;
++      const nativeScrollEpoch = state.nativeScrollEpoch;
+       requestAnimationFrame(() => {
+-        doit();
++        if (state.nativeScrollEpoch === nativeScrollEpoch) {
++          doit();
++        }
+         state.adjustingFromInitialMount = (state.adjustingFromInitialMount || 1) - 1;
+         if (!state.adjustingFromInitialMount) {
+           setInitialRenderState(ctx, {});
+@@ -2414,9 +2434,10 @@
+ 
+ // src/core/finishScrollTo.ts
+ function finishScrollTo(ctx) {
+-  var _a3, _b, _c;
++  var _a3, _b, _c, _d;
+   const state = ctx.state;
+   if (state == null ? void 0 : state.scrollingTo) {
++    (_d = state.silentInitialScrollReturn) == null ? void 0 : _d.call(state);
+     cancelScrollCompletionChecks(state);
+     const resolvePendingScroll = ((_a3 = ctx.scrollRequestTracker) == null ? void 0 : _a3.isWaitingToRun()) ? void 0 : state.pendingScrollResolve;
+     if (resolvePendingScroll) {
+@@ -2537,7 +2558,10 @@
+   }
+ }
+ function scrollToFallbackOffset(ctx, offset, animated = false) {
+-  var _a3;
++  var _a3, _b;
++  if (Platform.OS !== "web") {
++    ctx.state.nativeScrollEpoch = ((_b = ctx.state.nativeScrollEpoch) != null ? _b : 0) + 1;
++  }
+   (_a3 = ctx.state.refScroller.current) == null ? void 0 : _a3.scrollTo({ animated, ...getNativeScrollPoint(ctx, offset) });
+ }
+ function checkFinishedScrollFallback(ctx) {
+@@ -2587,10 +2611,13 @@
+         const jiggleOffset = targetOffset >= SILENT_INITIAL_SCROLL_TARGET_EPSILON ? targetOffset - SILENT_INITIAL_SCROLL_TARGET_EPSILON : targetOffset + SILENT_INITIAL_SCROLL_TARGET_EPSILON;
+         initialScrollCompletion.markSilentInitialScrollRetry(state);
+         scrollToFallbackOffset(ctx, jiggleOffset);
+-        state.scheduledWork.frame(
+-          () => scrollToFallbackOffset(ctx, targetOffset),
+-          "checkFinishedScrollRetryFrame"
+-        );
++        const returnToTarget = () => {
++          var _a4, _b2;
++          state.silentInitialScrollReturn = void 0;
++          scrollToFallbackOffset(ctx, (_b2 = (_a4 = initialScrollWatchdog.get(state)) == null ? void 0 : _a4.targetOffset) != null ? _b2 : targetOffset);
++        };
++        state.silentInitialScrollReturn = returnToTarget;
++        state.scheduledWork.frame(returnToTarget, "checkFinishedScrollRetryFrame");
+         scheduleFallbackCheck(SILENT_INITIAL_SCROLL_RETRY_DELAY_MS);
+       } else if (shouldRetryUnalignedEndScroll) {
+         scrollToFallbackOffset(ctx, completionState.clampedTargetOffset, !!isStillScrollingTo.animated);
+@@ -2619,6 +2646,7 @@
+ 
+ // src/core/doScrollTo.native.ts
+ function doScrollTo(ctx, params) {
++  var _nativeScrollEpoch;
+   const state = ctx.state;
+   const { animated, horizontal, isInitialScroll, offset } = params;
+   const isAnimated = !!animated;
+@@ -2629,6 +2657,7 @@
+   }
+   if (!params.isAdjustment) {
+     state.userScrollContentSize = void 0;
++    state.nativeScrollEpoch = ((_nativeScrollEpoch = state.nativeScrollEpoch) != null ? _nativeScrollEpoch : 0) + 1;
+   }
+   scroller.scrollTo({ animated: isAnimated, ...getNativeScrollPoint(ctx, offset, horizontal) });
+   if (isInitialScroll) {
