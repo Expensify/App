@@ -9,7 +9,6 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,7 +36,6 @@ function ConnectionsAccountingPage({policy}: PolicyAccountingPageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const policyID = policy?.id;
     const {
         connectedIntegration,
@@ -50,12 +48,14 @@ function ConnectionsAccountingPage({policy}: PolicyAccountingPageProps) {
         overflowMenu,
         connectionDetails,
         qboTokenExpiryHint,
+        netSuiteOAuthMigrationHint,
         oldDotPolicyConnectionsURL,
     } = useConnectedAccountingIntegration(policy, {
         // These settings have nothing to show once the integration is gone
         onDisconnectConfirmed: (disconnect) => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID), {afterTransition: disconnect}),
     });
     const connectionsMenuItems = connectionDetails?.settingsMenuItems ?? [];
+    const connectionHint = qboTokenExpiryHint ?? netSuiteOAuthMigrationHint;
 
     return (
         <AccessOrNotFoundWrapper
@@ -63,7 +63,7 @@ function ConnectionsAccountingPage({policy}: PolicyAccountingPageProps) {
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             policyFeature={CONST.POLICY.POLICY_FEATURE.ACCOUNTING}
-            shouldBeBlocked={!isUnifiedConnectionsBetaEnabled || (!connectedIntegration && !hasUnsupportedNDIntegration)}
+            shouldBeBlocked={!connectedIntegration && !hasUnsupportedNDIntegration}
             fullPageNotFoundViewProps={{onBackButtonPress: () => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID))}}
         >
             <ScreenWrapper
@@ -102,11 +102,11 @@ function ConnectionsAccountingPage({policy}: PolicyAccountingPageProps) {
                                 style={[styles.ph5, styles.mb3]}
                             />
                         )}
-                        {!!qboTokenExpiryHint && (
+                        {!!connectionHint && (
                             <FormHelpMessage
                                 isError={false}
                                 shouldShowRedDotIndicator={false}
-                                message={qboTokenExpiryHint}
+                                message={connectionHint}
                                 style={[styles.ph5, styles.mb3]}
                             />
                         )}

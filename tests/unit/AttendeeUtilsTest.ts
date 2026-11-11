@@ -1,6 +1,7 @@
-import {convertAttendeesToArray, enrichAndSortAttendees, normalizeAttendee, normalizeAttendees} from '@libs/AttendeeUtils';
+import {convertAttendeesToArray, enrichAndSortAttendees, getIsMissingAttendeesViolation, normalizeAttendee, normalizeAttendees, syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 
-import type {PersonalDetailsList} from '@src/types/onyx';
+import CONST from '@src/CONST';
+import type {PersonalDetailsList, PolicyCategories, TransactionViolation} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 
 const makeAttendee = (overrides: Partial<Attendee> = {}): Attendee => ({
@@ -214,6 +215,72 @@ describe('AttendeeUtils', () => {
             enrichAndSortAttendees(attendees, undefined, undefined, localeCompare);
 
             expect(attendees).toEqual(snapshot);
+        });
+    });
+
+    describe('missing attendees violation', () => {
+        const ownerLogin = 'member@test.com';
+        const approverLogin = 'approver@test.com';
+        const category = 'Meals';
+        const policyCategories: PolicyCategories = {[category]: {name: category, enabled: true, areAttendeesRequired: true}};
+        const missingAttendeesViolation: TransactionViolation = {name: CONST.VIOLATIONS.MISSING_ATTENDEES, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true};
+
+        describe('getIsMissingAttendeesViolation', () => {
+            it('returns true when the owner is the only attendee, even if someone else is viewing', () => {
+                // Given an expense where the member (owner) is the only attendee.
+                // The approver viewing it isn't passed in, because the check must not depend on the viewer
+                const attendees = [makeAttendee({email: ownerLogin})];
+
+                // When checking the violation with the owner's login
+                const isMissing = getIsMissingAttendeesViolation(policyCategories, category, attendees, ownerLogin, true, true);
+
+                // Then the violation is reported, matching what the backend sends
+                expect(isMissing).toBe(true);
+            });
+
+            it('returns false when there is an attendee other than the owner', () => {
+                // Given the owner and the approver as attendees
+                const attendees = [makeAttendee({email: ownerLogin}), makeAttendee({email: approverLogin})];
+
+                // When checking the violation with the owner's login
+                const isMissing = getIsMissingAttendeesViolation(policyCategories, category, attendees, ownerLogin, true, true);
+
+                // Then there is no violation, because the approver counts as a real attendee
+                expect(isMissing).toBe(false);
+            });
+
+            it('returns true when there are no attendees', () => {
+                // Given an expense with no attendees saved
+                // When checking the violation
+                const isMissing = getIsMissingAttendeesViolation(policyCategories, category, [], ownerLogin, true, true);
+
+                // Then the violation is reported
+                expect(isMissing).toBe(true);
+            });
+        });
+
+        describe('syncMissingAttendeesViolation', () => {
+            it('keeps the backend violation when the owner is the only attendee', () => {
+                // Given the backend sent a missingAttendees violation for an expense where the owner is the only attendee
+                const attendees = [makeAttendee({email: ownerLogin})];
+
+                // When an approver's row syncs the violation, passing the report owner's login
+                const violations = syncMissingAttendeesViolation([missingAttendeesViolation], policyCategories, category, attendees, ownerLogin, true, true);
+
+                // Then the backend violation is kept instead of being removed
+                expect(violations).toEqual([missingAttendeesViolation]);
+            });
+
+            it('removes the backend violation when there is an attendee other than the owner', () => {
+                // Given a stale missingAttendees violation, and the expense now has a non-owner attendee
+                const attendees = [makeAttendee({email: ownerLogin}), makeAttendee({email: approverLogin})];
+
+                // When syncing the violation
+                const violations = syncMissingAttendeesViolation([missingAttendeesViolation], policyCategories, category, attendees, ownerLogin, true, true);
+
+                // Then the stale violation is removed
+                expect(violations).toEqual([]);
+            });
         });
     });
 });

@@ -1,6 +1,6 @@
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import NumericInput from '@components/NumericInput';
+import KeypadAmountEditor from '@components/KeypadAmountEditor';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
@@ -63,13 +63,14 @@ function WorkspaceCreateTaxValuePage({
                 title={translate('workspace.taxes.value')}
                 onBackButtonPress={goBack}
             />
-            <NumericInput
+            <KeypadAmountEditor
                 value={currentValue}
                 onInputChange={setCurrentValue}
                 decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
                 maxLength={CONST.MAX_TAX_RATE_INTEGER_PLACES}
                 footer={
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.CREATE_VALUE_SAVE}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         onPress={save}
@@ -80,14 +81,14 @@ function WorkspaceCreateTaxValuePage({
                     </Button>
                 }
             >
-                <NumericInput.TextInput
+                <KeypadAmountEditor.Input
                     accessibilityLabel={translate('workspace.taxes.value')}
                     autoGrowMarginSide="left"
                     style={styles.textAlignRight}
                     ref={inputRef}
                 />
-                <NumericInput.Symbol>%</NumericInput.Symbol>
-            </NumericInput>
+                <KeypadAmountEditor.Symbol>%</KeypadAmountEditor.Symbol>
+            </KeypadAmountEditor>
         </ScreenWrapper>
     );
 }

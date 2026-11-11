@@ -29,6 +29,7 @@ import React, {useEffect, useImperativeHandle, useLayoutEffect, useRef, useState
 import {View} from 'react-native';
 
 import type ThreeDotsMenuProps from './types';
+import type {ThreeDotsMenuHandle} from './types';
 
 function ThreeDotsMenu({
     iconTooltip = 'common.more',
@@ -124,10 +125,21 @@ function ThreeDotsMenu({
         }
     };
 
-    useImperativeHandle(threeDotsMenuRef as React.RefObject<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}> | undefined, () => ({
+    const updateMenuPosition = () => {
+        if (!getMenuPosition || !isPopupMenuVisible) {
+            return;
+        }
+
+        getMenuPosition().then((value) => {
+            setPosition(value);
+        });
+    };
+
+    useImperativeHandle(threeDotsMenuRef as React.RefObject<ThreeDotsMenuHandle & {onThreeDotsPress: () => void}> | undefined, () => ({
         isPopupMenuVisible,
         hidePopoverMenu,
         onThreeDotsPress,
+        updateMenuPosition,
     }));
     useEffect(() => {
         if ((!isBehindModal || !isPopupMenuVisible) && isContainerFocused) {
@@ -137,14 +149,8 @@ function ThreeDotsMenu({
     }, [hidePopoverMenu, isBehindModal, isPopupMenuVisible, isContainerFocused]);
 
     useLayoutEffect(() => {
-        if (!getMenuPosition || !isPopupMenuVisible) {
-            return;
-        }
-
-        getMenuPosition?.().then((value) => {
-            setPosition(value);
-        });
-    }, [windowWidth, windowHeight, shouldSelfPosition, getMenuPosition, isPopupMenuVisible]);
+        updateMenuPosition();
+    }, [windowWidth, windowHeight, shouldSelfPosition, updateMenuPosition]);
 
     const getIconFill = () => {
         if (!shouldChangeFillOnOpen) {

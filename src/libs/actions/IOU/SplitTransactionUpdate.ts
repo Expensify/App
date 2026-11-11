@@ -3,7 +3,8 @@ import type {SearchActionsContextValue, SearchGroupBy, SearchStateContextValue} 
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
-import {createTransitionBarrier, write as apiWrite, writeWhenReady} from '@libs/API';
+import {write as apiWrite, writeWhenReady} from '@libs/API';
+import type {WriteReadyBarrier} from '@libs/API';
 import type {RevertSplitTransactionParams, SplitTransactionParams, SplitTransactionSplitsParam} from '@libs/API/parameters';
 import type {ApiRequestCommandParameters, WriteCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -56,6 +57,7 @@ import {
 } from '@libs/TransactionUtils';
 
 import {removeDraftSplitTransaction} from '@userActions/TransactionEdit';
+import {removeActiveTransactionIDsForReport} from '@userActions/TransactionThreadNavigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -81,7 +83,8 @@ import {getMoneyRequestInformation, getReportPreviewReportAction} from './MoneyR
 import {getDeleteTrackExpenseInformation} from './TrackExpense';
 import {getUpdateMoneyRequestParams} from './UpdateMoneyRequest';
 
-type UpdateSplitTransactionsParams = {
+/** The splits to save and everything they are built from. The split-expenses flow takes only this and decides how the write runs itself. */
+type UpdateSplitTransactionsData = {
     allTransactionsList: OnyxCollection<OnyxTypes.Transaction>;
     allReportsList: OnyxCollection<OnyxTypes.Report>;
     /** Draft reports, so chats that only exist in REPORT_DRAFT (e.g. a not-yet-created workspace chat) still resolve */
@@ -108,9 +111,6 @@ type UpdateSplitTransactionsParams = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
-    isFromSplitExpensesFlow?: boolean;
-    /** Keeps the new splits off the highlight rail, for flows that never open the expense report */
-    shouldSkipReportHighlightRail?: boolean;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     transactionReport: OnyxEntry<OnyxTypes.Report>;
     expenseReport: OnyxEntry<OnyxTypes.Report>;
@@ -122,6 +122,16 @@ type UpdateSplitTransactionsParams = {
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+};
+
+type UpdateSplitTransactionsParams = UpdateSplitTransactionsData & {
+    isFromSplitExpensesFlow?: boolean;
+
+    /** Readiness barrier the API write waits on before applying its optimistic data, handed down by whoever navigates. */
+    writeBarrier?: WriteReadyBarrier;
+
+    /** Keeps the new splits off the highlight rail, for flows that never open the expense report */
+    shouldSkipReportHighlightRail?: boolean;
 };
 
 /**
@@ -322,6 +332,7 @@ function updateSplitTransactions({
     quickAction,
     policyRecentlyUsedCurrencies,
     isFromSplitExpensesFlow,
+    writeBarrier,
     shouldSkipReportHighlightRail,
     personalDetails,
     transactionReport,
@@ -335,12 +346,10 @@ function updateSplitTransactions({
     rules,
     isVendorMatchingBetaEnabled,
 }: UpdateSplitTransactionsParams) {
-    const parentTransactionReport = getReportOrDraftReport(
-        transactionReport?.parentReportID,
-        undefined,
-        undefined,
-        reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${transactionReport?.parentReportID}`] ?? {},
-    );
+    const parentTransactionReport = getReportOrDraftReport({
+        reportID: transactionReport?.parentReportID,
+        reportDraft: reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${transactionReport?.parentReportID}`] ?? {},
+    });
     // For selfDM-origin splits the caller can't resolve a real `expenseReport` (the draft/source
     // transaction lives in a selfDM chat whose parent isn't an expense report), so it ends up `undefined`
     let expenseReport: OnyxEntry<OnyxTypes.Report> = expenseReportFromParams;
@@ -376,12 +385,10 @@ function updateSplitTransactions({
         originalSelfDMReportID = chatReport?.reportID;
     }
 
-    const expenseReportParentChat = getReportOrDraftReport(
-        chatReport?.parentReportID,
-        undefined,
-        undefined,
-        reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${chatReport?.parentReportID}`] ?? {},
-    );
+    const expenseReportParentChat = getReportOrDraftReport({
+        reportID: chatReport?.parentReportID,
+        reportDraft: reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${chatReport?.parentReportID}`] ?? {},
+    });
     const originalTransactionID = transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const originalTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const originalTransactionDetails = getTransactionDetails(originalTransaction);
@@ -775,7 +782,7 @@ function updateSplitTransactions({
         // (see initSplitExpense), so we must not rely on it to detect workspace splits.
         const existingTransactionReport =
             splitTransaction?.reportID && splitTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID
-                ? getReportOrDraftReport(splitTransaction.reportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${splitTransaction.reportID}`] ?? {})
+                ? getReportOrDraftReport({reportID: splitTransaction.reportID, reportDraft: reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${splitTransaction.reportID}`] ?? {}})
                 : undefined;
         const isConfirmedWorkspaceTransaction = !!existingTransactionReport && !isSelfDM(existingTransactionReport);
         if (isConfirmedWorkspaceTransaction) {
@@ -787,24 +794,18 @@ function updateSplitTransactions({
         // check the report hierarchy. Skip this check for confirmed workspace transactions
         // because splitExpense.reportID may point to selfDM for navigation reasons only.
         if (!isSelfDMSplit && !isConfirmedWorkspaceTransaction) {
-            const splitExpenseReport = getReportOrDraftReport(
-                splitExpense.reportID,
-                undefined,
-                undefined,
-                reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${splitExpense.reportID}`] ?? {},
-            );
-            const splitExpenseParentReport = getReportOrDraftReport(
-                splitExpenseReport?.parentReportID,
-                undefined,
-                undefined,
-                reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${splitExpenseReport?.parentReportID}`] ?? {},
-            );
-            const splitExpenseChatReport = getReportOrDraftReport(
-                splitExpenseReport?.chatReportID,
-                undefined,
-                undefined,
-                reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${splitExpenseReport?.chatReportID}`] ?? {},
-            );
+            const splitExpenseReport = getReportOrDraftReport({
+                reportID: splitExpense.reportID,
+                reportDraft: reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${splitExpense.reportID}`] ?? {},
+            });
+            const splitExpenseParentReport = getReportOrDraftReport({
+                reportID: splitExpenseReport?.parentReportID,
+                reportDraft: reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${splitExpenseReport?.parentReportID}`] ?? {},
+            });
+            const splitExpenseChatReport = getReportOrDraftReport({
+                reportID: splitExpenseReport?.chatReportID,
+                reportDraft: reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${splitExpenseReport?.chatReportID}`] ?? {},
+            });
 
             if (isSelfDM(splitExpenseReport)) {
                 isSelfDMSplit = true;
@@ -895,7 +896,7 @@ function updateSplitTransactions({
                 selfDMReportID,
             },
             // For selfDM, use the selfDM report as the parent chat report so report actions are stored there
-            parentChatReport: isSelfDMSplit && selfDMReportID ? getReportOrDraftReport(selfDMReportID, undefined, undefined, {}) : fallbackPolicyParentChatReport,
+            parentChatReport: isSelfDMSplit && selfDMReportID ? getReportOrDraftReport({reportID: selfDMReportID, reportDraft: {}}) : fallbackPolicyParentChatReport,
             existingTransaction: originalTransaction,
             isASAPSubmitBetaEnabled,
             currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
@@ -1037,6 +1038,8 @@ function updateSplitTransactions({
             // per-transaction arithmetic. It now honours a real `0`, which the old truthiness check dropped.
             newReportTotal: reportTotals.get(splitExpense?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)),
             newNonReimbursableTotal: (transactionReport?.nonReimbursableTotal ?? 0) - changesInReportTotal,
+            // New splits inherit the source expense's hold, so a held expense's change in total is all held spend
+            isReportTotalChangeOnHold: isCreationOfSplits && isTransactionOnHold,
             isSplitExpense: true,
             isReverseSplitOperation,
             currentReportActionID: !isReverseSplitOperation ? currentReportAction?.reportActionID : undefined,
@@ -2293,15 +2296,13 @@ function updateSplitTransactions({
     }
     onyxData.failureData?.push(...newSplitsFailureCleanupData);
 
-    // Saving from the split-expenses flow also navigates to the destination screen. A plain API.write would apply
-    // optimisticData right away and re-render that screen mid-transition, so writeSplit holds the write until the
-    // navigation ends. Callers outside that flow have no such navigation to wait on, so they write immediately.
+    // A caller that navigates as part of saving passes a barrier, because applying optimisticData mid-transition re-renders the screen it is navigating to. Callers with no navigation pass none and write immediately.
     const writeSplit = <TCommand extends WriteCommand>(command: TCommand, parameters: ApiRequestCommandParameters[TCommand]) => {
-        if (!isFromSplitExpensesFlow) {
+        if (!writeBarrier) {
             apiWrite(command, parameters, onyxData);
             return;
         }
-        writeWhenReady(command, parameters, onyxData, createTransitionBarrier('navigation'));
+        writeWhenReady(command, parameters, onyxData, writeBarrier);
     };
 
     if (isReverseSplitOperation) {
@@ -2329,8 +2330,21 @@ function updateSplitTransactions({
 
         writeSplit(isCreationOfSplits ? WRITE_COMMANDS.SPLIT_TRANSACTION : WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION, splitParameters);
     }
+
+    // Creating splits moves the original to SPLIT_REPORT_ID, so drop it from a carousel seeded from the report it left, like any
+    // other move. Otherwise the arrows keep paging to it. In the split-expenses flow, wait for the navigation like writeSplit does.
+    if (isCreationOfSplits) {
+        const removeOriginalTransactionFromCarousel = () => {
+            removeActiveTransactionIDsForReport([originalTransactionID], originalTransaction?.reportID);
+        };
+        if (isFromSplitExpensesFlow) {
+            TransitionTracker.runAfterTransitions({callback: removeOriginalTransactionFromCarousel, waitForUpcomingTransition: true});
+        } else {
+            removeOriginalTransactionFromCarousel();
+        }
+    }
     TransitionTracker.runAfterTransitions({callback: () => removeDraftSplitTransaction(originalTransactionID), waitForUpcomingTransition: true});
 }
 
 export {getExpenseReportIDsEmptiedBySplitUpdate, hasEditableSplitExpenseLeft, updateSplitTransactions, willSplitUpdateEmptyExpenseReport};
-export type {UpdateSplitTransactionsParams};
+export type {UpdateSplitTransactionsData};

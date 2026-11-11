@@ -140,6 +140,7 @@ function StatusPage() {
 
     const saveButton = (
         <Button
+            sentryLabel={CONST.SENTRY_LABEL.CUSTOM_STATUS.SAVE}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             size={CONST.BUTTON_SIZE.LARGE}
             style={styles.w100}
@@ -203,11 +204,11 @@ function StatusPage() {
                             inputID={INPUT_IDS.STATUS_TEXT}
                             role={CONST.ROLE.PRESENTATION}
                             label={translate('statusPage.message')}
-                            accessibilityLabel={INPUT_IDS.STATUS_TEXT}
                             defaultValue={defaultText}
                         />
                     </View>
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.CUSTOM_STATUS.CLEAR_AFTER}
                         name={translate('statusPage.clearAfter')}
                         value={customClearAfter}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER)}
@@ -216,6 +217,7 @@ function StatusPage() {
                     </MenuItemField>
                     {(!!currentUserEmojiCode || !!currentUserStatusText) && (
                         <MenuItemAction
+                            sentryLabel={CONST.SENTRY_LABEL.CUSTOM_STATUS.CLEAR_STATUS}
                             title={translate('statusPage.clearStatus')}
                             icon={icons.Trashcan}
                             onPress={clearStatus}
