@@ -171,6 +171,7 @@ function KYBDocuments({onBackButtonPress, onSubmit}: KYBDocumentsProps) {
 
     const footer = (
         <Button
+            sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.KYB_DOCUMENTS_FINISH_VIA_CHAT}
             size={CONST.BUTTON_SIZE.LARGE}
             style={[styles.mv3]}
             onPress={handleNavigateToConciergeChat}

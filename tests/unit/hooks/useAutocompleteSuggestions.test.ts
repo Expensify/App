@@ -102,6 +102,7 @@ jest.mock('@libs/SearchQueryUtils', () => ({
     isFilterSupported: jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils').isFilterSupported,
     getViolationDisplayName: jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils').getViolationDisplayName,
     VIOLATION_FILTER_VALUES: jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils').VIOLATION_FILTER_VALUES,
+    isGroupBySupportedBySearch: jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils').isGroupBySupportedBySearch,
 }));
 
 jest.mock('@libs/SearchUIUtils', () => ({

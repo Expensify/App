@@ -24,6 +24,9 @@ import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 
 type ExpenseHeaderApprovalButtonProps = {
+    /** Defaults to false; changes button styling without changing approval behavior. */
+    isSecondary?: boolean;
+
     /** Whether any transaction is on hold */
     isAnyTransactionOnHold: boolean;
 
@@ -134,6 +137,7 @@ function getApprovalDropdownOptions({
 }
 
 function ExpenseHeaderApprovalButton({
+    isSecondary = false,
     isAnyTransactionOnHold,
     isDelegateAccessRestricted,
     onApprove,
@@ -177,7 +181,7 @@ function ExpenseHeaderApprovalButton({
                 options={approvalOptions}
                 menuHeaderText={hasOnlyHeldExpenses ? translate('iou.confirmApprovalAllHoldAmount') : translate('iou.confirmApprovalWithHeldAmount')}
                 onPress={() => {}}
-                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                variant={isSecondary ? undefined : CONST.BUTTON_VARIANT.SUCCESS}
                 customText={translate('iou.approve')}
                 headerTextStyles={styles.lineHeightNormal}
                 shouldAlwaysShowDropdownMenu
@@ -201,7 +205,7 @@ function ExpenseHeaderApprovalButton({
 
     return (
         <Button
-            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            variant={isSecondary ? undefined : CONST.BUTTON_VARIANT.SUCCESS}
             onPress={() => onApprove(true)}
             sentryLabel={sentryLabel}
             isDisabled={isDisabled}
