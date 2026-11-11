@@ -10920,6 +10920,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         columns: 'Colonnes',
         editColumns: 'Modifier les colonnes',
         resetColumns: 'Réinitialiser les colonnes',
+        columnMenu: {
+            openMenu: ({columnName}: {columnName: string}) => `Options de la colonne ${columnName}`,
+            sortAscending: 'Trier par ordre croissant',
+            sortDescending: 'Trier par ordre décroissant',
+            hideColumn: 'Masquer la colonne',
+        },
         groupColumns: 'Regrouper les colonnes',
         expenseColumns: 'Colonnes de dépenses',
         saveView: 'Enregistrer la vue',

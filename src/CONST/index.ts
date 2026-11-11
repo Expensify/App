@@ -1543,6 +1543,7 @@ const CONST = {
         SUPPORT_TICKET: 'supportTicket',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
+        PINNABLE_TABLE_COLUMNS: 'pinnableTableColumns',
         COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
         RESIZABLE_RHP: 'resizableRHP',
         RESIZABLE_SIDE_PANEL: 'resizableSidePanel',
@@ -8865,6 +8866,11 @@ const CONST = {
         get TRIP_FILTER_STATUSES() {
             // Approval statuses only show as badges, so the Status filter keeps to where the trip is in time
             return [this.TRIP_STATUS.UPCOMING, this.TRIP_STATUS.DONE, this.TRIP_STATUS.CANCELED] as const;
+        },
+        TABLE_COLUMN_ALIGNMENT: {
+            START: 'start',
+            CENTER: 'center',
+            END: 'end',
         },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',

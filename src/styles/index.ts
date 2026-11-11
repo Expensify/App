@@ -2094,6 +2094,16 @@ const staticStyles = (theme: ThemeColors) =>
             boxShadow: 'none',
         },
 
+        // The liquid glass behind the icon draws the button's surface and its own depth.
+        floatingActionButtonGlass: {
+            backgroundColor: 'transparent',
+            boxShadow: 'none',
+        },
+
+        floatingButtonGlass: {
+            borderRadius: variables.componentBorderRadiusCircle,
+        },
+
         floatingCameraButton: {
             position: 'absolute',
             // floatingActionButton top property value (componentSizeLarge + 16) +
@@ -4129,6 +4139,12 @@ const staticStyles = (theme: ThemeColors) =>
 
         searchTableHeaderActive: {
             fontWeight: FontUtils.fontWeight.bold,
+        },
+
+        // Lays a centered heading's label over the hidden copy that sizes its slot
+        searchColumnMenuLabelOverlay: {
+            ...StyleSheet.absoluteFill,
+            justifyContent: 'center',
         },
 
         zIndex10: {
