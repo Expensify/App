@@ -2,12 +2,22 @@ import type {ScanRoute} from '@pages/iou/request/step/IOURequestStepScan/types';
 
 import CONST from '@src/CONST';
 
+import type {Route} from '@react-navigation/native';
+
 import {useNavigation, useRoute} from '@react-navigation/native';
 
 type ScanRouteInfo = Partial<Pick<ScanRoute['params'], 'iouType'>> & {
     /** The route name — used to determine if we're in the create-scan flow vs edit/replace */
     routeName: string;
 };
+
+/** Untyped navigation hooks give params as a plain object, so read iouType only when the route has one. */
+function getIOUType(params: Route<string>['params']) {
+    if (!params || !('iouType' in params)) {
+        return undefined;
+    }
+    return Object.values(CONST.IOU.TYPE).find((type) => type === params.iouType);
+}
 
 /**
  * Returns the consumed IOU type and route name for the scan screen.
@@ -19,16 +29,12 @@ function useScanRouteParams(): ScanRouteInfo {
     const navigation = useNavigation();
 
     if (route.params) {
-        const params = route.params;
-        const iouType = 'iouType' in params ? Object.values(CONST.IOU.TYPE).find((value) => value === params.iouType) : undefined;
-        return {iouType, routeName: route.name};
+        return {iouType: getIOUType(route.params), routeName: route.name};
     }
 
     const parentState = navigation.getParent()?.getState();
     const parentRoute = parentState?.routes[parentState?.index ?? 0];
-    const params = parentRoute?.params;
-    const iouType = params && 'iouType' in params ? Object.values(CONST.IOU.TYPE).find((value) => value === params.iouType) : undefined;
-    return {iouType, routeName: parentRoute?.name ?? ''};
+    return {iouType: getIOUType(parentRoute?.params), routeName: parentRoute?.name ?? ''};
 }
 
 export default useScanRouteParams;

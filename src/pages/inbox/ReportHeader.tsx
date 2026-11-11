@@ -15,6 +15,7 @@ import {getReportName} from '@libs/ReportNameUtils';
 import {getReportOfflinePendingActionAndErrors, isInvoiceReport, isMoneyRequestReport, isReportTransactionThread} from '@libs/ReportUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
@@ -24,13 +25,11 @@ import type ReportScreenNavigationProps from './types';
 
 import HeaderView from './HeaderView';
 
-// navigateToLinkedReportAction emits a SearchReport marker that the registered backTo declaration omits.
-type ReportHeaderRoute = Omit<ReportScreenNavigationProps['route'], 'params'> & {
-    readonly params?: Readonly<
-        Partial<Pick<ReportScreenNavigationProps['route']['params'], 'reportID'>> & {
-            backTo?: ReportScreenNavigationProps['route']['params']['backTo'] | typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT;
-        }
-    >;
+type ReportScreenRoute = ReportScreenNavigationProps['route'];
+
+// navigateToLinkedReportAction sets backTo to the SearchReport screen name, which the registered route params leave out.
+type ReportHeaderRoute = Omit<ReportScreenRoute, 'params'> & {
+    params?: Omit<ReportScreenRoute['params'], 'backTo'> & {backTo?: Route | typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT};
 };
 
 /**
