@@ -1043,8 +1043,8 @@ function getApproversNextHops(approvers: Approver[]): Array<ApproverNextHop[] | 
 type GetApproverTitlesParams = {
     approvers: Array<Approver | undefined>;
 
-    /** Names an approver who isn't an optional over-limit approver, from their position among those approvers and how many there are */
-    getTitle: (position: number, count: number, approver: Approver | undefined) => string;
+    /** Names an approver who isn't an optional over-limit approver, from their position among those approvers, how many there are, and whether anyone approves after them */
+    getTitle: (position: number, count: number, approver: Approver | undefined, isLast: boolean) => string;
 
     currency: string;
     translate: LocaleContextProps['translate'];
@@ -1055,12 +1055,12 @@ type GetApproverTitlesParams = {
 function getApproverTitles({approvers, getTitle, currency, translate, convertToDisplayString}: GetApproverTitlesParams): string[] {
     const count = approvers.filter((approver) => !isOptionalOverLimitApprover(approver)).length;
     let position = 0;
-    return approvers.map((approver) => {
+    return approvers.map((approver, index) => {
         if (approver?.overLimitAmount !== undefined) {
             return translate('workflowsPage.ifReportIsOver', {amount: convertToDisplayString(approver.overLimitAmount, currency)});
         }
 
-        const title = getTitle(position, count, approver);
+        const title = getTitle(position, count, approver, index === approvers.length - 1);
         position++;
         return title;
     });

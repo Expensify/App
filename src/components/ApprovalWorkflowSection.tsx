@@ -73,9 +73,8 @@ function ApprovalWorkflowSection({
     const fromProviderSuffix = providerName ? ` (${translate('workflowsPage.approverFromProvider', {provider: providerName})})` : '';
     const approverTitles = getApproverTitles({
         approvers: approvalWorkflow.approvers,
-        getTitle: (position, count, approver) => {
+        getTitle: (position, count, approver, isLast) => {
             if (isHRAdvancedMode) {
-                const isLast = position === count - 1;
                 const isConfiguredFinalApprover = !!hrFinalApproverEmail && approver?.email === hrFinalApproverEmail;
                 if (isLast && isConfiguredFinalApprover) {
                     return translate('workflowsPage.finalApprover');
@@ -91,9 +90,7 @@ function ApprovalWorkflowSection({
             }
 
             const title =
-                position > 0 && position === count - 1
-                    ? translate('workflowsPage.finalApprover')
-                    : `${toLocaleOrdinalWithWords(position + 1)} ${translate('workflowsPage.approver').toLowerCase()}`;
+                position > 0 && isLast ? translate('workflowsPage.finalApprover') : `${toLocaleOrdinalWithWords(position + 1)} ${translate('workflowsPage.approver').toLowerCase()}`;
             if (isRecruitingAdvancedMode && position === 0) {
                 return `${title}${fromProviderSuffix}`;
             }

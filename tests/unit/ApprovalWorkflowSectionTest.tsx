@@ -161,6 +161,27 @@ describe('ApprovalWorkflowSection', () => {
         expect(screen.getByText('Final approver')).toBeTruthy();
     });
 
+    it('does not name an approver final when an optional over-limit approver comes after them', () => {
+        // Given a workflow where an optional over-limit approver gets the reports over an amount after the last regular approver
+        const overLimitWorkflow: ApprovalWorkflow = {
+            ...baseWorkflow,
+            approvers: [
+                {email: 'alice@example.com', displayName: 'Alice'},
+                {email: 'erica@example.com', displayName: 'Erica', overLimitAmount: 100000},
+                {email: 'joe@example.com', displayName: 'Joe'},
+                {email: 'cathy@example.com', displayName: 'Cathy', overLimitAmount: 200000},
+            ],
+        };
+
+        // When the workflow card renders
+        renderSection({approvalWorkflow: overLimitWorkflow, onPress: jest.fn()});
+
+        // Then the last regular approver is named by their place, since reports over the last amount still go to someone after them
+        expect(screen.getByText('First approver')).toBeTruthy();
+        expect(screen.getByText('Second approver')).toBeTruthy();
+        expect(screen.queryByText('Final approver')).toBeNull();
+    });
+
     it('does not show the non-member error to someone who cannot edit the workflow', () => {
         // Given a workflow whose approver was removed from the workspace, shown read-only
         const brokenWorkflow: ApprovalWorkflow = {...baseWorkflow, approvers: [{email: 'removed@example.com', displayName: 'removed@example.com', isNotWorkspaceMember: true}]};

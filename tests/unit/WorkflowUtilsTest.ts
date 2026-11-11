@@ -1865,13 +1865,18 @@ describe('WorkflowUtils', () => {
             return waitForBatchedUpdates();
         });
 
-        const getTitle = (position: number, count: number) => `Approver ${position + 1} of ${count}`;
+        const getTitle = (position: number, count: number, approver: Approver | undefined, isLast: boolean) => `Approver ${position + 1} of ${count}${isLast ? ' (last)' : ''}`;
 
         it.each([
             [
                 'an optional over-limit approver after the amount they get the reports over, without counting them',
                 [buildApprover(1), buildApprover(3, {overLimitAmount: 50000}), buildApprover(2)],
-                ['Approver 1 of 2', 'If report is over $500.00', 'Approver 2 of 2'],
+                ['Approver 1 of 2', 'If report is over $500.00', 'Approver 2 of 2 (last)'],
+            ],
+            [
+                'the last approver without an amount as not the last one when an optional over-limit approver comes after them',
+                [buildApprover(1), buildApprover(2, {overLimitAmount: 100000}), buildApprover(3), buildApprover(4, {overLimitAmount: 200000})],
+                ['Approver 1 of 2', 'If report is over $1,000.00', 'Approver 2 of 2', 'If report is over $2,000.00'],
             ],
             [
                 'consecutive optional over-limit approvers after their amounts',
@@ -1883,7 +1888,7 @@ describe('WorkflowUtils', () => {
             // When they're named
             const titles = getApproverTitles({approvers, getTitle, currency: CONST.CURRENCY.USD, translate: translateLocal, convertToDisplayString});
 
-            // Then those approvers are named after their amounts, and the others by their place among themselves
+            // Then those approvers are named after their amounts, and the others by their place among themselves and whether anyone approves after them
             expect(titles).toEqual(expectedTitles);
         });
     });
