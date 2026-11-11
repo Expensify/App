@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import DateUtils from '@libs/DateUtils';
+import getStatusTooltipText from '@libs/getStatusTooltipText';
 import type {OptionData} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -37,7 +38,7 @@ function Status({optionItem}: StatusProps) {
         optionItem?.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected,
         currentSelectedTimezone,
     );
-    const statusContent = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
+    const statusContent = getStatusTooltipText(statusText, formattedDate);
 
     return (
         <Tooltip

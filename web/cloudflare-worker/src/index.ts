@@ -91,7 +91,7 @@ function buildAssetRequest(request: Request, url: URL, pathSuffix = ''): Request
 
 function setSecurityHeaders(headers: Headers, environment: Env['ENVIRONMENT'] | DevelopmentEnv['ENVIRONMENT'], nonce: string, developmentOrigins?: DevelopmentOrigins) {
     // Paired with the HTML marker to distinguish Worker code from Static Assets during the E2E experiment.
-    headers.set('X-Preview-Experiment', 'B-v1');
+    headers.set('X-Preview-Experiment', 'B-adhoc-v1');
     headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
     headers.set('Content-Security-Policy', getCSP(environment, nonce, developmentOrigins));
     headers.set('X-Frame-Options', 'SAMEORIGIN');

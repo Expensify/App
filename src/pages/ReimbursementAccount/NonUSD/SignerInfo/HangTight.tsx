@@ -85,6 +85,7 @@ function HangTight({policyID, bankAccountID}: HangTightProps) {
                     />
                 )}
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.SIGNER_INFO_SEND_REMINDER}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     style={[styles.w100]}
                     onPress={handleSendReminder}

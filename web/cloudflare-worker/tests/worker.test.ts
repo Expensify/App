@@ -29,7 +29,7 @@ function getHTMLNonce(html: string): string | undefined {
 }
 
 function assertSecurityHeaders(response: Response) {
-    assert.equal(response.headers.get('X-Preview-Experiment'), 'B-v1');
+    assert.equal(response.headers.get('X-Preview-Experiment'), 'B-adhoc-v1');
     assert.equal(response.headers.get('Strict-Transport-Security'), 'max-age=31536000; includeSubDomains; preload');
     assert.equal(response.headers.get('X-Frame-Options'), 'SAMEORIGIN');
     assert.equal(response.headers.get('X-Content-Type-Options'), 'nosniff');

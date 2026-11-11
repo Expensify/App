@@ -115,6 +115,7 @@ export default function WorkspaceMembersTable({
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
     // The badge sits after the name with gap2, and its padding and border apply on both sides, so those values are doubled.
     const ownerBadgeExtraWidth = members.some((member) => member.isOwner) ? styles.gap2.gap + styles.defaultBadge.paddingHorizontal * 2 + styles.defaultBadge.borderWidth * 2 : 0;
+    const ownerMemberColumnDragMinWidth = Math.ceil(variables.tableMemberCellAvatarWidth + variables.workspaceRoomsMembersColumnWidth + ownerBadgeExtraWidth);
 
     const workspaceMembersColumns: Array<TableColumn<WorkspaceMembersTableColumnKey, WorkspaceMemberRowData>> = [
         {
@@ -130,6 +131,7 @@ export default function WorkspaceMembersTable({
                     {text: item.email, fontSize: fontScale.label},
                 ],
                 extraWidth: variables.tableMemberCellAvatarWidth + ownerBadgeExtraWidth,
+                dragMinWidth: ownerMemberColumnDragMinWidth,
             },
         },
 

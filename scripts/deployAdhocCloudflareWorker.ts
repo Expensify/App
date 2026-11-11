@@ -1,14 +1,14 @@
 #!/usr/bin/env bun
 
 /** Publish branch Worker code and Static Assets as one Preview, then verify the requested build is served. */
-import type {BuildIdentity} from '@expensify/new-expensify-cloudflare-worker/pr-testing-config';
+import type {BuildIdentity} from '@expensify/new-expensify-cloudflare-worker/adhoc-config';
 
-import {createConfig, getIdentity, getPreviewCommand, getTarget, prepareDirectory, STATUS_PATH} from '@expensify/new-expensify-cloudflare-worker/pr-testing-config';
+import {createConfig, getIdentity, getPreviewCommand, getTarget, prepareDirectory, STATUS_PATH} from '@expensify/new-expensify-cloudflare-worker/adhoc-config';
 import CLI from 'expensify-common/CLI';
 import {lstat} from 'node:fs/promises';
 import path from 'node:path';
 
-import extractPRTestingAssets from './extractPRTestingAssets';
+import extractAdhocAssets from './extractAdhocAssets';
 
 const VERIFY_ATTEMPTS = 12;
 const VERIFY_REQUEST_TIMEOUT_MS = 10000;
@@ -48,13 +48,7 @@ async function deployAdhocCloudflareWorker(prNumber: number, identity: BuildIden
         throw new Error('Worker runtime settings must be a regular JSON file');
     }
     const runtime: unknown = await Bun.file(runtimePath).json();
-    const root = await prepareDirectory(
-        path.join(artifactDirectory, 'worker'),
-        path.join(artifactDirectory, 'assets/webBuild.tar.gz'),
-        createConfig(runtime),
-        identity,
-        extractPRTestingAssets,
-    );
+    const root = await prepareDirectory(path.join(artifactDirectory, 'worker'), path.join(artifactDirectory, 'assets/webBuild.tar.gz'), createConfig(runtime), identity, extractAdhocAssets);
     // Resolve from the workspace so both hoisted and package-local tool installs work.
     const wranglerPackage = Bun.resolveSync('wrangler/package.json', path.resolve('web/cloudflare-worker'));
     const wrangler = path.join(path.dirname(wranglerPackage), 'bin/wrangler.js');

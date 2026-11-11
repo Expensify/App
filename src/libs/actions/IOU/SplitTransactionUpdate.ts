@@ -57,6 +57,7 @@ import {
 } from '@libs/TransactionUtils';
 
 import {removeDraftSplitTransaction} from '@userActions/TransactionEdit';
+import {removeActiveTransactionIDsForReport} from '@userActions/TransactionThreadNavigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -2328,6 +2329,19 @@ function updateSplitTransactions({
         };
 
         writeSplit(isCreationOfSplits ? WRITE_COMMANDS.SPLIT_TRANSACTION : WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION, splitParameters);
+    }
+
+    // Creating splits moves the original to SPLIT_REPORT_ID, so drop it from a carousel seeded from the report it left, like any
+    // other move. Otherwise the arrows keep paging to it. In the split-expenses flow, wait for the navigation like writeSplit does.
+    if (isCreationOfSplits) {
+        const removeOriginalTransactionFromCarousel = () => {
+            removeActiveTransactionIDsForReport([originalTransactionID], originalTransaction?.reportID);
+        };
+        if (isFromSplitExpensesFlow) {
+            TransitionTracker.runAfterTransitions({callback: removeOriginalTransactionFromCarousel, waitForUpcomingTransition: true});
+        } else {
+            removeOriginalTransactionFromCarousel();
+        }
     }
     TransitionTracker.runAfterTransitions({callback: () => removeDraftSplitTransaction(originalTransactionID), waitForUpcomingTransition: true});
 }
