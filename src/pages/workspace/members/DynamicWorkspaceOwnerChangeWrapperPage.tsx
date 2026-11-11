@@ -20,7 +20,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 
-import {checkBulkTransferPolicyBillingOwner, clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@userActions/Policy/Member';
+import {checkBulkTransferPolicyBillingOwner, clearWorkspaceOwnerChangeFlow, queueBulkTransferPolicyBillingOwner, requestWorkspaceOwnerChange} from '@userActions/Policy/Member';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,12 +58,22 @@ function DynamicWorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}
     const [transferablePolicyIDs, setTransferablePolicyIDs] = useState<string[]>();
     const isCheckingTransferablePolicies = otherOwnerPolicyIDs.length > 0 && !transferablePolicyIDs;
     const shouldShowAllWorkspacesCheck = !!transferablePolicyIDs && transferablePolicyIDs.length > 1;
+    const [isTakingOverAllWorkspaces, setIsTakingOverAllWorkspaces] = useState(false);
 
     useNavigateToCardAuthenticationOnLink();
 
     const takeOverThisWorkspace = () => {
         setTransferablePolicyIDs([]);
         requestWorkspaceOwnerChange(policy, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
+    };
+
+    // The transfer always ends on the success or error page, so keep loading until one of them opens
+    const takeOverAllWorkspaces = () => {
+        if (!transferablePolicyIDs) {
+            return;
+        }
+        setIsTakingOverAllWorkspaces(true);
+        queueBulkTransferPolicyBillingOwner(policyID, transferablePolicyIDs);
     };
 
     useEffect(() => {
@@ -114,7 +124,7 @@ function DynamicWorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}
         }
     }, [accountID, policy, policy?.errorFields?.changeOwner, policyID, buildDynamicRoute]);
 
-    const isLoading = isLoadingPolicy || !!policy?.isLoading || isCheckingTransferablePolicies;
+    const isLoading = isLoadingPolicy || !!policy?.isLoading || isCheckingTransferablePolicies || isTakingOverAllWorkspaces;
 
     return (
         <AccessOrNotFoundWrapper
@@ -142,6 +152,7 @@ function DynamicWorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}
                         <WorkspaceOwnerChangeAllWorkspacesCheck
                             policy={policy}
                             policyIDs={transferablePolicyIDs}
+                            onTakeOverAllWorkspaces={takeOverAllWorkspaces}
                             onTakeOverThisWorkspace={takeOverThisWorkspace}
                         />
                     )}

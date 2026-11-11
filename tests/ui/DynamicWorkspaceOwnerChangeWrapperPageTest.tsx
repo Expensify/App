@@ -4,6 +4,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -95,7 +96,10 @@ describe('DynamicWorkspaceOwnerChangeWrapperPage', () => {
     });
 
     beforeEach(async () => {
+        jest.restoreAllMocks();
         jest.clearAllMocks();
+        jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+        jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
         await Onyx.clear();
         await Onyx.set(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'admin@example.com'});
         await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
@@ -123,6 +127,25 @@ describe('DynamicWorkspaceOwnerChangeWrapperPage', () => {
         // Then billing for both is taken over together
         expect(queueBulkTransferPolicyBillingOwner).toHaveBeenCalledWith('1', ['1', '2']);
         expect(requestWorkspaceOwnerChange).not.toHaveBeenCalled();
+    });
+
+    it('keeps loading after taking over all workspaces until the success page opens', async () => {
+        // Given the user is asked whether to take over both of the owner's workspaces
+        await setPolicies(createOwnerPolicy('1'), createOwnerPolicy('2'));
+        mockCheckBulkTransferPolicyBillingOwner.mockResolvedValue(['1', '2']);
+        renderOwnerChangePage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user takes over both and the transfer is queued
+        fireEvent.press(screen.getByText('Yes, all 2'));
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {isLoading: true});
+        await waitForBatchedUpdatesWithAct();
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {isLoading: false, isChangeOwnerSuccessful: true, changeOwnerPolicyCount: 2});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the question doesn't come back while the success page opens
+        expect(screen.queryByText('Yes, all 2')).not.toBeOnTheScreen();
+        expect(Navigation.navigate).toHaveBeenCalledTimes(1);
     });
 
     it('continues with this workspace only when the user picks it', async () => {

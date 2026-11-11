@@ -8,8 +8,6 @@ import useLocalize from '@hooks/useLocalize';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {queueBulkTransferPolicyBillingOwner} from '@libs/actions/Policy/Member';
-
 import CONST from '@src/CONST';
 import {displayNameSelector} from '@src/selectors/PersonalDetails';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -25,21 +23,17 @@ type WorkspaceOwnerChangeAllWorkspacesCheckProps = {
     /** The owner's workspaces the user can take over billing for together, this one included */
     policyIDs: string[];
 
+    /** Takes over billing for all of these workspaces */
+    onTakeOverAllWorkspaces: () => void;
+
     /** Continues the transfer with this workspace only */
     onTakeOverThisWorkspace: () => void;
 };
 
-function WorkspaceOwnerChangeAllWorkspacesCheck({policy, policyIDs, onTakeOverThisWorkspace}: WorkspaceOwnerChangeAllWorkspacesCheckProps) {
+function WorkspaceOwnerChangeAllWorkspacesCheck({policy, policyIDs, onTakeOverAllWorkspaces, onTakeOverThisWorkspace}: WorkspaceOwnerChangeAllWorkspacesCheckProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [ownerDisplayName] = usePersonalDetail(policy?.ownerAccountID, displayNameSelector);
-
-    const takeOverAllWorkspaces = () => {
-        if (!policy?.id) {
-            return;
-        }
-        queueBulkTransferPolicyBillingOwner(policy.id, policyIDs);
-    };
 
     return (
         <>
@@ -49,7 +43,7 @@ function WorkspaceOwnerChangeAllWorkspacesCheck({policy, policyIDs, onTakeOverTh
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
-                    onPress={takeOverAllWorkspaces}
+                    onPress={onTakeOverAllWorkspaces}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OWNER_CHANGE.TAKE_OVER_ALL_WORKSPACES}
                 >
                     <Button.Text>{translate('workspace.changeOwner.takeOverAllWorkspacesButtonText', {count: policyIDs.length})}</Button.Text>
