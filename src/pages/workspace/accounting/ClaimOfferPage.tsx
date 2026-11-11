@@ -25,12 +25,14 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
+import {enablePolicyFeatureForConnection} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {PolicyFeatureName} from '@src/types/onyx/Policy';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 import {AccountingContextProvider, useAccountingActions} from './AccountingContext';
@@ -44,8 +46,8 @@ type IntegrationConfig = {
     claimOfferLink?: string;
     connectButtonText: string;
     connectionName: string;
-    featureName: PolicyFeatureName;
     onConnect: () => void;
+    connectSentryLabel: SentryLabel;
 };
 
 type ClaimOfferPageProps = WithPolicyConnectionsProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.CLAIM_OFFER>;
@@ -64,37 +66,34 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
     const syncingAccountingIntegration = accountingIntegrations.find((integrationName) => integrationName === connectionSyncProgress?.connectionName);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? syncingAccountingIntegration;
 
-    const isConnectedToIntegration = useMemo(() => {
-        if (integration === CONST.POLICY.CONNECTIONS.NAME.XERO) {
-            return connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
-        }
-        if (integration === CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER) {
-            return isUberConnected;
-        }
-        return false;
-    }, [connectedIntegration, integration, isUberConnected]);
+    const isConnectedToIntegration =
+        integration === CONST.POLICY.CONNECTIONS.NAME.XERO
+            ? connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO
+            : integration === CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER && isUberConnected;
 
     const integrationConfig: Record<IntegrationType, IntegrationConfig> = {
         xero: {
+            connectSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CLAIM_OFFER_CONNECT.XERO,
             headerTitle: translate('workspace.accounting.xero'),
             headline: translate('workspace.accounting.claimOffer.xero.headline'),
             descriptionHtml: translate('workspace.accounting.claimOffer.xero.description'),
             claimOfferLink: CONST.XERO_PARTNER_LINK,
             connectButtonText: translate('workspace.accounting.claimOffer.xero.connectButton'),
             connectionName: CONST.POLICY.CONNECTIONS.NAME.XERO,
-            featureName: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
             onConnect: () => {
                 startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.XERO});
             },
         },
         uber: {
+            connectSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CLAIM_OFFER_CONNECT.UBER,
             headerTitle: translate('workspace.accounting.claimOffer.uber.headerTitle'),
             headline: translate('workspace.accounting.claimOffer.uber.headline'),
             descriptionHtml: translate('workspace.accounting.claimOffer.uber.description'),
             connectButtonText: translate('workspace.accounting.claimOffer.uber.connectButton'),
             connectionName: CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER,
-            featureName: CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED,
             onConnect: () => {
+                // Connections offers Uber before Receipt partners is on, so the feature is turned on as Uber connects
+                enablePolicyFeatureForConnection(policy, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED);
                 openExternalLink(`${CONST.UBER_CONNECT_URL}?${integrations?.uber?.connectFormData}`);
             },
         },
@@ -124,6 +123,7 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
         <FixedFooter style={[styles.mtAuto, styles.gap3]}>
             {!!config.claimOfferLink && (
                 <ButtonDisabledWhenOffline
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CLAIM_OFFER}
                     onPress={handleClaimOffer}
                     size={CONST.BUTTON_SIZE.LARGE}
                 >
@@ -131,6 +131,7 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
                 </ButtonDisabledWhenOffline>
             )}
             <ButtonDisabledWhenOffline
+                sentryLabel={config.connectSentryLabel}
                 onPress={handleConnect}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.LARGE}
@@ -144,7 +145,9 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
-            featureName={config.featureName}
+            // Connections shows offers whether or not their feature is on, so only the write access check applies
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
             shouldBeBlocked={!config}
         >
             <ScreenWrapper
@@ -168,7 +171,7 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
                         </View>
                         <View>
                             <Text style={[styles.textHeadlineH1, styles.textAlignCenter, styles.mb3]}>{config.headline}</Text>
-                            <View style={[styles.renderHTML]}>
+                            <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter]}>
                                 <RenderHTML html={config.descriptionHtml} />
                             </View>
                         </View>

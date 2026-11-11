@@ -12,6 +12,7 @@ import '../wdyr';
 import {ActionSheetAwareScrollViewProvider} from './components/ActionSheetAwareScrollView';
 import ActiveElementRoleProvider from './components/ActiveElementRoleProvider';
 import {AvatarTooltipsProvider} from './components/Avatar/tooltips/AvatarTooltipContext';
+import {dismissPinnedChartTooltip} from './components/Charts/utils/pinnedChartTooltip';
 import ColorSchemeWrapper from './components/ColorSchemeWrapper';
 import ComposeProviders from './components/ComposeProviders';
 import {CurrencyListContextProvider} from './components/CurrencyListContextProvider';
@@ -48,7 +49,8 @@ import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import HybridAppHandler from './HybridAppHandler';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import './libs/HybridApp';
-import {ConciergeSessionProvider} from './pages/inbox/ConciergeSessionContext';
+import touchEventBoundaryProps from './libs/telemetry/touchEventBoundaryProps';
+import {ConciergeChatHistoryProvider} from './pages/inbox/ConciergeChatHistoryContext';
 import './setup/backgroundLocationTrackingTask';
 import './setup/backgroundTask';
 import './setup/fraudProtection';
@@ -97,6 +99,7 @@ function App() {
                             <View
                                 style={fill}
                                 fsClass={CONST.FULLSTORY.CLASS.UNMASK}
+                                onTouchStart={dismissPinnedChartTooltip}
                             >
                                 <ComposeProviders
                                     components={[
@@ -113,7 +116,7 @@ function App() {
                                         SafeArea,
                                         PopoverContextProvider,
                                         CurrentReportIDContextProvider,
-                                        ConciergeSessionProvider,
+                                        ConciergeChatHistoryProvider,
                                         ScrollOffsetContextProvider,
                                         PickerStateProvider,
                                         EnvironmentProvider,
@@ -148,6 +151,6 @@ function App() {
     );
 }
 
-const WrappedApp = Sentry.wrap(App);
+const WrappedApp = Sentry.wrap(App, {touchEventBoundaryProps});
 WrappedApp.displayName = 'App';
 export default WrappedApp;

@@ -11,10 +11,11 @@ import {isSubmitPolicy} from '@libs/PolicyUtils';
 import CONST, {SUBMIT_FEATURE_IDS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 import GenericFeaturesView from './GenericFeaturesView';
 import UpgradeIntroView from './UpgradeIntroView';
@@ -24,6 +25,7 @@ type Props = {
     loading?: boolean;
     feature?: ValueOf<Omit<typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING, typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id>>;
     onUpgrade: () => void;
+    upgradeSentryLabel: SentryLabel;
     /** Whether is categorizing the expense */
     isCategorizing?: boolean;
     /** Whether is adding an unreported expense to a report */
@@ -35,7 +37,7 @@ type Props = {
     upgradePlanType?: ValueOf<typeof CONST.POLICY.TYPE>;
 };
 
-function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing, isDistanceRateUpgrade, isReporting, policyID, backTo, upgradePlanType}: Props) {
+function UpgradeIntro({feature, onUpgrade, upgradeSentryLabel, buttonDisabled, loading, isCategorizing, isDistanceRateUpgrade, isReporting, policyID, backTo, upgradePlanType}: Props) {
     const styles = useThemeStyles();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isCurrentPolicySubmit = isSubmitPolicy(policy);
@@ -45,17 +47,11 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
 
     const isSubmitFeature = isCurrentPolicySubmit && !!feature?.id && SUBMIT_FEATURE_IDS.has(feature.id);
 
-    const formattedPrice = useMemo(() => {
-        const upgradeCurrency = Object.hasOwn(CONST.SUBSCRIPTION_PRICES, preferredCurrency) ? preferredCurrency : CONST.PAYMENT_CARD_CURRENCY.USD;
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const matchesTeamPricingHeuristics = isCategorizing || isDistanceRateUpgrade || isReporting || isSubmitFeature || upgradePlanType === CONST.POLICY.TYPE.TEAM;
-        // An explicit upgradePlanType (chosen in the Plan RHP) is authoritative over the feature-based heuristics, so pricing matches the plan title shown in GenericFeaturesView.
-        const shouldUseTeamPricing = upgradePlanType === CONST.POLICY.TYPE.CORPORATE ? false : matchesTeamPricingHeuristics;
-        return `${convertToShortDisplayString(
-            CONST.SUBSCRIPTION_PRICES[upgradeCurrency][shouldUseTeamPricing ? CONST.POLICY.TYPE.TEAM : CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL],
-            upgradeCurrency,
-        )} `;
-    }, [preferredCurrency, isCategorizing, isDistanceRateUpgrade, isReporting, isSubmitFeature, upgradePlanType]);
+    const upgradeCurrency = Object.hasOwn(CONST.SUBSCRIPTION_PRICES, preferredCurrency) ? preferredCurrency : CONST.PAYMENT_CARD_CURRENCY.USD;
+    const matchesTeamPricingHeuristics = isCategorizing || isDistanceRateUpgrade || isReporting || isSubmitFeature || upgradePlanType === CONST.POLICY.TYPE.TEAM;
+    // An explicit upgradePlanType (chosen in the Plan RHP) is authoritative over the feature-based heuristics, so pricing matches the plan title shown in GenericFeaturesView.
+    const shouldUseTeamPricing = upgradePlanType === CONST.POLICY.TYPE.CORPORATE ? false : matchesTeamPricingHeuristics;
+    const formattedPrice = `${convertToShortDisplayString(CONST.SUBSCRIPTION_PRICES[upgradeCurrency][shouldUseTeamPricing ? CONST.POLICY.TYPE.TEAM : CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL], upgradeCurrency)} `;
 
     const allIconNames = Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
         .map((feat) => feat?.icon)
@@ -90,6 +86,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'DigitsSquare',
         'BusinessCentralSquare',
         'AdvancedApprovalsSquare',
         'Unlock',
@@ -106,11 +103,13 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
      * However, the policyID check is only necessary when the user is not coming from the "Categorize" option.
      * The "isCategorizing" flag is set to true when the user accesses the "Categorize" option in the Self-DM whisper.
      * In such scenarios, a separate Categories upgrade UI is displayed.
+     * Auto-pay approved reports requires Control but not advanced approvals, so it also uses the generic Control upgrade view.
      */
-    if (!feature || (!isCategorizing && !isDistanceRateUpgrade && !isReporting && !policyID)) {
+    if (!feature || feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.id || (!isCategorizing && !isDistanceRateUpgrade && !isReporting && !policyID)) {
         return (
             <GenericFeaturesView
                 onUpgrade={onUpgrade}
+                upgradeSentryLabel={upgradeSentryLabel}
                 buttonDisabled={buttonDisabled}
                 formattedPrice={formattedPrice}
                 loading={loading}
@@ -134,7 +133,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
 
     const getOnlyAvailableOnPlanHTML = () => {
         const planParams = {formattedPrice, hasTeam2025Pricing};
-        if (feature.id === 'preventSelfApproval' || feature.id === 'autoApproveCompliantReports' || feature.id === 'autoPayApprovedReports') {
+        if (feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.preventSelfApproval.id || feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoApproveCompliantReports.id) {
             return translate('workspace.upgrade.approvals.onlyAvailableOnPlan', planParams);
         }
         if (feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id) {
@@ -160,6 +159,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
             onlyAvailableOnPlanHTML={onlyAvailableOnPlanHTML}
             buttonText={buttonText}
             onUpgrade={onUpgrade}
+            upgradeSentryLabel={upgradeSentryLabel}
             buttonDisabled={buttonDisabled}
             loading={loading}
         />

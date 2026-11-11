@@ -45,6 +45,9 @@ type FilterPopupButtonProps = {
 
     /** Called instead of opening the popover when device is in landscape mode */
     onLandscapePress?: () => void;
+
+    /** Called once the popover has finished opening */
+    onModalShow?: () => void;
 };
 
 const ANCHOR_ORIGIN = {
@@ -60,6 +63,7 @@ function FilterPopupButton({
     PopoverComponent,
     renderButton,
     onLandscapePress,
+    onModalShow,
 }: FilterPopupButtonProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHP and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -67,7 +71,11 @@ function FilterPopupButton({
     const isFocused = useIsFocused();
     const styles = useThemeStyles();
     const {isKeyboardActive} = useKeyboardState();
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: isSmallScreenWidth && !isKeyboardActive});
+    // The style is applied inside the popover, which never renders an offline indicator, so don't reserve space for one
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: isSmallScreenWidth && !isKeyboardActive,
+        addOfflineIndicatorBottomSafeAreaPadding: false,
+    });
     const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
     const triggerRef = useRef<ComponentRef<typeof View> | null>(null);
@@ -137,6 +145,7 @@ function FilterPopupButton({
                     avoidKeyboard
                     isVisible={isOverlayVisible}
                     onClose={toggleOverlay}
+                    onModalShow={onModalShow}
                     anchorPosition={popoverTriggerPosition}
                     anchorAlignment={popoverAnchorAlignment}
                     restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}

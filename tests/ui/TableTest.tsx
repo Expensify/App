@@ -2,17 +2,21 @@ import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import {ModalProvider} from '@components/Modal/Global/ModalContext';
+import {ModalActions, ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 import Table, {composeTableListHeader} from '@components/Table';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
+import dismissKeyboardOnDrag from '@components/Table/dismissKeyboardOnDrag';
 import Text from '@components/Text';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
+import useMobileSelectionMenuModal from '@hooks/useMobileSelectionMenuModal';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
+import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {acquireBackgroundInputFocusSuppression} from '@libs/ModalFocusManager';
 import type Navigation from '@libs/Navigation/Navigation';
 
@@ -20,6 +24,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
@@ -27,6 +32,8 @@ import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import Onyx from 'react-native-onyx';
 import waitForBatchedUpdatesWithAct from 'tests/utils/waitForBatchedUpdatesWithAct';
+
+import createMock from '../utils/createMock';
 
 type TestInstance = ReturnType<typeof screen.getByTestId>;
 
@@ -58,6 +65,7 @@ type MockFlashListProps<T> = {
     onChangeStickyIndex?: (current: number, previous: number) => void;
     onLoad?: (info: {elapsedTimeInMs: number}) => void;
     onScroll?: (event: {nativeEvent: {contentOffset: {y: number}}}) => void;
+    onScrollBeginDrag?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     onStartReached?: () => void;
     onViewableItemsChanged?: (info: MockViewabilityInfo<T>) => void;
     overrideItemLayout?: (layout: {span?: number}, item: T, index: number, maxColumns: number, extraData?: unknown) => void;
@@ -71,6 +79,7 @@ type MockFlashListProps<T> = {
 const mockFlashListScrollToIndex = jest.fn();
 const mockFlashListScrollToItem = jest.fn();
 const mockFlashListScrollToOffset = jest.fn();
+const mockScrollInputIntoView = jest.fn();
 const mockFlashListGetLayout = jest.fn();
 const mockFlashListComputeVisibleIndices = jest.fn();
 const mockFlashListGetFirstVisibleIndex = jest.fn();
@@ -86,6 +95,27 @@ let mockNextTextInputInstanceID = 0;
 let mockFlashListProps: Array<MockFlashListProps<unknown>> = [];
 let mockFlashListMeasurementTargetIndexes: number[] = [];
 let mockShouldUseNarrowLayout = false;
+
+jest.mock('@hooks/useMobileSelectionMenuModal', () => ({__esModule: true, default: jest.fn()}));
+jest.mock('@hooks/useMobileSelectionMode', () => ({__esModule: true, default: jest.fn(() => false)}));
+jest.mock('@libs/actions/MobileSelectionMode', () => ({turnOnMobileSelectionMode: jest.fn(), turnOffMobileSelectionMode: jest.fn()}));
+
+jest.mock('@components/Table/dismissKeyboardOnDrag', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+
+jest.mock('@components/SelectionList/hooks/useScrollToFocusedInput', () => ({
+    __esModule: true,
+    default: function useScrollToFocusedInput() {
+        const ReactLocal = jest.requireActual<typeof React>('react');
+        return {
+            containerRef: ReactLocal.useRef(null),
+            trackScrollOffset: jest.fn(),
+            scrollInputIntoView: mockScrollInputIntoView,
+        };
+    },
+}));
 
 // Mock navigation
 jest.mock('@react-navigation/native', () => {
@@ -167,7 +197,7 @@ jest.mock('@components/ActivityIndicator', () => {
 jest.mock('@components/withNavigationFallback', () => (Component: React.ComponentType) => Component);
 
 jest.mock('@userActions/Session', () => ({
-    callFunctionIfActionIsAllowed: <TCallback extends ((...args: never[]) => unknown) | undefined>(callback: TCallback) => callback,
+    callIfAuthenticated: <TCallback extends ((...args: never[]) => unknown) | undefined>(callback: TCallback) => callback,
 }));
 
 jest.mock('@shopify/flash-list', () => {
@@ -192,13 +222,22 @@ jest.mock('@shopify/flash-list', () => {
             ref: React.Ref<{
                 scrollToIndex: typeof mockFlashListScrollToIndex;
                 scrollToItem: typeof mockFlashListScrollToItem;
-                scrollToOffset: typeof mockFlashListScrollToOffset;
+                scrollToOffset: (params: {offset: number; animated?: boolean}) => void;
                 getLayout: typeof mockFlashListGetLayout;
                 computeVisibleIndices: typeof mockFlashListComputeVisibleIndices;
                 getFirstVisibleIndex: typeof mockFlashListGetFirstVisibleIndex;
             }>,
         ) => {
             mockFlashListProps.push(props);
+            const nativeScrollRef = ReactLocal.useRef<typeof mockFlashListScrollToOffset | null>(null);
+            // Animated.ScrollView detaches its callback ref during updates and attaches it after its
+            // children's layout effects. FlashList silently ignores scrollToOffset while that ref is null.
+            ReactLocal.useLayoutEffect(() => {
+                nativeScrollRef.current = mockFlashListScrollToOffset;
+                return () => {
+                    nativeScrollRef.current = null;
+                };
+            });
             const data = props.data ?? [];
             const stickyHeaderIndex = props.stickyHeaderIndices?.at(0);
             const stickyHeaderItem = stickyHeaderIndex === undefined ? undefined : data.at(stickyHeaderIndex);
@@ -211,14 +250,20 @@ jest.mock('@shopify/flash-list', () => {
                     mockFlashListUnmount();
                 };
             }, []);
-            ReactLocal.useImperativeHandle(ref, () => ({
-                scrollToIndex: mockFlashListScrollToIndex,
-                scrollToItem: mockFlashListScrollToItem,
-                scrollToOffset: mockFlashListScrollToOffset,
-                getLayout: mockFlashListGetLayout,
-                computeVisibleIndices: mockFlashListComputeVisibleIndices,
-                getFirstVisibleIndex: mockFlashListGetFirstVisibleIndex,
-            }));
+            ReactLocal.useImperativeHandle(
+                ref,
+                () => ({
+                    scrollToIndex: mockFlashListScrollToIndex,
+                    scrollToItem: mockFlashListScrollToItem,
+                    scrollToOffset: (params: {offset: number; animated?: boolean}) => {
+                        nativeScrollRef.current?.(params);
+                    },
+                    getLayout: mockFlashListGetLayout,
+                    computeVisibleIndices: mockFlashListComputeVisibleIndices,
+                    getFirstVisibleIndex: mockFlashListGetFirstVisibleIndex,
+                }),
+                [],
+            );
 
             return (
                 <RNView testID="flash-list">
@@ -411,59 +456,68 @@ jest.mock('@components/TextInput', () => {
         onBlur?: () => void;
         editable?: boolean;
     };
-    const MockTextInput = ReactLocal.forwardRef((props: MockTextInputProps, ref: React.Ref<{focus: () => void; blur: () => void; isFocused: () => boolean}>) => {
-        const isFocusedRef = ReactLocal.useRef(false);
-        const [nativeID] = ReactLocal.useState(() => `mock-search-input-${++mockNextTextInputInstanceID}`);
-        ReactLocal.useEffect(() => {
-            mockTextInputMount();
-            return () => {
-                mockTextInputUnmount();
-                if (isFocusedRef.current) {
-                    mockTextInputNativeBlur();
-                }
-            };
-        }, []);
-        ReactLocal.useImperativeHandle(ref, () => ({
-            focus: () => {
-                isFocusedRef.current = true;
-                mockTextInputFocus();
-            },
-            blur: () => {
-                isFocusedRef.current = false;
-                mockTextInputBlur();
-            },
-            isFocused: () => isFocusedRef.current,
-        }));
-
-        return (
-            <RNView>
-                <RNTextInput
-                    testID="search-input"
-                    nativeID={nativeID}
-                    accessibilityLabel={props.accessibilityLabel}
-                    editable={props.editable}
-                    value={props.value}
-                    onChangeText={props.onChangeText}
-                    onFocus={() => {
-                        isFocusedRef.current = true;
-                        mockTextInputNativeFocus();
-                        props.onFocus?.();
-                    }}
-                    onBlur={() => {
-                        isFocusedRef.current = false;
+    const MockTextInput = ReactLocal.forwardRef(
+        (
+            props: MockTextInputProps,
+            ref: React.Ref<{
+                focus: () => void;
+                blur: () => void;
+                isFocused: () => boolean;
+            }>,
+        ) => {
+            const isFocusedRef = ReactLocal.useRef(false);
+            const [nativeID] = ReactLocal.useState(() => `mock-search-input-${++mockNextTextInputInstanceID}`);
+            ReactLocal.useEffect(() => {
+                mockTextInputMount();
+                return () => {
+                    mockTextInputUnmount();
+                    if (isFocusedRef.current) {
                         mockTextInputNativeBlur();
-                        props.onBlur?.();
-                    }}
-                />
-                {!!props.onClearInput && (
+                    }
+                };
+            }, []);
+            ReactLocal.useImperativeHandle(ref, () => ({
+                focus: () => {
+                    isFocusedRef.current = true;
+                    mockTextInputFocus();
+                },
+                blur: () => {
+                    isFocusedRef.current = false;
+                    mockTextInputBlur();
+                },
+                isFocused: () => isFocusedRef.current,
+            }));
+
+            return (
+                <RNView>
                     <RNTextInput
-                        testID="clear-button"
-                        onPress={props.onClearInput}
+                        testID="search-input"
+                        nativeID={nativeID}
+                        accessibilityLabel={props.accessibilityLabel}
+                        editable={props.editable}
+                        value={props.value}
+                        onChangeText={props.onChangeText}
+                        onFocus={() => {
+                            isFocusedRef.current = true;
+                            mockTextInputNativeFocus();
+                            props.onFocus?.();
+                        }}
+                        onBlur={() => {
+                            isFocusedRef.current = false;
+                            mockTextInputNativeBlur();
+                            props.onBlur?.();
+                        }}
                     />
-                )}
-            </RNView>
-        );
-    });
+                    {!!props.onClearInput && (
+                        <RNTextInput
+                            testID="clear-button"
+                            onPress={props.onClearInput}
+                        />
+                    )}
+                </RNView>
+            );
+        },
+    );
     return MockTextInput;
 });
 
@@ -585,6 +639,16 @@ function getHostTableRows(): TestInstance[] {
     return screen.UNSAFE_getAllByProps({role: CONST.ROLE.ROW}).filter((row) => typeof row.type === 'string');
 }
 
+// A row's cells sit in one host view, whose style decides how the row lays them out.
+function getRowCellContainerStyle(cellTestID: string): unknown {
+    let cellContainer = screen.getByTestId(cellTestID).parent;
+    while (cellContainer && (typeof cellContainer.type !== 'string' || cellContainer.props.testID === cellTestID)) {
+        cellContainer = cellContainer.parent;
+    }
+    const cellContainerStyle: unknown = StyleSheet.flatten(cellContainer?.props.style);
+    return cellContainerStyle;
+}
+
 function getHostTableRowsWithin(container: TestInstance): TestInstance[] {
     return within(container)
         .UNSAFE_getAllByProps({role: CONST.ROLE.ROW})
@@ -597,6 +661,129 @@ describe('Table', () => {
         mockFlashListProps = [];
         mockFlashListMeasurementTargetIndexes = [];
         mockShouldUseNarrowLayout = false;
+        jest.mocked(useMobileSelectionMenuModal).mockReturnValue({showMobileSelectionMenuModal: jest.fn().mockResolvedValue({action: ModalActions.CLOSE})});
+        jest.mocked(useMobileSelectionMode).mockReturnValue(false);
+    });
+
+    describe('mobile long-press selection', () => {
+        const showMenu = jest.fn();
+        const onRowSelectionChange = jest.fn();
+        const defaultResponsiveLayoutImplementation = jest.mocked(useResponsiveLayout).getMockImplementation();
+
+        function renderSelectionTable({disabled = false, isSelectionDisabled = false, interactive = true, selectionEnabled = true, shouldEnableSelectionInNarrowPaneModal = false} = {}) {
+            const props = createDefaultProps();
+            const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
+                <Table.Row
+                    rowIndex={index}
+                    interactive={interactive}
+                    accessibilityLabel={item.name}
+                    testID={`selectable-row-${item.id}`}
+                >
+                    <Text>{item.name}</Text>
+                </Table.Row>
+            );
+
+            return render(
+                <Table
+                    {...props}
+                    data={props.data.map((item) => ({...item, disabled, isSelectionDisabled}))}
+                    renderItem={renderItem}
+                    selectionEnabled={selectionEnabled}
+                    shouldEnableSelectionInNarrowPaneModal={shouldEnableSelectionInNarrowPaneModal}
+                    onRowSelectionChange={onRowSelectionChange}
+                >
+                    <Table.Body />
+                </Table>,
+            );
+        }
+
+        beforeEach(() => {
+            jest.mocked(useMobileSelectionMenuModal).mockReturnValue({showMobileSelectionMenuModal: showMenu});
+            showMenu.mockReset().mockResolvedValue({action: ModalActions.CLOSE});
+            jest.mocked(useResponsiveLayout).mockReturnValue(createMock<ResponsiveLayoutResult>({shouldUseNarrowLayout: true, isSmallScreenWidth: true, isInNarrowPaneModal: false}));
+        });
+
+        afterEach(() => {
+            if (!defaultResponsiveLayoutImplementation) {
+                return;
+            }
+            jest.mocked(useResponsiveLayout).mockImplementation(defaultResponsiveLayoutImplementation);
+        });
+
+        it('opens the global menu and selects the pressed row on CONFIRM', async () => {
+            // Given an eligible table row and a confirmed menu action.
+            showMenu.mockResolvedValue({action: ModalActions.CONFIRM});
+            renderSelectionTable();
+            onRowSelectionChange.mockClear();
+
+            // When that row is long-pressed.
+            fireEvent(screen.getByTestId('selectable-row-2'), 'longPress');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the table preserves its selector and label, enables selection, and selects that exact key.
+            expect(showMenu).toHaveBeenCalledWith({
+                sentryLabel: CONST.SENTRY_LABEL.TABLE.SELECTION_MODE_MENU_ITEM,
+                testID: CONST.SELECTION_LIST_WITH_MODAL_TEST_ID,
+                shouldSkipFocusRestoreOnSelect: true,
+            });
+            expect(turnOnMobileSelectionMode).toHaveBeenCalledTimes(1);
+            expect(onRowSelectionChange).toHaveBeenCalledWith(['2']);
+        });
+
+        it('leaves selection untouched when the menu is dismissed', async () => {
+            // Given an eligible row whose menu will be dismissed.
+            renderSelectionTable();
+            onRowSelectionChange.mockClear();
+
+            // When the user long-presses and dismisses.
+            fireEvent(screen.getByTestId('selectable-row-1'), 'longPress');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then neither selection mode nor the selected keys change.
+            expect(showMenu).toHaveBeenCalledTimes(1);
+            expect(turnOnMobileSelectionMode).not.toHaveBeenCalled();
+            expect(onRowSelectionChange).not.toHaveBeenCalled();
+        });
+
+        it.each([{disabled: true}, {isSelectionDisabled: true}, {interactive: false}, {selectionEnabled: false}])('does not open a menu for an ineligible row: %j', (options) => {
+            // Given a row that must not enter selection mode.
+            renderSelectionTable(options);
+
+            // When it receives a long press.
+            fireEvent(screen.getByTestId('selectable-row-1'), 'longPress');
+
+            // Then no modal is opened.
+            expect(showMenu).not.toHaveBeenCalled();
+        });
+
+        it.each([
+            {isSmallScreenWidth: false, isInNarrowPaneModal: false, isSelectionModeEnabled: false},
+            {isSmallScreenWidth: true, isInNarrowPaneModal: true, isSelectionModeEnabled: false},
+            {isSmallScreenWidth: true, isInNarrowPaneModal: false, isSelectionModeEnabled: true},
+        ])('preserves the layout and selection-mode guards: %j', ({isSmallScreenWidth, isInNarrowPaneModal, isSelectionModeEnabled}) => {
+            // Given a wide layout, a non-opted-in narrow pane, or a table already in selection mode.
+            jest.mocked(useResponsiveLayout).mockReturnValue(createMock<ResponsiveLayoutResult>({shouldUseNarrowLayout: true, isSmallScreenWidth, isInNarrowPaneModal}));
+            jest.mocked(useMobileSelectionMode).mockReturnValue(isSelectionModeEnabled);
+            renderSelectionTable();
+
+            // When a row is long-pressed.
+            fireEvent(screen.getByTestId('selectable-row-1'), 'longPress');
+
+            // Then the long press still opens no menu.
+            expect(showMenu).not.toHaveBeenCalled();
+        });
+
+        it('allows opted-in narrow-pane tables to open the menu on small screens', () => {
+            // Given a small-screen narrow pane whose table allows selection.
+            jest.mocked(useResponsiveLayout).mockReturnValue(createMock<ResponsiveLayoutResult>({shouldUseNarrowLayout: true, isSmallScreenWidth: true, isInNarrowPaneModal: true}));
+            renderSelectionTable({shouldEnableSelectionInNarrowPaneModal: true});
+
+            // When an eligible row is long-pressed.
+            fireEvent(screen.getByTestId('selectable-row-1'), 'longPress');
+
+            // Then the global menu opens as it does in the central pane.
+            expect(showMenu).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe('rendering', () => {
@@ -619,6 +806,108 @@ describe('Table', () => {
             expect(screen.getByTestId('row-3')).toBeTruthy();
             expect(screen.getByTestId('row-4')).toBeTruthy();
             expect(screen.getByTestId('row-5')).toBeTruthy();
+        });
+
+        it('should preserve all datasets on rows that allow text selection', () => {
+            const props = createDefaultProps();
+            const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
+                <Table.Row
+                    rowIndex={index}
+                    interactive
+                    accessibilityLabel={item.name}
+                    shouldAllowTextSelection
+                    dataSet={{customMarker: true}}
+                >
+                    <Text>{item.name}</Text>
+                </Table.Row>
+            );
+
+            // Given a table row with a caller dataset that allows text selection
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data.slice(0, 1)}
+                    columns={props.columns}
+                    renderItem={renderItem}
+                    keyExtractor={props.keyExtractor}
+                >
+                    <Table.Body />
+                </Table>,
+            );
+
+            // When the rendered host row is inspected
+            const row = getHostTableRows().find((candidate) => candidate.props.accessibilityLabel === mockData.at(0)?.name);
+
+            // Then the caller, table-row, and copyable-row datasets are all present
+            expect(row?.props.dataSet).toEqual({
+                customMarker: true,
+                tableRow: true,
+                [CONST.COPYABLE_ROW_ELEMENT]: true,
+            });
+        });
+
+        it('should not let the grid of a wide row grow', () => {
+            const props = createDefaultProps();
+            const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
+                <Table.Row
+                    rowIndex={index}
+                    interactive
+                    accessibilityLabel={item.name}
+                >
+                    <View testID={`cell-${item.id}`} />
+                </Table.Row>
+            );
+
+            // Given a wide table, where every row lays out its cells in a grid
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data.slice(0, 2)}
+                    columns={props.columns}
+                    renderItem={renderItem}
+                    keyExtractor={props.keyExtractor}
+                >
+                    <Table.Body />
+                </Table>,
+            );
+
+            // When the style that lays out the first row's cells is read
+            const firstRowCellContainerStyle = getRowCellContainerStyle('cell-1');
+
+            // Then the grid doesn't grow: in older Safari a growing grid centers the first row's cells against the whole list's height, behind the next row
+            expect(firstRowCellContainerStyle).toEqual(expect.objectContaining({gridTemplateColumns: '1fr 1fr 1fr', flexGrow: 0}));
+        });
+
+        it('should keep the flex layout of a narrow row unchanged', () => {
+            const props = createDefaultProps();
+            mockShouldUseNarrowLayout = true;
+            const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
+                <Table.Row
+                    rowIndex={index}
+                    interactive
+                    accessibilityLabel={item.name}
+                >
+                    <View testID={`cell-${item.id}`} />
+                </Table.Row>
+            );
+
+            // Given a narrow table, where rows lay out their cells with flex instead of a grid
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data.slice(0, 2)}
+                    columns={props.columns}
+                    renderItem={renderItem}
+                    keyExtractor={props.keyExtractor}
+                >
+                    <Table.Body />
+                </Table>,
+            );
+
+            // When the style that lays out the first row's cells is read
+            const firstRowCellContainerStyle = getRowCellContainerStyle('cell-1');
+
+            // Then the narrow row still fills its row, since the grid fix only applies to the wide layout
+            expect(firstRowCellContainerStyle).toEqual(expect.objectContaining({flex: 1}));
+            expect(firstRowCellContainerStyle).not.toHaveProperty('gridTemplateColumns');
+            expect(firstRowCellContainerStyle).not.toHaveProperty('flexGrow');
         });
 
         it('should render column headers when Header component is used', () => {
@@ -1012,6 +1301,68 @@ describe('Table', () => {
                     .some((node) => node.props.disabled === false && node.props.tabIndex === undefined),
             ).toBe(true);
             expect(screen.getByTestId('flash-list-sticky-header')).toBeTruthy();
+        });
+
+        it('should request drag dismissal and preserve the query and caller callback', () => {
+            // Given a focused, filtered table with a caller-owned drag callback, scrolling must not erase its search.
+            const props = createDefaultProps();
+            const onScrollBeginDrag = jest.fn();
+            render(
+                <Table
+                    {...props}
+                    onScrollBeginDrag={onScrollBeginDrag}
+                >
+                    <Table.ListHeader>
+                        <Table.FilterBar label="Search" />
+                    </Table.ListHeader>
+                    <Table.Body />
+                </Table>,
+            );
+            fireEvent(screen.getByTestId('search-input'), 'focus');
+            fireEvent.changeText(screen.getByTestId('search-input'), 'apple');
+            const event = createMock<NativeSyntheticEvent<NativeScrollEvent>>({nativeEvent: {contentOffset: {x: 0, y: 80}}});
+
+            // When the list scrolls without a drag, focus remains available for keyboard navigation and query resets.
+            act(() => mockFlashListProps.at(-1)?.onScroll?.(event));
+            expect(dismissKeyboardOnDrag).not.toHaveBeenCalled();
+            expect(onScrollBeginDrag).not.toHaveBeenCalled();
+            act(() => mockFlashListProps.at(-1)?.onScrollBeginDrag?.(event));
+
+            // Then dragging invokes the platform helper and the caller receives the same event with its query intact.
+            expect(dismissKeyboardOnDrag).toHaveBeenCalledTimes(1);
+            expect(onScrollBeginDrag).toHaveBeenCalledTimes(1);
+            expect(onScrollBeginDrag).toHaveBeenCalledWith(event);
+            expect(screen.getByTestId('search-input').props.value).toBe('apple');
+            expect(screen.getByTestId('row-1')).toBeTruthy();
+        });
+
+        it('should request drag dismissal and preserve the caller callback in the standalone empty state', () => {
+            // Given an empty table, the standalone scroll container must retain the normal list's drag behavior.
+            const props = createDefaultProps();
+            const onScrollBeginDrag = jest.fn();
+            render(
+                <Table
+                    {...props}
+                    data={[]}
+                    onScrollBeginDrag={onScrollBeginDrag}
+                >
+                    <Table.ListHeader>
+                        <Table.FilterBar label="Search" />
+                    </Table.ListHeader>
+                    <Table.EmptyState title="No items" />
+                    <Table.Body />
+                </Table>,
+            );
+            const event = createMock<NativeSyntheticEvent<NativeScrollEvent>>({nativeEvent: {contentOffset: {x: 0, y: 20}}});
+
+            // When the empty-state content is dragged, use the same callback path as a populated list.
+            fireEvent(screen.getByTestId('table-empty-state-scroll-view'), 'scrollBeginDrag', event);
+
+            // Then dismissal is requested once and caller notification works even without a FlashList instance.
+            expect(screen.queryByTestId('flash-list')).toBeNull();
+            expect(dismissKeyboardOnDrag).toHaveBeenCalledTimes(1);
+            expect(onScrollBeginDrag).toHaveBeenCalledTimes(1);
+            expect(onScrollBeginDrag).toHaveBeenCalledWith(event);
         });
 
         it('should keep FlashList measurement copies inert without remounting the focused search input', () => {
@@ -2160,6 +2511,76 @@ describe('Table', () => {
             expect(screen.getByTestId('row-2')).toBeTruthy();
         });
 
+        it('should reset a focused page-header table offset when search or filtered results change', async () => {
+            // Given a focused page-header search whose results can also be changed by a filter.
+            const props = createDefaultProps();
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey, 'category'>>();
+            const filterConfig: FilterConfig<'category'> = {
+                category: {
+                    label: 'Category',
+                    options: [{label: 'Vegetable', value: 'vegetable'}],
+                },
+            };
+
+            render(
+                <Table<TestItem, TestColumnKey, 'category'>
+                    ref={tableRef}
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    filters={filterConfig}
+                    isItemInFilter={(item, filterValues) => filterValues.length === 0 || filterValues.includes(item.category)}
+                    isItemInSearch={props.isItemInSearch}
+                >
+                    <Table.ListHeader>
+                        <Table.FilterBar label="Search" />
+                    </Table.ListHeader>
+                    <Table.Body />
+                </Table>,
+            );
+
+            const searchInput = screen.getByTestId('search-input');
+            fireEvent(searchInput, 'focus');
+            mockFlashListScrollToOffset.mockClear();
+
+            // When the query changes, including whitespace-only edits.
+            fireEvent.changeText(searchInput, ' ');
+            // Then each change returns the search header to the top without animation.
+            expect(mockFlashListScrollToOffset).toHaveBeenLastCalledWith({offset: 0, animated: false});
+            mockFlashListScrollToOffset.mockClear();
+
+            fireEvent.changeText(searchInput, 'apple');
+            expect(mockFlashListScrollToOffset).toHaveBeenLastCalledWith({offset: 0, animated: false});
+            mockFlashListScrollToOffset.mockClear();
+
+            fireEvent.changeText(screen.getByTestId('search-input'), 'apple ');
+            expect(mockFlashListScrollToOffset).toHaveBeenLastCalledWith({offset: 0, animated: false});
+            mockFlashListScrollToOffset.mockClear();
+
+            fireEvent.changeText(screen.getByTestId('search-input'), '');
+            expect(mockFlashListScrollToOffset).toHaveBeenLastCalledWith({offset: 0, animated: false});
+            mockFlashListScrollToOffset.mockClear();
+
+            act(() => {
+                tableRef.current?.updateSearchString('apple');
+            });
+
+            expect(mockFlashListScrollToOffset).toHaveBeenLastCalledWith({offset: 0, animated: false});
+            mockFlashListScrollToOffset.mockClear();
+
+            act(() => {
+                tableRef.current?.updateFilter({key: 'category', value: ['vegetable']});
+            });
+
+            expect(screen.getByTestId('search-input').props.value).toBe('apple');
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(0);
+            await waitFor(() => {
+                expect(mockFlashListScrollToOffset).toHaveBeenCalledTimes(1);
+                expect(mockFlashListScrollToOffset).toHaveBeenCalledWith({offset: 0, animated: false});
+            });
+        });
+
         it('should search by multiple fields when isItemInSearch checks multiple properties', () => {
             const props = createDefaultProps();
             render(
@@ -2404,6 +2825,44 @@ describe('Table', () => {
             expect(screen.queryByTestId('row-1')).toBeNull();
             expect(screen.queryByTestId('row-2')).toBeNull();
             expect(screen.getByTestId('generic-empty-state')).toBeTruthy();
+        });
+
+        it('renders the empty state instead of "No results" when a page-header table hides every row by default', () => {
+            // Given a page-header table (like the Workspaces list) whose default filter hides every row, with both
+            // a no-results state and an empty state declared
+            const props = createDefaultProps();
+            const data: TestItem[] = [
+                {keyForList: '1', id: '1', name: 'Archived A', category: 'archived', value: 1},
+                {keyForList: '2', id: '2', name: 'Archived B', category: 'archived', value: 2},
+            ];
+
+            // When the table renders with no search or filter selected
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    filters={statusFilterConfig}
+                    isItemInFilter={isItemInStatusFilter}
+                >
+                    <Table.ListHeader>
+                        <Text testID="table-header-component">Page header</Text>
+                    </Table.ListHeader>
+                    <Table.NoResultsState />
+                    <Table.EmptyState title="No workspaces" />
+                    <Table.Header />
+                    <Table.Body />
+                </Table>,
+            );
+
+            // Then the empty state shows inside the list with the page header still visible, because the user did
+            // not search or filter, so "No results found" would be misleading
+            expect(screen.getByTestId('flash-list')).toBeTruthy();
+            expect(screen.getByTestId('table-header-component')).toBeTruthy();
+            expect(screen.getAllByTestId('generic-empty-state')).toHaveLength(1);
+            expect(screen.getByText('No workspaces')).toBeTruthy();
+            expect(screen.queryByText('common.noResultsFound')).toBeNull();
         });
     });
 
@@ -2991,6 +3450,7 @@ describe('Table', () => {
                         columns={props.columns}
                         renderItem={renderSelectableRow}
                         keyExtractor={props.keyExtractor}
+                        compareItems={props.compareItems}
                         selectionEnabled
                         selectedKeys={selectedKeys}
                         isItemInSearch={props.isItemInSearch}
@@ -3059,6 +3519,21 @@ describe('Table', () => {
             pressRow(2, true);
 
             expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,2,3$/);
+        });
+
+        it('should range over the rows in their new order when the table is re-sorted mid-range', () => {
+            render(<ControlledSelectableTable />);
+
+            // Given Apple clicked and a range shift+clicked to Carrot, in the order Apple, Banana, Carrot, Date, Eggplant
+            pressRow(0);
+            pressRow(2, true);
+
+            // When the table is sorted by value (Banana, Date, Apple, Eggplant, Carrot) and the range is shift+clicked to Eggplant
+            fireEvent.press(screen.getByLabelText('Value'));
+            pressRow(3, true);
+
+            // Then the range runs from Apple to Eggplant as they now sit, so Date stays unchecked, Carrot is given back and Banana stays checked
+            expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,2,5$/);
         });
 
         it('should exclude disabled rows from the range', () => {

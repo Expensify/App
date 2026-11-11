@@ -272,6 +272,7 @@ function buildReportParticipants(args: SubmitAmountArgs) {
         translate,
         dateFnsLocale,
         convertToDisplayString,
+        formatPhoneNumber,
         rules,
     } = args;
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
@@ -296,6 +297,7 @@ function buildReportParticipants(args: SubmitAmountArgs) {
                       translate,
                       dateFnsLocale,
                       convertToDisplayString,
+                      formatPhoneNumber,
                   },
                   rules,
                   // Passing pendingDeleteMemberAccountIDs as undefined is intentional, getMoneyRequestParticipantsFromReport only report-backs policy expense chats, self DMs and invoice rooms.
@@ -387,7 +389,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
     // "route to Spend > Expenses" behaviour to the self-DM case (matches the confirmation step).
     const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserAccountID);
     const draftTransactionIDsList = Object.keys(transactionDrafts ?? {});
-    const isSelfTourViewed = hasSeenTourSelector(onboarding) ?? false;
+    const isSelfTourViewed = hasSeenTourSelector(onboarding);
     const executeExpenseWrite = (overrides: WriteOverrides) => {
         if (isTrackExpenseSubmit) {
             trackExpense({
@@ -676,7 +678,13 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
     const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, newAmount, decimals));
 
     if (isSplitBill) {
-        setDraftSplitTransaction(transactionID, splitDraftTransaction, {amount: newAmount, currency: selectedCurrency, taxCode, taxAmount}, getCurrencyDecimals, getCurrencySymbol);
+        setDraftSplitTransaction(
+            transactionID,
+            splitDraftTransaction ?? transaction,
+            {amount: newAmount, currency: selectedCurrency, taxCode, taxAmount},
+            getCurrencyDecimals,
+            getCurrencySymbol,
+        );
         navigateBack();
         return;
     }

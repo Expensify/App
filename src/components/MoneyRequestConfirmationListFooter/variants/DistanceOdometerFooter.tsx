@@ -1,9 +1,7 @@
 import FormHelpMessage from '@components/FormHelpMessage';
-import ExpenseFormLayoutContext from '@components/MoneyRequestConfirmationList/sections/ExpenseFormLayoutContext';
 import ConfirmationFieldList from '@components/MoneyRequestConfirmationListFooter/ConfirmationFieldList';
+import ExpenseFormFooterLayout from '@components/MoneyRequestConfirmationListFooter/ExpenseFormFooterLayout';
 import DistanceDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/detailsFields/DistanceDetailsFields';
-import useAddReceiptLayout from '@components/MoneyRequestConfirmationListFooter/hooks/useAddReceiptLayout';
-import ReceiptSection from '@components/MoneyRequestConfirmationListFooter/sections/ReceiptSection';
 import type {DistanceOdometerFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,50 +27,38 @@ function DistanceOdometerFooter({
 }: DistanceOdometerFooterProps) {
     const styles = useThemeStyles();
 
-    // The add-receipt button and the spacing around the preview both key off whether the section shows a receipt.
-    const {expenseFormLayout, hasReceipt} = useAddReceiptLayout(policy, receiptOptions);
-
     return (
-        <ExpenseFormLayoutContext.Provider value={expenseFormLayout}>
-            <View>
-                {visibilityFlags.hasParticipantSection && <View style={[styles.dividerLine, styles.mv2]} />}
-
-                {/* The receipt preview carries no margin of its own, so the 8px that keeps it clear of the divider
-                    above and of the first field below it goes here. */}
-                <View style={hasReceipt ? styles.mv2 : undefined}>
-                    <ReceiptSection
-                        policy={policy}
-                        shouldHideEmptyState
-                        {...receiptOptions}
-                    />
+        <ExpenseFormFooterLayout
+            policy={policy}
+            receiptOptions={receiptOptions}
+            hasParticipantSection={visibilityFlags.hasParticipantSection}
+        >
+            {!!receiptStitchError && (
+                <View style={styles.mh5}>
+                    <FormHelpMessage message={receiptStitchError} />
                 </View>
+            )}
 
-                {!!receiptStitchError && (
-                    <View style={styles.mh5}>
-                        <FormHelpMessage message={receiptStitchError} />
-                    </View>
-                )}
-
-                <ConfirmationFieldList
+            <ConfirmationFieldList
+                policy={policy}
+                policyTags={policyTags}
+                selectedParticipants={selectedParticipants}
+                amountDisplay={amountDisplay}
+                requiredFlags={requiredFlags}
+                visibilityFlags={visibilityFlags}
+                errorState={errorState}
+                toggleHandlers={toggleHandlers}
+            >
+                <DistanceDetailsFields
                     policy={policy}
-                    policyTags={policyTags}
-                    selectedParticipants={selectedParticipants}
                     amountDisplay={amountDisplay}
-                    requiredFlags={requiredFlags}
-                    visibilityFlags={visibilityFlags}
+                    distanceData={distanceData}
+                    isDescriptionRequired={requiredFlags.isDescriptionRequired}
+                    descriptionHint={requiredFlags.descriptionHint}
                     errorState={errorState}
-                    toggleHandlers={toggleHandlers}
-                >
-                    <DistanceDetailsFields
-                        policy={policy}
-                        amountDisplay={amountDisplay}
-                        distanceData={distanceData}
-                        isDescriptionRequired={requiredFlags.isDescriptionRequired}
-                        errorState={errorState}
-                    />
-                </ConfirmationFieldList>
-            </View>
-        </ExpenseFormLayoutContext.Provider>
+                />
+            </ConfirmationFieldList>
+        </ExpenseFormFooterLayout>
     );
 }
 

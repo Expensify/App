@@ -11,6 +11,12 @@ function getValueUsingPixelRatio(defaultValue: number, maxValue: number): number
     return PixelRatio.getFontScale() * defaultValue > maxValue ? maxValue : defaultValue * PixelRatio.getFontScale();
 }
 
+/** Rendered width of the Expensify wordmark in the flat navigation bar's header. */
+const flatNavigationBarLogoWidth = 92;
+
+/** expensify-wordmark.svg has a 78x19 viewBox, so deriving the height keeps the wordmark's proportions. */
+const flatNavigationBarLogoHeight = (flatNavigationBarLogoWidth * 19) / 78;
+
 const avatarSizes = {
     avatarSizeXxxxSmall: 12,
     avatarSizeXxxSmall: 16,
@@ -31,6 +37,21 @@ const avatarSizes = {
 
 export default {
     bottomTabHeight: 72,
+    floatingTabBarHeight: 60,
+    // How strongly a floating button's color tints its liquid glass, leaving the rest to show what is behind it.
+    floatingButtonGlassTintOpacity: 0.8,
+    // Stronger than the other floating buttons, so the camera button's glass renders close to the solid green buttons in both themes.
+    floatingCameraButtonGlassTintOpacity: 0.9,
+    /** A phone in landscape has little height to spare, so the bar lays each tab's label beside its icon and is shorter. */
+    floatingTabBarLandscapeHeight: 44,
+    floatingTabBarHorizontalInset: 16,
+    // How far the selected pill reaches past its tab on each side, whatever the label's length.
+    floatingTabBarSelectedOverhang: 4,
+    // Space between a label's truncation edge and its tab's edge, so a neighbor's selected pill never reaches the label.
+    floatingTabBarLabelInset: 8,
+    floatingTabBarBottomInset: 8,
+    // Home, Inbox, Spend and Workspaces, with Insights or Account as the fifth.
+    floatingTabBarTabCount: 5,
     // styles.p3 (12) on each side of the DebugTabView row plus the View button (componentSizeNormal).
     debugTabViewHeight: 64,
     contentHeaderHeight: getValueUsingPixelRatio(72, 100),
@@ -45,6 +66,7 @@ export default {
     spacing2: 8,
     rulesDocumentThumbnailMaxWidth: 368,
     rulesDocumentThumbnailHeight: 200,
+    hairlineBorderWidth: 0.5,
     componentBorderRadius: 8,
     componentBorderRadiusSmall: 4,
     componentBorderRadiusMedium: 6,
@@ -98,6 +120,37 @@ export default {
     iconSizeMegaLarge: 105,
     iconSizeMenuItem: 32,
     iconBottomBar: 24,
+    /** Glyph size in the floating tab bar. */
+    iconFloatingTabBar: 20,
+    /** Account avatar size in the floating tab bar. */
+    avatarFloatingTabBar: avatarSizes.avatarSizeXSmall,
+    // The tab glyphs are drawn about this far above the bottom of their box.
+    floatingTabBarGlyphBottomInset: 1,
+    /** Glyph size in the iOS native tab bar. */
+    iconNativeTabBarIOS: 22,
+    /** Icon box size that preserves glyph and label spacing in the iOS native tab bar. */
+    nativeTabIconBoxIOS: 26,
+    /** Glyph size in the iOS native tab bar in landscape, where UIKit lays the label beside a smaller icon. */
+    iconNativeTabBarIOSLandscape: 18,
+    /** Icon box size in the iOS native tab bar in landscape. */
+    nativeTabIconBoxIOSLandscape: 21,
+    /** Radius of the status dot drawn into a native tab bar icon. */
+    nativeTabIconDotRadius: 4,
+    /** Width of the ring cut out of a native tab bar icon around its status dot, as the JS tab bar's dot border does. */
+    nativeTabIconDotCutout: 2,
+    /** Gap between the glyph and the label drawn under it, or beside it in landscape, in an iOS native tab bar icon. */
+    nativeTabIconLabelGap: 6,
+    /** Space between the screen edge and the first tab of the iOS 26 floating tab bar. */
+    iosNativeTabBarHorizontalInset: 25,
+    // UITabBar sizes its items to their icons and gives the selected pill a minimum width, so a label as wide as an even
+    // share of the bar lets that pill reach over the label next to it.
+    iosNativeTabBarLabelInset: 8,
+    /** Material's BottomNavigationView row, without the gesture inset under it. */
+    androidNativeTabBarHeight: 80,
+    /** Material's bar row (androidNativeTabBarHeight) plus the 16 dp Material keeps between a FAB and the bar. */
+    androidNativeTabBarFloatingButtonsBottom: 96,
+    /** UITabBar's row above the home indicator inset, plus the gap to the floating buttons. */
+    iosNativeTabBarFloatingButtonsBottom: 50,
     iconHeader: 48,
     iconSection: 68,
     iouAmountTextSize: 40,
@@ -107,10 +160,15 @@ export default {
     mobileResponsiveWidthBreakpoint: 800,
     tabletResponsiveWidthBreakpoint: 1024,
     sidePanelResponsiveWidthBreakpoint: 1300,
+    connectionCardMinWidth: 300,
     iosSafeAreaInsetsPercentage: 0.7,
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
     sidePanelWidth: 375,
+    // A resizable side panel opens wider than sidePanelWidth and can still be dragged down to it.
+    resizableSidePanelDefaultWidth: 400,
+    // A docked side panel never grows past the point where it would squeeze the central pane beside it below this.
+    centralPaneMinWidth: 400,
     rhpFloatingCardMargin: 12,
     // The frame width compensates for this border.
     rhpFloatingCardBorderWidth: 1,
@@ -122,9 +180,12 @@ export default {
     receiptPreviewWidth: 380,
     widgetHeaderTitleLineHeight: 20,
     homePageLeftColumnMaxWidth: 680,
+    conciergeAskColumnMaxWidth: 720,
     centeredContentMaxWidth: 1200,
     insightsEmptyStateIllustrationSize: 136,
+    insightsAICardWidth: 250,
     minScanTooltipWidth: 320,
+    chartTooltipMinWidth: 200,
     uploadViewMargin: 20,
     chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 260,
@@ -137,6 +198,21 @@ export default {
     searchSidebarExpandedWidth: 260,
     searchSidebarCollapsedWidth: 76,
     navigationTabBarSize: 72,
+    flatNavigationBarWidth: 232,
+    flatNavigationBarItemHeight: 40,
+    flatNavigationBarAccountItemHeight: 56,
+    // Horizontal inset every row's background sits at, inside the bar's own width.
+    flatNavigationBarRowInset: 8,
+    // Space between a row's background edge and its icon. The header and dividers line up with the icon, at the inset plus this.
+    flatNavigationBarRowPadding: 12,
+    flatNavigationBarHeaderHeight: 72,
+    flatNavigationBarCreateButtonHeight: 32,
+    // Centers the design's 204px wide Create button in the bar.
+    flatNavigationBarCreateButtonInset: 14,
+    // Space between the Create button and the first row below it.
+    flatNavigationBarCreateButtonGap: 16,
+    flatNavigationBarLogoWidth,
+    flatNavigationBarLogoHeight,
     popoverMargin: 18,
     pdfPageMaxWidth: 992,
     tooltipZIndex: 10050,
@@ -182,6 +258,7 @@ export default {
     // otherwise Android clamps the descent and clips descenders and underlines at small device font scales.
     lineHeightXSmall: Math.max(getValueUsingPixelRatio(11, 17), 11),
     lineHeightFinePrint: 12,
+    lineHeightChartLabel: 14,
     lineHeightSmall: getValueUsingPixelRatio(14, 16),
     lineHeightNormal: getValueUsingPixelRatio(16, 21),
     lineHeightLarge: getValueUsingPixelRatio(18, 24),
@@ -251,6 +328,7 @@ export default {
     signInLogoWidthPill: 132,
     tabSelectorButtonHeight: 40,
     tabSelectorButtonPadding: 12,
+    tabSelectorScrollFadeWidth: 32,
     tabSelectorScrollMarginInline: 20,
     tabSelectorMaxTabLabelWidth: 256,
     filterPillMaxWidth: 256,
@@ -327,7 +405,6 @@ export default {
     photoUploadPopoverWidth: 335,
     featureTrainingModalWidth: 500,
     onboardingModalWidth: 640,
-    aiFeaturesPromoModalWidth: 440,
     productMarketingWindowWidth: 320,
     productMarketingWindowMaxWidthNarrow: 450,
     productMarketingWindowVisualAspectRatio: 7 / 4,
@@ -335,6 +412,7 @@ export default {
     productMarketingWindowOffset: 20,
     productMarketingWindowOffsetNarrow: 12,
     productMarketingWindowHorizontalOffsetNarrow: 16,
+    wiseGlobalReimbursementsIntroIllustrationSize: 250,
     holdEducationModalWidth: 400,
     changePolicyEducationModalWidth: 400,
     wideConfirmModalWidth: 400,
@@ -381,6 +459,8 @@ export default {
     expensifyCardEmptyIllustrationHeight: 172,
     rulesNewMenuItemMinHeight: 84,
     agentRulePromptInputHeight: 340,
+    describeRulePromptInputHeight: 312,
+    describeNewRulePromptInputHeight: 96,
     cardPreviewWidth: 235,
     cardDetailsActionButtonMinWidth: 140,
     cardScarfOverlayWidth: 264,
@@ -441,15 +521,21 @@ export default {
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
 
-    minimalTopBarOffset: -120,
-    minimalTopBarWithFiltersOffset: -164,
     searchHeaderDefaultOffset: 0,
     searchListContentMarginTop: 120,
     searchListContentWithFiltersMarginTop: 164,
     searchTopBarZIndex: 9,
+    // Above the search page header (zIndex 10), whose top bar floats over the list and reaches the footer when the screen is short.
+    searchFooterZIndex: 11,
 
     searchAutocompleteInputSkeletonHeight: 8,
     searchAutocompleteInputSkeletonWidth: 145,
+
+    reportHistoryLabelGap: 12,
+    reportHistoryConnectorHeight: 12,
+    reportHistoryConnectorMarginVertical: 4,
+    reportHistorySkeletonLabelHeight: 8,
+    reportHistorySkeletonLabelWidth: 160,
 
     errorPageIconWidth: 116,
     errorPageIconHeight: 168,
@@ -563,13 +649,18 @@ export default {
     searchTableColumnGap: 12,
     // The margin and padding each row sits inside on both sides, from `mh5` on its wrapper and `ph3` on the row.
     searchTableRowChromeWidth: (20 + 12) * 2,
-    searchTableRowCheckboxWidth: 24,
     // What the status badge spends around its label, from `condensedBadge`'s horizontal padding and `defaultBadge`'s border.
     statusBadgeChromeWidth: 6 * 2 + 1 * 2,
-    // What an editable cell spends around its value, from `editableCell`'s padding and the border it reserves for its focus ring.
+    // Padding on every side of an editable cell. The edit button sits at this same inset.
+    editableCellPadding: 4,
+    // Border kept on each side so the focus ring does not shift the value.
+    editableCellBorderWidth: 1,
+    // What an editable cell spends around its value, from its padding and the border it reserves for the focus ring.
     editableCellChromeWidth: 4 * 2 + 1 * 2,
-    // What the edit button covers at the trailing edge of an editable cell, from `editableCellEditButton` and the inset it sits at.
+    // What the edit button covers at the trailing edge of an editable cell, from its size and the inset it sits at.
+    editableCellEditButtonSize: 28,
     editableCellEditButtonWidth: 28 + 4,
     // How short a value has to be before that edit button is worth reserving room for.
     narrowEditableContentWidth: 60,
+    pieChartLegendMargin: 32,
 } as const;

@@ -28,7 +28,7 @@ import type {Report, ReportNameValuePairs} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 const reportFilter = (reportOptions: Array<SearchOption<Report>>, reportNameValuePairs: OnyxCollection<ReportNameValuePairs>) =>
@@ -74,43 +74,35 @@ function DynamicTaskShareDestinationSelectorModal() {
 
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
 
-    const filteredOptions = useMemo(() => {
-        const filteredReports = reportFilter(availableOptions.recentReports as Array<SearchOption<Report>>, reportNameValuePairs);
-        return {
-            ...availableOptions,
-            recentReports: filteredReports ?? [],
-        };
-    }, [availableOptions, reportNameValuePairs]);
+    const filteredReports = reportFilter(availableOptions.recentReports as Array<SearchOption<Report>>, reportNameValuePairs);
+    const filteredOptions = {
+        ...availableOptions,
+        recentReports: filteredReports ?? [],
+    };
 
-    const data = useMemo(
-        () =>
-            filteredOptions.recentReports && filteredOptions.recentReports.length > 0
-                ? filteredOptions.recentReports.map((option) => ({
-                      ...option,
-                      text: option.text ?? '',
-                      alternateText: option.alternateText ?? undefined,
-                      keyForList: option.keyForList ?? '',
-                      isDisabled: option.isDisabled ?? undefined,
-                      login: option.login ?? undefined,
-                  }))
-                : [],
-        [filteredOptions.recentReports],
-    );
+    const data =
+        filteredOptions.recentReports && filteredOptions.recentReports.length > 0
+            ? filteredOptions.recentReports.map((option) => ({
+                  ...option,
+                  text: option.text ?? '',
+                  alternateText: option.alternateText ?? undefined,
+                  keyForList: option.keyForList ?? '',
+                  isDisabled: option.isDisabled ?? undefined,
+                  login: option.login ?? undefined,
+              }))
+            : [];
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
-    const textInputOptions = useMemo(
-        () => ({
-            onChangeText: setSearchTerm,
-            value: searchTerm,
-            headerMessage: getHeaderMessage(filteredOptions.recentReports && filteredOptions.recentReports.length !== 0, false, searchTerm, countryCode, false),
-            label: translate('selectionList.nameEmailOrPhoneNumber'),
-            hint: isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '',
-        }),
-        [countryCode, filteredOptions.recentReports, searchTerm, setSearchTerm, translate, isOffline],
-    );
+    const textInputOptions = {
+        onChangeText: setSearchTerm,
+        value: searchTerm,
+        headerMessage: getHeaderMessage(translate, filteredOptions.recentReports && filteredOptions.recentReports.length !== 0, false, searchTerm, countryCode, false),
+        label: translate('selectionList.nameEmailOrPhoneNumber'),
+        hint: isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '',
+    };
 
     return (
         <ScreenWrapper

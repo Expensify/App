@@ -69,7 +69,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -181,9 +181,13 @@ function IOURequestStepDistanceOdometer({
     }, [keyboardAvoidingViewInstanceKey]);
     const {keyboardVerticalOffset, onLayout: measureOwnLayout} = useOdometerKeyboardVerticalOffset();
 
-    const shouldUseDefaultExpensePolicy = useMemo(
-        () => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserAccountIDParam),
-        [iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserAccountIDParam],
+    const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(
+        iouType,
+        defaultExpensePolicy,
+        amountOwed,
+        userBillingGracePeriodEnds,
+        ownerBillingGracePeriodEnd,
+        currentUserAccountIDParam,
     );
     const shouldAutoReportToDefaultWorkspace = shouldUseDefaultExpensePolicy && (!!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting);
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
@@ -295,7 +299,7 @@ function IOURequestStepDistanceOdometer({
     })();
 
     // Get image source for web (blob URL) or native (URI string)
-    const getImageSource = useCallback((image: FileObject | string | {uri?: string} | undefined): string | undefined => {
+    const getImageSource = (image: FileObject | string | {uri?: string} | undefined): string | undefined => {
         if (!image) {
             return undefined;
         }
@@ -313,10 +317,10 @@ function IOURequestStepDistanceOdometer({
         }
         // Native: Object with uri property (fallback)
         return image?.uri;
-    }, []);
+    };
 
-    const startImageSource = useMemo(() => getImageSource(odometerStartImage), [getImageSource, odometerStartImage]);
-    const endImageSource = useMemo(() => getImageSource(odometerEndImage), [getImageSource, odometerEndImage]);
+    const startImageSource = getImageSource(odometerStartImage);
+    const endImageSource = getImageSource(odometerEndImage);
 
     const buttonText = (() => {
         if (shouldSkipConfirmation) {
@@ -379,13 +383,13 @@ function IOURequestStepDistanceOdometer({
         }
     };
 
-    const navigateBack = useCallback(() => {
+    const navigateBack = () => {
         if (isEditingConfirmation) {
             Navigation.goBack(confirmationRoute);
             return;
         }
         Navigation.goBack();
-    }, [confirmationRoute, isEditingConfirmation]);
+    };
 
     const {handlePressStartImage, handlePressEndImage} = useOdometerImageHandlers({
         action,
@@ -417,7 +421,7 @@ function IOURequestStepDistanceOdometer({
             if (isEditingSplit && transaction) {
                 setDraftSplitTransaction(
                     transaction.transactionID,
-                    splitDraftTransaction,
+                    currentTransaction,
                     {
                         distance: calculatedDistance,
                         odometerStart: start,
@@ -606,7 +610,7 @@ function IOURequestStepDistanceOdometer({
         onVisibilityChange: setIsDiscardModalVisible,
     });
 
-    const handleSaveForLater = useCallback(async () => {
+    const handleSaveForLater = async () => {
         shouldBypassDiscardConfirmationRef.current = true;
 
         const normalizedStart = DistanceRequestUtils.normalizeOdometerText(startReading, fromLocaleDigit);
@@ -637,7 +641,7 @@ function IOURequestStepDistanceOdometer({
             return;
         }
         Navigation.closeRHPFlow();
-    }, [fromLocaleDigit, startReading, endReading, odometerStartImage, odometerEndImage, translate, setFormError]);
+    };
 
     return (
         <StepScreenWrapper

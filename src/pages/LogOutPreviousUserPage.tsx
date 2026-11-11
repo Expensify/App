@@ -55,14 +55,15 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         if (isSupportalLogin) {
             // The public transition page may already have started this exact sign-in before the Public/Auth
             // navigator swap re-mounted us here. Firing it again trips the support-token rate limit, so skip
-            // the duplicate but still finish navigating home.
+            // the duplicate but still finish the navigation.
             if (shortLivedAuthToken !== getLastShortAuthToken()) {
                 signInWithSupportAuthToken(shortLivedAuthToken);
             }
             Navigation.isNavigationReady().then(() => {
                 // We must call goBack() to remove the /transition route from history
                 Navigation.goBack();
-                Navigation.navigate(ROUTES.HOME);
+                // A workspace/new link goes Home, because App.setUpPoliciesAndNavigate owns that route, as in the effect below
+                Navigation.navigate(exitTo && exitTo !== ROUTES.WORKSPACE_NEW ? exitTo : ROUTES.HOME);
             });
             return;
         }
@@ -100,7 +101,8 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialURL, isAccountLoading]);
 
-    return <FullScreenLoadingIndicator />;
+    // No "Go Back" button: going back would pop /transition into the outgoing user's session mid sign-out.
+    return <FullScreenLoadingIndicator shouldUseGoBackButton={false} />;
 }
 
 export default LogOutPreviousUserPage;

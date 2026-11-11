@@ -41,6 +41,7 @@ type BaseVideoPlayerProps = VideoPlayerProps & {reportID: string};
 function BaseVideoPlayer(props: BaseVideoPlayerProps) {
     const {
         url,
+        fileName,
         onSourceLoaded,
         isLooping = false,
         style,
@@ -557,6 +558,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
             {/* We need to wrap the video component in a component that will catch unhandled pointer events. Otherwise, these
             events will bubble up the tree, and it will cause unexpected press behavior. */}
             <PressableWithoutFeedback
+                sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.CONTAINER}
                 accessible={false}
                 style={[styles.cursorDefault, style]}
             >
@@ -651,6 +653,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
                                         duration={duration || 0}
                                         position={currentTime || 0}
                                         url={url}
+                                        fileName={fileName}
                                         videoPlayerRef={videoPlayerRef}
                                         videoViewRef={videoViewRef}
                                         isPlaying={isPlaying}

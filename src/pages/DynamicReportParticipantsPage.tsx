@@ -33,6 +33,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {isPolicyGuest} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
     canInviteMembersToReport,
@@ -92,6 +93,8 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
     const isGroupChat = isGroupChatUtils(report);
     const isCurrentUserGroupChatAdmin = isGroupChat && isCurrentUserAdmin;
     const policy = usePolicy(report?.policyID);
+    const isGuestAnnounceRoom = isAnnounceRoom(report) && isPolicyGuest(policy);
+    const shouldShowNotFoundView = !report || isArchivedNonExpenseReport(report, isReportArchived) || isSelfDM(report) || isGuestAnnounceRoom;
     const shouldShowInviteButton = canInviteMembersToReport(report, policy, isReportArchived, currentUserAccountID);
     const {isOffline} = useNetwork();
     const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
@@ -122,7 +125,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
     const activeParticipants = participantsForDisplay.filter((participant) => isOffline || !participant.isPendingDelete);
 
     useEffect(() => {
-        if (!isAnnounceRoom(report)) {
+        if (!isAnnounceRoom(report) || isGuestAnnounceRoom) {
             return;
         }
         openRoomMembersPage(report.reportID);
@@ -240,6 +243,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
         <View style={[pageGutter, styles.w100]}>
             {shouldShowBulkActionsButton ? (
                 <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT.PARTICIPANTS_SELECTION_DROPDOWN}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     shouldAlwaysShowDropdownMenu
                     pressOnEnter
@@ -253,6 +257,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                 />
             ) : (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT.PARTICIPANTS_INVITE_BUTTON}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_INVITE.path))}
                     innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
@@ -271,7 +276,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
             style={[styles.defaultModalContainer]}
             testID="DynamicReportParticipantsPage"
         >
-            <FullPageNotFoundView shouldShow={!report || isArchivedNonExpenseReport(report, isReportArchived) || isSelfDM(report)}>
+            <FullPageNotFoundView shouldShow={shouldShowNotFoundView}>
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : headerTitle}
                     onBackButtonPress={() => {

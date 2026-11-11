@@ -82,6 +82,36 @@ describe('CollectDepositAccountUtils', () => {
             expect(getValidationErrors(values, fieldsMap, translate)).toEqual({});
         });
 
+        it('rejects a US routing number that fails the ABA checksum', () => {
+            // Given nine digits that pass the mapping's regex but are not a real routing number
+            const usFields = getBankAccountFields('US', 'USD', LOCAL);
+            const values = {bankCountry: 'US', routingNumber: '123456789'} as CollectDepositAccountForm;
+
+            // When validating
+            const errors = getValidationErrors(values, usFields, translate);
+
+            // Then it is rejected here rather than by the API, matching the other bank account flows
+            expect(errors.routingNumber).toBe('common.error.invalidField:Routing Number');
+        });
+
+        it('accepts a US routing number that passes the ABA checksum', () => {
+            // Given a real routing number
+            const usFields = getBankAccountFields('US', 'USD', LOCAL);
+            const values = {bankCountry: 'US', routingNumber: '011401533'} as CollectDepositAccountForm;
+
+            // Then the routing number itself is not reported, so a valid account can still be submitted
+            expect(getValidationErrors(values, usFields, translate).routingNumber).toBeUndefined();
+        });
+
+        it('does not apply the US checksum to another country with nine digit routing numbers', () => {
+            // Given an RU account, whose bank identifier is also nine digits but is not an ABA number
+            const ruFields = getBankAccountFields('RU', 'RUB', LOCAL);
+            const values = {bankCountry: 'RU', routingNumber: '123456789'} as CollectDepositAccountForm;
+
+            // Then it is accepted, because the checksum only applies to US accounts
+            expect(getValidationErrors(values, ruFields, translate).routingNumber).toBeUndefined();
+        });
+
         it('rejects a value that only partly matches the validator', () => {
             // Given a routing number one digit longer than the mapping allows
             const values = {routingNumber: '1234567'} as CollectDepositAccountForm;

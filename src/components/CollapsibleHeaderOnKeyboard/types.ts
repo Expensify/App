@@ -1,8 +1,9 @@
 type CollapsibleHeaderOnKeyboardProps = {
     children: React.ReactNode;
-    /** Additional vertical space (in px) occupied on screen by elements other than the wrapped
-     *  component, keyboard, and focused input — e.g. a tab bar below the list.
-     *  The collapse target is reduced by this amount so those elements are not counted twice. */
+    /**
+     * Additional vertical space (in px) occupied on screen by elements other than the wrapped
+     * component, keyboard, and focused input.
+     */
     collapsibleHeaderOffset?: number;
 
     /**
@@ -10,7 +11,25 @@ type CollapsibleHeaderOnKeyboardProps = {
      * regardless if there is enough space for the input above the keyboard.
      */
     alwaysCollapseHeaderOnKeyboard?: boolean;
+
+    /**
+     * If true, the collapsible behavior is disabled and the header remains visible.
+     */
+    disabled?: boolean;
 };
 
-// eslint-disable-next-line import/prefer-default-export
-export type {CollapsibleHeaderOnKeyboardProps};
+type CollapsibleHeaderOnKeyboardGroupProps = {
+    children: React.ReactNode;
+
+    /**
+     * Additional vertical space (in px) occupied on screen by elements that are neither members of this group,
+     * the keyboard, nor the focused input.
+     */
+    collapsibleHeaderOffset?: number;
+};
+
+type CollapsibleHeaderOnKeyboardGroupMemberProps = {
+    children: React.ReactNode;
+};
+
+export type {CollapsibleHeaderOnKeyboardProps, CollapsibleHeaderOnKeyboardGroupProps, CollapsibleHeaderOnKeyboardGroupMemberProps};

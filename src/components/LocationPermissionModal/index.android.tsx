@@ -63,9 +63,9 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                 iconHeight: 120,
                 shouldCenterIcon: true,
                 shouldReverseStackedButtons: true,
+                shouldHideOnBackdropPress: true,
                 onBackdropPress: () => {
                     dismissedViaBackdropRef.current = true;
-                    closeModal();
                     resetPermissionFlowRef.current();
                 },
                 isConfirmLoading: false,
