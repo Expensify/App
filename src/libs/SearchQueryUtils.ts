@@ -19,6 +19,7 @@ import type {
     SearchFooterTotal,
     SearchQueryJSON,
     SearchQueryString,
+    SearchSortBy,
     SearchWithdrawalType,
     SelectedTransactions,
     SyntaxFilterKey,
@@ -889,6 +890,21 @@ function getPositiveHasFilterValues(queryJSON: SearchQueryJSON | undefined): Has
  */
 function hasValuesIncludeViolationFilter(hasValues: readonly string[] | undefined): boolean {
     return !!hasValues?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION) || !!hasValues?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
+}
+
+/**
+ * Returns the column the rows are sorted by on the client.
+ */
+function getEffectiveSortBy(queryJSON: SearchQueryJSON | undefined): SearchSortBy | undefined {
+    if (queryJSON?.sortBy !== CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS) {
+        return queryJSON?.sortBy;
+    }
+
+    if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && queryHasViolationFilter(queryJSON)) {
+        return queryJSON.sortBy;
+    }
+
+    return CONST.SEARCH.TABLE_COLUMNS.DATE;
 }
 
 /**
@@ -3522,6 +3538,7 @@ export {
     queryHasViolationFilter,
     getPositiveHasFilterValues,
     hasValuesIncludeViolationFilter,
+    getEffectiveSortBy,
 };
 
 export type {BuildUserReadableQueryStringParams};
