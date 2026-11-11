@@ -235,6 +235,7 @@ jest.mock('@components/Search/SearchContext', () => ({
 }));
 
 const CURRENT_USER_ACCOUNT_ID = 1;
+const RESTRICTED_POLICY_OWNER_ACCOUNT_ID = 2;
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
@@ -500,8 +501,8 @@ describe('useSearchBulkActions - Pay option', () => {
         mockAreAllMatchingItemsSelected = true;
         mockBulkPayButtonOptions = [{text: 'Mark as paid', key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}];
         mockSelectedReports = [makeSelectedReport({canPay: true}), makeSelectedReport({reportID: '2', policyID: 'policy2', canPay: false, action: CONST.SEARCH.ACTION_TYPES.VIEW})];
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy2`, {id: 'policy2', role: CONST.POLICY.ROLE.ADMIN});
-        jest.mocked(shouldRestrictUserBillableActions).mockImplementation((policy) => policy?.id === 'policy2');
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy2`, {id: 'policy2', role: CONST.POLICY.ROLE.ADMIN, ownerAccountID: RESTRICTED_POLICY_OWNER_ACCOUNT_ID});
+        jest.mocked(shouldRestrictUserBillableActions).mockImplementation((policy) => policy?.ownerAccountID === RESTRICTED_POLICY_OWNER_ACCOUNT_ID);
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
         await waitFor(() => {
