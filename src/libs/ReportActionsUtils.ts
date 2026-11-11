@@ -26,6 +26,7 @@ import type {
     Transaction,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
+import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type {
     DecisionName,
     JoinWorkspaceResolution,
@@ -57,7 +58,7 @@ import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 
 import {isBillPayHistoryAction} from './BillPayReportActionUtils';
-import {getBankName, getEffectiveFeedReimbursable, isCardPendingActivate} from './CardUtils';
+import {getBankName, getCustomOrFormattedFeedName, getEffectiveFeedReimbursable, isCardPendingActivate} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertAmountToDisplayString, convertToBackendAmount, convertToShortDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -441,7 +442,7 @@ function hasDeletedMessage(reportAction: OnyxInputOrEntry<ReportAction | Optimis
         return true;
     }
 
-    const originalMessage = getOriginalMessage(reportAction);
+    const originalMessage = getOriginalMessage(reportAction as OnyxInputOrEntry<ReportAction>);
     return !!originalMessage && typeof originalMessage === 'object' && 'deleted' in originalMessage && !!originalMessage?.deleted;
 }
 
@@ -864,6 +865,15 @@ function getElsewherePaymentReportActionMessage(translate: LocalizedTranslate, o
     return translate('iou.paidElsewhere', payer, originalMessage?.comment?.trim());
 }
 
+function getElsewherePaymentReportActionMessageBG(originalMessage: OriginalMessageIOU | undefined, payer?: string): string {
+    if (originalMessage?.isSubmitterMarkedPaymentReceived) {
+        return `${payer ? `${payer} ` : ''}received payment`;
+    }
+
+    const comment = originalMessage?.comment?.trim();
+    return `${payer ? `${payer} ` : ''}marked as paid${comment ? `, saying "${comment}"` : ''}`;
+}
+
 /**
  * Builds the payment message for a cross-border FX reimbursement, which reports the amount credited to the employee
  * in their deposit currency plus both account last-4s, since the company and employee move different currencies.
@@ -1113,24 +1123,23 @@ function isWhisperActionTargetedToOthers(reportAction: OnyxInputOrEntry<ReportAc
     return !getWhisperedTo(reportAction).includes(effectiveCurrentUserAccountID);
 }
 
-/**
- * Whether the action asks to notify only its actionableForAccountIDs and the current user isn't one of them
- */
 function isPushScopedToOthers(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID: number): boolean {
     const originalMessage = reportAction ? getOriginalMessage(reportAction) : undefined;
-    if (
-        !originalMessage ||
-        typeof originalMessage !== 'object' ||
-        !('shouldScopePushToActionableAccounts' in originalMessage) ||
-        originalMessage.shouldScopePushToActionableAccounts !== true
-    ) {
+    if (!originalMessage?.shouldScopePushToActionableAccounts || !originalMessage.actionableForAccountIDs?.length) {
         return false;
     }
-    const actionableForAccountIDs: unknown = 'actionableForAccountIDs' in originalMessage ? originalMessage.actionableForAccountIDs : undefined;
-    if (!Array.isArray(actionableForAccountIDs) || actionableForAccountIDs.length === 0) {
+    return !originalMessage.actionableForAccountIDs.some((accountID) => accountID === currentUserAccountID);
+}
+
+/**
+ * Whether the action is marked as important for the current user via importantForAccountIDs
+ */
+function isImportantForCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID: number): boolean {
+    const originalMessage = reportAction ? getOriginalMessage(reportAction) : undefined;
+    if (!originalMessage?.importantForAccountIDs?.length) {
         return false;
     }
-    return !actionableForAccountIDs.some((accountID) => accountID === currentUserAccountID);
+    return originalMessage.importantForAccountIDs.some((accountID) => accountID === currentUserAccountID);
 }
 
 function isReimbursementQueuedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED> {
@@ -6036,22 +6045,39 @@ function getIntegrationSyncFailedMessage(translate: LocalizedTranslate, action: 
     return message;
 }
 
+/**
+ * Returns the feed name the company cards page shows, so admins recognize the feed in the message.
+ */
+function getCompanyCardConnectionBrokenFeedName(translate: LocalizedTranslate, feedName: string, bank: CompanyCardFeedWithNumber | undefined): string {
+    if (!bank) {
+        return feedName;
+    }
+
+    // A feed with no custom name is saved with its bank as the feedName.
+    const savedCustomFeedName = feedName === bank ? undefined : feedName;
+    return getCustomOrFormattedFeedName(translate, bank, savedCustomFeedName, false) ?? feedName;
+}
+
 function getCompanyCardConnectionBrokenMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>): string {
-    const {feedName, policyID} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN>) ?? {feedName: '', policyID: ''};
+    const {feedName, bank, policyID} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN>) ?? {
+        feedName: '',
+        bank: undefined,
+        policyID: '',
+    };
     const workspaceCompanyCardRoute = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)}`;
     return translate('report.actions.type.companyCardConnectionBroken', {
-        feedName,
+        feedName: getCompanyCardConnectionBrokenFeedName(translate, feedName, bank),
         workspaceCompanyCardRoute,
     });
 }
 
 function getCompanyCardConnectionBroken30DaysMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>): string {
     const originalMessage = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS) ? getOriginalMessage(action) : undefined;
-    const {feedName, policyID} = originalMessage ?? {feedName: '', policyID: ''};
+    const {feedName, bank, policyID} = originalMessage ?? {feedName: '', bank: undefined, policyID: ''};
     const workspaceCompanyCardRoute = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)}`;
     const workspaceCompanyCardSettingsRoute = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID)}`;
     return translate('report.actions.type.companyCardConnectionBroken30Days', {
-        feedName,
+        feedName: getCompanyCardConnectionBrokenFeedName(translate, feedName, bank),
         workspaceCompanyCardRoute,
         workspaceCompanyCardSettingsRoute,
     });
@@ -6178,6 +6204,7 @@ export {
     resolveTransactionThreadReport,
     getCrossBorderReimbursedMessage,
     getElsewherePaymentReportActionMessage,
+    getElsewherePaymentReportActionMessageBG,
     getMarkedReimbursedMessage,
     getReimbursedMessage,
     getPaymentMessageWithExpectedDate,
@@ -6292,6 +6319,7 @@ export {
     hasPendingDEWApprove,
     isWhisperActionTargetedToOthers,
     isPushScopedToOthers,
+    isImportantForCurrentUser,
     isCategoryModificationAction,
     isTagModificationAction,
     isIOUActionMatchingTransactionList,

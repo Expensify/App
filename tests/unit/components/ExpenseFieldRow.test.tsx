@@ -38,6 +38,7 @@ describe('ExpenseFieldRow', () => {
             // Given a row whose label answers "what goes here" rather than describing the value
             render(
                 <ExpenseFieldRow
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     value={FIELD_VALUE}
                     rightLabel={RIGHT_LABEL}
@@ -55,6 +56,7 @@ describe('ExpenseFieldRow', () => {
             // Given a row whose label describes the value itself, e.g. a category Concierge picked
             render(
                 <ExpenseFieldRow
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     value={FIELD_VALUE}
                     rightLabel={RIGHT_LABEL}
@@ -72,6 +74,7 @@ describe('ExpenseFieldRow', () => {
             // Given a row with no value yet
             render(
                 <ExpenseFieldRow
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     rightLabel={RIGHT_LABEL}
                     onPress={jest.fn()}
@@ -90,6 +93,7 @@ describe('ExpenseFieldRow', () => {
             const onPress = jest.fn();
             render(
                 <ExpenseFieldRow
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     value={FIELD_VALUE}
                     onPress={onPress}
@@ -112,6 +116,7 @@ describe('ExpenseFieldRow', () => {
             const onPress = jest.fn();
             render(
                 <ExpenseFieldRow
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     value={FIELD_VALUE}
                     onPress={onPress}
@@ -131,6 +136,7 @@ describe('ExpenseFieldRow', () => {
             const onPress = jest.fn();
             render(
                 <ExpenseFieldRow
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     value={FIELD_VALUE}
                     isInteractive={false}
@@ -154,6 +160,7 @@ describe('ExpenseFieldRow', () => {
             // Given a row whose list is open
             render(
                 <ExpenseFieldRow
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     value={FIELD_VALUE}
                     onPress={jest.fn()}
@@ -174,6 +181,7 @@ describe('ExpenseFieldRow', () => {
             // Given a dropdown row whose list is not open
             render(
                 <ExpenseFieldRow
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     value={FIELD_VALUE}
                     onPress={jest.fn()}
@@ -191,6 +199,7 @@ describe('ExpenseFieldRow', () => {
             // Given a row that opens a page rather than a list in place
             render(
                 <ExpenseFieldRow
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     value={FIELD_VALUE}
                     onPress={jest.fn()}
@@ -212,6 +221,7 @@ describe('ExpenseFieldRow', () => {
             render(
                 <LocaleContextProvider>
                     <ExpenseFieldRow
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                         name={FIELD_NAME}
                         value={FIELD_VALUE}
                         accessibilityLabel={ACCESSIBILITY_LABEL}
@@ -231,6 +241,7 @@ describe('ExpenseFieldRow', () => {
             render(
                 <LocaleContextProvider>
                     <ExpenseFieldRow
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                         name={FIELD_NAME}
                         value={FIELD_VALUE}
                         accessibilityLabel={ACCESSIBILITY_LABEL}
@@ -252,6 +263,7 @@ describe('ExpenseFieldRow', () => {
             // Given a field nobody can change
             render(
                 <ExpenseFieldRow
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     value={FIELD_VALUE}
                     isInteractive={false}
@@ -267,6 +279,31 @@ describe('ExpenseFieldRow', () => {
             // borderless push row, and is greyed the way a disabled text input is
             expect(row).toHaveStyle({borderWidth: result.current.moneyRequestFieldRow.borderWidth});
             expect(row).toHaveStyle(result.current.moneyRequestFieldRowDisabled);
+        });
+    });
+
+    describe('layout reporting', () => {
+        it('reports the layout of the bordered box to whatever anchors to the row', () => {
+            // Given a row wrapped by something that needs its position, e.g. the rate row's educational tooltip,
+            // which only shows once its child has reported a layout
+            const onLayout = jest.fn();
+            render(
+                <ExpenseFieldRow
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                    name={FIELD_NAME}
+                    value={FIELD_VALUE}
+                    onPress={jest.fn()}
+                    onLayout={onLayout}
+                    testID="category-row"
+                />,
+            );
+
+            // When the bordered box is laid out
+            const layoutEvent = {nativeEvent: {layout: {x: 0, y: 0, width: 300, height: 64}}};
+            fireEvent(screen.getByTestId('category-row'), 'layout', layoutEvent);
+
+            // Then the layout reaches the caller instead of being dropped, so the tooltip can measure and show
+            expect(onLayout).toHaveBeenCalledWith(layoutEvent);
         });
     });
 });

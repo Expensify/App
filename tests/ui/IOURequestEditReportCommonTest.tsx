@@ -47,6 +47,7 @@ const renderIOURequestEditReportCommon = ({
     isPerDiemRequest = false,
     selectReport = jest.fn(),
     createReport,
+    selectNoReport,
     onNavigateAway,
 }: {
     selectedReportID: string;
@@ -59,12 +60,16 @@ const renderIOURequestEditReportCommon = ({
     isPerDiemRequest?: boolean;
     selectReport?: jest.Mock;
     createReport?: jest.Mock;
+    selectNoReport?: jest.Mock;
     onNavigateAway?: jest.Mock;
 }) =>
     render(
         <NavigationContainer>
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
                 <IOURequestEditReportCommon
+                    createReportSentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                    autoReportSentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                    removeFromReportSentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     selectedReportID={selectedReportID}
                     selectedPolicyID={selectedPolicyID}
                     transactionPolicyID={transactionPolicyID}
@@ -74,6 +79,7 @@ const renderIOURequestEditReportCommon = ({
                     isDistanceRequest={isDistanceRequest}
                     selectReport={selectReport}
                     createReport={createReport}
+                    selectNoReport={selectNoReport}
                     onNavigateAway={onNavigateAway}
                     backTo=""
                     isPerDiemRequest={isPerDiemRequest}
@@ -280,6 +286,30 @@ describe('IOURequestEditReportCommon', () => {
 
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
             expect(selectReport).toHaveBeenCalledTimes(1);
+        });
+
+        it('offers no report for a new expense, even with no report to list', async () => {
+            // Given a new expense on a workspace with no outstanding report, which can still go on no report at all
+            const selectNoReport = jest.fn();
+
+            // When the list renders and None is pressed
+            renderIOURequestEditReportCommon({selectedReportID: '', selectNoReport});
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByText('None'), {});
+
+            // Then the list shows the option rather than the not found page, and the pick is handed on
+            expect(selectNoReport).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not offer no report unless the caller supports it', async () => {
+            // Given a list opened for an expense that cannot be left off a report, such as a saved one being moved
+            // When the list renders
+            renderIOURequestEditReportCommon({selectedReportID: '', createReport: jest.fn()});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then only the new report option is offered
+            expect(screen.getByText('Create report')).toBeOnTheScreen();
+            expect(screen.queryByText('None')).toBeNull();
         });
 
         it('blocks creating a report for a manual distance expense with commuter exclusions', async () => {

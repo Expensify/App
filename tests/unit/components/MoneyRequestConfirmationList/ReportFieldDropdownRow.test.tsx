@@ -20,7 +20,7 @@ import Onyx from 'react-native-onyx';
 import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key, localeCompare: (a: string, b: string) => a.localeCompare(b)}));
-jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn()}));
+jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn(), navigationRef: {getCurrentRoute: jest.fn(() => undefined)}}));
 jest.mock('@hooks/useReportAttributes', () => ({useDerivedReportNameByReportID: () => undefined}));
 
 let mockIsAnchoredDropdownsBetaEnabled = true;
@@ -34,11 +34,13 @@ jest.mock('@hooks/useOutstandingReports', () => () => mockOutstandingReports);
 
 // Records what the row decided and renders its list straight away, so each test can read both without pressing anything.
 let mockShouldOpenInDropdown: boolean | undefined;
-type ExpenseFieldDropdownMockProps = Pick<ComponentProps<typeof ExpenseFieldDropdown>, 'shouldOpenInDropdown' | 'renderDropdown'>;
+let mockIsInteractive: boolean | undefined;
+type ExpenseFieldDropdownMockProps = Pick<ComponentProps<typeof ExpenseFieldDropdown>, 'shouldOpenInDropdown' | 'renderDropdown' | 'isInteractive'>;
 jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown', () => {
-    return ({shouldOpenInDropdown, renderDropdown}: ExpenseFieldDropdownMockProps) => {
+    return ({shouldOpenInDropdown, renderDropdown, isInteractive}: ExpenseFieldDropdownMockProps) => {
         const {MODAL} = jest.requireActual<{default: typeof CONST}>('@src/CONST').default;
         mockShouldOpenInDropdown = shouldOpenInDropdown;
+        mockIsInteractive = isInteractive;
         return renderDropdown({
             isVisible: true,
             onClose: () => {},
@@ -68,13 +70,14 @@ const otherOutstandingReport: Report = {reportID: 'report2', reportName: 'Other 
 type RenderParams = {
     action?: IOUAction;
     isPerDiemRequest?: boolean;
+    reportID?: string;
 };
 
-const renderReportRow = ({action = CONST.IOU.ACTION.CREATE, isPerDiemRequest = false}: RenderParams = {}) =>
+const renderReportRow = ({action = CONST.IOU.ACTION.CREATE, isPerDiemRequest = false, reportID = CHAT_REPORT_ID}: RenderParams = {}) =>
     render(
         <ConfirmationFieldsProvider
             transactionID={TRANSACTION_ID}
-            reportID={CHAT_REPORT_ID}
+            reportID={reportID}
             action={action}
             iouType={CONST.IOU.TYPE.SUBMIT}
             isPolicyExpenseChat
@@ -83,7 +86,7 @@ const renderReportRow = ({action = CONST.IOU.ACTION.CREATE, isPerDiemRequest = f
                 <ReportField
                     selectedParticipants={[{policyID: POLICY_ID, reportID: CHAT_REPORT_ID, isPolicyExpenseChat: true, selected: true}]}
                     iouType={CONST.IOU.TYPE.SUBMIT}
-                    reportID={CHAT_REPORT_ID}
+                    reportID={reportID}
                     reportActionID={undefined}
                     action={action}
                     transactionID={TRANSACTION_ID}
@@ -101,9 +104,10 @@ describe('ReportField', () => {
 
     beforeEach(async () => {
         mockIsAnchoredDropdownsBetaEnabled = true;
-        // A new expense's row only offers a choice once there is more than one report it could go on.
+        // Two reports the expense could go on, which leaves a choice to make whether or not the list offers a new report.
         mockOutstandingReports = [outstandingReport, otherOutstandingReport];
         mockShouldOpenInDropdown = undefined;
+        mockIsInteractive = undefined;
         mockDropdownTransactionID = undefined;
         jest.mocked(Navigation.navigate).mockClear();
         await Onyx.clear();
@@ -140,17 +144,98 @@ describe('ReportField', () => {
         });
     });
 
-    it('does not open the list when there is no report to choose', async () => {
-        // Given a workspace with no outstanding report, where the row reads as a locked field
+    it('opens the list when the workspace has no report open yet', async () => {
+        // Given a workspace with no outstanding report, where the expense would go on a new report
         mockOutstandingReports = [];
 
         // When the form renders the report row
         renderReportRow();
 
-        // Then the row does not open a list, in place or otherwise
+        // Then the row still opens its list, which offers a new report or no report at all
         await waitFor(() => {
-            expect(mockShouldOpenInDropdown).toBe(false);
+            expect(mockShouldOpenInDropdown).toBe(true);
         });
+        expect(mockIsInteractive).toBe(true);
+    });
+
+    it('opens the list when the workspace has only the report the expense goes on', async () => {
+        // Given an expense created in a workspace chat whose only outstanding report is the one it will go on
+        mockOutstandingReports = [outstandingReport];
+
+        // When the form renders the report row
+        renderReportRow();
+
+        // Then the row still opens its list, which offers a new report next to that one
+        await waitFor(() => {
+            expect(mockShouldOpenInDropdown).toBe(true);
+        });
+        expect(mockIsInteractive).toBe(true);
+    });
+
+    it('opens the full-page selector when the workspace has only one report and the beta is off', async () => {
+        // Given a workspace with one outstanding report, for a user without the anchored dropdowns beta
+        mockIsAnchoredDropdownsBetaEnabled = false;
+        mockOutstandingReports = [outstandingReport];
+
+        // When the form renders the report row
+        renderReportRow();
+
+        // Then the row can be changed, so the user can pick a new report instead, through the full-page selector
+        await waitFor(() => {
+            expect(mockIsInteractive).toBe(true);
+        });
+        expect(mockShouldOpenInDropdown).toBe(false);
+    });
+
+    it('keeps the row locked when editing an expense on the only report it can go on', async () => {
+        // Given a saved expense on a report, in a workspace with no other outstanding report. The list can hide its new
+        // report option for an edit, which would leave nothing but the report the expense is already on
+        mockOutstandingReports = [outstandingReport];
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${outstandingReport.reportID}`, {
+            ...outstandingReport,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {reportID: outstandingReport.reportID});
+        await waitForBatchedUpdates();
+
+        // When the form renders the report row to edit it
+        renderReportRow({action: CONST.IOU.ACTION.EDIT});
+
+        // Then the row reads as a locked field rather than opening a list with nothing to choose
+        await waitFor(() => {
+            expect(mockIsInteractive).toBe(false);
+        });
+    });
+
+    it('keeps the row editable when editing an unreported expense with one report to move it to', async () => {
+        // Given a saved expense that is on no report, which always keeps the new report option, and one outstanding report
+        mockOutstandingReports = [outstandingReport];
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
+        await waitForBatchedUpdates();
+
+        // When the form renders the report row to edit it
+        renderReportRow({action: CONST.IOU.ACTION.EDIT});
+
+        // Then the row can be changed, as that report and a new one are both real choices
+        await waitFor(() => {
+            expect(mockIsInteractive).toBe(true);
+        });
+    });
+
+    it('keeps the row locked when the expense is created inside a report', async () => {
+        // Given an expense created from inside an expense report, whose destination is already that report
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${outstandingReport.reportID}`, outstandingReport);
+        await waitForBatchedUpdates();
+
+        // When the form renders the report row
+        renderReportRow({reportID: outstandingReport.reportID});
+
+        // Then the row reads as a locked field and opens nothing
+        await waitFor(() => {
+            expect(mockIsInteractive).toBe(false);
+        });
+        expect(mockShouldOpenInDropdown).toBe(false);
     });
 
     it('keeps the full-page selector for a per diem expense', async () => {

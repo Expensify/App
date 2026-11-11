@@ -4,7 +4,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {ValueOf} from 'type-fest';
 
 import type {CardID} from './Card';
-import type {FeedReimbursable} from './CardFeeds';
+import type {CompanyCardFeedWithNumber, FeedReimbursable} from './CardFeeds';
 import type {PolicyRuleTaxRate} from './ExpenseRule';
 import type {Attendee} from './IOU';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
@@ -142,6 +142,26 @@ type OriginalMessageSmartScanFailed = {
 
     /** LLM-friendly explanation of the scan failure that activates the Explain button */
     reasoning?: string;
+};
+
+/** Fields common to all report action original messages */
+type OriginalMessageBase = {
+    /**
+     * Account IDs for whom this action is marked as important. Similar to `actionableForAccountIDs` except
+     * receiving an important message only triggers a push notification.
+     */
+    importantForAccountIDs?: number[];
+
+    /** Whether push notifications should be scoped to actionableForAccountIDs only */
+    shouldScopePushToActionableAccounts?: boolean;
+
+    /**
+     * Accounts IDs for whom this action is actionable. Receiving an actionable message will
+     * - Mark the report as unread
+     * - Trigger an email notification
+     * - Trigger a push notification (on web and mobile)
+     */
+    actionableForAccountIDs?: number[];
 };
 
 /** Model of `add comment` report action */
@@ -1524,6 +1544,9 @@ type OriginalMessageCompanyCardConnectionBroken = {
 
     /** The feed name for which the company card connection was broken */
     feedName: string;
+
+    /** The feed's bank, used as the feed name when the feed has no custom name */
+    bank?: CompanyCardFeedWithNumber;
 };
 
 /**
@@ -1898,7 +1921,7 @@ type OriginalMessageMap = {
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION]: OriginalMessageEmployeeOfficeLocationChangeLog;
     } & Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>, OriginalMessageChangeLog>;
 
-type OriginalMessage<T extends ReportActionName> = T extends keyof OriginalMessageMap ? OriginalMessageMap[T] : never;
+type OriginalMessage<T extends ReportActionName> = T extends keyof OriginalMessageMap ? OriginalMessageBase & OriginalMessageMap[T] : never;
 
 export default OriginalMessage;
 export type {
