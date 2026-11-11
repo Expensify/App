@@ -104,7 +104,7 @@ function useBulkPayOptions({
         const requiredAccountType = payAsBusiness ? CONST.BANK_ACCOUNT.TYPE.BUSINESS : CONST.BANK_ACCOUNT.TYPE.PERSONAL;
         return formattedPaymentMethods
             .filter((method) => {
-                if (!('bankCurrency' in method)) {
+                if (method.accountType !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
                     return false;
                 }
                 const accountData = method.accountData;
@@ -139,7 +139,9 @@ function useBulkPayOptions({
                   value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
               }))
             : undefined;
-    const personalBankAccountList = formattedPaymentMethods.filter((ba) => 'bankCurrency' in ba && ba.accountData?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
+    const personalBankAccountList = formattedPaymentMethods.filter(
+        (ba) => ba.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && ba.accountData?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL,
+    );
 
     let bulkPayButtonOptions;
     if (onlyShowPayElsewhere) {
