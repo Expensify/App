@@ -22,4 +22,3 @@ function MenuItemTitle({style, ...props}: MenuItemTitleProps) {
 }
 
 export default MenuItemTitle;
-export type {MenuItemTitleProps};
