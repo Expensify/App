@@ -6,7 +6,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
-import {buildOptimisticTransaction, getAttendees, getBilledDistance, getChildTransactions, getOriginalTransactionWithSplitInfo, isDistanceRequest} from '@libs/TransactionUtils';
+import {buildOptimisticTransaction, getAttendees, getChildTransactions, getOriginalTransactionWithSplitInfo, isDistanceRequest} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,12 +19,13 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import {
-    getEvenSplitQuantity,
+    getEvenDistanceSplit,
     getSplitReimbursable,
     initDraftSplitExpenseDataForEdit,
     initSplitExpenseItemData,
     resolveSplitItemReportID,
     resolveSplitMileageRate,
+    shouldSplitByDistance,
     updateSplitExpenseDistanceFromAmount,
 } from './IOU/SplitExpenseItems';
 
@@ -173,40 +174,39 @@ function initSplitExpense(
         const mileageRate = resolveSplitMileageRate({transaction, policy: effectivePolicy ?? undefined, isSelfDMSplit: isSelfDMReport, personalPolicyOutputCurrency});
         const {rate, unit, currency} = mileageRate;
 
-        if (rate === 0 && transaction?.comment?.customUnit) {
-            // Every split of a $0 expense is $0, so split the distance evenly instead, with the remainder on the first split
-            // like "Make splits even" does
-            const transactionCustomUnit = transaction.comment.customUnit;
+        if (shouldSplitByDistance(rate, transactionDetailsAmount) && transaction?.comment?.customUnit) {
             for (let i = 0; i < splitAmounts.length; i++) {
-                const quantity = getEvenSplitQuantity(getBilledDistance(transaction) ?? 0, splitAmounts.length, i, 0);
-                const {customUnit: updatedCustomUnit, merchant} = updateSplitExpenseDistanceFromAmount(
-                    0,
+                const {customUnit: updatedCustomUnit, merchant} = getEvenDistanceSplit({
+                    transaction,
+                    splitCount: splitAmounts.length,
+                    index: i,
                     rate,
                     unit,
-                    {...transactionCustomUnit, quantity},
-                    {currency},
+                    customUnit: transaction.comment.customUnit,
+                    currency: transactionDetails?.currency ?? currency ?? CONST.CURRENCY.USD,
                     getCurrencySymbol,
-                    transactionDetails?.currency,
-                );
+                });
 
                 splitCustomUnits[i] = updatedCustomUnit;
                 splitMerchants[i] = merchant;
             }
         } else if (rate && rate > 0 && transaction?.comment?.customUnit) {
-            // Each split's distance is derived from its amount, so a $0 split (e.g. half of a $0.01 expense) has no distance
             for (let i = 0; i < splitAmounts.length; i++) {
-                const {customUnit: updatedCustomUnit, merchant} = updateSplitExpenseDistanceFromAmount(
-                    splitAmounts.at(i) ?? 0,
-                    rate,
-                    unit,
-                    transaction.comment.customUnit,
-                    {currency},
-                    getCurrencySymbol,
-                    transactionDetails?.currency,
-                );
+                if (splitAmounts.at(i)) {
+                    const splitAmount = splitAmounts.at(i) ?? 0;
+                    const {customUnit: updatedCustomUnit, merchant} = updateSplitExpenseDistanceFromAmount(
+                        splitAmount,
+                        rate,
+                        unit,
+                        transaction.comment.customUnit,
+                        {currency},
+                        getCurrencySymbol,
+                        transactionDetails?.currency,
+                    );
 
-                splitCustomUnits[i] = updatedCustomUnit;
-                splitMerchants[i] = merchant;
+                    splitCustomUnits[i] = updatedCustomUnit;
+                    splitMerchants[i] = merchant;
+                }
             }
         }
     }

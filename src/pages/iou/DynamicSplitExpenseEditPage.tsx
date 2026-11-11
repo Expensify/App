@@ -61,6 +61,7 @@ import {getParsedComment, getReportOrDraftReport, getTransactionDetails, isSelfD
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import startOpenCategoryPickerSpan from '@libs/telemetry/startOpenCategoryPickerSpan';
 import {
+    getAmount,
     getDistanceInMeters,
     getRateID,
     getTag,
@@ -294,14 +295,14 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
         personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
     });
     const distance = getDistanceInMeters(splitExpenseDraftTransaction, unit);
-    const currentRateID = getRateID(splitExpenseDraftTransaction);
-    // A split still on the expense's rate, changed to or from $0 after the expense was created, is calculated with the rate the expense was
-    const amountRate = currentRateID === getRateID(transaction) ? (DistanceRequestUtils.getRateBeforeZeroRateChange(transaction, rate) ?? rate) : rate;
+    // A $0 expense's splits always follow distance * rate, including a split on a $0 rate
+    const isZeroTotalDistanceSplit = isDistance && getAmount(originalTransactionDraft, undefined, undefined, true, true) === 0;
     const currentAmount =
-        isDistance && distance && amountRate !== undefined
-            ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, amountRate) * originalSign
+        isDistance && distance && (rate || (isZeroTotalDistanceSplit && rate === 0))
+            ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) * originalSign
             : Math.abs(Number(splitExpenseDraftTransaction?.amount)) * originalSign;
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(true, distance, unit, translate, false, isManualDistance);
+    const currentRateID = getRateID(splitExpenseDraftTransaction);
     const rates = DistanceRequestUtils.getMileageRates(effectivePolicy, false, currentRateID);
 
     const currency = splitExpenseDraftTransactionDetails.currency ?? CONST.CURRENCY.USD;
@@ -310,8 +311,8 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     // so that a stale stored merchant (e.g. "Pending..." set before the MAP route was calculated)
     // does not appear in the title. Falls back to the stored merchant otherwise.
     const merchantToDisplay =
-        isDistance && distance && amountRate !== undefined && unit
-            ? DistanceRequestUtils.getDistanceMerchant(true, distance, unit, amountRate, currency, translate, toLocaleDigit, getCurrencySymbol, true)
+        isDistance && distance && rate !== undefined && unit
+            ? DistanceRequestUtils.getDistanceMerchant(true, distance, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, true)
             : (splitExpenseDraftTransactionDetails?.merchant ?? '');
 
     const isP2PRate = currentRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;

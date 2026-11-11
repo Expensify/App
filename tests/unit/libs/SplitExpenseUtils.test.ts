@@ -251,7 +251,6 @@ describe('computeSplitSaveErrorMessage', () => {
             transactionDetailsAmount: 0,
             isDistance: true,
             splitExpenses: [withDistance(makeSplit(0, 'a'), 6), withDistance(makeSplit(0, 'b'), 4)],
-            zeroRateSplitTransactionIDs: new Set(['a', 'b']),
         });
         expect(result).toBe('');
     });
@@ -264,7 +263,6 @@ describe('computeSplitSaveErrorMessage', () => {
             transactionDetailsAmount: 1,
             isDistance: true,
             splitExpenses: [withDistance(makeSplit(1, 'a'), 1), withDistance(makeSplit(0, 'b'), 1)],
-            zeroRateSplitTransactionIDs: new Set(),
         });
 
         // Then the $0 split is rejected, since its amount doesn't match its distance
