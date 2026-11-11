@@ -2279,6 +2279,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: '毎月の最終日曜日に',
             },
         },
+        autoExport: {
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL]: 'このレポートは、最終承認後にエクスポートされます。',
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID]: 'このレポートが支払われると、立替経費がエクスポートされます。',
+        },
     },
     profilePage: {
         profile: 'プロフィール',
@@ -9107,6 +9111,8 @@ ${reportName}`,
                 describeRuleForConcierge: 'ルールの内容を入力すると、Concierge が自動作成します',
                 gotIt: '了解しました',
                 createRule: 'ルールを作成',
+                saveAnyway: 'このまま保存',
+                checkingRule: 'ルールを確認しています...',
                 fallbackBanner: 'これは標準ルールではないため、エージェントルールを作成しました。エージェントルールは、経費またはレポートが作成または更新されたときに実行されます。',
                 fallbackBannerWithExplanation: (explanation: string) =>
                     `これは標準ルールではないため、エージェントルールを作成しました。エージェントルールは、経費またはレポートが作成または更新されたときに実行されます。${explanation}`,

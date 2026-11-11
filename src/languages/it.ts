@@ -2299,6 +2299,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: "l'ultima domenica del mese",
             },
         },
+        autoExport: {
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL]: "Questo report verrà esportato dopo l'approvazione finale.",
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID]: 'Le spese rimborsabili verranno esportate quando questo report sarà pagato.',
+        },
     },
     profilePage: {
         profile: 'Profilo',
@@ -9241,6 +9245,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 describeRuleForConcierge: 'Descrivi la tua regola e Concierge la creerà',
                 gotIt: 'Capito',
                 createRule: 'Crea regola',
+                saveAnyway: 'Salva comunque',
+                checkingRule: 'Verifica della tua regola in corso...',
                 fallbackBanner:
                     'Questa non è una regola standard, quindi abbiamo creato una regola agente. Le regole agente vengono eseguite quando una spesa o un report viene creato o aggiornato.',
                 fallbackBannerWithExplanation: (explanation: string) =>

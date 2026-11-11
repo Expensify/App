@@ -17,7 +17,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearActive, isActive as isEmojiPickerActive} from '@libs/actions/EmojiPickerAction';
-import {composerFocusKeepFocusOn} from '@libs/actions/InputFocus';
+import {composerFocusKeepFocusOn, inputFocusChange} from '@libs/actions/InputFocus';
 import {clearAllReportActionDrafts} from '@libs/actions/Report';
 import {isMobileChrome} from '@libs/Browser';
 import {canSkipTriggerHotkeys, insertText} from '@libs/ComposerUtils';
@@ -182,6 +182,7 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
                 ReportActionComposeFocusManager.editComposerRef.current = composerRef.current;
             }
             return () => {
+                inputFocusChange(false);
                 if (ReportActionComposeFocusManager.editComposerRef.current !== composerRef.current) {
                     return;
                 }

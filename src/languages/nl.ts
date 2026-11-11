@@ -2294,6 +2294,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'op de laatste zondag van de maand',
             },
         },
+        autoExport: {
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL]: 'Dit rapport wordt geëxporteerd na de definitieve goedkeuring.',
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID]: 'Vergoedbare uitgaven worden geëxporteerd zodra dit rapport is betaald.',
+        },
     },
     profilePage: {
         profile: 'Profiel',
@@ -9214,6 +9218,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 describeRuleForConcierge: 'Beschrijf je regel en Concierge bouwt hem voor je',
                 gotIt: 'Begrepen',
                 createRule: 'Regel maken',
+                saveAnyway: 'Toch opslaan',
+                checkingRule: 'Je regel wordt gecontroleerd...',
                 fallbackBanner:
                     'Dit is geen standaardregel, dus hebben we een agentregel opgesteld. Agentregels worden uitgevoerd wanneer een declaratie of rapport wordt aangemaakt of bijgewerkt.',
                 fallbackBannerWithExplanation: (explanation: string) =>

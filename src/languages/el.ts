@@ -2355,6 +2355,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'την τελευταία Κυριακή του μήνα',
             },
         },
+        autoExport: {
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL]: 'Αυτή η αναφορά θα εξαχθεί μετά την τελική έγκριση.',
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID]: 'Οι αποζημιώσιμες δαπάνες θα εξαχθούν όταν πληρωθεί αυτή η αναφορά.',
+        },
     },
     profilePage: {
         profile: 'Προφίλ',
@@ -9748,6 +9752,8 @@ ${reportName}`,
                 describeRuleHeadline: 'Περιγράψτε τον κανόνα σας',
                 describeRuleForConcierge: 'Περιγράψτε τον κανόνα σας και το Concierge θα τον δημιουργήσει',
                 createRule: 'Δημιουργία κανόνα',
+                saveAnyway: 'Αποθήκευση ούτως ή άλλως',
+                checkingRule: 'Γίνεται έλεγχος του κανόνα σας...',
                 fallbackBanner:
                     'Αυτός δεν είναι τυπικός κανόνας, οπότε συντάξαμε έναν κανόνα πράκτορα. Οι κανόνες πράκτορα εκτελούνται όταν δημιουργείται ή ενημερώνεται ένα έξοδο ή μια αναφορά.',
                 fallbackBannerWithExplanation: (explanation: string) =>

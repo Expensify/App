@@ -129,7 +129,10 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
                 isToggleTriggered={shouldAnimateAccordionSection}
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([mappingName], config?.pendingFields)}>
-                    <MenuItem.Root onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, mappingName)), session)}>
+                    <MenuItem.Root
+                        onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, mappingName)), session)}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.MAPPING_TYPE}
+                    >
                         <MenuItemField.Row
                             name={translate('workspace.common.displayedAs')}
                             value={translationKeys?.titleKey ? translate(translationKeys?.titleKey) : undefined}
