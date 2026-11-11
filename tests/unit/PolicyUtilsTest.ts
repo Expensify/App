@@ -76,7 +76,10 @@ import {
     getOwnedPaidPolicies,
     getSageIntacctVendors,
     arePaymentsEnabled,
+    getPolicyBankAccountCountry,
+    getReimbursementAccountCountries,
     getReimbursementChoice,
+    hasReimbursementCountries,
     isPolicyPayer,
     getReimburserEmail,
     getRuleApprovers,
@@ -157,7 +160,7 @@ import {getTagArrayFromName} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTags, PolicyTagLists, Report, Transaction, TravelSettings} from '@src/types/onyx';
+import type {BankAccount, PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTags, PolicyTagLists, Report, Transaction, TravelSettings} from '@src/types/onyx';
 import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {
     Connections,
@@ -490,6 +493,28 @@ describe('PolicyUtils', () => {
                 expect(result).toHaveLength(1);
                 expect(result.at(0)?.id).toBe(activePolicy.id);
             });
+
+            it('excludes workspaces where the member cannot create expenses', () => {
+                // Given a member workspace and an approve-only workspace
+                // When the workspace pickers collect policies with expense chat
+                // Then the approve-only workspace is left out, since no expense can be created in it
+                const memberPolicy = createMock<Policy>({...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), name: 'member', role: CONST.POLICY.ROLE.USER, pendingAction: null});
+                const approveOnlyPolicy = createMock<Policy>({
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
+                    name: 'approve-only',
+                    role: CONST.POLICY.ROLE.APPROVE_ONLY,
+                    pendingAction: null,
+                });
+                const policies = createCollection<Policy>(
+                    (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
+                    (index) => (index === 0 ? memberPolicy : approveOnlyPolicy),
+                    2,
+                );
+
+                const result = getActivePoliciesWithExpenseChat(policies, undefined);
+                expect(result).toHaveLength(1);
+                expect(result.at(0)?.id).toBe(memberPolicy.id);
+            });
         });
 
         describe('per diem policy filters', () => {
@@ -595,6 +620,25 @@ describe('PolicyUtils', () => {
                         pendingAction: null,
                         // Explicit off must be respected, so the lingering custom unit cannot re-enable it
                         arePerDiemRatesEnabled: false,
+                        customUnits: {
+                            ABCDEF: perDiemCustomUnit,
+                        },
+                    },
+                };
+
+                expect(getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined)).toHaveLength(0);
+            });
+
+            it('excludes a per diem workspace where the member cannot create expenses', () => {
+                // Given a control workspace with per diem rates where the member is approve-only
+                // When the per diem workspace list is built
+                // Then the workspace is left out, so an approve-only member cannot start a per diem expense there
+                const policies: OnyxCollection<Policy> = {
+                    approveOnly: {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                        role: CONST.POLICY.ROLE.APPROVE_ONLY,
+                        pendingAction: null,
+                        arePerDiemRatesEnabled: true,
                         customUnits: {
                             ABCDEF: perDiemCustomUnit,
                         },
@@ -4413,6 +4457,75 @@ describe('PolicyUtils', () => {
             });
         });
 
+        describe('hasReimbursementCountries', () => {
+            it('returns false when there is no policy', () => {
+                // Given no policy, which happens while a workspace is still loading
+
+                // When we check for selected countries before policy data has loaded
+                const hasCountries = hasReimbursementCountries(undefined);
+
+                // Then missing policy data does not imply any selected countries
+                expect(hasCountries).toBe(false);
+            });
+
+            it('returns false when no countries are selected', () => {
+                // Given a workspace with an empty countries list and no business bank account
+                const policy = createMock<Policy>({id: '1', reimbursement: {countries: {}}});
+
+                // When we check for selected countries on an unconfigured workspace
+                const hasCountries = hasReimbursementCountries(policy);
+
+                // Then an empty list does not count as a country selection
+                expect(hasCountries).toBe(false);
+            });
+
+            it('returns false when every country has a falsy value', () => {
+                // Given a workspace whose countries are all deselected
+                // @ts-expect-error - Defensively handles malformed country entries that violate the object type.
+                const policy = createMock<Policy>({id: '1', reimbursement: {countries: {US: false, GB: null}}});
+
+                // When we check countries that retain deselected entries in Onyx
+                const hasCountries = hasReimbursementCountries(policy);
+
+                // Then deselected entries do not count as selected countries
+                expect(hasCountries).toBe(false);
+            });
+
+            it('returns true when a country has a truthy value', () => {
+                // Given a workspace with a selected business bank account country
+                // @ts-expect-error - Defensively handles malformed country entries that violate the object type.
+                const policy = createMock<Policy>({id: '1', reimbursement: {countries: {US: false, GB: []}}});
+
+                // When we check a mixture of selected and deselected countries
+                const hasCountries = hasReimbursementCountries(policy);
+
+                // Then the truthy entry counts even when its array is empty
+                expect(hasCountries).toBe(true);
+            });
+
+            it('returns false when only a business bank account is connected', () => {
+                // Given a workspace with a connected business bank account and no countries
+                const policy = createMock<Policy>({id: '1', achAccount: {bankAccountID: 123}});
+
+                // When we check country selection independently of connected accounts
+                const hasCountries = hasReimbursementCountries(policy);
+
+                // Then a bank account alone does not count as a selected country
+                expect(hasCountries).toBe(false);
+            });
+
+            it('returns false when the bank account ID is 0 and countries are missing', () => {
+                // Given a workspace whose achAccount has no real bank account ID
+                const policy = createMock<Policy>({id: '1', achAccount: {bankAccountID: 0}});
+
+                // When we check a workspace without reimbursement country data
+                const hasCountries = hasReimbursementCountries(policy);
+
+                // Then missing countries do not count regardless of the bank account ID
+                expect(hasCountries).toBe(false);
+            });
+        });
+
         describe('arePaymentsEnabled', () => {
             it.each([
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES, true],
@@ -4429,6 +4542,70 @@ describe('PolicyUtils', () => {
 
                 // Then only a disabled workspace turns payments off, whichever of the two values it reports
                 expect(paymentsEnabled).toBe(expected);
+            });
+        });
+
+        describe('getReimbursementAccountCountries', () => {
+            it('should return countries with a connected bank account and the country of the workspace bank account', () => {
+                // Given a workspace with an AU withdrawal account in its countries and a GB account the admin owns
+                const policy = createMock<Policy>({
+                    id: '1',
+                    outputCurrency: CONST.CURRENCY.GBP,
+                    achAccount: {bankAccountID: 2, accountNumber: '', routingNumber: '', addressName: '', bankName: '', reimburser: ''},
+                    reimbursement: {countries: {AU: {bankAccountID: 1}, FR: {}}},
+                });
+                const bankAccountList = {2: createMock<BankAccount>({accountData: {additionalData: {country: 'GB'}}})};
+
+                // When the countries that can't be deselected are read
+                const countries = getReimbursementAccountCountries(policy, getPolicyBankAccountCountry(policy, bankAccountList));
+
+                // Then both account countries are returned, because the server never removes either one
+                expect(countries).toEqual(['AU', 'GB']);
+            });
+
+            it('should treat a workspace bank account with no country as a US account', () => {
+                // Given a legacy bank account that the admin owns and that has no country
+                const policy = createMock<Policy>({
+                    id: '1',
+                    achAccount: {bankAccountID: 2, accountNumber: '', routingNumber: '', addressName: '', bankName: '', reimburser: ''},
+                });
+                const bankAccountList = {2: createMock<BankAccount>({accountData: {additionalData: {}}})};
+
+                // When the bank account's country is read
+                const country = getPolicyBankAccountCountry(policy, bankAccountList);
+
+                // Then it is US, because legacy US accounts were saved without a country
+                expect(country).toBe(CONST.COUNTRY.US);
+            });
+
+            it('should read the top-level bankCountry when the bank account has no nested country', () => {
+                // Given a GB bank account that the admin owns and that only has the top-level bankCountry
+                const policy = createMock<Policy>({
+                    id: '1',
+                    achAccount: {bankAccountID: 2, accountNumber: '', routingNumber: '', addressName: '', bankName: '', reimburser: ''},
+                });
+                const bankAccountList = {2: createMock<BankAccount>({bankCountry: 'GB', accountData: {additionalData: {}}})};
+
+                // When the bank account's country is read
+                const country = getPolicyBankAccountCountry(policy, bankAccountList);
+
+                // Then it is GB, so US isn't added and locked for a workspace whose bank account is outside the US
+                expect(country).toBe('GB');
+            });
+
+            it('should fall back to US for a USD workspace whose bank account the admin does not own', () => {
+                // Given a USD workspace whose bank account isn't in the admin's bank account list
+                const policy = createMock<Policy>({
+                    id: '1',
+                    outputCurrency: CONST.CURRENCY.USD,
+                    achAccount: {bankAccountID: 2, accountNumber: '', routingNumber: '', addressName: '', bankName: '', reimburser: ''},
+                });
+
+                // When the countries that can't be deselected are read
+                const countries = getReimbursementAccountCountries(policy, getPolicyBankAccountCountry(policy, {}));
+
+                // Then US is returned, because a USD workspace's bank account is always in the US
+                expect(countries).toEqual([CONST.COUNTRY.US]);
             });
         });
 

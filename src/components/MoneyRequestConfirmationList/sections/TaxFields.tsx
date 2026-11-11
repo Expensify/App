@@ -19,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getCalculatedTaxAmount, getEnabledTaxRateCount, getTaxAmount, getTaxRateTitle} from '@libs/TransactionUtils';
 
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -39,6 +39,7 @@ import ExpenseFieldRow from './ExpenseFieldRow';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {taxSliceSelector} from './selectors';
 import TaxFieldDropdown from './TaxFieldDropdown';
+import useSplitDraftBaseTransaction from './useSplitDraftBaseTransaction';
 import useTransactionSelector from './useTransactionSelector';
 
 type TaxFieldsProps = {
@@ -65,9 +66,8 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     const {isBetaEnabled} = usePermissions();
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
 
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-
     const taxSlice = useTransactionSelector(transactionID, taxSliceSelector);
+    const {baseTransaction} = useSplitDraftBaseTransaction(transactionID);
 
     const transactionForHelpers = taxSlice as OnyxEntry<OnyxTypes.Transaction>;
 
@@ -108,7 +108,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
         // When editing a split expense, persist directly to the split draft so that
         // SplitBillDetailsPage and completeSplitBill read the latest value.
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {taxAmount: taxAmountInSmallestCurrencyUnits}, getCurrencyDecimals, getCurrencySymbol);
+            setDraftSplitTransaction(transactionID, baseTransaction, {taxAmount: taxAmountInSmallestCurrencyUnits}, getCurrencyDecimals, getCurrencySymbol);
             return;
         }
 
@@ -219,7 +219,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                 <MenuItem.Root
                     key={`${taxRates?.name}_rate`}
                     testID={`${taxRates?.name}_rate`}
-                    onPress={canModifyTaxFields ? callFunctionIfActionIsAllowed(openTaxRatePage, false, session) : undefined}
+                    onPress={canModifyTaxFields ? callIfAuthenticated(openTaxRatePage, session) : undefined}
                     isDisabled={didConfirm}
                     sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_RATE_FIELD}
                 >

@@ -337,6 +337,7 @@ function ActionContentRouter({
         return (
             <PaymentContent
                 action={action}
+                reportID={actionOwnerReportID}
                 expectedDate={paymentExpectedDate}
                 policyID={policyID}
             />
@@ -590,7 +591,12 @@ function ActionContentRouter({
         );
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.HOME_ADDRESS_REQUIRED)) {
-        return <HomeAddressRequiredContent action={action} />;
+        return (
+            <HomeAddressRequiredContent
+                action={action}
+                reportID={reportID}
+            />
+        );
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT)) {
         const delegateSubmitMessage = getDelegateSubmitMessage(translate, action, currentUserEmail);
