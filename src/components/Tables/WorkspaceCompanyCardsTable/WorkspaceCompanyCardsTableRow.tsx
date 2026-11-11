@@ -134,7 +134,10 @@ function WorkspaceCompanyCardTableRow({
         return Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(feedName, cardID.toString())));
     };
 
-    const accessibilityLabel = [memberColumnTitle, formattedCardDetails, formattedCustomCardName, item.exportAccountTitle, item.lastUpdatedText].filter(Boolean).join(', ');
+    // Screen readers get the full sync timestamp, which sighted users see in the tooltip.
+    const accessibilityLabel = [memberColumnTitle, formattedCardDetails, formattedCustomCardName, item.exportAccountTitle, item.lastUpdatedTooltip ?? item.lastUpdatedText]
+        .filter(Boolean)
+        .join(', ');
 
     return (
         <Table.Row
