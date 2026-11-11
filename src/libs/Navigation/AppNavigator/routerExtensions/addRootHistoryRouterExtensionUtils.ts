@@ -29,7 +29,7 @@ function isDismissModalAction(action: RootStackNavigatorAction): action is Dismi
 }
 
 /** Returns true if the entry is a per-instance Modal back-guard (`CUSTOM_HISTORY_ENTRY_MODAL:<modalId>`). */
-function isModalHistoryGuardEntry(entry: unknown): boolean {
+function isModalHistorySentinel(entry: unknown): boolean {
     return typeof entry === 'string' && entry.startsWith(`${CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MODAL}:`);
 }
 
@@ -38,7 +38,7 @@ function isModalHistoryGuardEntry(entry: unknown): boolean {
  * re-appended after `enhanceStateWithHistory` rebuilds `history` from `routes`. This keeps those
  * overlays' browser entries alive through benign history rebuilds (e.g. RESET / resize).
  */
-function getTrailingStringEntries(history: unknown[] | undefined): string[] {
+function getTrailingStringSentinels(history: unknown[] | undefined): string[] {
     if (!history?.length) {
         return [];
     }
@@ -50,8 +50,8 @@ function getTrailingStringEntries(history: unknown[] | undefined): string[] {
 }
 
 /** Removes only the topmost modal back-guard entry (used to consume one guard on forward navigation). */
-function removeTopModalHistoryGuardEntry(history: unknown[]): unknown[] {
-    if (isModalHistoryGuardEntry(history.at(-1))) {
+function stripTrailingModalSentinels(history: unknown[]): unknown[] {
+    if (isModalHistorySentinel(history.at(-1))) {
         return history.slice(0, -1);
     }
     return history;
@@ -188,10 +188,10 @@ export {
     getFrozenHistoryStateForRemoveFullscreenUnderRHP,
     getFrozenHistoryStateForReplaceFullscreenUnderRHP,
     getRevealDismissState,
-    getTrailingStringEntries,
+    getTrailingStringSentinels,
     isDismissModalAction,
-    isModalHistoryGuardEntry,
+    isModalHistorySentinel,
     isRemoveFullscreenUnderRHPAction,
     isReplaceFullscreenUnderRHPAction,
-    removeTopModalHistoryGuardEntry,
+    stripTrailingModalSentinels,
 };

@@ -13,12 +13,12 @@ import {
     getFrozenHistoryStateForRemoveFullscreenUnderRHP,
     getFrozenHistoryStateForReplaceFullscreenUnderRHP,
     getRevealDismissState,
-    getTrailingStringEntries,
+    getTrailingStringSentinels,
     isDismissModalAction,
-    isModalHistoryGuardEntry,
+    isModalHistorySentinel,
     isRemoveFullscreenUnderRHPAction,
     isReplaceFullscreenUnderRHPAction,
-    removeTopModalHistoryGuardEntry,
+    stripTrailingModalSentinels,
 } from './addRootHistoryRouterExtensionUtils';
 import {enhanceStateWithHistory} from './utils';
 
@@ -46,9 +46,9 @@ function addRootHistoryRouterExtension<RouterOptions extends PlatformStackRouter
             // state rebuilds, so those overlays stay open and their browser entries aren't stranded by a
             // benign history rebuild (e.g. RESET / resize). The forward-navigation consume in
             // getStateForAction is what intentionally drops a modal back-guard entry.
-            const trailingStringEntries = getTrailingStringEntries(state.history);
-            if (trailingStringEntries.length > 0) {
-                stateWithInitialHistory.history = [...(stateWithInitialHistory.history ?? []), ...trailingStringEntries];
+            const trailingSentinels = getTrailingStringSentinels(state.history);
+            if (trailingSentinels.length > 0) {
+                stateWithInitialHistory.history = [...(stateWithInitialHistory.history ?? []), ...trailingSentinels];
             }
 
             return stateWithInitialHistory;
@@ -110,8 +110,8 @@ function addRootHistoryRouterExtension<RouterOptions extends PlatformStackRouter
             // unaffected. Either ordering works: if the Modal's own toggle(false) ran first, the trailing
             // entry is already a route and this is a no-op.
             const isForwardNavigation = action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH || action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE;
-            if (isForwardNavigation && isModalHistoryGuardEntry(state.history?.at(-1))) {
-                const consumedHistory = removeTopModalHistoryGuardEntry(rehydrated.history ?? []);
+            if (isForwardNavigation && isModalHistorySentinel(state.history?.at(-1))) {
+                const consumedHistory = stripTrailingModalSentinels(rehydrated.history ?? []);
                 return applyRevealPaddingOffset(state, {...rehydrated, history: consumedHistory});
             }
 
