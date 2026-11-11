@@ -855,7 +855,7 @@ function WalletPage() {
                                             errorRowStyles={[styles.ml10, styles.mr2]}
                                             style={[styles.mb2]}
                                         >
-                                            <MenuItemSectionRoot sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.BALANCE}>
+                                            <MenuItemSectionRoot>
                                                 <MenuItem.Row>
                                                     <MenuItem.Content>
                                                         <MenuItem.FieldName>{translate('walletPage.balance')}</MenuItem.FieldName>

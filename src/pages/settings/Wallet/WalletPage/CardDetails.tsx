@@ -56,7 +56,6 @@ function CardDetails({pan = '', expiration = '', cvv = '', onUpdateAddressPress,
         <View>
             {pan?.length > 0 && (
                 <MenuItemField
-                    sentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.CARD_NUMBER}
                     name={translate('cardPage.cardDetails.cardNumber')}
                     value={pan}
                     forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
@@ -75,7 +74,6 @@ function CardDetails({pan = '', expiration = '', cvv = '', onUpdateAddressPress,
             )}
             {expiration?.length > 0 && (
                 <MenuItemField
-                    sentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.CARD_EXPIRATION}
                     name={translate('cardPage.cardDetails.expiration')}
                     value={expiration}
                     forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
@@ -85,7 +83,6 @@ function CardDetails({pan = '', expiration = '', cvv = '', onUpdateAddressPress,
             )}
             {cvv?.length > 0 && (
                 <MenuItemField
-                    sentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.CARD_CVV}
                     name={translate('cardPage.cardDetails.cvv')}
                     value={cvv}
                     forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
@@ -96,7 +93,6 @@ function CardDetails({pan = '', expiration = '', cvv = '', onUpdateAddressPress,
             {pan?.length > 0 && (
                 <>
                     <MenuItemField
-                        sentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.CARD_ADDRESS}
                         name={translate('cardPage.cardDetails.address')}
                         value={formattedAddress}
                         forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}

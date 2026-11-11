@@ -2221,7 +2221,6 @@ const SENTRY_LABEL = {
         MERGE_RESULT_GO_TO_CLASSIC: 'SettingsSecurity-MergeResultGoToExpensifyClassic',
     },
     SETTINGS_WALLET: {
-        BALANCE: 'SettingsWallet-Balance',
         ADD_COMPANY_CARDS: {
             WORKSPACE: 'SettingsWallet-AddCompanyCards-Workspace',
             WORKSPACES_LIST: 'SettingsWallet-AddCompanyCards-WorkspacesList',
@@ -2409,12 +2408,6 @@ const SENTRY_LABEL = {
         WALLET_VERIFY_IDENTITY_CONTINUE: 'EnablePayments-WalletVerifyIdentityContinue',
     },
     EXPENSIFY_CARD_PAGE: {
-        CARD_NUMBER: 'ExpensifyCardPage-CardNumber',
-        CARD_EXPIRATION: 'ExpensifyCardPage-CardExpiration',
-        CARD_CVV: 'ExpensifyCardPage-CardCvv',
-        CARD_ADDRESS: 'ExpensifyCardPage-CardAddress',
-        VIRTUAL_CARD_NUMBER: 'ExpensifyCardPage-VirtualCardNumber',
-        TRAVEL_CARD_CVV: 'ExpensifyCardPage-TravelCardCvv',
         ACTIVATE_PHYSICAL_CARD: 'ExpensifyCardPage-ActivatePhysicalCard',
         ACTIVATE_PHYSICAL_CARD_SUBMIT: 'ExpensifyCardPage-ActivatePhysicalCardSubmit',
         CARD_ADDED_TO_WALLET_CONTINUE: 'ExpensifyCardPage-CardAddedToWalletContinue',

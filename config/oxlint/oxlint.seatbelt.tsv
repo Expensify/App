@@ -1530,7 +1530,6 @@
 "../../src/pages/settings/Wallet/InternationalDepositAccount/subPages/Confirmation.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/settings/Wallet/InternationalDepositAccount/utils.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/settings/Wallet/InternationalDepositAccount/utils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/pages/settings/Wallet/PaymentMethodList.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/settings/Wallet/PaymentMethodList.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	3
 "../../src/pages/settings/Wallet/PaymentMethodList.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../src/pages/settings/Wallet/PaymentMethodList.tsx"	"rulesdir/no-onyx-loading-status"	2

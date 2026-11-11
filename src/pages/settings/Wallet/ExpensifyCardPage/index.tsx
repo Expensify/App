@@ -528,10 +528,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                             }
                                         />
                                     ) : (
-                                        <MenuItem.Root
-                                            sentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.VIRTUAL_CARD_NUMBER}
-                                            shouldBeAccessible={isSignedInAsDelegate ? undefined : false}
-                                        >
+                                        <MenuItem.Root shouldBeAccessible={isSignedInAsDelegate ? undefined : false}>
                                             <MenuItem.Row>
                                                 <MenuItem.Content>
                                                     <MenuItem.FieldName>{translate('cardPage.virtualCardNumber')}</MenuItem.FieldName>
@@ -588,10 +585,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                     {revealedCardDetails[String(card.cardID)]?.cvv ? (
                                         <CardDetails cvv={revealedCardDetails[String(card.cardID)]?.cvv} />
                                     ) : (
-                                        <MenuItem.Root
-                                            sentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.TRAVEL_CARD_CVV}
-                                            shouldBeAccessible={isSignedInAsDelegate ? undefined : false}
-                                        >
+                                        <MenuItem.Root shouldBeAccessible={isSignedInAsDelegate ? undefined : false}>
                                             <MenuItem.Row>
                                                 <MenuItem.Content>
                                                     <MenuItem.FieldName>{translate('cardPage.travelCardCvv')}</MenuItem.FieldName>
