@@ -8,7 +8,7 @@ import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
-import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
+import {getIsTryNewDotLoading, shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 
 import {closeReactNativeApp} from '@userActions/HybridApp';
 import {openOldDotLink} from '@userActions/Link';
@@ -62,11 +62,12 @@ function useMergeResultConfirmationConfig({result, login}: {result: ValueOf<type
     const {translate} = useLocalize();
     const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
     const {environmentURL} = useEnvironment();
     const buildDynamicRoute = useScreenBoundDynamicRoute();
     const lazyIllustrations = useMemoizedLazyIllustrations(['RunningTurtle', 'LockClosedOrange']);
-    const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
+    const isLoadingTryNewDot = getIsTryNewDotLoading(tryNewDot, isLoadingOnyxValue(tryNewDotMetadata), isLoadingApp);
     const isClassicRedirectBlocked = shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP);
 
     const defaultResult = {
