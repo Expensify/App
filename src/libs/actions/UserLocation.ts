@@ -19,23 +19,27 @@ function clearUserLocation() {
 }
 
 function snapshotUserLocation() {
-    hasLocationPermission().then((isGranted) => {
-        if (!isGranted) {
-            return;
-        }
+    // A stale location must not be reused while the permission check or position read is pending.
+    clearUserLocation();
 
-        clearUserLocation();
-        // Best effort: a submit that finds no cached position falls back to a capped read
-        getCurrentPosition(
-            (successData) => {
-                setUserLocation({
-                    longitude: successData.coords.longitude,
-                    latitude: successData.coords.latitude,
-                });
-            },
-            () => {},
-        );
-    });
+    hasLocationPermission()
+        .then((isGranted) => {
+            if (!isGranted) {
+                return;
+            }
+
+            // Best effort: a submit that finds no cached position falls back to a capped read.
+            getCurrentPosition(
+                (successData) => {
+                    setUserLocation({
+                        longitude: successData.coords.longitude,
+                        latitude: successData.coords.latitude,
+                    });
+                },
+                () => {},
+            );
+        })
+        .catch(() => {});
 }
 
 export {setUserLocation, clearUserLocation, snapshotUserLocation};
