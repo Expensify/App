@@ -30,6 +30,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
+import WorkspaceMemberLoadingPage from './WorkspaceMemberLoadingPage';
+
 type WorkspacePolicyOnyxProps = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
 };
@@ -45,7 +47,7 @@ function WorkspaceMemberCustomFieldPage({policy, route, personalDetails}: Worksp
     const customFieldType = params.customFieldType;
     const accountID = Number(params.accountID);
     const policyID = params.policyID;
-    const {memberLogin} = useWorkspaceMemberFromRoute(policy, personalDetails, accountID);
+    const {memberLogin, isResolvingMember} = useWorkspaceMemberFromRoute(policy, personalDetails, accountID);
     const member = policy?.employeeList?.[memberLogin];
     const customFieldKey = CONST.CUSTOM_FIELD_KEYS[customFieldType];
     const [customField, setCustomField] = useState(member?.[customFieldKey ?? ''] ?? '');
@@ -55,13 +57,24 @@ function WorkspaceMemberCustomFieldPage({policy, route, personalDetails}: Worksp
         Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
     };
 
+    if (isResolvingMember) {
+        return (
+            <WorkspaceMemberLoadingPage
+                policyID={policyID}
+                title={customFieldText}
+                onBackButtonPress={goBack}
+                accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
+            />
+        );
+    }
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            shouldBeBlocked={!member?.role}
+            shouldBeBlocked={!member?.role || member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
         >
             <ScreenWrapper
                 testID="WorkspaceMemberCustomFieldPage"
@@ -80,7 +93,7 @@ function WorkspaceMemberCustomFieldPage({policy, route, personalDetails}: Worksp
                     enabledWhenOffline
                     submitButtonText={translate('common.save')}
                     onSubmit={() => {
-                        if (!member?.role) {
+                        if (isResolvingMember || !member?.role || member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                             return;
                         }
                         updateMemberCustomField(params.policyID, memberLogin, customFieldType, customField.trim(), member?.[customFieldKey]);

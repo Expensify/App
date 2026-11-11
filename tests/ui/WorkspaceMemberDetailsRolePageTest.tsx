@@ -198,6 +198,7 @@ describe('WorkspaceMemberDetailsRolePage', () => {
         await waitForBatchedUpdatesWithAct();
         expect(screen.getByTestId('WorkspaceMemberDetailsRolePage')).toBeOnTheScreen();
         expect(Navigation.goBack).not.toHaveBeenCalled();
+        fireEvent.press(screen.getByText('Workspace admin'));
 
         // When reconnecting processes the real invite request without primaryLoginsInvited
         await act(async () => {
@@ -207,14 +208,29 @@ describe('WorkspaceMemberDetailsRolePage', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        // Then a successful alias swap returns to Members, while a failed invite stays editable with its error intact
+        // Then an unresolved successful invite stays on the route without a not-found flash, while failure stays editable
         const syncedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE, 1);
         expect(syncedPolicy?.primaryLoginsInvited).toBeUndefined();
         if (isSuccess) {
-            await waitFor(() => expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBERS.getRoute(policy.id)));
+            expect(screen.getByTestId('LoadingPage')).toBeOnTheScreen();
+            expect(Navigation.goBack).not.toHaveBeenCalled();
             expect(syncedPolicy?.employeeList?.[primaryEmail]?.role).toBe(CONST.POLICY.ROLE.USER);
             expect((await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST))?.[optimisticAccountID]).toBeFalsy();
+            expect(updateWorkspaceMembersRoleMock).not.toHaveBeenCalled();
+
+            // A later association restores this same screen and its selected role instead of opening a new route
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {primaryLoginsInvited: {[secondaryEmail]: primaryEmail}});
+            });
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.queryByTestId('LoadingPage')).not.toBeOnTheScreen();
+            expect(screen.getByTestId('WorkspaceMemberDetailsRolePage')).toBeOnTheScreen();
+            expect(Navigation.goBack).not.toHaveBeenCalled();
+            fireEvent.press(screen.getByText(TestHelper.translateLocal('common.save')));
+            await waitForBatchedUpdatesWithAct();
+            expect(updateWorkspaceMembersRoleMock).toHaveBeenCalledWith(expect.objectContaining({id: policy.id}), [primaryEmail], [primaryAccountID], CONST.POLICY.ROLE.ADMIN);
+            expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policy.id, optimisticAccountID));
         } else {
             expect(syncedPolicy?.employeeList?.[secondaryEmail]?.errors).toBeTruthy();
             expect(screen.getByTestId('WorkspaceMemberDetailsRolePage')).toBeOnTheScreen();

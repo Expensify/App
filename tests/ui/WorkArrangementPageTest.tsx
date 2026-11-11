@@ -12,6 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {canMemberWrite} from '@libs/PolicyUtils';
 import {generateAccountID} from '@libs/UserUtils';
 
+import LoadingPage from '@pages/LoadingPage';
 import WorkArrangementPage from '@pages/workspace/members/WorkArrangementPage';
 
 import CONST from '@src/CONST';
@@ -67,6 +68,7 @@ jest.mock('@pages/workspace/AccessOrNotFoundWrapper', () => ({
     default: ({children, shouldBeBlocked}: PropsWithChildren<{shouldBeBlocked: boolean}>) => (shouldBeBlocked ? null : children),
 }));
 jest.mock('@pages/workspace/withPolicyAndFullscreenLoading', () => (Component: React.ComponentType) => Component);
+jest.mock('@pages/LoadingPage', () => jest.fn(() => null));
 
 type MockWorkArrangementOption = {value: boolean; isSelected?: boolean};
 
@@ -358,7 +360,7 @@ describe('WorkArrangementPage', () => {
         });
         renderedPage.rerender(getPage(optimisticAccountID, personalDetails, syncedPolicy));
 
-        // Then a resolvable member stays editable with the real account ID, otherwise the page safely returns to Members
+        // Then a resolvable member stays editable with the real account ID, otherwise the route waits without a redirect
         if (hasMapping) {
             expect(Navigation.goBack).not.toHaveBeenCalled();
             act(() => {
@@ -368,8 +370,22 @@ describe('WorkArrangementPage', () => {
             expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, optimisticAccountID));
         } else {
             expect(renderedPage.toJSON()).toBeNull();
-            expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
+            expect(LoadingPage).toHaveBeenCalled();
+            expect(Navigation.goBack).not.toHaveBeenCalled();
             expect(setEmployeeWorkArrangement).not.toHaveBeenCalled();
+            const loadingProps = jest.mocked(LoadingPage).mock.lastCall?.[0];
+            act(() => loadingProps?.onBackButtonPress?.());
+            expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, optimisticAccountID));
+            jest.mocked(Navigation.goBack).mockClear();
+
+            renderedPage.rerender(getPage(optimisticAccountID, personalDetails, {...syncedPolicy, primaryLoginsInvited: {[secondaryLogin]: memberLogin}}));
+            expect(getSelectionListProps()?.data).toHaveLength(2);
+            expect(Navigation.goBack).not.toHaveBeenCalled();
+            act(() => {
+                getSelectionListProps()?.onSelectRow?.({value: true});
+            });
+            expect(setEmployeeWorkArrangement).toHaveBeenCalledWith(expect.objectContaining({id: policyID}), [accountID], true, personalDetails);
+            expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, optimisticAccountID));
         }
     });
 
@@ -390,6 +406,41 @@ describe('WorkArrangementPage', () => {
 
         // Then no removal redirect or automatic arrangement change occurs
         expect(getSelectionListProps()?.data).toHaveLength(2);
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+        expect(setEmployeeWorkArrangement).not.toHaveBeenCalled();
+    });
+
+    it.each(['beta', 'workspace configuration', 'viewer permission'])('does not bypass %s restrictions while identity is resolving', async (restriction) => {
+        // Given an existing member page opened for an optimistic secondary-login invitation
+        const secondaryLogin = 'secondary@example.com';
+        const optimisticAccountID = generateAccountID(secondaryLogin);
+        const optimisticDetails: PersonalDetailsList = {
+            [optimisticAccountID]: createMock<PersonalDetails>({accountID: optimisticAccountID, login: secondaryLogin, isOptimisticPersonalDetail: true}),
+        };
+        const pendingPolicy = createMock<Policy>({
+            ...policy,
+            employeeList: {[secondaryLogin]: {email: secondaryLogin, role: CONST.POLICY.ROLE.USER, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}},
+        });
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, optimisticDetails);
+        });
+        const renderedPage = renderPage(optimisticAccountID, optimisticDetails, pendingPolicy);
+
+        // When the identity disappears and a separate access condition stops permitting the page
+        mockIsWorkArrangementBetaEnabled = restriction !== 'beta';
+        jest.mocked(canMemberWrite).mockReturnValue(restriction !== 'viewer permission');
+        const resolvingPolicy = createMock<Policy>({
+            ...pendingPolicy,
+            employeeList: {},
+            ...(restriction === 'workspace configuration' ? {commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE}} : {}),
+        });
+        jest.mocked(LoadingPage).mockClear();
+        mockedSelectionList.mockClear();
+        renderedPage.rerender(getPage(optimisticAccountID, optimisticDetails, resolvingPolicy));
+
+        // Then neither loading nor stale editing bypasses the restriction, and no mutation or automatic navigation occurs
+        expect(LoadingPage).not.toHaveBeenCalled();
+        expect(mockedSelectionList).not.toHaveBeenCalled();
         expect(Navigation.goBack).not.toHaveBeenCalled();
         expect(setEmployeeWorkArrangement).not.toHaveBeenCalled();
     });

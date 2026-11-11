@@ -238,7 +238,8 @@ describe('WorkspaceMemberCustomFieldPage', () => {
         expect(updateMemberCustomFieldMock).not.toHaveBeenCalled();
         if (responseType === 'unmapped') {
             expect(Navigation.goBack).not.toHaveBeenCalled();
-            expect(screen.getByTestId('NotFoundPage')).toBeOnTheScreen();
+            expect(screen.getByTestId('LoadingPage')).toBeOnTheScreen();
+            expect(screen.queryByTestId('NotFoundPage')).not.toBeOnTheScreen();
             expect(screen.queryByTestId('WorkspaceMemberCustomFieldPage')).not.toBeOnTheScreen();
         } else {
             expect(screen.queryByTestId('NotFoundPage')).not.toBeOnTheScreen();
@@ -283,7 +284,9 @@ describe('WorkspaceMemberCustomFieldPage', () => {
 
         const openEditor = async (routeAccountID = optimisticAccountID) => {
             await act(async () => {
-                await Onyx.merge(policyKey, {employeeList: {[secondaryEmail]: {email: secondaryEmail, role: CONST.POLICY.ROLE.USER}}});
+                await Onyx.merge(policyKey, {
+                    employeeList: {[secondaryEmail]: {email: secondaryEmail, role: CONST.POLICY.ROLE.USER, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}},
+                });
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                     [routeAccountID]: {...TestHelper.buildPersonalDetails(secondaryEmail, routeAccountID, 'Secondary'), isOptimisticPersonalDetail: routeAccountID === optimisticAccountID},
                 });
@@ -329,7 +332,8 @@ describe('WorkspaceMemberCustomFieldPage', () => {
             });
             await waitForBatchedUpdatesWithAct();
             expect(Navigation.goBack).not.toHaveBeenCalled();
-            expect(screen.getByTestId('NotFoundPage')).toBeOnTheScreen();
+            expect(screen.getByTestId('LoadingPage')).toBeOnTheScreen();
+            expect(screen.queryByTestId('NotFoundPage')).not.toBeOnTheScreen();
             expect(updateMemberCustomFieldMock).not.toHaveBeenCalled();
             await act(async () => {
                 await Onyx.merge(policyKey, {primaryLoginsInvited: {[secondaryEmail]: primaryEmail}});
@@ -412,6 +416,30 @@ describe('WorkspaceMemberCustomFieldPage', () => {
             expect(screen.getByTestId('NotFoundPage')).toBeOnTheScreen();
             expect(screen.queryByDisplayValue('TEST-123')).not.toBeOnTheScreen();
             expect(updateMemberCustomFieldMock).not.toHaveBeenCalled();
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('keeps live access restrictions while waiting for an invitation mapping', async () => {
+            // Given an editor with pending identity history and an unsaved draft
+            const {unmount} = await openEditor();
+
+            // When the target identity disappears and the viewing user loses member-management access
+            await act(async () => {
+                await Onyx.merge(policyKey, {
+                    role: CONST.POLICY.ROLE.USER,
+                    employeeList: {[secondaryEmail]: null, [selfEmail]: {role: CONST.POLICY.ROLE.USER}},
+                });
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[optimisticAccountID]: null});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the live access fallback wins over reconciliation loading and cannot expose an editor or send a write
+            expect(screen.getByTestId('NotFoundPage')).toBeOnTheScreen();
+            expect(screen.queryByTestId('LoadingPage')).not.toBeOnTheScreen();
+            expect(screen.queryByDisplayValue('TEST-123')).not.toBeOnTheScreen();
+            expect(updateMemberCustomFieldMock).not.toHaveBeenCalled();
+            expect(Navigation.goBack).not.toHaveBeenCalled();
             unmount();
             await waitForBatchedUpdatesWithAct();
         });

@@ -10,7 +10,6 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import useRedirectOnWorkspaceMemberRemoval from '@hooks/useRedirectOnWorkspaceMemberRemoval';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceMemberFromRoute from '@hooks/useWorkspaceMemberFromRoute';
 
@@ -36,6 +35,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 import {View} from 'react-native';
+
+import WorkspaceMemberLoadingPage from './WorkspaceMemberLoadingPage';
 
 type WorkArrangementOption = ListItem & {
     /** Whether selecting this option sets the member to office-based. */
@@ -69,13 +70,15 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
     const [inviteWorkArrangementDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT}${policyID}`);
     // Only an existing member has an account ID here. The invite flow reads its own arrangement draft and never looks up a member.
     const routeAccountID = route.name === SCREENS.WORKSPACE.MEMBER_WORK_ARRANGEMENT ? Number(route.params.accountID) : CONST.DEFAULT_NUMBER_ID;
-    const {memberLogin, accountID} = useWorkspaceMemberFromRoute(policy, personalDetails, routeAccountID);
+    const {memberLogin, accountID, isResolvingMember} = useWorkspaceMemberFromRoute(policy, personalDetails, routeAccountID);
     const member = policy?.employeeList?.[memberLogin];
-    const shouldRedirectToMembers = useRedirectOnWorkspaceMemberRemoval(policyID, routeAccountID, isInviteFlow || !!member?.role);
     const canWriteMembers = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MEMBERS);
     const isHomeAndOfficeWorkspace = policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
     const canAccessWorkArrangementPage =
-        canWriteMembers && isWorkArrangementBetaEnabled && isHomeAndOfficeWorkspace && (isInviteFlow || (!!member?.role && isMemberInHomeAndOfficeWorkspace(policy, memberLogin)));
+        canWriteMembers &&
+        isWorkArrangementBetaEnabled &&
+        isHomeAndOfficeWorkspace &&
+        (isInviteFlow || (!!member?.role && member.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isMemberInHomeAndOfficeWorkspace(policy, memberLogin)));
 
     // The member-level setting wins; otherwise use the workspace default and the server's office-based fallback.
     const currentIsOffice = getEffectiveWorkArrangement(isInviteFlow ? inviteWorkArrangementDraft : member?.hasOfficeWorkArrangement, policy?.commuterExclusions?.isOfficeWorkArrangement);
@@ -90,7 +93,7 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
     };
 
     const changeWorkArrangement = ({value}: WorkArrangementOption) => {
-        if (value === currentIsOffice || !canAccessWorkArrangementPage) {
+        if (value === currentIsOffice || !canAccessWorkArrangementPage || (!isInviteFlow && isResolvingMember)) {
             return;
         }
         if (isInviteFlow) {
@@ -119,8 +122,15 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
         },
     ];
 
-    if (shouldRedirectToMembers) {
-        return null;
+    if (!isInviteFlow && isResolvingMember) {
+        return (
+            <WorkspaceMemberLoadingPage
+                policyID={policyID}
+                title={translate('workspace.people.workArrangementPage.title')}
+                onBackButtonPress={navigateBackToDetails}
+                shouldBeBlocked={!canWriteMembers || !isWorkArrangementBetaEnabled || !isHomeAndOfficeWorkspace}
+            />
+        );
     }
 
     return (

@@ -35,7 +35,6 @@ import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePrevious from '@hooks/usePrevious';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
-import useRedirectOnWorkspaceMemberRemoval from '@hooks/useRedirectOnWorkspaceMemberRemoval';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
@@ -106,6 +105,8 @@ import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
+import WorkspaceMemberLoadingPage from './WorkspaceMemberLoadingPage';
+
 type WorkspacePolicyOnyxProps = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
 };
@@ -152,7 +153,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const isSupportalSession = useIsSupportalSession();
 
     const routeAccountID = Number(route.params.accountID);
-    const {memberLogin, memberPersonalDetails, accountID} = useWorkspaceMemberFromRoute(policy, personalDetails, routeAccountID);
+    const {memberLogin, memberPersonalDetails, accountID, isResolvingMember} = useWorkspaceMemberFromRoute(policy, personalDetails, routeAccountID);
     // Open the member's sub-pages with the route's accountID, even if it is a stale optimistic one, so they go back to this
     // screen instead of stacking a second details screen for the real accountID. The sub-pages resolve the real accountID themselves.
     const memberDetailsRoute = ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, routeAccountID);
@@ -162,7 +163,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [hasSelfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {selector: Boolean});
     const member = policy?.employeeList?.[memberLogin];
-    const shouldRedirectToMembers = useRedirectOnWorkspaceMemberRemoval(policyID, routeAccountID, !!member?.role);
     const memberWorkArrangement = getEffectiveWorkArrangement(member?.hasOfficeWorkArrangement, policy?.commuterExclusions?.isOfficeWorkArrangement);
     const memberOfficeLocation = getMemberOfficeLocation(getAssignableOfficeLocations(policy, translate, localeCompare), member?.officeID);
     const prevMember = usePrevious(member);
@@ -454,10 +454,16 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     };
 
     const shouldShowNotFoundPage =
-        !member || (member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && prevMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        !member?.role || (member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && prevMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
-    if (shouldRedirectToMembers) {
-        return null;
+    if (isResolvingMember) {
+        return (
+            <WorkspaceMemberLoadingPage
+                policyID={policyID}
+                title={displayName}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID))}
+            />
+        );
     }
 
     if (shouldShowNotFoundPage) {

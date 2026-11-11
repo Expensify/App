@@ -181,7 +181,7 @@ describe('WorkspaceMemberDetailsPage', () => {
         jest.clearAllMocks();
     });
 
-    it('returns to Members when a secondary login disappears without a primary login mapping', async () => {
+    it('holds the Details route when a secondary login disappears before its primary mapping arrives', async () => {
         // Given member details opened for an optimistic secondary login while the invite is pending
         const optimisticAccountID = generateAccountID(secondaryEmail);
         const goBack = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
@@ -206,9 +206,18 @@ describe('WorkspaceMemberDetailsPage', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        // Then the page returns to the list where the primary member can be selected without showing not found
-        expect(goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBERS.getRoute(policy.id));
+        // Then the route stays mounted without automatically navigating away or flashing not found
+        expect(goBack).not.toHaveBeenCalled();
+        expect(screen.getByTestId('LoadingPage')).toBeOnTheScreen();
         expect(screen.queryByTestId('NotFoundPage')).not.toBeOnTheScreen();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {primaryLoginsInvited: {[secondaryEmail]: primaryEmail}});
+        });
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByTestId('WorkspaceMemberDetailsPage')).toBeOnTheScreen();
+        expect(screen.queryByTestId('LoadingPage')).not.toBeOnTheScreen();
+        expect(screen.queryByTestId('NotFoundPage')).not.toBeOnTheScreen();
+        expect(goBack).not.toHaveBeenCalled();
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
