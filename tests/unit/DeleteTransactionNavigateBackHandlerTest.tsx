@@ -51,7 +51,7 @@ async function getNavigateBackUrl() {
         const connection = Onyx.connectWithoutView({
             key: ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL,
             callback: (value) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(value);
             },
         });
