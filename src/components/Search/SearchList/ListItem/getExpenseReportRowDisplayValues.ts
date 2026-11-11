@@ -30,13 +30,7 @@ function getExpenseReportRowDisplayValues(item: ExpenseReportRowDisplayItem, {tr
     const expenseCount = (filteredTransactions?.length ? filteredTransactions.length : undefined) ?? item.transactionCount ?? 0;
     const expenseCountText = translate('iou.expenseCount', {count: expenseCount});
 
-    const date = item.created
-        ? DateUtils.formatWithUTCTimeZone(
-              item.created,
-              DateUtils.doesDateBelongToAPastYear(item.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
-              dateFnsLocale,
-          )
-        : '';
+    const date = item.created ? DateUtils.formatToMonthDayWithOptionalYearInUTC(item.created, dateFnsLocale) : '';
 
     return {amount, expenseCountText, date};
 }

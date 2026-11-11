@@ -40,6 +40,8 @@
     week: "groupweek",
     year: "groupyear",
     quarter: "groupquarter",
+    approver: "groupApprover",
+    violation: null,
   };
 
   const GROUP_BY_DEFAULT_SORT_ORDER = {
@@ -54,6 +56,7 @@
     week: "desc",
     year: "desc",
     quarter: "desc",
+    approver: "asc",
   };
 
   const DEFAULT_SORT_BY_VALUES = new Set([...Object.values(GROUP_BY_DEFAULT_SORT), "date"]);
@@ -220,6 +223,10 @@ defaultFilter
       if (op === "contains") {
         return buildFilter("eq", "keyword", text().trim());
       }
+      // Ignore unsupported groupings before they override a valid grouping or affect sort and view defaults.
+      if (key === "groupBy" && !Object.hasOwn(GROUP_BY_DEFAULT_SORT, value)) {
+        return null;
+      }
       updateDefaultValues(key, value);
       return {...buildFilter(op, key, value), isDefault: true};
     }
@@ -319,6 +326,7 @@ key "key"
       / submitterUserID
       / submitterPayrollID
       / orderDealNumbers
+      / approver
       / assignee
       / createdBy
       / reimbursable

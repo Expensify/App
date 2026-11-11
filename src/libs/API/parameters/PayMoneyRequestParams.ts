@@ -8,6 +8,8 @@ type PayMoneyRequestParams = {
     full: boolean;
     amount?: number;
     bankAccountID?: number;
+    /** The Wise quote the admin confirmed, required to pay a cross-currency report through Wise */
+    wiseQuoteID?: string;
     optimisticHoldReportID?: string;
     optimisticHoldActionID?: string;
     /**

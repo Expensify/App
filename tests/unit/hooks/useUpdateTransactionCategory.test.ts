@@ -59,19 +59,33 @@ describe('useUpdateTransactionCategory', () => {
         await waitForBatchedUpdates();
     });
 
-    it('writes a split being edited to its own draft', () => {
-        // Given a split expense being edited, whose source of truth is the split draft
+    it('seeds the split draft from the saved transaction when the split draft does not exist yet', () => {
+        // Given a split expense being edited that has no split draft yet, so the saved transaction is the base
         const {result} = renderUpdater({isEditing: true, isEditingSplit: true});
 
         // When a category is picked
         result.current.updateCategory(CATEGORY);
 
-        // Then only the split draft is written, and the caller is told this is not a money request draft write
+        // Then the split draft is seeded from the transaction, and the caller is told this is not a money request draft write
         expect(setDraftSplitTransaction).toHaveBeenCalledTimes(1);
-        expect(setDraftSplitTransaction).toHaveBeenCalledWith(TRANSACTION_ID, undefined, {category: CATEGORY}, expect.any(Function), expect.any(Function), policy);
+        expect(setDraftSplitTransaction).toHaveBeenCalledWith(TRANSACTION_ID, transaction, {category: CATEGORY}, expect.any(Function), expect.any(Function), policy);
         expect(updateMoneyRequestCategory).not.toHaveBeenCalled();
         expect(setMoneyRequestCategory).not.toHaveBeenCalled();
         expect(result.current.isDraftUpdate).toBe(false);
+    });
+
+    it('uses an existing split draft as the base when there is one', async () => {
+        // Given a split expense being edited that already has a split draft
+        const splitDraft = createMock<OnyxTypes.Transaction>({transactionID: TRANSACTION_ID, category: 'Existing'});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${TRANSACTION_ID}`, splitDraft);
+        await waitForBatchedUpdates();
+        const {result} = renderUpdater({isEditing: true, isEditingSplit: true});
+
+        // When a category is picked
+        result.current.updateCategory(CATEGORY);
+
+        // Then the existing split draft is the base, so its other fields are preserved
+        expect(setDraftSplitTransaction).toHaveBeenCalledWith(TRANSACTION_ID, splitDraft, {category: CATEGORY}, expect.any(Function), expect.any(Function), policy);
     });
 
     it('writes a saved expense through the money request update', () => {
@@ -87,6 +101,31 @@ describe('useUpdateTransactionCategory', () => {
         expect(setDraftSplitTransaction).not.toHaveBeenCalled();
         expect(setMoneyRequestCategory).not.toHaveBeenCalled();
         expect(result.current.isDraftUpdate).toBe(false);
+    });
+
+    it('recomputes violations against categories passed with the write', () => {
+        // Given an existing expense being edited, whose hook still holds the categories from before a new one was created
+        const staleCategories = createMock<OnyxTypes.PolicyCategories>({Meals: {name: 'Meals', enabled: true}});
+        const updatedCategories = createMock<OnyxTypes.PolicyCategories>({Meals: {name: 'Meals', enabled: true}, [CATEGORY]: {name: CATEGORY, enabled: true}});
+        const {result} = renderUpdater({isEditing: true, policyCategories: staleCategories});
+
+        // When the just-created category is written along with the categories that include it
+        result.current.updateCategory(CATEGORY, updatedCategories);
+
+        // Then the update uses those categories, so the new category isn't flagged as out of policy
+        expect(updateMoneyRequestCategory).toHaveBeenCalledWith(expect.objectContaining({category: CATEGORY, policyCategories: updatedCategories}));
+    });
+
+    it('recomputes violations against the hook categories when none are passed with the write', () => {
+        // Given an existing expense being edited
+        const policyCategories = createMock<OnyxTypes.PolicyCategories>({[CATEGORY]: {name: CATEGORY, enabled: true}});
+        const {result} = renderUpdater({isEditing: true, policyCategories});
+
+        // When an existing category is picked
+        result.current.updateCategory(CATEGORY);
+
+        // Then the update uses the categories the hook was given
+        expect(updateMoneyRequestCategory).toHaveBeenCalledWith(expect.objectContaining({policyCategories}));
     });
 
     it('writes an expense that is still being created to the money request draft', () => {

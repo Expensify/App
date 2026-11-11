@@ -252,6 +252,7 @@ function useTrackExpenseSubmission({
                 optimisticTransactionID: lastOptimisticTransactionID,
                 isASAPSubmitBetaEnabled,
                 currentUser: {accountID: currentUserPersonalDetails.accountID, email},
+                currentUserPersonalDetails,
                 introSelected,
                 activePolicy,
                 conciergeChat,
@@ -292,7 +293,7 @@ function useTrackExpenseSubmission({
         });
     }
 
-    function createTransaction({locationPermissionGranted = false, shouldHandleNavigation = true, writeBarrier}: CreateTransactionParams) {
+    function createTransaction({locationPermissionGranted, shouldHandleNavigation, writeBarrier}: CreateTransactionParams) {
         const hasAnyReceiptFile = Object.values(receiptFiles).filter((receipt) => !!receipt).length > 0;
 
         // A zero amount means the expense came through the "Scan" flow, which needs GPS coordinates attached.

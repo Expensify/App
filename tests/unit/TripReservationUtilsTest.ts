@@ -1,9 +1,10 @@
 /* cspell:disable */
+import DateUtils from '@libs/DateUtils';
 import {formatTransitLocationLabel, getAirReservations, getPNRReservationDataFromTripReport, getReservationsFromTripReport, isPnrCancelled} from '@libs/TripReservationUtils';
 
 import CONST from '@src/CONST';
 import type {ReportNameValuePairs} from '@src/types/onyx';
-import type {Pnr, RailPnr, TripData} from '@src/types/onyx/TripData';
+import type {HotelPnr, Pnr, RailPnr, TripData} from '@src/types/onyx/TripData';
 
 import cloneDeep from 'lodash/cloneDeep';
 import unset from 'lodash/unset';
@@ -2093,7 +2094,7 @@ const hotelPnr: Pnr = {
             room: {
                 roomName: 'Deluxe Suite',
                 cancellationPolicy: {
-                    policy: 'Non-refundable',
+                    policy: CONST.CANCELLATION_POLICY.FREE_CANCELLATION_UNTIL,
                     deadline: {iso8601: '2023-10-04T15:00:00Z'},
                     deadlineUtc: {
                         iso8601: '',
@@ -2786,7 +2787,7 @@ describe('TripReservationUtils', () => {
             {pnr: airPnrDirect, field: 'airPnr.legs.0.flights.0.duration.iso8601', reservationCount: 7, expectedDetails: {duration: 0}},
             {pnr: hotelPnrWithTraveler, field: 'hotelPnr.travelerInfos', reservationCount: 7, expectedDetails: {travelerPersonalInfo: {name: '', email: ''}}},
             {pnr: hotelPnrWithTraveler, field: 'hotelPnr.travelerInfos.0.userId', reservationCount: 7, expectedDetails: {travelerPersonalInfo: {name: '', email: ''}}},
-            {pnr: hotelPnr, field: 'hotelPnr.room.cancellationPolicy.deadlineUtc', reservationCount: 7, expectedDetails: {cancellationDeadline: undefined}},
+            {pnr: hotelPnr, field: 'hotelPnr.room.cancellationPolicy.deadlineUtc', reservationCount: 7, expectedDetails: {cancellationDeadline: '2023-10-04T15:00:00Z'}},
             {pnr: airPnrDirect, field: 'pnrTravelers.0.personalInfo', reservationCount: 7, expectedDetails: {travelerPersonalInfo: {name: '', email: ''}}},
             {pnr: airPnrDirect, field: 'pnrTravelers.0.personalInfo.name', reservationCount: 7, expectedDetails: {travelerPersonalInfo: {name: '', email: 'john.doe@example.com'}}},
             {pnr: carPnr, field: 'carPnr.cancellationPolicy', reservationCount: 7, expectedDetails: {cancellationPolicy: null, cancellationDeadline: null}},
@@ -2961,6 +2962,109 @@ describe('TripReservationUtils', () => {
             expect(trainReservation?.type).toEqual(CONST.RESERVATION_TYPE.TRAIN);
             expect(trainReservation?.start?.shortName).toEqual('STX');
             expect(trainReservation?.end?.shortName).toEqual('STY');
+        });
+    });
+
+    describe('hotel cancellation deadline', () => {
+        function getHotelCancellationDeadline(cancellationPolicy: HotelPnr['room']['cancellationPolicy'], checkIn: string) {
+            const pnr: Pnr = {
+                ...hotelPnr,
+                data: {
+                    ...hotelPnr.data,
+                    hotelPnr: {...hotelPnrData, checkInDateTime: {iso8601: checkIn}, room: {...hotelPnrData.room, cancellationPolicy}},
+                },
+            };
+            const result = getReservationsFromTripReport(createRandomReport(1, undefined), {tripData: {tripID: 'trip123', payload: {...basicTripData, pnrs: [pnr]}}});
+            return result.at(0)?.reservation.cancellationDeadline;
+        }
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        it('should show the deadline Spotnana returns instead of check-in minus the duration', () => {
+            // Given a London booking whose deadline is 23:59 two days before check-in, while check-in minus `P1D` would give Oct 20 3:00 PM
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2026-10-01T00:00:00Z'));
+            const cancellationDeadline = getHotelCancellationDeadline(
+                {
+                    policy: 'Free cancellation',
+                    deadline: {iso8601: '2026-10-19T23:59:00'},
+                    deadlineUtc: {iso8601: '2026-10-19T23:59:00+01:00'},
+                    durationBeforeArrivalDeadline: {iso8601: 'P1D'},
+                },
+                '2026-10-21T15:00:00',
+            );
+
+            // When the deadline is formatted for the hotel details page
+            const formattedDeadline = DateUtils.getFormattedCancellationDate(cancellationDeadline ?? '', undefined);
+
+            // Then it matches the deadline Spotnana shows, in the hotel's timezone
+            expect(cancellationDeadline).toBe('2026-10-19T23:59:00+01:00');
+            expect(formattedDeadline).toBe('Monday, Oct 19 11:59 PM, GMT+1');
+        });
+
+        it('should fall back to the hotel-local deadline when deadlineUtc has no offset', () => {
+            // Given a booking whose deadlineUtc is empty but whose hotel-local deadline is set
+            // When the hotel reservation is parsed
+            const cancellationDeadline = getHotelCancellationDeadline(
+                {
+                    policy: 'Free cancellation',
+                    deadline: {iso8601: '2026-10-19T23:59:00'},
+                    deadlineUtc: {iso8601: ''},
+                },
+                '2026-10-21T15:00:00',
+            );
+
+            // Then the hotel-local deadline is used instead of dropping to the generic policy text
+            expect(cancellationDeadline).toBe('2026-10-19T23:59:00');
+        });
+
+        it('should prefer the hotel-local deadline when deadlineUtc ends in Z', () => {
+            // Given a deadlineUtc normalized to UTC and a hotel-local deadline
+            // When the hotel reservation is parsed
+            const cancellationDeadline = getHotelCancellationDeadline(
+                {
+                    policy: 'Free cancellation',
+                    deadline: {iso8601: '2026-10-19T23:59:00'},
+                    deadlineUtc: {iso8601: '2026-10-19T22:59:00Z'},
+                },
+                '2026-10-21T15:00:00',
+            );
+
+            // Then the hotel-local time is used so it matches what Spotnana shows, not the UTC time
+            expect(cancellationDeadline).toBe('2026-10-19T23:59:00');
+        });
+
+        it('should fall back to deadlineUtc ending in Z when there is no hotel-local deadline', () => {
+            // Given a deadlineUtc normalized to UTC and no hotel-local deadline
+            // When the hotel reservation is parsed
+            const cancellationDeadline = getHotelCancellationDeadline(
+                {
+                    policy: 'Free cancellation',
+                    deadlineUtc: {iso8601: '2026-10-19T22:59:00Z'},
+                },
+                '2026-10-21T15:00:00',
+            );
+
+            // Then the UTC deadline is still shown rather than dropping to the generic policy text
+            expect(cancellationDeadline).toBe('2026-10-19T22:59:00Z');
+        });
+
+        it('should not return a deadline for a non-refundable room', () => {
+            // Given a non-refundable room that still has deadlines set
+            // When the hotel reservation is parsed
+            const cancellationDeadline = getHotelCancellationDeadline(
+                {
+                    policy: CONST.CANCELLATION_POLICY.NON_REFUNDABLE,
+                    deadline: {iso8601: '2026-10-19T23:59:00'},
+                    deadlineUtc: {iso8601: '2026-10-19T23:59:00+01:00'},
+                },
+                '2026-10-21T15:00:00',
+            );
+
+            // Then no deadline is returned, so the page shows "Non-refundable" instead of "Free cancellation until …"
+            expect(cancellationDeadline).toBeUndefined();
         });
     });
 

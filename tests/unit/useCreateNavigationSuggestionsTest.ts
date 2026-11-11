@@ -59,39 +59,40 @@ jest.mock('@hooks/useCurrencyList', () => ({
     useCurrencyListActions: () => ({getCurrencyDecimals: mockGetCurrencyDecimals}),
 }));
 
+// Stable references across renders, like the real hooks.
+const mockIcons = {
+    Document: mockIcon,
+    Location: mockIcon,
+    ChatBubble: mockIcon,
+    InvoiceGeneric: mockIcon,
+    Suitcase: mockIcon,
+    NewWorkspace: mockIcon,
+};
+const mockTranslations = new Map([
+    ['homePage.gettingStartedSection.createExpense', 'Create an expense'],
+    ['homePage.gettingStartedSection.createWorkspace', 'Create a workspace'],
+    ['common.chat', 'Chat'],
+    ['common.new', 'New'],
+    ['iou.addExpense', 'Add expense'],
+    ['iou.createExpense', 'Create expense'],
+    ['iou.trackDistance', 'Track distance'],
+    ['onboarding.workspace.createWorkspace', 'Create workspace'],
+    ['report.newReport.createReport', 'Create report'],
+    ['sidebarScreen.fabNewChat', 'Start chat'],
+    ['travel.bookTravel', 'Book travel'],
+    ['workspace.invoices.sendInvoice', 'Send invoice'],
+    ['workspace.new.newWorkspace', 'New workspace'],
+]);
+const mockLocalize = {translate: (key: string) => mockTranslations.get(key) ?? key};
+const mockPermissions = {isBetaEnabled: mockIsBetaEnabled, isBetaEnabledOrUnknown: mockIsBetaEnabled};
+
 jest.mock('@hooks/useLazyAsset', () => ({
-    useMemoizedLazyExpensifyIcons: () => ({
-        Document: mockIcon,
-        Location: mockIcon,
-        ChatBubble: mockIcon,
-        InvoiceGeneric: mockIcon,
-        Suitcase: mockIcon,
-        NewWorkspace: mockIcon,
-    }),
+    useMemoizedLazyExpensifyIcons: () => mockIcons,
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
-    default: () => ({
-        translate: (key: string) => {
-            const translations = new Map([
-                ['homePage.gettingStartedSection.createExpense', 'Create an expense'],
-                ['homePage.gettingStartedSection.createWorkspace', 'Create a workspace'],
-                ['common.chat', 'Chat'],
-                ['common.new', 'New'],
-                ['iou.addExpense', 'Add expense'],
-                ['iou.createExpense', 'Create expense'],
-                ['iou.trackDistance', 'Track distance'],
-                ['onboarding.workspace.createWorkspace', 'Create workspace'],
-                ['report.newReport.createReport', 'Create report'],
-                ['sidebarScreen.fabNewChat', 'Start chat'],
-                ['travel.bookTravel', 'Book travel'],
-                ['workspace.invoices.sendInvoice', 'Send invoice'],
-                ['workspace.new.newWorkspace', 'New workspace'],
-            ]);
-            return translations.get(key) ?? key;
-        },
-    }),
+    default: () => mockLocalize,
 }));
 
 jest.mock('@hooks/useNetwork', () => ({
@@ -106,7 +107,7 @@ jest.mock('@hooks/useOnyx', () => ({
 
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: () => ({isBetaEnabled: mockIsBetaEnabled, isBetaEnabledOrUnknown: mockIsBetaEnabled}),
+    default: () => mockPermissions,
 }));
 
 jest.mock('@hooks/usePreferredPolicy', () => ({
@@ -200,9 +201,25 @@ function setupUseOnyx() {
         [ONYXKEYS.IS_LOADING_APP, false],
     ]);
 
+    // Like Onyx, reuse the selected value while the stored value is unchanged.
+    const selectedValues = new Map<MockOnyxOptions['selector'], Map<string, {value: unknown; selected: unknown}>>();
     mockUseOnyx.mockImplementation((key, options) => {
         const value = mockOnyxValues.get(key);
-        return [options?.selector ? options.selector(value) : value, {status: 'loaded'}];
+        const selector = options?.selector;
+        if (!selector) {
+            return [value, {status: 'loaded'}];
+        }
+
+        const selectedByKey = selectedValues.get(selector) ?? new Map<string, {value: unknown; selected: unknown}>();
+        selectedValues.set(selector, selectedByKey);
+        const previous = selectedByKey.get(key);
+        if (previous && previous.value === value) {
+            return [previous.selected, {status: 'loaded'}];
+        }
+
+        const selected = selector(value);
+        selectedByKey.set(key, {value, selected});
+        return [selected, {status: 'loaded'}];
     });
 }
 
@@ -231,6 +248,29 @@ describe('useCreateNavigationSuggestions', () => {
         // Then "Create report" is left out and the remaining actions keep their order
         expect(mockUseCreateReport).toHaveBeenCalledWith(expect.objectContaining({shouldHandleNavigationBack: false}));
         expect(result.current.map((item) => item.keyForList)).toEqual(['create_expense', 'create_trackDistance', 'create_chat']);
+    });
+
+    it('returns the same items when re-rendered with unchanged inputs', () => {
+        // Given the Create suggestions built once
+        const {result, rerender} = renderHook(() => useCreateNavigationSuggestions('create'));
+        const firstItems = result.current;
+
+        // When the Search Router re-renders without any of the hook's inputs changing
+        rerender(undefined);
+
+        // Then the same array is returned, so the navigation suggestions built from it are not rebuilt
+        expect(result.current).toBe(firstItems);
+    });
+
+    it('builds no Create items and skips the policy scans when they are not needed', () => {
+        // Given the Search Router has a query that can't match any navigation suggestion
+        // When it asks for the Create suggestions without building them
+        const {result} = renderHook(() => useCreateNavigationSuggestions('', false));
+
+        // Then no items are returned and the policies are not scanned
+        expect(result.current).toEqual([]);
+        expect(mockCanSendInvoice).not.toHaveBeenCalled();
+        expect(mockShouldShowPolicy).not.toHaveBeenCalled();
     });
 
     it('uses localized aliases for Create action matching', () => {

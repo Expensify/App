@@ -1,5 +1,7 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import FormHelpMessage from '@components/FormHelpMessage';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -54,34 +56,35 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
     const menuItems = [
         {
             description: translate('workspace.accounting.preferredExporter'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.EXPORT_ROW.PREFERRED_EXPORTER,
             onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_PREFERRED_EXPORTER_SELECT.path)),
             title: exportConfiguration?.exporter ?? policyOwner,
             subscribedSettings: [CONST.XERO_CONFIG.EXPORTER],
         },
         {
             description: translate('workspace.accounting.exportOutOfPocket'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.EXPORT_ROW.OUT_OF_POCKET,
             title: translate('workspace.xero.purchaseBill'),
-            interactive: false,
-            shouldShowRightIcon: false,
             helperText: translate('workspace.xero.exportExpensesDescription'),
         },
         {
             description: translate('workspace.xero.purchaseBillDate'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.EXPORT_ROW.PURCHASE_BILL_DATE,
             onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT.path)),
             title: exportConfiguration?.billDate ? translate(`workspace.xero.exportDate.values.${exportConfiguration.billDate}.label`) : undefined,
             subscribedSettings: [CONST.XERO_CONFIG.BILL_DATE],
         },
         {
             description: translate('workspace.xero.advancedConfig.purchaseBillStatusTitle'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.EXPORT_ROW.PURCHASE_BILL_STATUS,
             onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR.path)),
             title: exportConfiguration?.billStatus?.purchase ? translate(`workspace.xero.invoiceStatus.values.${exportConfiguration.billStatus.purchase}`) : undefined,
             subscribedSettings: [CONST.XERO_CONFIG.BILL_STATUS],
         },
         {
             description: translate('workspace.xero.exportInvoices'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.EXPORT_ROW.INVOICES,
             title: translate('workspace.xero.salesInvoice'),
-            interactive: false,
-            shouldShowRightIcon: false,
             helperText: translate('workspace.xero.exportInvoicesDescription'),
         },
         ...(isTravelBillingEnabled
@@ -89,6 +92,7 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
                   {
                       title: translate('workspace.xero.bankTransactions'),
                       description: translate('workspace.common.travelBilling'),
+                      sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.EXPORT_ROW.TRAVEL_BILLING,
                       onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_TRAVEL_BILLING_CONFIGURATION.path)),
                       subscribedSettings: [CONST.XERO_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT],
                   },
@@ -96,13 +100,13 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
             : []),
         {
             description: translate('workspace.accounting.exportCompanyCard'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.EXPORT_ROW.COMPANY_CARD,
             title: translate('workspace.xero.bankTransactions'),
-            shouldShowRightIcon: false,
-            interactive: false,
             helperText: translate('workspace.xero.exportDeepDiveCompanyCard'),
         },
         {
             description: translate('workspace.xero.xeroBankAccount'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.EXPORT_ROW.BANK_ACCOUNT,
             onPress: () => (!policyID ? undefined : Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_BANK_ACCOUNT_SELECT.path))),
             title: selectedBankAccountName,
             subscribedSettings: [CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT],
@@ -111,6 +115,7 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
             ? [
                   {
                       description: translate('workspace.accounting.defaultVendor'),
+                      sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.EXPORT_ROW.DEFAULT_VENDOR,
                       onPress: () => (!policyID ? undefined : Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_NON_REIMBURSABLE_DEFAULT_CONTACT_SELECT.path))),
                       title: defaultVendorName,
                       // No fallback vendor name: Xero posts company card expenses as bank transactions and never
@@ -142,15 +147,22 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
                     key={menuItem.description}
                     pendingAction={settingsPendingAction(menuItem?.subscribedSettings ?? [], pendingFields)}
                 >
-                    <MenuItemWithTopDescription
-                        title={menuItem.title}
-                        interactive={menuItem?.interactive ?? true}
-                        description={menuItem.description}
-                        shouldShowRightIcon={menuItem?.shouldShowRightIcon ?? true}
+                    <MenuItemField
+                        sentryLabel={menuItem.sentryLabel}
+                        name={menuItem.description}
                         onPress={menuItem?.onPress}
-                        brickRoadIndicator={areSettingsInErrorFields(menuItem?.subscribedSettings ?? [], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        helperText={menuItem?.helperText}
-                    />
+                        value={menuItem.title}
+                    >
+                        {areSettingsInErrorFields(menuItem?.subscribedSettings ?? [], errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                    </MenuItemField>
+                    {!!menuItem?.helperText && (
+                        <FormHelpMessage
+                            isError={false}
+                            shouldShowRedDotIndicator={false}
+                            message={menuItem.helperText}
+                            style={[styles.mt0, styles.mb0, styles.ph5, styles.pb5]}
+                        />
+                    )}
                 </OfflineWithFeedback>
             ))}
         </ConnectionLayout>
