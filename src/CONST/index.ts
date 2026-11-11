@@ -2611,6 +2611,10 @@ const CONST = {
             DYNAMIC_EXTERNAL_WORKFLOW_APPROVE_ERROR: 'dynamicExternalWorkflowApproveError',
             DYNAMIC_EXTERNAL_WORKFLOW_OFFLINE: 'dynamicExternalWorkflowOffline',
         },
+        AUTO_EXPORT_MESSAGE_KEY: {
+            EXPORTS_AFTER_FINAL_APPROVAL: 'exportsAfterFinalApproval',
+            REIMBURSABLE_EXPORTS_WHEN_PAID: 'outOfPocketExportsWhenPaid',
+        },
         ICONS: {
             HOURGLASS: 'hourglass',
             CHECKMARK: 'checkmark',
