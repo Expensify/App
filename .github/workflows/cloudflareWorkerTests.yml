@@ -3,7 +3,6 @@ name: Cloudflare Worker tests
 on:
   pull_request:
     types: [opened, synchronize]
-    branches-ignore: [production]
     paths:
       - 'web/cloudflare-worker/**'
       # The tests check its inline scripts against the CSP hashes.

@@ -19,7 +19,7 @@ Most members can switch between experiences unless switching has been restricted
 
 ## How to switch from New Expensify to Expensify Classic
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Click **Troubleshoot**.
 3. Choose **Switch to Expensify Classic**.
 

@@ -5,6 +5,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateQuickbooksDesktopMarkChecksToBePrinted} from '@libs/actions/connections/QuickbooksDesktop';
@@ -20,14 +21,17 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import {clearQBDErrorField} from '@userActions/Policy/Policy';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ValueOf} from 'type-fest';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 type QBDSectionType = {
@@ -39,12 +43,14 @@ type QBDSectionType = {
     subscribedSettings: string[];
     pendingAction?: PendingAction;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+    sentryLabel: SentryLabel;
 };
 const account = [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_ACCOUNT];
 const accountOrExportDestination = [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE, CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_ACCOUNT];
 const markChecksToBePrintedOrExportDestination = [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE, CONST.QUICKBOOKS_DESKTOP_CONFIG.MARK_CHECKS_TO_BE_PRINTED];
 
 function DynamicQuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConnectionsProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
@@ -77,6 +83,7 @@ function DynamicQuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: W
         {
             title: reimbursable ? translate(`workspace.qbd.accounts.${reimbursable}`) : undefined,
             description: translate('workspace.accounting.exportAs'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.EXPORT_OUT_OF_POCKET_ROW.EXPORT_AS,
             onPress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_OUT_OF_POCKET_EXPENSE_ENTITY_SELECT.path)),
             hintText: exportHintText,
             subscribedSettings: accountOrExportDestination,
@@ -86,6 +93,7 @@ function DynamicQuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: W
         {
             title: accountsList.find(({id}) => qbdConfig?.export.reimbursableAccount === id)?.name,
             description: accountDescription,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.EXPORT_OUT_OF_POCKET_ROW.ACCOUNT,
             onPress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_OUT_OF_POCKET_EXPENSE_ACCOUNT_SELECT.path)),
             subscribedSettings: account,
             pendingAction: settingsPendingAction(account, qbdConfig?.pendingFields),
@@ -112,7 +120,10 @@ function DynamicQuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: W
                     // eslint-disable-next-line react/no-array-index-key
                     key={index}
                 >
-                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(section.onPress)}>
+                    <MenuItem.Root
+                        onPress={callIfAuthenticated(section.onPress, session)}
+                        sentryLabel={section.sentryLabel}
+                    >
                         <MenuItemField.Row
                             name={section.description ?? ''}
                             value={section.title}
@@ -129,6 +140,7 @@ function DynamicQuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: W
                     key={translate('workspace.qbd.exportOutOfPocketExpensesCheckToggle')}
                     title={translate('workspace.qbd.exportOutOfPocketExpensesCheckToggle')}
                     switchAccessibilityLabel={translate('workspace.qbd.exportOutOfPocketExpensesCheckToggle')}
+                    switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.MARK_CHECKS_TO_BE_PRINTED_SWITCH}
                     shouldPlaceSubtitleBelowSwitch
                     wrapperStyle={[styles.mv3, styles.ph5]}
                     isActive={!!qbdConfig?.markChecksToBePrinted}

@@ -15,7 +15,6 @@ import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 
-jest.mock('@components/MenuItemWithTopDescription', () => jest.fn(() => null));
 jest.mock(
     '@components/OfflineWithFeedback',
     () =>

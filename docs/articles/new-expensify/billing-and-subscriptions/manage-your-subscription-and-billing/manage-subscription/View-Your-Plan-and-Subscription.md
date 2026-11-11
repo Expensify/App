@@ -25,9 +25,10 @@ Workspace Admins can view the Workspace plan under **Overview > Plan type**, but
 
 ## How to view your current plan and subscription
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Account** > **Subscription**.
-2. Scroll to the **Your plan** section to view your plan.
-3. Choose **Subscription settings** to view your subscription details.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Subscription**.
+3. Scroll to the **Your plan** section to view your plan.
+4. Choose **Subscription settings** to view your subscription details.
 
 ![Account > Subscription page with the "Your plan" section in view and the "Subscription settings" entry point visible]({{site.url}}/assets/images/ExpensiHelp-View-Your-Plan-and-Subscription.png){:width="100%"}
 

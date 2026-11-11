@@ -5,6 +5,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {KeyboardStateProvider} from '@components/withKeyboardState';
 
+import type * as InputFocus from '@libs/actions/InputFocus/index.web';
 import {editReportComment} from '@libs/actions/Report';
 
 import * as ReportActionContextMenu from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -27,6 +28,8 @@ import * as TestHelper from '../utils/TestHelper';
 
 const mockEditReportComment = jest.mocked(editReportComment);
 const mockShowDeleteModal = jest.mocked(ReportActionContextMenu.showDeleteModal);
+
+jest.mock('@libs/actions/InputFocus', () => jest.requireActual<typeof InputFocus>('@libs/actions/InputFocus/index.web'));
 
 jest.mock('@libs/actions/Report', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -119,6 +122,23 @@ describe('ReportActionCompose Integration Tests', () => {
         });
         draftMessageVideoAttributeCache.clear();
         jest.clearAllMocks();
+    });
+
+    it('should clear web edit focus when the edit composer unmounts', async () => {
+        // Given an edit composer that owns the web input focus flag
+        const {unmount} = renderReportActionItemMessageEdit();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.INPUT_FOCUSED, true);
+        });
+        expect(await Onyx.get(ONYXKEYS.INPUT_FOCUSED)).toBe(true);
+
+        // When editing ends and the edit composer unmounts
+        await act(async () => {
+            unmount();
+        });
+
+        // Then stale edit focus cannot block the main composer after the next modal closes
+        expect(await Onyx.get(ONYXKEYS.INPUT_FOCUSED)).toBe(false);
     });
 
     describe('Message validation', () => {

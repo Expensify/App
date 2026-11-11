@@ -8,11 +8,11 @@ import {isWaypointNullIsland} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 
-type DistanceRequestProps = WithSentryLabel & {
+type DistanceRequestProps = {
     /** The waypoints for the distance expense */
     waypoints?: WaypointCollection;
 
@@ -26,7 +26,7 @@ type DistanceRequestProps = WithSentryLabel & {
     disabled?: boolean;
 };
 
-function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction, getIndex, isActive = false, onPress = () => {}, disabled = false, sentryLabel}: DistanceRequestProps) {
+function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction, getIndex, isActive = false, onPress = () => {}, disabled = false}: DistanceRequestProps) {
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'DotIndicatorUnfilled', 'DotIndicator', 'DragHandles']);
     const {translate} = useLocalize();
@@ -36,8 +36,10 @@ function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction
     const index = getIndex?.() ?? -1;
     let descriptionKey: 'distance.waypointDescription.start' | 'distance.waypointDescription.stop';
     let waypointIcon;
+    let sentryLabel: SentryLabel = CONST.SENTRY_LABEL.IOU_REQUEST_STEP.WAYPOINT_STOP_MENU_ITEM;
     if (index === 0) {
         descriptionKey = 'distance.waypointDescription.start';
+        sentryLabel = CONST.SENTRY_LABEL.IOU_REQUEST_STEP.WAYPOINT_START_MENU_ITEM;
         waypointIcon = expensifyIcons.DotIndicatorUnfilled;
     } else if (index === lastWaypointIndex) {
         descriptionKey = 'distance.waypointDescription.stop';

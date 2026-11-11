@@ -124,6 +124,18 @@ describe('getActiveExpensifyCardFeedID', () => {
             expect(getActiveExpensifyCardFeedID(auditorPolicy, [primaryFeed(100)], undefined, undefined, feeds)).toBe('100_Expensify Card');
         });
 
+        it('resolves the workspace account feed for a card admin on an eligible workspace', () => {
+            // Given a card admin, whose admin-only feed selector lists no primary feed, on a workspace with its own Expensify Card
+            const feeds = [expensifyFeed('900')];
+            const cardAdminPolicy: Policy = {...eligiblePolicy, role: CONST.POLICY.ROLE.CARD_ADMIN};
+
+            // When the active Expensify Card feed is resolved
+            const result = getActiveExpensifyCardFeedID(cardAdminPolicy, [], undefined, 900, feeds);
+
+            // Then Card accruals opens on the workspace's own feed, because the role reads every report and the card pages
+            expect(result).toBe('900_Expensify Card');
+        });
+
         it('returns undefined when the eligible workspace has no matching Expensify Card feed', () => {
             const feeds = [expensifyFeed('999')];
             const result = getActiveExpensifyCardFeedID(eligiblePolicy, [primaryFeed(100)], 200, 900, feeds);
@@ -132,7 +144,7 @@ describe('getActiveExpensifyCardFeedID', () => {
     });
 
     describe('eligibility gate', () => {
-        it('returns undefined when the active policy role is not admin or auditor', () => {
+        it('returns undefined when the active policy role is not admin, auditor, or card admin', () => {
             const feeds = [expensifyFeed('100')];
             const memberPolicy: Policy = {...eligiblePolicy, role: CONST.POLICY.ROLE.USER};
             expect(getActiveExpensifyCardFeedID(memberPolicy, [primaryFeed(100)], undefined, undefined, feeds)).toBeUndefined();

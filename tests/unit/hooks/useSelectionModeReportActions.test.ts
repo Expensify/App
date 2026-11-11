@@ -3,9 +3,11 @@ import {act, renderHook, waitFor} from '@testing-library/react-native';
 
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+import type {HoldMenuModalWrapperProps} from '@components/Modal/Global/HoldMenuModalWrapper';
 
 import useLifecycleActions from '@hooks/useLifecycleActions';
 import type {ReportSubmitToPopoverOpenOptions} from '@hooks/useReportSubmitToPopover';
+import useSelectionModePayment from '@hooks/useSelectionModePayment';
 import useSelectionModeReportActions from '@hooks/useSelectionModeReportActions';
 
 import {submitReport} from '@libs/actions/IOU/ReportWorkflow';
@@ -165,6 +167,19 @@ jest.mock('@hooks/useSelectionModePayment', () => ({
         kycWallRef: {current: null},
     })),
 }));
+
+const mockShowHoldMenu = jest.fn<void, [Partial<HoldMenuModalWrapperProps>]>();
+
+jest.mock('@hooks/useHoldMenuModal', () => ({
+    __esModule: true,
+    default: jest.fn(() => ({showHoldMenu: mockShowHoldMenu})),
+}));
+
+// The hold menu waits one animation frame before opening; run the frame right away so it opens synchronously.
+jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+    callback(0);
+    return 0;
+});
 
 jest.mock('@hooks/useLazyAsset', () => ({
     __esModule: true,
@@ -525,19 +540,65 @@ describe('useSelectionModeReportActions', () => {
         });
     });
 
-    describe('hold menu state', () => {
-        it('initializes hold menu as not visible', () => {
-            const {result} = renderSelectionModeHook();
+    describe('hold menu', () => {
+        it('opens the global hold menu with the selected bank account when paying a report with held expenses', () => {
+            // Given selection mode on a report
+            renderSelectionModeHook();
+            const {onHoldMenuOpen} = jest.mocked(useSelectionModePayment).mock.calls.at(-1)?.[0] ?? {};
 
-            expect(result.current.isHoldMenuVisible).toBe(false);
+            // When paying with a business bank account while some expenses are on hold
+            act(() => {
+                onHoldMenuOpen?.({requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.VBBA, methodID: 42});
+            });
+
+            // Then the global hold menu opens for the report with the amounts and chosen account
+            expect(mockShowHoldMenu).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    reportID: TEST_REPORT_ID,
+                    chatReportID: TEST_CHAT_REPORT_ID,
+                    requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                    methodID: 42,
+                    nonHeldAmount: '$100.00',
+                    fullAmount: '$100.00',
+                    hasNonHeldExpenses: true,
+                    transactionCount: 2,
+                }),
+            );
         });
 
-        it('returns hold menu amounts from getNonHeldAndFullAmount', () => {
-            const {result} = renderSelectionModeHook();
+        it('does not forward a bank account for non-VBBA payments', () => {
+            // Given selection mode on a report
+            renderSelectionModeHook();
+            const {onHoldMenuOpen} = jest.mocked(useSelectionModePayment).mock.calls.at(-1)?.[0] ?? {};
 
-            expect(result.current.nonHeldAmount).toBe('$100.00');
-            expect(result.current.fullAmount).toBe('$100.00');
-            expect(result.current.hasValidNonHeldAmount).toBe(true);
+            // When paying elsewhere while some expenses are on hold
+            act(() => {
+                onHoldMenuOpen?.({requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, methodID: 42});
+            });
+
+            // Then the hold menu does not receive a bank account, since only VBBA payments use one
+            expect(mockShowHoldMenu).toHaveBeenCalledWith(expect.objectContaining({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, methodID: undefined}));
+        });
+
+        it('runs the lifecycle confirm callback and clears the selection when the hold menu is confirmed', () => {
+            // Given selection mode on a report, and a lifecycle action (mark as paid) that opens the hold menu with its own confirm callback
+            renderSelectionModeHook();
+            const {onHoldMenuOpen} = jest.mocked(useLifecycleActions).mock.calls.at(-1)?.[0] ?? {};
+            const lifecycleOnConfirm = jest.fn();
+            act(() => {
+                onHoldMenuOpen?.(CONST.IOU.REPORT_ACTION_TYPE.PAY, lifecycleOnConfirm, CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
+            });
+
+            // When the user confirms the hold menu
+            const {onConfirm} = mockShowHoldMenu.mock.calls.at(-1)?.[0] ?? {};
+            act(() => {
+                onConfirm?.(true);
+            });
+
+            // Then the lifecycle callback is no longer dropped, and the selection is cleared like before
+            expect(lifecycleOnConfirm).toHaveBeenCalled();
+            expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
         });
     });
 
@@ -700,29 +761,6 @@ describe('useSelectionModeReportActions', () => {
             });
 
             expect(mockLifecycleConfirmApproval).toHaveBeenCalledWith(true);
-        });
-    });
-
-    describe('handleHoldMenuClose', () => {
-        it('resets hold menu state', () => {
-            const {result} = renderSelectionModeHook();
-
-            expect(result.current.isHoldMenuVisible).toBe(false);
-
-            act(() => {
-                result.current.handleHoldMenuClose();
-            });
-            expect(result.current.isHoldMenuVisible).toBe(false);
-        });
-    });
-
-    describe('handleHoldMenuConfirm', () => {
-        it('clears selected transactions', () => {
-            const {result} = renderSelectionModeHook();
-
-            result.current.handleHoldMenuConfirm();
-
-            expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
         });
     });
 
