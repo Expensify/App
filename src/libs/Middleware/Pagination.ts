@@ -179,18 +179,16 @@ function processResponse<TKey extends OnyxKey>(requestResponse: Promise<Response
             }
         }
 
-        // Write responses queue their onyxData and finallyData into one flush, where finallyData can land long before the items.
+        // Write responses queue all their updates into one flush, where later updates can land long before the items.
         // OpenReport's linked-message check would then see a finished load without the linked action, so writes keep the page in onyxData.
         if (request.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE) {
             (response.onyxData as AnyOnyxUpdate[]).push(...paginationUpdates);
             return Promise.resolve(response);
         }
 
-        // Onyx applies the updates of one batch concurrently, so a page sent with its items can be written first and lists show
-        // only the cached items inside its range. Other requests apply finallyData after the response's onyxData, whatever the jsonCode.
-        request.finallyData ??= [];
-        (request.finallyData as AnyOnyxUpdate[]).push(...paginationUpdates);
-
+        // A page written in the same batch as its items can land first, and lists then show only the cached items inside its range
+        response.paginationOnyxData = [];
+        (response.paginationOnyxData as AnyOnyxUpdate[]).push(...paginationUpdates);
         return Promise.resolve(response);
     });
 }
