@@ -59,6 +59,12 @@ People admins cannot add or remove Workspace admins, Card admins, People admins,
 
 **Editors** on Submit workspaces cannot add admins or change other members’ roles.
 
+## How workspace ownership is determined
+
+Every workspace has a workspace owner, who is the workspace admin responsible for subscription billing and the payment card. This is separate from workspace roles.
+
+To learn more about workspace ownership, see [What is a workspace owner](/articles/new-expensify/billing-and-subscriptions/Learn-About-Billing-Permissions#what-is-a-workspace-owner). To change a workspace's owner, see [Transfer Workspace Ownership](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Transfer-Workspace-Ownership).
+
 ## Related articles
 
  - [Invite Members to a Workspace](/articles/new-expensify/workspaces/Invite-Members-to-a-Workspace)
