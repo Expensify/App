@@ -315,13 +315,12 @@ function WorkspaceCompanyCardsTable({
                   // Unassigned cards have no sync history, so their cell stays empty.
                   let lastUpdatedText: string | undefined;
                   let lastUpdatedTooltip: string | undefined;
-                  if (assignedCard) {
+                  if (assignedCard?.isLoadingLastUpdated) {
+                      lastUpdatedText = translate('workspace.moreFeatures.companyCards.updating');
+                  } else if (assignedCard) {
                       const lastScrapeDate = assignedCard.lastScrape ? getLocalDateFromDatetime(assignedCard.lastScrape) : undefined;
                       // A malformed lastScrape would make format() throw and break the whole table, so it reads as never synced.
-                      const hasLastScrape = !!lastScrapeDate && isValid(lastScrapeDate);
-                      if (assignedCard.isLoadingLastUpdated) {
-                          lastUpdatedText = translate('workspace.moreFeatures.companyCards.updating');
-                      } else if (hasLastScrape) {
+                      if (lastScrapeDate && isValid(lastScrapeDate)) {
                           // Same abbreviation as the Spend date column, with the details page timestamp in the tooltip.
                           const isPastYear = lastScrapeDate.getFullYear() !== currentLocalYear;
                           lastUpdatedText = isPastYear
