@@ -1,6 +1,7 @@
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import {getInvalidAddressErrorTranslationPath, isRequiredFulfilled} from '@libs/ValidationUtils';
 
 import type {Country} from '@src/CONST';
@@ -33,7 +34,7 @@ const countryZipRegexData: Partial<Record<string, CountryZipRegex>> = COMMON_CON
 
 type AddressFormID = typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM | typeof ONYXKEYS.FORMS.WORKSPACE_OFFICE_LOCATION_FORM;
 
-type AddressFormProps<TFormID extends AddressFormID> = {
+type AddressFormProps<TFormID extends AddressFormID> = ForwardedFSClassProps & {
     /** Address city field */
     city?: string;
 
@@ -254,6 +255,7 @@ function AddressForm<TFormID extends AddressFormID>({
     shouldRequireZip = false,
     shouldValidatePhysicalAddress = false,
     addBottomSafeAreaPadding = true,
+    forwardedFSClass,
     children,
     validate,
 }: AddressFormProps<TFormID>) {
@@ -347,6 +349,7 @@ function AddressForm<TFormID extends AddressFormID>({
             submitButtonText={submitButtonText}
             enabledWhenOffline={enabledWhenOfflineProp}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+            forwardedFSClass={forwardedFSClass}
         >
             <AddressFieldsContext.Provider value={{city, country, state, street1, street2, zip, onAddressChanged, shouldSaveDraft, shouldHideCountrySelector}}>
                 {children ?? <AddressFormFields />}

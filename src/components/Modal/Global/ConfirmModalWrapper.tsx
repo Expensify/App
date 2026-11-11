@@ -67,11 +67,11 @@ function ConfirmModalWrapper({closeModal, onModalHide, resolveModal, onBackdropP
         onModalHide?.();
     };
 
-    // Mirror the confirm button's offline-disabled state so the Enter shortcut can't bypass a button that is visually disabled while offline.
+    // Mirror the confirm button's disabled state so the Enter shortcut can't bypass a button that is visually disabled.
     const isConfirmDisabledWhileOffline = !!props.shouldDisableConfirmButtonWhenOffline && isOffline;
 
     const shortcutConfig = {
-        isActive: activeElementRole !== CONST.ROLE.BUTTON && !isConfirmLoading && !isConfirmDisabledWhileOffline,
+        isActive: activeElementRole !== CONST.ROLE.BUTTON && !isConfirmLoading && !isConfirmDisabledWhileOffline && !props.isConfirmDisabled,
         shouldPreventDefault: false,
         shouldBubble: false,
     };
