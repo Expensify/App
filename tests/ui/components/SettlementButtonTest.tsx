@@ -10,6 +10,8 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import SettlementButton from '@components/SettlementButton';
 import type SettlementButtonProps from '@components/SettlementButton/types';
 
+import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
+
 import {createWorkspace} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import Navigation from '@libs/Navigation/Navigation';
@@ -135,7 +137,7 @@ jest.mock('@userActions/PaymentMethods', () => ({
     openPaymentMethods: jest.fn(),
 }));
 
-const mockVerifyAccountAndResume = jest.fn();
+const mockVerifyAccountAndResume = jest.fn<void, [(() => void | Promise<void>) | undefined]>();
 
 jest.mock('@hooks/useVerifyAccountAndResume', () => ({
     __esModule: true,
@@ -712,6 +714,10 @@ describe('SettlementButton', () => {
     });
 
     describe('pay via ABA', () => {
+        afterEach(() => {
+            jest.mocked(useVerifyAccountAndResume).mockReturnValue({isUserValidated: true, verifyAccountAndResume: mockVerifyAccountAndResume});
+        });
+
         function pressPayViaABA() {
             const menuItem = screen.getByTestId(`PopoverMenuItem-${translateLocal('iou.payViaABA')}`);
 
@@ -759,6 +765,26 @@ describe('SettlementButton', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the report is paid as Elsewhere via ABA, since the ABA file pays it from outside Expensify
+            expect(onPress).toHaveBeenCalledWith({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, paymentMethod: CONST.PAYMENT_METHODS.ABA});
+        });
+
+        it('has an unvalidated admin verify their account before paying via ABA', async () => {
+            // Given an unvalidated admin opening the payment options on an AUD workspace's report
+            jest.mocked(useVerifyAccountAndResume).mockReturnValue({isUserValidated: false, verifyAccountAndResume: mockVerifyAccountAndResume});
+            const onPress = await renderAUDExpenseReport();
+
+            // When they pick "Pay via ABA"
+            pressPayViaABA();
+            await waitForBatchedUpdatesWithAct();
+
+            // Then they verify their account before the payment starts, since a hold menu it opens closes before it could resume the payment
+            expect(mockVerifyAccountAndResume).toHaveBeenCalled();
+            expect(onPress).not.toHaveBeenCalled();
+
+            // And the payment carries on once they've verified
+            act(() => {
+                mockVerifyAccountAndResume.mock.calls.at(0)?.[0]?.();
+            });
             expect(onPress).toHaveBeenCalledWith({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, paymentMethod: CONST.PAYMENT_METHODS.ABA});
         });
 

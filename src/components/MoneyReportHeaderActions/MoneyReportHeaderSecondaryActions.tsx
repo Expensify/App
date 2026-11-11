@@ -219,6 +219,11 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
                 onConfirm: () => startAnimation(),
             };
+            // Verify before opening the hold menu for Pay via ABA,since it isn't verified before reaching here like other payment methods
+            if (paymentMethod === CONST.PAYMENT_METHODS.ABA && !isUserValidated) {
+                verifyAccountAndResume(() => openHoldMenu(holdMenuParams));
+                return;
+            }
             if (getPlatform() === CONST.PLATFORM.IOS) {
                 // TransitionTracker.runAfterTransitions delays modal until current interaction completes, preventing visual glitches on iOS
                 TransitionTracker.runAfterTransitions({

@@ -191,12 +191,20 @@ function useSelectionModePayment({
         }
 
         if (isAnyTransactionOnHold) {
-            onHoldMenuOpen({
-                requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
-                paymentType: type,
-                paymentMethod,
-                methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
-            });
+            const openPayHoldMenu = () =>
+                onHoldMenuOpen({
+                    requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    paymentType: type,
+                    paymentMethod,
+                    methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                });
+
+            // Verify before opening the hold menu for Pay via ABA,since it isn't verified before reaching here like other payment methods
+            if (paymentMethod === CONST.PAYMENT_METHODS.ABA && !isUserValidated) {
+                presentBlockingAction(() => verifyAccountAndResume(openPayHoldMenu), true);
+                return;
+            }
+            openPayHoldMenu();
             return;
         }
 

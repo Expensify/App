@@ -236,7 +236,7 @@ function SettlementButton({
         retry?.();
     });
 
-    const checkForNecessaryAction = (paymentMethodType?: PaymentMethodType, retry?: () => void | Promise<void>) => {
+    const checkForNecessaryAction = (paymentMethodType?: PaymentMethodType, retry?: () => void | Promise<void>, paymentMethod?: PaymentMethod) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return true;
@@ -247,7 +247,8 @@ function SettlementButton({
             return true;
         }
 
-        if (!isUserValidated && paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+        // Paying elsewhere doesn't need a validated account, except Pay via ABA, as it downloads a payment file
+        if (!isUserValidated && (paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE || paymentMethod === CONST.PAYMENT_METHODS.ABA)) {
             verifyAccountAndResume(retry);
             return true;
         }
@@ -255,8 +256,8 @@ function SettlementButton({
         return checkForPostValidationBlockers();
     };
 
-    const runPaymentAction = (paymentMethodType: PaymentMethodType | undefined, action: () => void | Promise<void>) => {
-        if (checkForNecessaryAction(paymentMethodType, action)) {
+    const runPaymentAction = (paymentMethodType: PaymentMethodType | undefined, action: () => void | Promise<void>, paymentMethod?: PaymentMethod) => {
+        if (checkForNecessaryAction(paymentMethodType, action, paymentMethod)) {
             return;
         }
         action();
@@ -358,7 +359,11 @@ function SettlementButton({
                 // The file is downloaded straight from the API, which can't be queued for when the user is back online
                 disabled: isOffline,
                 onSelected: () =>
-                    runPaymentAction(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, () => onPress({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, paymentMethod: CONST.PAYMENT_METHODS.ABA})),
+                    runPaymentAction(
+                        CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                        () => onPress({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, paymentMethod: CONST.PAYMENT_METHODS.ABA}),
+                        CONST.PAYMENT_METHODS.ABA,
+                    ),
             });
         }
 
