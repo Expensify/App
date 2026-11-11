@@ -3739,6 +3739,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                allTransactionViolations: undefined,
                 ownerLogin: undefined,
             });
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
@@ -5745,6 +5746,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                allTransactionViolations: undefined,
                 ownerLogin: undefined,
             });
             await waitForBatchedUpdates();
@@ -5937,6 +5939,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                allTransactionViolations: undefined,
                 ownerLogin: undefined,
             });
             await waitForBatchedUpdates();
