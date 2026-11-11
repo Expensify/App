@@ -219,15 +219,13 @@ function WorkspaceCompanyCardsTable({
             },
             dynamicSizing: {
                 // Whichever of the cardholder's name (or the unassigned label) or their login renders wider decides the column's width.
-                getContentToMeasure: (item) => {
-                    return [
-                        {
-                            text: item.isAssigned ? formatPhoneNumber(item.cardholder?.displayName ?? '') : translate('workspace.moreFeatures.companyCards.unassignedCards'),
-                            fontSize: fontScale.text,
-                        },
-                        {text: item.isAssigned ? formatPhoneNumber(item.cardholder?.login ?? '') : '', fontSize: fontScale.label},
-                    ];
-                },
+                getContentToMeasure: (item) => [
+                    {
+                        text: item.isAssigned ? formatPhoneNumber(item.cardholder?.displayName ?? '') : translate('workspace.moreFeatures.companyCards.unassignedCards'),
+                        fontSize: fontScale.text,
+                    },
+                    {text: item.isAssigned ? formatPhoneNumber(item.cardholder?.login ?? '') : '', fontSize: fontScale.label},
+                ],
                 extraWidth: variables.tableMemberCellAvatarWidth,
             },
         },

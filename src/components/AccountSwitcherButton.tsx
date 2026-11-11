@@ -58,6 +58,10 @@ type AccountSwitcherMenuItem = PopoverMenuItem & {
 const filterMenuItem = (item: AccountSwitcherMenuItem, searchInput: string) =>
     tokenizedSearch([item], searchInput, (option) => [option.text, option.description ?? '', option.rawLogin]).length > 0;
 
+// PopoverMenu spreads every field it doesn't explicitly destructure onto the rendered MenuItem, so rawLogin (search-only,
+// never rendered) has to be stripped before an item is handed to it, or it leaks through as an unrecognized prop.
+const stripRawLogin = ({rawLogin: _rawLogin, ...item}: AccountSwitcherMenuItem): PopoverMenuItem => item;
+
 /** The "Switch" button and its delegator menu. Renders nothing for accounts that have no other account to switch to. */
 function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -213,13 +217,13 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
     );
     const allMenuItems = [currentUserMenuItem, ...delegatorMenuItems];
     const [searchInput, setSearchInput, filteredMenuItems] = useSearchResults(allMenuItems, filterMenuItem);
-    const shouldShowSearchInput = !isActingAsDelegate && delegators.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const shouldShowSearchInput = !isActingAsDelegate && delegators.length >= 1;
 
     const menuItems = (): PopoverMenuItem[] => {
         if (isActingAsDelegate) {
             // Avoid duplicating the current user in the list when switching accounts
             if (delegate === currentUserPersonalDetails.login) {
-                return [currentUserMenuItem];
+                return [currentUserMenuItem].map(stripRawLogin);
             }
 
             const error = getLatestError(account?.delegatedAccess?.errorFields?.disconnect);
@@ -241,10 +245,10 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
                     },
                 }),
                 currentUserMenuItem,
-            ];
+            ].map(stripRawLogin);
         }
 
-        return shouldShowSearchInput ? filteredMenuItems : allMenuItems;
+        return (shouldShowSearchInput ? filteredMenuItems : allMenuItems).map(stripRawLogin);
     };
 
     const hideDelegatorMenu = () => {
