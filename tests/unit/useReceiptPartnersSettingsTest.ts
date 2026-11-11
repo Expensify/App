@@ -47,7 +47,8 @@ describe('useReceiptPartnersSettings', () => {
     it('should open the Uber revoke page instead of disconnecting when the workspace is linked to an Uber organization', () => {
         // Given a workspace linked to an Uber organization, with the revoke page query the server sends when the page opens
         mockPolicy = buildPolicy({organizationID: 'org-1', revokeFormData: 'client_id=client&app_name=Expensify'});
-        const {result} = renderHook(() => useReceiptPartnersSettings('policy-1'));
+        const onRevokePageOpened = jest.fn();
+        const {result} = renderHook(() => useReceiptPartnersSettings('policy-1', {onRevokePageOpened}));
 
         // When the admin selects Disconnect
         result.current.getOverflowMenu(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER).at(0)?.onSelected?.();
@@ -56,6 +57,10 @@ describe('useReceiptPartnersSettings', () => {
         expect(openExternalLink).toHaveBeenCalledWith(`${CONST.UBER_REVOKE_URL}?client_id=client&app_name=Expensify&org_uuid=org-1`);
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
         expect(removePolicyReceiptPartnersConnection).not.toHaveBeenCalled();
+
+        // And the panel is told to close only after the page opens, since Safari blocks new tabs opened after navigating away
+        expect(onRevokePageOpened).toHaveBeenCalledTimes(1);
+        expect(jest.mocked(openExternalLink).mock.invocationCallOrder.at(0)).toBeLessThan(onRevokePageOpened.mock.invocationCallOrder.at(0) ?? 0);
     });
 
     it('should disable Disconnect until the revoke page query arrives when the workspace is linked to an Uber organization', () => {
