@@ -1048,7 +1048,6 @@
 "../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1
 "../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/TransactionUtils/index.ts"	"import/no-cycle"	6
-"../../src/libs/TransactionUtils/tax.ts"	"@typescript-eslint/no-deprecated/translateLocal"	1
 "../../src/libs/TransactionUtils/tax.ts"	"import/no-cycle"	1
 "../../src/libs/TransactionUtils/violations.ts"	"import/no-cycle"	2
 "../../src/libs/UnreadIndicatorUpdater/index.ts"	"no-restricted-imports"	1
