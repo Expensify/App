@@ -3639,7 +3639,7 @@ describe('SidebarUtils', () => {
                     conciergeReportID: '',
                     oneTransactionThreadReport: undefined,
                     card: undefined,
-                    lastAction: undefined,
+                    lastAction: lastReportPreviewAction,
                     translate: translateLocal,
                     convertToDisplayString,
                     convertToDisplayStringWithoutCurrency,

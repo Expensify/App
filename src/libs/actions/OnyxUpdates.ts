@@ -80,6 +80,13 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(
 
     return onyxDataUpdatePromise
         .then(() => {
+            // Onyx applies the updates of one batch concurrently, so pages sent together with their items could be written first.
+            if (response.paginationOnyxData) {
+                return updateHandler(response.paginationOnyxData);
+            }
+            return Promise.resolve();
+        })
+        .then(() => {
             // Handle the request's success/failure data (client-side data)
             if (response.jsonCode === 200 && request.successData) {
                 return updateHandler(request.successData);
@@ -198,7 +205,8 @@ function apply<TKey extends OnyxKey>({lastUpdateID, previousUpdateID, type, requ
             Log.info('[OnyxUpdateManager] Applying success or failure data from request without onyxData from response');
 
             // We use a spread here instead of delete because we don't want to change the response for other middlewares
-            const {onyxData, ...responseWithoutOnyxData} = response;
+            // The pages describe the skipped onyxData, so writing them without it would mark items as loaded that were never stored.
+            const {onyxData, paginationOnyxData, ...responseWithoutOnyxData} = response;
             return applyHTTPSOnyxUpdates(request, responseWithoutOnyxData, Number(lastUpdateID));
         }
 
