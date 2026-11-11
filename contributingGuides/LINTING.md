@@ -28,9 +28,19 @@ Put flags before file or directory paths. The CLI stops parsing flags once it st
 
 Prefer `npm run lint` (or `lint-changed` / `lint -- <files>`) over raw `npx oxlint` invocations. The wrapper applies the seatbelt ratchet and the other post-processors, splits the JS plugins across several oxlint processes (`--shards`), and runs the Onyx lint bypass checks.
 
-Editor integrations and bare `npx oxlint` still run the rule set from `oxlint.config.mts`, but they do **not** apply the seatbelt ratchet, the React Compiler filter, or no-deprecated stratification. Those run only in `scripts/lint/`. Grandfathered seatbelt rows may therefore show as errors in the editor even though `npm run lint` passes.
+Bare `npx oxlint` runs the rule set from `oxlint.config.mts` but does **not** apply the seatbelt ratchet, the React Compiler filter, or no-deprecated stratification. Those run only in `scripts/lint/`.
 
 By default the wrapper only prints blocking errors — seatbelt-grandfathered violations (which CI does not fail on) are suppressed from the output but still evaluated against the baseline. Pass `--show-warnings` when you want to see them too, e.g. when paying down baselined errors.
+
+### Editor setup
+
+The oxlint language server doesn't apply the `scripts/lint/` processors either, so grandfathered seatbelt rows show as errors. [`scripts/lint/lsp/oxlintSeatbelt.ts`](../scripts/lint/lsp/oxlintSeatbelt.ts) wraps it and applies the same processors, so the editor matches `npm run lint`: grandfathered errors show as warnings with the seatbelt note. In VS Code, install the [oxc extension](https://marketplace.visualstudio.com/items?itemName=oxc.oxc-vscode) and add this to `.vscode/settings.json`:
+
+```json
+"oxc.path.oxlint": "scripts/lint/lsp/oxlintSeatbelt.ts"
+```
+
+Other editors that use the oxlint language server can run the same script in place of `oxlint --lsp`. It needs `bun` on the editor's `PATH`.
 
 ## How the rules run
 
