@@ -25,4 +25,4 @@ function getIntegrationWaitlistField(integration: WaitlistIntegration): Integrat
 }
 
 export {isWaitlistIntegration, getIntegrationWaitlistNVPKey, getIntegrationWaitlistField};
-export type {WaitlistIntegration, IntegrationWaitlistField};
+export type {WaitlistIntegration};
