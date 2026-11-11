@@ -346,10 +346,13 @@ const SENTRY_LABEL = {
         NEXT_PAGE_BUTTON: 'Receipt-NextPageButton',
         ENLARGE_BUTTON: 'Receipt-EnlargeButton',
         ADD_ATTACHMENT_BUTTON: 'Receipt-AddAttachmentButton',
+        TRANSLATE_BUTTON: 'Receipt-TranslateButton',
     },
     RECEIPT_MODAL: {
         DOWNLOAD_RECEIPT: 'ReceiptModal-DownloadReceipt',
         DELETE_RECEIPT: 'ReceiptModal-DeleteReceipt',
+        TRANSLATE_RECEIPT: 'ReceiptModal-TranslateReceipt',
+        VIEW_ORIGINAL_RECEIPT: 'ReceiptModal-ViewOriginalReceipt',
         CROP: 'ReceiptModal-Crop',
         CROP_CANCEL: 'ReceiptModal-CropCancel',
         CROP_SAVE: 'ReceiptModal-CropSave',

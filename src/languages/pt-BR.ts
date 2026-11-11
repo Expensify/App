@@ -1418,6 +1418,14 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase2: 'ou arraste e solte um aqui',
         },
         pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Página ${page} de ${pageCount}`,
+        translate: 'Traduzir',
+        viewOriginal: 'Ver original',
+        translationDisclaimer: 'A IA pode cometer erros. Confira o original novamente.',
+        translationError: {
+            unreadable: 'Não conseguimos ler este recibo com clareza suficiente para traduzi-lo.',
+            alreadyInLanguage: 'Este recibo já está no seu idioma.',
+            generic: 'Não foi possível traduzir este recibo. Tente novamente.',
+        },
     },
     quickAction: {
         scanReceipt: 'Digitalizar recibo',
