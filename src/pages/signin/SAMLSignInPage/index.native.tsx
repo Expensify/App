@@ -72,7 +72,7 @@ function SAMLSignInPage() {
 
     useAppState({
         onAppStateChange: (nextAppState: AppStateStatus) => {
-            if (nextAppState === 'active' && shortLivedAuthTokenWaitingForActiveApp.current) {
+            if (nextAppState === CONST.APP_STATE.ACTIVE && shortLivedAuthTokenWaitingForActiveApp.current) {
                 const shortLivedAuthToken = shortLivedAuthTokenWaitingForActiveApp.current;
                 shortLivedAuthTokenWaitingForActiveApp.current = null;
                 signInWithToken(shortLivedAuthToken);
