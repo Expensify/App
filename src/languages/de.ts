@@ -9294,6 +9294,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 describeRuleForConcierge: 'Beschreiben Sie Ihre Regel und Concierge erstellt sie',
                 gotIt: 'Verstanden',
                 createRule: 'Regel erstellen',
+                saveAnyway: 'Trotzdem speichern',
+                checkingRule: 'Ihre Regel wird geprüft...',
                 fallbackBanner:
                     'Dies ist keine Standardregel, daher haben wir eine Agentenregel erstellt. Agentenregeln werden ausgeführt, wenn eine Ausgabe oder ein Bericht erstellt oder aktualisiert wird.',
                 fallbackBannerWithExplanation: (explanation: string) =>

@@ -9748,6 +9748,8 @@ ${reportName}`,
                 describeRuleHeadline: 'Περιγράψτε τον κανόνα σας',
                 describeRuleForConcierge: 'Περιγράψτε τον κανόνα σας και το Concierge θα τον δημιουργήσει',
                 createRule: 'Δημιουργία κανόνα',
+                saveAnyway: 'Αποθήκευση ούτως ή άλλως',
+                checkingRule: 'Γίνεται έλεγχος του κανόνα σας...',
                 fallbackBanner:
                     'Αυτός δεν είναι τυπικός κανόνας, οπότε συντάξαμε έναν κανόνα πράκτορα. Οι κανόνες πράκτορα εκτελούνται όταν δημιουργείται ή ενημερώνεται ένα έξοδο ή μια αναφορά.',
                 fallbackBannerWithExplanation: (explanation: string) =>

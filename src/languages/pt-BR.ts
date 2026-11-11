@@ -9234,6 +9234,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 describeRuleForConcierge: 'Descreva sua regra e o Concierge vai criá-la',
                 gotIt: 'Entendi',
                 createRule: 'Criar regra',
+                saveAnyway: 'Salvar mesmo assim',
+                checkingRule: 'Verificando sua regra...',
                 fallbackBanner:
                     'Esta não é uma regra padrão, então criamos uma regra de agente. As regras de agente são executadas quando uma despesa ou um relatório é criado ou atualizado.',
                 fallbackBannerWithExplanation: (explanation: string) =>

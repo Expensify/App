@@ -9368,6 +9368,8 @@ ${reportName}`,
                 describeRuleForConcierge: 'Describe tu regla y Concierge la creará',
                 gotIt: 'Entendido',
                 createRule: 'Crear regla',
+                saveAnyway: 'Guardar de todos modos',
+                checkingRule: 'Comprobando tu regla...',
                 fallbackBanner: 'Esta no es una regla estándar, así que redactamos una regla de agente. Las reglas de agente se ejecutan cuando se crea o actualiza un gasto o un informe.',
                 fallbackBannerWithExplanation: (explanation: string) =>
                     `Esta no es una regla estándar, así que redactamos una regla de agente. Las reglas de agente se ejecutan cuando se crea o actualiza un gasto o un informe. ${explanation}`,

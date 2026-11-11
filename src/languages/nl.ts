@@ -9214,6 +9214,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 describeRuleForConcierge: 'Beschrijf je regel en Concierge bouwt hem voor je',
                 gotIt: 'Begrepen',
                 createRule: 'Regel maken',
+                saveAnyway: 'Toch opslaan',
+                checkingRule: 'Je regel wordt gecontroleerd...',
                 fallbackBanner:
                     'Dit is geen standaardregel, dus hebben we een agentregel opgesteld. Agentregels worden uitgevoerd wanneer een declaratie of rapport wordt aangemaakt of bijgewerkt.',
                 fallbackBannerWithExplanation: (explanation: string) =>

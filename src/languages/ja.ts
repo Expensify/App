@@ -9107,6 +9107,8 @@ ${reportName}`,
                 describeRuleForConcierge: 'ルールの内容を入力すると、Concierge が自動作成します',
                 gotIt: '了解しました',
                 createRule: 'ルールを作成',
+                saveAnyway: 'このまま保存',
+                checkingRule: 'ルールを確認しています...',
                 fallbackBanner: 'これは標準ルールではないため、エージェントルールを作成しました。エージェントルールは、経費またはレポートが作成または更新されたときに実行されます。',
                 fallbackBannerWithExplanation: (explanation: string) =>
                     `これは標準ルールではないため、エージェントルールを作成しました。エージェントルールは、経費またはレポートが作成または更新されたときに実行されます。${explanation}`,
