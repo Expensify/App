@@ -50,6 +50,7 @@ function ZohoBooksImportPage({policy}: WithPolicyConnectionsProps) {
                 title={translate('workspace.accounting.accounts')}
                 subtitle={translate('workspace.zohoBooks.accountTypesDescription')}
                 switchAccessibilityLabel={translate('workspace.accounting.accounts')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.ZOHO_BOOKS.ACCOUNTS_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive
@@ -60,6 +61,7 @@ function ZohoBooksImportPage({policy}: WithPolicyConnectionsProps) {
                 title={translate('workspace.zohoBooks.enableNewAccountsTitle')}
                 subtitle={translate('workspace.zohoBooks.enableNewAccountsDescription')}
                 switchAccessibilityLabel={translate('workspace.zohoBooks.enableNewAccountsTitle')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.ZOHO_BOOKS.ENABLE_NEW_ACCOUNTS_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive={enableNewCategories}
@@ -83,6 +85,7 @@ function ZohoBooksImportPage({policy}: WithPolicyConnectionsProps) {
                                 key={reportingTag.id}
                                 title={reportingTag.name}
                                 switchAccessibilityLabel={reportingTag.name}
+                                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.ZOHO_BOOKS.REPORTING_TAG_SWITCH}
                                 shouldPlaceSubtitleBelowSwitch
                                 wrapperStyle={[styles.mv3, styles.mh5]}
                                 isActive={isImported}
@@ -104,6 +107,7 @@ function ZohoBooksImportPage({policy}: WithPolicyConnectionsProps) {
                     <ToggleSettingOptionRow
                         title={translate('workspace.taxes.taxRates')}
                         switchAccessibilityLabel={translate('workspace.taxes.taxRates')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.ZOHO_BOOKS.TAX_RATES_SWITCH}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.mv3, styles.mh5]}
                         isActive={syncTaxRates}

@@ -47,6 +47,7 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}
                 switchAccessibilityLabel={translate('workspace.accounting.accounts')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.CHART_OF_ACCOUNTS_IMPORT_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 isActive
                 onToggle={() => {}}
@@ -66,6 +67,7 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
                 title={translate('workspace.common.enabled')}
                 subtitle={translate('workspace.qbo.accountsSwitchDescription')}
                 switchAccessibilityLabel={translate('workspace.accounting.accounts')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.ENABLE_NEW_CATEGORIES_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 isActive={!!qboConfig?.enableNewCategories}
                 onToggle={() => QuickbooksOnline.updateQuickbooksOnlineEnableNewCategories(policyID, !qboConfig?.enableNewCategories)}

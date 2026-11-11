@@ -136,6 +136,7 @@ function FeedbackSurvey({title, description, onSubmit, footerText, isNoteRequire
             <FixedFooter style={styles.pb0}>
                 {!!footerText && footerText}
                 <FormAlertWithSubmitButton
+                    sentryLabel={CONST.SENTRY_LABEL.FEEDBACK_SURVEY.SUBMIT_BUTTON}
                     isAlertVisible={shouldShowReasonError}
                     onSubmit={handleSubmit}
                     message={translate('common.error.pleaseCompleteForm')}

@@ -399,7 +399,10 @@ function AvatarCropView({imageUri = '', imageName = '', imageType = '', onClose,
                                     shiftVertical={-2}
                                 >
                                     <View>
-                                        <Button onPress={rotateImage}>
+                                        <Button
+                                            onPress={rotateImage}
+                                            sentryLabel={CONST.SENTRY_LABEL.AVATAR_CROP_MODAL.ROTATE_BUTTON}
+                                        >
                                             <Button.Icon
                                                 src={expensifyIcons.Rotate}
                                                 fill={theme.icon}
@@ -413,6 +416,7 @@ function AvatarCropView({imageUri = '', imageName = '', imageType = '', onClose,
                 </View>
             </GestureHandlerRootView>
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.AVATAR_CROP_MODAL.SAVE_BUTTON}
                 variant="success"
                 style={styles.m5}
                 onPress={cropAndSaveImage}

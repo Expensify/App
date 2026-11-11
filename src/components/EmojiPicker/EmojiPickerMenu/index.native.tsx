@@ -207,6 +207,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                     shouldHideClearButton={false}
                     submitBehavior={filteredEmojis.length > 0 ? 'blurAndSubmit' : 'submit'}
                     sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.SEARCH_INPUT}
+                    clearButtonSentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.SEARCH_INPUT_CLEAR_BUTTON}
                 />
             </View>
             <BaseEmojiPickerMenu

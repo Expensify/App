@@ -153,7 +153,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     }, []);
 
     const toggleAutoUpdateGovernmentRate = (isOn: boolean) => {
-        if (!customUnit) {
+        if (!policy || !customUnit) {
             return;
         }
 
@@ -171,16 +171,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
 
         // The stored country tells the optimistic copy which rates to use, since the mileage rate key is shared by every policy.
         // The server ignores the country on disable, so it is only sent when turning on.
-        setWorkspaceDistanceAutoUpdate(
-            policyID,
-            customUnit,
-            isOn,
-            governmentMileageRates ?? [],
-            policy?.outputCurrency,
-            isOn && isSharedCurrency ? autoUpdateCountry : undefined,
-            !!policy?.shouldAutoUpdateGovernmentDistanceRates,
-            isSharedCurrency ? autoUpdateCountry : undefined,
-        );
+        setWorkspaceDistanceAutoUpdate(policy, isOn, governmentMileageRates ?? [], isOn && isSharedCurrency ? autoUpdateCountry : undefined);
     };
 
     // Commuter exclusions are computed from the mapped route, so they enforce the requirement on their own. The
@@ -276,6 +267,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                     <Switch
                                         isOn={!!policy?.shouldAutoUpdateGovernmentDistanceRates}
                                         accessibilityLabel={translate('workspace.distanceRates.autoUpdateGovernmentRate')}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.AUTO_UPDATE_GOVERNMENT_RATE_SWITCH}
                                         onToggle={toggleAutoUpdateGovernmentRate}
                                         disabled={!canWriteDistanceRates}
                                         disabledAction={withReadOnlyFallback()}
@@ -310,6 +302,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                         title={translate('distance.error.mapOrGpsDistanceRequired.title')}
                         subtitle={translate('workspace.distanceRates.requireMapOrGPSDescription')}
                         switchAccessibilityLabel={translate('distance.error.mapOrGpsDistanceRequired.title')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.REQUIRE_MAP_OR_GPS_SWITCH}
                         shouldPlaceSubtitleBelowSwitch
                         shouldUseCompactSubtitleSpacing
                         wrapperStyle={[styles.mt2, styles.mh5]}
@@ -331,6 +324,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                         >
                             <View style={styles.mt3}>
                                 <MenuItemField
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.SETTINGS_COMMUTER_EXCLUSIONS}
                                     name={translate('workspace.distanceRates.commuterExclusions.title')}
                                     value={getCommuterExclusionsSummary(policy?.commuterExclusions, defaultUnit, translate)}
                                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS.getRoute(policyID))}
@@ -355,6 +349,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                 <Switch
                                     isOn={isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled}
                                     accessibilityLabel={translate('workspace.distanceRates.trackTax')}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.TRACK_TAX_SWITCH}
                                     onToggle={onToggleTrackTax}
                                     disabled={!canWriteDistanceRates || !isPolicyTrackTaxEnabled}
                                     disabledAction={withReadOnlyFallback()}
