@@ -1,7 +1,7 @@
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -180,10 +180,10 @@ function MergeATSApprovalModePage({
                                 )}
                                 {option.value === selectedApprovalMode && selectedApprovalMode === CONST.MERGE.APPROVAL_MODE.ADVANCED && (
                                     <>
-                                        <MenuItemWithTopDescription
-                                            shouldShowRightIcon
-                                            description={translate('workspace.recruiting.approverField')}
-                                            title={getApproverFieldName(approverField, translate)}
+                                        <MenuItemField
+                                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RECRUITING.MERGE_ATS_APPROVER_FIELD}
+                                            name={translate('workspace.recruiting.approverField')}
+                                            value={getApproverFieldName(approverField, translate)}
                                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RECRUITING_MERGE_APPROVER_FIELD.getRoute(policyID))}
                                         />
                                         <MergeATSFinalApproverMenuItem
@@ -201,6 +201,7 @@ function MergeATSApprovalModePage({
                         addBottomSafeAreaPadding
                     >
                         <Button
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RECRUITING.MERGE_ATS_APPROVAL_MODE_SAVE}
                             size={CONST.BUTTON_SIZE.LARGE}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={confirmSaveApprovalMode}

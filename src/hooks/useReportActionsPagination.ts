@@ -47,7 +47,6 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
     const [treatAsNoPaginationAnchor, setTreatAsNoPaginationAnchor] = useState(false);
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
 
     const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction);
 
@@ -62,18 +61,21 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
         treatAsNoPaginationAnchor,
         // Scope the first-defined lastReadTime snapshot to Concierge so the cold-open unread anchor resolves
         // (https://github.com/Expensify/App/issues/93196) without changing regular inbox chat pagination.
-        shouldSnapshotInitialLastReadTime: isConciergeChat,
+        shouldSnapshotInitialLastReadTime: isConciergeChatReport(report, conciergeReportID),
     });
-    const allReportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+    const thread = useTransactionThread({reportID, report, allReportActions: getFilteredReportActionsForReportView(unfilteredReportActions), isOffline});
 
-    const thread = useTransactionThread({reportID, report, allReportActions, isOffline});
+    const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+
+    // React Compiler does not memoize a value created before a hook call and used after it, so these are computed again below the last hook.
+    const allReportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+    const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
 
     const isReportTransactionThread = isReportTransactionThreadUtil(report);
 
     const lastAction = allReportActions?.at(-1);
     const shouldAddCreatedAction = !isCreatedAction(lastAction) && (isMoneyRequestReport(report) || isInvoiceReport(report) || isReportTransactionThread || isConciergeChat);
 
-    const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
     const reportPreviewAction = getReportPreviewReportAction(report?.chatReportID, report?.reportID, chatReportActions);
 
     // When we are offline before opening an IOU/Expense report,

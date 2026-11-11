@@ -1,9 +1,13 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
 
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import useShortMentionsList from '@hooks/useShortMentionsList';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -18,6 +22,10 @@ const personalDetailsList = {
     [ACCOUNT_ID_COWORKER]: {accountID: ACCOUNT_ID_COWORKER, login: 'coworker@acme.com'},
     [ACCOUNT_ID_STRANGER]: {accountID: ACCOUNT_ID_STRANGER, login: 'stranger@gmail.com'},
 };
+
+function UserDataProviders({children}: {children: React.ReactNode}) {
+    return React.createElement(OnyxListItemProvider, null, React.createElement(CurrentUserPersonalDetailsProvider, null, children));
+}
 
 describe('useShortMentionsList', () => {
     beforeAll(() => {
@@ -76,6 +84,23 @@ describe('useShortMentionsList', () => {
 
         expect(first.result.current.availableLoginsList).toBe(listBefore);
         expect(renderCount).toBe(rendersBefore);
+    });
+
+    it('returns the same lists when it re-renders with unchanged data', async () => {
+        // Given the hook with both lists loaded
+        const {result, rerender} = renderHook(() => useShortMentionsList(), {wrapper: UserDataProviders});
+        await waitFor(() => {
+            expect(result.current.availableLoginsList).toEqual(['user', 'coworker']);
+            expect(result.current.currentUserMentions).toEqual(['user', 'user@acme.com']);
+        });
+        const {availableLoginsList, currentUserMentions} = result.current;
+
+        // When the hook re-renders without any data change
+        rerender({});
+
+        // Then both lists keep their identity, because the composer's parser depends on them and a new list would register a new parser on every keystroke
+        expect(result.current.availableLoginsList).toBe(availableLoginsList);
+        expect(result.current.currentUserMentions).toBe(currentUserMentions);
     });
 
     it('updates when someone joins the domain', async () => {

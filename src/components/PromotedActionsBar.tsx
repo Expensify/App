@@ -8,12 +8,13 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import type {IntroSelected} from '@userActions/Report';
 import {joinRoom, navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs, togglePinnedState} from '@userActions/Report';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {PersonalDetailsList} from '@src/types/onyx';
+import type {PersonalDetailsList, Session} from '@src/types/onyx';
 import type OnyxReport from '@src/types/onyx/Report';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -28,11 +29,14 @@ import Button from './Button';
 
 type PromotedAction = {
     key: string;
+
+    /** Sentry label for the action button */
+    sentryLabel: SentryLabel;
 } & ThreeDotsMenuItem;
 
 type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN;
 
-type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => PromotedAction> & {
+type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport, session: OnyxEntry<Session>) => PromotedAction> & {
     [CONST.PROMOTED_ACTIONS.SHARE]: (report: OnyxReport) => PromotedAction;
 } & {
     [CONST.PROMOTED_ACTIONS.MESSAGE]: (params: {
@@ -50,7 +54,7 @@ type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => P
         isSupportalSession: boolean;
     }) => PromotedAction;
 } & {
-    [CONST.PROMOTED_ACTIONS.JOIN]: (report: OnyxReport, currentUserAccountID: number) => PromotedAction;
+    [CONST.PROMOTED_ACTIONS.JOIN]: (report: OnyxReport, currentUserAccountID: number, session: OnyxEntry<Session>) => PromotedAction;
 };
 
 type PromotedActionsBarProps = {
@@ -59,26 +63,29 @@ type PromotedActionsBarProps = {
 };
 
 const PromotedActions = {
-    pin: (report) => ({
+    pin: (report, session) => ({
         key: CONST.PROMOTED_ACTIONS.PIN,
         icon: 'Pin',
         translationKey: report.isPinned ? 'common.unPin' : 'common.pin',
-        onSelected: callFunctionIfActionIsAllowed(() => togglePinnedState(report.reportID, !!report.isPinned)),
+        sentryLabel: report.isPinned ? CONST.SENTRY_LABEL.PROMOTED_ACTIONS_BAR.UNPIN : CONST.SENTRY_LABEL.PROMOTED_ACTIONS_BAR.PIN,
+        onSelected: callIfAuthenticated(() => togglePinnedState(report.reportID, !!report.isPinned), session),
     }),
     share: () => ({
         key: CONST.PROMOTED_ACTIONS.SHARE,
         icon: 'QrCode',
         translationKey: 'common.share',
+        sentryLabel: CONST.SENTRY_LABEL.PROMOTED_ACTIONS_BAR.SHARE,
         onSelected: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.path)),
     }),
-    join: (report, currentUserAccountID) => ({
+    join: (report, currentUserAccountID, session) => ({
         key: CONST.PROMOTED_ACTIONS.JOIN,
         icon: 'ChatBubbles',
         translationKey: 'common.join',
-        onSelected: callFunctionIfActionIsAllowed(() => {
+        sentryLabel: CONST.SENTRY_LABEL.PROMOTED_ACTIONS_BAR.JOIN,
+        onSelected: callIfAuthenticated(() => {
             Navigation.dismissModal();
             joinRoom(report, currentUserAccountID);
-        }),
+        }, session),
     }),
     message: ({
         reportID,
@@ -97,6 +104,7 @@ const PromotedActions = {
         key: CONST.PROMOTED_ACTIONS.MESSAGE,
         icon: 'CommentBubbles',
         translationKey: 'common.message',
+        sentryLabel: CONST.SENTRY_LABEL.PROMOTED_ACTIONS_BAR.MESSAGE,
         onSelected: () => {
             if (reportID && accountID === currentUserAccountID) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
@@ -153,12 +161,15 @@ function PromotedActionsBar({promotedActions, containerStyle}: PromotedActionsBa
 
     return (
         <View style={[styles.flexRow, styles.ph5, styles.mb5, styles.gap2, styles.mw100, styles.w100, styles.justifyContentCenter, containerStyle]}>
-            {promotedActions.map(({key, onSelected, translationKey, icon}) => (
+            {promotedActions.map(({key, onSelected, translationKey, icon, sentryLabel}) => (
                 <View
                     style={[styles.flex1, styles.mw50]}
                     key={key}
                 >
-                    <Button onPress={onSelected}>
+                    <Button
+                        onPress={onSelected}
+                        sentryLabel={sentryLabel}
+                    >
                         <Button.Icon
                             src={typeof icon === 'string' ? icons[icon] : icon}
                             fill={theme.icon}

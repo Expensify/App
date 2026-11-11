@@ -14,6 +14,7 @@ type MockConnectOptions = {
 
 const mockLogHmmm = jest.fn();
 const mockConnectWithoutView = jest.fn<void, [MockConnectOptions]>();
+const mockGetSortedReportActionsForDisplay = jest.fn((reportActions: Record<string, ReportAction>) => Object.values(reportActions));
 
 jest.mock('@libs/Log', () => ({
     __esModule: true,
@@ -25,7 +26,7 @@ jest.mock('@libs/Log', () => ({
 }));
 
 jest.mock('@libs/ReportActionsUtils', () => ({
-    getSortedReportActionsForDisplay: (reportActions: Record<string, ReportAction>) => Object.values(reportActions),
+    getSortedReportActionsForDisplay: (reportActions: Record<string, ReportAction>) => mockGetSortedReportActionsForDisplay(reportActions),
 }));
 
 jest.mock('@libs/ReportUtils', () => ({
@@ -116,6 +117,7 @@ describe('Pagination middleware registration readiness', () => {
         mockLogHmmm.mockReset();
         mockConnectWithoutView.mockReset();
         mockConnectWithoutView.mockImplementation(({callback}) => callback({}));
+        mockGetSortedReportActionsForDisplay.mockImplementation((reportActions) => Object.values(reportActions));
     });
 
     it('registers the report actions pagination config only once', async () => {
@@ -127,6 +129,74 @@ describe('Pagination middleware registration readiness', () => {
         expect(secondReadyPromise).toBe(firstReadyPromise);
         await firstReadyPromise;
         expect(mockConnectWithoutView).toHaveBeenCalledTimes(4);
+    });
+
+    it.each([
+        [CONST.REPORT.ACTIONS.TYPE.FORWARDED, WRITE_COMMANDS.OPEN_REPORT, true],
+        [CONST.REPORT.ACTIONS.TYPE.SUBMITTED, WRITE_COMMANDS.OPEN_REPORT, false],
+        [CONST.REPORT.ACTIONS.TYPE.FORWARDED, READ_COMMANDS.GET_NEWER_ACTIONS, false],
+        [CONST.REPORT.ACTIONS.TYPE.SUBMITTED, READ_COMMANDS.GET_NEWER_ACTIONS, true],
+        [CONST.REPORT.ACTIONS.TYPE.FORWARDED, READ_COMMANDS.GET_OLDER_ACTIONS, true],
+        [CONST.REPORT.ACTIONS.TYPE.SUBMITTED, READ_COMMANDS.GET_OLDER_ACTIONS, true],
+    ] as const)('keeps the %s routed row in pages but uses server cursors for %s (hasNewerActions: %s)', async (actionName, command, hasNewerActions) => {
+        // Given a response whose newest action produces a routed row that the server does not know about
+        const forwardedAction: ReportAction = {
+            actionName,
+            created: '2026-08-21 11:00:00.000',
+            reportActionID: '3',
+        };
+        const routedAction: ReportAction = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
+            created: '2026-08-21 11:00:00.001',
+            reportActionID: '3DEW',
+        };
+        mockGetSortedReportActionsForDisplay.mockImplementation((reportActions) =>
+            [routedAction, forwardedAction, REPORT_ACTION].filter((reportAction) => Object.hasOwn(reportActions, reportAction.reportActionID.replace('DEW', ''))),
+        );
+        const {default: registerReportActionsPaginationConfig} = await import('@libs/registerReportActionsPagination');
+        const {Pagination} = await loadPaginationModule();
+        await registerReportActionsPaginationConfig();
+        const response: Response<ReportActionsKey> = {
+            hasNewerActions,
+            hasOlderActions: false,
+            onyxData: [
+                {
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                    onyxMethod: 'merge',
+                    value: {[REPORT_ACTION.reportActionID]: REPORT_ACTION, [forwardedAction.reportActionID]: forwardedAction},
+                },
+            ],
+        };
+
+        // When the pagination middleware processes the response
+        const result = await Pagination(Promise.resolve(response), {...createRequest(), command}, false);
+
+        // Then the page keeps the routed row for display, but only server IDs are saved for the requested direction
+        expect(result?.onyxData).toEqual(
+            expect.arrayContaining([
+                {
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${REPORT_ID}`,
+                    onyxMethod: 'set',
+                    value: [
+                        [
+                            ...(!hasNewerActions ? [CONST.PAGINATION_START_ID] : []),
+                            routedAction.reportActionID,
+                            forwardedAction.reportActionID,
+                            REPORT_ACTION.reportActionID,
+                            CONST.PAGINATION_END_ID,
+                        ],
+                    ],
+                },
+                {
+                    key: `${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${REPORT_ID}`,
+                    onyxMethod: 'merge',
+                    value:
+                        command === READ_COMMANDS.GET_OLDER_ACTIONS
+                            ? {oldestFetchedReportActionID: REPORT_ACTION.reportActionID}
+                            : {newestFetchedReportActionID: forwardedAction.reportActionID},
+                },
+            ]),
+        );
     });
 
     it('processes responses with a synchronously registered config', async () => {

@@ -14,8 +14,8 @@ import useIsInSidePanel from './useIsInSidePanel';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import useReportTransactionsCollection from './useReportTransactionsCollection';
 import useSidePanelState from './useSidePanelState';
-import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
 
 type UseReportActionsVisibilityParams = {
     reportID: string | undefined;
@@ -74,7 +74,10 @@ function useReportActionsVisibility({
               )
             : false;
 
-    const {transactions: reportTransactions, isLoaded: areTransactionsLoaded} = useTransactionsAndViolationsForReport(reportID);
+    const reportTransactions = useReportTransactionsCollection(reportID);
+    const [areTransactionsLoaded] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS, {
+        selector: (data) => data !== undefined,
+    });
     // When transactions haven't loaded yet, pass undefined to skip IOU filtering entirely
     // (undefined = "don't filter" in isIOUActionMatchingTransactionList).
     // Once loaded, filter normally — even if transactions is empty (genuinely no transactions).
