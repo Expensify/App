@@ -121,6 +121,7 @@
 "../../src/components/DatePicker/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/DatePicker/index.tsx"	"react-hooks/refs"	1
 "../../src/components/DatePicker/index.tsx"	"react-hooks/set-state-in-effect"	1
+"../../src/components/DecisionModal.tsx"	"@typescript-eslint/no-deprecated/DecisionModal"	1
 "../../src/components/DialogLabelContext.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/DisplayNames/DisplayNamesWithTooltip.tsx"	"react-hooks/refs"	6
 "../../src/components/DistanceRequest/DistanceRequestRenderItem.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
@@ -214,6 +215,8 @@
 "../../src/components/MenuItemList.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/components/Modal/BaseModal.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/Modal/Global/ConfirmModalWrapper.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
+"../../src/components/Modal/Global/DecisionModalWrapper.tsx"	"@typescript-eslint/no-deprecated/DecisionModal"	1
+"../../src/components/Modal/Global/HoldMenuModalWrapper.tsx"	"@typescript-eslint/no-deprecated/DecisionModal"	1
 "../../src/components/Modal/Global/ModalContext.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/Modal/ReanimatedModal/Container/index.web.tsx"	"react-hooks/refs"	1
 "../../src/components/MoneyReportHeader.tsx"	"no-restricted-imports"	1
@@ -2303,6 +2306,7 @@
 "../../tests/unit/CollectDepositAccountUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/CompanyCardsRBRTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/components/Avatar/connected/ChatThreadAvatarTest.tsx"	"@typescript-eslint/no-deprecated/originalMessage"	6
+"../../tests/unit/components/DecisionModalWrapperTest.tsx"	"@typescript-eslint/no-deprecated/DecisionModal"	1
 "../../tests/unit/components/Form/FormProvider.test.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/components/Form/FormProvider.test.tsx"	"import/no-duplicates"	1
 "../../tests/unit/components/HTMLEngineProvider/VictoryChartAttributesParsers.test.ts"	"rulesdir/no-raw-typography"	1
@@ -2319,6 +2323,7 @@
 "../../tests/unit/CopyPolicySettingsUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/CreateReportMenuItemTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/DateUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
+"../../tests/unit/DecisionModalTest.tsx"	"@typescript-eslint/no-deprecated/DecisionModal"	1
 "../../tests/unit/DistanceRateTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../tests/unit/DistanceRequestUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/ExpenseDefaultRuleUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
