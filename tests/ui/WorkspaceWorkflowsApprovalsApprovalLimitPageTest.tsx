@@ -76,7 +76,7 @@ function buildPolicy(): Policy {
 const Stack = createStackNavigator();
 
 /** Opens the page for the workflow's second approver, Bob, in a workflow Alice approves first */
-async function renderPageForBob(action: ApprovalWorkflowOnyx['action'], bob: Partial<Approver> = {}, carol?: Approver) {
+async function renderPageForBob(action: ApprovalWorkflowOnyx['action'], bob: Partial<Approver> = {}, carol?: Approver, isAddingApprover = false) {
     const approvers: Approver[] = [{email: ALICE_EMAIL, displayName: 'alice'}, {email: BOB_EMAIL, displayName: 'bob', ...bob}, ...(carol ? [carol] : [])];
     await act(async () => {
         await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, {
@@ -87,11 +87,11 @@ async function renderPageForBob(action: ApprovalWorkflowOnyx['action'], bob: Par
             originalApprovers: approvers,
         });
     });
-    await renderPageForApprover(1);
+    await renderPageForApprover(1, isAddingApprover);
 }
 
-/** Opens the page for the approver at `approverIndex` of the workflow being edited */
-async function renderPageForApprover(approverIndex: number) {
+/** Opens the page for the approver at `approverIndex` of the workflow being edited, either just picked or already in the workflow */
+async function renderPageForApprover(approverIndex: number, isAddingApprover = false) {
     render(
         <NavigationContainer>
             <Stack.Navigator>
@@ -100,7 +100,10 @@ async function renderPageForApprover(approverIndex: number) {
                         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
                             <WorkspaceWorkflowsApprovalsApprovalLimitPage
                                 // @ts-expect-error - the page only reads route.params
-                                route={{name: SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVAL_LIMIT, params: {policyID: POLICY_ID, approverIndex}}}
+                                route={{
+                                    name: SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVAL_LIMIT,
+                                    params: {policyID: POLICY_ID, approverIndex, isAddingApprover: isAddingApprover ? 'true' : undefined},
+                                }}
                             />
                         </ComposeProviders>
                     )}
@@ -240,6 +243,22 @@ describe('WorkspaceWorkflowsApprovalsApprovalLimitPage', () => {
 
         // Then Carol takes his place right after Alice, and the admin goes back to the workflow
         expect((await getApprovers())?.map((approver) => approver?.email)).toEqual([ALICE_EMAIL, CAROL_EMAIL]);
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(POLICY_ID, ALICE_EMAIL, undefined), {compareParams: false});
+    });
+
+    it('asks about an approver added to an edited workflow the same way as in a new workflow', async () => {
+        // Given the admin just picked Bob as an additional approver while editing a workflow
+        await renderPageForBob(CONST.APPROVAL_WORKFLOW.ACTION.EDIT, {}, undefined, true);
+
+        // When they pick when he approves and continue
+        fireEvent.press(screen.getByText(translateLocal('workflowsApprovalLimitPage.always')));
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText(translateLocal('workflowsApprovalLimitPage.next')));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the page offers the new workflow's steps rather than editing an existing approver, and the admin goes back to the workflow they're editing
+        expect(screen.getByText(translateLocal('workflowsCreateApprovalsPage.additionalApprover'))).toBeTruthy();
+        expect(screen.queryByText(translateLocal('workflowsApprovalLimitPage.removeApprover'))).toBeNull();
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(POLICY_ID, ALICE_EMAIL, undefined), {compareParams: false});
     });
 });

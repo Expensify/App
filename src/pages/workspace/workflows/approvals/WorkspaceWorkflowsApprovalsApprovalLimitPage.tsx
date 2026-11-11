@@ -72,6 +72,8 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     const policyID = route.params.policyID;
     const approverIndex = Number(route.params.approverIndex) || 0;
     const isEditFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT;
+    // A newly picked approver gets the same steps as in a new workflow, even while an existing workflow is edited
+    const isEditingApprover = isEditFlow && route.params.isAddingApprover !== 'true';
     const currentApprover = removedApprover ?? approvalWorkflow?.approvers?.[approverIndex];
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -212,14 +214,14 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                     addBottomSafeAreaPadding
                 >
                     <HeaderWithBackButton
-                        title={isEditFlow ? translate('workflowsPage.approver') : translate('workflowsCreateApprovalsPage.additionalApprover')}
+                        title={isEditingApprover ? translate('workflowsPage.approver') : translate('workflowsCreateApprovalsPage.additionalApprover')}
                         onBackButtonPress={() => Navigation.goBack()}
                     />
                     <ScrollView
                         style={styles.flex1}
                         contentContainerStyle={styles.flexGrow1}
                     >
-                        {isEditFlow && (
+                        {isEditingApprover && (
                             <View style={styles.mh5}>
                                 <MenuItemWithTopDescription
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_LIMIT_APPROVER}
@@ -248,7 +250,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
 
                         {isAdditionalApprover && (
                             <>
-                                {isEditFlow ? (
+                                {isEditingApprover ? (
                                     <>
                                         <View style={styles.dividerLine} />
                                         <Text style={[styles.textSupporting, styles.mh5, styles.mv3]}>{whenShouldApproveText}</Text>
@@ -292,7 +294,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                             </>
                         )}
 
-                        {isEditFlow && isAdditionalApprover && (
+                        {isEditingApprover && isAdditionalApprover && (
                             <>
                                 <View style={styles.dividerLine} />
                                 <View style={styles.mh5}>
@@ -316,12 +318,14 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
 
                     <FixedFooter addBottomSafeAreaPadding>
                         <Button
-                            sentryLabel={isEditFlow ? CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_LIMIT_SUBMIT.SAVE : CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_LIMIT_SUBMIT.NEXT}
+                            sentryLabel={
+                                isEditingApprover ? CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_LIMIT_SUBMIT.SAVE : CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_LIMIT_SUBMIT.NEXT
+                            }
                             size={CONST.BUTTON_SIZE.LARGE}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={handleSubmit}
                         >
-                            <Button.Text>{isEditFlow ? translate('common.save') : translate('workflowsApprovalLimitPage.next')}</Button.Text>
+                            <Button.Text>{isEditingApprover ? translate('common.save') : translate('workflowsApprovalLimitPage.next')}</Button.Text>
                         </Button>
                     </FixedFooter>
                 </FullPageNotFoundView>

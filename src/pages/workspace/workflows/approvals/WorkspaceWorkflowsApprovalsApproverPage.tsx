@@ -226,7 +226,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         }
 
         // Otherwise, navigate forward to ask whether the approver only gets the reports over an amount
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(route.params.policyID, approverIndex));
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(route.params.policyID, approverIndex, true));
     };
 
     const isAddingAdditionalApprover = approverIndex > 0 && !isChangeApproverRoute;
