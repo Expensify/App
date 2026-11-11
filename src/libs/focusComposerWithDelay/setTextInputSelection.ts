@@ -5,6 +5,7 @@ import type {InputType, Selection} from './types';
 const setSelectionRange = shouldSetSelectionRange();
 
 const setTextInputSelection = (textInput: InputType, forcedSelectionRange: Selection) => {
+    // The input is a DOM element on web and a native TextInput ref on mobile, so check which selection method this instance has.
     if (setSelectionRange) {
         if ('setSelectionRange' in textInput && typeof textInput.setSelectionRange === 'function') {
             textInput.setSelectionRange(forcedSelectionRange.start, forcedSelectionRange.end);

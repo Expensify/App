@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 
-import type {ParsedPhoneNumber, ParsedPhoneNumberInvalid, PhoneNumberParseOptions} from 'awesome-phonenumber';
+import type {ParsedPhoneNumber, PhoneNumberParseOptions} from 'awesome-phonenumber';
 
 // eslint-disable-next-line no-restricted-imports
 import {parsePhoneNumber as originalParsePhoneNumber} from 'awesome-phonenumber';
@@ -20,12 +20,13 @@ function parsePhoneNumber(phoneNumber: string, options?: PhoneNumberParseOptions
     const phoneNumberWithoutSpecialChars = phoneNumber.replaceAll(CONST.REGEX.SPECIAL_CHARS_WITHOUT_NEWLINE, '');
 
     if (!CONST.REGEX.PHONE_NUMBER.test(phoneNumberWithoutSpecialChars)) {
-        const invalidPhoneNumber: ParsedPhoneNumberInvalid = {
+        return {
             ...parsedPhoneNumber,
             valid: false,
             possible: false,
             number: {
                 ...parsedPhoneNumber.number,
+                // `number` is optional in the invalid type, so keep the parser's `input` and fall back to the raw string.
                 input: parsedPhoneNumber.number?.input ?? phoneNumber,
                 e164: phoneNumberWithoutSpecialChars,
                 international: phoneNumberWithoutSpecialChars,
@@ -34,7 +35,6 @@ function parsePhoneNumber(phoneNumber: string, options?: PhoneNumberParseOptions
                 significant: phoneNumberWithoutSpecialChars,
             },
         };
-        return invalidPhoneNumber;
     }
 
     if (!/^\+11[0-9]{10}$/.test(phoneNumberWithoutSpecialChars)) {
@@ -44,7 +44,7 @@ function parsePhoneNumber(phoneNumber: string, options?: PhoneNumberParseOptions
     const countryCode = phoneNumberWithoutSpecialChars.substring(0, 2);
     const phoneNumberWithoutCountryCode = phoneNumberWithoutSpecialChars.substring(2);
 
-    const invalidPhoneNumber: ParsedPhoneNumberInvalid = {
+    return {
         ...parsedPhoneNumber,
         valid: false,
         possible: false,
@@ -60,7 +60,6 @@ function parsePhoneNumber(phoneNumber: string, options?: PhoneNumberParseOptions
             significant: phoneNumberWithoutCountryCode,
         },
     };
-    return invalidPhoneNumber;
 }
 
 /**

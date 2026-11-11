@@ -1,3 +1,6 @@
+/**
+ * Parses formula strings into parts. It has no App imports, so WorkspaceReportFieldUtils can import it without an import cycle through Formula.
+ */
 import type {ValueOf} from 'type-fest';
 
 type FormulaPart = {
