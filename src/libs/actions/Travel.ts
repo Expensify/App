@@ -266,9 +266,19 @@ function rejectTravelBooking(decisionParams: TravelBookingDecisionParams, pnrID:
     API.write(WRITE_COMMANDS.REJECT_TRAVEL_BOOKING, params, buildBookingDecisionOnyxData(decisionParams, [pnrID], CONST.TRAVEL.BOOKING_APPROVAL.STATUS.REJECTED));
 }
 
+/** Dismisses the error a failed approval decision left on a booking */
+function clearTravelBookingErrors(tripRoomReportID: string | undefined, pnrID: string) {
+    if (!tripRoomReportID) {
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${tripRoomReportID}`, {tripData: {bookingApprovalState: {[pnrID]: {errors: null}}}});
+}
+
 export {
     acceptSpotnanaTerms,
     approveTravelBookings,
+    clearTravelBookingErrors,
     rejectTravelBooking,
     cleanupTravelProvisioningSession,
     requestTravelAccess,
