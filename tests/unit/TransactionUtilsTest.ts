@@ -3374,7 +3374,7 @@ describe('TransactionUtils', () => {
                 reportID: undefined,
             });
 
-            const result = TransactionUtils.getReportOwnerAccountIDAsAttendee(transaction, currentUserPersonalDetails.accountID);
+            const result = TransactionUtils.getReportOwnerAccountIDAsAttendee(transaction, currentUserPersonalDetails.accountID, SECOND_USER_ID);
 
             expect(result).toBeUndefined();
         });
@@ -3384,7 +3384,7 @@ describe('TransactionUtils', () => {
                 reportID: FAKE_OPEN_REPORT_SECOND_USER_ID,
             });
 
-            const result = TransactionUtils.getReportOwnerAccountIDAsAttendee(transaction, currentUserPersonalDetails.accountID);
+            const result = TransactionUtils.getReportOwnerAccountIDAsAttendee(transaction, currentUserPersonalDetails.accountID, secondUserOpenReport.ownerAccountID);
 
             expect(result).toBe(SECOND_USER_ID);
         });
@@ -3394,7 +3394,7 @@ describe('TransactionUtils', () => {
                 reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
             });
 
-            const result = TransactionUtils.getReportOwnerAccountIDAsAttendee(transaction, currentUserPersonalDetails.accountID);
+            const result = TransactionUtils.getReportOwnerAccountIDAsAttendee(transaction, currentUserPersonalDetails.accountID, SECOND_USER_ID);
 
             expect(result).toBe(CURRENT_USER_ID);
         });
@@ -5236,6 +5236,26 @@ describe('TransactionUtils', () => {
 
                 expect(result.keep.reimbursable).toBe(false);
                 expect(result.change.reimbursable).toBeUndefined();
+            });
+
+            it('should preserve an imported reimbursable=true value when the kept transaction is a managed card', () => {
+                const managedCardTransaction = generateTransaction({reimbursable: true, managedCard: true});
+                const duplicates = [generateTransaction({reimbursable: false, managedCard: false})];
+
+                const result = TransactionUtils.compareDuplicateTransactionFields({}, managedCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+
+                expect(result.keep.reimbursable).toBe(true);
+                expect(result.change.reimbursable).toBeUndefined();
+            });
+
+            it('should default reimbursable to false when the kept managed card has no reimbursable value', () => {
+                const managedCardTransaction = generateTransaction({managedCard: true});
+                delete managedCardTransaction.reimbursable;
+                const duplicates = [generateTransaction({reimbursable: true, managedCard: false})];
+
+                const result = TransactionUtils.compareDuplicateTransactionFields({}, managedCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+
+                expect(result.keep.reimbursable).toBe(false);
             });
 
             it('should not force reimbursable to false when the reviewing (kept) transaction is a cash expense, even if a duplicate is a managed card', () => {

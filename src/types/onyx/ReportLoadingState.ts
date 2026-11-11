@@ -24,6 +24,9 @@ type ReportLoadingState = {
     /** Whether participants private notes are being currently loaded */
     isLoadingPrivateNotes?: boolean;
 
+    /** Whether the report's history and upcoming steps are being loaded */
+    isLoadingReportStatus?: boolean;
+
     /** Whether a search-row action (hold/pay/approve) is in flight */
     isActionLoading?: boolean;
 };

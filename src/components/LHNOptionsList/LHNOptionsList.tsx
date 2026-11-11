@@ -1,3 +1,4 @@
+import useShouldUseFlatNavigationBar from '@components/Navigation/FlatNavigationBar/useShouldUseFlatNavigationBar';
 import {renderTabRootScrollComponent} from '@components/Navigation/TabBarBottomContent/TabRootScrollViewMarker';
 import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -46,6 +47,7 @@ function LHNOptionsList({
     const {isOffline} = useNetwork();
     const route = useRoute();
     const styles = useThemeStyles();
+    const shouldUseFlatNavigationBar = useShouldUseFlatNavigationBar();
     const tabRootScrollProps = useTabRootScrollProps(contentContainerStyles, {hasBottomSafeAreaPadding: true});
     const previousOptionMode = usePrevious(optionMode);
 
@@ -57,7 +59,7 @@ function LHNOptionsList({
     const hasCalledOnLayout = useRef(false);
 
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
-    const extraData = [data.length, optionMode, isOffline];
+    const extraData = [data.length, optionMode, isOffline, shouldUseFlatNavigationBar];
     const hasListHeader = !!listHeaderComponent;
     const savedScrollIndex = getScrollIndex(route);
     // With a list header, index 0 is left to the list's natural start: FlashList restores an index to the row's offset
@@ -96,6 +98,7 @@ function LHNOptionsList({
                 onSelectRow={onSelectRow}
                 onLayout={onLayoutItem}
                 testID={index}
+                shouldUseFlatNavigationBar={shouldUseFlatNavigationBar}
             />
         );
     };

@@ -6,7 +6,6 @@ name: Test syncVersions script
 on:
   pull_request:
     types: [opened, synchronize]
-    branches-ignore: [production]
     paths: ['.github/scripts/syncVersions.sh', 'tests/tooling/SyncVersions.test.ts', '.github/workflows/testSyncVersions.yml']
 
 concurrency:

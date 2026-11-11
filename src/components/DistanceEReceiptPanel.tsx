@@ -1,5 +1,3 @@
-import EReceiptBackground from '@assets/images/eReceipt_background.svg';
-
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -19,6 +17,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import Icon from './Icon';
+import {EReceiptBGDistance} from './Icon/EReceiptBGs';
 import ImageSVG from './ImageSVG';
 import PendingMapView from './MapView/PendingMapView';
 import ReceiptImage from './ReceiptImage';
@@ -54,7 +53,7 @@ function DistanceEReceiptPanel({transaction}: DistanceEReceiptPanelProps) {
     return (
         <View style={styles.eReceiptPanel}>
             <ImageSVG
-                src={EReceiptBackground}
+                src={EReceiptBGDistance}
                 style={styles.eReceiptBackground}
                 pointerEvents="none"
             />

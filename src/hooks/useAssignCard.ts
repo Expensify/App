@@ -31,10 +31,11 @@ type UseAssignCardProps = {
     /** The ID of the workspace/policy */
     policyID: string;
 
-    setShouldShowOfflineModal: (shouldShow: boolean) => void;
+    /** Called when the user tries to assign a card from a direct feed while offline */
+    onOfflineAssign: () => void;
 };
 
-function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssignCardProps) {
+function useAssignCard({feedName, policyID, onOfflineAssign}: UseAssignCardProps) {
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = feedName ? companyFeeds?.[feedName] : ({} as CombinedCardFeed);
@@ -70,7 +71,7 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
         // If the feed is a direct feed (not a commercial feed) and the user is offline,
         // show the offline alert modal to inform them of the connectivity issue.
         if (!isCommercialFeed && isOffline) {
-            setShouldShowOfflineModal(true);
+            onOfflineAssign();
             return;
         }
 
