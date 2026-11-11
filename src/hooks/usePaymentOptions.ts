@@ -163,6 +163,7 @@ function usePaymentOptions({
                 return formattedPaymentMethods
                     .filter((method) => {
                         const accountData = method.accountData;
+                        // Only bank accounts have a type; card account data has none, so cards are left out
                         return accountData != null && 'type' in accountData && accountData.type === requiredAccountType && !isBankAccountPartiallySetup(accountData.state);
                     })
                     .map((formattedPaymentMethod) => ({
