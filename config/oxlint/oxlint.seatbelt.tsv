@@ -1532,7 +1532,6 @@
 "../../src/pages/settings/Wallet/EnableGlobalReimbursements/EnableGlobalReimbursementsSignPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseBusinessOnboardingPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/settings/Wallet/ExpensifyCardPage/ChangePINPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/Wallet/ExpensifyCardPage/index.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	2
 "../../src/pages/settings/Wallet/ExpensifyCardPage/index.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/ExpensifyCardPage/index.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/settings/Wallet/ImportTransactionsCardNamePage.tsx"	"no-restricted-imports"	1
@@ -1546,7 +1545,6 @@
 "../../src/pages/settings/Wallet/InternationalDepositAccount/subPages/Confirmation.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/settings/Wallet/InternationalDepositAccount/utils.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/settings/Wallet/InternationalDepositAccount/utils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/pages/settings/Wallet/PaymentMethodList.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/settings/Wallet/PaymentMethodList.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	3
 "../../src/pages/settings/Wallet/PaymentMethodList.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../src/pages/settings/Wallet/PaymentMethodList.tsx"	"rulesdir/no-onyx-loading-status"	2
@@ -1589,8 +1587,6 @@
 "../../src/pages/settings/Wallet/UpdatePersonalBankAccountPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Wallet/UpdatePersonalBankAccountPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/UpdatePersonalBankAccountPage.tsx"	"rulesdir/no-onyx-loading-status"	1
-"../../src/pages/settings/Wallet/WalletPage/CardDetails.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	4
-"../../src/pages/settings/Wallet/WalletPage/index.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/settings/Wallet/WalletPage/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/settings/Wallet/WalletPage/index.tsx"	"no-restricted-imports"	2
 "../../src/pages/settings/Wallet/WalletPage/index.tsx"	"react-hooks/set-state-in-effect"	1
