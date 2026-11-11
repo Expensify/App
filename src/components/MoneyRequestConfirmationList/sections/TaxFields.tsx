@@ -19,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getCalculatedTaxAmount, getEnabledTaxRateCount, getTaxAmount, getTaxRateTitle} from '@libs/TransactionUtils';
 
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -219,7 +219,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                 <MenuItem.Root
                     key={`${taxRates?.name}_rate`}
                     testID={`${taxRates?.name}_rate`}
-                    onPress={canModifyTaxFields ? callFunctionIfActionIsAllowed(openTaxRatePage, false, session) : undefined}
+                    onPress={canModifyTaxFields ? callIfAuthenticated(openTaxRatePage, session) : undefined}
                     isDisabled={didConfirm}
                     sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_RATE_FIELD}
                 >
