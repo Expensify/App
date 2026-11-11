@@ -104,6 +104,7 @@ import {
 } from '@libs/ReportUtils';
 import {COPYABLE_ROW_DATA_SET, COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 import {getDependentTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
+import startOpenCategoryPickerSpan from '@libs/telemetry/startOpenCategoryPickerSpan';
 import {
     getAttendeesListDisplayString,
     getBillable,
@@ -146,6 +147,8 @@ import Navigation from '@navigation/Navigation';
 
 import variables from '@styles/variables';
 
+import {callIfAuthenticated} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -161,6 +164,7 @@ import type {ValueOf} from 'type-fest';
 import {useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {policyTypeSelector} from '@selectors/Policy';
+import {authTokenTypeSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -230,6 +234,7 @@ function MoneyRequestView({
     const {convertToDisplayString, getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const {showConfirmModal} = useConfirmModal();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [loginToAccountIDMap] = useOnyx(ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP);
 
     const {currentSearchResults} = useSearchResultsContext();
@@ -345,7 +350,7 @@ function MoneyRequestView({
         originalCurrency: transactionOriginalCurrency,
         postedDate: transactionPostedDate,
         convertedAmount: transactionConvertedAmount,
-    } = getTransactionDetails(displayTransaction, undefined, undefined, allowNegativeAmount, false) ?? {};
+    } = getTransactionDetails(displayTransaction, undefined, allowNegativeAmount, false) ?? {};
     const transactionAttendees = useAttendees(transaction);
     const isEmptyMerchant = isInvalidMerchantValue(transactionMerchant);
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
@@ -396,7 +401,7 @@ function MoneyRequestView({
     const baseTransaction = updatedTransaction ?? transaction;
     const {taxCode, taxValue} = baseTransaction ?? {};
 
-    const taxRateTitle = getTaxName(policy, baseTransaction, isExpenseUnreported);
+    const taxRateTitle = getTaxName(translate, policy, baseTransaction, isExpenseUnreported);
     const resolvedTaxCode = taxCode ? resolveCurrentTaxCode(policy, taxCode) : undefined;
     const selectedPolicyTaxValue = resolvedTaxCode ? policy?.taxRates?.taxes?.[resolvedTaxCode]?.value : undefined;
     const hasTaxValueChanged = taxCode && taxValue !== undefined ? selectedPolicyTaxValue !== taxValue : false;
@@ -1103,11 +1108,12 @@ function MoneyRequestView({
             <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints') ?? getPendingFieldAction('merchant')}>
                 <ExpenseFieldRow
                     name={distanceToDisplayDescription}
+                    sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.DISTANCE_FIELD}
                     value={distanceToDisplay}
                     numberOfLinesValue={2}
                     errorText={getErrorForField('waypoints')}
                     hintText={distanceToDisplayHintText}
-                    onPress={openDistancePage}
+                    onPress={callIfAuthenticated(openDistancePage, session)}
                     copyValue={distanceToDisplay || undefined}
                     isInteractive={canEditDistance}
                 />
@@ -1115,10 +1121,11 @@ function MoneyRequestView({
             <OfflineWithFeedback pendingAction={getPendingFieldAction('customUnitRateID')}>
                 <ExpenseFieldDropdown
                     name={translate('common.rate')}
+                    sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.RATE_FIELD}
                     value={rateToDisplay}
                     numberOfLinesValue={2}
                     errorText={getErrorForField('customUnitRateID')}
-                    onPress={openDistanceRatePage}
+                    onPress={callIfAuthenticated(openDistanceRatePage, session)}
                     copyValue={rateToDisplay || undefined}
                     isInteractive={canEditDistanceRate}
                     // A track expense may first need a workspace or an upgrade, which only the full-page flow handles
@@ -1447,6 +1454,7 @@ function MoneyRequestView({
                     ) : (
                         <ExpenseFieldRow
                             name={amountDescription}
+                            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.AMOUNT_FIELD}
                             value={amountTitle}
                             numberOfLinesValue={2}
                             hintText={amountHintText}
@@ -1468,6 +1476,7 @@ function MoneyRequestView({
                         ) : (
                             <ExpenseFieldRow
                                 name={translate('common.description')}
+                                sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.DESCRIPTION_FIELD}
                                 valueComponent={descriptionHTML ? <MenuItem.FieldValueHTML>{descriptionHTML}</MenuItem.FieldValueHTML> : undefined}
                                 hasValueComponent={!!descriptionHTML}
                                 copyValue={descriptionCopyValue}
@@ -1493,6 +1502,7 @@ function MoneyRequestView({
                             <>
                                 <ExpenseFieldRow
                                     name={translate('common.merchant')}
+                                    sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.MERCHANT_FIELD}
                                     value={updatedMerchantTitle}
                                     copyValue={updatedMerchantTitle || undefined}
                                     numberOfLinesValue={0}
@@ -1516,6 +1526,7 @@ function MoneyRequestView({
                     ) : (
                         <ExpenseFieldRow
                             name={dateDescription}
+                            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.DATE_FIELD}
                             value={actualTransactionDate}
                             copyValue={actualTransactionDate || undefined}
                             errorText={dateError}
@@ -1527,12 +1538,13 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('category')}>
                         <ExpenseFieldDropdown
                             name={translate('common.category')}
+                            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.CATEGORY_FIELD}
                             value={shouldShowCategoryAnalyzing ? translate('common.analyzing') : decodedCategoryName}
                             numberOfLinesValue={2}
                             errorText={getErrorForField('category')}
                             hintText={reservationNightsHintText}
                             isInteractive={canEdit}
-                            onPress={openCategoryPage}
+                            onPress={callIfAuthenticated(openCategoryPage, session)}
                             copyValue={decodedCategoryName || undefined}
                             shouldOpenInDropdown={!!policy && !shouldShowCategoryDisabledAlert && !shouldNavigateToUpgradePath}
                             listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
@@ -1555,10 +1567,11 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('vendor')}>
                         <ExpenseFieldRow
                             name={translate('common.vendor')}
+                            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.VENDOR_FIELD}
                             value={transactionVendorName}
                             numberOfLinesValue={2}
                             errorText={getErrorForField('vendor')}
-                            onPress={openVendorPage}
+                            onPress={callIfAuthenticated(openVendorPage, session)}
                             copyValue={transactionVendorName || undefined}
                             isInteractive={canEdit}
                         />
@@ -1569,6 +1582,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('cardID')}>
                         <ExpenseFieldRow
                             name={translate('iou.card')}
+                            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.CARD_FIELD}
                             value={cardCopyValue}
                             copyValue={cardCopyValue || undefined}
                             numberOfLinesValue={2}
@@ -1580,11 +1594,12 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('taxCode')}>
                         <ExpenseFieldDropdown
                             name={taxRatesDescription ?? translate('common.tax')}
+                            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.TAX_RATE_FIELD}
                             value={taxRateValue}
                             numberOfLinesValue={2}
                             errorText={getErrorForField('tax')}
                             isInteractive={canEditTaxFields}
-                            onPress={openTaxRatePage}
+                            onPress={callIfAuthenticated(openTaxRatePage, session)}
                             copyValue={taxRateValue || undefined}
                             shouldOpenInDropdown={!shouldShowTaxDisabledAlert}
                             listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
@@ -1616,9 +1631,10 @@ function MoneyRequestView({
                         ) : (
                             <ExpenseFieldRow
                                 name={taxAmountDescription}
+                                sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.TAX_AMOUNT_FIELD}
                                 value={taxAmountTitle}
                                 numberOfLinesValue={2}
-                                onPress={openTaxAmountPage}
+                                onPress={callIfAuthenticated(openTaxAmountPage, session)}
                                 copyValue={taxAmountTitle || undefined}
                                 isInteractive={canEditTaxFields}
                             />
@@ -1629,6 +1645,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('attendees')}>
                         <ExpenseFieldRow
                             name={attendeesDescription}
+                            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.ATTENDEES_FIELD}
                             valueComponent={
                                 hasAttendees ? (
                                     <UserPills
@@ -1668,6 +1685,7 @@ function MoneyRequestView({
                         </View>
                         <Switch
                             accessibilityLabel={Str.UCFirst(translate('iou.reimbursable'))}
+                            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.REIMBURSABLE_SWITCH}
                             isOn={updatedTransaction?.reimbursable ?? !!transactionReimbursable}
                             onToggle={saveReimbursable}
                             disabled={!canEditReimbursable}
@@ -1708,6 +1726,7 @@ function MoneyRequestView({
                         </View>
                         <Switch
                             accessibilityLabel={translate('common.billable')}
+                            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.BILLABLE_SWITCH}
                             isOn={updatedTransaction?.billable ?? !!transactionBillable}
                             onToggle={saveBillable}
                             disabled={!canEdit}
@@ -1718,6 +1737,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('reportID')}>
                         <ExpenseFieldDropdown
                             name={translate('common.report')}
+                            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.REPORT_FIELD}
                             value={reportNameToDisplay}
                             onPress={openReportPage}
                             copyValue={reportNameToDisplay !== translate('common.none') ? reportNameToDisplay : undefined}
@@ -1742,6 +1762,7 @@ function MoneyRequestView({
                 {shouldShowTripRoomLink && (
                     <>
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.TRIP_FIELD}
                             value={tripRoomName}
                             name={translate('travel.trip')}
                             numberOfLinesValue={2}
@@ -1755,6 +1776,7 @@ function MoneyRequestView({
                 {/* Note: "View trip details" should be always the last item */}
                 {shouldShowViewTripDetails && (
                     <MenuItemAction
+                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.VIEW_TRIP_DETAILS_BUTTON}
                         title={translate('travel.viewTripDetails')}
                         icon={icons.Suitcase}
                         onPress={() => {

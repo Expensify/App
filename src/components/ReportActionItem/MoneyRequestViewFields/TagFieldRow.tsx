@@ -2,6 +2,7 @@ import ExpenseFieldDropdown from '@components/MoneyRequestConfirmationList/secti
 import useFieldRowHighlightStyle from '@components/MoneyRequestConfirmationList/sections/useFieldRowHighlightStyle';
 import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
 
+import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -68,6 +69,7 @@ function TagFieldRow({
     return (
         <ExpenseFieldDropdown
             name={name}
+            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.TAG_FIELD}
             value={value}
             numberOfLinesValue={2}
             copyValue={value || undefined}

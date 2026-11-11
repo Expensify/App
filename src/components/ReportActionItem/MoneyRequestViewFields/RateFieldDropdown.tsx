@@ -104,7 +104,7 @@ function RateFieldDropdown({transaction, transactionThreadReport, policy, should
             return;
         }
 
-        const taxUpdates = shouldUpdateTax ? getDistanceRateTaxUpdates(policy, transaction, customUnitRateID, rules, getCurrencyDecimals, currentUnit) : undefined;
+        const taxUpdates = shouldUpdateTax ? getDistanceRateTaxUpdates(policy, transaction, customUnitRateID, getCurrencyDecimals, currentUnit) : undefined;
 
         setLastSelectedDistanceRate(policy, customUnitRateID);
         updateMoneyRequestDistanceRate({

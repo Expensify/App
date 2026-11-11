@@ -123,8 +123,12 @@ function ReportActionsListItemRenderer({
         childOwnerAccountID: reportAction.childOwnerAccountID,
     } as ReportAction;
 
-    const shouldDisplayParentAction =
-        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && (!isTransactionThread(parentReportAction) || isSentMoneyReportAction(parentReportAction));
+    const isCreatedAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
+    const shouldDisplayParentAction = isCreatedAction && (!isTransactionThread(parentReportAction) || isSentMoneyReportAction(parentReportAction));
+
+    // Only the created row shows the parent action. Sending a message updates the parent's child counters,
+    // so passing it to every other row would re-render them all.
+    const parentReportActionForRow = isCreatedAction ? parentReportAction : undefined;
 
     if (shouldDisplayParentAction && isChatThread(report)) {
         return (
@@ -146,8 +150,8 @@ function ReportActionsListItemRenderer({
     return (
         <ReportActionItem
             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-            hasActionsAfterCreated={shouldDisplayReplyDivider}
-            parentReportAction={parentReportAction}
+            hasActionsAfterCreated={isCreatedAction && shouldDisplayReplyDivider}
+            parentReportAction={parentReportActionForRow}
             report={report}
             transactionThreadReport={transactionThreadReport}
             chatReport={chatReport}
@@ -169,3 +173,4 @@ function ReportActionsListItemRenderer({
 }
 
 export default ReportActionsListItemRenderer;
+export type {ReportActionsListItemRendererProps};

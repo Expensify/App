@@ -10,13 +10,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, ReactNode, RefObject} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 
 import {authTokenTypeSelector} from '@selectors/Session';
@@ -24,7 +25,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
-type ExpenseFieldRowProps = {
+type ExpenseFieldRowProps = WithRequiredSentryLabel & {
     /** Name of the field. Renders small above the value, or as the placeholder when there is no value */
     name: string;
 
@@ -67,6 +68,12 @@ type ExpenseFieldRowProps = {
     /** Measured to place the container a dropdown field opens. Sits on the bordered box, not the outer wrapper, so the container lines up with the border. */
     anchorRef?: RefObject<ComponentRef<typeof View> | null>;
 
+    /**
+     * Reports the bordered box's layout, not the outer wrapper's, so whatever anchors to the row lines up with its border.
+     * `EducationalTooltip` passes this to the child it wraps and only shows once it has been called.
+     */
+    onLayout?: (event: LayoutChangeEvent) => void;
+
     /** Whether the row's list is open. Reported to assistive technology. */
     isExpanded?: boolean;
 
@@ -89,7 +96,6 @@ type ExpenseFieldRowProps = {
      */
     backgroundStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 
-    sentryLabel?: string;
     testID?: string;
 };
 
@@ -128,6 +134,7 @@ function ExpenseFieldRow({
     hintText = '',
     onPress,
     anchorRef,
+    onLayout,
     isExpanded,
     isDisabled = false,
     isInteractive = true,
@@ -218,7 +225,7 @@ function ExpenseFieldRow({
                 // reads that as a non-interactive row and drops the button role and the focus stop with it.
                 // Otherwise the press is guarded like every other `MenuItem` preset, so an anonymous user gets
                 // the sign-in prompt rather than the field's selector.
-                onPress={isInteractive ? callFunctionIfActionIsAllowed(onPress, false, session) : undefined}
+                onPress={isInteractive ? callIfAuthenticated(onPress, session) : undefined}
                 isDisabled={isDisabled}
                 shouldAllowTextSelection={shouldShowCopy}
                 accessibilityLabel={accessibilityLabel}
@@ -234,7 +241,16 @@ function ExpenseFieldRow({
 
     return (
         <View style={[styles.mh5, styles.mv2]}>
-            {anchorRef ? <View ref={anchorRef}>{borderedBox}</View> : borderedBox}
+            {anchorRef || onLayout ? (
+                <View
+                    ref={anchorRef}
+                    onLayout={onLayout}
+                >
+                    {borderedBox}
+                </View>
+            ) : (
+                borderedBox
+            )}
             {messages}
         </View>
     );

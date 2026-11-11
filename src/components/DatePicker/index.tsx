@@ -59,6 +59,7 @@ function DatePicker({
     textInputContainerStyles,
     iconContainerStyle,
     shouldShowLabelTooltipWhenTruncated,
+    clearButtonSentryLabel = CONST.SENTRY_LABEL.DATE_PICKER.CLEAR_BUTTON,
 }: DateInputWithPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
@@ -258,6 +259,7 @@ function DatePicker({
                     textInputContainerStyles={[textInputContainerStyles, isModalVisible && styles.borderColorFocus]}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
+                    clearButtonSentryLabel={clearButtonSentryLabel}
                     clearButtonStyle={[styles.mh0, {paddingHorizontal: iconPaddingHorizontal}, iconContainerStyle]}
                     forwardedFSClass={forwardedFSClass}
                     autoComplete={autoComplete}

@@ -128,6 +128,7 @@ function DescriptionInputField({transaction, transactionThreadReport, errorText 
         return (
             <ExpenseFieldRow
                 name={translate('common.description')}
+                sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.DESCRIPTION_FIELD}
                 valueComponent={<MenuItem.FieldValueHTML>{renderedDescription}</MenuItem.FieldValueHTML>}
                 hasValueComponent
                 accessibilityLabel={`${translate('common.description')}, ${descriptionText}`}

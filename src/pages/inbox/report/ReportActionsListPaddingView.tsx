@@ -1,3 +1,5 @@
+import FSClassView from '@components/FSClassView';
+
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import FS from '@libs/Fullstory';
@@ -6,7 +8,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type ReportActionsListPaddingViewProps = ChildrenProps & {
     report: OnyxTypes.Report;
@@ -17,12 +18,12 @@ function ReportActionsListPaddingView({report, children}: ReportActionsListPaddi
     const reportActionsListFSClass = FS.getChatFSClass(report);
 
     return (
-        <View
+        <FSClassView
             style={styles.flex1}
-            fsClass={reportActionsListFSClass}
+            forwardedFSClass={reportActionsListFSClass}
         >
             {children}
-        </View>
+        </FSClassView>
     );
 }
 
