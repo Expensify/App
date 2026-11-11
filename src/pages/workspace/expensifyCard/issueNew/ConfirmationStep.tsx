@@ -187,27 +187,32 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.card.issueNewCard.letsDoubleCheck')}</Text>
                 <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate(cardReadyTranslationKey)}</Text>
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CONFIRM_CARDHOLDER}
                     name={translate('workspace.card.issueNewCard.cardholder')}
                     onPress={!issueNewCard?.isChangeAssigneeDisabled ? () => editStep(CONST.EXPENSIFY_CARD.STEP.ASSIGNEE) : undefined}
                     value={cardholder}
                 />
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CONFIRM_CARD_TYPE}
                     name={translate('workspace.card.issueNewCard.cardType')}
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.CARD_TYPE)}
                     value={data?.cardType ? translate(`workspace.card.issueNewCard.${data.cardType}Card`) : undefined}
                 />
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CONFIRM_LIMIT}
                     name={translate('workspace.card.issueNewCard.limit')}
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE)}
                     value={limitTitle}
                 />
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CONFIRM_LIMIT_TYPE}
                     name={translate('workspace.card.issueNewCard.limitType')}
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE)}
                     value={translationForLimitType ? translate(translationForLimitType) : undefined}
                 />
                 {!!expirationDateTitle && shouldShowExpirationDate && (
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CONFIRM_EXPIRATION_DATE}
                         name={translate('workspace.card.issueNewCard.expirationDate')}
                         onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.SPEND_RULES)}
                         value={expirationDateTitle}
@@ -215,18 +220,21 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
                 )}
                 {isSpendRuleApplied && areRulesEnabled && (
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CONFIRM_RESTRICTIONS}
                         name={translate('common.restrictions')}
                         onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.SPEND_RULES)}
                         value={cardRuleRestrictionsTitle}
                     />
                 )}
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CONFIRM_CARD_NAME}
                     name={translate('workspace.card.issueNewCard.cardName')}
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.CARD_NAME)}
                     value={data?.cardTitle}
                 />
                 <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd]}>
                     <FormAlertWithSubmitButton
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CONFIRM_SUBMIT}
                         buttonRef={submitButton}
                         message={errorMessage}
                         isAlertVisible={!!errorMessage}

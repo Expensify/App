@@ -134,6 +134,7 @@ function CertiniaAdvancedPage({policy}: WithPolicyConnectionsProps) {
             {isCertiniaFFAConnection(config) && canConfigureCurrencyConversionFees && (
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CERTINIA_CONFIG.FX_EXPENSE_ACCOUNT], config?.pendingFields)}>
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.FX_EXPENSE_ACCOUNT}
                         name={translate('workspace.certinia.fxExpenseAccount')}
                         value={selectedFxExpenseAccountName}
                         onPress={!policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_FX_EXPENSE_ACCOUNT.path))}

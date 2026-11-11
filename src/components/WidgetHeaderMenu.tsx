@@ -3,7 +3,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import type {SentryLabel} from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 
@@ -21,7 +21,7 @@ const SIZES = {
     [CONST.BUTTON_SIZE.MEDIUM]: {buttonSize: variables.componentSizeNormal, iconSize: variables.iconSizeSmall},
 } as const;
 
-type WidgetHeaderMenuProps = {
+type WidgetHeaderMenuProps = WithRequiredSentryLabel & {
     /** Items shown in the popover opened by the three-dots trigger */
     menuItems: PopoverMenuItem[];
 
@@ -29,7 +29,6 @@ type WidgetHeaderMenuProps = {
     size?: typeof CONST.BUTTON_SIZE.SMALL | typeof CONST.BUTTON_SIZE.MEDIUM;
 
     testID?: string;
-    sentryLabel?: SentryLabel;
 };
 
 /**

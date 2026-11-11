@@ -6,6 +6,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getGovernmentRateCountryOptions} from '@libs/PolicyDistanceRatesUtils';
 import type {Option} from '@libs/searchOptions';
 
+import CONST from '@src/CONST';
+
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -79,6 +81,7 @@ function GovernmentRateCountrySelector({headerTitle, initialSelectedCountry, isB
                             addBottomSafeAreaPadding
                             footerContent={
                                 <FormAlertWithSubmitButton
+                                    sentryLabel={CONST.SENTRY_LABEL.GOVERNMENT_RATE_COUNTRY_SELECTOR.SAVE_BUTTON}
                                     buttonText={translate('common.save')}
                                     onSubmit={saveCountry}
                                     isDisabled={!selectedCountry}
