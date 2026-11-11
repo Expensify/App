@@ -2074,14 +2074,16 @@ function getTransactionsSections({
                 formattedTo: shouldShowBlankTo ? '' : formattedTo,
                 formattedTotal,
                 formattedMerchant,
-                formattedViolations: shouldFormatViolations
-                    ? getViolationsForTransaction(
-                          Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {}),
-                          transactionItem.transactionID,
-                          violationHasValues,
-                          translate,
-                      )
-                    : undefined,
+                ...(shouldFormatViolations
+                    ? {
+                          formattedViolations: getViolationsForTransaction(
+                              Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {}),
+                              transactionItem.transactionID,
+                              violationHasValues,
+                              translate,
+                          ),
+                      }
+                    : {}),
                 date,
                 submitted,
                 approved,
