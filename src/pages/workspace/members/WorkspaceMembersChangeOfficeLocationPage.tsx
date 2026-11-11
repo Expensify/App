@@ -125,6 +125,7 @@ function WorkspaceMembersChangeOfficeLocationPage({policy, personalDetails, rout
                 </View>
                 <FixedFooter>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.CHANGE_OFFICE_LOCATION_CONFIRM}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         onPress={changeOfficeLocation}

@@ -30,6 +30,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import WorkspaceDistanceRateValueCell from './WorkspaceDistanceRateValueCell';
+import WorkspaceDistanceTaxReclaimableCell from './WorkspaceDistanceTaxReclaimableCell';
 
 type DistanceRateTableItemData = TableData & {
     rateID: string;
@@ -48,6 +49,8 @@ type DistanceRateTableItemData = TableData & {
     onRenameName: (newName: string) => void;
     canEditRate: boolean;
     onChangeRate: (newRate: string) => void;
+    canEditTaxReclaimable: boolean;
+    onChangeTaxReclaimable: (newAmount: string) => void;
 };
 
 type WorkspaceDistanceRatesTableRowProps = {
@@ -241,14 +244,14 @@ function WorkspaceDistanceRatesTableRow({
 
                     {!shouldUseNarrowTableLayout && shouldShowTaxReclaimableColumn && (
                         <View
-                            style={[styles.flex1]}
+                            style={[styles.flex1, styles.editableCellColumn]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
-                            <TextWithTooltip
-                                shouldShowTooltip
-                                numberOfLines={1}
-                                text={formattedTaxReclaimable}
-                                style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                            <WorkspaceDistanceTaxReclaimableCell
+                                rate={rate}
+                                displayText={formattedTaxReclaimable}
+                                canEdit={item.canEditTaxReclaimable && !item.disabled}
+                                onSave={item.onChangeTaxReclaimable}
                             />
                         </View>
                     )}

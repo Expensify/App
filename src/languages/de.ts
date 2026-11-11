@@ -2305,6 +2305,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'am letzten Sonntag des Monats',
             },
         },
+        autoExport: {
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL]: 'Dieser Bericht wird nach der endgültigen Genehmigung exportiert.',
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID]: 'Erstattungsfähige Ausgaben werden exportiert, sobald dieser Bericht bezahlt ist.',
+        },
     },
     profilePage: {
         profile: 'Profil',
@@ -3313,6 +3317,7 @@ ${amount} für ${merchant} – ${date}`,
         disablePaymentsPrompt: 'Dadurch werden alle Ihre Zahlungseinstellungen entfernt.',
         businessBankAccountCountries: 'Länder für Geschäftskonten',
         businessBankAccountCountriesDescription: 'Mitarbeitende in diesen Ländern geben lokale Überweisungsdaten an. Alle anderen geben internationale Überweisungsdaten an.',
+        businessBankAccountCountriesError: 'Die Aktualisierung deiner Erstattungsländer ist fehlgeschlagen. Bitte versuche es erneut.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Für diesen Workspace ist ein benutzerdefinierter Genehmigungsworkflow aktiviert. Um diesen Workflow zu überprüfen oder zu ändern, wende dich bitte an deine:n <account-manager-link>Account Manager</account-manager-link> oder an <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -5431,6 +5436,12 @@ ${amount} für ${merchant} – ${date}`,
             readOnlyActionPrompt: 'Ihre Arbeitsbereichsrolle kann diese Einstellungen anzeigen, aber nicht bearbeiten.',
             noAccessActionPrompt: 'Ihre Arbeitsbereichsrolle hat keinen Zugriff auf diese Einstellungen. Bitten Sie eine/n Admin, falls Sie Zugriff benötigen.',
             connections: 'Verknüpfungen',
+            newRoles: 'Neue Rollen',
+            adminRoles: 'Adminrollen',
+            otherRoles: 'Andere Rollen',
+            roleSelectorDescription: `Weisen Sie eine Rolle zu, um die Workspace-Berechtigungen eines Mitglieds zu verwalten. <a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">Workspace-Rollen vergleichen</a>.`,
+            roleSelectorFeedback: 'Sie sehen die benötigte Rolle nicht?',
+            roleSelectorFeedbackLink: 'Lassen Sie es uns wissen',
         },
         createdForClient: {
             title: 'Du hast einen Workspace für deinen Kunden erstellt!',
@@ -6803,7 +6814,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                         'Wir verfügen über globale Integrationen mit Mastercard, allerdings variiert die Berechtigung je nach Bank und Kartenprogramm.\n\nUm loszulegen, müssen Sie nur Folgendes tun:',
                     vcf: `1. Lies dir [diesen Hilfeartikel](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) durch, um detaillierte Anweisungen zum Einrichten deiner Visa Commercial Cards zu erhalten.
 
-2. [Kontaktiere deine Bank](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}), um zu bestätigen, dass sie einen Commercial Feed für dein Programm unterstützt, und bitte sie, diesen zu aktivieren.
+2. Kontaktiere deine Bank, um zu bestätigen, dass sie einen Commercial Feed für dein Programm unterstützt, und bitte sie, diesen zu aktivieren.
 
 3. *Sobald der Feed aktiviert ist und du die Details dazu hast, fahre mit dem nächsten Bildschirm fort.*`,
                     gl1025: `1. Lies dir [diesen Hilfeartikel](${CONST.COMPANY_CARDS_AMEX_COMMERCIAL_CARD_HELP}) durch, um herauszufinden, ob American Express für dein Programm einen Commercial-Feed aktivieren kann.
@@ -6813,7 +6824,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
 3. *Sobald du die Feed-Informationen hast, fahre mit dem nächsten Bildschirm fort.*`,
                     cdf: `1. Lies dir [diesen Hilfeartikel](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) für eine ausführliche Anleitung zur Einrichtung deiner Mastercard Commercial Cards durch.
 
-2. [Kontaktiere deine Bank](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}), um zu bestätigen, dass sie einen Commercial-Feed für dein Programm unterstützt, und bitte sie, diesen zu aktivieren.
+2. Kontaktiere deine Bank, um zu bestätigen, dass sie einen Commercial-Feed für dein Programm unterstützt, und bitte sie, diesen zu aktivieren.
 
 3. *Sobald der Feed aktiviert ist und du seine Details hast, fahre mit dem nächsten Bildschirm fort.*`,
                     stripe: `1. Rufen Sie das Stripe-Dashboard auf und gehen Sie zu [Einstellungen](${CONST.COMPANY_CARDS_STRIPE_HELP}).
@@ -7834,6 +7845,11 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             changeOfficeLocation: 'Bürostandort ändern',
             changeWorkArrangement: 'Arbeitsvereinbarung ändern',
             changeRole: 'Rolle ändern',
+            newRolesBanner: {
+                title: 'Neue Rollen verfügbar',
+                subtitle:
+                    '<label-text>Geben Sie Mitgliedern genau den Zugriff, den sie benötigen – mit den neuen Rollen <strong>Nur genehmigen</strong> und <strong>Gast</strong>.</label-text>',
+            },
         },
         card: {
             getStartedIssuing: 'Beginne, indem du deine erste virtuelle oder physische Karte ausstellst.',
@@ -9282,6 +9298,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 describeRuleForConcierge: 'Beschreiben Sie Ihre Regel und Concierge erstellt sie',
                 gotIt: 'Verstanden',
                 createRule: 'Regel erstellen',
+                saveAnyway: 'Trotzdem speichern',
+                checkingRule: 'Ihre Regel wird geprüft...',
                 fallbackBanner:
                     'Dies ist keine Standardregel, daher haben wir eine Agentenregel erstellt. Agentenregeln werden ausgeführt, wenn eine Ausgabe oder ein Bericht erstellt oder aktualisiert wird.',
                 fallbackBannerWithExplanation: (explanation: string) =>
@@ -9750,6 +9768,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         digits: {
             updateCurrencyTitle: 'Arbeitsbereichswährung aktualisieren?',
             updateCurrencyPrompt: 'Digits ist derzeit nur für Unternehmen mit Sitz in den USA verfügbar, die in USD arbeiten.',
+            importDescription: 'Wählen Sie, welche Digits-Konfigurationen importiert werden sollen.',
+            accountTypesDescription: 'Ihre Digits-Konten werden als Kategorien importiert.',
+            enableNewAccountsTitle: 'Neu importierte Konten aktivieren',
+            enableNewAccountsDescription: 'Neue Digits-Konten werden als Kategorien verfügbar sein.',
+            dimensionsImport: 'Alle Digits-Dimensionen werden als Tags importiert.',
+            departments: 'Abteilungen',
         },
         zohoBooks: {
             organization: 'Zoho Books-Organisation',
@@ -10853,6 +10877,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         columns: 'Spalten',
         editColumns: 'Spalten bearbeiten',
         resetColumns: 'Spalten zurücksetzen',
+        columnMenu: {
+            openMenu: ({columnName}: {columnName: string}) => `Spaltenoptionen für ${columnName}`,
+            sortAscending: 'Aufsteigend sortieren',
+            sortDescending: 'Absteigend sortieren',
+            hideColumn: 'Spalte ausblenden',
+        },
         groupColumns: 'Spalten gruppieren',
         expenseColumns: 'Spalten für Ausgaben',
         saveView: 'Ansicht speichern',
@@ -12871,6 +12901,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         deletingTitle: 'Berichte werden gelöscht …',
         deletingExpensesTitle: 'Ausgaben werden gelöscht …',
         runningBody: 'Warten Sie ein paar Minuten, oder Concierge kann Sie benachrichtigen, wenn es fertig ist.',
+        changingWorkspaceTitle: 'Berichte werden verschoben …',
         sendFromConcierge: 'Mir eine Nachricht senden, wenn es fertig ist',
         conciergeTitle: 'Auf jeden Fall!',
         conciergeBody: 'Concierge wird Ihnen eine Nachricht senden, sobald es fertig ist.',
@@ -12906,6 +12937,10 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Ausgaben in ${doneCount} von ${count} Bericht gelöscht`,
             other: `Ausgaben in ${doneCount} von ${count} Berichten gelöscht`,
+        }),
+        changedWorkspaceTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Arbeitsbereich in ${doneCount} von ${count} Bericht geändert`,
+            other: `Arbeitsbereich in ${doneCount} von ${count} Berichten geändert`,
         }),
         noReportsTitle: 'Keine übereinstimmenden Berichte',
         noReportsBody: 'Keiner der von Ihnen ausgewählten Berichte benötigte diese Aktion.',
@@ -12943,6 +12978,10 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         expensesNotDeletedBody: ({count}: {count: number}) => ({
             one: 'Ausgaben in 1 Bericht konnten nicht gelöscht werden.',
             other: `Ausgaben in ${count} Berichten konnten nicht gelöscht werden.`,
+        }),
+        notMovedBody: ({count}: {count: number}) => ({
+            one: '1 Bericht konnte nicht verschoben werden.',
+            other: `${count} Berichte konnten nicht verschoben werden.`,
         }),
     },
     earlyRenewal: {
