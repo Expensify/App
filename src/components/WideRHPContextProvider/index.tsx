@@ -19,7 +19,7 @@ import type {RHPWidth, RHPWidthHint, WideRHPActionsContextType, WideRHPStateCont
 
 import {defaultWideRHPActionsContextValue, defaultWideRHPStateContextValue} from './default';
 import getIsRHPDisplayedBelow from './getIsRHPDisplayedBelow';
-import getVisibleRHPKeys from './getVisibleRHPRouteKeys';
+import getVisibleRHPKeys, {emptyRHPKeysState} from './getVisibleRHPRouteKeys';
 import {markPendingRHPWidth} from './pendingRHPWidths';
 import useShouldRenderOverlay from './useShouldRenderOverlay';
 
@@ -137,6 +137,9 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     // In state because the derivation reads it during render, so it must get a new identity when it changes.
     const [seenRHPRouteKeys, setSeenRHPRouteKeys] = useState<ReadonlyMap<string, string>>(() => new Map());
 
+    // Held in state to keep the arrays' identity while their contents are unchanged, so consumers don't re-render on every navigation event.
+    const [publishedKeys, setPublishedKeys] = useState(emptyRHPKeysState);
+
     const {focusedRoute, focusedNavigator, rootNavigationState} = useRootNavigationState((state) => {
         if (!state) {
             return {focusedRoute: undefined, focusedNavigator: undefined, rootNavigationState: undefined};
@@ -152,9 +155,6 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const allWideRHPRouteKeys = rhpWidthRegistrations.filter((registration) => registration.width === 'wide').map((registration) => registration.key);
     const allSuperWideRHPRouteKeys = rhpWidthRegistrations.filter((registration) => registration.width === 'super-wide').map((registration) => registration.key);
     const derivedKeys = getVisibleRHPKeys(rootNavigationState, allWideRHPRouteKeys, allSuperWideRHPRouteKeys, seenRHPRouteKeys);
-
-    // Held in state to keep the arrays' identity while their contents are unchanged, so consumers don't re-render on every navigation event.
-    const [publishedKeys, setPublishedKeys] = useState(derivedKeys);
     const hasSameKeys =
         arraysEqual(publishedKeys.widthWideRHPRouteKeys, derivedKeys.widthWideRHPRouteKeys) &&
         arraysEqual(publishedKeys.widthSuperWideRHPRouteKeys, derivedKeys.widthSuperWideRHPRouteKeys) &&

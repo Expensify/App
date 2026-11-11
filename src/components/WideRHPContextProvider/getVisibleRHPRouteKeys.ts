@@ -87,3 +87,4 @@ function getVisibleRHPKeys(state: NavigationState | undefined, allWideRHPKeys: s
 }
 
 export default getVisibleRHPKeys;
+export {emptyRHPKeysState};
