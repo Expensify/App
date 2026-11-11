@@ -968,6 +968,9 @@ const ONYXKEYS = {
     /** Width the user dragged the single RHP to. Per device, since the ideal width depends on window size. */
     SINGLE_RHP_WIDTH: 'singleRHPWidth',
 
+    /** Width the user dragged the Concierge side panel to. Per device, since the ideal width depends on window size. */
+    SIDE_PANEL_WIDTH: 'sidePanelWidth',
+
     /** Partial transaction data used for MFA authorize transaction preview */
     TRANSACTIONS_PENDING_3DS_REVIEW: 'transactionsPending3DSReview',
 
@@ -1093,6 +1096,12 @@ const ONYXKEYS = {
 
         /** This is deprecated, but needed for a migration, so we still need to include it here so that it will be initialized in Onyx.init */
         DEPRECATED_POLICY_MEMBER_LIST: 'policyMemberList_',
+
+        /**
+         * Auth's verdict on an expense's edits, keyed by expense then by field. A field reads true once the same value
+         * has been given to the same merchant often enough for a merchant rule to be worth offering.
+         */
+        SUGGEST_NEW_RULE_CREATION: 'suggestNewRuleCreation_',
 
         // Search Page related
         SNAPSHOT: 'snapshot_',
@@ -1747,6 +1756,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.DOMAIN_ERRORS]: OnyxTypes.DomainErrors;
     [ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS]: OnyxTypes.DomainHighlightItems;
     [ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION]: OnyxTypes.CodingRuleMatchingTransaction;
+    [ONYXKEYS.COLLECTION.SUGGEST_NEW_RULE_CREATION]: OnyxTypes.MerchantRuleSuggestionConfirmation;
     [ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS]: OnyxTypes.LocalPasskeyCredentialsEntry;
     [ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS]: OnyxTypes.DeviceBiometrics;
 };
@@ -2077,6 +2087,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS]: string[];
     [ONYXKEYS.TABLE_COLUMN_WIDTHS]: OnyxTypes.TableColumnWidths;
     [ONYXKEYS.SINGLE_RHP_WIDTH]: number;
+    [ONYXKEYS.SIDE_PANEL_WIDTH]: number;
     [ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT]: boolean | undefined;
     [ONYXKEYS.PERSONAL_POLICY_ID]: string;
     [ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS]: Record<string, SearchDataTypes>;

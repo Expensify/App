@@ -2,6 +2,10 @@
 let hadTabNavigation = false;
 let teardown: (() => void) | null = null;
 
+function markHadTabNavigation(): void {
+    hadTabNavigation = true;
+}
+
 function setup(): void {
     if (teardown || typeof document === 'undefined') {
         return;
@@ -13,7 +17,7 @@ function setup(): void {
             return;
         }
         if (e.key === 'Tab') {
-            hadTabNavigation = true;
+            markHadTabNavigation();
             return;
         }
         // Cmd/Ctrl/Alt shortcuts preserve modality; AltGraph is excluded because it produces printable chars on international layouts.
@@ -63,4 +67,4 @@ function resetForTests(): void {
 }
 
 export default getHadTabNavigation;
-export {teardownHadTabNavigation, resetForTests, setup as setupHadTabNavigation};
+export {markHadTabNavigation, teardownHadTabNavigation, resetForTests, setup as setupHadTabNavigation};

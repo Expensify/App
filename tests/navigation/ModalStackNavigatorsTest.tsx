@@ -145,7 +145,7 @@ describe('modal screen registrations', () => {
             SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS,
             SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP,
         ]);
-        expect(mockScreenRegistrations).toHaveLength(15);
+        expect(mockScreenRegistrations).toHaveLength(16);
         expect(mockScreenRegistrations.every(({isLazyLoaderDefined}) => isLazyLoaderDefined)).toBe(true);
         const holdScreen = mockScreenRegistrations.at(0);
         const defaultScreen = mockScreenRegistrations.find(({name}) => name === SCREENS.SEARCH.CHANGE_APPROVER.ROOT);
