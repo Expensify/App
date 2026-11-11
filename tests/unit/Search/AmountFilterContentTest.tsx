@@ -5,9 +5,12 @@ import AmountFilterContent from '@components/Search/FilterComponents/AdvancedFil
 import AmountFilterInput from '@components/Search/FilterComponents/AmountFilterInput';
 import AmountPopup from '@components/Search/FilterDropdowns/AmountPopup';
 import BasePopup from '@components/Search/FilterDropdowns/BasePopup';
+import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 
 import useAmountFilterCurrency from '@hooks/useAmountFilterCurrency';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+
+import type * as CurrencyUtils from '@libs/CurrencyUtils';
 
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
 
@@ -26,11 +29,18 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => () => ({didScreenTran
 jest.mock('@hooks/useShouldFooterBeInsideList', () => () => false);
 jest.mock('@hooks/useDefaultExpensePolicy', () => jest.fn(() => undefined));
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key, preferredLocale: 'en'}));
-jest.mock('@hooks/useCurrencyList', () => ({
-    useCurrencyListActions: () => ({
-        getCurrencyDecimals: (currency: string) => (currency === 'JPY' || currency === 'VND' ? 0 : 2),
-    }),
-}));
+jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: false}));
+jest.mock('@hooks/useCurrencyList', () => {
+    const {convertToDisplayStringWithoutCurrencyForLocale} = jest.requireActual<typeof CurrencyUtils>('@libs/CurrencyUtils');
+    const getCurrencyDecimals = (currency?: string) => (currency === 'JPY' || currency === 'VND' ? 0 : 2);
+
+    return {
+        useCurrencyListActions: () => ({
+            getCurrencyDecimals,
+            convertToDisplayStringWithoutCurrency: (amount: number, currency?: string) => convertToDisplayStringWithoutCurrencyForLocale('en', amount, currency, getCurrencyDecimals),
+        }),
+    };
+});
 
 beforeEach(() => {
     jest.clearAllMocks();
@@ -38,6 +48,27 @@ beforeEach(() => {
 });
 
 describe('AmountFilterContent currency selection', () => {
+    it('stacks Between inputs vertically on desktop', () => {
+        // Given a saved range rendered with desktop layout and real theme styles.
+        render(
+            <ThemeStylesProvider>
+                <AmountFilterContent
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                    baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
+                    value={{EqualTo: undefined, GreaterThan: '10.00 USD', LessThan: '20.00 GBP'}}
+                    onChange={jest.fn()}
+                />
+            </ThemeStylesProvider>,
+        );
+
+        // When both range inputs are displayed.
+        const [lowerBound, upperBound] = screen.UNSAFE_getAllByType(AmountFilterInput);
+
+        // Then they share a vertical container rather than splitting its width.
+        expect(lowerBound?.parent).toBe(upperBound?.parent);
+        expect(lowerBound?.parent).toHaveStyle({flexDirection: 'column'});
+    });
+
     it.each([
         {currency: 'JPY', decimals: 0},
         {currency: 'VND', decimals: 0},
@@ -68,6 +99,7 @@ describe('AmountFilterContent currency selection', () => {
         // Given a saved USD amount that allows fractional input.
         render(
             <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT}
                 value={{EqualTo: '12.34 USD', GreaterThan: undefined, LessThan: undefined}}
                 onChange={jest.fn()}
@@ -86,6 +118,39 @@ describe('AmountFilterContent currency selection', () => {
 
         // Then two-decimal precision becomes available again.
         expect(jest.mocked(NumberWithSymbolForm).mock.lastCall?.[0]).toMatchObject({currency: '', decimals: 2});
+    });
+
+    it.each([
+        {baseFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, label: 'Greater than ', amount: ''},
+        {baseFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, label: 'Less than ', amount: '12.00'},
+        {baseFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT, label: 'Greater than ', amount: ''},
+        {baseFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT, label: 'Less than ', amount: '12.00'},
+    ])('keeps $baseFilterKey input and button names in sync with currency for $label', ({baseFilterKey, label, amount}) => {
+        // Given a range label whose translation leaves space for an optional amount
+        const renderInput = (currency?: string) => (
+            <AmountFilterInput
+                baseFilterKey={baseFilterKey}
+                amount={amount}
+                currency={currency}
+                label={label}
+                onAmountChange={jest.fn()}
+                onCurrencyChange={jest.fn()}
+            />
+        );
+        const {rerender} = render(renderInput('USD'));
+
+        // When currency is selected, removed, or restored without remounting the input
+        for (const currency of ['USD', '', undefined, 'AED']) {
+            rerender(renderInput(currency));
+
+            // Then each independently focused control includes currency context without changing the amount
+            const currencyName = currency || 'common.anyCurrency';
+            expect(jest.mocked(NumberWithSymbolForm).mock.lastCall?.[0]).toMatchObject({
+                accessibilityLabel: `${label.trim()}, ${currencyName}`,
+                currencyButtonAccessibilityLabel: `${label.trim()}, common.selectCurrency, ${currencyName}`,
+                value: amount,
+            });
+        }
     });
 
     it.each(['Greater than ', 'Less than '])('trims the %s label in the currency button name', (label) => {
@@ -114,6 +179,7 @@ describe('AmountFilterContent currency selection', () => {
         const onChange = jest.fn();
         render(
             <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 baseFilterKey={baseFilterKey}
                 value={{EqualTo: '1200', GreaterThan: undefined, LessThan: undefined}}
                 onChange={onChange}
@@ -146,6 +212,7 @@ describe('AmountFilterContent currency selection', () => {
         const onChange = jest.fn();
         render(
             <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 baseFilterKey={baseFilterKey}
                 value={{EqualTo: undefined, GreaterThan: undefined, LessThan: undefined}}
                 onChange={onChange}
@@ -171,6 +238,7 @@ describe('AmountFilterContent currency selection', () => {
         const onChange = jest.fn();
         render(
             <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
                 value={{EqualTo: '1200', GreaterThan: undefined, LessThan: undefined}}
                 onChange={onChange}
@@ -190,6 +258,7 @@ describe('AmountFilterContent currency selection', () => {
         const onChange = jest.fn();
         render(
             <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 baseFilterKey={baseFilterKey}
                 value={{EqualTo: '0.10 USD', GreaterThan: undefined, LessThan: undefined}}
                 onChange={onChange}
@@ -217,6 +286,7 @@ describe('AmountFilterContent currency selection', () => {
         const onChange = jest.fn();
         render(
             <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
                 value={{EqualTo: '12.00 USD', GreaterThan: undefined, LessThan: undefined}}
                 onChange={onChange}
@@ -239,6 +309,7 @@ describe('AmountFilterContent currency selection', () => {
         const onChange = jest.fn();
         render(
             <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT}
                 value={{EqualTo: undefined, GreaterThan: undefined, LessThan: undefined}}
                 onChange={onChange}
@@ -266,6 +337,7 @@ describe('AmountFilterContent currency selection', () => {
         const onChange = jest.fn();
         render(
             <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT}
                 value={{EqualTo: undefined, GreaterThan: '10.00 JPY', LessThan: '20.00 GBP'}}
                 onChange={onChange}
@@ -288,6 +360,7 @@ describe('AmountFilterContent currency selection', () => {
         const onChange = jest.fn();
         render(
             <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
                 value={{EqualTo: undefined, GreaterThan: '0.10 USD', LessThan: '20.00 GBP'}}
                 onChange={onChange}
@@ -311,6 +384,7 @@ describe('AmountFilterContent currency selection', () => {
         // When its existing editor is rendered.
         render(
             <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL}
                 value={{EqualTo: '1200', GreaterThan: undefined, LessThan: undefined}}
                 onChange={onChange}

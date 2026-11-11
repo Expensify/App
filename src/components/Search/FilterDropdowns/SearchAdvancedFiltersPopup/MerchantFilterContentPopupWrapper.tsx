@@ -3,6 +3,8 @@ import type {MerchantFilterContentWrapperProps} from '@components/Search/FilterC
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
+
 import React from 'react';
 
 function MerchantFilterContentPopupWrapper({baseFilterKey, value, isNegated, merchantOperator, buttonText, onChange}: MerchantFilterContentWrapperProps) {
@@ -10,6 +12,7 @@ function MerchantFilterContentPopupWrapper({baseFilterKey, value, isNegated, mer
 
     return (
         <MerchantFilterContent
+            sentryLabel={FILTER_VIEW_MAP[baseFilterKey].applySentryLabel}
             baseFilterKey={baseFilterKey}
             value={value}
             isNegated={isNegated}

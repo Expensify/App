@@ -45,7 +45,7 @@ describe('SearchAmountFilterUtils', () => {
         const label = getAmountFilterDisplayValue('11.99 GBP', formatAmount);
 
         // Then the amount is localized once and the comparison currency stays visible.
-        expect(formatAmount).toHaveBeenCalledWith(1199);
+        expect(formatAmount).toHaveBeenCalledWith(1199, 'GBP');
         expect(label).toBe('11,99 GBP');
     });
 

@@ -1,4 +1,5 @@
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
+import FSClassView from '@components/FSClassView';
 import {usePopoverActions} from '@components/PopoverProvider';
 import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
 
@@ -32,6 +33,7 @@ function PopoverWithoutOverlay({
     children,
     shouldDisplayBelowModals = false,
     enableEdgeToEdgeBottomSafeAreaPadding,
+    forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK,
 }: PopoverWithoutOverlayProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -103,15 +105,16 @@ function PopoverWithoutOverlay({
                 onClick={(e) => e.stopPropagation()}
                 dataSet={{dragArea: false}}
             >
-                <View
+                <FSClassView
                     style={{
                         ...styles.defaultModalContainer,
                         ...modalContainerStyle,
                         ...modalPaddingStyles,
                     }}
+                    forwardedFSClass={forwardedFSClass}
                 >
                     <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
-                </View>
+                </FSClassView>
             </View>
         </ScreenWrapperOfflineIndicatorContext.Provider>
     );

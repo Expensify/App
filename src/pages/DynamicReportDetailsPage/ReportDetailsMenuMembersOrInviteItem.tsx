@@ -24,7 +24,7 @@ import {
     isUserCreatedPolicyRoom as isUserCreatedPolicyRoomUtil,
 } from '@libs/ReportUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -91,17 +91,14 @@ function ReportDetailsMenuMembersOrInviteItem({reportID}: ReportDetailsMenuMembe
     ) {
         return (
             <MenuItem.Root
-                onPress={callFunctionIfActionIsAllowed(
-                    () => {
-                        if (shouldOpenRoomMembersPage) {
-                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_MEMBERS.path));
-                        } else {
-                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS.path));
-                        }
-                    },
-                    false,
-                    session,
-                )}
+                sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.MEMBERS}
+                onPress={callIfAuthenticated(() => {
+                    if (shouldOpenRoomMembersPage) {
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_MEMBERS.path));
+                    } else {
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS.path));
+                    }
+                }, session)}
                 accessibilityLabel={translate('common.members')}
             >
                 <MenuItem.Row>
@@ -123,6 +120,7 @@ function ReportDetailsMenuMembersOrInviteItem({reportID}: ReportDetailsMenuMembe
     if (!isGuestAnnounceRoom && ((isUserCreatedPolicyRoom && (!participants.length || !isPolicyEmployee)) || ((isDefaultRoom || isPolicyExpenseChat) && isChatThread && !isPolicyEmployee))) {
         return (
             <MenuItemNavigation
+                sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.INVITE}
                 title={translate('common.invite')}
                 icon={expensifyIcons.Users}
                 onPress={() => {
