@@ -15,7 +15,7 @@ import {
 } from '@libs/ReportUtils';
 
 import {hasErrorInPrivateNotes} from '@userActions/Report';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -49,7 +49,7 @@ function ReportDetailsMenuPrivateNotesItem({reportID}: ReportDetailsMenuPrivateN
     return (
         <MenuItem.Root
             sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.PRIVATE_NOTES}
-            onPress={callFunctionIfActionIsAllowed(() => navigateToPrivateNotes(report, currentUserAccountID), false, session)}
+            onPress={callIfAuthenticated(() => navigateToPrivateNotes(report, currentUserAccountID), session)}
             accessibilityLabel={translate('privateNotes.title')}
         >
             <MenuItem.Row>

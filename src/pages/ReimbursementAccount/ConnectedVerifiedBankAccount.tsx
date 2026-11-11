@@ -116,6 +116,7 @@ function ConnectedVerifiedBankAccount({reimbursementAccount, onBackButtonPress, 
                         <View style={styles.mhn5}>
                             {shouldShowChangeBankAccount && (
                                 <MenuItemNavigation
+                                    sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.CONNECTED_CHANGE_BANK_ACCOUNT}
                                     title={translate('workspace.bankAccount.changeBankAccount')}
                                     icon={icons.Bank}
                                     onPress={handleChangeBankAccount}
@@ -123,6 +124,7 @@ function ConnectedVerifiedBankAccount({reimbursementAccount, onBackButtonPress, 
                                 />
                             )}
                             <MenuItemAction
+                                sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.CONNECTED_DISCONNECT_BANK_ACCOUNT}
                                 title={translate('workspace.bankAccount.disconnectBankAccount')}
                                 icon={icons.Close}
                                 onPress={requestResetBankAccount}

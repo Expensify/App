@@ -3721,8 +3721,9 @@ type ACHAccount = {
     sharees?: string[];
 };
 
-/** Withdrawal account the company reimburses from in one country */
-type ReimbursementCountryAccount = {
+/** Reimbursement info for a specific country in a policy */
+type ReimbursementCountryInfo = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** ID of the withdrawal account the policy reimburses from in this country, when one is connected */
     bankAccountID?: number;
 
     /** One of `CONST.BANK_ACCOUNT.STATE` */
@@ -3734,7 +3735,7 @@ type ReimbursementCountryAccount = {
             corpay?: Record<string, unknown>;
         };
     };
-};
+}>;
 
 /** Commuter exclusion configuration for a policy */
 type CommuterExclusions = OnyxCommon.OnyxValueWithOfflineFeedback<{
@@ -4119,7 +4120,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             enabled?: boolean;
 
             /** Countries (keyed by ISO code) where the company has a withdrawal account it can reimburse from */
-            countries?: Record<string, unknown>;
+            countries?: Record<string, ReimbursementCountryInfo>;
         };
 
         /** The set reimburser for the policy */
@@ -4441,6 +4442,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
     | 'isRecruitingEnabled'
     | 'isTimeTrackingEnabled'
     | 'timeTrackingDefaultRate'
+    | 'reimbursementCountries'
 >;
 
 /** Stages of policy connection sync */
@@ -4524,7 +4526,6 @@ export type {
     FinancialForceFFAExportStatus,
     FinancialForceReportExportStatus,
     ACHAccount,
-    ReimbursementCountryAccount,
     ApprovalRule,
     ExpenseRule,
     CodingRule,

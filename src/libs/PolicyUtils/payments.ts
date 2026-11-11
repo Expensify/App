@@ -5,8 +5,7 @@
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
-import type {OnyxInputOrEntry, Policy} from '@src/types/onyx';
-import type {ReimbursementCountryAccount} from '@src/types/onyx/Policy';
+import type {BankAccountList, OnyxInputOrEntry, Policy} from '@src/types/onyx';
 
 import type {NullishDeep, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -138,26 +137,60 @@ function shouldLoadPayViaABAData(policy: OnyxInputOrEntry<Policy>, isPayViaABABe
 }
 
 /**
- * Gets the workspace's AU withdrawal account if it has one.
- */
-function getAUWithdrawalAccount(policy: OnyxInputOrEntry<Policy>): ReimbursementCountryAccount | undefined {
-    const account = policy?.reimbursement?.countries?.[CONST.COUNTRY.AU];
-    if (typeof account !== 'object' || account === null || Array.isArray(account)) {
-        return undefined;
-    }
-    return account;
-}
-
-/**
  * Whether the current user can pay the workspace's reports via ABA
  */
 function canPayViaABA(policy: OnyxInputOrEntry<Policy>, isPayViaABABetaEnabled: boolean): boolean {
-    const withdrawalAccount = getAUWithdrawalAccount(policy);
+    const withdrawalAccount = policy?.reimbursement?.countries?.[CONST.COUNTRY.AU];
 
     // Accounts set up through Corpay don't have the bank user ID and company name that the ABA file needs
     const isCorpayAccount = !!withdrawalAccount?.additionalData?.verifications?.corpay;
 
     return shouldLoadPayViaABAData(policy, isPayViaABABetaEnabled) && withdrawalAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN && !isCorpayAccount;
+}
+
+/** Get the ISO codes of the workspace's reimbursement countries, leaving out countries waiting to be deleted */
+function getReimbursementCountryISOs(countries: NonNullable<Policy['reimbursement']>['countries']): string[] {
+    return Object.entries(countries ?? {})
+        .filter(([, country]) => country?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+        .map(([countryISO]) => countryISO);
+}
+
+/**
+ * Get the country of the workspace's bank account from the user's bank account list. Returns undefined when the list
+ * doesn't have the account, because only its owner has it there.
+ */
+function getPolicyBankAccountCountry(policy: OnyxEntry<Policy>, bankAccountList: OnyxEntry<BankAccountList>): string | undefined {
+    const achBankAccountID = policy?.achAccount?.bankAccountID;
+    const achBankAccount = achBankAccountID ? bankAccountList?.[achBankAccountID] : undefined;
+    if (!achBankAccount) {
+        return undefined;
+    }
+
+    // Some accounts only have the top-level bankCountry, and legacy US accounts can omit the country entirely
+    return achBankAccount.accountData?.additionalData?.country ?? achBankAccount.bankCountry ?? CONST.COUNTRY.US;
+}
+
+/**
+ * Get the countries the workspace has a withdrawal account in. The server never removes these from the workspace's
+ * reimbursement countries, so they can't be deselected.
+ *
+ * @param policyBankAccountCountry - the country of the workspace's bank account, from `getPolicyBankAccountCountry`
+ */
+function getReimbursementAccountCountries(policy: OnyxEntry<Policy>, policyBankAccountCountry: string | undefined): string[] {
+    const countries = Object.entries(policy?.reimbursement?.countries ?? {})
+        .filter(([, country]) => !!country?.bankAccountID)
+        .map(([countryISO]) => countryISO);
+
+    if (!policy?.achAccount?.bankAccountID) {
+        return countries;
+    }
+
+    // An admin who doesn't own the bank account can't read its country, but a USD workspace's account is always in the US
+    const achAccountCountry = policyBankAccountCountry ?? (policy.outputCurrency === CONST.CURRENCY.USD ? CONST.COUNTRY.US : undefined);
+    if (!achAccountCountry || countries.includes(achAccountCountry)) {
+        return countries;
+    }
+    return [...countries, achAccountCountry];
 }
 
 export {
@@ -172,4 +205,7 @@ export {
     getReimburserAccountID,
     shouldLoadPayViaABAData,
     canPayViaABA,
+    getReimbursementCountryISOs,
+    getPolicyBankAccountCountry,
+    getReimbursementAccountCountries,
 };

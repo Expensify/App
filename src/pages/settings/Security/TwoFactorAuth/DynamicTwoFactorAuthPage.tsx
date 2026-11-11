@@ -201,6 +201,7 @@ function DynamicTwoFactorAuthPage() {
                     )}
                     {!!recoveryCodes && (
                         <Button
+                            sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.DOWNLOAD_CODES}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             size={CONST.BUTTON_SIZE.LARGE}
                             isDisabled={!isUserValidated}

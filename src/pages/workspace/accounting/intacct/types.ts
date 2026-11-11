@@ -5,7 +5,7 @@ import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/Toggl
 
 import type {SharedValue} from 'react-native-reanimated';
 
-type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide'> & {subscribedSettings?: string[]};
+type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide' | 'sentryLabel'> & {subscribedSettings?: string[]};
 
 type ToggleItemWithKey = ToggleItem & {key: string};
 

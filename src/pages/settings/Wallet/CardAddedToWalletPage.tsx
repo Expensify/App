@@ -15,6 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
+import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -77,6 +78,7 @@ function CardAddedToWalletPage({
                 </ConfirmationPage.Content>
                 <FixedFooter>
                     <ConfirmationPage.PrimaryButton
+                        sentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.CARD_ADDED_TO_WALLET_CONTINUE}
                         text={translate('cardPage.cardAddedToWalletPage.buttonText')}
                         onPress={goToCardDetails}
                     />

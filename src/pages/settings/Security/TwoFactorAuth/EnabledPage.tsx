@@ -62,11 +62,13 @@ function EnabledPage() {
                     </View>
                 </Section>
                 <MenuItemAction
+                    sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.REPLACE_DEVICE}
                     title={translate('twoFactorAuth.replaceDevice')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_2FA_REPLACE_VERIFY_OLD)}
                     icon={icons.Sync}
                 />
                 <MenuItem
+                    sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.DISABLE}
                     title={translate('twoFactorAuth.disableTwoFactorAuth')}
                     onPress={() => {
                         if (hasAdminPolicyWithXeroConnection) {
