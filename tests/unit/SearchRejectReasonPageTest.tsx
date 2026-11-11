@@ -1,7 +1,7 @@
 import {render} from '@testing-library/react-native';
 
 import type * as OnyxListItemProvider from '@components/OnyxListItemProvider';
-import type {SearchQueryJSON} from '@components/Search/types';
+import type {SearchQueryJSON, SelectedTransactionInfo} from '@components/Search/types';
 
 import {queueBulkExpenseAction, rejectMoneyRequestsOnSearch} from '@libs/actions/Search';
 
@@ -32,6 +32,8 @@ const mockClearSelectedTransactions = jest.fn();
 let mockAreAllMatchingItemsSelected = false;
 let mockSubmitRejectReason: ((values: {comment: string}) => void) | undefined;
 let mockEnabledWhenOffline: boolean | undefined;
+let mockSelectedTransactions: Record<string, Partial<SelectedTransactionInfo>> = {};
+let mockExcludedTransactions: Record<string, Partial<SelectedTransactionInfo>> = {};
 
 jest.mock('@pages/iou/RejectReasonFormView', () => {
     function MockRejectReasonFormView({onSubmit, enabledWhenOffline}: {onSubmit: (values: {comment: string}) => void; enabledWhenOffline?: boolean}) {
@@ -47,8 +49,8 @@ jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionActions: () => ({clearSelectedTransactions: mockClearSelectedTransactions}),
     useSearchSelectionContext: () => ({
         selectedTransactionIDs: [],
-        selectedTransactions: {tx1: {reportID: 'report1'}},
-        excludedTransactions: {tx2: {reportID: 'report1'}},
+        selectedTransactions: mockSelectedTransactions,
+        excludedTransactions: mockExcludedTransactions,
         areAllMatchingItemsSelected: mockAreAllMatchingItemsSelected,
     }),
 }));
@@ -82,7 +84,28 @@ describe('SearchRejectReasonPage', () => {
         jest.clearAllMocks();
         mockSubmitRejectReason = undefined;
         mockEnabledWhenOffline = undefined;
+        mockSelectedTransactions = {tx1: {reportID: 'report1'}};
+        mockExcludedTransactions = {tx2: {reportID: 'report1'}};
         await Onyx.clear();
+    });
+
+    it('rejects an expense checked again inside a group deselected after Select all', async () => {
+        // Given "Select all" with the Travel group deselected, then one of its expenses checked again
+        const travelGroupKey = `${CONST.SEARCH.GROUP_PREFIX}travel`;
+        mockSelectedTransactions = {
+            tx1: {reportID: 'report1', isSelected: true, canReject: true},
+            tx3: {reportID: 'report1', isSelected: true, canReject: true, groupKey: travelGroupKey},
+        };
+        mockExcludedTransactions = {[travelGroupKey]: {reportID: 'report1'}};
+        renderPage(true);
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user submits a reason
+        mockSubmitRejectReason?.({comment: 'missing receipts'});
+
+        // Then the backend rejects the rest, and the expense checked again is rejected here since the query leaves its group out
+        expect(queueBulkExpenseAction).toHaveBeenCalledTimes(1);
+        expect(Object.keys(jest.mocked(rejectMoneyRequestsOnSearch).mock.calls.at(0)?.at(0)?.selectedTransactions ?? {})).toEqual(['tx3']);
     });
 
     it('hands the search to the backend when Select all is checked', async () => {

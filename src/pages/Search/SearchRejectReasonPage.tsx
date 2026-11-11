@@ -2,6 +2,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemProvider';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {getRowsCheckedInExcludedGroups} from '@components/Search/selectionBuilders';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -26,6 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestRejectReasonForm';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React, {useEffect} from 'react';
 
@@ -71,6 +73,21 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     // "Select all" can cover more expenses than are loaded, so the backend rejects every match.
     const shouldQueueOnServer = route.name === SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP && areAllMatchingItemsSelected;
+    const rejectTransactions = (transactionsToReject: Parameters<typeof rejectMoneyRequestsOnSearch>[0]['selectedTransactions'], comment: string) =>
+        rejectMoneyRequestsOnSearch({
+            hash: currentSearchHash,
+            selectedTransactions: transactionsToReject,
+            comment,
+            allPolicies,
+            allReports,
+            currentUserAccountIDParam: currentUserAccountID,
+            currentUserLogin: currentUserLogin ?? '',
+            isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+            delegateAccountID,
+            getCurrencyDecimals,
+            allReportsTransactionsAndViolations,
+            rules,
+        });
     const onSubmit = ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
@@ -83,25 +100,19 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
                 getAllMatchingExpenseActionQuery(currentSearchQueryJSON, excludedTransactions, currentSearchResults?.data, currentSearchKey),
                 comment,
             );
+            // The query leaves out every expense in an excluded group, so the ones checked again inside it are rejected here.
+            const rowsToReject = Object.fromEntries(
+                Object.entries(getRowsCheckedInExcludedGroups(selectedTransactions, excludedTransactions)).filter(([, transaction]) => transaction.canReject),
+            );
+            if (!isEmptyObject(rowsToReject)) {
+                rejectTransactions(rowsToReject, comment);
+            }
             clearSelectedTransactions();
             Navigation.dismissToSuperWideRHP();
             return;
         }
 
-        const urlToNavigateBack = rejectMoneyRequestsOnSearch({
-            hash: currentSearchHash,
-            selectedTransactions: selectedTransactionsForReject,
-            comment,
-            allPolicies,
-            allReports,
-            currentUserAccountIDParam: currentUserAccountID,
-            currentUserLogin: currentUserLogin ?? '',
-            isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
-            delegateAccountID,
-            getCurrencyDecimals,
-            allReportsTransactionsAndViolations,
-            rules,
-        });
+        const urlToNavigateBack = rejectTransactions(selectedTransactionsForReject, comment);
         if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS) {
             clearSelectedTransactions(true);
         } else {

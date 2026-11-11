@@ -6,7 +6,7 @@ import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemPr
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useOpenSearchReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
-import {getClaimedGroupKey, getSearchGroupCountByKey, mergeRowsIntoPartlyLoadedGroups} from '@components/Search/selectionBuilders';
+import {getClaimedGroupKey, getRowsCheckedInExcludedGroups, getSearchGroupCountByKey, mergeRowsIntoPartlyLoadedGroups} from '@components/Search/selectionBuilders';
 import type {BulkPaySelectionData, PaymentData, QueryFilterKey, SearchColumnType, SearchGroupBy, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
 import {getAccountingIntegrationDisplayName, getExportLabelForConnection, isIntuitEnterpriseSuiteConnection} from '@libs/AccountingUtils';
@@ -3001,16 +3001,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     return;
                 }
 
+                let transactionIDsToUnhold = selectedTransactionsKeys;
                 if (areAllMatchingItemsSelected) {
                     queueBulkExpenseAction(
                         CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD,
                         getAllMatchingExpenseActionQuery(queryJSON, excludedTransactions, currentSearchResults?.data, currentSearchKey),
                     );
-                    clearSelectedTransactions();
-                    return;
+                    // The query leaves out every expense in an excluded group, so the ones checked again inside it are unheld here.
+                    transactionIDsToUnhold = Object.entries(getRowsCheckedInExcludedGroups(selectedTransactions, excludedTransactions))
+                        .filter(([, transaction]) => transaction.canUnhold)
+                        .map(([transactionID]) => transactionID);
                 }
 
-                for (const transactionID of selectedTransactionsKeys) {
+                for (const transactionID of transactionIDsToUnhold) {
                     const childReportID = selectedTransactions[transactionID].reportAction?.childReportID;
                     if (!childReportID) {
                         Log.info('[BulkUnhold] Skipping transaction: report action has no childReportID', false, {transactionID});
