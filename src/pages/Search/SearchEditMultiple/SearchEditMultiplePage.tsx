@@ -1,10 +1,10 @@
+import AmountFormField from '@components/AmountFormField';
 import Button from '@components/Button';
 import DatePicker from '@components/DatePicker';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ExpenseFieldDropdown from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
 import ExpenseFieldRow from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldRow';
-import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
@@ -281,7 +281,7 @@ function SearchEditMultiplePage() {
         updateBulkEditDraftTransaction({billable: value});
     };
 
-    // An empty row means nothing is pending, as on the other fields. Once a value is picked the row shows it.
+    // The row shows the option its list has picked, "Don't change" included, so it never reads as empty.
     const getPendingBooleanTitle = (value: boolean | null | undefined) => {
         if (value === true) {
             return translate('common.yes');
@@ -289,7 +289,7 @@ function SearchEditMultiplePage() {
         if (value === false) {
             return translate('common.no');
         }
-        return '';
+        return translate('common.dontChange');
     };
 
     const saveDraftMerchant = (newMerchant: string) => {
@@ -458,24 +458,26 @@ function SearchEditMultiplePage() {
                         />
                     ) : (
                         <View style={[styles.mh4, styles.mv2]}>
-                            <NumberWithSymbolForm
-                                displayAsTextInput
-                                autoFocus={false}
+                            <AmountFormField
                                 value={draftAmount === undefined ? '' : convertToFrontendAmountAsString(draftAmount, decimals)}
                                 decimals={decimals}
-                                currency={currency}
-                                symbol={getLocalizedCurrencySymbol(preferredLocale, currency) ?? ''}
-                                label={translate('iou.amount')}
                                 errorText={amountErrorText}
                                 onInputChange={saveDraftAmount}
-                                allowNegativeInput={allowNegative}
-                                shouldShowFlipButton={allowNegative}
-                                shouldShowCurrencyButton
-                                onCurrencyButtonPress={showCurrencyPicker}
-                                currencyButtonRef={currencyButtonRef}
-                                shouldShowBigNumberPad={false}
-                                shouldUseBorderlessButtons
-                            />
+                                allowNegative={allowNegative}
+                            >
+                                <AmountFormField.Input
+                                    label={translate('iou.amount')}
+                                    prefixCharacter={getLocalizedCurrencySymbol(preferredLocale, currency) ?? ''}
+                                >
+                                    <AmountFormField.SignFlipButton shouldUseBorderlessStyle />
+                                    <AmountFormField.CurrencyPickerButton
+                                        ref={currencyButtonRef}
+                                        currency={currency}
+                                        onPress={showCurrencyPicker}
+                                        shouldUseBorderlessStyle
+                                    />
+                                </AmountFormField.Input>
+                            </AmountFormField>
                         </View>
                     )}
                     <View style={[styles.mh4, styles.mv2]}>

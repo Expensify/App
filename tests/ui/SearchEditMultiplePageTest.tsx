@@ -65,9 +65,11 @@ jest.mock('@hooks/usePermissions', () => () => ({
 
 // Records what each selectable row decided, so a test can read it without pressing the row and measuring a layout.
 const mockShouldOpenInDropdownByRow: Record<string, boolean> = {};
-type ExpenseFieldDropdownMockProps = Pick<ComponentProps<typeof ExpenseFieldDropdown>, 'name' | 'shouldOpenInDropdown'>;
-jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown', () => ({name, shouldOpenInDropdown}: ExpenseFieldDropdownMockProps) => {
+const mockValueByRow: Record<string, string | undefined> = {};
+type ExpenseFieldDropdownMockProps = Pick<ComponentProps<typeof ExpenseFieldDropdown>, 'name' | 'shouldOpenInDropdown' | 'value'>;
+jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown', () => ({name, shouldOpenInDropdown, value}: ExpenseFieldDropdownMockProps) => {
     mockShouldOpenInDropdownByRow[name] = shouldOpenInDropdown;
+    mockValueByRow[name] = value;
     return null;
 });
 
@@ -179,6 +181,7 @@ describe('SearchEditMultiplePage', () => {
         jest.clearAllMocks();
         for (const rowName of Object.keys(mockShouldOpenInDropdownByRow)) {
             delete mockShouldOpenInDropdownByRow[rowName];
+            delete mockValueByRow[rowName];
         }
         await Onyx.set(ONYXKEYS.SESSION, {email: CURRENT_USER_EMAIL, accountID: CURRENT_USER_ACCOUNT_ID});
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, login: CURRENT_USER_EMAIL}});
@@ -211,6 +214,18 @@ describe('SearchEditMultiplePage', () => {
 
         // Then the Reimbursable row opens its list in place
         expect(mockShouldOpenInDropdownByRow.Reimbursable).toBe(true);
+    });
+
+    it("shows Don't change on Reimbursable until a value is picked", async () => {
+        // Given a selection where nothing has been picked for Reimbursable yet
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When the page renders
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the row shows the option its list has picked rather than reading as empty
+        expect(mockValueByRow.Reimbursable).toBe('Don’t change');
     });
 
     it('sets every selected expense to non-reimbursable when No is picked', async () => {
