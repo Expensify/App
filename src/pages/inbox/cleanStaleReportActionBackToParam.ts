@@ -4,6 +4,7 @@ import type {Route} from '@react-navigation/native';
 
 import {CommonActions} from '@react-navigation/native';
 
+/** The parts of a navigation state that the walk reads. Nested states can be partial, so their keys are optional. */
 type RouteView = {
     key?: string;
     params?: Route<string>['params'];
@@ -35,8 +36,9 @@ function cleanStaleReportActionBackToParam(reportID: string, reportActionID: str
 
     function walk(routes: readonly RouteView[], navigatorKey?: string) {
         for (const route of routes) {
+            // Each screen has its own params, so check for `backTo` itself.
             const backTo = route.params && 'backTo' in route.params ? route.params.backTo : undefined;
-            if (route.key && typeof backTo === 'string' && stalePattern.test(backTo)) {
+            if (typeof backTo === 'string' && stalePattern.test(backTo)) {
                 navigationRef.current?.dispatch({
                     ...CommonActions.setParams({backTo: backTo.replace(stalePattern, cleanSegment)}),
                     source: route.key,
