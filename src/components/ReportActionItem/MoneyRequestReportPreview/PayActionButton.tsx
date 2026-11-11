@@ -143,7 +143,7 @@ function PayActionButton() {
                     rules,
                 });
             } else if (paymentMethod === CONST.PAYMENT_METHODS.ABA) {
-                payReportsViaABA([iouReport.reportID], policy);
+                payReportsViaABA([iouReport.reportID], policy, {onPaid: startAnimation});
             } else {
                 payWithWiseQuote({
                     bankAccountList,

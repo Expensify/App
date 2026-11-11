@@ -84,7 +84,8 @@ describe('usePayViaABA', () => {
         await waitForBatchedUpdatesWithAct();
 
         // When two reports are paid without their held expenses
-        act(() => result.current.payReportsViaABA(['123', '456'], policy, false));
+        const onPaid = jest.fn();
+        act(() => result.current.payReportsViaABA(['123', '456'], policy, {shouldReimburseHeldTransactions: false, onPaid}));
 
         // Then the ABA file is downloaded for them, with what the billing and onboarding checks need about the current user
         expect(payViaABA).toHaveBeenCalledWith(
@@ -92,6 +93,7 @@ describe('usePayViaABA', () => {
                 reportIDs: ['123', '456'],
                 policy,
                 shouldReimburseHeldTransactions: false,
+                onPaid,
                 currentUserAccountID: ACCOUNT_ID,
                 amountOwed: 100,
             }),

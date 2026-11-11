@@ -1047,6 +1047,7 @@ type PayViaABAFunctionParams = {
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     translate: LocalizedTranslate;
     onDownloadFailed: (error?: HttpsError) => void;
+    onPaid?: () => void;
 };
 
 /**
@@ -1068,6 +1069,7 @@ async function payViaABA(params: PayViaABAFunctionParams): Promise<void> {
         ownerBillingGracePeriodEnd,
         translate,
         onDownloadFailed,
+        onPaid,
     } = params;
     if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
@@ -1117,6 +1119,7 @@ async function payViaABA(params: PayViaABAFunctionParams): Promise<void> {
                 value: {statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, stateNum: CONST.REPORT.STATE_NUM.APPROVED},
             })),
         );
+        onPaid?.();
     });
 }
 

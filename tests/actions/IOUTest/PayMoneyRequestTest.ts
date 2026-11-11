@@ -3142,14 +3142,16 @@ describe('actions/IOU/PayMoneyRequest', () => {
             }
 
             // When their ABA file downloads
-            await payViaABA({...payViaABAParams, reportIDs: ['123', '456'], onDownloadFailed: jest.fn()});
+            const onPaid = jest.fn();
+            await payViaABA({...payViaABAParams, reportIDs: ['123', '456'], onDownloadFailed: jest.fn(), onPaid});
             await waitForBatchedUpdates();
 
-            // Then they're shown as paid straight away, since the backend only sends the file once it has paid them
+            // Then they're shown as paid straight away, and the caller is told they're paid, since the backend only sends the file once it has paid them
             for (const reportID of ['123', '456']) {
                 const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
                 expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
             }
+            expect(onPaid).toHaveBeenCalled();
         });
 
         it('shows the report as paid in Search results once its ABA file has downloaded', async () => {
@@ -3177,13 +3179,15 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 return Promise.resolve();
             });
             const onDownloadFailed = jest.fn();
+            const onPaid = jest.fn();
 
             // When it's paid via ABA
-            await payViaABA({...payViaABAParams, reportIDs: ['123'], onDownloadFailed});
+            await payViaABA({...payViaABAParams, reportIDs: ['123'], onDownloadFailed, onPaid});
             await waitForBatchedUpdates();
 
             // Then the user is told the download failed, and the report isn't shown as paid since the backend didn't pay it
             expect(onDownloadFailed).toHaveBeenCalled();
+            expect(onPaid).not.toHaveBeenCalled();
             const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}123`);
             expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
         });

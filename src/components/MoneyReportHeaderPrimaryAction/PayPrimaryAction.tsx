@@ -203,7 +203,7 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
 
         if (paymentMethod === CONST.PAYMENT_METHODS.ABA) {
             if (moneyRequestReport?.reportID) {
-                payReportsViaABA([moneyRequestReport.reportID], policy);
+                payReportsViaABA([moneyRequestReport.reportID], policy, {onPaid: startAnimation});
             }
             return;
         }

@@ -259,7 +259,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             });
         } else if (paymentMethod === CONST.PAYMENT_METHODS.ABA) {
             if (moneyRequestReport?.reportID) {
-                payReportsViaABA([moneyRequestReport.reportID], policy);
+                payReportsViaABA([moneyRequestReport.reportID], policy, {onPaid: startAnimation});
             }
         } else {
             payWithWiseQuote({

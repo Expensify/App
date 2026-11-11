@@ -22,6 +22,11 @@ import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useVerifyAccountAndResume from './useVerifyAccountAndResume';
 
+type PayReportsViaABAOptions = {
+    shouldReimburseHeldTransactions?: boolean;
+    onPaid?: () => void;
+};
+
 /**
  * Returns a function that pays reports by downloading their ABA file, and tells the user when the download fails.
  * Locked accounts are shown the locked account modal instead, and unvalidated ones verify their account before it downloads.
@@ -55,7 +60,7 @@ function usePayViaABA() {
         return name ? translate('iou.missingABADepositAccount', {name}) : translate('iou.submittersMissingABADepositAccount');
     };
 
-    const downloadABAFile = (reportIDs: string[], policy: OnyxEntry<Policy>, shouldReimburseHeldTransactions?: boolean) => {
+    const downloadABAFile = (reportIDs: string[], policy: OnyxEntry<Policy>, {shouldReimburseHeldTransactions, onPaid}: PayReportsViaABAOptions) => {
         setIsDownloadingABAFile(true);
         payViaABA({
             reportIDs,
@@ -70,6 +75,7 @@ function usePayViaABA() {
             amountOwed,
             ownerBillingGracePeriodEnd,
             translate,
+            onPaid,
             onDownloadFailed: (error) => {
                 showDecisionModal({
                     title: translate('common.downloadFailedTitle'),
@@ -81,16 +87,16 @@ function usePayViaABA() {
     };
 
     // Pay via ABA is always picked from a menu, so anything blocking it is shown once that menu has closed
-    const payReportsViaABA = (reportIDs: string[], policy: OnyxEntry<Policy>, shouldReimburseHeldTransactions?: boolean) => {
+    const payReportsViaABA = (reportIDs: string[], policy: OnyxEntry<Policy>, options: PayReportsViaABAOptions = {}) => {
         if (isAccountLocked) {
             deferModalPresentationAfterPopoverDismiss(showLockedAccountModal);
             return;
         }
         if (!isUserValidated) {
-            deferModalPresentationAfterPopoverDismiss(() => verifyAccountAndResume(() => downloadABAFile(reportIDs, policy, shouldReimburseHeldTransactions)));
+            deferModalPresentationAfterPopoverDismiss(() => verifyAccountAndResume(() => downloadABAFile(reportIDs, policy, options)));
             return;
         }
-        downloadABAFile(reportIDs, policy, shouldReimburseHeldTransactions);
+        downloadABAFile(reportIDs, policy, options);
     };
 
     return {payReportsViaABA, isDownloadingABAFile};

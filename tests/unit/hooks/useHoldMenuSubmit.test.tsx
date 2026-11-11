@@ -6,6 +6,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import useHoldMenuSubmit from '@hooks/useHoldMenuSubmit';
+import type usePayViaABA from '@hooks/usePayViaABA';
 
 import {payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
 
@@ -19,7 +20,7 @@ import Onyx from 'react-native-onyx';
 import createRandomPolicy from '../../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
-const mockPayReportsViaABA = jest.fn();
+const mockPayReportsViaABA = jest.fn<void, Parameters<ReturnType<typeof usePayViaABA>['payReportsViaABA']>>();
 jest.mock('@hooks/usePayViaABA', () => ({__esModule: true, default: jest.fn(() => ({payReportsViaABA: mockPayReportsViaABA, isDownloadingABAFile: false}))}));
 
 jest.mock('@userActions/IOU/PayMoneyRequest', () => ({
@@ -56,6 +57,7 @@ describe('useHoldMenuSubmit', () => {
     it.each([true, false])('pays via ABA with full set to %s when the report is paid via ABA', async (full) => {
         // Given the hold menu of a report that's paid via ABA
         const onClose = jest.fn();
+        const onConfirm = jest.fn();
         const {result} = renderHook(
             () =>
                 useHoldMenuSubmit({
@@ -65,6 +67,7 @@ describe('useHoldMenuSubmit', () => {
                     paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     paymentMethod: CONST.PAYMENT_METHODS.ABA,
                     onClose,
+                    onConfirm,
                 }),
             {wrapper: Wrapper},
         );
@@ -74,9 +77,18 @@ describe('useHoldMenuSubmit', () => {
         result.current.onSubmit(full);
 
         // Then the ABA file is downloaded with that choice instead of marking the report as paid, and the menu closes
-        expect(mockPayReportsViaABA).toHaveBeenCalledWith([expenseReport.reportID], expect.objectContaining({id: policy.id}), full);
+        expect(mockPayReportsViaABA).toHaveBeenCalledWith(
+            [expenseReport.reportID],
+            expect.objectContaining({id: policy.id}),
+            expect.objectContaining({shouldReimburseHeldTransactions: full}),
+        );
         expect(payMoneyRequest).not.toHaveBeenCalled();
         expect(onClose).toHaveBeenCalled();
+
+        // And the menu is only confirmed once the file has downloaded, so selection mode turns off and the paid animation plays only when the reports are paid
+        expect(onConfirm).not.toHaveBeenCalled();
+        act(() => mockPayReportsViaABA.mock.calls.at(0)?.[2]?.onPaid?.());
+        expect(onConfirm).toHaveBeenCalledWith(full);
     });
 
     it('marks the report as paid elsewhere when it is not paid via ABA', async () => {
