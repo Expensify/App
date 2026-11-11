@@ -35,7 +35,6 @@ function ManualFooter({policy, policyTags, selectedParticipants, amountDisplay, 
                     amountDisplay={amountDisplay}
                     requiredFlags={requiredFlags}
                     errorState={errorState}
-                    isParticipantPickerVisible={visibilityFlags.isParticipantPickerVisible}
                 />
             </ConfirmationFieldList>
         </ExpenseFormFooterLayout>

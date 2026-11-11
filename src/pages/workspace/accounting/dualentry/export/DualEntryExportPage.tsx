@@ -8,7 +8,6 @@ import Text from '@components/Text';
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsLists from '@hooks/useCardsLists';
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -18,7 +17,6 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 
-import {getAccountingSettingsRoute} from '@pages/workspace/connections/utils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -33,7 +31,6 @@ function DualEntryExportPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardLists] = useCardsLists();
     const policyOwner = policy?.owner;
@@ -59,7 +56,7 @@ function DualEntryExportPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
-            onBackButtonPress={() => Navigation.goBack(getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled, policyID))}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))}
             displayName="DualEntryExportPage"
             headerTitle="workspace.accounting.export"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
@@ -75,6 +72,7 @@ function DualEntryExportPage({policy}: WithPolicyConnectionsProps) {
             </View>
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.EXPORTER], dualentryConfig?.pendingFields)}>
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.DUAL_ENTRY.PREFERRED_EXPORTER}
                     name={translate('workspace.accounting.preferredExporter')}
                     onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_PREFERRED_EXPORTER.getRoute(policyID)) : undefined)}
                     value={exporter}
@@ -97,6 +95,7 @@ function DualEntryExportPage({policy}: WithPolicyConnectionsProps) {
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.EXPORT_DATE], dualentryConfig?.pendingFields)}>
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.DUAL_ENTRY.EXPORT_DATE}
                     name={translate('workspace.dualEntry.exportDate.label')}
                     onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_VENDOR_BILL_DATE.getRoute(policyID)) : undefined)}
                     value={translate(`workspace.dualEntry.exportDate.values.${exportDate}.label`)}
@@ -119,6 +118,7 @@ function DualEntryExportPage({policy}: WithPolicyConnectionsProps) {
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.DEFAULT_VENDORID], dualentryConfig?.pendingFields)}>
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.DUAL_ENTRY.DEFAULT_COMPANY_CARD_VENDOR}
                     name={translate('workspace.dualEntry.defaultCompanyCardVendor.label')}
                     onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_DEFAULT_COMPANY_CARD_VENDOR.getRoute(policyID)) : undefined)}
                     value={defaultCompanyCardVendor?.name}
@@ -130,6 +130,7 @@ function DualEntryExportPage({policy}: WithPolicyConnectionsProps) {
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.CREDIT_CARD_ACCOUNT_ID], dualentryConfig?.pendingFields)}>
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.DUAL_ENTRY.COMPANY_CARD_ACCOUNT}
                     name={translate('workspace.dualEntry.companyCardAccount.label')}
                     onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_COMPANY_CARD_ACCOUNT.getRoute(policyID)) : undefined)}
                     value={companyCardAccount ? `${companyCardAccount?.id} ${companyCardAccount?.name}` : undefined}
@@ -144,6 +145,7 @@ function DualEntryExportPage({policy}: WithPolicyConnectionsProps) {
                     <ToggleSettingOptionRow
                         title={translate('workspace.dualEntry.exportToMultipleAccounts')}
                         switchAccessibilityLabel={translate('workspace.dualEntry.exportToMultipleAccounts')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.DUAL_ENTRY.EXPORT_TO_MULTIPLE_ACCOUNTS_SWITCH}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.mv3, styles.mh5]}
                         isActive={exportToMultipleAccounts}
@@ -158,6 +160,7 @@ function DualEntryExportPage({policy}: WithPolicyConnectionsProps) {
                     >
                         <OfflineWithFeedback pendingAction={settingsPendingAction(cardProgramsOfflineFeedbackKeys, dualentryConfig?.pendingFields)}>
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.DUAL_ENTRY.CARD_PROGRAM_ACCOUNT}
                                 name={translate('workspace.dualEntry.cardProgramAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_CARD_PROGRAM_ACCOUNT.getRoute(policyID)) : undefined)}
                                 value={translate('workspace.dualEntry.cardProgramAccount.countInfo', cardProgramsUsingCustomAccountsCount)}
@@ -171,6 +174,7 @@ function DualEntryExportPage({policy}: WithPolicyConnectionsProps) {
                             pendingAction={getCardsCustomExportPendingAction(cardFeeds ?? {}, cardLists, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_DUALENTRY_EXPORT_ACCOUNT)}
                         >
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.DUAL_ENTRY.CARD_ACCOUNT}
                                 name={translate('workspace.dualEntry.cardAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_CARD_ACCOUNT.getRoute(policyID)) : undefined)}
                                 value={translate('workspace.dualEntry.cardAccount.countInfo', cardsUsingCustomAccountsCount.totalCount)}

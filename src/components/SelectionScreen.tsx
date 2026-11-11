@@ -91,6 +91,9 @@ type SelectionScreenProps<T = string> = {
     /** Maximum number of title lines per row. Values above 1 let the title wrap instead of truncating */
     titleNumberOfLines?: number;
 
+    /** Maximum number of alternate text lines per row. Values above 1 let the alternate text wrap instead of truncating */
+    alternateNumberOfSupportedLines?: number;
+
     textInputOptions?: {
         /** Label for the text input */
         label?: string;
@@ -136,6 +139,7 @@ function SelectionScreen<T = string>({
     textInputOptions,
     shouldUpdateFocusedIndex = false,
     titleNumberOfLines,
+    alternateNumberOfSupportedLines = 2,
     confirmButtonOptions,
 }: SelectionScreenProps<T>) {
     const {translate} = useLocalize();
@@ -188,7 +192,7 @@ function SelectionScreen<T = string>({
                         shouldUpdateFocusedIndex={isSearchableList || shouldUpdateFocusedIndex}
                         shouldScrollToFocusedIndexOnMount={!isSearchableList}
                         disableMaintainingScrollPosition={isSearchableList}
-                        alternateNumberOfSupportedLines={2}
+                        alternateNumberOfSupportedLines={alternateNumberOfSupportedLines}
                         titleNumberOfLines={titleNumberOfLines}
                         addBottomSafeAreaPadding
                         confirmButtonOptions={confirmButtonOptions}

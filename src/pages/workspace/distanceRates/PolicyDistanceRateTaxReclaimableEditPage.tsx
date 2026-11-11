@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {validateTaxClaimableValue} from '@libs/PolicyDistanceRatesUtils';
+import {getTaxClaimableDisplayAmount, validateTaxClaimableValue} from '@libs/PolicyDistanceRatesUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -42,8 +42,7 @@ function PolicyDistanceRateTaxReclaimableEditPage({route, policy}: PolicyDistanc
     const customUnit = getDistanceRateCustomUnit(policy);
     const rate = customUnit?.rates[rateID];
     const currency = rate?.currency ?? CONST.CURRENCY.USD;
-    const currentTaxReclaimableOnValue =
-        rate?.attributes?.taxClaimablePercentage && rate?.rate ? ((rate.attributes.taxClaimablePercentage * rate.rate) / 100).toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES) : '';
+    const currentTaxReclaimableOnValue = rate?.attributes?.taxClaimablePercentage && rate?.rate ? getTaxClaimableDisplayAmount(rate.attributes.taxClaimablePercentage, rate.rate) : '';
 
     const submitTaxReclaimableOn = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM>) => {
         if (values.taxClaimableValue === currentTaxReclaimableOnValue) {

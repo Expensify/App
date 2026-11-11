@@ -208,6 +208,7 @@ function MultifactorAuthenticationRevokePage() {
                             {isCurrentDeviceRegistered && (
                                 <RevokeRow
                                     title={translate('multifactorAuthentication.revoke.thisDevice')}
+                                    sentryLabel={CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.REVOKE_THIS_DEVICE}
                                     isLoading={isThisDeviceLoading}
                                     onPress={() => {
                                         if (!localCredentialID) {
@@ -220,6 +221,7 @@ function MultifactorAuthenticationRevokePage() {
                             {otherDeviceCount > 0 && (
                                 <RevokeRow
                                     title={translate('multifactorAuthentication.revoke.otherDevices', {count: otherDeviceCount})}
+                                    sentryLabel={CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.REVOKE_OTHER_DEVICES}
                                     isLoading={isOtherDevicesLoading}
                                     onPress={() => {
                                         promptRevoke(otherDevicesConfirmMode());
@@ -238,6 +240,7 @@ function MultifactorAuthenticationRevokePage() {
                 <View style={[styles.flexRow, styles.m5, styles.mt0]}>
                     {hasDevices ? (
                         <Button
+                            sentryLabel={CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.REVOKE_ALL}
                             size={CONST.BUTTON_SIZE.LARGE}
                             variant={CONST.BUTTON_VARIANT.DANGER}
                             style={styles.flex1}
@@ -248,6 +251,7 @@ function MultifactorAuthenticationRevokePage() {
                         </Button>
                     ) : (
                         <Button
+                            sentryLabel={CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.REVOKE_DISMISS}
                             size={CONST.BUTTON_SIZE.LARGE}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             style={styles.flex1}
