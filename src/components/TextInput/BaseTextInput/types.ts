@@ -28,7 +28,8 @@ type DateSegmentsConfig = {
     selectAllSegments: UseDateSegmentInputResult['selectAllSegments'];
     isSegmentElement: UseDateSegmentInputResult['isSegmentElement'];
     isAllSelected: UseDateSegmentInputResult['isAllSelected'];
-    onFieldBlur: UseDateSegmentInputResult['onFieldBlur'];
+    /** Called as focus leaves the field, which the owner answers rather than the segments themselves */
+    onFieldBlur: () => void;
 
     /** Whether digits are on screen. A date part way through being entered has no value yet, but is still clearable */
     hasTypedDigits: UseDateSegmentInputResult['hasTypedDigits'];

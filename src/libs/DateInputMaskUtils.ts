@@ -38,7 +38,7 @@ const MASK_LETTER_REGEX = /\p{L}/u;
 
 const NON_DIGIT_REGEX = /\D/g;
 
-const DIGIT_GROUP_REGEX = /\d+/g;
+const NON_DIGIT_RUN_REGEX = /\D+/;
 
 const DIGITS_ONLY_REGEX = /^\d+$/;
 
@@ -275,14 +275,6 @@ function clearSegmentsUpTo(segments: DateSegments, name: DateSegmentName): DateS
 }
 
 /** Drops the last digit of a segment. Returns undefined when there was nothing left to drop */
-function removeLastDigit(segments: DateSegments, name: DateSegmentName): DateSegments | undefined {
-    if (!segments[name]) {
-        return undefined;
-    }
-
-    return {...segments, [name]: segments[name].slice(0, -1)};
-}
-
 function getSegmentsFromISODate(value: string | undefined): DateSegments {
     if (!value || !isValid(parse(value, CONST.DATE.FNS_FORMAT_STRING, new Date()))) {
         return EMPTY_SEGMENTS;
@@ -327,13 +319,18 @@ function splitDigitsBySegmentLength(digits: string, names: DateSegmentName[]): s
  * by how much each segment holds.
  */
 function getSegmentsFromText(text: string, startName: DateSegmentName, baseSegments: DateSegments): DateSegments {
-    const digitGroups = text.match(DIGIT_GROUP_REGEX);
+    // Splitting rather than matching keeps a segment that was left empty, since the separators on either side of it
+    // are what say which segment the digits after it belong to
+    const digitGroups = text.split(NON_DIGIT_RUN_REGEX);
 
-    if (!digitGroups) {
+    if (!digitGroups.some(Boolean)) {
         return baseSegments;
     }
 
-    const names = DATE_SEGMENT_NAMES.slice(DATE_SEGMENT_NAMES.indexOf(startName));
+    // A whole date is read as the date it is rather than as digits for the segment it landed in, since dropping one
+    // into the day would otherwise keep its first two digits and throw the rest of it away
+    const firstName = isWholeDateText(digitGroups) ? DATE_SEGMENT_NAMES[0] : startName;
+    const names = DATE_SEGMENT_NAMES.slice(DATE_SEGMENT_NAMES.indexOf(firstName));
     const digitsBySegment = digitGroups.length > 1 ? digitGroups : splitDigitsBySegmentLength(digitGroups[0], names);
     const filled = {...baseSegments};
 
@@ -348,6 +345,15 @@ function getSegmentsFromText(text: string, startName: DateSegmentName, baseSegme
     }
 
     return filled;
+}
+
+/** Whether the text carries a date of its own, which is a group of digits for every segment or enough to fill them all */
+function isWholeDateText(digitGroups: string[]): boolean {
+    if (digitGroups.length > 1) {
+        return digitGroups.length >= DATE_SEGMENT_NAMES.length;
+    }
+
+    return (digitGroups.at(0)?.length ?? 0) >= DATE_SEGMENT_NAMES.reduce((total, name) => total + getSegmentLength(name), 0);
 }
 
 /**
@@ -434,14 +440,13 @@ function getISODateFromSegments(segments: DateSegments): string | undefined {
  * over. An entry that does not read as a date keeps its separators, so it arrives somewhere else looking the way it
  * looked here.
  *
- * A segment left empty before a filled one has no separator that would say which segment it was, so those digits go on
- * their own and are read back by position.
+ * A segment left empty before a filled one keeps the separators on either side of it, which is what says which segment
+ * the digits after it belong to when the date is read back.
  */
 function getClipboardTextFromSegments(segments: DateSegments): string {
     const displays = DATE_SEGMENT_NAMES.map((name) => getSegmentDisplay(segments, name));
-    const hasGap = displays.some((display, index) => !display && displays.slice(index + 1).some(Boolean));
 
-    return hasGap ? displays.join('') : displays.filter(Boolean).join('-');
+    return displays.slice(0, displays.findLastIndex(Boolean) + 1).join('-');
 }
 
 /**
@@ -485,12 +490,12 @@ export {
     getISODateFromSegments,
     getPastedText,
     getSegmentDisplay,
+    getSegmentLength,
     getSegmentsFromISODate,
     getSegmentsFromText,
     getViewDateFromSegments,
     hasAnySegment,
     hasUnfinishedSegment,
-    removeLastDigit,
     typeDigitIntoSegments,
 };
 export type {DateSegmentName, DateSegments};

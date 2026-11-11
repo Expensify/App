@@ -12,7 +12,6 @@ import {
     getSegmentsFromText,
     getViewDateFromSegments,
     hasAnySegment,
-    removeLastDigit,
     typeDigitIntoSegments,
 } from '@libs/DateInputMaskUtils';
 import type {DateSegments} from '@libs/DateInputMaskUtils';
@@ -191,17 +190,6 @@ describe('DateInputMaskUtils', () => {
         });
     });
 
-    describe('removeLastDigit', () => {
-        it('drops one digit at a time', () => {
-            expect(removeLastDigit(segments('2026', '', ''), 'year')).toEqual(segments('202', '', ''));
-            expect(removeLastDigit(segments('2', '', ''), 'year')).toEqual(EMPTY);
-        });
-
-        it('reports that an empty segment had nothing to drop', () => {
-            expect(removeLastDigit(EMPTY, 'year')).toBeUndefined();
-        });
-    });
-
     describe('clearSegmentsUpTo', () => {
         it('empties the segment and everything before it, leaving the rest alone', () => {
             // Given the day, which is the last segment, so there is nothing after it to keep
@@ -361,6 +349,25 @@ describe('DateInputMaskUtils', () => {
             expect(getSegmentsFromText('20260918', 'year', EMPTY)).toEqual(segments('2026', '09', '18'));
         });
 
+        it('takes a whole date as the date it is wherever it was dropped', () => {
+            // Given a field already holding a date, with the day being pasted into
+            const base = segments('1990', '05', '15');
+
+            // When a whole date is pasted, both as it is written and as bare digits
+            // Then it replaces the date rather than leaving its first two digits in the day
+            expect(getSegmentsFromText('2001-02-03', 'day', base)).toEqual(segments('2001', '02', '03'));
+            expect(getSegmentsFromText('20010203', 'day', base)).toEqual(segments('2001', '02', '03'));
+        });
+
+        it('leaves a date short of a whole one in the segment it was pasted into', () => {
+            // Given the same date with the day being pasted into
+            const base = segments('1990', '05', '15');
+
+            // When digits that cannot be a date of their own are pasted
+            // Then they stay in the segment the user put them in
+            expect(getSegmentsFromText('03', 'day', base)).toEqual(segments('1990', '05', '03'));
+        });
+
         it('stops once every segment is full', () => {
             expect(getSegmentsFromText('20260918123', 'year', EMPTY)).toEqual(segments('2026', '09', '18'));
         });
@@ -484,11 +491,21 @@ describe('DateInputMaskUtils', () => {
             expect(getClipboardTextFromSegments(segments('1990', '2', ''))).toBe('1990-02');
         });
 
-        it('copies digits with a segment skipped over on their own', () => {
-            // Given a month filled in with no year before it, so no separator says which segment the digits came from
+        it('keeps the separator standing in for a segment that was skipped over', () => {
+            // Given a month filled in with no year before it
             // When it is cut or copied
-            // Then they are handed over to be read back by position
-            expect(getClipboardTextFromSegments(segments('', '09', ''))).toBe('09');
+            // Then the separator that would have followed the year is kept, so the month is still read as the month
+            expect(getClipboardTextFromSegments(segments('', '09', ''))).toBe('-09');
+            expect(getClipboardTextFromSegments(segments('', '11', '28'))).toBe('-11-28');
+        });
+
+        it('reads back a date it copied with a segment skipped over', () => {
+            // Given the text copied out of a field whose year was cleared
+            const copied = getClipboardTextFromSegments(segments('', '11', '28'));
+
+            // When it is pasted back over the whole date
+            // Then each segment gets the digits it had, rather than them sliding into the segment before
+            expect(getSegmentsFromText(copied, 'year', EMPTY)).toEqual(segments('', '11', '28'));
         });
 
         it('has nothing to offer when no digit has been typed', () => {

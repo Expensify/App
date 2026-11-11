@@ -370,8 +370,8 @@ function DatePicker({
             return;
         }
 
-        segmentInput.onFieldBlur();
-        onFieldBlur?.();
+        const hasUnusableEntry = segmentInput.onFieldBlur();
+        onFieldBlur?.(hasUnusableEntry);
     };
 
     useEffect(() => {
@@ -380,8 +380,8 @@ function DatePicker({
         }
 
         hasPendingFieldBlurRef.current = false;
-        segmentInput.onFieldBlur();
-        onFieldBlur?.();
+        const hasUnusableEntry = segmentInput.onFieldBlur();
+        onFieldBlur?.(hasUnusableEntry);
         // The handler is rebuilt on every render, and the refs above are what decide whether it has anything to do
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isModalVisible]);

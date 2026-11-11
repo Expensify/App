@@ -31,9 +31,11 @@ type DatePickerBaseProps = ForwardedFSClassProps & {
 
     /**
      * Called once focus has left the field and whatever was being typed has settled. A consumer that saves outside a
-     * form uses this rather than `onInputChange`, which reports every date the user passes through on the way.
+     * form uses this rather than `onInputChange`, which reports every date the user passes through on the way. It is
+     * told when the field was left holding digits that do not add up to a date, since the last date reported on the
+     * way there is not one the user asked to keep.
      */
-    onFieldBlur?: () => void;
+    onFieldBlur?: (hasUnusableEntry: boolean) => void;
 
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft?: boolean;

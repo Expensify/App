@@ -151,6 +151,19 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
         saveSelectedOption(dateToSave);
     };
 
+    /**
+     * A field left holding digits that do not add up to a date has nothing to save. The last date reported on the way
+     * there was one the user typed past, so saving it would store a date they never finished asking for.
+     */
+    const saveDateOnFieldBlur = (hasUnusableEntry: boolean) => {
+        if (hasUnusableEntry) {
+            pendingDateRef.current = undefined;
+            return;
+        }
+
+        savePendingDate();
+    };
+
     // The input's right corners are squared off so the delete button can sit flush against it, and the input's own
     // right border becomes the divider between the two.
     const textInputContainerStyles = onDelete ? styles.noRightBorderRadius : undefined;
@@ -194,7 +207,7 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
                 onInputChange={(selectedDate) => {
                     pendingDateRef.current = selectedDate;
                 }}
-                onFieldBlur={savePendingDate}
+                onFieldBlur={saveDateOnFieldBlur}
                 onPickerVisibilityChange={(isPickerVisible) => {
                     // Picking a day is the user saying they are done, so it does not wait for the field to be left.
                     // The calendar hands the day over a frame after it closes, so the save waits for it to arrive.

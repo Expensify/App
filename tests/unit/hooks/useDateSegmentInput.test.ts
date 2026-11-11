@@ -37,14 +37,15 @@ function createElement(value = ''): SegmentElement {
 }
 
 function createKeyEvent(key: string, modifiers: {metaKey?: boolean; shiftKey?: boolean; altKey?: boolean} = {}) {
+    const preventDefault = jest.fn();
     const event = {
-        preventDefault: jest.fn(),
+        preventDefault,
         nativeEvent: {key, metaKey: modifiers.metaKey ?? false, ctrlKey: false, shiftKey: modifiers.shiftKey ?? false, altKey: modifiers.altKey ?? false},
     };
 
     // The hook reads a handful of fields off the event and prevents it, which is all this has to carry
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    return event as unknown as TextInputKeyPressEvent;
+    return {event: event as unknown as TextInputKeyPressEvent, preventDefault};
 }
 
 type SetupOptions = {value?: string; isEnabled?: boolean};
@@ -75,10 +76,11 @@ function setup({value = '', isEnabled = true}: SetupOptions = {}) {
 
     const focusSegment = (name: DateSegmentName) => act(() => result.current.getSegmentProps(name).onFocus());
 
+    /** Whether the hook answered the keystroke itself, since what it leaves alone is what the input answers */
     const press = (name: DateSegmentName, key: string, modifiers?: {metaKey?: boolean; shiftKey?: boolean; altKey?: boolean}) => {
-        const event = createKeyEvent(key, modifiers);
+        const {event, preventDefault} = createKeyEvent(key, modifiers);
         act(() => result.current.getSegmentProps(name).onKeyPress(event));
-        return event;
+        return preventDefault.mock.calls.length > 0;
     };
 
     /** The segment the hook last moved the caret to, which is how focus movement is asserted */
@@ -96,7 +98,13 @@ function setup({value = '', isEnabled = true}: SetupOptions = {}) {
         }
     };
 
-    return {result, rerender, onCommit, onLeaveByKeyboard, elements, read, focusSegment, press, focusedSegment, clearFocusCalls, type};
+    /** Puts the caret where the browser would after a click, which is what a plain arrow moves a digit at a time */
+    const setCaret = (name: DateSegmentName, start: number, end = start) => {
+        elements[name].selectionStart = start;
+        elements[name].selectionEnd = end;
+    };
+
+    return {result, rerender, onCommit, onLeaveByKeyboard, elements, read, focusSegment, press, focusedSegment, clearFocusCalls, type, setCaret};
 }
 
 describe('useDateSegmentInput', () => {
@@ -155,28 +163,78 @@ describe('useDateSegmentInput', () => {
             // Then it starts the month over instead of being added to what was there
             expect(read()).toBe('2026-04-15');
         });
+
+        it('replaces only the selected digit when one is typed over', () => {
+            // Given the last digit of the year selected, which only the input itself knows about
+            const {focusSegment, read, press, elements} = setup({value: '1990-11-28'});
+            focusSegment('year');
+            elements.year.selectionStart = 3;
+            elements.year.selectionEnd = 4;
+
+            // When a digit is typed
+            press('year', '1');
+
+            // Then it takes that digit's place, rather than starting the year over
+            expect(read()).toBe('1991-11-28');
+
+            // Then the caret is left after what was typed, so the next digit carries on from there
+            expect(elements.year.setSelectionRange).toHaveBeenCalledWith(4, 4);
+        });
     });
 
     describe('moving between segments', () => {
         it('moves one segment at a time with the arrows and stops at either end', () => {
-            // Given the caret on the month
-            const {focusSegment, press, focusedSegment, clearFocusCalls} = setup({value: '2026-09-15'});
+            // Given the caret against the right hand edge of the month, so the next digit is in the segment beside it
+            const {focusSegment, press, focusedSegment, clearFocusCalls, setCaret} = setup({value: '2026-09-15'});
             focusSegment('month');
+            setCaret('month', 2);
 
             // When the right arrow is pressed
             clearFocusCalls();
             press('month', CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey);
             expect(focusedSegment()).toBe('day');
 
-            // Then pressing it again at the last segment stays there rather than leaving the field
+            // Then pressing it again at the end of the last segment stays there rather than leaving the field
             clearFocusCalls();
+            setCaret('day', 2);
             press('day', CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey);
             expect(focusedSegment()).toBe('day');
 
-            // And the left arrow walks back the same way
+            // And the left arrow walks back the same way once the caret reaches the other edge
             clearFocusCalls();
+            setCaret('day', 0);
             press('day', CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey);
             expect(focusedSegment()).toBe('month');
+        });
+
+        it('leaves the caret to the input while it is still moving between the digits of one segment', () => {
+            // Given the caret between the digits of the day
+            const {focusSegment, press, focusedSegment, clearFocusCalls, setCaret} = setup({value: '2026-09-15'});
+            focusSegment('day');
+            setCaret('day', 1);
+
+            // When the left arrow is pressed, which has a digit to move over before it reaches the month
+            clearFocusCalls();
+            const wasHandled = press('day', CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey);
+
+            // Then the keystroke is left alone, so the input moves its own caret the one digit
+            expect(wasHandled).toBe(false);
+            expect(focusedSegment()).toBeUndefined();
+        });
+
+        it('lets a selection be extended within a segment rather than moving focus', () => {
+            // Given the caret before the first digit of the year
+            const {focusSegment, press, focusedSegment, clearFocusCalls, setCaret} = setup({value: '1990-05-15'});
+            focusSegment('year');
+            setCaret('year', 0);
+
+            // When the right arrow is pressed with shift held, which asks for that digit to be selected
+            clearFocusCalls();
+            const wasHandled = press('year', CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey, {shiftKey: true});
+
+            // Then the input is left to select it, rather than focus moving to the month where nothing would be selected
+            expect(wasHandled).toBe(false);
+            expect(focusedSegment()).toBeUndefined();
         });
 
         it('reports only the keystroke that carries focus out of the field', () => {
@@ -281,6 +339,62 @@ describe('useDateSegmentInput', () => {
 
             // Then the digit that was not selected stays
             expect(read()).toBe('2026-01-15');
+        });
+
+        it('takes off the digit the caret is behind rather than the last one', () => {
+            // Given a whole date with the caret partway through the year
+            const {focusSegment, read, press, setCaret} = setup({value: '2026-09-15'});
+            focusSegment('year');
+            setCaret('year', 2);
+
+            // When backspace is pressed
+            press('year', CONST.KEYBOARD_SHORTCUTS.BACKSPACE.shortcutKey);
+
+            // Then the digit before the caret goes, the way it does in any text field
+            expect(read()).toBe('226-09-15');
+        });
+
+        it('moves back out of a segment the caret is already at the start of', () => {
+            // Given the caret before the first digit of the day, which backspace reaches past
+            const {focusSegment, read, press, focusedSegment, clearFocusCalls, setCaret} = setup({value: '2026-09-15'});
+            focusSegment('day');
+            setCaret('day', 0);
+
+            // When backspace is pressed
+            clearFocusCalls();
+            press('day', CONST.KEYBOARD_SHORTCUTS.BACKSPACE.shortcutKey);
+
+            // Then the day keeps its digits, since the key reached past them, and the caret moves back a segment
+            expect(read()).toBe('2026-09-15');
+            expect(focusedSegment()).toBe('month');
+        });
+
+        it('takes out the digit in front of the caret on delete', () => {
+            // Given the caret before the first digit of the day
+            const {focusSegment, read, press, setCaret} = setup({value: '2026-11-28'});
+            focusSegment('day');
+            setCaret('day', 0);
+
+            // When delete is pressed, which reaches the other way to backspace
+            press('day', CONST.KEYBOARD_SHORTCUTS.DELETE.shortcutKey);
+
+            // Then the digit the caret is in front of goes, rather than the last one in the segment
+            expect(read()).toBe('2026-11-08');
+        });
+
+        it('leaves the date alone on delete at the end of a segment', () => {
+            // Given the caret after the last digit of the day, which delete reaches past
+            const {focusSegment, read, press, focusedSegment, clearFocusCalls, setCaret} = setup({value: '2026-11-28'});
+            focusSegment('day');
+            setCaret('day', 2);
+
+            // When delete is pressed
+            clearFocusCalls();
+            press('day', CONST.KEYBOARD_SHORTCUTS.DELETE.shortcutKey);
+
+            // Then nothing is taken out and the caret stays where the user put it
+            expect(read()).toBe('2026-11-28');
+            expect(focusedSegment()).toBeUndefined();
         });
 
         it('leaves an empty segment by moving back to the one before it', () => {
@@ -474,6 +588,41 @@ describe('useDateSegmentInput', () => {
             expect(read()).toBe('202--');
         });
 
+        it('reports an unusable entry to whoever is saving outside a form', () => {
+            // Given a date the user typed past, leaving the day on a number that month does not have
+            const {focusSegment, type, result, onCommit} = setup({value: '2026-11-12'});
+            focusSegment('day');
+            type('day', '13');
+            type('day', '31');
+
+            // When focus leaves the field
+            let wasLeftUnusable = false;
+            act(() => {
+                wasLeftUnusable = result.current.onFieldBlur();
+            });
+
+            // Then leaving is reported as unusable, so the date reported on the way there is not saved as the answer
+            expect(wasLeftUnusable).toBe(true);
+            expect(onCommit).toHaveBeenLastCalledWith('2026-11-13');
+            expect(result.current.hasInvalidEntry).toBe(true);
+        });
+
+        it('reports a usable entry as one worth saving', () => {
+            // Given a date the user finished
+            const {focusSegment, type, result} = setup({value: '2026-11-12'});
+            focusSegment('day');
+            type('day', '13');
+
+            // When focus leaves the field
+            let wasLeftUnusable = true;
+            act(() => {
+                wasLeftUnusable = result.current.onFieldBlur();
+            });
+
+            // Then nothing objects to what was left behind
+            expect(wasLeftUnusable).toBe(false);
+        });
+
         it('shows the committed date again once a usable entry is left', () => {
             // Given a date that was entered in full
             const {focusSegment, type, press, result} = setup();
@@ -562,19 +711,41 @@ describe('useDateSegmentInput', () => {
     });
 
     describe('arrow keys held with a modifier', () => {
-        it('carries the caret to the start of the date rather than one segment back', () => {
+        it('carries the caret to the start of the date', () => {
             // Given a field holding a whole date, which the user is at the end of
             const {press, elements} = setup({value: '1990-05-15'});
 
             // When the caret is sent left the way a text field is asked for the start of the line
-            press('day', CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey, {altKey: true});
+            press('day', CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey, {metaKey: true});
 
-            // Then it reaches the year, rather than stopping at the month as an unmodified arrow would
+            // Then it reaches the year, rather than stopping at the month as an arrow over one segment would
             expect(elements.year.focus).toHaveBeenCalled();
             expect(elements.month.focus).not.toHaveBeenCalled();
 
             // Then it rests before the first digit, which is where the start of the line is
             expect(elements.year.setSelectionRange).toHaveBeenCalledWith(0, 0);
+        });
+
+        it('carries the caret over one segment at a time while alt is held', () => {
+            // Given the caret between the digits of the day, which alt steps over the way it steps over a word
+            const {focusSegment, press, elements, clearFocusCalls, setCaret} = setup({value: '1990-05-15'});
+            focusSegment('day');
+            setCaret('day', 1);
+
+            // When the caret is sent left
+            clearFocusCalls();
+            press('day', CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey, {altKey: true});
+
+            // Then it rests at the start of the day rather than carrying on into the month
+            expect(elements.day.setSelectionRange).toHaveBeenCalledWith(0, 0);
+            expect(elements.month.focus).not.toHaveBeenCalled();
+
+            // Then sending it left again from that edge reaches the month, the way a second alt press reaches the word before
+            clearFocusCalls();
+            setCaret('day', 0);
+            press('day', CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey, {altKey: true});
+            expect(elements.month.focus).toHaveBeenCalled();
+            expect(elements.year.focus).not.toHaveBeenCalled();
         });
 
         it('carries the caret to the end of the date', () => {
