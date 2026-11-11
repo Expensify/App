@@ -33,7 +33,15 @@ type SegmentElement = {
 };
 
 function createElement(value = ''): SegmentElement {
-    return {focus: jest.fn(), setSelectionRange: jest.fn(), value, selectionStart: null, selectionEnd: null};
+    const element: SegmentElement = {focus: jest.fn(), setSelectionRange: jest.fn(), value, selectionStart: null, selectionEnd: null};
+
+    // The hook reads the caret back from the element it put there, so the stand-in has to remember it
+    element.setSelectionRange = jest.fn((start: number, end: number) => {
+        element.selectionStart = start;
+        element.selectionEnd = end;
+    });
+
+    return element;
 }
 
 function createKeyEvent(key: string, modifiers: {metaKey?: boolean; shiftKey?: boolean; altKey?: boolean} = {}) {
@@ -99,12 +107,15 @@ function setup({value = '', isEnabled = true}: SetupOptions = {}) {
     };
 
     /** Puts the caret where the browser would after a click, which is what a plain arrow moves a digit at a time */
+    /** Where the hook left the caret inside one segment, which is what an edit part way through a segment is read against */
+    const caret = (name: DateSegmentName) => elements[name].selectionStart;
+
     const setCaret = (name: DateSegmentName, start: number, end = start) => {
         elements[name].selectionStart = start;
         elements[name].selectionEnd = end;
     };
 
-    return {result, rerender, onCommit, onLeaveByKeyboard, elements, read, focusSegment, press, focusedSegment, clearFocusCalls, type, setCaret};
+    return {result, rerender, onCommit, onLeaveByKeyboard, elements, read, focusSegment, press, focusedSegment, clearFocusCalls, type, setCaret, caret};
 }
 
 describe('useDateSegmentInput', () => {
@@ -183,6 +194,21 @@ describe('useDateSegmentInput', () => {
     });
 
     describe('moving between segments', () => {
+        it('collapses a selection against the edge the arrow points to at the start of the date', () => {
+            // Given the whole year selected inside its own input, which only the input knows about
+            const {focusSegment, press, focusedSegment, clearFocusCalls, setCaret} = setup({value: '2026-09-15'});
+            focusSegment('year');
+            setCaret('year', 0, 4);
+
+            // When the left arrow is pressed, with no segment before the year for it to reach
+            clearFocusCalls();
+            const wasHandled = press('year', CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey);
+
+            // Then the input is left to answer it, so the caret collapses to the start rather than jumping to the end
+            expect(wasHandled).toBe(false);
+            expect(focusedSegment()).toBeUndefined();
+        });
+
         it('moves one segment at a time with the arrows and stops at either end', () => {
             // Given the caret against the right hand edge of the month, so the next digit is in the segment beside it
             const {focusSegment, press, focusedSegment, clearFocusCalls, setCaret} = setup({value: '2026-09-15'});
@@ -194,11 +220,11 @@ describe('useDateSegmentInput', () => {
             press('month', CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey);
             expect(focusedSegment()).toBe('day');
 
-            // Then pressing it again at the end of the last segment stays there rather than leaving the field
+            // Then pressing it again at the end of the last segment is left to the input, which keeps the caret there
             clearFocusCalls();
             setCaret('day', 2);
-            press('day', CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey);
-            expect(focusedSegment()).toBe('day');
+            expect(press('day', CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey)).toBe(false);
+            expect(focusedSegment()).toBeUndefined();
 
             // And the left arrow walks back the same way once the caret reaches the other edge
             clearFocusCalls();
@@ -343,15 +369,16 @@ describe('useDateSegmentInput', () => {
 
         it('takes off the digit the caret is behind rather than the last one', () => {
             // Given a whole date with the caret partway through the year
-            const {focusSegment, read, press, setCaret} = setup({value: '2026-09-15'});
+            const {focusSegment, read, press, setCaret, caret} = setup({value: '2026-09-15'});
             focusSegment('year');
             setCaret('year', 2);
 
             // When backspace is pressed
             press('year', CONST.KEYBOARD_SHORTCUTS.BACKSPACE.shortcutKey);
 
-            // Then the digit before the caret goes, the way it does in any text field
+            // Then the digit before the caret goes and the caret takes its place, so holding the key keeps moving back
             expect(read()).toBe('226-09-15');
+            expect(caret('year')).toBe(1);
         });
 
         it('moves back out of a segment the caret is already at the start of', () => {
@@ -367,6 +394,35 @@ describe('useDateSegmentInput', () => {
             // Then the day keeps its digits, since the key reached past them, and the caret moves back a segment
             expect(read()).toBe('2026-09-15');
             expect(focusedSegment()).toBe('month');
+        });
+
+        it('empties a zero padded segment rather than taking its padding for a digit', () => {
+            // Given the caret after the day, whose two digits are the only ones the user typed
+            const {focusSegment, read, press, setCaret} = setup({value: '2026-09-15'});
+            focusSegment('day');
+            setCaret('day', 2);
+
+            // When backspace is pressed once for each digit
+            press('day', CONST.KEYBOARD_SHORTCUTS.BACKSPACE.shortcutKey);
+            press('day', CONST.KEYBOARD_SHORTCUTS.BACKSPACE.shortcutKey);
+
+            // Then the day is empty, since the zero it shows while one digit is left is not a digit to take out
+            expect(read()).toBe('2026-09-');
+        });
+
+        it('leaves the caret alone on backspace at the start of the date', () => {
+            // Given the caret before the first digit of the year, which has no segment before it to fall back to
+            const {focusSegment, read, press, focusedSegment, clearFocusCalls, setCaret} = setup({value: '2026-09-15'});
+            focusSegment('year');
+            setCaret('year', 0);
+
+            // When backspace is pressed
+            clearFocusCalls();
+            press('year', CONST.KEYBOARD_SHORTCUTS.BACKSPACE.shortcutKey);
+
+            // Then the date is kept and the caret is left where it is, so holding the key does not eat the year
+            expect(read()).toBe('2026-09-15');
+            expect(focusedSegment()).toBeUndefined();
         });
 
         it('takes out the digit in front of the caret on delete', () => {
@@ -586,6 +642,28 @@ describe('useDateSegmentInput', () => {
             // Then the digits stay, with the field reporting that they cannot be used
             expect(result.current.hasInvalidEntry).toBe(true);
             expect(read()).toBe('202--');
+        });
+
+        it('empties an unusable entry on the first press of the clear button', () => {
+            // Given an entry left holding digits that do not add up to a date, which the field keeps on screen
+            const {focusSegment, type, result, read} = setup({value: ''});
+            focusSegment('year');
+            type('year', '2023');
+            type('month', '02');
+            type('day', '31');
+            act(() => {
+                result.current.onFieldBlur();
+            });
+            expect(result.current.hasInvalidEntry).toBe(true);
+
+            // When the clear button is pressed, which hands focus back to the field within the same press
+            act(() => {
+                result.current.onClear();
+                result.current.getSegmentProps('year').onFocus();
+            });
+
+            // Then the entry is gone, rather than resumed by the focus the press itself caused
+            expect(read()).toBe('--');
         });
 
         it('reports an unusable entry to whoever is saving outside a form', () => {
