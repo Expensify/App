@@ -49,6 +49,7 @@ import type {
     SearchGroupBy,
     SearchPaidStatus,
     SearchQueryJSON,
+    SearchQueryString,
     SearchSortBy,
     SearchTextFilterKeys,
     SearchView,
@@ -4747,6 +4748,25 @@ function getCustomColumns(value?: SearchDataTypes | SearchGroupBy): SearchCustom
     }
 }
 
+/** Whether users can pick and reorder the columns of a search of this type. A trip search shows expenses unless it returns trip rooms, and only the rooms table has columns to pick. */
+function canEditSearchColumns(type: SearchDataTypes, shouldReturnTripRooms: boolean): boolean {
+    return (type !== CONST.SEARCH.DATA_TYPES.TRIP || shouldReturnTripRooms) && getCustomColumns(type).length > 0;
+}
+
+/**
+ * Columns users can't remove. At least one column has to flex for the table to lay out, and the totals make sense in
+ * every expense table, so they always stay. A search filtering by violations also keeps the column showing them.
+ */
+function getRequiredSearchColumns(shouldRequireViolationsColumn: boolean): Set<SearchCustomColumnIds> {
+    const requiredColumns = new Set<SearchCustomColumnIds>([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL, ...Object.values(groupByRequiredColumns).flat()]);
+
+    if (shouldRequireViolationsColumn) {
+        requiredColumns.add(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+    }
+
+    return requiredColumns;
+}
+
 function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): SearchCustomColumnIds[] {
     switch (value) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
@@ -8014,6 +8034,11 @@ function navigateToSearchRHP(route: {route: string; getRoute: (backTo?: string) 
     }
 }
 
+/** Reloads the current search with a new set of columns. Only the columns change, so it's still the same search: the key carries over rather than being re-derived from the new query. */
+function navigateToSearchWithColumns(query: SearchQueryString, searchKey: SearchKey | undefined) {
+    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, searchKey}), {forceReplace: true});
+}
+
 type CanChangeWorkspaceOfSearchReportParams = {
     report: OnyxEntry<OnyxTypes.Report>;
     /** The report in Onyx, which an export after the search updates while the search results keep the old flag */
@@ -8333,9 +8358,11 @@ export {
     getGroupTableScrollLayout,
     getCustomColumns,
     getCustomColumnDefault,
+    canEditSearchColumns,
+    getRequiredSearchColumns,
     filterValidHasValues,
-    groupByRequiredColumns,
     navigateToSearchRHP,
+    navigateToSearchWithColumns,
     shouldShowDeleteOption,
     getToFieldValueForTransaction,
     getSearchReportAvatarProps,
