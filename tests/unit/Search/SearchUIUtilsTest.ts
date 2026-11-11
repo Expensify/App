@@ -3299,6 +3299,76 @@ describe('SearchUIUtils', () => {
             expect(exportedTransaction?.exportedTo).toBe(`${CONST.REPORT.EXPORT_OPTION_LABELS.DEFAULT_CSV}, ${CONST.EXPORT_LABELS.XERO}`);
         });
 
+        it('should fill formattedViolations from the positive has filter only, ignoring a negated one', () => {
+            // Given an expense whose report has a submit snapshot and an approve snapshot with different violations,
+            // and a query that includes approved violations but excludes submitted ones
+            const violationsReportID = 'formatted-violations-report';
+            const violationsTransactionID = 'formatted-violations-transaction';
+            const data = {
+                ...searchResults.data,
+                [`${ONYXKEYS.COLLECTION.REPORT}${violationsReportID}`]: {...report1, reportID: violationsReportID},
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${violationsTransactionID}`]: {
+                    ...searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`],
+                    transactionID: violationsTransactionID,
+                    reportID: violationsReportID,
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${violationsReportID}`]: {
+                    submitted: {
+                        accountID: adminAccountID,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                        created: '2024-12-21 13:05:20',
+                        message: [],
+                        reportActionID: 'submitted',
+                        reportID: violationsReportID,
+                        originalMessage: {
+                            amount: 1000,
+                            currency: CONST.CURRENCY.USD,
+                            violations: {transactions: {[violationsTransactionID]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}]}},
+                        },
+                    },
+                    approved: {
+                        accountID: adminAccountID,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                        created: '2024-12-22 13:05:20',
+                        message: [],
+                        reportActionID: 'approved',
+                        reportID: violationsReportID,
+                        originalMessage: {
+                            amount: 1000,
+                            currency: CONST.CURRENCY.USD,
+                            expenseReportID: violationsReportID,
+                            violations: {transactions: {[violationsTransactionID]: [{name: CONST.VIOLATIONS.OVER_LIMIT}, {name: CONST.VIOLATIONS.MISSING_COMMENT}]}},
+                        },
+                    },
+                },
+            } as OnyxTypes.SearchResults['data'];
+            const queryJSON = buildSearchQueryJSON(`type:expense has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION} -has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+
+            // When the expense rows are built for that query
+            const result = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data,
+                    currentAccountID: adminAccountID,
+                    currentUserEmail: adminEmail,
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    queryJSON,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                }),
+                SearchUIUtils.isTransactionListItemType,
+            )[0];
+            const violationsTransaction = result.find((item) => item.transactionID === violationsTransactionID);
+
+            // Then only the approve-stage labels are listed alphabetically, so the sort key matches the cell for this query
+            expect(violationsTransaction?.formattedViolations).toBe(`${translateLocal('violations.shortName.missingComment')}, ${translateLocal('violations.shortName.overLimit')}`);
+        });
+
         it('should return getReportSections result when type is EXPENSE REPORT', async () => {
             // canApproveIOU reads the Onyx session accountID, not getSections' currentAccountID; merge admin so
             // this test matches the fixture when run in isolation (without earlier getAction tests that set session).
