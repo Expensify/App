@@ -22,6 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearCompanyCardErrorField, resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
 import {renameCompanyCardInline} from '@libs/actions/Policy/InlineEdit';
 import {formatMaskedCardName, getCompanyCardCustomName, getDefaultCardName} from '@libs/CardUtils';
+import DateUtils from '@libs/DateUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import showInlineEditError from '@libs/showInlineEditError';
@@ -323,7 +324,9 @@ function WorkspaceCompanyCardsTable({
                       } else if (hasLastScrape) {
                           // Same abbreviation as the Spend date column, with the details page timestamp in the tooltip.
                           const isPastYear = lastScrapeDate.getFullYear() !== currentLocalYear;
-                          lastUpdatedText = format(lastScrapeDate, isPastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT, {locale: dateFnsLocale});
+                          lastUpdatedText = isPastYear
+                              ? format(lastScrapeDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, {locale: dateFnsLocale})
+                              : DateUtils.formatToMonthDay(lastScrapeDate, dateFnsLocale);
                           lastUpdatedTooltip = format(lastScrapeDate, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
                       } else {
                           lastUpdatedText = translate('workspace.moreFeatures.companyCards.neverUpdated');
