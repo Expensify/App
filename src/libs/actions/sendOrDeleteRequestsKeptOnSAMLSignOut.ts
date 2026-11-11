@@ -11,25 +11,26 @@ import Onyx from 'react-native-onyx';
 
 import {getAllIncludingOngoing as getAllPersistedRequestsIncludingOngoing, getClientRequestIndex, save as savePersistedRequest} from './PersistedRequests';
 
-function sendOrDeleteRequestsKeptOnSAMLSignOut(requestsKeptOnSAMLSignOut: RequestsKeptOnSAMLSignOut, accountID: number) {
+function sendOrDeleteRequestsKeptOnSAMLSignOut(requestsKeptOnSAMLSignOut: RequestsKeptOnSAMLSignOut, accountID: number): Promise<void> {
     if (requestsKeptOnSAMLSignOut.accountID !== accountID) {
         Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {});
-        Onyx.set(ONYXKEYS.REQUESTS_KEPT_ON_SAML_SIGN_OUT, null);
-        return;
+        return Onyx.set(ONYXKEYS.REQUESTS_KEPT_ON_SAML_SIGN_OUT, null);
     }
 
     // Another tab may have put them back already, and sending one twice could create it twice.
     const queuedRequestIndexes = new Set(getAllPersistedRequestsIncludingOngoing().map(getClientRequestIndex));
-    for (const request of requestsKeptOnSAMLSignOut.requests) {
-        const requestIndex = getClientRequestIndex(request);
-        if (requestIndex !== undefined && queuedRequestIndexes.has(requestIndex)) {
-            continue;
-        }
-        savePersistedRequest(request);
-    }
+    const saves = requestsKeptOnSAMLSignOut.requests
+        .filter((request) => {
+            const requestIndex = getClientRequestIndex(request);
+            return requestIndex === undefined || !queuedRequestIndexes.has(requestIndex);
+        })
+        .map((request) => savePersistedRequest(request));
 
-    Onyx.set(ONYXKEYS.REQUESTS_KEPT_ON_SAML_SIGN_OUT, null);
-    flush();
+    // The set-aside copy is the only one until the queue is saved to storage
+    return Promise.all(saves).then(() => {
+        Onyx.set(ONYXKEYS.REQUESTS_KEPT_ON_SAML_SIGN_OUT, null);
+        flush();
+    });
 }
 
 export default sendOrDeleteRequestsKeptOnSAMLSignOut;
