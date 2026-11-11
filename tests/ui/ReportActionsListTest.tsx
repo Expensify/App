@@ -895,7 +895,7 @@ describe('ReportActionsList (body)', () => {
         renderReportActionsList();
 
         expect(getCapturedListProps()?.maintainScrollAtEnd).toBe(false);
-        expect(getCapturedListProps()?.maintainVisibleContentPosition).toBe(true);
+        expect(getCapturedListProps()?.maintainVisibleContentPosition).toEqual({data: true, size: true, anchor: 'end'});
     });
 
     it('remounts the list when the initial report actions finish hydrating', async () => {
