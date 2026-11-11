@@ -3296,18 +3296,23 @@ function getAllMatchingExportQueryAndExclusions(
 }
 
 /** Builds the query and the deselected expenses to send to the backend for a "Select all" bulk action on expenses. */
-function getAllMatchingExpenseActionQuery(queryJSON: SearchQueryJSON | undefined, excludedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined) {
+function getAllMatchingExpenseActionQuery(
+    queryJSON: SearchQueryJSON | undefined,
+    excludedTransactions: SelectedTransactions,
+    searchData: SearchResultDataType | undefined,
+    searchKey: SearchKey | undefined,
+) {
     if (!queryJSON) {
         return undefined;
     }
     // A Reports search acts on every expense in each matching report, so a deselected expense leaves out its whole report.
     if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
         const reportQuery = getAllMatchingReportQuery(queryJSON, excludedTransactions);
-        return reportQuery ? {jsonQuery: serializeQueryJSONForBackend(reportQuery), excludedTransactionIDList: []} : undefined;
+        return reportQuery ? {jsonQuery: serializeQueryJSONForBackend({...reportQuery, searchKey}), excludedTransactionIDList: []} : undefined;
     }
 
     const expenseQuery = getAllMatchingExportQueryAndExclusions(queryJSON, excludedTransactions, searchData);
-    return expenseQuery ? {jsonQuery: serializeQueryJSONForBackend(expenseQuery.queryJSON), excludedTransactionIDList: expenseQuery.excludedTransactionIDList} : undefined;
+    return expenseQuery ? {jsonQuery: serializeQueryJSONForBackend({...expenseQuery.queryJSON, searchKey}), excludedTransactionIDList: expenseQuery.excludedTransactionIDList} : undefined;
 }
 
 function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: QueryFilterKey, filterValue: string | number): SearchQueryJSON | undefined {

@@ -3002,7 +3002,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
 
                 if (areAllMatchingItemsSelected) {
-                    queueBulkExpenseAction(CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD, getAllMatchingExpenseActionQuery(queryJSON, excludedTransactions, currentSearchResults?.data));
+                    queueBulkExpenseAction(
+                        CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD,
+                        getAllMatchingExpenseActionQuery(queryJSON, excludedTransactions, currentSearchResults?.data, currentSearchKey),
+                    );
                     clearSelectedTransactions();
                     return;
                 }
@@ -3127,7 +3130,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 allMatchingOptions.push(payButtonOption);
             }
             // A deselected group that can't be turned into a filter, like a date group, can't be left out of the query.
-            const canQueueExpenseAction = !isOffline && !!getAllMatchingExpenseActionQuery(queryJSON, excludedTransactions, currentSearchResults?.data);
+            const canQueueExpenseAction = !isOffline && !!getAllMatchingExpenseActionQuery(queryJSON, excludedTransactions, currentSearchResults?.data, currentSearchKey);
             // The backend only rejects expenses on reports the user can reject, so one loaded item is enough to offer it.
             if (isExpenseType && canQueueExpenseAction && selectedTransactionsKeys.some((id) => selectedTransactions[id].canReject)) {
                 allMatchingOptions.push(rejectOption);

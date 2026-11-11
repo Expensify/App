@@ -4,6 +4,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import {queueBulkExpenseAction} from '@libs/actions/Search';
+import type {SearchKey} from '@libs/SearchKeyUtils';
 
 import SearchHoldReasonPage from '@pages/Search/SearchHoldReasonPage';
 
@@ -33,6 +34,7 @@ let mockAreAllMatchingItemsSelected = false;
 let mockSubmitHoldReason: ((values: {comment: string}) => void) | undefined;
 let mockEnabledWhenOffline: boolean | undefined;
 
+let mockSearchKey: SearchKey | undefined;
 jest.mock('@pages/iou/HoldReasonFormView', () => {
     function MockHoldReasonFormView({onSubmit, enabledWhenOffline}: {onSubmit: (values: {comment: string}) => void; enabledWhenOffline?: boolean}) {
         mockSubmitHoldReason = onSubmit;
@@ -42,7 +44,7 @@ jest.mock('@pages/iou/HoldReasonFormView', () => {
     return MockHoldReasonFormView;
 });
 jest.mock('@components/Search/SearchContext', () => ({
-    useSearchQueryContext: () => ({currentSearchQueryJSON: mockQueryJSON}),
+    useSearchQueryContext: () => ({currentSearchKey: mockSearchKey, currentSearchQueryJSON: mockQueryJSON}),
     useSearchResultsContext: () => ({currentSearchResults: undefined}),
     useSearchSelectionActions: () => ({clearSelectedTransactions: mockClearSelectedTransactions}),
     useSearchSelectionContext: () => ({
@@ -84,7 +86,22 @@ describe('SearchHoldReasonPage', () => {
         jest.clearAllMocks();
         mockSubmitHoldReason = undefined;
         mockEnabledWhenOffline = undefined;
+        mockSearchKey = undefined;
         await Onyx.clear();
+    });
+
+    it('sends the search key with the query, so the backend holds the same expenses the search shows', async () => {
+        // Given "Select all" on the unapproved cash search, which only shows cash expenses
+        mockSearchKey = CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH;
+        renderPage(true);
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user submits a reason
+        mockSubmitHoldReason?.({comment: 'needs a receipt'});
+
+        // Then the query sent to the backend keeps that search key
+        const [, allMatchingQuery] = jest.mocked(queueBulkExpenseAction).mock.calls.at(0) ?? [];
+        expect(JSON.parse(allMatchingQuery?.jsonQuery ?? '{}')).toMatchObject({searchKey: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH});
     });
 
     it('hands the search to the backend when Select all is checked', async () => {

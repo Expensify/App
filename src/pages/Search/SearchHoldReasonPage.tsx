@@ -46,7 +46,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.HOLD_TRANSACTIONS.path);
     const backTo = isBulkHold ? dynamicBackPath : route.params.backTo;
     const {selectedTransactionIDs, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
-    const {currentSearchQueryJSON} = useSearchQueryContext();
+    const {currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchResults} = useSearchResultsContext();
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
@@ -95,7 +95,11 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             return;
         }
         if (shouldQueueOnServer) {
-            queueBulkExpenseAction(CONST.SEARCH.BULK_ACTION_TYPES.HOLD, getAllMatchingExpenseActionQuery(currentSearchQueryJSON, excludedTransactions, currentSearchResults?.data), comment);
+            queueBulkExpenseAction(
+                CONST.SEARCH.BULK_ACTION_TYPES.HOLD,
+                getAllMatchingExpenseActionQuery(currentSearchQueryJSON, excludedTransactions, currentSearchResults?.data, currentSearchKey),
+                comment,
+            );
             clearSelectedTransactions();
         } else if (isBulkHold) {
             putTransactionsOnHold({

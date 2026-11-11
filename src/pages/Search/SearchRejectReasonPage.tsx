@@ -35,7 +35,7 @@ type SearchRejectReasonPageProps =
 
 function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
     const {selectedTransactionIDs, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
-    const {currentSearchHash, currentSearchQueryJSON} = useSearchQueryContext();
+    const {currentSearchHash, currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {reportID} = route.params ?? {};
@@ -80,7 +80,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
         if (shouldQueueOnServer) {
             queueBulkExpenseAction(
                 CONST.SEARCH.BULK_ACTION_TYPES.REJECT,
-                getAllMatchingExpenseActionQuery(currentSearchQueryJSON, excludedTransactions, currentSearchResults?.data),
+                getAllMatchingExpenseActionQuery(currentSearchQueryJSON, excludedTransactions, currentSearchResults?.data, currentSearchKey),
                 comment,
             );
             clearSelectedTransactions();
