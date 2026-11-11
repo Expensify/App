@@ -21,6 +21,11 @@ type AccountIndicatorChecksResult = {
     infoStatus: IndicatorStatus | undefined;
 };
 
+/** Returns the status of the first check that matches, so the order of the checks sets their priority. */
+function getFirstMatchingStatus(checks: Array<[IndicatorStatus, boolean | undefined]>): IndicatorStatus | undefined {
+    return checks.find(([, value]) => value)?.[0];
+}
+
 function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
@@ -100,8 +105,8 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
         [CONST.INDICATOR_STATUS.HAS_WISE_MORE_INFO_NEEDED_INFO, wiseMoreInfoNeededBankAccounts.length > 0],
     ];
 
-    const accountStatus = accountChecks.find(([, value]) => value)?.[0];
-    const infoStatus = infoChecks.find(([, value]) => value)?.[0];
+    const accountStatus = getFirstMatchingStatus(accountChecks);
+    const infoStatus = getFirstMatchingStatus(infoChecks);
 
     return {
         accountStatus,
