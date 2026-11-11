@@ -17,10 +17,9 @@ import {shouldShowInitialCategoryFilterLoading} from '@hooks/useSearchFilterSync
 import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 
 import {close} from '@libs/actions/Modal';
-import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
-import {buildQueryStringWithResetFilters, hasFiltersChangedFromDefault, isSearchQuerySavable, removeNegation} from '@libs/SearchQueryUtils';
+import {isSearchQuerySavable, removeNegation} from '@libs/SearchQueryUtils';
 import {
     FILTER_VIEW_MAP,
     getFiltersFormWithTripRoomStatuses,
@@ -46,6 +45,7 @@ import type {ReactNode} from 'react';
 import React from 'react';
 
 import DatePickerFilterPopup from './DatePickerFilterPopup';
+import useSearchFiltersReset from './useSearchFiltersReset';
 
 type FilterItem = WithRequiredSentryLabel & {
     PopoverComponent: (props: PopoverComponentProps) => ReactNode;
@@ -235,22 +235,14 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
         }),
     );
 
-    const resetFilters = () => {
-        if (!currentSearchQueryJSON) {
-            return;
-        }
-
-        Navigation.setParams({q: buildQueryStringWithResetFilters(currentSearchQueryJSON, currentDefaultSearchQueryJSON), rawQuery: undefined});
-        setSearchContext(false);
-    };
+    const {canReset, resetFilters} = useSearchFiltersReset();
     const isCategoryFilterLoading = shouldShowInitialCategoryFilterLoading(queryJSON, areCategoriesLoaded, isLoadingCategories, isOffline);
-    const hasDefaultQuery = !!currentDefaultSearchQueryJSON && !!currentSearchQueryJSON;
 
     return {
         filters,
         hasErrors: Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline,
         shouldShowFiltersBarLoading: shouldShowFiltersBarLoading || isCategoryFilterLoading,
-        canReset: hasDefaultQuery ? hasFiltersChangedFromDefault(currentSearchQueryJSON, currentDefaultSearchQueryJSON) : filters.length > 0,
+        canReset,
         canSave: isSearchQuerySavable(currentSearchQueryJSON, currentDefaultSearchQueryJSON),
         resetFilters,
     };

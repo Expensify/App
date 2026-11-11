@@ -146,6 +146,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, isSelectab
             <View style={[styles.flexRow, styles.flexWrap, styles.gap2]}>
                 {!!onRetryReceiptUpload && (
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.DOT_INDICATOR_MESSAGE.RETRY_RECEIPT_UPLOAD}
                         size={CONST.BUTTON_SIZE.SMALL}
                         onPress={onRetryReceiptUpload}
                     >
@@ -154,6 +155,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, isSelectab
                     </Button>
                 )}
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.DOT_INDICATOR_MESSAGE.DOWNLOAD_RECEIPT}
                     size={CONST.BUTTON_SIZE.SMALL}
                     onPress={() => {
                         fileDownload(translate, receiptError.source, receiptError.filename);

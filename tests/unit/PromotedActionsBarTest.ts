@@ -15,7 +15,7 @@ jest.mock('@userActions/Report', () => ({
 }));
 
 jest.mock('@userActions/Session', () => ({
-    callFunctionIfActionIsAllowed: (fn: () => void) => fn,
+    callIfAuthenticated: (fn: () => void) => fn,
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({

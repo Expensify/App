@@ -74,7 +74,7 @@ import {
     isTimeRequest,
 } from '@libs/TransactionUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -258,7 +258,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     const shouldShowTaxDisabledAlert = !isTaxEnabled && !!splitExpenseDraftTransaction?.taxCode && !isSplitPerDiemRequest && !isSplitTimeRequest;
     const shouldShowTax = isTaxEnabled || shouldShowTaxDisabledAlert;
     const taxRatesDescription = effectivePolicy?.taxRates?.name;
-    const taxRateTitle = getTaxName(effectivePolicy, splitExpenseDraftTransaction);
+    const taxRateTitle = getTaxName(translate, effectivePolicy, splitExpenseDraftTransaction);
 
     const showTaxDisabledAlert = () => {
         showConfirmModal({
@@ -381,50 +381,46 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                 sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.EDIT_RATE_FIELD}
                 onPress={
                     isRateInteractive
-                        ? callFunctionIfActionIsAllowed(
-                              () => {
-                                  const rateRoute = createDynamicRoute(
-                                      DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(
-                                          CONST.IOU.ACTION.EDIT,
-                                          CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                          CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                          reportID,
+                        ? callIfAuthenticated(() => {
+                              const rateRoute = createDynamicRoute(
+                                  DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(
+                                      CONST.IOU.ACTION.EDIT,
+                                      CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                      CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                      reportID,
+                                  ),
+                              );
+
+                              // SelfDM split whose source workspace is gone and user has no other paid workspace:
+                              // mirror the selfDM track-expense Rate flow (MoneyRequestView) and route through the
+                              // IOU-level upgrade screen so the user can create a workspace, then a distance rate.
+                              // Use OPTIMISTIC_TRANSACTION_ID so the post-upgrade hop back into the rate step picks
+                              // up the same SPLIT_TRANSACTION_DRAFT this screen reads from (see line 57 above).
+                              if (isSelfDMSplit && !effectivePolicy && !hasAnyPaidWorkspace && reportID) {
+                                  Navigation.navigate(
+                                      createDynamicRoute(
+                                          DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                              action: CONST.IOU.ACTION.EDIT,
+                                              iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                              transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                              reportID,
+                                              upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
+                                          }),
                                       ),
                                   );
+                                  return;
+                              }
 
-                                  // SelfDM split whose source workspace is gone and user has no other paid workspace:
-                                  // mirror the selfDM track-expense Rate flow (MoneyRequestView) and route through the
-                                  // IOU-level upgrade screen so the user can create a workspace, then a distance rate.
-                                  // Use OPTIMISTIC_TRANSACTION_ID so the post-upgrade hop back into the rate step picks
-                                  // up the same SPLIT_TRANSACTION_DRAFT this screen reads from (see line 57 above).
-                                  if (isSelfDMSplit && !effectivePolicy && !hasAnyPaidWorkspace && reportID) {
-                                      Navigation.navigate(
-                                          createDynamicRoute(
-                                              DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                                  action: CONST.IOU.ACTION.EDIT,
-                                                  iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                                  transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                                  reportID,
-                                                  upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
-                                              }),
-                                          ),
-                                      );
-                                      return;
-                                  }
+                              // SelfDM split with paid workspaces but none is default/active paid (e.g. personal
+                              // is the active policy): open the workspace selector first — same UX as the parent
+                              // self-DM expense's Rate field in MoneyRequestView and the Category branch below.
+                              if (!effectivePolicy && shouldSelectPolicy) {
+                                  Navigation.navigate(ROUTES.SET_DEFAULT_WORKSPACE.getRoute(rateRoute));
+                                  return;
+                              }
 
-                                  // SelfDM split with paid workspaces but none is default/active paid (e.g. personal
-                                  // is the active policy): open the workspace selector first — same UX as the parent
-                                  // self-DM expense's Rate field in MoneyRequestView and the Category branch below.
-                                  if (!effectivePolicy && shouldSelectPolicy) {
-                                      Navigation.navigate(ROUTES.SET_DEFAULT_WORKSPACE.getRoute(rateRoute));
-                                      return;
-                                  }
-
-                                  Navigation.navigate(rateRoute);
-                              },
-                              false,
-                              session,
-                          )
+                              Navigation.navigate(rateRoute);
+                          }, session)
                         : undefined
                 }
             >
