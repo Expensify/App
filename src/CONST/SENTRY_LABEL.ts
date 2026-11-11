@@ -1265,6 +1265,9 @@ const SENTRY_LABEL = {
     REPORT_PICKER_MODAL: {
         BACK_BUTTON: 'ReportPickerModal-BackButton',
     },
+    REPORT_PICKER: {
+        NO_REPORT: 'ReportPicker-SelectNoReport',
+    },
     ATTENDEE_PICKER_MODAL: {
         BACK_BUTTON: 'AttendeePickerModal-BackButton',
     },
