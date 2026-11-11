@@ -12491,6 +12491,7 @@ const translations = {
                 title: 'Success!',
                 subtitle: 'Your card has been billed successfully.',
             },
+            retryBillingInProgress: 'Your payment is still processing. Please wait a moment and check your balance.',
             retryBillingError: {
                 title: 'Your card couldn’t be charged',
                 subtitle: 'Before retrying, please call your bank directly to authorize Expensify charges and remove any holds. Otherwise, try adding a different payment card.',

@@ -1,6 +1,7 @@
 import FailureTracking from './FailureTracking';
 import FraudMonitoring from './FraudMonitoring';
 import GlobalReimbursementPayError from './GlobalReimbursementPayError';
+import HandleBalancePaymentInProgress from './HandleBalancePaymentInProgress';
 import handleDeletedAccount from './HandleDeletedAccount';
 import HandleMovedScanFailedExpenses from './HandleMovedScanFailedExpenses';
 import HandleUnusedOptimisticID from './HandleUnusedOptimisticID';
@@ -18,6 +19,7 @@ import SentryServerTiming from './SentryServerTiming';
 import SupportalPermission from './SupportalPermission';
 
 export {
+    HandleBalancePaymentInProgress,
     ReplaceOptimisticAgentAccountID,
     HandleMovedScanFailedExpenses,
     HandleUnusedOptimisticID,

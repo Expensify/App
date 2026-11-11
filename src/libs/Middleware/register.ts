@@ -1,6 +1,7 @@
 import {addMiddleware} from '@libs/Request';
 
 import {
+    HandleBalancePaymentInProgress,
     MembersNeedCategoryError,
     FailureTracking,
     FraudMonitoring,
@@ -60,6 +61,9 @@ function registerMiddlewares() {
 
     // Show the "Cannot disable category" modal when the backend rejects disabling categories some members can't do without.
     addMiddleware(MembersNeedCategoryError);
+
+    // Handle the balance retry before SaveResponseInOnyx applies its failure data.
+    addMiddleware(HandleBalancePaymentInProgress);
 
     // If an optimistic ID is not used by the server, this will update the remaining serialized requests using that optimistic ID to use the correct ID instead.
     addMiddleware(HandleUnusedOptimisticID);
