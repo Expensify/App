@@ -1236,14 +1236,6 @@ Onyx.connectWithoutView({
     },
 });
 
-let rejectedExpenseReports: OnyxCollection<boolean> = {};
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.RAM_ONLY_REJECTED_EXPENSE_REPORT,
-    callback: (value) => {
-        rejectedExpenseReports = value ?? {};
-    },
-});
-
 let allReportNameValuePair: OnyxCollection<ReportNameValuePairs>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
@@ -3267,10 +3259,6 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, rules
     return true;
 }
 
-function isExpenseReportRejected(reportID: string | undefined): boolean {
-    return !!reportID && !!rejectedExpenseReports[`${ONYXKEYS.COLLECTION.RAM_ONLY_REJECTED_EXPENSE_REPORT}${reportID}`];
-}
-
 /**
  * Checks whether the supplied report supports adding more transactions to it.
  * Return true if:
@@ -3293,10 +3281,6 @@ function canAddTransaction(
     // A bill mirrors the vendor's invoice, so its expenses come only from that invoice.
     // isMoneyRequestReport excludes bills today. This check keeps bills blocked once bills count as expense reports.
     if (isBillReport(moneyRequestReport) || !isMoneyRequestReport(moneyRequestReport)) {
-        return false;
-    }
-
-    if (isExpenseReportRejected(moneyRequestReport?.reportID)) {
         return false;
     }
 
@@ -15948,7 +15932,6 @@ export {
     canAccessReport,
     isReportNotFound,
     canAddTransaction,
-    isExpenseReportRejected,
     shouldShowAddExpenseAction,
     canDuplicateExpenseIntoSourceReport,
     canDeleteTransaction,

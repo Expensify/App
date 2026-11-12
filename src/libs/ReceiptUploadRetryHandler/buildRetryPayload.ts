@@ -1,7 +1,7 @@
 /** Decides whether a failed receipt upload can be retried and rebuilds its `RequestMoney` call from Onyx. */
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import {getAllReportActions, isCreatedAction} from '@libs/ReportActionsUtils';
-import {getTransactionDetails, isExpenseReportRejected, isMoneyRequestReport} from '@libs/ReportUtils';
+import {getTransactionDetails, isMoneyRequestReport} from '@libs/ReportUtils';
 import {getIsFromGlobalCreate, isDistanceRequest, isPerDiemRequest, isTimeRequest} from '@libs/TransactionUtils';
 
 import {getAllPersonalDetails, getAllReports, getAllTransactionViolations} from '@userActions/IOU';
@@ -108,11 +108,6 @@ function canBuildRetryPayload(context: ReceiptRetryContext): boolean {
     if (receiptError.action !== CONST.IOU.ACTION_PARAMS.MONEY_REQUEST || wouldOverwriteReportWithExpense) {
         return false;
     }
-
-    if (isExpenseReportRejected(iouReport?.reportID)) {
-        return false;
-    }
-
     return isRetryableFlow(context) && !!iouReport?.reportID && !!transaction?.transactionID && !!resolveParticipant(iouReport, currentUserPersonalDetails.accountID);
 }
 

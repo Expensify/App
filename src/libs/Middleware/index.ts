@@ -3,7 +3,6 @@ import FraudMonitoring from './FraudMonitoring';
 import GlobalReimbursementPayError from './GlobalReimbursementPayError';
 import handleDeletedAccount from './HandleDeletedAccount';
 import HandleMovedScanFailedExpenses from './HandleMovedScanFailedExpenses';
-import HandleRejectedExpenseReport from './HandleRejectedExpenseReport';
 import HandleUnusedOptimisticID from './HandleUnusedOptimisticID';
 import LoadPostDataForOpenOrReconnect from './LoadPostDataForOpenOrReconnect';
 import LoadTest from './LoadTest';
@@ -13,6 +12,7 @@ import {Pagination} from './Pagination';
 import Reauthentication from './Reauthentication';
 import ReconcileBulkEditReportAction from './ReconcileBulkEditReportAction';
 import RecordFullReconnectTime from './RecordFullReconnectTime';
+import RefreshReportOnRejectedExpense from './RefreshReportOnRejectedExpense';
 import ReplaceOptimisticAgentAccountID from './ReplaceOptimisticAgentAccountID';
 import SaveResponseInOnyx from './SaveResponseInOnyx';
 import SentryServerTiming from './SentryServerTiming';
@@ -21,8 +21,8 @@ import SupportalPermission from './SupportalPermission';
 export {
     ReplaceOptimisticAgentAccountID,
     HandleMovedScanFailedExpenses,
-    HandleRejectedExpenseReport,
     HandleUnusedOptimisticID,
+    RefreshReportOnRejectedExpense,
     LoadTest,
     Logging,
     Reauthentication,

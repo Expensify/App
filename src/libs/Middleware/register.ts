@@ -7,7 +7,6 @@ import {
     GlobalReimbursementPayError,
     handleDeletedAccount,
     HandleMovedScanFailedExpenses,
-    HandleRejectedExpenseReport,
     HandleUnusedOptimisticID,
     LoadPostDataForOpenOrReconnect,
     LoadTest,
@@ -16,6 +15,7 @@ import {
     Reauthentication,
     RecordFullReconnectTime,
     ReconcileBulkEditReportAction,
+    RefreshReportOnRejectedExpense,
     ReplaceOptimisticAgentAccountID,
     SaveResponseInOnyx,
     SentryServerTiming,
@@ -83,7 +83,7 @@ function registerMiddlewares() {
     // with the report it created for them. Must run before SaveResponseInOnyx so its updates are applied with the response.
     addMiddleware(HandleMovedScanFailedExpenses);
 
-    addMiddleware(HandleRejectedExpenseReport);
+    addMiddleware(RefreshReportOnRejectedExpense);
 
     // Reconcile bulk-edit actions before successData can reinsert an action Auth skipped.
     addMiddleware(ReconcileBulkEditReportAction);

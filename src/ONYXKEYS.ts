@@ -1068,7 +1068,6 @@ const ONYXKEYS = {
         /** The policy lastModified of the last full policy snapshot OpenReport returned, keyed by policyID.
          *  Registered as RAM-only in `setup/index.ts`, so it never outlives the in-memory policy collections it vouches for. */
         RAM_ONLY_FULL_POLICY_SNAPSHOT: 'ramOnlyFullPolicySnapshot_',
-        RAM_ONLY_REJECTED_EXPENSE_REPORT: 'ramOnlyRejectedExpenseReport_',
         /** Pagination cursors for a report's action list. */
         REPORT_PAGINATION_STATE: 'reportPaginationState_',
         REPORT_ACTIONS: 'reportActions_',
@@ -1713,7 +1712,6 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE]: OnyxTypes.PolicyDataLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE]: OnyxTypes.PolicyDataLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT]: OnyxTypes.FullPolicySnapshot;
-    [ONYXKEYS.COLLECTION.RAM_ONLY_REJECTED_EXPENSE_REPORT]: boolean;
     [ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE]: OnyxTypes.ReportPaginationState;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: OnyxTypes.ReportActions;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS]: OnyxTypes.ReportActionsDrafts;

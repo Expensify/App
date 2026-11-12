@@ -71,8 +71,6 @@ type Response<TKey extends OnyxKey> = {
     /** Used to pass error title for error handling purposes */
     title?: string;
 
-    UUID?: string;
-
     /** Commands data */
     data?: Data;
 

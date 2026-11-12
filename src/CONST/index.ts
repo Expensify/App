@@ -3294,12 +3294,6 @@ const CONST = {
         SERVICE_UNAVAILABLE: 503,
         POLICY_DIFF_WARNING: 305,
     },
-    REPORT_NO_LONGER_ACCEPTS_EXPENSE_UUIDS: [
-        'D59B5F7D-38B3-4E68-B83A-2FB5DBDACD97',
-        '9FC073E8-D25E-4D06-A8DD-50829801ED9A',
-        'E46EEEA9-714C-4E31-A763-5BC9B38CA0B4',
-        'E9DABDCE-75CA-4728-92A8-6AEA557102E7',
-    ],
     HTTP_STATUS: {
         // Cloudflare Access rejects an expired bearer token at the HTTP layer, before any jsonCode body
         UNAUTHORIZED: 401,
