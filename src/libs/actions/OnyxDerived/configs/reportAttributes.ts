@@ -510,7 +510,7 @@ export default createOnyxDerivedValueConfig({
         const transactionViolationsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS];
         const policyTagsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.POLICY_TAGS];
 
-        let dataToIterate = Object.keys(reports);
+        let dataToIterate = useIncrementalUpdates ? [] : Object.keys(reports);
         // check if there are any report-related updates
 
         const reportUpdatesRelatedToReportActions = new Set<string>();
