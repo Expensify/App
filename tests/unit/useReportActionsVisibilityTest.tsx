@@ -80,6 +80,81 @@ describe('useReportActionsVisibility scopes VISIBLE_REPORT_ACTIONS per report', 
         await waitForBatchedUpdates();
     });
 
+    it("does not re-render the open report when another report's existing transaction changes", async () => {
+        // Given transaction data is loaded and the open report has no transactions.
+        await setReportActions(REPORT_A, buildActions('a1'));
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}other-report-transaction`, {
+            transactionID: 'other-report-transaction',
+            reportID: REPORT_B,
+            amount: 100,
+            currency: 'USD',
+            created: '2026-10-30',
+        });
+        await waitForBatchedUpdates();
+        const props = buildHookProps(REPORT_A, buildActions('a1'));
+        let renders = 0;
+        const {unmount} = renderHook(
+            () => {
+                renders++;
+                return useReportActionsVisibility(props);
+            },
+            {wrapper},
+        );
+        await waitForBatchedUpdates();
+        const rendersBefore = renders;
+
+        // When another report's transaction updates without changing loading state.
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}other-report-transaction`, {amount: 200});
+            await waitForBatchedUpdates();
+        });
+
+        // Then unrelated transaction data does not re-render the open report.
+        expect(renders).toBe(rendersBefore);
+        unmount();
+    });
+
+    it('keeps IOU actions while transactions are unloaded, then filters against loaded transactions', async () => {
+        // Given an IOU action whose transaction data has not loaded yet.
+        const action = getFakeReportAction(1, {
+            reportActionID: 'iou',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: 'transactionA'},
+        });
+        await setReportActions(REPORT_A, {iou: action});
+        await waitForBatchedUpdates();
+        await Onyx.set(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS, null);
+        const props = buildHookProps(REPORT_A, {iou: action});
+        const {result, unmount} = renderHook(() => useReportActionsVisibility(props), {wrapper});
+        await waitForBatchedUpdates();
+        expect(result.current.sortedVisibleReportActions).toEqual([action]);
+
+        // When transactions finish loading without any transactions for this report.
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS, {});
+            await waitForBatchedUpdates();
+        });
+
+        // Then the missing transaction hides the IOU instead of bypassing filtering.
+        expect(result.current.sortedVisibleReportActions).toEqual([]);
+
+        // When the matching transaction arrives for the open report.
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}transactionA`, {
+                transactionID: 'transactionA',
+                reportID: REPORT_A,
+                amount: 100,
+                currency: 'USD',
+                created: '2026-10-30',
+            });
+            await waitForBatchedUpdates();
+        });
+
+        // Then the IOU becomes visible as the report's own transactions update.
+        expect(result.current.sortedVisibleReportActions).toEqual([action]);
+        unmount();
+    });
+
     it('does not re-render the open report (A) when an unrelated report (B) actions change', async () => {
         // Given reports A and B both have visible actions in the derived value, and the hook is mounted for A
         await setReportActions(REPORT_A, buildActions('a1', 'a2'));

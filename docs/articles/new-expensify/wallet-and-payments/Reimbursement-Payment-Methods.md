@@ -76,7 +76,7 @@ To pay reports in bulk:
 2. Under **To-do**, select **Pay**.
 3. Select the checkbox next to each Approved report you want to pay.
 4. Open the bulk actions:
-   - **On web:** Use the bar that appears at the bottom of the list. Select **More** to see the actions that don't fit in the bar.
+   - **On web:** Use the selection bar at the bottom of the list. Select **More** to see the actions that don't fit on the selection bar.
    - **On mobile:** Tap **Selected**.
 5. Choose **Pay**.
 6. Choose a payment method:
@@ -117,7 +117,7 @@ Workspace business bank accounts can be connected in:
 
 Members can receive funds in 190+ countries after adding a supported personal bank account.
 
-**Note:** Foreign exchange (FX) fees or receiving bank fees may affect the final deposited amount.
+**Note:** Foreign exchange (FX) fees or receiving bank fees may affect the final deposited amount. Whether the company or the employee absorbs FX conversion fees depends on the workspace's **Currency conversion fees** setting. Learn how to [choose who pays currency conversion fees](/articles/new-expensify/workspaces/Workspace-Workflows#how-to-choose-who-pays-currency-conversion-fees).
 
 ---
 

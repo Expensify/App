@@ -1,9 +1,11 @@
+import {useEditingCellState} from '@components/EditableCell';
 import useRowLongPressMenu from '@components/Search/primitives/useRowLongPressMenu';
 import useScrollRestoration from '@components/Search/primitives/useScrollRestoration';
 import {useSearchRowSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
-import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
+import {useRegisterSearchListScroller} from '@components/Search/SearchListScrollLockContext';
 
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -65,6 +67,7 @@ function useSearchListViewState({data, listData = data, isMobileSelectionModeEna
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const contentHeaderHeight = isSmallScreenWidth ? variables.contentHeaderNarrowHeight : variables.contentHeaderHeight;
     const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
+    const shouldScrollMainHeader = useIsMobileWebLandscape();
 
     const listRef = useRef<FlashListRef<SearchListItem>>(null);
     const prevDataLength = usePrevious(data.length);
@@ -78,7 +81,7 @@ function useSearchListViewState({data, listData = data, isMobileSelectionModeEna
 
     const handleUndelete = (transaction: Transaction) => undeleteTransactions([transaction]);
 
-    const {onLongPressRow, modal} = useRowLongPressMenu({shouldPreventLongPressRow, isSmallScreenWidth, isMobileSelectionModeEnabled});
+    const {onLongPressRow} = useRowLongPressMenu({shouldPreventLongPressRow, isSmallScreenWidth, isMobileSelectionModeEnabled});
 
     // In mobile selection mode a row tap toggles selection. This must live inside the providers (not in the
     // router) because the `toggle` it reads is the default no-op outside SearchWriteActionsProvider; here it
@@ -103,10 +106,17 @@ function useSearchListViewState({data, listData = data, isMobileSelectionModeEna
         if (isEditingCell || wasRecentlyEditingCell) {
             return;
         }
-        listRef.current.scrollToIndex({index, animated, viewOffset: -contentHeaderHeight});
+        // Where the header scrolls as part of the list's content there is nothing pinned to clear.
+        listRef.current.scrollToIndex({index, animated, viewOffset: shouldScrollMainHeader ? 0 : -contentHeaderHeight});
     };
 
     useScrollRestoration(listRef);
+
+    // Lets a fling that hides the scroll-away header carry on into the rows (see SearchListScrollLockContext).
+    useRegisterSearchListScroller({
+        getOffset: () => listRef.current?.getAbsoluteLastScrollOffset() ?? 0,
+        scrollTo: (offset) => listRef.current?.scrollToOffset({offset, animated: false}),
+    });
 
     return {
         isOffline,
@@ -124,7 +134,6 @@ function useSearchListViewState({data, listData = data, isMobileSelectionModeEna
         ownerBillingGracePeriodEnd,
         handleUndelete,
         onLongPressRow,
-        modal,
         handleSelectRow,
         scrollToListIndex,
     };

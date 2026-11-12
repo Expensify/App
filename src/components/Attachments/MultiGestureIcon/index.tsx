@@ -29,7 +29,7 @@ type MultiGestureIconProps = {
 /** Renders an icon inside a multi-gesture canvas for pinch, pan, and swipe interactions. */
 function MultiGestureIcon({additionalStyles, src, contentSize, fill}: MultiGestureIconProps) {
     const {canvasSize, updateCanvasSize, isCanvasLoading} = useCanvasSize();
-    const {pagerRef, isScrollEnabled, onTap, onSwipeDown} = useIconCarouselPager();
+    const {pagerGesture, isScrollEnabled, onTap, onSwipeDown} = useIconCarouselPager();
 
     return (
         <View
@@ -42,7 +42,7 @@ function MultiGestureIcon({additionalStyles, src, contentSize, fill}: MultiGestu
                     canvasSize={canvasSize}
                     contentSize={contentSize}
                     zoomRange={DEFAULT_ZOOM_RANGE}
-                    pagerRef={pagerRef}
+                    pagerGesture={pagerGesture}
                     isUsedInCarousel={false}
                     isPagerScrollEnabled={isScrollEnabled}
                     onTap={onTap}

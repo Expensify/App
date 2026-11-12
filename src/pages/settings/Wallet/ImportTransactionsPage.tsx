@@ -1,7 +1,7 @@
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -15,14 +15,18 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
+import {callIfAuthenticated} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-import React, {useCallback, useState} from 'react';
+import {authTokenTypeSelector} from '@selectors/Session';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 function ImportTransactionsPage() {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [importedSpreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
@@ -33,15 +37,15 @@ function ImportTransactionsPage() {
     const [flipAmountSign, setFlipAmountSign] = useState(importedSpreadsheet?.importTransactionSettings?.flipAmountSign ?? false);
     const [shouldShowError, setShouldShowError] = useState(false);
 
-    const navigateToCardNameSelection = useCallback(() => {
+    const navigateToCardNameSelection = () => {
         Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_CARD_NAME);
-    }, []);
+    };
 
-    const navigateToCurrencySelection = useCallback(() => {
+    const navigateToCurrencySelection = () => {
         Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_CURRENCY);
-    }, []);
+    };
 
-    const handleNext = useCallback(() => {
+    const handleNext = () => {
         if (!cardDisplayName) {
             setShouldShowError(true);
             return;
@@ -50,7 +54,9 @@ function ImportTransactionsPage() {
         setImportTransactionSettings(cardDisplayName, currency, isReimbursable, flipAmountSign);
         // No cardID = creating a new card
         Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute());
-    }, [cardDisplayName, currency, isReimbursable, flipAmountSign]);
+    };
+
+    const shouldShowCardDisplayNameError = shouldShowError && !cardDisplayName;
 
     return (
         <ScreenWrapper testID="ImportTransactionsPage">
@@ -61,18 +67,27 @@ function ImportTransactionsPage() {
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween]}>
                 <View>
                     <Text style={[styles.textNormal, styles.mh5, styles.mb5]}>{translate('workspace.companyCards.importTransactions.description')}</Text>
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        title={cardDisplayName || undefined}
-                        description={translate('workspace.companyCards.importTransactions.cardDisplayName')}
-                        style={styles.moneyRequestMenuItem}
-                        titleStyle={styles.flex1}
-                        onPress={navigateToCardNameSelection}
-                        rightLabel={translate('common.required')}
-                        brickRoadIndicator={shouldShowError && !cardDisplayName ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        errorText={shouldShowError && !cardDisplayName ? translate('common.error.fieldRequired') : ''}
-                    />
+                    <MenuItem.Root
+                        onPress={callIfAuthenticated(navigateToCardNameSelection, session)}
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.IMPORT_TRANSACTIONS_CARD_NAME}
+                    >
+                        <MenuItemField.Row
+                            name={translate('workspace.companyCards.importTransactions.cardDisplayName')}
+                            value={cardDisplayName || undefined}
+                        >
+                            {shouldShowCardDisplayNameError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                            {!cardDisplayName && !shouldShowCardDisplayNameError && <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>}
+                            <MenuItem.Chevron />
+                        </MenuItemField.Row>
+                        {shouldShowCardDisplayNameError && (
+                            <MenuItem.HelpText
+                                isError
+                                message={translate('common.error.fieldRequired')}
+                            />
+                        )}
+                    </MenuItem.Root>
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.IMPORT_TRANSACTIONS_CURRENCY}
                         value={currency}
                         name={translate('workspace.companyCards.importTransactions.currency')}
                         onPress={navigateToCurrencySelection}
@@ -81,6 +96,7 @@ function ImportTransactionsPage() {
                         <ToggleSettingOptionRow
                             title={translate('workspace.companyCards.importTransactions.transactionsAreReimbursable')}
                             switchAccessibilityLabel={translate('workspace.companyCards.importTransactions.transactionsAreReimbursable')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.IMPORT_TRANSACTIONS_REIMBURSABLE_SWITCH}
                             onToggle={setIsReimbursable}
                             isActive={isReimbursable}
                         />
@@ -89,6 +105,7 @@ function ImportTransactionsPage() {
                         <ToggleSettingOptionRow
                             title={translate('workspace.companyCards.importTransactions.flipAmountSign')}
                             switchAccessibilityLabel={translate('workspace.companyCards.importTransactions.flipAmountSign')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.IMPORT_TRANSACTIONS_FLIP_AMOUNT_SIGN_SWITCH}
                             onToggle={setFlipAmountSign}
                             isActive={flipAmountSign}
                         />
@@ -96,6 +113,7 @@ function ImportTransactionsPage() {
                 </View>
                 <View style={[styles.mh5, styles.mb5]}>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.IMPORT_TRANSACTIONS_NEXT}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         onPress={handleNext}

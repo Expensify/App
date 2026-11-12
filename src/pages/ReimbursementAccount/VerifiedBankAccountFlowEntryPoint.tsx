@@ -48,7 +48,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type VerifiedBankAccountFlowEntryPointProps = {
@@ -72,9 +72,6 @@ type VerifiedBankAccountFlowEntryPointProps = {
     /** Whether the workspace currency is set to non USD currency */
     isNonUSDWorkspace: boolean;
 
-    /** Set step for USD flow */
-    setUSDBankAccountStep: (shouldShowContinueSetupButton: string | null) => void;
-
     /** Method to set the state of shouldShowContinueSetupButton */
     setShouldShowContinueSetupButton?: (shouldShowContinueSetupButton: boolean) => void;
 
@@ -94,7 +91,6 @@ function VerifiedBankAccountFlowEntryPoint({
     onContinuePress,
     shouldShowContinueSetupButton,
     isNonUSDWorkspace,
-    setUSDBankAccountStep,
     setShouldShowContinueSetupButton,
     isComingFromExpensifyCard,
     isChangingBankAccount,
@@ -124,7 +120,7 @@ function VerifiedBankAccountFlowEntryPoint({
     const shouldShowChangeBankAccount = shouldShowContinueSetupButton === true && isComingFromWorkflowsPayments;
     const handleChangeBankAccount = useChangeBankAccount(policyID, currency, reimbursementAccount?.achData?.bankAccountID);
 
-    const removeExistingBankAccountDetails = useCallback(() => {
+    const removeExistingBankAccountDetails = () => {
         // In a "change bank account" flow, start a completely fresh setup so the new account's steps aren't prefilled.
         if (isChangingBankAccount && currency) {
             prepareNewBankAccountSetup(currency, reimbursementAccount);
@@ -141,23 +137,21 @@ function VerifiedBankAccountFlowEntryPoint({
         };
         updateReimbursementAccountDraft(bankAccountData);
         updateReimbursementAccount({bankAccountID: 0});
-    }, [isChangingBankAccount, currency, reimbursementAccount]);
+    };
 
     /**
      * Prepares and redirects user to next step in the USD flow
      */
-    const prepareNextStep = useCallback(
-        (setupType: ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>) => {
-            setBankAccountSubStep(setupType);
-            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: CONST.BANK_ACCOUNT.PAGE_NAMES.COUNTRY, backTo}));
-        },
-        [policyID, backTo],
-    );
+    const prepareNextStep = (setupType: ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>) => {
+        setBankAccountSubStep(setupType);
+        goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: CONST.BANK_ACCOUNT.PAGE_NAMES.COUNTRY, backTo}));
+    };
 
     /**
      * optionPressed ref indicates what user selected before modal to validate account was displayed
-     * In this hook we check if account was validated and then proceed with the option user selected
+     * In this hook we check if account was validated and then prepare the data for the option user selected.
+     * Navigation to the next step is done by DynamicReimbursementAccountVerifyAccountPage.
      * note: non USD accounts only have manual option available
      */
     useEffect(() => {
@@ -171,25 +165,26 @@ function VerifiedBankAccountFlowEntryPoint({
                 if (isComingFromExpensifyCard) {
                     setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {isComingFromExpensifyCard});
                 }
-                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.CURRENCY_AND_COUNTRY, backTo}));
                 setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.NONE);
                 return;
             }
 
-            prepareNextStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
+            setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
+            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
             setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.NONE);
         } else if (reimbursementAccountOptionPressed === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
             removeExistingBankAccountDetails();
             openPlaidView();
-            prepareNextStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
+            setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
+            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
             setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.NONE);
         }
-    }, [isAccountValidated, isNonUSDWorkspace, prepareNextStep, reimbursementAccountOptionPressed, policyID, isComingFromExpensifyCard, backTo, removeExistingBankAccountDetails]);
+    }, [isAccountValidated, isNonUSDWorkspace, reimbursementAccountOptionPressed, isComingFromExpensifyCard, removeExistingBankAccountDetails]);
 
     const handleConnectManually = () => {
         if (!isAccountValidated) {
             setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.BANK_ACCOUNT_VERIFY_ACCOUNT.path));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL, isNonUSDWorkspace)));
             return;
         }
 
@@ -213,7 +208,7 @@ function VerifiedBankAccountFlowEntryPoint({
 
         if (!isAccountValidated) {
             setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.BANK_ACCOUNT_VERIFY_ACCOUNT.path));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)));
             return;
         }
 
@@ -232,7 +227,6 @@ function VerifiedBankAccountFlowEntryPoint({
     useResetBankAccountModal({
         reimbursementAccount,
         isNonUSDWorkspace,
-        setUSDBankAccountStep,
         setShouldShowContinueSetupButton,
         navigateAfterReset,
         backTo,
@@ -289,6 +283,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                 onClose={reimbursementAccount?.maxAttemptsReached ? undefined : resetReimbursementAccount}
                             >
                                 <MenuItemNavigation
+                                    sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.ENTRY_POINT_CONTINUE_WITH_SETUP}
                                     title={translate('workspace.bankAccount.continueWithSetup')}
                                     icon={expensifyIcons.Connect}
                                     onPress={onContinuePress}
@@ -296,6 +291,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                 />
                                 {shouldShowChangeBankAccount && (
                                     <MenuItemNavigation
+                                        sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.ENTRY_POINT_CHANGE_BANK_ACCOUNT}
                                         title={translate('workspace.bankAccount.changeBankAccount')}
                                         icon={expensifyIcons.Bank}
                                         onPress={handleChangeBankAccount}
@@ -303,6 +299,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                     />
                                 )}
                                 <MenuItemNavigation
+                                    sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.ENTRY_POINT_START_OVER}
                                     title={translate('workspace.bankAccount.startOver')}
                                     icon={expensifyIcons.RotateLeft}
                                     onPress={requestResetBankAccount}
@@ -313,6 +310,7 @@ function VerifiedBankAccountFlowEntryPoint({
                             <View style={styles.mhn5}>
                                 {!isNonUSDWorkspace && !shouldShowContinueSetupButton && (
                                     <MenuItemNavigation
+                                        sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.ENTRY_POINT_CONNECT_WITH_PLAID}
                                         title={translate('bankAccount.connectOnlineWithPlaid')}
                                         icon={expensifyIcons.Bank}
                                         isDisabled={!!isPlaidDisabled}
@@ -320,6 +318,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                     />
                                 )}
                                 <MenuItemNavigation
+                                    sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.ENTRY_POINT_CONNECT_MANUALLY}
                                     title={translate('bankAccount.connectManually')}
                                     icon={expensifyIcons.Connect}
                                     onPress={handleConnectManually}

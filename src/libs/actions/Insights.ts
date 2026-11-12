@@ -1,17 +1,20 @@
-import {makeRequestWithSideEffects, waitForWrites} from '@libs/API';
-import {READ_COMMANDS} from '@libs/API/types';
+import type {SearchQueryString} from '@components/Search/types';
+
+import {makeRequestWithSideEffects, waitForWrites, write} from '@libs/API';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InsightsDashboardID, InsightsSearchKey} from '@src/types/onyx';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: string, snapshotHashes: number[]) {
+function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: string, snapshotHashes: number[], queryType: SearchDataTypes) {
     const key = `${ONYXKEYS.COLLECTION.INSIGHTS}${dashboard}_${hash}` as const;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.INSIGHTS | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
@@ -48,7 +51,7 @@ function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: st
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`,
         value: {
-            search: {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, type: CONST.SEARCH.DATA_TYPES.EXPENSE, hash: snapshotHash},
+            search: {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, type: queryType, hash: snapshotHash},
         },
     }));
 
@@ -71,8 +74,21 @@ function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: st
     );
 }
 
-function setInsightsFilters(searchKey: InsightsSearchKey, query: string) {
+function setInsightsFilters(searchKey: InsightsSearchKey, query: SearchQueryString) {
     Onyx.merge(ONYXKEYS.SEARCH_FILTERS, {[searchKey]: {query}});
 }
 
-export {getInsights, setInsightsFilters};
+/** Stores the dashboard's filters locally and on the server, for changes that don't trigger a GetInsights call to save them */
+function saveInsightsFilters(searchKey: InsightsSearchKey, query: SearchQueryString) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.SEARCH_FILTERS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SEARCH_FILTERS,
+            value: {[searchKey]: {query}},
+        },
+    ];
+
+    write(WRITE_COMMANDS.SAVE_SEARCH_FILTERS, {jsonQuery: JSON.stringify({searchKey, inputQuery: query})}, {optimisticData});
+}
+
+export {getInsights, saveInsightsFilters, setInsightsFilters};

@@ -40,20 +40,11 @@ type ConnectedVerifiedBankAccountProps = {
     /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
     setShouldShowConnectedVerifiedBankAccount?: (shouldShowConnectedVerifiedBankAccount: boolean) => void;
 
-    /** Method to set the state of USD bank account step */
-    setUSDBankAccountStep?: (step: string | null) => void;
-
     /** Whether the workspace currency is set to non USD currency */
     isNonUSDWorkspace: boolean;
 };
 
-function ConnectedVerifiedBankAccount({
-    reimbursementAccount,
-    onBackButtonPress,
-    setShouldShowConnectedVerifiedBankAccount,
-    setUSDBankAccountStep,
-    isNonUSDWorkspace,
-}: ConnectedVerifiedBankAccountProps) {
+function ConnectedVerifiedBankAccount({reimbursementAccount, onBackButtonPress, setShouldShowConnectedVerifiedBankAccount, isNonUSDWorkspace}: ConnectedVerifiedBankAccountProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -77,7 +68,6 @@ function ConnectedVerifiedBankAccount({
         reimbursementAccount,
         isNonUSDWorkspace,
         setShouldShowConnectedVerifiedBankAccount,
-        setUSDBankAccountStep,
     });
 
     return (
@@ -126,6 +116,7 @@ function ConnectedVerifiedBankAccount({
                         <View style={styles.mhn5}>
                             {shouldShowChangeBankAccount && (
                                 <MenuItemNavigation
+                                    sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.CONNECTED_CHANGE_BANK_ACCOUNT}
                                     title={translate('workspace.bankAccount.changeBankAccount')}
                                     icon={icons.Bank}
                                     onPress={handleChangeBankAccount}
@@ -133,6 +124,7 @@ function ConnectedVerifiedBankAccount({
                                 />
                             )}
                             <MenuItemAction
+                                sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.CONNECTED_DISCONNECT_BANK_ACCOUNT}
                                 title={translate('workspace.bankAccount.disconnectBankAccount')}
                                 icon={icons.Close}
                                 onPress={requestResetBankAccount}

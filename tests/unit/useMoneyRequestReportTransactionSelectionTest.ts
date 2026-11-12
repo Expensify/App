@@ -72,6 +72,11 @@ function buildGroup(groupKey: string, transactions: Transaction[]): GroupedTrans
     return createMock<GroupedTransactions>({groupKey, transactions});
 }
 
+/** A grouped list renders its groups in order, so that is the order a range spans. */
+function selectionParams(groupedTransactions: GroupedTransactions[], reportID: string = REPORT_ID) {
+    return {reportID, groupedTransactions, visualOrderTransactions: groupedTransactions.flatMap((group) => group.transactions)};
+}
+
 function getFocusCallback(): FocusCallback {
     const callback = mockUseFocusEffect.mock.calls.at(-1)?.[0];
     if (!callback) {
@@ -101,7 +106,7 @@ beforeEach(() => {
 describe('useMoneyRequestReportTransactionSelection', () => {
     it('clears the selection when the report changes', () => {
         // Given a report opened with a leftover selection from the previous report
-        const {rerender} = renderHook(({reportID}) => useMoneyRequestReportTransactionSelection({reportID, groupedTransactions: []}), {
+        const {rerender} = renderHook(({reportID}) => useMoneyRequestReportTransactionSelection(selectionParams([], reportID)), {
             initialProps: {reportID: REPORT_ID},
         });
         mockClearSelectedTransactions.mockClear();
@@ -118,7 +123,7 @@ describe('useMoneyRequestReportTransactionSelection', () => {
 
     it('clears the selection when leaving the screen', () => {
         // Given transactions of the report are selected while the screen is focused
-        renderHook(() => useMoneyRequestReportTransactionSelection({reportID: REPORT_ID, groupedTransactions: []}));
+        renderHook(() => useMoneyRequestReportTransactionSelection(selectionParams([])));
         mockClearSelectedTransactions.mockClear();
         mockSelectedTransactionIDs = ['1'];
 
@@ -132,7 +137,7 @@ describe('useMoneyRequestReportTransactionSelection', () => {
 
     it('keeps the selection when the screen is covered by the right modal navigator', () => {
         // Given transactions of the report are selected while the screen is focused
-        renderHook(() => useMoneyRequestReportTransactionSelection({reportID: REPORT_ID, groupedTransactions: []}));
+        renderHook(() => useMoneyRequestReportTransactionSelection(selectionParams([])));
         mockClearSelectedTransactions.mockClear();
         mockSelectedTransactionIDs = ['1'];
         mockGetRootState.mockReturnValue(rootStateWithTopRoute(NAVIGATORS.RIGHT_MODAL_NAVIGATOR));
@@ -149,7 +154,7 @@ describe('useMoneyRequestReportTransactionSelection', () => {
         // Given nothing is selected
         const first = buildTransaction();
         const second = buildTransaction();
-        const {result, rerender} = renderHook(({transactions}) => useMoneyRequestReportTransactionSelection({reportID: REPORT_ID, groupedTransactions: [buildGroup('g1', transactions)]}), {
+        const {result, rerender} = renderHook(({transactions}) => useMoneyRequestReportTransactionSelection(selectionParams([buildGroup('g1', transactions)])), {
             initialProps: {transactions: [first, second]},
         });
 
@@ -177,7 +182,7 @@ describe('useMoneyRequestReportTransactionSelection', () => {
         const first = buildTransaction();
         const second = buildTransaction();
         mockSelectedTransactionIDs = [second.transactionID];
-        const {result} = renderHook(() => useMoneyRequestReportTransactionSelection({reportID: REPORT_ID, groupedTransactions: [buildGroup('g1', [first, second])]}));
+        const {result} = renderHook(() => useMoneyRequestReportTransactionSelection(selectionParams([buildGroup('g1', [first, second])])));
 
         // When the list asks for the checkbox state of each row
         // Then only the selected row is checked
@@ -189,7 +194,7 @@ describe('useMoneyRequestReportTransactionSelection', () => {
         // Given all transactions of the group are selected
         const transactions = [buildTransaction(), buildTransaction()];
         mockSelectedTransactionIDs = transactions.map((t) => t.transactionID);
-        const {result} = renderHook(() => useMoneyRequestReportTransactionSelection({reportID: REPORT_ID, groupedTransactions: [buildGroup('g1', transactions)]}));
+        const {result} = renderHook(() => useMoneyRequestReportTransactionSelection(selectionParams([buildGroup('g1', transactions)])));
 
         // When the section header renders its checkbox
         // Then it is checked with no indeterminate dash, so tapping it deselects the group
@@ -206,7 +211,7 @@ describe('useMoneyRequestReportTransactionSelection', () => {
         const first = buildTransaction();
         const second = buildTransaction();
         mockSelectedTransactionIDs = [first.transactionID];
-        const {result} = renderHook(() => useMoneyRequestReportTransactionSelection({reportID: REPORT_ID, groupedTransactions: [buildGroup('g1', [first, second])]}));
+        const {result} = renderHook(() => useMoneyRequestReportTransactionSelection(selectionParams([buildGroup('g1', [first, second])])));
 
         // When
         // Then the header shows the mixed state, and tapping it selects the rest instead of clearing
@@ -224,7 +229,7 @@ describe('useMoneyRequestReportTransactionSelection', () => {
         const live = buildTransaction();
         const pendingDelete = buildTransaction(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         mockSelectedTransactionIDs = [live.transactionID];
-        const {result} = renderHook(() => useMoneyRequestReportTransactionSelection({reportID: REPORT_ID, groupedTransactions: [buildGroup('g1', [live, pendingDelete])]}));
+        const {result} = renderHook(() => useMoneyRequestReportTransactionSelection(selectionParams([buildGroup('g1', [live, pendingDelete])])));
 
         // When the section header renders
         // Then the group counts as fully selected: the transaction being deleted cannot be selected,
@@ -241,7 +246,7 @@ describe('useMoneyRequestReportTransactionSelection', () => {
     it('disables a group header whose transactions are all pending deletion', () => {
         // Given every transaction in the group is being deleted, so there is nothing to select
         const pendingDeletes = [buildTransaction(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE), buildTransaction(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)];
-        const {result} = renderHook(() => useMoneyRequestReportTransactionSelection({reportID: REPORT_ID, groupedTransactions: [buildGroup('g1', pendingDeletes)]}));
+        const {result} = renderHook(() => useMoneyRequestReportTransactionSelection(selectionParams([buildGroup('g1', pendingDeletes)])));
 
         // When
         // Then the checkbox is disabled rather than offering an empty selection
@@ -259,7 +264,7 @@ describe('useMoneyRequestReportTransactionSelection', () => {
         const first = buildTransaction();
         const second = buildTransaction();
         second.pendingFields = {comment: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
-        const {result} = renderHook(() => useMoneyRequestReportTransactionSelection({reportID: REPORT_ID, groupedTransactions: [buildGroup('g1', [first, second])]}));
+        const {result} = renderHook(() => useMoneyRequestReportTransactionSelection(selectionParams([buildGroup('g1', [first, second])])));
 
         // When
         // Then the header is greyed out with the in-flight indicator, matching how a single
@@ -276,7 +281,7 @@ describe('useMoneyRequestReportTransactionSelection', () => {
         // Given an unselected group that also contains a transaction pending deletion
         const live = [buildTransaction(), buildTransaction()];
         const pendingDelete = buildTransaction(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const {result} = renderHook(() => useMoneyRequestReportTransactionSelection({reportID: REPORT_ID, groupedTransactions: [buildGroup('g1', [...live, pendingDelete])]}));
+        const {result} = renderHook(() => useMoneyRequestReportTransactionSelection(selectionParams([buildGroup('g1', [...live, pendingDelete])])));
 
         // When the user taps the group header
         act(() => {
@@ -292,7 +297,7 @@ describe('useMoneyRequestReportTransactionSelection', () => {
         const first = buildTransaction();
         const second = buildTransaction();
         mockSelectedTransactionIDs = [first.transactionID, 'outside_group'];
-        const {result} = renderHook(() => useMoneyRequestReportTransactionSelection({reportID: REPORT_ID, groupedTransactions: [buildGroup('g1', [first, second])]}));
+        const {result} = renderHook(() => useMoneyRequestReportTransactionSelection(selectionParams([buildGroup('g1', [first, second])])));
 
         // When the user taps the group header again
         act(() => {
@@ -305,7 +310,7 @@ describe('useMoneyRequestReportTransactionSelection', () => {
 
     it('ignores a group toggle for a group that is no longer rendered', () => {
         // Given the group list changed since the header was rendered (e.g. the group-by changed)
-        const {result} = renderHook(() => useMoneyRequestReportTransactionSelection({reportID: REPORT_ID, groupedTransactions: []}));
+        const {result} = renderHook(() => useMoneyRequestReportTransactionSelection(selectionParams([])));
 
         // When a stale group key is toggled
         act(() => {

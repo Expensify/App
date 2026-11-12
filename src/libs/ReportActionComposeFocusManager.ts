@@ -24,7 +24,7 @@ const editComposerRef = React.createRef<ComposerRef>();
 /**
  * There can be 2 composers present at the same time. This ref is for the side panel.
  */
-const sidePanelComposerRef: RefObject<ComponentRef<typeof TextInput> | null> = React.createRef<ComponentRef<typeof TextInput>>();
+const sidePanelComposerRef: RefObject<ComponentRef<typeof TextInput> | ComposerRef | null> = React.createRef<ComponentRef<typeof TextInput> | ComposerRef>();
 
 // There are two types of focus callbacks: priority and general
 // Priority callback would take priority if it existed

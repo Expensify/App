@@ -1,9 +1,21 @@
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 
-import {getReportIDForTransaction, isBillableEnabledOnPolicy, shouldWaitForTransactions} from '@libs/MoneyRequestReportUtils';
+import {
+    EMPTY_VIOLATIONS,
+    getReportIDForTransaction,
+    getReportRowCards,
+    getReportRowPolicy,
+    getReportRowPolicyCategories,
+    getReportRowReport,
+    getVisibleReportRowViolations,
+    isBillableEnabledOnPolicy,
+    isEveryReportTransactionSelected,
+    isSelectableReportTransaction,
+    shouldWaitForTransactions,
+} from '@libs/MoneyRequestReportUtils';
 
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction, ReportLoadingState} from '@src/types/onyx';
+import type {Card, CardList, Policy, PolicyCategories, Report, ReportAction, ReportLoadingState, Transaction, TransactionViolations} from '@src/types/onyx';
 
 import createMock from '../utils/createMock';
 
@@ -119,6 +131,9 @@ const transactionItemBaseMock: TransactionListItemType = {
     violations: [],
 };
 
+/** Errors the backend records are keyed by when they happened. */
+const REJECTED_AT = '1700000000000';
+
 describe('MoneyRequestReportUtils', () => {
     describe('getReportIDForTransaction', () => {
         it('returns transaction thread ID if its not from one transaction report', () => {
@@ -176,6 +191,69 @@ describe('MoneyRequestReportUtils', () => {
         });
     });
 
+    describe('isSelectableReportTransaction', () => {
+        test('accepts an ordinary expense, which is what a click, Select All and a range all reach', () => {
+            // Given an expense with nothing against it
+            const transaction = createMock<Transaction>({transactionID: '1'});
+
+            // When the list asks whether anything may select it
+            // Then it counts as selectable
+            expect(isSelectableReportTransaction(transaction)).toBe(true);
+        });
+
+        test('refuses an expense being deleted, since its checkbox is disabled', () => {
+            // Given an expense the user has deleted, still on screen until the server drops it
+            const transaction = createMock<Transaction>({transactionID: '1', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+
+            // When the list asks whether anything may select it
+            // Then nothing may select it
+            expect(isSelectableReportTransaction(transaction)).toBe(false);
+        });
+
+        test('refuses an expense the backend rejected, whose checkbox is disabled for the same reason', () => {
+            // Given an expense carrying a reject the backend recorded against it
+            const transaction = createMock<Transaction>({transactionID: '1', errorFields: {reject: {[REJECTED_AT]: 'iou.rejectReport.couldNotRejectExpense'}}});
+
+            // When the list asks whether anything may select it
+            // Then nothing may select it, so Select All and a range agree with the checkbox
+            expect(isSelectableReportTransaction(transaction)).toBe(false);
+        });
+    });
+
+    describe('isEveryReportTransactionSelected', () => {
+        const ordinary = createMock<Transaction>({transactionID: '1'});
+        const other = createMock<Transaction>({transactionID: '2'});
+        const rejected = createMock<Transaction>({transactionID: '3', errorFields: {reject: {[REJECTED_AT]: 'iou.rejectReport.couldNotRejectExpense'}}});
+
+        test('counts a report covered once every row Select All can write is selected', () => {
+            // Given a report whose third expense the backend refused to reject, so no checkbox can put it in the selection
+            // When the other two are selected, which is everything Select All writes
+            // Then the report reads covered, or the report-level actions would be unreachable on it for good
+            expect(isEveryReportTransactionSelected([ordinary, other, rejected], ['1', '2'])).toBe(true);
+        });
+
+        test('does not count a report while a row the user can still check is out', () => {
+            // Given the same report
+            // When only one of its two selectable rows is selected
+            // Then it does not read covered, since a checkbox is left the user has not pressed
+            expect(isEveryReportTransactionSelected([ordinary, other, rejected], ['1'])).toBe(false);
+        });
+
+        test('does not count an empty selection, whichever rows the report holds', () => {
+            // Given a report of two ordinary expenses
+            // When nothing is selected
+            // Then the report is not covered, so pressing nothing cannot offer an action over everything
+            expect(isEveryReportTransactionSelected([ordinary, other], [])).toBe(false);
+        });
+
+        test('does not count a report holding no row anything can select', () => {
+            // Given a report whose only expense carries a refused reject
+            // When a selection is left holding its ID
+            // Then it does not read covered: `every` over an empty list is vacuously true, which would offer the actions on nothing
+            expect(isEveryReportTransactionSelected([rejected], ['3'])).toBe(false);
+        });
+    });
+
     describe('shouldWaitForTransactions', () => {
         const zeroTotalReport = {...reportBaseMock, total: 0};
 
@@ -201,6 +279,179 @@ describe('MoneyRequestReportUtils', () => {
             const reportLoadingState: ReportLoadingState = {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: false};
 
             expect(shouldWaitForTransactions(reportBaseMock, [], reportLoadingState, false, false)).toBe(true);
+        });
+    });
+
+    describe('getVisibleReportRowViolations', () => {
+        const CURRENT_USER_ACCOUNT_ID = 1;
+        const CURRENT_USER_EMAIL = 'test@test.com';
+        const ownReport: Report = {reportID: 'report1', type: CONST.REPORT.TYPE.IOU, currency: CONST.CURRENCY.USD, ownerAccountID: CURRENT_USER_ACCOUNT_ID};
+        const missingCategoryViolations: TransactionViolations = [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}];
+
+        it('should return the violations the current user can see', () => {
+            // Given a transaction on the current user's report with a missing category violation
+            const transaction = createMock<Transaction>({transactionID: '1', reportID: ownReport.reportID});
+
+            // When the row asks for its visible violations
+            const violations = getVisibleReportRowViolations(transaction, missingCategoryViolations, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, ownReport, CURRENT_USER_EMAIL, undefined);
+
+            // Then the row shows that violation
+            expect(violations).toEqual(missingCategoryViolations);
+        });
+
+        it('should return the shared empty reference when the transaction has no violations', () => {
+            // Given a transaction whose violations key holds an empty list
+            const transaction = createMock<Transaction>({transactionID: '1', reportID: ownReport.reportID});
+
+            // When the row asks for its visible violations
+            const violations = getVisibleReportRowViolations(transaction, [], CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, ownReport, CURRENT_USER_EMAIL, undefined);
+
+            // Then it gets the shared empty array, so its props stay referentially stable across renders
+            expect(violations).toBe(EMPTY_VIOLATIONS);
+        });
+
+        it('should return the shared empty reference when no violations are loaded', () => {
+            // Given a transaction whose violations key is not in Onyx
+            const transaction = createMock<Transaction>({transactionID: '1', reportID: ownReport.reportID});
+
+            // When the row asks for its visible violations
+            const violations = getVisibleReportRowViolations(transaction, undefined, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, ownReport, CURRENT_USER_EMAIL, undefined);
+
+            // Then it still gets the shared empty array
+            expect(violations).toBe(EMPTY_VIOLATIONS);
+        });
+    });
+
+    describe('getReportRowPolicy', () => {
+        const memberEmail = 'a@test.com';
+
+        it('should drop the fields rows never read and keep the rest', () => {
+            // Given a policy with members, offline feedback and the fields a row shows
+            const policy = createMock<Policy>({
+                id: 'P1',
+                name: 'Workspace',
+                outputCurrency: CONST.CURRENCY.USD,
+                employeeList: {[memberEmail]: {email: memberEmail}},
+                lastModified: '2026-01-01',
+                pendingFields: {name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                errors: {error: 'error'},
+                errorFields: {name: {error: 'error'}},
+                isLoading: true,
+            });
+
+            // When the row builds its policy
+            const rowPolicy = getReportRowPolicy(policy);
+
+            // Then a member or offline feedback write can't change what the row receives, while the fields it shows stay
+            expect(rowPolicy).toEqual({id: 'P1', name: 'Workspace', outputCurrency: CONST.CURRENCY.USD});
+        });
+
+        it('should return undefined when the policy is not loaded', () => {
+            // Given a report whose policy is not in Onyx
+            // When the row builds its policy
+            // Then it gets undefined, like the full policy read would
+            expect(getReportRowPolicy(undefined)).toBeUndefined();
+        });
+    });
+
+    describe('getReportRowPolicyCategories', () => {
+        const glCode = 'GL Code';
+        const policyCategories = createMock<PolicyCategories>({
+            Food: {name: 'Food', enabled: true, [glCode]: '100'},
+            Travel: {name: 'Travel', enabled: true, [glCode]: '200'},
+        });
+
+        it('should keep only the category of the transaction', () => {
+            // Given policy categories with several entries
+            // When a row with the Food category builds its categories
+            const rowCategories = getReportRowPolicyCategories(policyCategories, 'Food');
+
+            // Then it keeps only Food, so a write to another category leaves the row's value unchanged
+            expect(rowCategories).toEqual({Food: {name: 'Food', enabled: true, [glCode]: '100'}});
+        });
+
+        it('should keep one category with a GL code when the transaction category has none', () => {
+            // Given a policy where only Travel has a GL code
+            const categoriesWithOneGLCode = createMock<PolicyCategories>({
+                Food: {name: 'Food', enabled: true},
+                Travel: {name: 'Travel', enabled: true, [glCode]: '200'},
+            });
+
+            // When rows without a category, with a missing category, and with Food build their categories
+            // Then each keeps Travel too, so CategoryGLCodeCell still sees that the workspace has GL codes and stays editable
+            expect(getReportRowPolicyCategories(categoriesWithOneGLCode, undefined)).toEqual({Travel: {name: 'Travel', enabled: true, [glCode]: '200'}});
+            expect(getReportRowPolicyCategories(categoriesWithOneGLCode, 'Missing')).toEqual({Travel: {name: 'Travel', enabled: true, [glCode]: '200'}});
+            expect(getReportRowPolicyCategories(categoriesWithOneGLCode, 'Food')).toEqual({
+                Food: {name: 'Food', enabled: true},
+                Travel: {name: 'Travel', enabled: true, [glCode]: '200'},
+            });
+        });
+
+        it('should return undefined when the transaction has no category and no category has a GL code', () => {
+            // Given a policy without GL codes
+            const categoriesWithoutGLCode = createMock<PolicyCategories>({
+                Food: {name: 'Food', enabled: true},
+            });
+
+            // When a row without a category builds its categories
+            // Then it gets undefined
+            expect(getReportRowPolicyCategories(categoriesWithoutGLCode, undefined)).toBeUndefined();
+        });
+    });
+
+    describe('getReportRowReport', () => {
+        it('should drop the unheld totals and last-activity fields and keep the rest', () => {
+            // Given a report with totals, last-activity fields and the fields a row reads
+            const fullReport = createMock<Report>({
+                reportID: '1',
+                policyID: 'P1',
+                currency: CONST.CURRENCY.USD,
+                total: 1000,
+                nonReimbursableTotal: 100,
+                unheldTotal: 900,
+                unheldNonReimbursableTotal: 50,
+                lastReadTime: '2026-01-01',
+                lastVisibleActionCreated: '2026-01-01',
+                lastMessageText: 'Hi',
+                lastActorAccountID: 2,
+            });
+
+            // When the row builds its report
+            const rowReport = getReportRowReport(fullReport);
+
+            // Then a new unheld total or a new message can't change what the row receives, while the totals the action cell and approval chain read stay
+            expect(rowReport).toEqual({reportID: '1', policyID: 'P1', currency: CONST.CURRENCY.USD, total: 1000, nonReimbursableTotal: 100});
+        });
+
+        it('should return undefined when the report is not loaded', () => {
+            // Given a report that is not in Onyx
+            // When the row builds its report
+            // Then it gets undefined, like the full report read would
+            expect(getReportRowReport(undefined)).toBeUndefined();
+        });
+    });
+
+    describe('getReportRowCards', () => {
+        const cardID = 1;
+        const otherCardID = 2;
+        const card = createMock<Card>({cardID, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA});
+        const cards = createMock<CardList>({[cardID]: card, [otherCardID]: createMock<Card>({cardID: otherCardID, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE})});
+
+        it('should keep only the card of the transaction', () => {
+            // Given a card list with several cards
+            // When a row paid with card 1 builds its cards
+            const rowCards = getReportRowCards(cards, cardID);
+
+            // Then it keeps only card 1, so a write to another card leaves the row's value unchanged
+            expect(rowCards).toEqual({[cardID]: card});
+        });
+
+        it('should return the same empty object when the transaction has no card or the card is missing', () => {
+            // Given a cash row and a row whose card is not in the list
+            // When they build their cards
+            // Then both get one shared empty object, so their value never changes with the card list
+            expect(getReportRowCards(cards, undefined)).toBe(getReportRowCards(cards, 99));
+            expect(getReportRowCards(cards, undefined)).toEqual({});
         });
     });
 });

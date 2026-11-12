@@ -5,6 +5,7 @@ import ReceiptStorage from '@libs/ReceiptStorage';
 import {logReceiptDropped} from '@libs/telemetry/ReceiptObservability';
 import validateFormDataParameter from '@libs/validateFormDataParameter';
 
+import CONST from '@src/CONST';
 import type {Receipt} from '@src/types/onyx/Transaction';
 
 import RNFS from 'react-native-fs';
@@ -46,6 +47,12 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                 return Promise.resolve();
             }
 
+            // The assertion is FormData's signature being narrower than what request data can hold.
+            const appendValueAsIs = () => {
+                validateFormDataParameter(command, key, value);
+                formData.append(key, value as string | Blob);
+            };
+
             if (key === 'receipt') {
                 const {source, name, type, receiptTraceId} = value as Omit<File, 'source'> & Pick<Receipt, 'receiptTraceId' | 'source'>;
 
@@ -55,13 +62,12 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                         return Promise.resolve();
                     }
 
-                    const localUri = ReceiptStorage.resolve(source) ?? source;
-
-                    return checkFileExistsWithReason(localUri).then(({exists, error}) => {
-                        if (!exists) {
+                    return ReceiptStorage.locate(source).then((localUri) => {
+                        if (!localUri) {
                             const transactionID = typeof data.transactionID === 'string' ? data.transactionID : undefined;
-                            return getReceiptsFolderState().then((receiptsFolder) => {
-                                logReceiptDropped({receiptTraceId, transactionID, command, source, localUri, fileName: name, statError: error, receiptsFolder});
+                            const resolvedUri = ReceiptStorage.resolve(source) ?? source;
+                            return Promise.all([checkFileExistsWithReason(resolvedUri), getReceiptsFolderState()]).then(([{error}, receiptsFolder]) => {
+                                logReceiptDropped({receiptTraceId, transactionID, command, source, localUri: resolvedUri, fileName: name, statError: error, receiptsFolder});
                             });
                         }
                         const receiptFormData = {
@@ -73,9 +79,13 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                         formData.append(key, receiptFormData as File);
                     });
                 }
+
+                if (name) {
+                    return ReceiptStorage.settle(name).then(appendValueAsIs);
+                }
             }
 
-            if (key === 'file' && initiatedOffline) {
+            if ((key === 'file' || CONST.ADDITIONAL_ATTACHMENT_FILE_KEY_REGEX.test(key)) && initiatedOffline) {
                 const {uri: path = '', source, name, type} = value as File;
                 if (!source) {
                     validateFormDataParameter(command, key, value);
@@ -90,13 +100,15 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                         return;
                     }
 
+                    // A React Native File keeps its name and type on the prototype, and the multipart part is built from
+                    // the object's own properties, so without these the upload goes out unnamed and is stored as "file".
+                    Object.defineProperties(file, {name: {value: file.name, enumerable: true}, type: {value: file.type, enumerable: true}});
                     validateFormDataParameter(command, key, file);
                     formData.append(key, file);
                 });
             }
 
-            validateFormDataParameter(command, key, value);
-            formData.append(key, value as string | Blob);
+            appendValueAsIs();
 
             return Promise.resolve();
         });

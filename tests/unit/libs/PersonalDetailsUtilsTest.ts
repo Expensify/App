@@ -1,3 +1,5 @@
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
 import {
     arePersonalDetailsMissing,
     areTravelPersonalDetailsMissing,
@@ -12,6 +14,7 @@ import {
     getPersonalDetailsByIDs,
     temporaryGetDisplayNameOrDefault,
 } from '@libs/PersonalDetailsUtils';
+import {generateAccountID} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -561,54 +564,64 @@ describe('PersonalDetailsUtils', () => {
         const accountID1 = 1;
         const accountID2 = 2;
         const accountID3 = 3;
+        const user1Login = 'user1@example.com';
+        const user2Login = 'user2@example.com';
+        const user3Login = 'user3@example.com';
 
-        it('should return account IDs for existing users', async () => {
-            const personalDetails: PersonalDetailsList = {
-                [accountID1]: {
+        it('should return account IDs for existing users', () => {
+            // Given personal details for three users
+            const personalDetailsByLogins: PersonalDetailsByLogin = {
+                [user1Login]: {
                     accountID: accountID1,
-                    login: 'user1@example.com',
+                    login: user1Login,
                     displayName: 'User One',
                 },
-                [accountID2]: {
+                [user2Login]: {
                     accountID: accountID2,
-                    login: 'user2@example.com',
+                    login: user2Login,
                     displayName: 'User Two',
                 },
-                [accountID3]: {
+                [user3Login]: {
                     accountID: accountID3,
-                    login: 'user3@example.com',
+                    login: user3Login,
                     displayName: 'User Three',
                 },
             };
 
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
-            await waitForBatchedUpdates();
+            // When looking up two of their logins
+            const result = getAccountIDsByLogins([user1Login, user2Login], personalDetailsByLogins);
 
-            const result = getAccountIDsByLogins(['user1@example.com', 'user2@example.com']);
+            // Then only their accountIDs are returned, in the same order
             expect(result).toEqual([accountID1, accountID2]);
         });
 
-        it('should generate optimistic account IDs for unknown users', async () => {
-            const personalDetails: PersonalDetailsList = {
-                [accountID1]: {
+        it('should generate optimistic account IDs for unknown users', () => {
+            // Given personal details for only one of the users
+            const personalDetailsByLogins: PersonalDetailsByLogin = {
+                [user1Login]: {
                     accountID: accountID1,
-                    login: 'user1@example.com',
+                    login: user1Login,
                     displayName: 'User One',
                 },
             };
 
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
-            await waitForBatchedUpdates();
+            // When looking up a known and an unknown login
+            const result = getAccountIDsByLogins([user1Login, 'unknown@example.com'], personalDetailsByLogins);
 
-            const result = getAccountIDsByLogins(['user1@example.com', 'unknown@example.com']);
-
-            // First should be 1 (existing), second should be a generated optimistic ID
-            expect(result.at(0)).toBe(accountID1);
-            // Optimistic account IDs are generated - they should be different from real IDs
-            expect(result.at(1)).not.toBe(0);
-            expect(typeof result.at(1)).toBe('number');
+            // Then the known login gets its accountID, and the unknown one an optimistic accountID because it's probably a new user
+            expect(result).toEqual([accountID1, generateAccountID('unknown@example.com')]);
         });
 
+        it('should handle empty array', () => {
+            // Given no logins to look up
+            // When looking them up
+            const result = getAccountIDsByLogins([], {});
+
+            // Then there are no accountIDs
+            expect(result).toEqual([]);
+        });
+
+        // The remaining cases cover the personal details store that callers without personalDetailsByLogins still fall back to
         it('should handle case-insensitive email matching', async () => {
             const personalDetails: PersonalDetailsList = {
                 [accountID1]: {
@@ -624,11 +637,6 @@ describe('PersonalDetailsUtils', () => {
             // The cache is built with lowercase keys, so we need to test that the lookup works
             const result = getAccountIDsByLogins(['USER1@EXAMPLE.COM']);
             expect(result).toEqual([accountID1]);
-        });
-
-        it('should handle empty array', async () => {
-            const result = getAccountIDsByLogins([]);
-            expect(result).toEqual([]);
         });
 
         it('should prefer the live account when a closed merged-away account shares the same login, regardless of order', async () => {
