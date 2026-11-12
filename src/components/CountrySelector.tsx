@@ -1,13 +1,17 @@
 import useGeographicalStateAndCountryFromRoute from '@hooks/useGeographicalStateAndCountryFromRoute';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
+import useOnyx from '@hooks/useOnyx';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
+import {callIfAuthenticated} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {authTokenTypeSelector} from '@src/selectors/Session';
 
 import type {ComponentRef, ForwardedRef} from 'react';
 import type {View} from 'react-native';
@@ -15,7 +19,8 @@ import type {View} from 'react-native';
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useRef} from 'react';
 
-import MenuItemWithTopDescription from './MenuItemWithTopDescription';
+import MenuItem from './MenuItem';
+import MenuItemField from './MenuItem/presets/MenuItemField';
 
 type CountrySelectorProps = {
     /** Form error text. e.g when no country is selected */
@@ -37,12 +42,11 @@ type CountrySelectorProps = {
 };
 
 function CountrySelector({errorText = '', value: countryCode, onInputChange = () => {}, onBlur, ref}: CountrySelectorProps) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {country: countryFromUrl} = useGeographicalStateAndCountryFromRoute();
 
     const title = countryCode ? translate(`allCountries.${countryCode}`) : '';
-    const countryTitleDescStyle = title.length === 0 ? styles.textNormal : null;
 
     const didOpenCountrySelector = useRef(false);
     const isFocused = useIsFocused();
@@ -73,20 +77,30 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange = ()
     }, [countryFromUrl, isFocused, onBlur]);
 
     return (
-        <MenuItemWithTopDescription
+        <MenuItem.Root
             sentryLabel={CONST.SENTRY_LABEL.COUNTRY_SELECTOR.OPEN}
-            shouldShowRightIcon
-            title={title}
             ref={ref}
-            descriptionTextStyle={countryTitleDescStyle}
-            brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-            description={translate('common.country')}
-            errorText={errorText}
             onPress={() => {
-                didOpenCountrySelector.current = true;
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADDRESS_COUNTRY.getRoute(countryCode ?? '')));
+                callIfAuthenticated(() => {
+                    didOpenCountrySelector.current = true;
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADDRESS_COUNTRY.getRoute(countryCode ?? '')));
+                }, session)();
             }}
-        />
+        >
+            <MenuItemField.Row
+                name={translate('common.country')}
+                value={title}
+            >
+                {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                <MenuItem.Chevron />
+            </MenuItemField.Row>
+            {!!errorText && (
+                <MenuItem.HelpText
+                    isError
+                    message={errorText}
+                />
+            )}
+        </MenuItem.Root>
     );
 }
 
