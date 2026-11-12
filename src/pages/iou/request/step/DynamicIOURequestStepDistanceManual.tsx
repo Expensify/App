@@ -232,40 +232,11 @@ function DynamicIOURequestStepDistanceManual({
 
     const navigateToNextPage = async (amount: string) => {
         const distanceAsFloat = roundToTwoDecimalPlaces(parseFloat(amount));
-        const [
-            lastSelectedDistanceRates,
-            quickAction,
-            policyRecentlyUsedCurrencies,
-            splitDraftTransaction,
-            recentWaypoints,
-            rules,
-            policyCategories,
-            policyTags,
-            reportPolicyTags,
-            introSelected,
-            transactionDrafts,
-            onboarding,
-            conciergeChat,
-        ] = await Onyx.multiGet([
-            ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
-            ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-            ONYXKEYS.RECENTLY_USED_CURRENCIES,
-            `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`,
-            ONYXKEYS.NVP_RECENT_WAYPOINTS,
-            ONYXKEYS.COLLECTION.RULE,
-            `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`,
-            `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`,
-            `${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`,
-            ONYXKEYS.NVP_INTRO_SELECTED,
-            ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
-            ONYXKEYS.NVP_ONBOARDING,
-            `${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`,
-        ]);
-        const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
         if (action === CONST.IOU.ACTION.EDIT) {
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
             if (isEditingSplit && transaction) {
+                const splitDraftTransaction = await Onyx.get(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
                 setDraftSplitTransaction(
                     transaction.transactionID,
                     splitDraftTransaction ?? transaction,
@@ -285,6 +256,14 @@ function DynamicIOURequestStepDistanceManual({
             const shouldUpdateTransaction = isDistanceChanged || isDistanceUnitChanged;
 
             if (shouldUpdateTransaction) {
+                const [rules, policyCategories, policyTags, reportPolicyTags, introSelected, recentWaypoints] = await Onyx.multiGet([
+                    ONYXKEYS.COLLECTION.RULE,
+                    `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`,
+                    `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`,
+                    `${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`,
+                    ONYXKEYS.NVP_INTRO_SELECTED,
+                    ONYXKEYS.NVP_RECENT_WAYPOINTS,
+                ]);
                 updateMoneyRequestDistance({
                     isVendorMatchingBetaEnabled,
                     transaction,
@@ -304,7 +283,7 @@ function DynamicIOURequestStepDistanceManual({
                     recentWaypoints,
                     delegateAccountID,
                     reportPolicyTags,
-                    isTrackIntentUser,
+                    isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice),
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                     violations: transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`],
                     getCurrencyDecimals,
@@ -315,6 +294,20 @@ function DynamicIOURequestStepDistanceManual({
             Navigation.goBack(backTo);
             return;
         }
+
+        const [lastSelectedDistanceRates, quickAction, policyRecentlyUsedCurrencies, recentWaypoints, rules, introSelected, transactionDrafts, onboarding, conciergeChat] =
+            await Onyx.multiGet([
+                ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
+                ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+                ONYXKEYS.RECENTLY_USED_CURRENCIES,
+                ONYXKEYS.NVP_RECENT_WAYPOINTS,
+                ONYXKEYS.COLLECTION.RULE,
+                ONYXKEYS.NVP_INTRO_SELECTED,
+                ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+                ONYXKEYS.NVP_ONBOARDING,
+                `${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`,
+            ]);
+        const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
         setMoneyRequestDistance(transactionID, distanceAsFloat, isTransactionDraft, unit);
 
