@@ -1,27 +1,34 @@
 ---
-title: How to switch between New Expensify and Expensify Classic
+title: How to Switch Between New Expensify and Expensify Classic
 description: Learn how to switch between New Expensify and Expensify Classic on web and mobile, and why switching may be unavailable.
 keywords: [New Expensify, Expensify Classic, switch to classic, classic, switch views, revert to Classic, try New Expensify, financial collaboration, chat-based app, new app, old app, old version, Classic View, switch back]
 internalScope: Audience is all members. Covers switching between New Expensify and Expensify Classic and explains why switching may be unavailable. Does not cover feature differences or migration policy details.
 ---
 
-# How to switch between New Expensify and Expensify Classic
+# How to Switch Between New Expensify and Expensify Classic
 
-You can switch between New Expensify and Expensify Classic on web or mobile, depending on your account configuration and organization settings.
+Switching from New Expensify to Expensify Classic is available on web and mobile only if you're eligible.
 
 ---
 
 ## Who can switch between New Expensify and Expensify Classic
 
-Most members can switch between experiences unless switching has been restricted for their account or organization.
+Only eligible members see **Switch to Expensify Classic**. If the option is missing, see [why switching may be unavailable](#why-you-might-not-see-the-option-to-switch).
 
 ---
 
 ## How to switch from New Expensify to Expensify Classic
 
-1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
-2. Click **Troubleshoot**.
-3. Choose **Switch to Expensify Classic**.
+On web:
+
+1. In the navigation tabs on the left, select **Account > Troubleshoot**.
+2. Select **Switch to Expensify Classic** if it appears.
+
+On mobile:
+
+1. Select your profile icon.
+2. Select **Troubleshoot**.
+3. Select **Switch to Expensify Classic** if it appears.
 
 ---
 
@@ -41,9 +48,7 @@ Most members can switch between experiences unless switching has been restricted
 
 ## Why you might not see the option to switch
 
-If you don’t see the option to **Switch to Expensify Classic**, it may have been **disabled at the domain level** by a Domain Admin.
-
-**Note:** While Domain Admins can restrict access to Expensify Classic, there is currently no way to disable New Expensify.
+**Switch to Expensify Classic** only appears if you're eligible to switch. You may not see it if your domain or account has been migrated to New Expensify. These are some reasons the option may be unavailable, not a complete list.
 
 ---
 
@@ -63,9 +68,8 @@ Expensify continues to evolve and improve both experiences over time. Members wi
 
 ## Can I disable New Expensify for my team?
 
-No. While admins can restrict access to Expensify Classic, there is currently no way to disable New Expensify.
+No. There is currently no way to disable New Expensify.
 
 ## Why does New Expensify look so different?
 
 Because it’s designed for a chat-first, mobile-friendly experience. New Expensify uses a chat-based interface designed for communication, expense tracking, payments, and collaboration in one place.
-

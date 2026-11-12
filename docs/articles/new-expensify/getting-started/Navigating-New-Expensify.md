@@ -138,7 +138,7 @@ You can also access:
  - **Help** to access help and support resources, including support contacts
  - **What's new** to view product updates
  - **About** to see app details
- - **Troubleshoot** to run diagnostics or switch to Expensify Classic
+ - **Troubleshoot** to run diagnostics or select **Switch to Expensify Classic** if you're eligible. Some reasons this option may be missing include your domain or account having been migrated to New Expensify.
  - **Save the world** to explore Expensify.org campaigns
  - **Sign out** to log out of your account
 
