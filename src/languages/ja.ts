@@ -7824,6 +7824,13 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 onWaitlist: '順番待ちリストに登録されています',
                 waitlistDescription: 'この連携の準備が整い、接続方法が決まりましたら、Concierge からメッセージでお知らせします。',
             },
+            integrationWaitlist: {
+                comingSoon: '近日公開予定',
+                joinWaitlist: 'ウェイトリストに参加',
+                onWaitlist: '順番待ちリストに登録されています',
+                onTheList: 'リストに登録されています！',
+                waitlistDescription: 'この連携の準備が整い、接続方法が決まりましたら、Concierge からメッセージでお知らせします。',
+            },
             setup: '接続',
             connectToSandbox: 'Sandbox に接続',
             lastSync: (relativeDate: string) => `最終同期：${relativeDate}`,
@@ -8231,6 +8238,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             statusExpired: '期限切れ',
             statusInactive: '無効',
             unit: '単位',
+            ukFuelRateTaxError: '英国の推奨燃料料金の税金を追跡するには、20%の税率を追加してください。',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) => `英国の推奨燃料料金の税金を追跡するには、${integrationName}に20%の税率を追加してください。`,
             taxFeatureNotEnabledMessage:
                 '<muted-text>この機能を利用するには、ワークスペースで税金設定を有効にする必要があります。設定を変更するには、<a href="#">その他の機能</a>に移動してください。</muted-text>',
             deleteDistanceRate: '距離レートを削除',
