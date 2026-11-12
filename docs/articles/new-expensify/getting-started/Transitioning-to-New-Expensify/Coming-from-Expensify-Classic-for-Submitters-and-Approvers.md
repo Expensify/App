@@ -95,7 +95,7 @@ The **Home** tab also highlights important tasks and issues that need your atten
 
 ## Can I use both New Expensify and Expensify Classic?
 
-You can return to Expensify Classic only if you're eligible. Some reasons **Switch to Expensify Classic** may be missing include your domain or account having been migrated to New Expensify. [Learn how to switch between New Expensify and Expensify Classic](/articles/new-expensify/settings/Switch-between-New-Expensify-and-Expensify-Classic).
+Yes, you can switch between New Expensify and Expensify Classic as long as your account is eligible. Switching may be unavailable if your account or domain has been migrated to New Expensify. [Learn how to switch between New Expensify and Expensify Classic](/articles/new-expensify/settings/Switch-between-New-Expensify-and-Expensify-Classic).
 
 ## Will my data carry over when I switch to New Expensify?
 
@@ -111,4 +111,4 @@ Historical reports created in Expensify Classic are available in the **Spend** t
 
 ## Do I have to use New Expensify?
 
-If you aren't eligible to switch to Expensify Classic, you won't see **Switch to Expensify Classic** under **Troubleshoot**. This may happen if your domain or account has been migrated to New Expensify. New features and workflow improvements are focused on New Expensify.
+Not necessarily. If your account is eligible, you can continue using Expensify Classic. However, new features and workflow improvements are focused on New Expensify.[Learn who can switch to Expensify Classic](/articles/new-expensify/settings/Switch-between-New-Expensify-and-Expensify-Classic#who-can-switch-between-new-expensify-and-expensify-classic).
