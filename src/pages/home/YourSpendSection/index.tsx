@@ -1,5 +1,6 @@
 import WidgetContainer from '@components/WidgetContainer';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -25,6 +26,7 @@ function YourSpendSection() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal} = useLayoutSpacing();
     const icons = useMemoizedLazyExpensifyIcons(['ThumbsUpHourglass', 'MoneyBag']);
     const [isExpanded, setIsExpanded] = useState(false);
 
@@ -42,7 +44,7 @@ function YourSpendSection() {
         return null;
     }
 
-    const wrapperStyle = [styles.alignItemsCenter, shouldUseNarrowLayout ? styles.ph5 : styles.ph8];
+    const wrapperStyle = [styles.alignItemsCenter, cardPaddingHorizontal];
     const visibleSummaryRowsCount = (isApprovalRowVisible ? 1 : 0) + (isPaymentRowVisible ? 1 : 0);
     const cardLimit = Math.max(0, CONST.HOME.SECTION_VISIBLE_LIMIT - visibleSummaryRowsCount);
     const hiddenCount = Math.max(0, cardRows.length - cardLimit);
@@ -57,6 +59,7 @@ function YourSpendSection() {
                 <SpendSummaryRow
                     state={approvalRowState}
                     testIDPrefix="your-spend-approval"
+                    sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.SPEND_AWAITING_APPROVAL_ROW}
                     description={translate('homePage.yourSpend.awaitingApproval')}
                     totals={approvalTotals}
                     iconSrc={icons.ThumbsUpHourglass}
@@ -69,6 +72,7 @@ function YourSpendSection() {
                 <SpendSummaryRow
                     state={paymentRowState}
                     testIDPrefix="your-spend-payment"
+                    sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.SPEND_REPAID_ROW}
                     description={translate('homePage.yourSpend.repaidLast30Days')}
                     totals={paymentTotals}
                     iconSrc={icons.MoneyBag}
@@ -90,6 +94,7 @@ function YourSpendSection() {
                         isExpanded={isExpanded}
                         onPress={() => setIsExpanded((prev) => !prev)}
                         collapsedLabel={translate('homePage.seeMore', {count: hiddenCount})}
+                        sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.SECTION_EXPAND_TOGGLE_YOUR_SPEND}
                     />
                 )}
             </WidgetContainer>

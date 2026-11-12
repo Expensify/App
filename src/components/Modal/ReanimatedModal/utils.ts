@@ -5,11 +5,16 @@ import CONST from '@src/CONST';
 import type {ViewStyle} from 'react-native';
 import type {ValidKeyframeProps} from 'react-native-reanimated/lib/typescript/commonTypes';
 
-import {Easing} from 'react-native-reanimated';
+import {cubicBezier, Easing} from 'react-native-reanimated';
 
 import type {AnimationIn, AnimationOut} from './types';
 
-const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
+// Control points of the modal easing curve, shared by the worklet easing and the CSS animation easing so both stay in sync
+const EASING_CONTROL_POINTS = [0.76, 0.0, 0.24, 1.0] as const;
+
+const easing = Easing.bezier(...EASING_CONTROL_POINTS).factory();
+
+const cssEasing = cubicBezier(...EASING_CONTROL_POINTS);
 
 function getModalInAnimation(animationType: AnimationIn, fadeOpacity: number = variables.overlayOpacity): ValidKeyframeProps {
     switch (animationType) {
@@ -109,4 +114,4 @@ function getModalOutAnimation(animationType: AnimationOut, fadeOpacity: number =
     }
 }
 
-export {getModalInAnimation, getModalOutAnimation, getModalInAnimationStyle, easing};
+export {getModalInAnimation, getModalOutAnimation, getModalInAnimationStyle, easing, cssEasing};

@@ -12,6 +12,8 @@ import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 
 import Navigation from '@navigation/Navigation';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 import {View} from 'react-native';
 
@@ -27,12 +29,14 @@ function Enable2FACard() {
             title={translate('connectBankAccountStep.enable2FATitle')}
             icon={ShieldYellow}
             titleStyles={styles.mb4}
-            containerStyles={styles.mh5}
         >
             <View style={styles.mb6}>
                 <Text>{translate('connectBankAccountStep.enable2FAText')}</Text>
             </View>
-            <MenuItemSectionRoot onPress={() => Navigation.navigate(getTwoFactorAuthRoute())}>
+            <MenuItemSectionRoot
+                onPress={() => Navigation.navigate(getTwoFactorAuthRoute())}
+                sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.CONNECT_BANK_ACCOUNT_ENABLE_TWO_FACTOR_AUTH}
+            >
                 <MenuItem.Row>
                     <MenuItem.Leading>
                         <MenuItem.Icon src={icons.Shield} />

@@ -6,14 +6,15 @@ import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
 
 import type {ComponentRef, ForwardedRef} from 'react';
+import type {View} from 'react-native';
 
 import React, {useState} from 'react';
-import {View} from 'react-native';
 
 import HeaderWithBackButtonAndTitle from './Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import Modal from './Modal';
 import ScreenWrapper from './ScreenWrapper';
+import ScrollView from './ScrollView';
 import TimePicker from './TimePicker/TimePicker';
 
 type TimeModalPickerProps = {
@@ -50,6 +51,7 @@ function TimeModalPicker({value, errorText, label, onInputChange = () => {}, ref
     return (
         <>
             <MenuItemWithTopDescription
+                sentryLabel={CONST.SENTRY_LABEL.TIME_MODAL_PICKER.OPEN}
                 shouldShowRightIcon
                 title={currentTime}
                 description={label}
@@ -75,13 +77,16 @@ function TimeModalPicker({value, errorText, label, onInputChange = () => {}, ref
                         title={label}
                         onBackButtonPress={hidePickerModal}
                     />
-                    <View style={styles.flex1}>
+                    <ScrollView
+                        style={styles.flex1}
+                        contentContainerStyle={styles.flexGrow1}
+                    >
                         <TimePicker
                             defaultValue={value}
                             onSubmit={updateInput}
                             shouldValidateFutureTime={false}
                         />
-                    </View>
+                    </ScrollView>
                 </ScreenWrapper>
             </Modal>
         </>

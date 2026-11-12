@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearContactMethodErrors, clearUnvalidatedNewContactMethodAction, requestValidateCodeAction, validateSecondaryLogin} from '@libs/actions/User';
 import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
@@ -18,8 +19,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback, useEffect, useRef} from 'react';
+import {CONST as COMMON_CONST, Str} from 'expensify-common';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 type VerifyAccountPageBaseProps = {
@@ -28,20 +29,22 @@ type VerifyAccountPageBaseProps = {
     handleClose?: () => void;
     /** Callback called ONLY when user successfully validates their account (not on dismiss/back) */
     onValidationSuccess?: () => void;
+
+    /** Whether to display a close button instead of the default back button. */
+    shouldShowCloseButton?: boolean;
 };
 
 /**
  * This is a base page as RHP for account verification. The back & forward url logic should be handled on per case basis in higher component.
  */
-function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, onValidationSuccess}: VerifyAccountPageBaseProps) {
+function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, onValidationSuccess, shouldShowCloseButton = false}: VerifyAccountPageBaseProps) {
     const styles = useThemeStyles();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    // sometimes primaryLogin can be empty string
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const contactMethod = (account?.primaryLogin || currentUserPersonalDetails.email) ?? '';
-    const {translate} = useLocalize();
+    const {formatPhoneNumber, translate} = useLocalize();
+    const contactMethod = addSMSDomainIfPhoneNumber((account?.primaryLogin || currentUserPersonalDetails.email) ?? '');
+    const formattedContactMethod = Str.isSMSLogin(contactMethod) ? formatPhoneNumber(contactMethod) : contactMethod;
     const loginData = loginList?.[contactMethod];
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
     const isUserValidated = account?.validated ?? false;
@@ -50,20 +53,17 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
 
     const sendValidateCode = () => requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.VALIDATE_ACCOUNT});
 
-    const handleSubmitForm = useCallback(
-        (validateCode: string) => {
-            validateSecondaryLogin(contactMethod, validateCode);
-        },
-        [contactMethod],
-    );
+    const handleSubmitForm = (validateCode: string) => {
+        validateSecondaryLogin(contactMethod, validateCode);
+    };
 
-    const handleCloseWithFallback = useCallback(() => {
+    const handleCloseWithFallback = () => {
         if (handleClose) {
             handleClose();
             return;
         }
         Navigation.goBack(navigateBackTo);
-    }, [handleClose, navigateBackTo]);
+    };
 
     // Handle navigation once the user is validated.
     // This transition must happen exactly once: after it runs, this page stays mounted (see the loading state below),
@@ -108,7 +108,7 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
         <ValidateCodeActionContent
             title={translate('contacts.validateAccount')}
             descriptionPrimary={translate('contacts.featureRequiresValidate')}
-            descriptionSecondary={translate('contacts.enterSecurityCode', contactMethod)}
+            descriptionSecondary={translate('contacts.enterSecurityCode', formattedContactMethod)}
             sendValidateCode={sendValidateCode}
             validateCodeReasonCode={COMMON_CONST.VALIDATE_CODE_REASONS.VALIDATE_ACCOUNT}
             validateCodeActionErrorField="validateLogin"
@@ -117,6 +117,7 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
             validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
             clearError={() => clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
             onClose={handleCloseWithFallback}
+            shouldShowCloseButton={shouldShowCloseButton}
         />
     );
 }

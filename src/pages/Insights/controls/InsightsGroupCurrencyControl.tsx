@@ -29,6 +29,8 @@ function InsightsGroupCurrencyControl({value, defaultValue, onChange}: InsightsG
             searchPlaceholder={translate('common.search')}
             onChange={(item) => onChange(item?.value ?? defaultValue)}
             closeOverlay={closeOverlay}
+            applySentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_APPLY.GROUP_CURRENCY}
+            resetSentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_RESET.GROUP_CURRENCY}
         />
     );
 

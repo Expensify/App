@@ -17,7 +17,13 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateExpensifyCardLimit} from '@libs/actions/Card';
-import {filterInactiveCardsForWorkspace} from '@libs/CardUtils';
+import {
+    filterInactiveCardsForWorkspace,
+    getExpensifyCardLimitChangeWarningKey,
+    getExpensifyCardLimitError,
+    getExpensifyCardLimitErrorMessage,
+    getExpensifyCardNewAvailableSpend,
+} from '@libs/CardUtils';
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
@@ -33,9 +39,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditExpensifyCardLimitForm';
 
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-
-type ConfirmationWarningTranslationPaths = 'workspace.expensifyCard.smartLimitWarning' | 'workspace.expensifyCard.monthlyLimitWarning' | 'workspace.expensifyCard.fixedLimitWarning';
+import React, {useEffect, useRef} from 'react';
 
 type DynamicExpensifyCardLimitPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_LIMIT>;
 
@@ -61,30 +65,13 @@ function DynamicExpensifyCardLimitPage({route}: DynamicExpensifyCardLimitPagePro
         cardRef.current = card;
     }, [card]);
 
-    const getPromptTextKey = useMemo((): ConfirmationWarningTranslationPaths => {
-        switch (card?.nameValuePairs?.limitType) {
-            case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART:
-                return 'workspace.expensifyCard.smartLimitWarning';
-            case CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED:
-                return 'workspace.expensifyCard.fixedLimitWarning';
-            case CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY:
-                return 'workspace.expensifyCard.monthlyLimitWarning';
-            default:
-                return 'workspace.expensifyCard.fixedLimitWarning';
-        }
-    }, [card?.nameValuePairs?.limitType]);
+    const getPromptTextKey = () => getExpensifyCardLimitChangeWarningKey(cardRef.current?.nameValuePairs?.limitType);
 
-    const getNewAvailableSpend = (newLimit: number) => {
-        const latestCard = cardRef.current;
-        const currentLimit = latestCard?.nameValuePairs?.unapprovedExpenseLimit ?? 0;
-        const currentSpend = currentLimit - (latestCard?.availableSpend ?? 0);
+    const getNewAvailableSpend = (newLimit: number) => getExpensifyCardNewAvailableSpend(cardRef.current, newLimit);
 
-        return newLimit - currentSpend;
-    };
-
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath, {compareParams: false});
-    }, [backPath]);
+    };
 
     const updateCardLimit = (newLimit: number) => {
         const latestCard = cardRef.current;
@@ -110,7 +97,7 @@ function DynamicExpensifyCardLimitPage({route}: DynamicExpensifyCardLimitPagePro
         if (newAvailableSpend <= 0) {
             showConfirmModal({
                 title: translate('workspace.expensifyCard.changeCardLimit'),
-                prompt: translate(getPromptTextKey, convertToDisplayString(newLimit, currency)),
+                prompt: translate(getPromptTextKey(), convertToDisplayString(newLimit, currency)),
                 confirmText: translate('workspace.expensifyCard.changeLimit'),
                 cancelText: translate('common.cancel'),
                 buttonVariant: CONST.BUTTON_VARIANT.DANGER,
@@ -127,23 +114,18 @@ function DynamicExpensifyCardLimitPage({route}: DynamicExpensifyCardLimitPagePro
         updateCardLimit(newLimit);
     };
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM> => {
-            const errors = getFieldRequiredErrors(values, [INPUT_IDS.LIMIT], translate);
-
-            if (Number.isNaN(Number(values.limit))) {
-                errors.limit = translate('iou.error.invalidAmount');
-            } else if (!Number.isInteger(Number(values.limit))) {
-                errors.limit = translate('iou.error.invalidIntegerAmount');
-            }
-
-            if (Number(values.limit) > CONST.EXPENSIFY_CARD.LIMIT_VALUE) {
-                errors.limit = translate('workspace.card.issueNewCard.cardLimitError');
-            }
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM> => {
+        const errors = getFieldRequiredErrors(values, [INPUT_IDS.LIMIT], translate);
+        if (errors.limit) {
             return errors;
-        },
-        [translate],
-    );
+        }
+
+        const limitError = getExpensifyCardLimitError(values.limit);
+        if (limitError) {
+            errors.limit = getExpensifyCardLimitErrorMessage(translate, limitError);
+        }
+        return errors;
+    };
 
     return (
         <AccessOrNotFoundWrapper

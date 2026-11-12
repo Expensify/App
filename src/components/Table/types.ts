@@ -71,6 +71,12 @@ type TableColumnDynamicSizing<DataType extends TableData = TableData> = {
     minWidth?: number;
 
     /**
+     * Narrowest width a drag may give this column. Set when the cell keeps content that does not truncate, so the
+     * usual drag bound would paint it over the next column. Omitted to use the usual drag bound.
+     */
+    dragMinWidth?: number;
+
+    /**
      * Largest width this column may claim. Uncapped by default, so content that doesn't fit scrolls the table rather
      * than truncating. Set this on a column that should truncate instead of widening the table any further.
      */
@@ -222,6 +228,12 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
          * native can't measure text synchronously, so both keep the equal-width layout.
          */
         shouldUseDynamicColumns?: boolean;
+
+        /**
+         * Enables column resizing and keys the stored widths. Requires `shouldUseDynamicColumns`, the `resizableTableColumns` beta, and works on web in the wide layout only.
+         * Name it after the column set, not the screen, so tables with the same columns share widths.
+         */
+        columnResizingID?: string;
 
         /** Optional filter configuration for dropdown filters. */
         filters?: FilterConfig<FilterKey>;

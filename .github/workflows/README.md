@@ -88,6 +88,7 @@ git fetch origin tag 1.0.1-0 --no-tags --shallow-exclude=1.0.0-0 # This will fet
 ## Secrets
 The GitHub workflows require a large list of secrets to deploy, notify and test the code:
 1. `SLACK_WEBHOOK` - Sends Slack notifications via Slack WebHook https://expensify.slack.com/services/B01AX48D7MM
+1. `SLACK_RETEST_USER_TOKEN` - Read-only Slack user token with `channels:history` access to `#deployer` and `#retests`, used to link automated retest requests to their Cherry Pick Request threads
 1. `OS_BOTIFY_TOKEN` - Personal access token for @OSBotify user in GitHub
 1. `CLA_BOTIFY_TOKEN` - Personal access token for @CLABotify user in GitHub
 1. `CSC_LINK` - Required to be set for desktop code signing: https://www.electron.build/code-signing.html#travis-appveyor-and-other-ci-servers
@@ -95,9 +96,7 @@ The GitHub workflows require a large list of secrets to deploy, notify and test 
 1. `APPLE_ID` - Required for notarizing desktop code in `desktop/notarize.js`
 1. `APPLE_TEAM_ID` - Required for notarizing desktop code in `desktop/notarize.js`
 1. `APPLE_ID_PASSWORD` - Required for notarizing desktop code in `desktop/notarize.js`
-1. `AWS_ACCESS_KEY_ID` - Required for hosting website and desktop compiled code
-1. `AWS_SECRET_ACCESS_KEY` - Required for hosting website and desktop compiled code
-1. `CLOUDFLARE_TOKEN` - Required for hosting website
+1. `CLOUDFLARE_TOKEN` - Purges the help-site Cloudflare cache
 1. `APPLE_CONTACT_EMAIL` - Email used for contact between Expensify and Apple for https://appstoreconnect.apple.com/
 1. `APPLE_CONTACT_PHONE` - Phone number used for contact between Expensify and Apple for https://appstoreconnect.apple.com/
 1. `APPLE_DEMO_EMAIL` - Demo account email used for https://appstoreconnect.apple.com/

@@ -44,11 +44,11 @@ Follow the steps below to confirm the connection and retry the export.
 
 1. Go to **Settings > Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**.
 4. Review the Xero connection status.
 5. If prompted, reconnect or reauthorize the Xero integration.
 6. Click **Save**.
-7. Click **Sync Now**.
+7. Select **Configure** next to Xero, select **More (⋮)**, then select **Sync now**.
 
 After reconnecting, retry the export.
 

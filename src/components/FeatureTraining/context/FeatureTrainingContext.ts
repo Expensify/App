@@ -6,7 +6,6 @@ const defaultState: FeatureTrainingStateValue = {
     willShowAgain: true,
     shouldShowLoadingImmediatelyOnPress: undefined,
     isCarousel: false,
-    confirmSentryLabel: undefined,
     currentPage: undefined,
     pageCount: undefined,
     isLastPage: undefined,

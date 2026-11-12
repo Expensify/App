@@ -42,7 +42,7 @@ import type {PersonalDetails, Report} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useMemo} from 'react';
+import React from 'react';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
@@ -80,10 +80,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const personalDetails = usePersonalDetails();
-    const ownerPersonalDetails = useMemo(
-        () => getPersonalDetailsForAccountID(selectedReport?.ownerAccountID, personalDetails) as PersonalDetails,
-        [personalDetails, selectedReport?.ownerAccountID],
-    );
+    const ownerPersonalDetails = getPersonalDetailsForAccountID(selectedReport?.ownerAccountID, personalDetails) as PersonalDetails;
     const [transactions] = useTransactionsByID(transactionIDs);
     const managedCardTransactionID = transactions.find((transaction) => isUnreportedManagedCardTransaction(transaction))?.transactionID;
     const hasUnreportedManagedCardTransactions = !!managedCardTransactionID;
@@ -105,6 +102,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const selectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
         if (transactionIDs.length === 0 || item.value === reportID) {
@@ -123,6 +121,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
                 isASAPSubmitBetaEnabled,
                 accountID: currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 email: currentUserPersonalDetails.email ?? '',
+                currentUserPersonalDetails,
                 newReport,
                 policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
@@ -131,6 +130,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
                 allTransactionViolation: transactionViolations,
                 reports: reportsForCall,
                 rules,
+                cardList,
                 isTrackIntentUser,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 selfDMReportActions,
@@ -156,12 +156,14 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             isASAPSubmitBetaEnabled,
             accountID: currentUserPersonalDetails.accountID,
             email: currentUserPersonalDetails.email ?? '',
+            currentUserPersonalDetails,
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
             policyTagList,
             transactions,
             allTransactionViolation: transactionViolations,
             reports,
             rules,
+            cardList,
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
@@ -210,6 +212,8 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
         shouldBypassConfirmation: true,
     });
 
+    const canCreateReport = !!policyForMovingExpensesID || shouldSelectPolicy || hasUnreportedManagedCardTransactions;
+
     const createReport = () => {
         const restrictionPolicy = policyForMovingExpenses;
         if (
@@ -221,9 +225,6 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
         }
         if (hasPerDiemTransactions) {
             handleCreateReport();
-            return;
-        }
-        if (!hasPerDiemTransactions && !hasUnreportedManagedCardTransactions && !policyForMovingExpensesID && !shouldSelectPolicy) {
             return;
         }
         if (shouldSelectPolicy) {
@@ -244,10 +245,13 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             selectReport={selectReport}
             removeFromReport={removeFromReport}
             isEditing={action === CONST.IOU.ACTION.EDIT}
-            createReport={createReport}
+            createReport={canCreateReport ? createReport : undefined}
             isPerDiemRequest={hasPerDiemTransactions}
             isUnreportedManagedCardTransaction={hasUnreportedManagedCardTransactions}
             transactionPolicyID={targetExpensePolicyID}
+            createReportSentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.EDIT_REPORT_CREATE_REPORT}
+            autoReportSentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.EDIT_REPORT_AUTO_REPORT}
+            removeFromReportSentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.EDIT_REPORT_REMOVE_FROM_REPORT}
         />
     );
 }

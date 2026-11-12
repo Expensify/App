@@ -30,7 +30,7 @@ function useWorkspaceUpgradeConfirmation({policyID, isUpgraded, canPerformUpgrad
         isPendingUpgrade,
     });
 
-    const confirmSubmitUpgradeIfNeeded = useCallback(() => {
+    const confirmSubmitUpgradeIfNeeded = () => {
         const {
             isUpgraded: currentIsUpgraded,
             canPerformUpgrade: currentCanPerformUpgrade,
@@ -53,7 +53,7 @@ function useWorkspaceUpgradeConfirmation({policyID, isUpgraded, canPerformUpgrad
 
         hasConfirmedSubmitUpgradeRef.current = true;
         confirmUpgradeRef.current();
-    }, []);
+    };
 
     useEffect(() => {
         hasConfirmedSubmitUpgradeRef.current = false;
