@@ -4,6 +4,7 @@ import useColumnResize from '@components/Table/columnResize/useColumnResize';
 import useStoredColumnWidths from '@components/Table/columnResize/useStoredColumnWidths';
 
 import usePermissions from '@hooks/usePermissions';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -103,6 +104,7 @@ function SearchListViewLayoutContent({
 }: SearchListViewLayoutContentProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
 
     const {tableWidthRef, tableWidth, onTableLayout} = useSearchTableWidth();
 
@@ -113,7 +115,7 @@ function SearchListViewLayoutContent({
         // A header is only rendered in the table layout. Narrow layouts render rows as cards with no columns to size.
         isEnabled: isHeaderVisible && !!data,
         columnSizeOptions,
-        measurementContext: {nonPersonalAndWorkspaceCards, policyCategories, policyTags},
+        measurementContext: {nonPersonalAndWorkspaceCards, policyCategories, policyTags, fallbackPolicyID: policyForMovingExpensesID},
         isColumnResizingEnabled: !!columnResizingID,
         storedTableColumnWidths,
     });
