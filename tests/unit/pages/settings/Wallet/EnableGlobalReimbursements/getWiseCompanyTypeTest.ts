@@ -4,12 +4,12 @@ import CONST from '@src/CONST';
 
 describe('getWiseCompanyType', () => {
     it.each([
-        [CONST.INCORPORATION_TYPES.LLC, CONST.WISE.COMPANY_TYPE.LIMITED_LIABILITY_COMPANY],
-        [CONST.INCORPORATION_TYPES.CORPORATION, CONST.WISE.COMPANY_TYPE.FOR_PROFIT_CORPORATION],
-        [CONST.INCORPORATION_TYPES.PARTNERSHIP, CONST.WISE.COMPANY_TYPE.PARTNERSHIP],
-        [CONST.INCORPORATION_TYPES.COOPERATIVE, CONST.WISE.COMPANY_TYPE.OTHER],
-        [CONST.INCORPORATION_TYPES.SOLE_PROPRIETORSHIP, CONST.WISE.COMPANY_TYPE.SOLE_PROPRIETORSHIP],
-        [CONST.INCORPORATION_TYPES.OTHER, CONST.WISE.COMPANY_TYPE.OTHER],
+        ['LLC', CONST.WISE.COMPANY_TYPE.LIMITED_LIABILITY_COMPANY],
+        ['CORPORATION', CONST.WISE.COMPANY_TYPE.FOR_PROFIT_CORPORATION],
+        ['PARTNERSHIP', CONST.WISE.COMPANY_TYPE.PARTNERSHIP],
+        ['COOPERATIVE', CONST.WISE.COMPANY_TYPE.OTHER],
+        ['SOLE_PROPRIETORSHIP', CONST.WISE.COMPANY_TYPE.SOLE_PROPRIETORSHIP],
+        ['OTHER', CONST.WISE.COMPANY_TYPE.OTHER],
     ])('maps the incorporation type %s to the Wise company type %s', (incorporationType, companyType) => {
         // Given the incorporation type the bank account setup asked for
 
@@ -20,8 +20,8 @@ describe('getWiseCompanyType', () => {
         expect(result).toBe(companyType);
     });
 
-    it.each([undefined, '', 'toString'])('gives no company type for the incorporation type %p', (incorporationType) => {
-        // Given a bank account without an incorporation type, or with one the mapping does not know
+    it.each([undefined, '', 'toString', CONST.INCORPORATION_TYPES.CORPORATION])('gives no company type for the incorporation type %p', (incorporationType) => {
+        // Given a bank account without an incorporation type, or with one the mapping does not know, such as the shown label instead of the saved key
 
         // When the Wise onboarding needs its company type
         const result = getWiseCompanyType(incorporationType);

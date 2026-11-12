@@ -12,7 +12,7 @@ const BANK_ACCOUNT_ID = 1;
 const BUSINESS_ACCOUNT_DATA: WiseBusinessAccountData = {
     bankAccountID: BANK_ACCOUNT_ID,
     companyName: 'Boulder Development Inc.',
-    incorporationType: CONST.INCORPORATION_TYPES.LLC,
+    incorporationType: 'LLC',
 };
 
 const PRIVATE_PERSONAL_DETAILS: PrivatePersonalDetails = {

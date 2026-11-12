@@ -86,7 +86,7 @@ const REIMBURSEMENT_ACCOUNT: BusinessReimbursementAccount = {
     achData: {
         bankAccountID: BANK_ACCOUNT_ID,
         companyName: 'Boulder Development Inc.',
-        incorporationType: CONST.INCORPORATION_TYPES.CORPORATION,
+        incorporationType: 'CORPORATION',
     },
 };
 
