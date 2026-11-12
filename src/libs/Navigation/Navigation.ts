@@ -610,9 +610,10 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
         const destinationStack = destinationTabRoute?.state ?? (destinationTabRoute?.key ? getPreservedNavigatorState(destinationTabRoute.key) : undefined);
         const activeSplit = destinationStack?.routes.at(destinationStack.index ?? -1);
         const splitPayload = destinationStack ? getNestedAction(minimalAction, destinationStack).payload : undefined;
-        // jumpTo reuses the mounted split, so another workspace would keep the old sidebar. navigate creates a split with the requested scope instead.
+        // jumpTo would keep the other workspace's sidebar. Replace at the root because tabs cannot handle REPLACE,
+        // and forward navigation would leave the redirect's origin in the back stack.
         if (activeSplit && splitPayload && isNamedActionPayload(splitPayload) && hasDifferentSplitScope(activeSplit, splitPayload)) {
-            navigate(backToRoute);
+            dispatch({...action, type: CONST.NAVIGATION.ACTION_TYPE.REPLACE, target: navigationContainer.getRootState().key});
             return true;
         }
         dispatch({

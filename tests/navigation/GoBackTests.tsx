@@ -799,6 +799,7 @@ describe('Go back on the narrow layout', () => {
                 ? {index: 2, routes: [...buildWorkspaceNavigationState(buildWorkspaceSplitRoute(policyB)).routes, ...accountState.routes]}
                 : accountState;
             render(<TestNavigationContainer initialState={initialState} />);
+            const dispatchSpy = jest.spyOn(requireNavigationContainer(), 'dispatch');
 
             // When a card belonging to workspace A redirects to its disabled feature
             act(() => {
@@ -807,13 +808,25 @@ describe('Go back on the narrow layout', () => {
 
             // Then both panes belong to A rather than showing A's settings beside B's sidebar
             const rootState = navigationRef.getRootState();
+            expect(rootState.routes).toHaveLength(1);
             expect(rootState.routes.at(rootState.index)?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
             const tabState = rootState.routes.at(rootState.index)?.state;
             expect(tabState?.routes.at(tabState.index ?? 0)?.name).toBe(NAVIGATORS.WORKSPACE_NAVIGATOR);
             const workspaceState = getActiveWorkspaceState();
+            expect(workspaceState?.routes).toHaveLength(1);
             const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
             expect(activeSplit?.state?.routes.at(0)).toMatchObject({name: SCREENS.WORKSPACE.INITIAL, params: {policyID: policyA}});
             expect(activeSplit?.state?.routes.at(-1)).toMatchObject({name: SCREENS.WORKSPACE.MORE_FEATURES, params: {policyID: policyA}});
+            expect(dispatchSpy).not.toHaveBeenCalledWith(expect.objectContaining({type: CONST.NAVIGATION.ACTION_TYPE.PUSH}));
+
+            // Back must stay in A rather than reopening Account or the discarded workspace B split.
+            act(() => {
+                Navigation.goBack();
+            });
+            expect(navigationRef.getRootState().routes).toHaveLength(1);
+            const workspaceStateAfterBack = getActiveWorkspaceState();
+            expect(workspaceStateAfterBack?.routes).toHaveLength(1);
+            expect(workspaceStateAfterBack?.routes.at(0)?.state?.routes.at(0)).toMatchObject({name: SCREENS.WORKSPACE.INITIAL, params: {policyID: policyA}});
         });
 
         it('Should close the modal and reach the matching workspace split', () => {
