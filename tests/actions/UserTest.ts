@@ -3,10 +3,8 @@ import * as API from '@libs/API';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import Growl from '@libs/Growl';
 import Log from '@libs/Log';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
-import * as NetworkState from '@libs/NetworkState';
 import Pusher from '@libs/Pusher';
 import type {EventData} from '@libs/Pusher/types';
 import PusherUtils from '@libs/PusherUtils';
@@ -46,83 +44,6 @@ describe('actions/User', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         return Onyx.clear().then(waitForBatchedUpdates);
-    });
-
-    describe('revokeAllSessions', () => {
-        const translate = jest.fn(() => 'You’ve been signed out on all devices.');
-        beforeEach(() => {
-            jest.spyOn(NetworkState, 'getIsOffline').mockReturnValue(false);
-            jest.spyOn(Growl, 'success').mockImplementation(() => {});
-        });
-
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
-
-        it('waits for confirmed success and the sign-in redirect before showing success', async () => {
-            // Given the server response and local sign-out can each take time to finish
-            const response = Promise.withResolvers<{jsonCode: number}>();
-            const redirect = Promise.withResolvers<void>();
-            mockAPI.makeRequestWithSideEffects.mockReturnValueOnce(response.promise);
-            jest.mocked(redirectToSignIn).mockReturnValueOnce(redirect.promise);
-
-            // When the user signs out on all devices
-            const result = UserActions.revokeAllSessions(translate);
-            expect(redirectToSignIn).not.toHaveBeenCalled();
-            expect(Growl.success).not.toHaveBeenCalled();
-            response.resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
-            await waitForBatchedUpdates();
-
-            // Then local sign-out finishes before the success toast can be shown
-            expect(mockAPI.makeRequestWithSideEffects).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_ALL_SESSIONS, null);
-            expect(mockAPI.write).not.toHaveBeenCalled();
-            expect(redirectToSignIn).toHaveBeenCalledTimes(1);
-            expect(Growl.success).not.toHaveBeenCalled();
-            redirect.resolve();
-            await expect(result).resolves.toBe(true);
-            expect(Growl.success).toHaveBeenCalledWith({bodyText: 'You’ve been signed out on all devices.', position: CONST.GROWL.POSITION.BOTTOM_RIGHT});
-        });
-
-        it.each([undefined, {jsonCode: 500}])('keeps the current session after an unsuccessful response: %p', async (response) => {
-            // Given a response that does not confirm that sessions were revoked
-            mockAPI.makeRequestWithSideEffects.mockResolvedValueOnce(response);
-
-            // When the action finishes
-            const result = await UserActions.revokeAllSessions(translate);
-
-            // Then the caller can offer retry without signing out or claiming success
-            expect(result).toBe(false);
-            expect(redirectToSignIn).not.toHaveBeenCalled();
-            expect(Growl.success).not.toHaveBeenCalled();
-        });
-
-        it('allows retry after a network failure without clearing the session', async () => {
-            // Given a request that fails before a confirmed server response
-            mockAPI.makeRequestWithSideEffects.mockRejectedValueOnce(new Error('Connection lost'));
-
-            // When the action handles the failure
-            const result = await UserActions.revokeAllSessions(translate);
-
-            // Then failure is returned to the confirmation without signing out
-            expect(result).toBe(false);
-            expect(redirectToSignIn).not.toHaveBeenCalled();
-            expect(Growl.success).not.toHaveBeenCalled();
-        });
-
-        it('does not send or queue a destructive request while offline', async () => {
-            // Given connectivity was lost before the action could send its request
-            jest.mocked(NetworkState.getIsOffline).mockReturnValue(true);
-
-            // When the confirmation attempts to submit
-            const result = await UserActions.revokeAllSessions(translate);
-
-            // Then reconnecting cannot later execute an offline sign-out request
-            expect(result).toBe(false);
-            expect(mockAPI.makeRequestWithSideEffects).not.toHaveBeenCalled();
-            expect(mockAPI.write).not.toHaveBeenCalled();
-            expect(redirectToSignIn).not.toHaveBeenCalled();
-            expect(Growl.success).not.toHaveBeenCalled();
-        });
     });
 
     describe('updateTheme', () => {

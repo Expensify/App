@@ -46,30 +46,27 @@ function ConfirmModalWrapper({closeModal, onModalHide, resolveModal, onBackdropP
 
     const isConfirmDisabledWhileOffline = !!props.shouldDisableConfirmButtonWhenOffline && isOffline;
 
-    const submitConfirmation = () => {
+    const submitConfirmation = async () => {
         if (!onConfirm) {
             return;
         }
         isSubmittingRef.current = true;
         setIsConfirmLoading(true);
         setConfirmationError('');
-        onConfirm()
-            .then((error) => {
-                if (error) {
-                    setConfirmationError(error);
-                    return;
-                }
+        try {
+            const error = await onConfirm();
+            if (error) {
+                setConfirmationError(error);
+            } else {
                 setCloseAction(ModalActions.CONFIRM);
                 setIsVisible(false);
-            })
-            .catch((error: unknown) => {
-                Log.hmmm('Unable to complete confirmation', {error});
-                setConfirmationError(translate('common.genericErrorMessage'));
-            })
-            .finally(() => {
-                isSubmittingRef.current = false;
-                setIsConfirmLoading(false);
-            });
+            }
+        } catch (error) {
+            Log.hmmm('Unable to complete confirmation', {error});
+            setConfirmationError(translate('common.genericErrorMessage'));
+        }
+        isSubmittingRef.current = false;
+        setIsConfirmLoading(false);
     };
 
     const handleConfirm = () => {

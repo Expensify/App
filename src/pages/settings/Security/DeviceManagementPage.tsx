@@ -12,7 +12,8 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearRevokeError, revokeAllSessions, revokeDevice} from '@libs/actions/User';
+import {revokeAllSessions} from '@libs/actions/Session';
+import {clearRevokeError, revokeDevice} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDeviceDisplayName, getDeviceLogins, getLastLogin, getLoginKey} from '@libs/UserUtils';
 

@@ -27,13 +27,11 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type Platform from '@libs/getPlatform/types';
-import Growl from '@libs/Growl';
 import Log from '@libs/Log';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
-import {getIsOffline} from '@libs/NetworkState';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Pusher from '@libs/Pusher';
 import PusherUtils from '@libs/PusherUtils';
@@ -175,28 +173,6 @@ function clearRevokeError(loginKey: string) {
             },
         },
     });
-}
-
-async function revokeAllSessions(translate: LocaleContextProps['translate']): Promise<boolean> {
-    if (getIsOffline()) {
-        return false;
-    }
-
-    try {
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method -- Sign-out must wait for the server response and must never enter the persisted write queue.
-        const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_ALL_SESSIONS, null);
-        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-            return false;
-        }
-
-        // Wait for session cleanup so the success toast appears on the sign-in screen.
-        await redirectToSignIn(CONST.SIGN_OUT_REASON.USER_SIGN_OUT);
-        Growl.success({bodyText: translate('deviceManagementPage.signOutAllDevicesSuccess'), position: CONST.GROWL.POSITION.BOTTOM_RIGHT});
-        return true;
-    } catch (error) {
-        Log.hmmm('Unable to sign out on all devices', {error});
-        return false;
-    }
 }
 
 /**
@@ -2087,7 +2063,6 @@ function clearDraftMerchantTypeRule() {
 
 export {
     revokeDevice,
-    revokeAllSessions,
     clearRevokeError,
     closeAccount,
     setServerErrorsOnForm,
