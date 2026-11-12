@@ -99,19 +99,20 @@ describe('useInsightsFilters', () => {
         expect(result.current.filters.compare).toBeUndefined();
     });
 
-    it('opens Compliance on last month when no selections are stored', async () => {
-        // Given no saved Compliance period to override the default
+    it('opens Compliance on a running total for this month against the previous period when no selections are stored', async () => {
+        // Given no saved Compliance filters to override the defaults
         await setUpActivePolicy('PLN');
 
         // When Compliance resolves its filters
         const {result} = renderHook(() => useInsightsFilters(CONST.INSIGHTS.DASHBOARD.COMPLIANCE));
         await waitFor(() => expect(result.current.isResolved).toBe(true));
 
-        // Then Compliance starts on last month without changing the other defaults
+        // Then Compliance starts on a running total for this month against the previous period
         expect(result.current.filters).toEqual({
-            date: {preset: CONST.SEARCH.DATE_PRESETS.LAST_MONTH},
+            date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH},
             policyIDs: [],
-            groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+            groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY,
+            compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD,
             groupCurrency: 'PLN',
         });
         expect(result.current.defaultFilters).toEqual(result.current.filters);
@@ -135,9 +136,9 @@ describe('useInsightsFilters', () => {
         const {result} = renderHook(() => useInsightsFilters(CONST.INSIGHTS.DASHBOARD.COMPLIANCE));
         await waitFor(() => expect(result.current.isResolved).toBe(true));
 
-        // Then the saved filters win while the default period remains last month
+        // Then the saved filters win while the default period remains this month
         expect(result.current.filters).toEqual(stored);
-        expect(result.current.defaultFilters.date).toEqual({preset: CONST.SEARCH.DATE_PRESETS.LAST_MONTH});
+        expect(result.current.defaultFilters.date).toEqual({preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH});
     });
 
     it('opens on the stored selections where the user has made one', async () => {
