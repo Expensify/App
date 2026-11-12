@@ -7,11 +7,14 @@ import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConn
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 
+import {getAccountingIntegrationDisplayName} from '@libs/AccountingUtils';
 import {removePolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
-import {isControlPolicy, tryNavigateToSubmitWorkspaceUpgrade} from '@libs/PolicyUtils';
+import {isControlPolicy, isPolicyFeatureEnabled, tryNavigateToSubmitWorkspaceUpgrade} from '@libs/PolicyUtils';
 
 import {getAccountingIntegrationData} from '@pages/workspace/accounting/utils';
+
+import {enablePolicyFeatureForConnection} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -22,7 +25,7 @@ import type {ComponentRef, RefObject} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import type {ActiveIntegration, ActiveIntegrationState} from './types';
 
@@ -76,7 +79,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
         [],
     );
 
-    const closeConfirmationModal = useCallback(() => {
+    const closeConfirmationModal = () => {
         setActiveIntegration((prev) => {
             if (prev) {
                 return {
@@ -87,7 +90,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             }
             return undefined;
         });
-    }, []);
+    };
 
     const accountingIcons = useMemoizedLazyExpensifyIcons([
         'IntacctSquare',
@@ -100,6 +103,8 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'DigitsSquare',
+        'ZohoBooksSquare',
         'BusinessCentralSquare',
     ]);
     const hasReusablePoliciesConnectedToSageIntacct = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, policyID);
@@ -111,132 +116,119 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardLists] = useCardsLists();
 
-    const startIntegrationFlow = useCallback(
-        (newActiveIntegration: ActiveIntegration) => {
-            if (!policyID) {
-                return;
-            }
+    const startIntegrationFlow = (newActiveIntegration: ActiveIntegration) => {
+        if (!policyID) {
+            return;
+        }
 
-            if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias)) {
-                return;
-            }
+        if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias, ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID))) {
+            return;
+        }
 
-            const accountingIntegrationData = getAccountingIntegrationData(
-                newActiveIntegration.name,
-                policyID,
-                translate,
-                {
-                    sageIntacct: hasReusablePoliciesConnectedToSageIntacct,
-                    qbd: hasReusablePoliciesConnectedToQBD,
-                    certinia: hasReusablePoliciesConnectedToCertinia,
-                    rillet: hasReusablePoliciesConnectedToRillet,
-                    dualEntry: hasReusablePoliciesConnectedToDualEntry,
-                    campfire: hasReusablePoliciesConnectedToCampfire,
-                },
-                undefined,
-                undefined,
-                newActiveIntegration.integrationToDisconnect,
-                newActiveIntegration.shouldDisconnectIntegrationBeforeConnecting,
-                undefined,
-                accountingIcons,
-                cardFeeds,
-                cardLists,
-                newActiveIntegration.isIntuitEnterpriseSuite,
-            );
-
-            const workspaceUpgradeNavigationDetails = accountingIntegrationData?.workspaceUpgradeNavigationDetails;
-            if (workspaceUpgradeNavigationDetails && !isControlPolicy(policy)) {
-                Navigation.navigate(
-                    ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, workspaceUpgradeNavigationDetails.integrationAlias, workspaceUpgradeNavigationDetails.backToAfterWorkspaceUpgradeRoute),
-                );
-                return;
-            }
-            setActiveIntegration({
-                ...newActiveIntegration,
-                key: Math.random(),
-            });
-
-            const integrationToDisconnect = newActiveIntegration.integrationToDisconnect;
-            if (!newActiveIntegration.shouldDisconnectIntegrationBeforeConnecting || !integrationToDisconnect) {
-                return;
-            }
-
-            // Mirrors `shouldShowConfirmationModal` below, which keeps `renderActiveIntegration()` from mounting the
-            // setup flow until the user has decided what to do with the connection that has to be disconnected first.
-            const connectionName = newActiveIntegration.isIntuitEnterpriseSuite
-                ? translate('workspace.accounting.intuitEnterpriseSuite')
-                : (CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[newActiveIntegration.name] ?? newActiveIntegration.name);
-
-            isDisconnectConfirmationPendingRef.current = true;
-
-            showConfirmModal({
-                // `startIntegrationFlow` can run more than once for the same flow (the `useFocusEffect` in
-                // `PolicyAccountingPage` re-fires whenever `startIntegrationFlow` is re-created). A stable id keeps the
-                // repeat call updating this prompt in place instead of stacking a second copy behind it.
-                id: ACCOUNTING_CONNECTION_CONFIRMATION_MODAL_ID,
-                title: translate('workspace.accounting.connectTitle', connectionName),
-                prompt: translate('workspace.accounting.connectPrompt', connectionName),
-                confirmText: translate('workspace.accounting.setup'),
-                cancelText: translate('common.cancel'),
-                buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
-            }).then((result) => {
-                // A repeat call for the same id is handed back the promise the first call got, so every call's handler
-                // runs on a single user answer. Only the first one may act, or the disconnect would be requested twice.
-                if (!isDisconnectConfirmationPendingRef.current) {
-                    return;
-                }
-                isDisconnectConfirmationPendingRef.current = false;
-
-                if (result.action !== ModalActions.CONFIRM) {
-                    setActiveIntegration(undefined);
-                    return;
-                }
-
-                const currentPolicy = policyRef.current;
-
-                // If the policy went away while the prompt was open there is nothing to disconnect, so leave the
-                // confirmation state intact and keep `renderActiveIntegration()` held back.
-                if (!currentPolicy) {
-                    return;
-                }
-
-                removePolicyConnection(currentPolicy, integrationToDisconnect);
-
-                closeConfirmationModal();
-            });
-        },
-        [
-            closeConfirmationModal,
-            policy,
+        const accountingIntegrationData = getAccountingIntegrationData(
+            newActiveIntegration.name,
             policyID,
-            showConfirmModal,
             translate,
-            hasReusablePoliciesConnectedToSageIntacct,
-            hasReusablePoliciesConnectedToQBD,
-            hasReusablePoliciesConnectedToCertinia,
-            hasReusablePoliciesConnectedToRillet,
-            hasReusablePoliciesConnectedToDualEntry,
-            hasReusablePoliciesConnectedToCampfire,
-            accountingIcons,
-            cardFeeds,
-            cardLists,
-        ],
-    );
+            {
+                sageIntacct: hasReusablePoliciesConnectedToSageIntacct,
+                qbd: hasReusablePoliciesConnectedToQBD,
+                certinia: hasReusablePoliciesConnectedToCertinia,
+                rillet: hasReusablePoliciesConnectedToRillet,
+                dualEntry: hasReusablePoliciesConnectedToDualEntry,
+                campfire: hasReusablePoliciesConnectedToCampfire,
+            },
+            {
+                policy,
+                integrationToDisconnect: newActiveIntegration.integrationToDisconnect,
+                shouldDisconnectIntegrationBeforeConnecting: newActiveIntegration.shouldDisconnectIntegrationBeforeConnecting,
+                expensifyIcons: accountingIcons,
+                cardFeeds,
+                cardList: cardLists,
+                isIntuitEnterpriseSuiteOverride: newActiveIntegration.isIntuitEnterpriseSuite,
+            },
+        );
 
-    const stateValue = useMemo(
-        () => ({
-            activeIntegration,
-            popoverAnchorRefs,
-        }),
-        [activeIntegration],
-    );
+        // Connections has no feature toggle, so turn it on here. The Control upgrade only enables the integration's own feature.
+        const shouldEnableConnections = !isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
+        if (shouldEnableConnections) {
+            enablePolicyFeatureForConnection(policy, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
+        }
 
-    const actionsValue = useMemo(
-        () => ({
-            startIntegrationFlow,
-        }),
-        [startIntegrationFlow],
-    );
+        const workspaceUpgradeNavigationDetails = accountingIntegrationData?.workspaceUpgradeNavigationDetails;
+        if (workspaceUpgradeNavigationDetails && !isControlPolicy(policy)) {
+            Navigation.navigate(
+                ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, workspaceUpgradeNavigationDetails.integrationAlias, workspaceUpgradeNavigationDetails.backToAfterWorkspaceUpgradeRoute),
+            );
+            return;
+        }
+        // When the workspace can't connect to the new integration yet, its flow starts without the replace prompt so it can
+        // ask the admin to fix that first. Replacing first would leave the workspace with no integration if they back out.
+        const activeIntegrationToStart = {
+            ...newActiveIntegration,
+            ...(accountingIntegrationData?.hasUnmetConnectPrerequisite ? {integrationToDisconnect: undefined, shouldDisconnectIntegrationBeforeConnecting: false} : {}),
+            key: Math.random(),
+        };
+        // The setup pages redirect to More features while Connections is off, so they open a frame later, once the policy shows it on
+        if (shouldEnableConnections) {
+            requestAnimationFrame(() => setActiveIntegration(activeIntegrationToStart));
+        } else {
+            setActiveIntegration(activeIntegrationToStart);
+        }
+
+        const integrationToDisconnect = activeIntegrationToStart.integrationToDisconnect;
+        if (!activeIntegrationToStart.shouldDisconnectIntegrationBeforeConnecting || !integrationToDisconnect) {
+            return;
+        }
+
+        // Mirrors `shouldShowConfirmationModal` below, which keeps `renderActiveIntegration()` from mounting the
+        // setup flow until the user has decided what to do with the connection that has to be disconnected first.
+        isDisconnectConfirmationPendingRef.current = true;
+
+        showConfirmModal({
+            // `startIntegrationFlow` can run more than once for the same flow (the `useFocusEffect` in
+            // `WorkspaceConnectionsPage` re-fires whenever `startIntegrationFlow` is re-created). A stable id keeps the
+            // repeat call updating this prompt in place instead of stacking a second copy behind it.
+            id: ACCOUNTING_CONNECTION_CONFIRMATION_MODAL_ID,
+            title: translate('workspace.connections.replaceConnectionTitle'),
+            prompt: translate('workspace.connections.replaceConnectionPrompt', getAccountingIntegrationDisplayName(policy, integrationToDisconnect, translate)),
+            confirmText: translate('common.replace'),
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+            cancelText: translate('common.cancel'),
+        }).then((result) => {
+            // A repeat call for the same id is handed back the promise the first call got, so every call's handler
+            // runs on a single user answer. Only the first one may act, or the disconnect would be requested twice.
+            if (!isDisconnectConfirmationPendingRef.current) {
+                return;
+            }
+            isDisconnectConfirmationPendingRef.current = false;
+
+            if (result.action !== ModalActions.CONFIRM) {
+                setActiveIntegration(undefined);
+                return;
+            }
+
+            const currentPolicy = policyRef.current;
+
+            // If the policy went away while the prompt was open there is nothing to disconnect, so leave the
+            // confirmation state intact and keep `renderActiveIntegration()` held back.
+            if (!currentPolicy) {
+                return;
+            }
+
+            removePolicyConnection(currentPolicy, integrationToDisconnect);
+
+            closeConfirmationModal();
+        });
+    };
+
+    const stateValue = {
+        activeIntegration,
+        popoverAnchorRefs,
+    };
+
+    const actionsValue = {
+        startIntegrationFlow,
+    };
 
     const renderActiveIntegration = () => {
         if (!policyID || !activeIntegration) {
@@ -255,15 +247,14 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 dualEntry: hasReusablePoliciesConnectedToDualEntry,
                 campfire: hasReusablePoliciesConnectedToCampfire,
             },
-            policy,
-            activeIntegration.key,
-            undefined,
-            undefined,
-            undefined,
-            accountingIcons,
-            cardFeeds,
-            cardLists,
-            activeIntegration.isIntuitEnterpriseSuite,
+            {
+                policy,
+                key: activeIntegration.key,
+                expensifyIcons: accountingIcons,
+                cardFeeds,
+                cardList: cardLists,
+                isIntuitEnterpriseSuiteOverride: activeIntegration.isIntuitEnterpriseSuite,
+            },
         )?.setupConnectionFlow;
     };
 

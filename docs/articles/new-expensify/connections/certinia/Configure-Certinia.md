@@ -9,13 +9,13 @@ order: 2
 
 After connecting Certinia, set up how data flows between Expensify and Certinia using the **Import**, **Export**, and **Advanced** settings. Some options differ depending on whether you use the **FFA** or **PSA/SRP** module — those differences are noted below.
 
-To open these settings, go to **Workspaces > [Workspace Name] > Accounting** from the navigation tabs (on the left on web, on the bottom on mobile), then select **Import**, **Export**, or **Advanced** under the Certinia connection.
+To open these settings, in the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**, select **Configure** next to Certinia, then select **Import**, **Export**, or **Advanced**.
 
 ---
 
 ## How to configure Certinia import settings
 
-From **Workspaces > [Workspace Name] > Accounting**, click **Import** under the Certinia connection.
+From **Workspaces > [workspace name] > Connections**, select **Configure** next to Certinia, then select **Import**.
 
 ## How to import categories from Certinia
 
@@ -55,7 +55,7 @@ Toggle on **Tax** to import tax rates from Certinia and apply them to expenses. 
 
 ## How to configure Certinia export settings
 
-From **Workspaces > [Workspace Name] > Accounting**, click **Export** under the Certinia connection.
+From **Workspaces > [workspace name] > Connections**, select **Configure** next to Certinia, then select **Export**.
 
 ## How to set the preferred exporter for Certinia
 
@@ -84,13 +84,15 @@ If a report contains both reimbursable and non-reimbursable expenses, Expensify 
 
 ## How to set a default vendor for Certinia (FFA)
 
-Select a vendor from your Certinia FFA account. This vendor is assigned to non-reimbursable payable invoices.
+Select **Default vendor**, then choose a vendor from your Certinia FFA account. This vendor is assigned to non-reimbursable expenses that don't already have a vendor assigned.
+
+If vendor matching is enabled for your Workspace, [learn how to manage vendor matching for Certinia](/articles/new-expensify/connections/certinia/Manage-Vendor-Matching-for-Certinia).
 
 ---
 
 ## How to configure Certinia advanced sync settings
 
-From **Workspaces > [Workspace Name] > Accounting**, click **Advanced** under the Certinia connection.
+From **Workspaces > [workspace name] > Connections**, select **Configure** next to Certinia, then select **Advanced**.
 
 ## How to enable auto-sync for Certinia
 
@@ -102,6 +104,10 @@ We recommend enabling **Auto-sync** to keep your data up to date. Auto-sync perf
 ## How to sync reimbursed reports with Certinia
 
 Keep reimbursement status in sync between Expensify and Certinia for reports that have been paid.
+
+## How to set the currency conversion fee account for Certinia (FFA)
+
+If **Workspaces > [workspace name] > Workflows > Payments > Currency conversion fees** is set to **Company pays**, select **Currency conversion fee account** and choose the general ledger account for currency conversion fees. When the company covers the conversion cost on a cross-border reimbursement, Expensify adds that cost to the Payable Invoice as a separate line coded to this account.
 
 ## How to export tax as non-billable in Certinia
 
@@ -135,7 +141,7 @@ No. Enabling Auto-sync does not affect previously approved or reimbursed reports
 
 ## How do reports map to records in Certinia?
 
-- **FFA (Payable Invoices):** Account Name = the account linked to the submitter's email, Reference 1 = the report URL, Invoice Description = the report title.
+- **FFA (Payable Invoices):** Account Name = the account linked to the submitter's email (for non-reimbursable expenses, the assigned vendor account is used when one is available), Reference 1 = the report URL, Invoice Description = the report title.
 - **PSA/SRP (Expense Reports):** Expense Report Name = the report title, Resource = the submitter's email, Description = the report URL, Approver = the Expensify report approver.
 
 ## How do I export tax?

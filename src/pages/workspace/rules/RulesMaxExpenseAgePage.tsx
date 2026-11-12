@@ -24,7 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/RulesMaxExpenseAgeForm';
 
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type RulesMaxExpenseAgePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MAX_EXPENSE_AGE>;
@@ -45,12 +45,12 @@ function RulesMaxExpenseAgePage({
 
     const [maxExpenseAgeValue, setMaxExpenseAgeValue] = useState(maxExpenseAgeDefaultValue);
 
-    const onChangeMaxExpenseAge = useCallback((newValue: string) => {
+    const onChangeMaxExpenseAge = (newValue: string) => {
         // replace all characters that are not spaces or digits
         let validMaxExpenseAge = newValue.replaceAll(/[^0-9]/g, '');
         validMaxExpenseAge = validMaxExpenseAge.match(/(?:\d *){1,5}/)?.[0] ?? '';
         setMaxExpenseAgeValue(validMaxExpenseAge);
-    }, []);
+    };
 
     return (
         <AccessOrNotFoundWrapper

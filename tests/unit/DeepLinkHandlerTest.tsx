@@ -1,4 +1,4 @@
-import {act, render} from '@testing-library/react-native';
+import {act, render, waitFor} from '@testing-library/react-native';
 
 import {openReportFromDeepLink} from '@libs/actions/Link';
 import * as Report from '@libs/actions/Report';
@@ -25,6 +25,19 @@ jest.mock('@libs/actions/Report', () => ({
 const PUBLIC_ROOM_ID = '987654321';
 const DEFAULT_URL = 'https://new.expensify.com/';
 
+async function prepareDeepLinkSession() {
+    await act(async () => {
+        await Onyx.multiSet({
+            [ONYXKEYS.SESSION]: {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS},
+            [ONYXKEYS.IS_LOADING_APP]: true,
+            [ONYXKEYS.CONCIERGE_REPORT_ID]: '',
+            [ONYXKEYS.NVP_INTRO_SELECTED]: {},
+            [ONYXKEYS.BETAS]: [],
+        });
+    });
+    await waitForBatchedUpdatesWithAct();
+}
+
 describe('DeepLinkHandler', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -36,6 +49,11 @@ describe('DeepLinkHandler', () => {
         });
         jest.clearAllMocks();
         Linking.setInitialURL(DEFAULT_URL);
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+        jest.useRealTimers();
     });
 
     it('re-fetches a public room that is missing from Onyx after OpenApp settles for an anonymous user (#92672)', async () => {
@@ -154,6 +172,7 @@ describe('DeepLinkHandler', () => {
     });
 
     it('passes the latest report name-value pairs to warm deep links', async () => {
+        // Given warm links must see report metadata loaded after the handler mounted.
         const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${PUBLIC_ROOM_ID}` as const;
         const archivedAt = '2024-01-01 00:00:00.000';
         await act(async () => {
@@ -178,13 +197,159 @@ describe('DeepLinkHandler', () => {
 
         const urlChangeHandler = addEventListenerSpy.mock.calls.find(([eventType]) => eventType === 'url')?.[1];
         expect(urlChangeHandler).toBeDefined();
+        if (!urlChangeHandler) {
+            throw new Error('DeepLinkHandler must register its URL listener');
+        }
+        // When a warm link arrives after the metadata changes.
         await act(async () => {
-            urlChangeHandler?.({url: `new-expensify://r/${PUBLIC_ROOM_ID}`});
+            urlChangeHandler({url: `new-expensify://r/${PUBLIC_ROOM_ID}`});
         });
 
-        expect(jest.mocked(openReportFromDeepLink).mock.calls.at(-1)?.[7]).toEqual({
+        // Then dispatch uses the latest metadata through the existing ref.
+        expect(jest.mocked(openReportFromDeepLink).mock.calls.at(-1)?.[8]).toEqual({
             [reportNameValuePairsKey]: {private_isArchived: archivedAt},
         });
         addEventListenerSpy.mockRestore();
+    });
+
+    it('preserves every byte of a cold URL including escaping, query, and hash', async () => {
+        // Given native Linking returns a full URL rather than an application Route.
+        await prepareDeepLinkSession();
+        const url = 'new-expensify://r/12345?value=a%2Fb&label=two%20words#receipt';
+        jest.spyOn(Linking, 'getInitialURL').mockResolvedValue(url);
+        const publishInitialUrl = jest.fn<void, [string | null]>();
+        // When the real startup effect resolves the cold link.
+        render(<DeepLinkHandler onInitialUrl={publishInitialUrl} />);
+        await waitForBatchedUpdatesWithAct();
+        // Then startup state and downstream dispatch retain the original URL bytes.
+        expect(publishInitialUrl).toHaveBeenCalledTimes(1);
+        expect(publishInitialUrl).toHaveBeenCalledWith(url);
+        expect(openReportFromDeepLink).toHaveBeenCalledTimes(1);
+        const dispatchedUrl = jest.mocked(openReportFromDeepLink).mock.calls.at(0)?.[0];
+        expect(dispatchedUrl).toBeDefined();
+        expect(dispatchedUrl).toBe(url);
+    });
+
+    it('publishes null for an initial URL that resolves without a link', async () => {
+        // Given native Linking can successfully resolve to null.
+        await prepareDeepLinkSession();
+        jest.spyOn(Linking, 'getInitialURL').mockResolvedValue(null);
+        const publishInitialUrl = jest.fn<void, [string | null]>();
+        // When the real startup effect processes the absence of a link.
+        render(<DeepLinkHandler onInitialUrl={publishInitialUrl} />);
+        await waitForBatchedUpdatesWithAct();
+        // Then navigation can mount with null and public-room checking is unblocked.
+        expect(publishInitialUrl).toHaveBeenCalledTimes(1);
+        expect(publishInitialUrl).toHaveBeenCalledWith(null);
+        expect(openReportFromDeepLink).not.toHaveBeenCalled();
+        expect(Report.doneCheckingPublicRoom).toHaveBeenCalled();
+    });
+
+    it('publishes null when native initial URL lookup rejects', async () => {
+        // Given the native bridge can reject during startup.
+        await prepareDeepLinkSession();
+        jest.spyOn(Linking, 'getInitialURL').mockRejectedValue(new Error('Native URL unavailable'));
+        const publishInitialUrl = jest.fn<void, [string | null]>();
+        // When the real startup effect handles the rejected lookup.
+        render(<DeepLinkHandler onInitialUrl={publishInitialUrl} />);
+        await waitForBatchedUpdatesWithAct();
+        // Then the existing null outcome unblocks startup without dispatching a URL.
+        expect(publishInitialUrl).toHaveBeenCalledTimes(1);
+        expect(publishInitialUrl).toHaveBeenCalledWith(null);
+        expect(openReportFromDeepLink).not.toHaveBeenCalled();
+        expect(Report.doneCheckingPublicRoom).toHaveBeenCalled();
+    });
+
+    it('keeps startup pending until an unresolved lookup reaches the URL timeout', async () => {
+        // Given a native bridge lookup that never resolves must not block startup forever.
+        await prepareDeepLinkSession();
+        jest.useFakeTimers({doNotFake: ['setImmediate', 'nextTick']});
+        let lookupStartedAt = 0;
+        const initialUrlSpy = jest.spyOn(Linking, 'getInitialURL').mockImplementation(() => {
+            lookupStartedAt = Date.now();
+            return new Promise<string | null>(() => {});
+        });
+        const publishInitialUrl = jest.fn<void, [string | null]>();
+        render(<DeepLinkHandler onInitialUrl={publishInitialUrl} />);
+        await waitFor(() => expect(initialUrlSpy).toHaveBeenCalled());
+        // When the real startup timeout reaches its configured boundary.
+        const remainingBeforeTimeout = CONST.TIMING.GET_INITIAL_URL_TIMEOUT - (Date.now() - lookupStartedAt);
+        await act(async () => {
+            await jest.advanceTimersByTimeAsync(remainingBeforeTimeout - 1);
+        });
+        expect(publishInitialUrl).not.toHaveBeenCalled();
+        await act(async () => {
+            await jest.advanceTimersByTimeAsync(1);
+        });
+        // Then null resolves the pending startup state, without manufacturing an empty URL.
+        expect(publishInitialUrl).toHaveBeenCalledTimes(1);
+        expect(publishInitialUrl).toHaveBeenCalledWith(null);
+        expect(openReportFromDeepLink).not.toHaveBeenCalled();
+        expect(Report.doneCheckingPublicRoom).toHaveBeenCalled();
+    });
+
+    it.each([
+        {scenario: 'secure', url: 'new-expensify://r/12345?secureKey=a%2Fb#receipt', shouldUpdateInitialUrl: true},
+        {scenario: 'ordinary', url: 'new-expensify://r/12345?value=a%2Fb#receipt', shouldUpdateInitialUrl: false},
+    ])('dispatches a $scenario warm URL with the existing initial-state update rule', async ({url, shouldUpdateInitialUrl}) => {
+        // Given startup has already resolved without a cold link.
+        await prepareDeepLinkSession();
+        jest.spyOn(Linking, 'getInitialURL').mockResolvedValue(null);
+        const listenerSpy = jest.spyOn(Linking, 'addEventListener');
+        const publishInitialUrl = jest.fn<void, [string | null]>();
+        render(<DeepLinkHandler onInitialUrl={publishInitialUrl} />);
+        await waitForBatchedUpdatesWithAct();
+        expect(publishInitialUrl).toHaveBeenCalledWith(null);
+        publishInitialUrl.mockClear();
+        jest.mocked(openReportFromDeepLink).mockClear();
+        const urlListener = listenerSpy.mock.calls.find(([eventType]) => eventType === 'url')?.[1];
+        expect(urlListener).toBeDefined();
+        if (!urlListener) {
+            throw new Error('DeepLinkHandler must register its URL listener');
+        }
+        // When the captured native URL listener receives the untouched warm link.
+        await act(async () => {
+            urlListener({url});
+        });
+        // Then both links dispatch, and only the secure link updates startup URL state.
+        expect(openReportFromDeepLink).toHaveBeenCalledTimes(1);
+        const dispatchedUrl = jest.mocked(openReportFromDeepLink).mock.calls.at(0)?.[0];
+        expect(dispatchedUrl).toBeDefined();
+        expect(dispatchedUrl).toBe(url);
+        if (shouldUpdateInitialUrl) {
+            expect(publishInitialUrl).toHaveBeenCalledTimes(1);
+            expect(publishInitialUrl).toHaveBeenCalledWith(url);
+        } else {
+            expect(publishInitialUrl).not.toHaveBeenCalled();
+        }
+    });
+
+    it('ignores an initial URL promise that resolves after unmount', async () => {
+        // Given the native bridge can finish after the startup handler is removed.
+        await prepareDeepLinkSession();
+        let resolveInitialUrl: ((url: string | null) => void) | undefined;
+        const initialUrlPromise = new Promise<string | null>((resolve) => {
+            resolveInitialUrl = resolve;
+        });
+        const initialUrlSpy = jest.spyOn(Linking, 'getInitialURL').mockReturnValue(initialUrlPromise);
+        const publishInitialUrl = jest.fn<void, [string | null]>();
+        const {unmount} = render(<DeepLinkHandler onInitialUrl={publishInitialUrl} />);
+        await waitForBatchedUpdatesWithAct();
+        expect(initialUrlSpy).toHaveBeenCalled();
+        expect(publishInitialUrl).not.toHaveBeenCalled();
+        expect(resolveInitialUrl).toBeDefined();
+        if (!resolveInitialUrl) {
+            throw new Error('The controlled native URL promise must expose its resolver');
+        }
+        const completeInitialUrl = resolveInitialUrl;
+        // When the handler unmounts before the native promise resolves.
+        unmount();
+        await act(async () => {
+            completeInitialUrl('new-expensify://r/12345?value=stale#receipt');
+            await initialUrlPromise;
+        });
+        // Then cancellation prevents stale callbacks and downstream dispatch.
+        expect(publishInitialUrl).not.toHaveBeenCalled();
+        expect(openReportFromDeepLink).not.toHaveBeenCalled();
     });
 });

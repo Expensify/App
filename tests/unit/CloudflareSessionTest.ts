@@ -1,8 +1,3 @@
-/**
- * Single-flight refresh with rotated-token persistence, the terminal/transient failure split, and both
- * halves of the redirect flow. Modules are re-required per test because the module-level caches are
- * exactly what's under test.
- */
 import type * as ConfigModule from '@libs/CloudflareAccess/Config';
 import type * as PKCEModule from '@libs/CloudflareAccess/generatePKCE';
 import type WebCryptoProvider from '@libs/CloudflareAccess/getWebCrypto/types';
@@ -12,6 +7,7 @@ import type * as SessionCleanupModule from '@libs/SessionCleanup';
 
 import type * as SessionActionsModule from '@userActions/CloudflareSession';
 
+import CONST from '@src/CONST';
 import type * as OnyxKeysModule from '@src/ONYXKEYS';
 import type CloudflareSession from '@src/types/onyx/CloudflareSession';
 
@@ -24,14 +20,8 @@ type PKCEPair = PKCEModule.PKCEPair;
 
 const AUTHORIZE_URL = 'https://team.cloudflareaccess.com/cdn-cgi/access/oauth/authorization?mock=1';
 
-// OAuthClient imports CONFIG, whose native dependency is unavailable in the Jest environment.
 jest.mock('@src/CONFIG', () => ({__esModule: true, default: {QA_AUTH: {CLIENT_ID: 'client-123'}}}));
 
-// CloudflareSession imports Log, whose native dependency is unavailable in the Jest environment. The session
-// behavior under test is platform-independent, so keep that native dependency out of this test.
-jest.mock('@libs/Log', () => ({__esModule: true, default: {warn: jest.fn()}}));
-
-// The module gates its subscription and cleanup on a complete config. Everything under test is behind it
 jest.mock('@libs/CloudflareAccess/Config', () => ({
     __esModule: true,
     ...jest.requireActual<typeof ConfigModule>('@libs/CloudflareAccess/Config'),
@@ -47,16 +37,24 @@ jest.mock('@libs/CloudflareAccess/OAuthClient', () => ({
     refreshTokens: jest.fn(),
 }));
 
+// Log ships its lines to the server, so a real warn enqueues an API request that flushes into a later test
+jest.mock('@libs/Log', () => ({
+    __esModule: true,
+    default: {alert: jest.fn(), warn: jest.fn(), info: jest.fn(), hmmm: jest.fn()},
+}));
+
 jest.mock('@libs/CloudflareAccess/generatePKCE', () => ({
     __esModule: true,
     generatePKCEPair: jest.fn(),
-    generateState: jest.fn(() => 'test-state'),
+    generateState: jest.fn(),
 }));
 
 const SESSION_A: CloudflareSession = {accessToken: 'oauth:access-a', refreshToken: 'oauth:refresh-a', expiresAt: 1900000000000};
 const SESSION_B: CloudflareSession = {accessToken: 'oauth:access-b', refreshToken: 'oauth:refresh-b', expiresAt: 1900000900000};
 
 const PAIR_1: PKCEPair = {codeVerifier: 'verifier-1', codeChallenge: 'challenge-1'};
+const PAIR_2: PKCEPair = {codeVerifier: 'verifier-2', codeChallenge: 'challenge-2'};
+const OAUTH_STATE = 'test-state';
 
 let Onyx: typeof OnyxDefault;
 let ONYXKEYS: typeof OnyxKeysModule.default;
@@ -67,11 +65,15 @@ let pendingAuthFlowStorage: typeof PendingAuthFlowStorageModule;
 let sessionCleanup: typeof SessionCleanupModule;
 let assignSpy: jest.Mock;
 let realLocation: Location;
+let realLocalStorage: Storage;
 
 beforeEach(() => {
     jest.resetModules();
-    // The redirect flow record lives in jsdom's real sessionStorage. Drop leftovers from earlier tests
-    window.sessionStorage.clear();
+    // Nothing here makes an HTTP request, but resetModules gives every test its own copy of the network
+    // queues, and one of those flushes during an await in this suite, reaching jsdom's missing `Request`.
+    global.fetch = jest.fn(() => Promise.reject(new Error('fetch is not available in CloudflareSessionTest')));
+    realLocalStorage = window.localStorage;
+    window.localStorage.clear();
     // jsdom throws "Not implemented: navigation" on a real location.assign
     realLocation = window.location;
     assignSpy = jest.fn<void, [string]>();
@@ -85,14 +87,15 @@ beforeEach(() => {
     Onyx.init({keys: ONYXKEYS});
     oAuthClient = require<typeof OAuthClientModule>('@libs/CloudflareAccess/OAuthClient');
     pkce = require<typeof PKCEModule>('@libs/CloudflareAccess/generatePKCE');
+    jest.mocked(pkce.generateState).mockReturnValue(OAUTH_STATE);
     pendingAuthFlowStorage = require<typeof PendingAuthFlowStorageModule>('@libs/CloudflareAccess/PendingAuthFlowStorage');
-    SessionActions = require<typeof SessionActionsModule>('@userActions/CloudflareSession');
-    // Required after the actions module, which registers its cleanup callback on import
     sessionCleanup = require<typeof SessionCleanupModule>('@libs/SessionCleanup');
+    SessionActions = require<typeof SessionActionsModule>('@userActions/CloudflareSession');
 });
 
 afterEach(() => {
     Object.defineProperty(window, 'location', {value: realLocation, writable: true, configurable: true});
+    Object.defineProperty(window, 'localStorage', {value: realLocalStorage, writable: true, configurable: true});
     // jsdom ships no Web Locks, so the lock test installs one. Every other test must see it absent again
     Object.defineProperty(navigator, 'locks', {value: undefined, writable: true, configurable: true});
 });
@@ -110,8 +113,8 @@ describe('refreshCloudflareSession', () => {
         jest.mocked(oAuthClient.refreshTokens).mockReturnValue(refreshDeferred.promise);
 
         // When a second caller asks for a refresh while the first is still in flight
-        const first = SessionActions.refreshCloudflareSession();
-        const second = SessionActions.refreshCloudflareSession();
+        const first = SessionActions.refreshCloudflareSession(SESSION_A.accessToken);
+        const second = SessionActions.refreshCloudflareSession(SESSION_A.accessToken);
         // Then it must join the same promise: refresh tokens are single-use (Cloudflare rotates them),
         // so two parallel refreshes would spend the same token and one of them would be rejected
         expect(second).toBe(first);
@@ -131,7 +134,7 @@ describe('refreshCloudflareSession', () => {
         const persistDeferred = Promise.withResolvers<void>();
         const setSpy = jest.spyOn(Onyx, 'set').mockReturnValue(persistDeferred.promise);
 
-        const inFlight = SessionActions.refreshCloudflareSession();
+        const inFlight = SessionActions.refreshCloudflareSession(SESSION_A.accessToken);
         // The rotation resolved and the cache updated, but Onyx.set is still pending
         await waitForBatchedUpdates();
 
@@ -173,7 +176,7 @@ describe('refreshCloudflareSession', () => {
 
         // When the refresh runs, Then it resolves reauth-required rather than rejecting: only a fresh
         // authorize round trip can recover, so callers must be told to re-auth, not tempted to retry
-        await expect(SessionActions.refreshCloudflareSession()).resolves.toBe('reauth-required');
+        await expect(SessionActions.refreshCloudflareSession(SESSION_A.accessToken)).resolves.toBe('reauth-required');
         // Then the session is deliberately not cleared: the store is shared across tabs and recovery is by
         // replacement. A deletion here could destroy a working rotation another tab persisted moments earlier
         expect(SessionActions.getCloudflareSession()).toEqual(SESSION_A);
@@ -187,8 +190,22 @@ describe('refreshCloudflareSession', () => {
 
         // When the refresh runs, Then the error propagates so callers can retry, and the session stays
         // alive: a network blip says nothing about the token, so it must not force a re-auth
-        await expect(SessionActions.refreshCloudflareSession()).rejects.toBe(transientError);
+        await expect(SessionActions.refreshCloudflareSession(SESSION_A.accessToken)).rejects.toBe(transientError);
         expect(SessionActions.getCloudflareSession()).toEqual(SESSION_A);
+    });
+
+    it('reports the rotation as refreshed when it succeeded but Onyx.set rejected', async () => {
+        // Given a rotation that succeeds while the persist rejects
+        await seedSession(SESSION_A);
+        jest.mocked(oAuthClient.refreshTokens).mockResolvedValue(SESSION_B);
+        const setSpy = jest.spyOn(Onyx, 'set').mockRejectedValue(new Error('Storage is full'));
+
+        // When the refresh runs, Then it still reports success: the old token is already spent, so the
+        // rotated pair in the cache is the only usable credential
+        await expect(SessionActions.refreshCloudflareSession(SESSION_A.accessToken)).resolves.toBe('refreshed');
+        expect(SessionActions.getCloudflareSession()).toEqual(SESSION_B);
+
+        setSpy.mockRestore();
     });
 
     it('resolves reauth-required without a network call when there is no session', async () => {
@@ -196,7 +213,7 @@ describe('refreshCloudflareSession', () => {
         await seedSession(null);
         // When a refresh is requested, Then it resolves reauth-required without touching the network,
         // because the authorize round trip is the only path that can produce a session from nothing
-        await expect(SessionActions.refreshCloudflareSession()).resolves.toBe('reauth-required');
+        await expect(SessionActions.refreshCloudflareSession(SESSION_A.accessToken)).resolves.toBe('reauth-required');
         expect(oAuthClient.refreshTokens).not.toHaveBeenCalled();
     });
 
@@ -206,7 +223,7 @@ describe('refreshCloudflareSession', () => {
         const refreshDeferred = Promise.withResolvers<CloudflareSession>();
         jest.mocked(oAuthClient.refreshTokens).mockReturnValue(refreshDeferred.promise);
 
-        const refresh = SessionActions.refreshCloudflareSession();
+        const refresh = SessionActions.refreshCloudflareSession(SESSION_A.accessToken);
         // When the other tab wins the rotation race (its new pair reaches this tab through Onyx) and the
         // server then rejects the token this tab submitted as already spent
         await seedSession(SESSION_B);
@@ -219,8 +236,7 @@ describe('refreshCloudflareSession', () => {
     });
 
     it('re-reads the session after acquiring the cross-tab lock, so the tab that waited cannot spend a rotated token', async () => {
-        // Given a Web Lock held by another tab, so this tab's refresh queues behind it (the cross-tab lock
-        // exists because refresh tokens are single-use and only one context may spend one at a time)
+        // Given a Web Lock held by another tab, so this tab's refresh queues behind it
         await seedSession(SESSION_A);
         const lockDeferred = Promise.withResolvers<void>();
         Object.defineProperty(navigator, 'locks', {
@@ -240,33 +256,69 @@ describe('refreshCloudflareSession', () => {
         expect(oAuthClient.refreshTokens).not.toHaveBeenCalled();
     });
 
-    it('does not persist a rotation that resolves after sign-out', async () => {
-        // Given a stored session and a refresh that will still be in flight when sign-out runs. In-flight
-        // async work cannot be cancelled, only have its result discarded
+    it('does not persist a rotation that resolves after the session was dropped', async () => {
+        // Given a stored session and a refresh that will still be in flight when the session is dropped
         await seedSession(SESSION_A);
         const refreshDeferred = Promise.withResolvers<CloudflareSession>();
         jest.mocked(oAuthClient.refreshTokens).mockReturnValue(refreshDeferred.promise);
 
-        // When sign-out bumps the session generation before the rotation resolves
-        const refresh = SessionActions.refreshCloudflareSession();
-        sessionCleanup.runSessionCleanupCallbacks();
+        // When the session is dropped, bumping the generation, before the rotation resolves
+        const refresh = SessionActions.refreshCloudflareSession(SESSION_A.accessToken);
+        await SessionActions.clearCloudflareSession();
         refreshDeferred.resolve(SESSION_B);
 
-        // Then the late result must be dropped so the signed-out account's session is never resurrected
+        // Then the late result must be dropped, so a session deliberately thrown away is never resurrected
         await expect(refresh).resolves.toBe('reauth-required');
         // Then the cache is written before Onyx, so a null cache is proof the rotated pair never reached the store
+        expect(SessionActions.getCloudflareSession()).toBeNull();
+    });
+
+    it('requires reauth when the submitted token is rejected after an Expensify sign-out', async () => {
+        // Given a stored session and a refresh still in flight when the user signs out of Expensify
+        await seedSession(SESSION_A);
+        const refreshDeferred = Promise.withResolvers<CloudflareSession>();
+        jest.mocked(oAuthClient.refreshTokens).mockReturnValue(refreshDeferred.promise);
+
+        // When sign-out runs its cleanup and clears Onyx, as the app does, before the server rejects the token
+        const refresh = SessionActions.refreshCloudflareSession(SESSION_A.accessToken);
+        sessionCleanup.runSessionCleanupCallbacks();
+        await Onyx.clear();
+        await waitForBatchedUpdates();
+        refreshDeferred.reject(new oAuthClient.OAuthError('invalid_grant'));
+
+        // Then the caller learns it must sign in again. The cleared session also no longer holds the submitted
+        // token, which reads like another tab's rotation, so without the sign-out bump the caller would be told
+        // to retry with a newer token that does not exist
+        await expect(refresh).resolves.toBe('reauth-required');
         expect(SessionActions.getCloudflareSession()).toBeNull();
     });
 });
 
 describe('redirectToCloudflareSignIn', () => {
-    it('stores the flow record before navigating — module memory does not survive the unload', async () => {
-        // Given key material ready and a navigation spy that captures what sessionStorage held at the exact
+    let addEventListenerSpy: jest.SpiedFunction<typeof window.addEventListener>;
+
+    beforeEach(() => {
+        addEventListenerSpy = jest.spyOn(window, 'addEventListener');
+    });
+
+    afterEach(() => {
+        // jsdom's window outlives each test, so a pageshow listener left behind
+        // would reject this test's pending redirect, unhandled, when a later test dispatches the event
+        for (const [type, listener] of addEventListenerSpy.mock.calls) {
+            if (type === 'pageshow') {
+                window.removeEventListener(type, listener);
+            }
+        }
+        addEventListenerSpy.mockRestore();
+    });
+
+    it('stores the flow record before navigating: module memory does not survive the unload', async () => {
+        // Given key material ready and a navigation spy that captures what storage held at the exact
         // moment the browser was asked to leave the page
         jest.mocked(pkce.generatePKCEPair).mockResolvedValue(PAIR_1);
-        const savedBeforeAssign: Array<string | null> = [];
+        const savedBeforeAssign: Array<PendingAuthFlowStorageModule.PendingAuthFlow | null> = [];
         assignSpy.mockImplementation(() => {
-            savedBeforeAssign.push(window.sessionStorage.getItem('QA_AUTH_REDIRECT_FLOW'));
+            savedBeforeAssign.push(pendingAuthFlowStorage.consumePendingAuthFlow(OAUTH_STATE));
         });
 
         // When the redirect begins
@@ -274,18 +326,17 @@ describe('redirectToCloudflareSignIn', () => {
         await waitForBatchedUpdates();
 
         expect(assignSpy).toHaveBeenCalledWith(AUTHORIZE_URL);
-        // Then the record must already be readable at the moment the navigation is requested: module memory
-        // does not survive the unload, and without the stored verifier the returning code could never be exchanged
-        expect(savedBeforeAssign.at(0)).not.toBeNull();
-        expect(pendingAuthFlowStorage.consumePendingAuthFlow()).toMatchObject({
-            state: 'test-state',
+        // Then the record must already be readable at the moment the navigation is requested:
+        // without the stored verifier the returning code could never be exchanged
+        expect(savedBeforeAssign.at(0)).toMatchObject({
+            state: OAUTH_STATE,
             codeVerifier: PAIR_1.codeVerifier,
             returnURL: 'http://localhost/settings/troubleshoot',
         });
-        expect(jest.mocked(oAuthClient.buildAuthorizeURL)).toHaveBeenCalledWith({state: 'test-state', codeChallenge: PAIR_1.codeChallenge});
+        expect(jest.mocked(oAuthClient.buildAuthorizeURL)).toHaveBeenCalledWith({state: OAUTH_STATE, codeChallenge: PAIR_1.codeChallenge});
     });
 
-    it('never settles once the navigation is requested, so callers run nothing after it', async () => {
+    it('stays pending once the navigation is requested, so callers run nothing after it while the page leaves', async () => {
         // Given a redirect that reaches the point of navigation
         jest.mocked(pkce.generatePKCEPair).mockResolvedValue(PAIR_1);
 
@@ -301,7 +352,7 @@ describe('redirectToCloudflareSignIn', () => {
         );
         await waitForBatchedUpdates();
 
-        // Then it never settles: the document is about to unload, so any continuation would run in a dying
+        // Then it stays pending: the document is about to unload, so any continuation would run in a dying
         // page and could act on a navigation that is already under way
         expect(assignSpy).toHaveBeenCalledTimes(1);
         expect(isSettled).toBe(false);
@@ -309,10 +360,9 @@ describe('redirectToCloudflareSignIn', () => {
 
     it('refuses to navigate when the flow record cannot be stored', async () => {
         jest.mocked(pkce.generatePKCEPair).mockResolvedValue(PAIR_1);
-        // Given valid key material (mocked above) but a sessionStorage whose writes fail
+        // Given valid key material (mocked above) but a localStorage whose writes fail
         // (jsdom's Storage methods are not spy-able, so the whole object is swapped out)
-        const realSessionStorage = window.sessionStorage;
-        Object.defineProperty(window, 'sessionStorage', {
+        Object.defineProperty(window, 'localStorage', {
             value: {
                 getItem: () => null,
                 removeItem: () => {},
@@ -328,28 +378,26 @@ describe('redirectToCloudflareSignIn', () => {
         // stored verifier would strand the flow with no way to exchange the code that comes back
         await expect(SessionActions.redirectToCloudflareSignIn()).rejects.toThrow('QuotaExceededError');
         expect(assignSpy).not.toHaveBeenCalled();
-
-        Object.defineProperty(window, 'sessionStorage', {value: realSessionStorage, writable: true, configurable: true});
     });
 
-    it('refuses to navigate when sign-out invalidated the flow while the key material was generated', async () => {
+    it('refuses to navigate when the session was dropped while the key material was generated', async () => {
         // Given key-material generation still pending when the redirect starts
         const pkceDeferred = Promise.withResolvers<PKCEPair>();
         jest.mocked(pkce.generatePKCEPair).mockReturnValue(pkceDeferred.promise);
 
-        // When sign-out invalidates the flow before the key material arrives
+        // When the session is dropped, invalidating the flow, before the key material arrives
         const redirect = SessionActions.redirectToCloudflareSignIn('http://localhost/settings/troubleshoot');
-        sessionCleanup.runSessionCleanupCallbacks();
+        await SessionActions.clearCloudflareSession();
         pkceDeferred.resolve(PAIR_1);
 
-        // Then it must reject without navigating or storing anything: sign-out cannot cancel the in-flight
-        // work, so its late result is discarded rather than sending a signed-out tab into the authorize flow
+        // Then it must reject without navigating or storing anything: dropping the session cannot cancel the
+        // in-flight work, so its late result is discarded rather than sending the tab into a stale authorize
         await expect(redirect).rejects.toThrow();
         expect(assignSpy).not.toHaveBeenCalled();
-        expect(window.sessionStorage.getItem('QA_AUTH_REDIRECT_FLOW')).toBeNull();
+        expect(pendingAuthFlowStorage.consumePendingAuthFlow(OAUTH_STATE)).toBeNull();
     });
 
-    it('a second press while the first navigation settles does not overwrite the stored flow', async () => {
+    it('a second press while the first navigation settles joins it instead of starting a second round trip', async () => {
         // Given a first press whose navigation has been requested but has not torn the page down yet
         jest.mocked(pkce.generatePKCEPair).mockResolvedValue(PAIR_1);
 
@@ -358,10 +406,106 @@ describe('redirectToCloudflareSignIn', () => {
         SessionActions.redirectToCloudflareSignIn();
         await waitForBatchedUpdates();
 
-        // Then the in-flight guard runs the flow only once: a second run would regenerate PKCE and overwrite
-        // the stored flow record, orphaning the verifier that the navigation already under way is going to need
+        // Then the second press joins the first and the flow runs once
         expect(assignSpy).toHaveBeenCalledTimes(1);
         expect(pkce.generatePKCEPair).toHaveBeenCalledTimes(1);
+    });
+
+    it('rejects a press that joined a redirect which could not start', async () => {
+        // Given a first press whose discovery fails, and a second press that joined it while it was still running
+        jest.mocked(pkce.generatePKCEPair).mockResolvedValue(PAIR_1);
+        jest.mocked(oAuthClient.buildAuthorizeURL).mockRejectedValueOnce(new Error('Discovery failed'));
+        const firstPress = SessionActions.redirectToCloudflareSignIn();
+        const secondPress = SessionActions.redirectToCloudflareSignIn();
+
+        // When the first press fails
+        // Then the joined press fails with it rather than waiting on a navigation that will never happen
+        await expect(firstPress).rejects.toThrow('Discovery failed');
+        await expect(secondPress).rejects.toThrow('Discovery failed');
+        expect(assignSpy).not.toHaveBeenCalled();
+    });
+
+    it('rejects every press when Back restores the page from the back/forward cache', async () => {
+        // Given a redirect whose navigation has been requested, and a second press that joined it before the page left.
+        // Both callers are waiting on the same round trip, so both must hear when it is abandoned
+        jest.mocked(pkce.generatePKCEPair).mockResolvedValue(PAIR_1);
+        const firstPress = SessionActions.redirectToCloudflareSignIn();
+        const secondPress = SessionActions.redirectToCloudflareSignIn();
+        await waitForBatchedUpdates();
+
+        // When Back brings the page out of the back/forward cache
+        window.dispatchEvent(new PageTransitionEvent('pageshow', {persisted: true}));
+
+        // Then both presses hear about it: the restored page keeps its React state,
+        // so a redirect left pending would keep its caller's spinner running
+        await expect(firstPress).rejects.toThrow(SessionActions.CF_SIGN_IN_ABANDONED);
+        await expect(secondPress).rejects.toThrow(SessionActions.CF_SIGN_IN_ABANDONED);
+    });
+
+    it('starts a new round trip with fresh key material on the first press after Back', async () => {
+        // Given a redirect that Back abandoned by restoring the page from the back/forward cache
+        jest.mocked(pkce.generatePKCEPair).mockResolvedValueOnce(PAIR_1).mockResolvedValueOnce(PAIR_2);
+        const abandonedPress = SessionActions.redirectToCloudflareSignIn();
+        await waitForBatchedUpdates();
+        window.dispatchEvent(new PageTransitionEvent('pageshow', {persisted: true}));
+        await expect(abandonedPress).rejects.toThrow(SessionActions.CF_SIGN_IN_ABANDONED);
+
+        // When the user presses again
+        SessionActions.redirectToCloudflareSignIn();
+        await waitForBatchedUpdates();
+
+        // Then it navigates again with a newly stored verifier: the restored page keeps its module memory,
+        // so a redirect slot left filled would swallow every later press
+        expect(assignSpy).toHaveBeenCalledTimes(2);
+        expect(pendingAuthFlowStorage.consumePendingAuthFlow(OAUTH_STATE)).toMatchObject({codeVerifier: PAIR_2.codeVerifier});
+    });
+
+    it.each<{trigger: string; reset: () => Promise<void>}>([
+        {trigger: 'Clear session', reset: () => SessionActions.clearCloudflareSession()},
+        {
+            trigger: 'an Expensify sign-out',
+            reset: async () => {
+                sessionCleanup.runSessionCleanupCallbacks();
+            },
+        },
+    ])('drops a round trip still waiting on its callback on $trigger', async ({reset}) => {
+        // Given a round trip whose navigation to the Authorize screen has been requested
+        jest.mocked(pkce.generatePKCEPair).mockResolvedValue(PAIR_1);
+        SessionActions.redirectToCloudflareSignIn();
+        await waitForBatchedUpdates();
+
+        // When the session is reset before the callback arrives
+        await reset();
+
+        // Then the callback can no longer complete: a record left behind would let a round trip started before the reset sign this browser in after it
+        expect(pendingAuthFlowStorage.consumePendingAuthFlow(OAUTH_STATE)).toBeNull();
+    });
+
+    it('still wipes the stored session on Clear session when storage methods throw', async () => {
+        // Given a stored session, and a hardened configuration whose Storage lists a pending record but throws SecurityError from its methods
+        await seedSession(SESSION_A);
+        const setSpy = jest.spyOn(Onyx, 'set');
+        const throwSecurityError = () => {
+            throw new Error('SecurityError');
+        };
+        Object.defineProperty(window, 'localStorage', {
+            value: {
+                [`${CONST.LOCAL_STORAGE_KEYS.QA_AUTH_REDIRECT_FLOW_PREFIX}${OAUTH_STATE}`]: '{}',
+                getItem: throwSecurityError,
+                removeItem: throwSecurityError,
+                setItem: throwSecurityError,
+            },
+            writable: true,
+            configurable: true,
+        });
+
+        // When the user presses Clear session
+        await SessionActions.clearCloudflareSession();
+
+        // Then the stored session is still wiped. Clearing the pending records is the optional half of the reset,
+        // and a throw there must not keep the session alive for other tabs and the next boot
+        expect(setSpy).toHaveBeenCalledWith(ONYXKEYS.CLOUDFLARE_SESSION, null);
+        setSpy.mockRestore();
     });
 });
 
@@ -382,11 +526,9 @@ describe('exchangeCodeForCloudflareSession', () => {
         await waitForBatchedUpdates();
 
         // Then the session is cached before the disk write settles. Requests fired during this boot need the
-        // token before disk I/O finishes. While the promise still waits for the write to actually complete
+        // token before disk I/O finishes. The promise still waits for the write to actually complete
         expect(oAuthClient.exchangeCode).toHaveBeenCalledWith({code: 'auth-code-1', codeVerifier: PAIR_1.codeVerifier});
-        // Cache first, because requests during this boot must see the token right away
         expect(SessionActions.getCloudflareSession()).toEqual(SESSION_A);
-        // But the completion waits for the disk write
         expect(isSettled).toBe(false);
 
         persistDeferred.resolve();
@@ -414,22 +556,6 @@ describe('exchangeCodeForCloudflareSession', () => {
         expect(SessionActions.getPendingCloudflareCodeExchange()).toBeNull();
     });
 
-    it('discards an exchange that resolves after sign-out, so the signed-out account is not resurrected', async () => {
-        // Given an exchange that will still be in flight when sign-out runs
-        const exchangeDeferred = Promise.withResolvers<CloudflareSession>();
-        jest.mocked(oAuthClient.exchangeCode).mockReturnValue(exchangeDeferred.promise);
-
-        // When sign-out bumps the session generation before the exchange resolves
-        const completion = SessionActions.exchangeCodeForCloudflareSession({code: 'auth-code-1', codeVerifier: PAIR_1.codeVerifier});
-        sessionCleanup.runSessionCleanupCallbacks();
-        exchangeDeferred.resolve(SESSION_A);
-
-        await completion;
-        // Then the late result is dropped, since in-flight work cannot be cancelled, only discarded. Because
-        // the cache is written before Onyx, a null cache is proof the exchanged pair never reached the store
-        expect(SessionActions.getCloudflareSession()).toBeNull();
-    });
-
     it('resolves and keeps the usable session in cache when the exchange succeeded but Onyx.set rejected', async () => {
         // Given an exchange that succeeds while the Onyx persist rejects
         jest.mocked(oAuthClient.exchangeCode).mockResolvedValue(SESSION_A);
@@ -442,19 +568,24 @@ describe('exchangeCodeForCloudflareSession', () => {
         setSpy.mockRestore();
     });
 
-    it('discards an exchange that resolves after Clear session, so clearing cannot be undone', async () => {
+    it.each<{outcome: string; settle: (exchange: PromiseWithResolvers<CloudflareSession>) => void}>([
+        {outcome: 'resolves', settle: (exchange) => exchange.resolve(SESSION_A)},
+        {outcome: 'rejects', settle: (exchange) => exchange.reject(new oAuthClient.OAuthError('invalid_grant'))},
+    ])('keeps nothing from an exchange that $outcome after Clear session, so clearing cannot be undone', async ({settle}) => {
         // Given a code exchange that is still in flight when the user presses Clear session
         const exchangeDeferred = Promise.withResolvers<CloudflareSession>();
         jest.mocked(oAuthClient.exchangeCode).mockReturnValue(exchangeDeferred.promise);
         const completion = SessionActions.exchangeCodeForCloudflareSession({code: 'auth-code-1', codeVerifier: PAIR_1.codeVerifier});
 
-        // When the session is cleared before the exchange settles
+        // When the session is cleared and the exchange settles afterwards
         await SessionActions.clearCloudflareSession();
-        exchangeDeferred.resolve(SESSION_A);
-        await completion;
+        settle(exchangeDeferred);
+        await Promise.allSettled([completion]);
 
-        // Then the late result must stay discarded, because persisting it would silently undo the clear
+        // Then neither outcome survives the clear. A late session would silently undo it, and a late failure
+        // would make the next probe report that failure instead of redirecting
         expect(SessionActions.getCloudflareSession()).toBeNull();
+        expect(SessionActions.getCloudflareCodeExchangeError()).toBeUndefined();
     });
 
     it('exposes no pending completion before an exchange starts', () => {
@@ -467,13 +598,38 @@ describe('exchangeCodeForCloudflareSession', () => {
         // Given an empty store (Onyx storage outlives jest.resetModules, so an earlier test's persisted
         // session would hydrate here) and an exchange the server rejects
         await seedSession(null);
-        jest.mocked(oAuthClient.exchangeCode).mockRejectedValue(new oAuthClient.OAuthError('invalid_grant'));
+        const exchangeError = new oAuthClient.OAuthError('invalid_grant');
+        jest.mocked(oAuthClient.exchangeCode).mockRejectedValue(exchangeError);
 
         // When the completion runs, Then the failure must reach the caller. Only a fresh authorize round
         // trip can recover, and nothing is cached or left pending, because a failed exchange produced no session
         await expect(SessionActions.exchangeCodeForCloudflareSession({code: 'bad-code', codeVerifier: PAIR_1.codeVerifier})).rejects.toMatchObject({code: 'invalid_grant'});
         expect(SessionActions.getCloudflareSession()).toBeNull();
         expect(SessionActions.getPendingCloudflareCodeExchange()).toBeNull();
+        // Then the failure outlives the cleared handle, so a reader arriving after the exchange settled still
+        // learns this page load's callback failed, rather than starting a round trip into the same failure
+        expect(SessionActions.getCloudflareCodeExchangeError()).toBe(exchangeError.message);
+    });
+
+    it.each<{trigger: string; reset: () => Promise<void>}>([
+        {trigger: 'Clear session', reset: () => SessionActions.clearCloudflareSession()},
+        {
+            trigger: 'an Expensify sign-out',
+            reset: async () => {
+                sessionCleanup.runSessionCleanupCallbacks();
+            },
+        },
+    ])('forgets a recorded exchange failure on $trigger', async ({reset}) => {
+        // Given an exchange the server rejected, so this page load has a recorded failure
+        jest.mocked(oAuthClient.exchangeCode).mockRejectedValue(new oAuthClient.OAuthError('invalid_grant'));
+        await expect(SessionActions.exchangeCodeForCloudflareSession({code: 'bad-code', codeVerifier: PAIR_1.codeVerifier})).rejects.toThrow();
+
+        // When the session is reset
+        await reset();
+
+        // Then the failure is gone with the session.
+        // While a failure is recorded, the probe reports it instead of redirecting unasked
+        expect(SessionActions.getCloudflareCodeExchangeError()).toBeUndefined();
     });
 });
 
@@ -489,9 +645,7 @@ describe('builds without QA auth configured', () => {
         // When the actions module is imported
         const sessionActions = require<typeof SessionActionsModule>('@userActions/CloudflareSession');
 
-        // Then nothing subscribed to the QA session key, so apps without QA auth configured pay no cost for the feature and
-        // importing the module pulls in unrelated modules that legitimately subscribe to their own keys,
-        // so the claim is specifically that nothing connected to the QA session key
+        // Then nothing subscribed to the QA session key, so apps without QA auth configured pay no cost for the feature
         const connectedKeys = connectSpy.mock.calls.map(([connection]) => connection.key);
         expect(connectedKeys).not.toContain(ONYXKEYS.CLOUDFLARE_SESSION);
         expect(sessionActions.getCloudflareSession()).toBeNull();

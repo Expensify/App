@@ -8,6 +8,7 @@ import React from 'react';
 function TextInputFilterContentPageWrapper({baseFilterKey, value, isNegated, buttonText, onChange}: TextInputFilterContentWrapperProps) {
     return (
         <TextInputFilterContent
+            sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SAVE_BUTTON}
             baseFilterKey={baseFilterKey}
             value={value}
             isNegated={isNegated}

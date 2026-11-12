@@ -12,7 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PolicyFeature} from '@libs/PolicyUtils';
-import {getReportFieldKey} from '@libs/ReportUtils';
+import {getReportFieldKey, hasEnabledListValue} from '@libs/ReportUtils';
 import {getReportFieldInitialValue, getReportFieldTypeTranslationKey, isReportFieldImportedFromIntegration, isReportFieldTargetValid} from '@libs/WorkspaceReportFieldUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -75,7 +75,7 @@ function FieldsSettingsPage({
 
     const isDateFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.DATE;
     const isListFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.LIST;
-    const isListFieldEmpty = isListFieldType && reportField.disabledOptions.filter((disabledListValue) => !disabledListValue).length <= 0;
+    const isListFieldEmpty = isListFieldType && !hasEnabledListValue(reportField);
     const listValues = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {})?.sort(localeCompare);
 
     const deleteReportFieldAndHideModal = () => {
@@ -123,6 +123,7 @@ function FieldsSettingsPage({
                     />
                     {isListFieldType && (
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.SETTINGS_LIST_VALUES}
                             name={translate('workspace.reportFields.listValues')}
                             onPress={canWrite ? () => Navigation.navigate(getListValuesRoute(policyID, reportFieldID)) : undefined}
                             value={listValues.join(', ')}
@@ -131,6 +132,7 @@ function FieldsSettingsPage({
                     )}
                     {!isListFieldEmpty && (
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.SETTINGS_INITIAL_VALUE}
                             value={getReportFieldInitialValue(reportField, translate)}
                             name={translate('common.initialValue')}
                             onPress={canWrite && !isDateFieldType ? () => Navigation.navigate(getInitialValueRoute(policyID, reportFieldID)) : undefined}
@@ -139,6 +141,7 @@ function FieldsSettingsPage({
                     {canWrite && !isImportedReportField && (
                         <View style={styles.flexGrow1}>
                             <MenuItemAction
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.SETTINGS_DELETE}
                                 icon={icons.Trashcan}
                                 title={translate('common.delete')}
                                 onPress={showDeleteModal}

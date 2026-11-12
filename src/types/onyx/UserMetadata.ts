@@ -19,6 +19,12 @@ type UserMetadata = {
 
     /** Information if the user is a paid member in any policy they're part of */
     paidMember?: boolean;
+
+    /** The user's most recent NPS score */
+    npsScore?: number;
+
+    /** When the user gave their most recent NPS score, in ISO 8601 */
+    npsResponseDate?: string;
 };
 
 export default UserMetadata;

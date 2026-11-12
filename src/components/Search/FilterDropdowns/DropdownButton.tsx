@@ -10,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
@@ -21,7 +21,7 @@ import type {FilterPopupButtonProps} from './FilterPopupButton';
 
 import FilterPopupButton from './FilterPopupButton';
 
-type DropdownButtonProps = WithSentryLabel &
+type DropdownButtonProps = WithRequiredSentryLabel &
     Omit<FilterPopupButtonProps, 'renderButton' | 'viewportOffsetTop'> & {
         label: string;
         value: string | string[] | null;
@@ -32,10 +32,14 @@ type DropdownButtonProps = WithSentryLabel &
         innerStyles?: StyleProp<ViewStyle>;
         labelStyle?: StyleProp<TextStyle>;
         caretWrapperStyle?: StyleProp<ViewStyle>;
+
+        /** Styles applied while the button is hovered or its popover is open */
+        hoverStyles?: StyleProp<ViewStyle>;
+
         onClosePress?: () => void;
     };
 
-function DropdownButton({label, value, medium = false, labelStyle, innerStyles, caretWrapperStyle, sentryLabel, onClosePress, ...props}: DropdownButtonProps) {
+function DropdownButton({label, value, medium = false, labelStyle, innerStyles, caretWrapperStyle, hoverStyles, sentryLabel, onClosePress, ...props}: DropdownButtonProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['Close']);
@@ -70,8 +74,10 @@ function DropdownButton({label, value, medium = false, labelStyle, innerStyles, 
                             {maxWidth: variables.filterPillMaxWidth},
                             styles.flexShrink1,
                             innerStyles,
+                            isExpanded && hoverStyles,
                             shouldShowCloseButton && styles.pr2,
                         ]}
+                        hoverStyles={hoverStyles}
                         onPress={onPress}
                         sentryLabel={sentryLabel}
                         removeBorderRadius={shouldShowCloseButton ? CONST.BUTTON_REMOVE_BORDER_RADIUS.RIGHT : undefined}
@@ -96,6 +102,7 @@ function DropdownButton({label, value, medium = false, labelStyle, innerStyles, 
                         <>
                             <View style={[styles.buttonDivider]} />
                             <Button
+                                sentryLabel={CONST.SENTRY_LABEL.DROPDOWN_BUTTON.CLOSE_BUTTON}
                                 size={CONST.BUTTON_SIZE.SMALL}
                                 removeBorderRadius={CONST.BUTTON_REMOVE_BORDER_RADIUS.LEFT}
                                 innerStyles={[styles.pl0, styles.pr0half, styles.filterDropDownCloseIcon]}

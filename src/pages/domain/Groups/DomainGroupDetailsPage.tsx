@@ -17,6 +17,7 @@ import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 
 import {clearDomainSecurityGroupSettingError} from '@userActions/Domain';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -76,6 +77,7 @@ function DomainGroupDetailsPage({route}: DomainGroupDetailsPageProps) {
                         errorRowStyles={[styles.mh5]}
                     >
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.NAME}
                             name={translate('common.name')}
                             onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_EDIT_NAME.getRoute(domainAccountID, groupID))}
                             value={group?.name}

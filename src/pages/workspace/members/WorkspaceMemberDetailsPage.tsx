@@ -1,7 +1,10 @@
+import AutoUpdateTime from '@components/AutoUpdateTime';
 import UserAvatar from '@components/Avatar/UserAvatar';
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
+import Icon from '@components/Icon';
+import getBankIcon from '@components/Icon/BankIcons';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
@@ -9,21 +12,27 @@ import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation'
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {PromotedActions} from '@components/PromotedActionsBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import UserPill from '@components/UserPill';
 
+import useApprovalWorkflows from '@hooks/useApprovalWorkflows';
 import useCardFeeds from '@hooks/useCardFeeds';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
+import useIsSupportalSession from '@hooks/useIsSupportalSession';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLoadPolicyCategories from '@hooks/useLoadPolicyCategories';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
+import usePersonalDetailByLogin, {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePrevious from '@hooks/usePrevious';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
@@ -32,29 +41,37 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setPolicyPreventSelfApproval} from '@libs/actions/Policy/Policy';
-import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
+import {clearApprovalWorkflow, removeApprovalWorkflow as removeApprovalWorkflowAction, setApprovalWorkflow, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {isRuleBotEnforcingRules} from '@libs/AgentRulesUtils';
 import {getAllCardsForWorkspace, getCardFeedIcon, getCardFeedWithDomainID, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getEnabledCategoriesCount, getMemberVisibleCategoryNames} from '@libs/CategoryUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getAssignableOfficeLocations, getMemberOfficeLocation, hasOfficeLocations} from '@libs/OfficeLocationUtils';
 import {getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
+import {isPolicyReimburser} from '@libs/PolicyMemberRoleUtils';
 import {
+    areApprovalsEnabled,
+    arePaymentsEnabled,
     canMemberAssignRole,
     canMemberManageMemberWithRole,
     canMemberWrite,
-    getReimburserEmail,
+    hasActiveExpensifyCard,
     isControlPolicy,
+    isPolicyAdmin,
     isPolicyApprover,
     PAYER_ROLES,
+    shouldHideDynamicExternalWorkflowPeople,
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
-import {isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
+import {getChatHistoryTranslationKey, navigateToChatHistory, shouldShowLocalTime as shouldShowLocalTimeUtil} from '@libs/ProfileUtils';
+import {getChatByParticipants, isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
-import {generateAccountID} from '@libs/UserUtils';
-import {getEffectiveWorkArrangement, getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
-import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
+import {getEffectiveWorkArrangement, getMemberLoginByAccountID, getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
+import {getFirstApproverLabel, INITIAL_APPROVAL_WORKFLOW, isApprovalWorkflowLockedByIntegration, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -66,17 +83,22 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 
 import variables from '@styles/variables';
 
+import {openPublicProfilePage} from '@userActions/PersonalDetails';
+import {clearPolicyMemberCategoryVisibilityError} from '@userActions/Policy/Category';
 import {clearWorkspaceOwnerChangeFlow, openPolicyMemberProfilePage, removeMembers} from '@userActions/Policy/Member';
+import {isAnonymousUser as isAnonymousUserSession} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeed, CompanyCardFeedWithDomainID, Card as MemberCard, PersonalDetails, PersonalDetailsList, Policy} from '@src/types/onyx';
+import type {CompanyCardFeed, CompanyCardFeedWithDomainID, Card as MemberCard, PersonalDetails, PersonalDetailsList, Report} from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import policyCategoriesVisibilitySelector from '@selectors/PolicyCategories';
 import {createOutstandingReportsForPolicySelector} from '@selectors/Report';
 import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
@@ -94,39 +116,26 @@ function isNameValuePairsObject(value: unknown): value is Record<string, unknown
     return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-/**
- * A member who was just invited is listed under an optimistic accountID derived from their login, and that entry is removed from
- * personal details once the invite request finishes and the backend supplies the real accountID. A member details page opened
- * while the invite was still in flight therefore holds a stale accountID in its route. Recover the login from the employee list
- * so the page keeps resolving the member across that swap.
- */
-function getMemberLoginByOptimisticAccountID(policy: OnyxEntry<Policy>, accountID: number) {
-    const matchesOptimisticAccountID = (login: string) => generateAccountID(login) === accountID || generateAccountID(Str.removeSMSDomain(login)) === accountID;
-    // A member invited by one of their secondary logins ends up listed under their primary login, so a route ID derived
-    // from the secondary matches no employee — primaryLoginsInvited records that mapping and recovers the member.
-    const primaryLoginOfInvitedSecondary = Object.entries(policy?.primaryLoginsInvited ?? {}).find(([secondaryLogin]) => matchesOptimisticAccountID(secondaryLogin))?.[1];
-    if (primaryLoginOfInvitedSecondary) {
-        return primaryLoginOfInvitedSecondary;
-    }
-    return Object.keys(policy?.employeeList ?? {}).find(matchesOptimisticAccountID) ?? '';
-}
+const createMemberChatReportIDSelector = (memberAccountID: number, currentUserAccountID: number) => (reports: OnyxCollection<Report>) =>
+    getChatByParticipants([memberAccountID, currentUserAccountID], reports)?.reportID;
 
 function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceMemberDetailsPageProps) {
     const policyID = route.params.policyID;
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const {convertToDisplayString} = useCurrencyListActions();
-    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Info', 'Transfer']);
+    const icons = useMemoizedLazyExpensifyIcons(['CommentBubbles', 'History', 'RemoveMembers', 'Transfer']);
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const isWorkArrangementBetaEnabled = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS);
-    const {formatPhoneNumber, translate, localeCompare} = useLocalize();
+    const {formatPhoneNumber, translate, localeCompare, toLocaleOrdinalWithWords} = useLocalize();
     const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
     const {accountID: currentUserAccountID, login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
+    const [memberBankAccounts] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_BANK_ACCOUNTS}${policyID}`);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const [outstandingReportsForPolicy] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {selector: createOutstandingReportsForPolicySelector(policyID)});
@@ -134,13 +143,24 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const expensifyCardSettings = useExpensifyCardFeeds(policyID);
     const {showConfirmModal} = useConfirmModal();
     const showRuleBotGuardModal = useRuleBotGuardModal();
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const isSupportalSession = useIsSupportalSession();
 
     const routeAccountID = Number(route.params.accountID);
-    const memberLogin = personalDetails?.[routeAccountID]?.login ?? getMemberLoginByOptimisticAccountID(policy, routeAccountID);
+    const memberLogin = personalDetails?.[routeAccountID]?.login ?? getMemberLoginByAccountID(policy, routeAccountID);
     const memberPersonalDetails = usePersonalDetailByLogin(memberLogin);
+    const memberPersonalDetailsByLogin = usePersonalDetailsByLogins([memberLogin]);
     const accountID = memberPersonalDetails?.accountID ?? routeAccountID;
+    const [memberChatReportID] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: createMemberChatReportIDSelector(accountID, currentUserAccountID)});
+    const [hasMemberChatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${memberChatReportID}`, {selector: Boolean});
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const [hasSelfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {selector: Boolean});
     const member = policy?.employeeList?.[memberLogin];
     const memberWorkArrangement = getEffectiveWorkArrangement(member?.hasOfficeWorkArrangement, policy?.commuterExclusions?.isOfficeWorkArrangement);
+    const memberOfficeLocation = getMemberOfficeLocation(getAssignableOfficeLocations(policy, translate, localeCompare), member?.officeID);
     const prevMember = usePrevious(member);
     const details = memberPersonalDetails ?? ({} as PersonalDetails);
     const fallbackIcon = details.fallbackIcon ?? '';
@@ -150,40 +170,135 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const isSelectedMemberCurrentUser = accountID === currentUserAccountID;
     const isCurrentUserAdmin = policy?.employeeList?.[currentUserLogin]?.role === CONST.POLICY.ROLE.ADMIN;
     const isCurrentUserOwner = policy?.owner === currentUserLogin;
+    const shouldShowOfficeLocation = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) && hasOfficeLocations(policy);
     const canWriteMembers = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MEMBERS);
+    const {canWrite: canWriteCategories} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
+    const canChangeOfficeLocation = shouldShowOfficeLocation && canWriteMembers;
     const canManageSelectedMemberRole = canMemberAssignRole(policy, currentUserLogin, member?.role);
     const canRemoveSelectedMember = canWriteMembers && !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canMemberManageMemberWithRole(policy, currentUserLogin, member?.role);
-    const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
+    const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID];
     const policyOwnerDisplayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate, formatPhoneNumber}) ?? policy?.owner ?? '';
     const {cardList: assignableCards, ...workspaceCards} = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds, expensifyCardSettings);
     const isSMSLogin = Str.isSMSLogin(memberLogin);
     const phoneNumber = getPhoneNumber(details);
     const memberLoginToCopy = isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin;
-    const reimburserEmail = getReimburserEmail(policy);
-    const isReimburser = !!reimburserEmail && reimburserEmail === memberLogin;
+    const isReimburser = isPolicyReimburser(policy, memberLogin);
+    const isExpensifyCardholder = hasActiveExpensifyCard(policy, memberLogin);
     // Only let the Authorized Payer change roles when there is another payer role they can actually move to.
     const assignablePayerRoles = PAYER_ROLES.filter((payerRole) => canMemberAssignRole(policy, currentUserLogin, payerRole));
     const canReimburserChangeRole = assignablePayerRoles.some((payerRole) => payerRole !== member?.role);
     const canEditSelectedMemberRole = !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canManageSelectedMemberRole && (!isReimburser || canReimburserChangeRole);
+    const shouldShowCategoryVisibility = isBetaEnabled(CONST.BETAS.CATEGORY_VISIBILITY) && isControlPolicy(policy) && !!policy?.areCategoriesEnabled;
+    const [policyCategoriesVisibility] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {selector: policyCategoriesVisibilitySelector});
+
+    const {isLoadingCompletePolicyCategories} = useLoadPolicyCategories(shouldShowCategoryVisibility ? policyID : undefined);
+    let categoryVisibilityTitle = '';
+    if (!isLoadingCompletePolicyCategories && policyCategoriesVisibility) {
+        const visibleCategoriesCount = getMemberVisibleCategoryNames(policyCategoriesVisibility, accountID).length;
+        categoryVisibilityTitle =
+            visibleCategoriesCount === getEnabledCategoriesCount(policyCategoriesVisibility)
+                ? translate('workspace.people.allCategories')
+                : translate('workspace.people.categoriesCount', {count: visibleCategoriesCount});
+    }
+    const canEditCategoryVisibility = canWriteMembers && canWriteCategories && !!memberPersonalDetails?.accountID;
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
+    const isCustomAgent = !!details.isCustomAgent;
+    const hasDisplayNameSet = !!details.firstName || !!details.lastName;
+    const canSetDisplayName = !hasDisplayNameSet && isPolicyAdmin(policy, currentUserLogin);
+    const shouldShowLocalTime = shouldShowLocalTimeUtil({accountID, timezone: details.timezone, isCustomAgent, isValidated: !!details.validated});
 
-    const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({
-        policy,
-        personalDetails: personalDetails ?? {},
-        localeCompare,
-        currentUserLogin,
+    // Like ProfilePage, your own row only offers Message when your self DM already exists, so we never optimistically create one
+    const shouldShowMessageButton = (!isSelectedMemberCurrentUser || !!hasSelfDMReport) && !isAnonymousUserSession();
+    const messageAction = PromotedActions.message({
+        reportID: isSelectedMemberCurrentUser ? selfDMReportID : memberChatReportID,
+        accountID,
+        login: memberLogin,
+        personalDetailsByLogin: memberPersonalDetailsByLogin,
+        personalDetails,
+        currentUserAccountID,
+        introSelected,
+        isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+        hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+        hasReportActions: hasMemberChatReportActions,
+        conciergeChat,
+        isSupportalSession,
     });
+
+    const {approvalWorkflows, enforcedApprovalWorkflows, availableMembers, usedApproverEmails, approverPendingActionByMemberEmail} = useApprovalWorkflows(policy);
+
+    // The label follows this member's own workflow depth, not the workspace's.
+    const memberApprovalWorkflow = enforcedApprovalWorkflows.find((workflow) => workflow.members.some((workflowMember) => workflowMember.email === memberLogin));
+    const memberFirstApprover = memberApprovalWorkflow?.approvers.at(0);
+    const isApprovalsEnabled = areApprovalsEnabled(policy);
+    // An HR or recruiting integration in a read-only approval mode owns the workflows, so the editor rejects manual
+    // edits. Keep the row visible for reference but inert, the same way the Workflows tab disables its own actions.
+    const shouldAllowApproverEdit = canWriteMembers && !isApprovalWorkflowLockedByIntegration(policy);
+
+    // A Dynamic External Workflow set to hide people takes the whole approval configuration off screen rather than
+    // disabling it, so the row follows the Workflows tab and disappears instead of pointing at a Not Found editor.
+    const shouldHideApprovalWorkflows = shouldHideDynamicExternalWorkflowPeople(policy);
+    const approverLabel = getFirstApproverLabel((memberApprovalWorkflow?.approvers.length ?? 0) > 1, translate, toLocaleOrdinalWithWords);
+
+    const openMemberApprovalWorkflow = () => {
+        // Discard stale onyx edits or the Edit page's resume check would surface a prior abandoned session.
+        clearApprovalWorkflow();
+
+        // A member who approves their own expenses still has a workflow, so open it rather than offering to build a
+        // second one. The row names them as their own approver, and a blank create page would contradict that.
+        if (memberFirstApprover?.email) {
+            // The editor matches the member ahead of the approver, against workflows that are not filtered down to the
+            // enforced ones. A downgrade leaves a member on an inert workflow while the row already shows the default
+            // approver they submit to, so naming the member there would open a workflow the workspace no longer runs.
+            const memberWorkflow = approvalWorkflows.find((workflow) => workflow.members.some((workflowMember) => workflowMember.email === memberLogin));
+            const isMemberOnTheWorkflowShown = memberWorkflow?.approvers.at(0)?.email === memberFirstApprover.email;
+
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, memberFirstApprover.email, isMemberOnTheWorkflowShown ? memberLogin : undefined));
+            return;
+        }
+
+        // Seed the draft before the plan gates so the create page already has it when an upgrade lands there.
+        // This entry point goes straight to the create page, skipping the Expenses from and Approver steps that turn
+        // `isInitialFlow` off, and Expenses from discards the draft on the way out while that flag is still set.
+        setApprovalWorkflow({
+            ...INITIAL_APPROVAL_WORKFLOW,
+            isInitialFlow: false,
+            members: [{email: memberLogin, displayName, avatar: details?.avatar}],
+            availableMembers,
+            usedApproverEmails,
+        });
+
+        // Creating a workflow is plan-gated, the same way adding one from the Workflows tab is. The `approvals`
+        // upgrade is the only one that fits, since the create page this returns to runs on Control alone.
+        const backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID);
+        if (!isControlPolicy(policy)) {
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, backTo));
+            return;
+        }
+
+        Navigation.navigate(backTo);
+    };
 
     useEffect(() => {
         openPolicyMemberProfilePage(policyID, accountID);
     }, [policyID, accountID]);
+
+    // OpenPolicyMemberProfilePage doesn't return the member's timezone or validated status, which Local time needs
+    useEffect(() => {
+        openPublicProfilePage(accountID);
+    }, [accountID]);
 
     // Filter out travel cards — they should not appear on the member profile page
     // as they expose card-level controls and data not intended for workspace admin view.
     const memberCards = workspaceCards
         ? Object.values(workspaceCards).filter((card) => card.accountID === accountID && card.nameValuePairs?.feedCountry !== CONST.TRAVEL.PROGRAM_TRAVEL_US)
         : [];
+
+    const memberBankAccount = isPolicyAdmin(policy) && arePaymentsEnabled(policy) ? memberBankAccounts?.[accountID] : undefined;
+    const memberBankIcon = getBankIcon({bankName: memberBankAccount?.bankName, styles});
+    const memberBankNameKey = Object.values(CONST.BANK_NAMES).find((bankName) => bankName === memberBankAccount?.bankName?.toLowerCase());
+    // the bank name can be an empty string
+    const memberBankName = memberBankNameKey ? CONST.BANK_NAMES_USER_FRIENDLY[memberBankNameKey] : memberBankAccount?.bankName || translate('common.bankAccount');
 
     const isApprover = isPolicyApprover(policy, memberLogin) || isApproverOfOutstandingPolicyReports(accountID, outstandingReportsForPolicy, privateIsArchivedMap);
     const isTechnicalContact = policy?.technicalContact === details?.login;
@@ -198,7 +313,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     let confirmModalPrompt = translate('workspace.people.removeMembersWarningPrompt', displayName, policyOwnerDisplayName);
 
-    if (isReimburser) {
+    if (isExpensifyCardholder) {
+        confirmModalPrompt = translate('workspace.people.removeMemberPromptExpensifyCard', {
+            memberName: displayName,
+        });
+    } else if (isReimburser) {
         confirmModalPrompt = translate('workspace.people.removeMemberPromptReimburser', {
             memberName: displayName,
         });
@@ -237,11 +356,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     };
 
     const removeUser = () => {
-        const ownerEmail = ownerDetails?.login;
-        const removedApprover = personalDetails?.[accountID];
+        // Fall back to the policy owner, so submitters are still reassigned when personal details aren't loaded.
+        const ownerEmail = ownerDetails?.login ?? policy?.owner;
 
         // If the user is not an approver, proceed with member removal
-        if (!isPolicyApprover(policy, memberLogin) || !removedApprover?.login || !ownerEmail) {
+        if (!memberLogin || !isPolicyApprover(policy, memberLogin) || !ownerEmail) {
             removeMemberAndCloseModal();
             return;
         }
@@ -249,7 +368,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         // Update approval workflows after approver removal
         const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
             approvalWorkflows,
-            removedApprover,
+            removedApproverEmail: memberLogin,
+            ownerEmail,
             ownerDetails,
         });
 
@@ -287,7 +407,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             showRuleBotGuardModal('remove', policyID);
             return;
         }
-        if (isReimburser) {
+        if (isExpensifyCardholder || isReimburser) {
             showConfirmModal({
                 shouldShowCancelButton: false,
                 buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
@@ -301,8 +421,12 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         showRemoveMemberModal();
     };
 
-    const navigateToProfile = () => {
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID)));
+    const navigateToCategoryVisibility = () => {
+        startSpan(CONST.TELEMETRY.SPAN_OPEN_MEMBER_CATEGORY_VISIBILITY, {
+            name: CONST.TELEMETRY.SPAN_OPEN_MEMBER_CATEGORY_VISIBILITY,
+            op: CONST.TELEMETRY.SPAN_OPEN_MEMBER_CATEGORY_VISIBILITY,
+        });
+        Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS_CATEGORY_VISIBILITY.getRoute(policyID, accountID));
     };
 
     const navigateToDetails = (card: MemberCard) => {
@@ -366,26 +490,37 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     {displayName}
                                 </Text>
                             )}
-                            {isSelectedMemberOwner && isCurrentUserAdmin && !isCurrentUserOwner ? (
-                                shouldRenderTransferOwnerButton(fundList) && (
-                                    <ButtonDisabledWhenOffline
-                                        onPress={startChangeOwnershipFlow}
-                                        style={styles.mb5}
+                            <View style={[styles.flexRow, styles.flexWrap, styles.justifyContentCenter, styles.gap2, styles.mb5]}>
+                                {isSelectedMemberOwner && isCurrentUserAdmin && !isCurrentUserOwner ? (
+                                    shouldRenderTransferOwnerButton(fundList) && (
+                                        <ButtonDisabledWhenOffline
+                                            onPress={startChangeOwnershipFlow}
+                                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_TRANSFER_OWNER}
+                                        >
+                                            <Button.Icon src={icons.Transfer} />
+                                            <Button.Text>{translate('workspace.people.transferOwner')}</Button.Text>
+                                        </ButtonDisabledWhenOffline>
+                                    )
+                                ) : (
+                                    <Button
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_REMOVE}
+                                        onPress={isAccountLocked ? showLockedAccountModal : askForConfirmationToRemove}
+                                        isDisabled={!canRemoveSelectedMember}
                                     >
-                                        <Button.Icon src={icons.Transfer} />
-                                        <Button.Text>{translate('workspace.people.transferOwner')}</Button.Text>
-                                    </ButtonDisabledWhenOffline>
-                                )
-                            ) : (
-                                <Button
-                                    onPress={isAccountLocked ? showLockedAccountModal : askForConfirmationToRemove}
-                                    isDisabled={!canRemoveSelectedMember}
-                                    style={styles.mb5}
-                                >
-                                    <Button.Icon src={icons.RemoveMembers} />
-                                    <Button.Text>{translate('workspace.people.removeWorkspaceMemberButtonTitle')}</Button.Text>
-                                </Button>
-                            )}
+                                        <Button.Icon src={icons.RemoveMembers} />
+                                        <Button.Text>{translate('workspace.people.removeWorkspaceMemberButtonTitle')}</Button.Text>
+                                    </Button>
+                                )}
+                                {shouldShowMessageButton && (
+                                    <Button
+                                        onPress={messageAction.onSelected}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_MESSAGE}
+                                    >
+                                        <Button.Icon src={icons.CommentBubbles} />
+                                        <Button.Text>{translate('common.message')}</Button.Text>
+                                    </Button>
+                                )}
+                            </View>
                         </View>
                         <View style={styles.w100}>
                             <MenuItemField
@@ -394,7 +529,18 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             >
                                 <MenuItem.Copy value={memberLoginToCopy} />
                             </MenuItemField>
+                            <OfflineWithFeedback pendingAction={details.pendingFields?.displayName}>
+                                <MenuItemField
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_DISPLAY_NAME}
+                                    name={translate('displayNamePage.headerTitle')}
+                                    value={hasDisplayNameSet ? displayName : ''}
+                                    onPress={canSetDisplayName ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_MEMBER_DISPLAY_NAME.path)) : undefined}
+                                    testID="member-display-name-menu-item"
+                                />
+                            </OfflineWithFeedback>
+                            {shouldShowLocalTime && !!details.timezone && <AutoUpdateTime timezone={details.timezone} />}
                             <MenuItemWithTopDescription
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_ROLE}
                                 disabled={!canEditSelectedMemberRole}
                                 title={translate(`workspace.common.roleName`, member?.role)}
                                 interactive={canEditSelectedMemberRole}
@@ -417,8 +563,67 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policyID, accountID));
                                 }}
                             />
+                            {shouldShowCategoryVisibility && (
+                                <OfflineWithFeedback
+                                    pendingAction={member?.pendingFields?.categoryVisibility}
+                                    errors={member?.errorFields?.categoryVisibility}
+                                    errorRowStyles={styles.ph5}
+                                    onClose={() => clearPolicyMemberCategoryVisibilityError(policyID, memberLogin)}
+                                >
+                                    <MenuItemField
+                                        name={translate('workspace.people.categoryVisibility')}
+                                        onPress={canEditCategoryVisibility ? navigateToCategoryVisibility : undefined}
+                                        testID="member-category-visibility-menu-item"
+                                        value={categoryVisibilityTitle}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.CATEGORY_VISIBILITY}
+                                    />
+                                </OfflineWithFeedback>
+                            )}
+                            {isApprovalsEnabled && !shouldHideApprovalWorkflows && (
+                                <OfflineWithFeedback pendingAction={approverPendingActionByMemberEmail[memberLogin]}>
+                                    <MenuItem.Root
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_APPROVER}
+                                        onPress={shouldAllowApproverEdit ? openMemberApprovalWorkflow : undefined}
+                                        testID="member-approver-menu-item"
+                                    >
+                                        <MenuItem.Row>
+                                            <MenuItemField.Content name={approverLabel}>
+                                                {!!memberFirstApprover && (
+                                                    <View style={styles.pr3}>
+                                                        <UserPill
+                                                            avatar={memberFirstApprover.avatar}
+                                                            displayName={memberFirstApprover.displayName}
+                                                            email={memberFirstApprover.email}
+                                                            style={styles.userPillStandalone}
+                                                        />
+                                                    </View>
+                                                )}
+                                            </MenuItemField.Content>
+                                            {shouldAllowApproverEdit && (
+                                                <MenuItem.Trailing>
+                                                    <MenuItem.Chevron />
+                                                </MenuItem.Trailing>
+                                            )}
+                                        </MenuItem.Row>
+                                    </MenuItem.Root>
+                                </OfflineWithFeedback>
+                            )}
+                            {shouldShowOfficeLocation && (
+                                <MenuItemField
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_OFFICE_LOCATION}
+                                    name={translate('workspace.people.officeLocation')}
+                                    onPress={canChangeOfficeLocation ? () => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_OFFICE_LOCATION.getRoute(policyID, accountID)) : undefined}
+                                    testID="member-office-location-menu-item"
+                                    value={
+                                        memberOfficeLocation
+                                            ? translate('workspace.people.officeLocationWithAddress', {name: memberOfficeLocation.name, address: memberOfficeLocation.address})
+                                            : ''
+                                    }
+                                />
+                            )}
                             {policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && isWorkArrangementBetaEnabled && (
                                 <MenuItemWithTopDescription
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_WORK_ARRANGEMENT}
                                     disabled={!canWriteMembers}
                                     title={getWorkArrangementLabel(translate, memberWorkArrangement)}
                                     interactive={canWriteMembers}
@@ -434,6 +639,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 <>
                                     <OfflineWithFeedback pendingAction={member?.pendingFields?.employeeUserID}>
                                         <MenuItemField
+                                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_CUSTOM_FIELD_1}
                                             name={translate('workspace.common.customField1')}
                                             onPress={canWriteMembers ? () => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField1')) : undefined}
                                             testID="member-customField1-menu-item"
@@ -442,6 +648,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     </OfflineWithFeedback>
                                     <OfflineWithFeedback pendingAction={member?.pendingFields?.employeePayrollID}>
                                         <MenuItemField
+                                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_CUSTOM_FIELD_2}
                                             name={translate('workspace.common.customField2')}
                                             onPress={canWriteMembers ? () => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField2')) : undefined}
                                             testID="member-customField2-menu-item"
@@ -450,14 +657,17 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     </OfflineWithFeedback>
                                 </>
                             )}
-                            <View style={styles.mb5}>
-                                <MenuItemNavigation
-                                    title={translate('common.profile')}
-                                    icon={icons.Info}
-                                    onPress={navigateToProfile}
-                                    testID="member-profile-menu-item"
-                                />
-                            </View>
+                            {!isAnonymousUserSession() && (
+                                <View style={styles.mb5}>
+                                    <MenuItemNavigation
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_CHAT_HISTORY}
+                                        title={translate(getChatHistoryTranslationKey(isCustomAgent, memberLogin))}
+                                        icon={icons.History}
+                                        onPress={() => navigateToChatHistory(accountID)}
+                                        testID="member-chat-history-menu-item"
+                                    />
+                                </View>
+                            )}
                             {memberCards.length > 0 && (
                                 <>
                                     <View style={[styles.ph5, styles.pv3]}>
@@ -480,6 +690,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                 pendingAction={memberCard.pendingAction}
                                             >
                                                 <MenuItem
+                                                    sentryLabel={
+                                                        memberCard.bank === CONST.EXPENSIFY_CARD.BANK
+                                                            ? CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_CARD_ROW.EXPENSIFY_CARD
+                                                            : CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_CARD_ROW.COMPANY_CARD
+                                                    }
                                                     key={memberCard.cardID}
                                                     pressableTestID={`card-${memberCard.cardID}`}
                                                     title={cardTitle ?? customCardNames?.[memberCard.cardID] ?? maskCardNumber(memberCard?.cardName ?? '', memberCard.bank)}
@@ -505,6 +720,31 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                             </OfflineWithFeedback>
                                         );
                                     })}
+                                </>
+                            )}
+                            {!!memberBankAccount?.bankAccountLastFour && (
+                                <>
+                                    <View style={[styles.ph5, styles.pt3, styles.pb1]}>
+                                        <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting])}>
+                                            {translate('common.bankAccount')}
+                                        </Text>
+                                    </View>
+                                    <MenuItem.Root>
+                                        <MenuItem.Row>
+                                            <MenuItem.Leading>
+                                                <Icon
+                                                    src={memberBankIcon.icon}
+                                                    width={memberBankIcon.iconSize}
+                                                    height={memberBankIcon.iconSize}
+                                                    additionalStyles={memberBankIcon.iconStyles}
+                                                />
+                                            </MenuItem.Leading>
+                                            <MenuItem.Content>
+                                                <MenuItem.Title>{memberBankName}</MenuItem.Title>
+                                                <MenuItem.Description>{memberBankAccount.bankAccountLastFour}</MenuItem.Description>
+                                            </MenuItem.Content>
+                                        </MenuItem.Row>
+                                    </MenuItem.Root>
                                 </>
                             )}
                         </View>

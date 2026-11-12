@@ -1,4 +1,5 @@
 import type Permissions from '@libs/Permissions';
+import type {canApplyBetaOverrides as canApplyBetaOverridesActual} from '@libs/Permissions';
 
 import type Beta from '@src/types/onyx/Beta';
 
@@ -13,3 +14,7 @@ export default {
     ...jest.requireActual<{default: typeof Permissions}>('../Permissions').default,
     isBetaEnabled: (beta: Beta, betas: Beta[]) => !!betas?.includes(beta),
 };
+
+const {canApplyBetaOverrides} = jest.requireActual<{canApplyBetaOverrides: typeof canApplyBetaOverridesActual}>('../Permissions');
+
+export {canApplyBetaOverrides};
