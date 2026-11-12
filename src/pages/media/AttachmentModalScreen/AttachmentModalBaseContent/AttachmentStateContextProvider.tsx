@@ -6,9 +6,8 @@ import React, {createContext, useState} from 'react';
 type AttachmentStateSource = AttachmentSource | BaseImageProps['source'];
 
 function convertSourceToString(source: AttachmentStateSource) {
-    // An image without a source threw here before (`'uri' in undefined`). Keep that error, because a shared '' key would mark every image without a source as loaded.
     if (source === undefined) {
-        throw new TypeError('Cannot convert undefined attachment source');
+        return '';
     }
     if (typeof source === 'string' || typeof source === 'number') {
         return source.toString();
