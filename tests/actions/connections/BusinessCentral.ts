@@ -8,12 +8,14 @@ import {
     updateBusinessCentralAccountingMethod,
     updateBusinessCentralAutoCreateEntities,
     updateBusinessCentralAutoSync,
+    updateBusinessCentralCardProgramAccount,
     updateBusinessCentralCompany,
     updateBusinessCentralCustomerMapping,
     updateBusinessCentralDefaultVendor,
     updateBusinessCentralEnableNewCategories,
     updateBusinessCentralExportDate,
     updateBusinessCentralExporter,
+    updateBusinessCentralExportToMultipleAccounts,
     updateBusinessCentralExportToNextOpenPeriod,
     updateBusinessCentralFieldMapping,
     updateBusinessCentralNonReimbursableAccount,
@@ -568,6 +570,14 @@ describe('actions/connections/BusinessCentral', () => {
                 settingName: CONST.BUSINESS_CENTRAL_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD,
                 value: true,
             },
+            {
+                name: 'updateBusinessCentralExportToMultipleAccounts',
+                update: () => updateBusinessCentralExportToMultipleAccounts(MOCK_POLICY_ID, true, false),
+                command: WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_EXPORT_TO_MULTIPLE_ACCOUNTS,
+                parameters: {enabled: true},
+                settingName: CONST.BUSINESS_CENTRAL_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS,
+                value: true,
+            },
         ];
 
         it.each(exportCases)('$name sends the request parameter the backend reads and optimistically updates the export config', ({update, command, parameters, settingName, value}) => {
@@ -647,6 +657,75 @@ describe('actions/connections/BusinessCentral', () => {
 
             // Then an empty code is sent, which Web-Expensify accepts as clearing the payment method
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_PAYMENT_METHOD, {policyID: MOCK_POLICY_ID, value: ''}, expect.anything());
+        });
+    });
+
+    describe('updateBusinessCentralCardProgramAccount', () => {
+        const FEED_KEY = CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX;
+        const PENDING_FIELD = `${CONST.BUSINESS_CENTRAL_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${FEED_KEY}`;
+
+        it('writes the card program account command and marks only that feed as pending', () => {
+            // Given a connected policy with an Amex card feed
+            // When an admin points the feed at bank-2
+            updateBusinessCentralCardProgramAccount(MOCK_POLICY_ID, FEED_KEY, 'bank-2', 'bank-1');
+
+            // Then the command carries the feed and account Web-Expensify reads, and only the Amex row shows as pending
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_CARD_PROGRAM_ACCOUNT,
+                {policyID: MOCK_POLICY_ID, feedKey: FEED_KEY, cardProgramAccountID: 'bank-2'},
+                expect.anything(),
+            );
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                optimisticData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {
+                            connections: {
+                                businessCentral: {
+                                    config: {
+                                        export: {cardProgramAccounts: {[FEED_KEY]: 'bank-2'}},
+                                        pendingFields: {[PENDING_FIELD]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                        errorFields: {[PENDING_FIELD]: null},
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+                successData: [{key: POLICY_KEY, value: {connections: {businessCentral: {config: {pendingFields: {[PENDING_FIELD]: null}}}}}}],
+                failureData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {
+                            connections: {
+                                businessCentral: {
+                                    config: {
+                                        export: {cardProgramAccounts: {[FEED_KEY]: 'bank-1'}},
+                                        pendingFields: {[PENDING_FIELD]: null},
+                                        errorFields: {[PENDING_FIELD]: ANY_VALUE},
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+            });
+        });
+
+        it('removes the override when the feed goes back to the company card account', () => {
+            // Given an Amex feed that overrides the company card account with bank-2
+            // When an admin picks the company card account, which the page sends as an empty ID
+            updateBusinessCentralCardProgramAccount(MOCK_POLICY_ID, FEED_KEY, '', 'bank-2');
+
+            // Then the empty ID reaches Web-Expensify, which deletes the override, and Onyx drops the key so the feed shows the default right away
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_CARD_PROGRAM_ACCOUNT,
+                {policyID: MOCK_POLICY_ID, feedKey: FEED_KEY, cardProgramAccountID: ''},
+                expect.anything(),
+            );
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                optimisticData: [{key: POLICY_KEY, value: {connections: {businessCentral: {config: {export: {cardProgramAccounts: {[FEED_KEY]: null}}}}}}}],
+            });
         });
     });
 

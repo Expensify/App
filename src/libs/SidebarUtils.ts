@@ -6,6 +6,7 @@ import type {ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
+    BankAccountList,
     Card,
     GuideAccountIDsDerivedValue,
     PersonalDetails,
@@ -13,24 +14,26 @@ import type {
     PolicyTagLists,
     ReportActions,
     ReportAttributesDerivedValue,
+    ReportMetadata,
     ReportNameValuePairs,
     Transaction,
     TransactionViolation,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
-import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
+import type {ReportAttributes, ReportNamesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type Policy from '@src/types/onyx/Policy';
 import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type Rule from '@src/types/onyx/Rule';
+import type Session from '@src/types/onyx/Session';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {startOfDay, subMonths} from 'date-fns';
+import {isValid, startOfDay, subMonths} from 'date-fns';
 
 import type {OptionData} from './ReportUtils';
 
@@ -52,6 +55,7 @@ import {
     getParticipantsAccountIDsForDisplay,
     getPendingDeleteMemberAccountIDs,
     getReceiptUploadErrorReason,
+    getReportLastVisibleActionCreated,
     getReportMetadata,
     getReportNotificationPreference,
     getReportParticipantsTitle,
@@ -80,9 +84,11 @@ import {
     isTripRoom,
     isUnread,
     isUnreadWithMention,
+    isUnsupportedReportType,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
 } from './ReportUtils';
+import StringUtils from './StringUtils';
 
 function compareStringDates(a: string, b: string): 0 | 1 | -1 {
     if (a < b) {
@@ -110,10 +116,10 @@ const loggedChatReportIDs = new Set<string>();
 
 /**
  * Builds a normalized sort key for fast string comparison using plain < / > operators.
- * Lowercases the name and zero-pads numeric segments ("Report 2" → "report 000000000000002")
+ * Lowercases and folds accents in the name, then zero-pads numeric segments ("Report 2" → "report 000000000000002")
  * so that numeric ordering is preserved without Intl.Collator.
  *
- * Results are cached at module level so each unique name pays the cost only once.
+ * Results are cached for the current LHN categorization so each unique name pays the cost only once per categorization.
  */
 function buildSortKey(displayName: string): string {
     const cached = sortKeyCache.get(displayName);
@@ -121,7 +127,7 @@ function buildSortKey(displayName: string): string {
         return cached;
     }
 
-    const key = displayName.toLowerCase().replaceAll(DIGIT_SEQUENCE, (match) => match.padStart(NUMERIC_PAD_WIDTH, '0'));
+    const key = StringUtils.normalizeAccents(displayName.toLowerCase()).replaceAll(DIGIT_SEQUENCE, (match) => match.padStart(NUMERIC_PAD_WIDTH, '0'));
     sortKeyCache.set(displayName, key);
     return key;
 }
@@ -139,10 +145,12 @@ type MiniReport = {
 
 type ShouldDisplayReportInLHNParams = {
     report: Report;
+    policy: OnyxEntry<Policy>;
     reports: OnyxCollection<Report>;
     currentReportId: string | undefined;
     isInFocusMode: boolean;
     isDefaultRoomsBetaEnabled: boolean;
+    isBillPayBetaEnabled?: boolean;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
     draftComment: OnyxEntry<string>;
     transactions: OnyxCollection<Transaction>;
@@ -153,14 +161,17 @@ type ShouldDisplayReportInLHNParams = {
     currentUserAccountID: number;
     hasGuidesEmails: boolean;
     conciergeReportID: string | undefined;
+    session: OnyxEntry<Session>;
 };
 
 function shouldDisplayReportInLHN({
     report,
+    policy,
     reports,
     currentReportId,
     isInFocusMode,
     isDefaultRoomsBetaEnabled,
+    isBillPayBetaEnabled = false,
     transactionViolations,
     draftComment,
     transactions,
@@ -171,18 +182,19 @@ function shouldDisplayReportInLHN({
     currentUserLogin,
     conciergeReportID,
     hasGuidesEmails,
+    session,
 }: ShouldDisplayReportInLHNParams) {
     if (!report) {
         return {shouldDisplay: false};
     }
 
-    if ((Object.values(CONST.REPORT.UNSUPPORTED_TYPE) as string[]).includes(report?.type ?? '')) {
+    if (isUnsupportedReportType(report.type, isBillPayBetaEnabled)) {
         return {shouldDisplay: false};
     }
 
     // Get report metadata and status
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const doesReportHaveViolations = !!getViolatingReportIDForRBRInLHN(report, transactionViolations);
+    const doesReportHaveViolations = !!getViolatingReportIDForRBRInLHN(report, transactionViolations, policy);
     const isHidden = isHiddenForCurrentUser(report);
     const isFocused = report.reportID === currentReportId;
     const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
@@ -216,10 +228,9 @@ function shouldDisplayReportInLHN({
         // An anonymous user can only access public rooms, and such a room's notification preference
         // defaults to `hidden`. Without this, opening a thread inside the room (which steals focus)
         // drops the room from the LHN, leaving the anon user unable to return to it. See #92672.
-        (isPublicRoom(report) && isAnonymousUser()) ||
+        (isPublicRoom(report) && isAnonymousUser(session)) ||
         isSystemChat ||
         !!report.isPinned ||
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         requiresAttention ||
         (report.isOwnPolicyExpenseChat && !isReportArchived);
 
@@ -234,6 +245,7 @@ function shouldDisplayReportInLHN({
         currentReportId,
         isInFocusMode,
         isDefaultRoomsBetaEnabled,
+        isBillPayBetaEnabled,
         excludeEmptyChats: true,
         doesReportHaveViolations,
         draftComment,
@@ -287,7 +299,9 @@ function getLHNUnreadState(reportID: string): LHNUnreadState {
 function getReportsToDisplayInLHN({
     currentReportId,
     reports,
+    policies,
     isDefaultRoomsBetaEnabled,
+    isBillPayBetaEnabled = false,
     priorityMode,
     draftComments,
     transactionViolations,
@@ -299,10 +313,13 @@ function getReportsToDisplayInLHN({
     reportAttributes,
     conciergeReportID,
     guideAccountIDs,
+    session,
 }: {
     currentReportId: string | undefined;
     reports: OnyxCollection<Report>;
+    policies: OnyxCollection<Policy>;
     isDefaultRoomsBetaEnabled: boolean;
+    isBillPayBetaEnabled?: boolean;
     priorityMode: OnyxEntry<PriorityMode>;
     draftComments: OnyxCollection<string>;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
@@ -314,6 +331,7 @@ function getReportsToDisplayInLHN({
     reportAttributes?: ReportAttributesDerivedValue['reports'];
     guideAccountIDs?: GuideAccountIDsDerivedValue;
     conciergeReportID: string | undefined;
+    session: OnyxEntry<Session>;
 }) {
     rememberLHNUnreadStateBeforeFocus(currentReportId);
 
@@ -331,10 +349,12 @@ function getReportsToDisplayInLHN({
 
         const {shouldDisplay, hasErrorsOtherThanFailedReceipt} = shouldDisplayReportInLHN({
             report,
+            policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`],
             reports,
             currentReportId,
             isInFocusMode,
             isDefaultRoomsBetaEnabled,
+            isBillPayBetaEnabled,
             transactionViolations,
             draftComment: reportDraftComment,
             transactions,
@@ -345,13 +365,18 @@ function getReportsToDisplayInLHN({
             hasGuidesEmails: hasExpensifyGuidesEmails(Object.keys(report.participants ?? {}).map(Number), guideAccountIDs),
             currentUserAccountID,
             conciergeReportID,
+            session,
         });
 
         if (shouldDisplay) {
             const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention ?? false;
-            const isUnreadReport = getIsUnreadReportForInboxTab(report, isReportArchived, reportAttributes?.[report?.reportID]?.isEmpty);
+            const oneTransactionThreadReport = getOneTransactionThreadReportForLHN(report, reports, reportAttributes);
+            const isUnreadReport = getIsUnreadReportForInboxTab(report, oneTransactionThreadReport, isReportArchived, reportAttributes?.[report?.reportID]?.isEmpty);
+            const lastVisibleActionCreatedForInboxTab = getReportLastVisibleActionCreated(report, oneTransactionThreadReport);
             reportsToDisplay[reportID] =
-                requiresAttention || hasErrorsOtherThanFailedReceipt || isUnreadReport ? {...report, requiresAttention, hasErrorsOtherThanFailedReceipt, isUnreadReport} : report;
+                requiresAttention || hasErrorsOtherThanFailedReceipt || isUnreadReport
+                    ? {...report, requiresAttention, hasErrorsOtherThanFailedReceipt, isUnreadReport, lastVisibleActionCreatedForInboxTab}
+                    : report;
         }
     }
 
@@ -362,10 +387,14 @@ function getReportsToDisplayInLHN({
 type UpdateReportsToDisplayInLHNProps = {
     displayedReports: ReportsToDisplayInLHN;
     reports: OnyxCollection<Report>;
+    policies: OnyxCollection<Policy>;
     updatedReportsKeys: string[];
     currentReportId: string | undefined;
     isInFocusMode: boolean;
     isDefaultRoomsBetaEnabled: boolean;
+
+    /** Defaults to false, so bills stay hidden unless the caller has the newDotBillPay beta */
+    isBillPayBetaEnabled?: boolean;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
@@ -376,15 +405,18 @@ type UpdateReportsToDisplayInLHNProps = {
     currentUserAccountID: number;
     guideAccountIDs?: GuideAccountIDsDerivedValue;
     conciergeReportID: string | undefined;
+    session: OnyxEntry<Session>;
 };
 
 function updateReportsToDisplayInLHN({
     displayedReports,
     reports,
+    policies,
     updatedReportsKeys,
     currentReportId,
     isInFocusMode,
     isDefaultRoomsBetaEnabled,
+    isBillPayBetaEnabled = false,
     transactionViolations,
     reportNameValuePairs,
     reportAttributes,
@@ -395,6 +427,7 @@ function updateReportsToDisplayInLHN({
     currentUserAccountID,
     conciergeReportID,
     guideAccountIDs,
+    session,
 }: UpdateReportsToDisplayInLHNProps) {
     rememberLHNUnreadStateBeforeFocus(currentReportId);
 
@@ -423,10 +456,12 @@ function updateReportsToDisplayInLHN({
 
         const {shouldDisplay, hasErrorsOtherThanFailedReceipt} = shouldDisplayReportInLHN({
             report,
+            policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`],
             reports,
             currentReportId,
             isInFocusMode,
             isDefaultRoomsBetaEnabled,
+            isBillPayBetaEnabled,
             transactionViolations,
             draftComment: reportDraftComment,
             transactions,
@@ -437,12 +472,14 @@ function updateReportsToDisplayInLHN({
             hasGuidesEmails: hasExpensifyGuidesEmails(Object.keys(report.participants ?? {}).map(Number), guideAccountIDs),
             currentUserAccountID,
             conciergeReportID,
+            session,
         });
 
         if (shouldDisplay) {
             const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention ?? false;
-            const isUnreadReport = getIsUnreadReportForInboxTab(report, isReportArchived, reportAttributes?.[report?.reportID]?.isEmpty);
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const oneTransactionThreadReport = getOneTransactionThreadReportForLHN(report, reports, reportAttributes);
+            const isUnreadReport = getIsUnreadReportForInboxTab(report, oneTransactionThreadReport, isReportArchived, reportAttributes?.[report?.reportID]?.isEmpty);
+            const lastVisibleActionCreatedForInboxTab = getReportLastVisibleActionCreated(report, oneTransactionThreadReport);
             const hasFlags = requiresAttention || hasErrorsOtherThanFailedReceipt || isUnreadReport;
             const existingEntry = displayedReports[reportID];
 
@@ -453,7 +490,7 @@ function updateReportsToDisplayInLHN({
                     existingEntry?.hasErrorsOtherThanFailedReceipt !== hasErrorsOtherThanFailedReceipt ||
                     existingEntry?.isUnreadReport !== isUnreadReport
                 ) {
-                    getMutableCopy()[reportID] = {...report, requiresAttention, hasErrorsOtherThanFailedReceipt, isUnreadReport};
+                    getMutableCopy()[reportID] = {...report, requiresAttention, hasErrorsOtherThanFailedReceipt, isUnreadReport, lastVisibleActionCreatedForInboxTab};
                 }
             } else if (existingEntry !== report) {
                 getMutableCopy()[reportID] = report;
@@ -673,6 +710,7 @@ type ReasonAndReportActionThatHasRedBrickRoad = {
 
 type GetReasonAndReportActionThatHasRedBrickRoadParams = {
     report: Report;
+    policy: OnyxEntry<Policy>;
     chatReport: OnyxEntry<Report>;
     reportActions: OnyxEntry<ReportActions>;
     hasViolations: boolean;
@@ -687,6 +725,7 @@ type GetReasonAndReportActionThatHasRedBrickRoadParams = {
 
 function getReasonAndReportActionThatHasRedBrickRoad({
     report,
+    policy,
     chatReport,
     reportActions,
     hasViolations,
@@ -702,7 +741,7 @@ function getReasonAndReportActionThatHasRedBrickRoad({
         return null;
     }
 
-    const violatingReportID = getViolatingReportIDForRBRInLHN(report, transactionViolations);
+    const violatingReportID = getViolatingReportIDForRBRInLHN(report, transactionViolations, policy);
     if (violatingReportID) {
         const reportPreviewAction = Object.values(reportActions ?? {}).find((action) => getIOUReportIDFromReportActionPreview(action) === violatingReportID);
         return {
@@ -764,6 +803,10 @@ function getOptionData({
     isTrackIntentUser,
     formatPhoneNumber,
     rules,
+    bankAccountList,
+    reportMetadata: reportMetadataParam,
+    hasPendingJoinRequest,
+    lastActionTransaction,
 }: {
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
@@ -788,12 +831,24 @@ function getOptionData({
     movedToReport?: OnyxEntry<Report>;
     currentUserAccountID: number;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
+    reportAttributesDerived?: ReportNamesDerivedValue;
     policyTags?: OnyxEntry<PolicyTagLists>;
     currentUserLogin: string;
     isTrackIntentUser?: boolean;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     rules: OnyxCollection<Rule>;
+
+    /** The current user's bank accounts, used to name the account a report was paid with in the preview. */
+    bankAccountList?: OnyxEntry<BankAccountList>;
+
+    /** The report's metadata. Pass it from a subscription so a memoized caller doesn't read an outdated module-level copy. */
+    reportMetadata?: OnyxEntry<ReportMetadata>;
+
+    /** Whether the report has a pending join request. Pass it from a subscription for the same reason as `reportMetadata`. */
+    hasPendingJoinRequest?: boolean;
+
+    /** The transaction of `lastAction`. Pass it from a subscription for the same reason as `reportMetadata`. */
+    lastActionTransaction?: OnyxEntry<Transaction>;
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -834,8 +889,8 @@ function getOptionData({
         isDeletedParentAction: false,
         isConciergeChat: false,
     };
-    const reportMetadata = getReportMetadata(report?.reportID);
-    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report);
+    const reportMetadata = reportMetadataParam ?? getReportMetadata(report?.reportID);
+    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined);
     const participantAccountIDsExcludeCurrentUser = excludeParticipantsForDisplay(participantAccountIDs, report.participants ?? {}, reportMetadata, {shouldExcludeCurrentUser: true});
     const participantPersonalDetailListExcludeCurrentUser = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDsExcludeCurrentUser, personalDetails));
 
@@ -946,11 +1001,13 @@ function getOptionData({
         convertToDisplayString,
         convertToDisplayStringWithoutCurrency,
         rules,
+        bankAccountList,
+        lastActionTransaction,
     });
 
     result.isIOUReportOwner = isIOUOwnedByCurrentUser(result as Report);
 
-    if (isJoinRequestInAdminRoom(report, currentUserLogin)) {
+    if (isJoinRequestInAdminRoom(report, currentUserLogin, hasPendingJoinRequest)) {
         result.isUnread = true;
     }
 
@@ -973,7 +1030,6 @@ function getOptionData({
             rawReportName: report.reportName,
             hasDerivedEntry: !!derivedEntry,
             derivedReportName: derivedEntry?.reportName,
-            derivedCount: reportAttributesDerived ? Object.keys(reportAttributesDerived).length : 0,
         });
     }
 
@@ -981,20 +1037,21 @@ function getOptionData({
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    const reportIcons = getIcons(
+    const reportIcons = getIcons({
         report,
         formatPhoneNumber,
         translate,
         personalDetails,
-        personalDetail?.avatar,
-        personalDetail?.login,
-        personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+        defaultIcon: personalDetail?.avatar,
+        defaultName: personalDetail?.login,
+        defaultAccountID: personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
         policy,
         invoiceReceiverPolicy,
         isReportArchived,
-        getPendingDeleteMemberAccountIDs(reportMetadata?.pendingChatMembers),
+        pendingDeleteMemberAccountIDs: getPendingDeleteMemberAccountIDs(reportMetadata?.pendingChatMembers),
         conciergeReportID,
-    );
+        parentReportAction,
+    });
 
     // IOU icon trimming (single vs diagonal) is handled at the component level
     // using useReportPreviewSenderID which has access to transaction attendee data.
@@ -1020,9 +1077,19 @@ function getOptionData({
  * Whether a report should appear in the "Unread" Inbox tab: it has unread messages and is not muted.
  * Computed once while building the LHN report set (which is cached/incremental) so the tab filter only reads a flag.
  */
-function getIsUnreadReportForInboxTab(report: Report, isReportArchived: boolean, derivedIsEmptyReport: boolean | undefined): boolean {
+function getIsUnreadReportForInboxTab(report: Report, oneTransactionThreadReport: OnyxEntry<Report>, isReportArchived: boolean, derivedIsEmptyReport: boolean | undefined): boolean {
     // isUnread() gates on isEmptyReport, so a chat whose only visible message was deleted never reaches this tab.
-    return isUnread(report, undefined, isReportArchived, derivedIsEmptyReport) && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
+    // Comments on a single-expense report land on its hidden transaction thread, so the thread decides if the report is unread too.
+    return isUnread(report, oneTransactionThreadReport, isReportArchived, derivedIsEmptyReport) && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
+}
+
+/** Gets the transaction thread of a single-expense report, which the LHN hides in favor of the report itself. */
+function getOneTransactionThreadReportForLHN(report: Report, reports: OnyxCollection<Report>, reportAttributes: ReportAttributesDerivedValue['reports'] | undefined): OnyxEntry<Report> {
+    const oneTransactionThreadReportID = reportAttributes?.[report.reportID]?.oneTransactionThreadReportID;
+    if (!oneTransactionThreadReportID) {
+        return undefined;
+    }
+    return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
 }
 
 /** Whether a report belongs in the "To-do" Inbox tab: it has an outstanding GBR (requiresAttention) or RBR (errors). */
@@ -1058,12 +1125,35 @@ function filterReportsForInboxTab(reportIDs: string[], reportsToDisplay: Reports
 }
 
 /**
+ * Whether an unread LHN report counts toward the "Mark all as read" tooltip. The current user must be a participant who
+ * gets notified about the report, and its newest message must have a valid date older than the stale cutoff.
+ */
+function isStaleUnreadReportForInboxTab(report: ReportsToDisplayInLHN[string], staleUnreadTime: string, currentUserAccountID: number): boolean {
+    const lastVisibleActionCreated = report.lastVisibleActionCreatedForInboxTab ?? report.lastVisibleActionCreated;
+
+    if (!lastVisibleActionCreated || lastVisibleActionCreated >= staleUnreadTime) {
+        return false;
+    }
+
+    // A zero date such as 0000-00-00 sorts before every real timestamp, so it looks older than the cutoff without being a real message time.
+    if (!isValid(new Date(lastVisibleActionCreated))) {
+        return false;
+    }
+
+    // A report the user can open without being a participant (for example from Search) has no lastReadTime for them,
+    // so isUnread treats it as unread. With no participant entry, its notification preference resolves to hidden.
+    return getReportNotificationPreference(report, currentUserAccountID) !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+}
+
+/**
  * Summarizes the ordered reports for the Inbox tab row: how many fall into the To-do and Unread tabs (for the count
- * badge shown on each), and whether any unread report's newest message is older than CONST.INBOX_TAB_STALE_UNREAD_MONTHS.
+ * badge shown on each), and whether any unread report the user participates in has a newest message older than
+ * CONST.INBOX_TAB_STALE_UNREAD_MONTHS.
  */
 function getInboxTabSummary(
     reportIDs: string[],
     reportsToDisplay: ReportsToDisplayInLHN,
+    currentUserAccountID: number,
 ): {counts: Record<typeof CONST.INBOX_TAB.TODO | typeof CONST.INBOX_TAB.UNREAD, number>; hasStaleUnreadReport: boolean} {
     const staleUnreadTime = DateUtils.getDBTime(subMonths(startOfDay(new Date()), CONST.INBOX_TAB_STALE_UNREAD_MONTHS).valueOf());
     let todoCount = 0;
@@ -1080,7 +1170,7 @@ function getInboxTabSummary(
         }
         if (report.isUnreadReport) {
             unreadCount++;
-            hasStaleUnreadReport = hasStaleUnreadReport || (report.lastVisibleActionCreated ?? '') < staleUnreadTime;
+            hasStaleUnreadReport = hasStaleUnreadReport || isStaleUnreadReportForInboxTab(report, staleUnreadTime, currentUserAccountID);
         }
     }
 

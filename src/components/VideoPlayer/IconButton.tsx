@@ -9,14 +9,14 @@ import mergeRefs from '@libs/mergeRefs';
 
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, Ref} from 'react';
 import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 
 import React from 'react';
 
-type IconButtonProps = WithSentryLabel & {
+type IconButtonProps = {
     src: IconAsset;
     onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
     fill?: string;
@@ -25,6 +25,7 @@ type IconButtonProps = WithSentryLabel & {
     hoverStyle?: StyleProp<ViewStyle>;
     small?: boolean;
     shouldForceRenderingTooltipBelow?: boolean;
+    sentryLabel: SentryLabel;
     /** Forwarded to the underlying pressable so callers can use the button as a popover anchor. */
     ref?: PressableRef | Ref<ComponentRef<typeof View>>;
 };

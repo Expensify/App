@@ -1,6 +1,6 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
-import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
@@ -274,10 +274,9 @@ function DynamicReviewPage() {
                     title={translate('iou.reviewDuplicates')}
                     onBackButtonPress={() => Navigation.goBack(backPath, {compareParams: false})}
                 />
-                <ConfirmationPage
+                <ConfirmationPageDefault
                     heading={translate('iou.noDuplicatesTitle')}
                     description={translate('iou.noDuplicatesDescription')}
-                    shouldShowButton
                     buttonText={translate('common.buttonConfirm')}
                     onButtonPress={() => Navigation.goBack(backPath, {compareParams: false})}
                 />
@@ -312,6 +311,7 @@ function DynamicReviewPage() {
                     </ScrollView>
                     <FixedFooter style={[styles.mtAuto, styles.gap3]}>
                         <Button
+                            sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_DUPLICATE.KEEP_ALL_BUTTON}
                             variant={hasSettledOrApprovedTransaction ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                             size={CONST.BUTTON_SIZE.LARGE}
                             onPress={keepAll}
@@ -320,6 +320,7 @@ function DynamicReviewPage() {
                         </Button>
                         {!hasSettledOrApprovedTransaction && (
                             <Button
+                                sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_DUPLICATE.KEEP_SELECTED_BUTTON}
                                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 size={CONST.BUTTON_SIZE.LARGE}
                                 onPress={keepSelected}

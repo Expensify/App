@@ -90,4 +90,4 @@ function CategoryShortcutButton({code, icon, onPress, isSelected = false}: Categ
 
 CategoryShortcutButton.displayName = 'CategoryShortcutButton';
 
-export default React.memo(CategoryShortcutButton);
+export default CategoryShortcutButton;

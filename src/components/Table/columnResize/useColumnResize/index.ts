@@ -1,18 +1,23 @@
 /**
- * Web column resizing: dragging a column's right edge sets its width. Widths live in CSS custom properties so React
- * doesn't render mid-drag. Only the dragged column's final width is stored in Onyx.
+ * Web column resizing: dragging a column's right edge sets its width, and clicking it toggles between fitting the content
+ * and resetting it. A focused edge does the same with arrow keys, and Enter or Space toggling. Widths live in CSS custom
+ * properties so React doesn't render mid-drag, and the layout is saved to Onyx once the column settles.
  */
-import getDraggedColumnWidth from '@components/Table/columnResize/getDraggedColumnWidth';
+import getDraggedSize from '@components/ResizeHandle/getDraggedSize';
+import usePointerDrag from '@components/ResizeHandle/usePointerDrag';
+import {SCROLL_EXTENT_FLOOR_VARIABLE, TABLE_COLUMN_SCROLLER_SELECTOR} from '@components/Table/columnResize/columnWidthExpressions';
+import getKeyboardResizeAction from '@components/Table/columnResize/getKeyboardResizeAction';
 
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {setTableColumnWidth} from '@libs/actions/TableColumnWidths';
+import {setTableColumnWidths} from '@libs/actions/TableColumnWidths';
 
 import CONST from '@src/CONST';
 
 import type React from 'react';
 
-import {useEffect, useRef} from 'react';
+import {useRef} from 'react';
 
 import type {ColumnResizeController, ColumnResizeHandleDOMProps, UseColumnResizeParams} from './types';
 
@@ -27,7 +32,7 @@ function getHandleStyle(columnGap: number): React.CSSProperties {
         bottom: 0,
         // Spans the gap to the next column, with the grip and the line flush against this column's edge, so they read as part of the column being resized.
         right: -columnGap,
-        width: columnGap + CONST.TABLES.COLUMN_RESIZE.INDICATOR_WIDTH,
+        width: columnGap + CONST.RESIZE_HANDLE.INDICATOR_WIDTH,
         // Otherwise a touch drag on the handle is taken over by the table's own horizontal scrolling.
         touchAction: 'none',
     };
@@ -36,38 +41,100 @@ function getHandleStyle(columnGap: number): React.CSSProperties {
 type Drag = {
     columnKey: string;
 
+    /** The handle the pointer went down on, which holds the pointer capture. */
+    handle: HTMLDivElement;
+
     /** Where the pointer went down. */
     startClientX: number;
 
     /** The column's width when the drag started. */
     startWidth: number;
+
+    /** Whether the pointer passed the drag slop. Until then, releasing it is a click. */
+    hasMovedPointer: boolean;
 };
 
-function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnWidths, dragMinWidths, columnGap}: UseColumnResizeParams): ColumnResizeController | undefined {
+/** Arrow-key width painted on a column but not stored yet. */
+type KeyboardResize = {
+    columnKey: string;
+
+    /** The column's width before the first arrow press. */
+    startWidth: number;
+};
+
+function useColumnResize({
+    columnResizingID,
+    resizableColumnKeys = [],
+    // Only reached once a column's edge drags, which needs the layout that brings the real one.
+    getResizedColumnWidths = (columnKey, width) => ({[columnKey]: width}),
+    resolvedColumnWidths = CONST.EMPTY_OBJECT,
+    dragMinWidths,
+    getStoredTableColumnWidths,
+    getTargetColumnWidth,
+    columnGap,
+}: UseColumnResizeParams): ColumnResizeController | undefined {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const dragRef = useRef<Drag | null>(null);
-    const {scopeElementRef, setScopeElement, writeColumnWidth, readColumnWidth, clearLiveWidths} = useLiveColumnWidths({resolvedColumnWidths, dragRef});
+
+    // Stored on key release, so a held arrow doesn't store on every repeat, each store's render clearing the painted width
+    // and pulling the edge back mid-hold.
+    const keyboardResizeRef = useRef<KeyboardResize | null>(null);
+
+    const {scopeElementRef, setScopeElement, writeColumnWidth, readColumnWidth, clearLiveWidths} = useLiveColumnWidths({resolvedColumnWidths, dragRef, keyboardResizeRef});
     const {revealIndicator, hideIndicator} = useResizeIndicator(scopeElementRef);
 
-    const resetDrag = () => {
-        dragRef.current = null;
-        document.body.style.cursor = '';
+    const readPaintedColumnWidths = () => Object.fromEntries(Object.keys(resolvedColumnWidths).map((columnKey) => [columnKey, readColumnWidth(columnKey) ?? 0]));
+
+    const getMinWidth = (columnKey: string) => dragMinWidths?.[columnKey] ?? CONST.TABLES.COLUMN_RESIZE.MIN_WIDTH;
+
+    const writeColumnWidths = (columnWidths: Record<string, number>) => {
+        for (const [columnKey, width] of Object.entries(columnWidths)) {
+            writeColumnWidth(columnKey, width);
+        }
     };
 
-    // Shared by pointerup, lost capture and cancel, so every way a drag can end keeps the width the user sees.
-    const endDrag = (drag: Drag) => {
-        resetDrag();
-        hideIndicator();
-
-        const width = readColumnWidth(drag.columnKey) ?? drag.startWidth;
-
+    /** Paints the column at `width`, its absorbers taking the change, and saves the layout with it marked resized or handed back. */
+    const settleColumn = (columnKey: string, width: number, isResized: boolean) => {
         // Nothing gets stored, so no render follows to clear the live widths.
-        if (!columnResizingID || width === drag.startWidth) {
+        if (!columnResizingID || !getStoredTableColumnWidths) {
             clearLiveWidths();
             return;
         }
 
-        setTableColumnWidth(columnResizingID, drag.columnKey, width);
+        const resizedColumnWidths = getResizedColumnWidths(columnKey, width);
+        const storedTableColumnWidths = getStoredTableColumnWidths({...readPaintedColumnWidths(), ...resizedColumnWidths}, columnKey, isResized);
+
+        // A cleared layout reflows every column, and clearing one that was never saved renders nothing that would undo the paint.
+        if (storedTableColumnWidths) {
+            writeColumnWidths(resizedColumnWidths);
+        }
+
+        setTableColumnWidths(columnResizingID, storedTableColumnWidths);
+    };
+
+    /** Stores the width painted on a column since it was `startWidth`. Shared by drags and arrow keys. */
+    const settlePaintedWidth = (columnKey: string, startWidth: number) => {
+        const width = readColumnWidth(columnKey) ?? startWidth;
+
+        // Nothing gets stored when the width doesn't change, so no render would follow to clear the live widths.
+        if (width === startWidth) {
+            clearLiveWidths();
+            return;
+        }
+
+        settleColumn(columnKey, width, true);
+    };
+
+    // Shared by pointerup, lost capture and cancel, so every way a drag can end keeps the width the user sees.
+    const endDrag = (drag: Drag) => {
+        // A keyboard-focused edge keeps its line, the same as before the drag.
+        if (!drag.handle.matches(':focus-visible')) {
+            hideIndicator();
+        }
+
+        scopeElementRef.current?.style.removeProperty(SCROLL_EXTENT_FLOOR_VARIABLE);
+        settlePaintedWidth(drag.columnKey, drag.startWidth);
     };
 
     // Releasing or losing capture doesn't reliably fire boundary events, so hit-test the heading, including the handle overhanging it.
@@ -77,101 +144,202 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
         setGripHovered(event.currentTarget, isPointerOnHeading);
     };
 
-    const handlePointerDown = (columnKey: string, event: React.PointerEvent<HTMLDivElement>) => {
-        // Secondary buttons open context menus rather than dragging.
-        if (event.button !== 0) {
+    /** Fits the column to its content, or resets it when it already fits, so clicking an edge again undoes the fit. */
+    const toggleColumnFit = (columnKey: string) => {
+        const fitWidth = getTargetColumnWidth?.(columnKey, CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.FIT);
+
+        // A column that can't be fitted has nothing to toggle between.
+        if (fitWidth === undefined) {
             return;
         }
 
-        // Keeps the drag from selecting the header's labels, and from reaching the column's sort button underneath.
+        if (readColumnWidth(columnKey) !== fitWidth) {
+            settleColumn(columnKey, fitWidth, true);
+            return;
+        }
+
+        const resetWidth = getTargetColumnWidth?.(columnKey, CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.RESET);
+
+        if (resetWidth === undefined) {
+            return;
+        }
+
+        settleColumn(columnKey, resetWidth, false);
+    };
+
+    const stepColumnWidth = (columnKey: string, step: number, handle: HTMLDivElement) => {
+        const width = readColumnWidth(columnKey);
+
+        if (width === undefined) {
+            return;
+        }
+
+        const steppedWidth = getDraggedSize(width, step, {min: getMinWidth(columnKey)});
+
+        // A column already past the bound would otherwise jump to it, against the arrow pressed.
+        if (Math.sign(steppedWidth - width) !== Math.sign(step)) {
+            return;
+        }
+
+        keyboardResizeRef.current ??= {columnKey, startWidth: width};
+        writeColumnWidths(getResizedColumnWidths(columnKey, steppedWidth));
+
+        // Nothing renders until the key is released, so screen readers would otherwise announce the old width on each press.
+        handle.setAttribute('aria-valuenow', String(steppedWidth));
+        handle.setAttribute('aria-valuetext', translate('common.columnWidth', {width: steppedWidth}));
+    };
+
+    /** Stores the width the arrow keys painted. Shared by key release and blur. */
+    const commitKeyboardResize = () => {
+        const keyboardResize = keyboardResizeRef.current;
+
+        if (!keyboardResize) {
+            return;
+        }
+
+        keyboardResizeRef.current = null;
+        settlePaintedWidth(keyboardResize.columnKey, keyboardResize.startWidth);
+    };
+
+    const handleKeyDown = (columnKey: string, event: React.KeyboardEvent<HTMLDivElement>) => {
+        const action = getKeyboardResizeAction(event);
+
+        // A drag owns the column's width until it ends.
+        if (!action || dragRef.current) {
+            return;
+        }
+
+        // Otherwise the arrows also scroll the table sideways, Space scrolls the page, and Enter reaches global shortcuts.
         event.preventDefault();
         event.stopPropagation();
 
-        // Keeps the drag on this handle once the pointer moves off it.
-        event.currentTarget.setPointerCapture(event.pointerId);
-
+        // A pointer focus shows no line, so the first key press brings it up.
         revealIndicator(event.currentTarget);
 
-        dragRef.current = {
-            columnKey,
-            startClientX: event.clientX,
-            startWidth: readColumnWidth(columnKey) ?? 0,
-        };
-        // On the whole page mid-drag, so the cursor doesn't flicker once the pointer outruns the handle.
-        document.body.style.cursor = styles.cursorColResize.cursor ?? '';
-    };
-
-    const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-        const drag = dragRef.current;
-
-        if (!drag) {
+        if (action.type === 'step') {
+            stepColumnWidth(columnKey, action.step, event.currentTarget);
             return;
         }
 
-        // The line rides the handle, so it follows the clamped width, not the pointer.
-        writeColumnWidth(drag.columnKey, getDraggedColumnWidth(drag.startWidth, drag.startClientX, event.clientX, dragMinWidths?.[drag.columnKey]));
-    };
-
-    const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
-        const drag = dragRef.current;
-
-        if (!drag) {
+        // Holding the key would otherwise flip between fitted and reset on every repeat.
+        if (event.repeat) {
             return;
         }
 
-        if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-            event.currentTarget.releasePointerCapture(event.pointerId);
-        }
-
-        endDrag(drag);
-        syncGripHover(event);
+        commitKeyboardResize();
+        toggleColumnFit(columnKey);
     };
 
-    /** Ends a drag whose pointer capture the browser reclaimed. Also fires after a normal pointerup, when it's a no-op. */
-    const handleLostPointerCapture = (event: React.PointerEvent<HTMLDivElement>) => {
-        const drag = dragRef.current;
-
-        if (!drag) {
+    const handleFocus = (event: React.FocusEvent<HTMLDivElement>) => {
+        // Pointer presses focus the edge too, and they show the line only once a drag starts.
+        if (!event.currentTarget.matches(':focus-visible')) {
             return;
         }
 
-        endDrag(drag);
-        syncGripHover(event);
+        revealIndicator(event.currentTarget);
     };
 
-    // Unmounting mid-drag would otherwise leave the resize cursor on the document and a dangling drag.
-    useEffect(
-        () => () => {
-            if (!dragRef.current) {
-                return;
+    const handleBlur = () => {
+        commitKeyboardResize();
+
+        // A drag that took focus elsewhere hides its own line when it ends.
+        if (dragRef.current) {
+            return;
+        }
+
+        hideIndicator();
+    };
+
+    const pointerDrag = usePointerDrag<Drag>({
+        dragRef,
+        onMove: (drag, clientX) => {
+            // Nothing is painted inside the slop, so a click fits or resets from the width the column already had. A mouse click rarely
+            // lands on the exact pixel it started from.
+            if (!drag.hasMovedPointer) {
+                if (Math.abs(clientX - drag.startClientX) <= CONST.RESIZE_HANDLE.DRAG_SLOP) {
+                    return;
+                }
+
+                // Kept once set, so a drag that comes back to where it started isn't a click. Clicks never show the line.
+                // eslint-disable-next-line no-param-reassign -- the drag is this hook's own state, held in its ref
+                drag.hasMovedPointer = true;
+                revealIndicator(drag.handle);
+
+                // Shrinking a column while scrolled right would otherwise drag the pinned filter bar along with the columns.
+                // Only endDrag clears it, so a click, whose fit or reset may shrink the table, must never set it.
+                const scroller = drag.handle.closest<HTMLElement>(TABLE_COLUMN_SCROLLER_SELECTOR);
+                if (scroller) {
+                    scopeElementRef.current?.style.setProperty(SCROLL_EXTENT_FLOOR_VARIABLE, `${scroller.scrollLeft + scroller.clientWidth}px`);
+                }
             }
 
-            resetDrag();
+            // The line rides the handle, so it follows the clamped width, not the pointer.
+            const width = getDraggedSize(drag.startWidth, clientX - drag.startClientX, {min: getMinWidth(drag.columnKey)});
+
+            writeColumnWidths(getResizedColumnWidths(drag.columnKey, width));
         },
-        [],
-    );
+        onEnd: (drag, event, isRelease) => {
+            // A cancelled press or reclaimed capture isn't a click, so only a release fits or resets.
+            if (drag.hasMovedPointer || !isRelease) {
+                endDrag(drag);
+            } else {
+                toggleColumnFit(drag.columnKey);
+            }
+
+            syncGripHover(event);
+        },
+    });
+
+    const handlePointerDown = (columnKey: string, event: React.PointerEvent<HTMLDivElement>) => {
+        const handle = event.currentTarget;
+
+        // The drag cancels pointerdown, which would otherwise keep the press from focusing the edge for the arrow keys. Focused
+        // before the drag starts, so the edge losing focus hides its line. A script focus inherits the last input's modality, so
+        // after any key press it would otherwise match :focus-visible and show the focus ring and line on a plain click.
+        handle.focus({preventScroll: true, focusVisible: false});
+
+        pointerDrag.startDrag(event, () => ({columnKey, handle, startClientX: event.clientX, startWidth: readColumnWidth(columnKey) ?? 0, hasMovedPointer: false}));
+    };
 
     if (!columnResizingID) {
         return undefined;
     }
 
+    const hasHandle = (columnKey: string) => resizableColumnKeys.includes(columnKey);
+
     const getHandleProps = (columnKey: string): ColumnResizeHandleDOMProps | undefined => {
-        if (!resizableColumnKeys.includes(columnKey)) {
+        if (!hasHandle(columnKey)) {
             return undefined;
         }
 
+        const width = readColumnWidth(columnKey) ?? 0;
+
         return {
+            role: CONST.ROLE.SEPARATOR,
+            tabIndex: 0,
+            // The DOM names these attributes, so they can't follow the naming convention.
+            /* eslint-disable @typescript-eslint/naming-convention */
+            'aria-orientation': 'vertical',
+            'aria-valuenow': width,
+            // Widened to take in a width already past the bound, which the arrow keys leave alone.
+            'aria-valuemin': Math.min(getMinWidth(columnKey), width),
+            // Columns have no widest width, and a focusable separator's maximum otherwise defaults to 100.
+            'aria-valuemax': Number.MAX_SAFE_INTEGER,
+            // Screen readers otherwise announce the width as a percentage of that maximum, which rounds to 0%.
+            'aria-valuetext': translate('common.columnWidth', {width}),
+            /* eslint-enable @typescript-eslint/naming-convention */
             style: {...getHandleStyle(columnGap), ...styles.cursorColResize},
             ref: trackHeadingHover,
             onPointerDown: (event) => handlePointerDown(columnKey, event),
-            onPointerMove: handlePointerMove,
-            onPointerUp: handlePointerUp,
-            onPointerCancel: handleLostPointerCapture,
-            onLostPointerCapture: handleLostPointerCapture,
+            ...pointerDrag.handlers,
+            onKeyDown: (event) => handleKeyDown(columnKey, event),
+            onKeyUp: commitKeyboardResize,
+            onFocus: handleFocus,
+            onBlur: handleBlur,
         };
     };
 
-    return {setScopeElement, getHandleProps};
+    return {setScopeElement, getHandleProps, hasHandle};
 }
 
 export default useColumnResize;

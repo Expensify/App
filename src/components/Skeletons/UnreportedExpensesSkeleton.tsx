@@ -3,7 +3,7 @@ import SkeletonRect from '@components/SkeletonRect';
 import useContainerWidth from '@hooks/useContainerWidth';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import ItemListSkeletonView from './ItemListSkeletonView';
@@ -45,45 +45,42 @@ function UnreportedExpensesSkeleton({fixedNumberOfItems}: UnreportedExpensesSkel
     // divider joining it to the row above instead of rounding its own top corners.
     const isPaginationFooter = !!fixedNumberOfItems;
 
-    const skeletonItem = useCallback(
-        (args: {itemIndex: number}) => {
-            return (
-                <>
-                    <SkeletonRect
-                        transform={[{translateX: 16}, {translateY: 26}]}
-                        width={20}
-                        height={20}
-                    />
-                    <SkeletonRect
-                        transform={[{translateX: 48}, {translateY: 16}]}
-                        width={36}
-                        height={40}
-                    />
-                    <SkeletonRect
-                        transform={[{translateX: 96}, {translateY: 18}]}
-                        width={getMessageSkeletonWidth(args.itemIndex)}
-                        height={12}
-                    />
-                    <SkeletonRect
-                        transform={[{translateX: 96}, {translateY: 42}]}
-                        width={60}
-                        height={8}
-                    />
-                    <SkeletonRect
-                        transform={[{translateX: pageWidth - 16 - getExpenseAmountSkeletonWidth(args.itemIndex)}, {translateY: 18}]}
-                        width={getExpenseAmountSkeletonWidth(args.itemIndex)}
-                        height={12}
-                    />
-                    <SkeletonRect
-                        transform={[{translateX: pageWidth - 16 - 32}, {translateY: 42}]}
-                        width={32}
-                        height={8}
-                    />
-                </>
-            );
-        },
-        [pageWidth],
-    );
+    const skeletonItem = (args: {itemIndex: number}) => {
+        return (
+            <>
+                <SkeletonRect
+                    transform={[{translateX: 16}, {translateY: 26}]}
+                    width={20}
+                    height={20}
+                />
+                <SkeletonRect
+                    transform={[{translateX: 48}, {translateY: 16}]}
+                    width={36}
+                    height={40}
+                />
+                <SkeletonRect
+                    transform={[{translateX: 96}, {translateY: 18}]}
+                    width={getMessageSkeletonWidth(args.itemIndex)}
+                    height={12}
+                />
+                <SkeletonRect
+                    transform={[{translateX: 96}, {translateY: 42}]}
+                    width={60}
+                    height={8}
+                />
+                <SkeletonRect
+                    transform={[{translateX: pageWidth - 16 - getExpenseAmountSkeletonWidth(args.itemIndex)}, {translateY: 18}]}
+                    width={getExpenseAmountSkeletonWidth(args.itemIndex)}
+                    height={12}
+                />
+                <SkeletonRect
+                    transform={[{translateX: pageWidth - 16 - 32}, {translateY: 42}]}
+                    width={32}
+                    height={8}
+                />
+            </>
+        );
+    };
 
     return (
         <View

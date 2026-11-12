@@ -37,6 +37,7 @@ function getRestoredLastAction(updates: Array<OnyxUpdate<OnyxKey>> | undefined, 
     }
     const {value} = update;
     return {
+        lastMessageText: 'lastMessageText' in value && typeof value.lastMessageText === 'string' ? value.lastMessageText : undefined,
         lastVisibleActionCreated: 'lastVisibleActionCreated' in value && typeof value.lastVisibleActionCreated === 'string' ? value.lastVisibleActionCreated : undefined,
         lastActorAccountID: 'lastActorAccountID' in value && typeof value.lastActorAccountID === 'number' ? value.lastActorAccountID : undefined,
     };
@@ -112,6 +113,7 @@ describe('startOrStopChronosTimer', () => {
 
         // Then the failure data restores the whisper, which is the newest action that account can see
         expect(getRestoredLastAction(getWriteOptions().failureData, TEST_REPORT.reportID)).toEqual({
+            lastMessageText: 'changed the amount',
             lastVisibleActionCreated: whisper.created,
             lastActorAccountID: WHISPER_TARGET_ACCOUNT_ID,
         });
@@ -123,6 +125,7 @@ describe('startOrStopChronosTimer', () => {
 
         // Then the whisper is invisible to them, so the older comment is restored instead
         expect(getRestoredLastAction(getWriteOptions().failureData, TEST_REPORT.reportID)).toEqual({
+            lastMessageText: 'Older comment',
             lastVisibleActionCreated: comment.created,
             lastActorAccountID: COMMENT_ACTOR_ACCOUNT_ID,
         });

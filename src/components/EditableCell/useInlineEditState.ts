@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 
 import type {InlineEditSaveResult} from './types';
 
@@ -37,26 +37,26 @@ function useInlineEditState<T>(
         setLocalValue(value);
     }
 
-    const startEditing = useCallback(() => {
+    const startEditing = () => {
         hasEndedRef.current = false;
         setIsAwaitingConfirm(false);
         setIsEditing(true);
-    }, []);
+    };
 
-    const closeEditing = useCallback(() => {
+    const closeEditing = () => {
         setIsAwaitingConfirm(false);
         // Reset to the source of truth when edit mode closes so a rejected save, such as an empty merchant, is not left on screen.
         setLocalValue(value);
         setIsEditing(false);
-    }, [value]);
+    };
 
-    const keepEditing = useCallback(() => {
+    const keepEditing = () => {
         hasEndedRef.current = false;
         setIsAwaitingConfirm(false);
         onKeepEditing?.();
-    }, [onKeepEditing]);
+    };
 
-    const save = useCallback(() => {
+    const save = () => {
         if (hasEndedRef.current) {
             return;
         }
@@ -90,15 +90,15 @@ function useInlineEditState<T>(
                 keepEditing();
             },
         );
-    }, [localValue, value, onSave, isEqual, closeEditing, keepEditing]);
+    };
 
-    const cancelEditing = useCallback(() => {
+    const cancelEditing = () => {
         if (hasEndedRef.current) {
             return;
         }
         hasEndedRef.current = true;
         closeEditing();
-    }, [closeEditing]);
+    };
 
     // Cancel editing when permission is revoked (e.g., transaction status changed). A pending save has already
     // claimed the edit, so revocation is applied once the confirm modal releases it rather than under the modal.
@@ -109,7 +109,7 @@ function useInlineEditState<T>(
         cancelEditing();
     }, [canEdit, cancelEditing, isEditing, isAwaitingConfirm]);
 
-    return {isEditing, isAwaitingConfirm, localValue, setLocalValue, startEditing, save, cancelEditing};
+    return {isEditing, isAwaitingConfirm, hasUnsavedEdits, localValue, setLocalValue, startEditing, save, cancelEditing};
 }
 
 export default useInlineEditState;

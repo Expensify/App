@@ -3,6 +3,7 @@ import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
+import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -47,6 +48,7 @@ function ReportDetailsTaskDeleteActionContent({report, parentReport, parentRepor
     const taskDeleteBackTo = Navigation.getTopmostSearchReportRouteParams()?.backTo;
     const hasOutstandingChildTask = useHasOutstandingChildTask(report);
     const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
+    const isAnonymousUser = useIsAnonymousUser();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [reportActionsForOriginalReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
@@ -68,13 +70,14 @@ function ReportDetailsTaskDeleteActionContent({report, parentReport, parentRepor
             {
                 ancestors,
                 shouldNavigateBack: !taskDeleteBackTo,
-                lastAccessedReportID: findLastAccessedReport(false, guideAccountIDs, false, report.reportID)?.reportID,
+                lastAccessedReportID: findLastAccessedReport(false, guideAccountIDs, isAnonymousUser, false, report.reportID)?.reportID,
             },
         );
     };
 
     return (
         <MenuItemAction
+            sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.DELETE_TASK}
             key={CONST.REPORT_DETAILS_MENU_ITEM.DELETE}
             icon={expensifyIcons.Trashcan}
             title={translate('common.delete')}

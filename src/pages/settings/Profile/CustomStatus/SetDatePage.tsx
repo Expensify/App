@@ -21,7 +21,7 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/SettingsStatusClearDateForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 type DateTime = {
     dateTime: string;
@@ -37,19 +37,16 @@ function SetDatePage() {
         Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER);
     };
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_DATE_FORM>) => {
-            const errors = getFieldRequiredErrors(values, [INPUT_IDS.DATE_TIME], translate);
-            const dateError = getDatePassedError(translate, values.dateTime);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_DATE_FORM>) => {
+        const errors = getFieldRequiredErrors(values, [INPUT_IDS.DATE_TIME], translate);
+        const dateError = getDatePassedError(translate, values.dateTime);
 
-            if (values.dateTime && dateError) {
-                errors.dateTime = dateError;
-            }
+        if (values.dateTime && dateError) {
+            errors.dateTime = dateError;
+        }
 
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    };
 
     const isLoadingStatusDraft = isLoadingOnyxValue(statusDraftCustomClearAfterDateMetaData);
 

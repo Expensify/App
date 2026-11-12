@@ -1,11 +1,10 @@
 import PrevNextButtons from '@components/PrevNextButtons';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
-import Text from '@components/Text';
 
 import useFilterPendingDeleteReports from '@hooks/useFilterPendingDeleteReports';
-import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSections from '@hooks/useSearchSections';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {startSpan} from '@libs/telemetry/activeSpans';
@@ -25,6 +24,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useIsFocused} from '@react-navigation/native';
 import React, {startTransition, useEffect, useState} from 'react';
 import {View} from 'react-native';
+
+import MoneyRequestReportNavigationCounter from './MoneyRequestReportNavigationCounter';
 
 type MoneyRequestReportNavigationProps = {
     reportID?: string;
@@ -123,12 +124,12 @@ function MoneyRequestReportNavigationStandalone({onReportsChange}: MoneyRequestR
 
 function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersion, contextReports}: MoneyRequestReportNavigationContentProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
     const isFocused = useIsFocused();
 
     // Lightweight subscriptions only: the current search query and its loading flag. These never mount
     // the heavy useSearchSections subscription set, so the fast context path stays cheap.
     const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
+    const shouldReturnTripRooms = useShouldReturnTripRooms(lastSearchQuery?.queryJSON?.type);
     const [isSearchLoading = false] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {selector: searchLoadingSelector});
 
     // Fast path: use the pre-computed IDs from the search context when they are usable and no page is in
@@ -230,6 +231,7 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
                     searchKey: lastSearchQuery.searchKey,
                     isLoading: isSearchLoading,
                     shouldUpdateLastSearchParams: true,
+                    shouldReturnTripRooms,
                 });
             });
         }
@@ -255,9 +257,10 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
             {shouldDisplayNavigationArrows && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                     {!shouldDisplayNarrowVersion && (
-                        <Text style={[styles.mutedTextLabel, styles.textAlignRight, styles.tabularNums]}>
-                            {translate('common.currentOfTotal', {current: currentIndex + 1, total: allReportsCount})}
-                        </Text>
+                        <MoneyRequestReportNavigationCounter
+                            current={currentIndex + 1}
+                            total={allReportsCount}
+                        />
                     )}
                     <PrevNextButtons
                         isPrevButtonDisabled={hidePrevButton}

@@ -10,7 +10,7 @@ import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {memo, useMemo} from 'react';
+import React from 'react';
 
 type ReportTypingIndicatorProps = {
     reportID: string;
@@ -22,7 +22,7 @@ function ReportTypingIndicator({reportID}: ReportTypingIndicatorProps) {
 
     const [userTypingStatuses] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`);
     const styles = useThemeStyles();
-    const usersTyping = useMemo(() => Object.keys(userTypingStatuses ?? {}).filter((loginOrAccountID) => userTypingStatuses?.[loginOrAccountID]), [userTypingStatuses]);
+    const usersTyping = Object.keys(userTypingStatuses ?? {}).filter((loginOrAccountID) => userTypingStatuses?.[loginOrAccountID]);
     const firstUserTyping = usersTyping.at(0);
 
     const isUserTypingADisplayName = Number.isNaN(Number(firstUserTyping));
@@ -59,4 +59,4 @@ function ReportTypingIndicator({reportID}: ReportTypingIndicatorProps) {
     );
 }
 
-export default memo(ReportTypingIndicator);
+export default ReportTypingIndicator;

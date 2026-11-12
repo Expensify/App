@@ -62,6 +62,8 @@ module.exports = {
     testEnvironment: 'jsdom',
     setupFiles: ['<rootDir>/jest/setup.ts', './node_modules/@react-native-google-signin/google-signin/jest/build/setup.js'],
     setupFilesAfterEnv: ['<rootDir>/jest/setupAfterEnv.ts', '<rootDir>/tests/perf-test/setupAfterEnv.ts'],
+    // Restarts a worker between suites once it holds this much memory, so long-lived CI workers don't get OOM killed.
+    workerIdleMemoryLimit: '2GB',
     cacheDirectory: '<rootDir>/.jest-cache',
     coverageReporters: ['json', 'lcov', 'text-summary'],
     moduleNameMapper: {

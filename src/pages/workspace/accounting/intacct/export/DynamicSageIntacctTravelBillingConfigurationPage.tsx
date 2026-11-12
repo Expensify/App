@@ -33,9 +33,9 @@ function DynamicSageIntacctTravelBillingConfigurationPage({policy}: WithPolicyCo
 
     return (
         <ConnectionLayout
-            displayName="SageIntacctTravelInvoicingConfigurationPage"
-            headerTitle="workspace.common.travelInvoicing"
-            title="workspace.sageIntacct.travelInvoicingDescription"
+            displayName="SageIntacctTravelBillingConfigurationPage"
+            headerTitle="workspace.common.travelBilling"
+            title="workspace.sageIntacct.travelBillingDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -53,6 +53,7 @@ function DynamicSageIntacctTravelBillingConfigurationPage({policy}: WithPolicyCo
                 errorRowStyles={[styles.ph5]}
             >
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.TRAVEL_BILLING_CREDIT_CARD_ACCOUNT}
                     name={translate('workspace.sageIntacct.creditCardAccount')}
                     onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT.path))}
                     value={travelPayableAccount?.name}
@@ -63,6 +64,8 @@ function DynamicSageIntacctTravelBillingConfigurationPage({policy}: WithPolicyCo
             <TravelBillingContinuousReconciliationSection
                 policy={policy}
                 connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_SWITCH.SAGE_INTACCT}
+                reconciliationAccountSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.TRAVEL_BILLING_RECONCILIATION_ACCOUNT.SAGE_INTACCT}
                 isAutoSyncEnabled={!!config?.autoSync?.enabled}
                 isPayableAccountSet={!!config?.export?.travelInvoicingPayableAccountID}
             />

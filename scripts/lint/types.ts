@@ -1,8 +1,8 @@
 /**
- * Linter-agnostic diagnostic produced by a Linter (ESLint today, Oxlint later)
- * and consumed by processors and the formatter.
+ * Linter-agnostic diagnostic produced by a Linter and consumed by processors and
+ * the formatter.
  *
- * Numeric values match ESLint's JSON output. Seatbelt only ratchets countable
+ * Numeric values follow ESLint's severity numbering. Seatbelt only ratchets countable
  * errors (`LINT_SEVERITY.ERROR` with a non-null ruleID).
  */
 const LINT_SEVERITY = {

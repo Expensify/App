@@ -16,6 +16,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -47,11 +48,17 @@ import {cardByIdSelector} from '@src/selectors/Card';
 import {getStableReportSelector} from '@src/selectors/Report';
 
 import truncate from 'lodash/truncate';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import type {TransactionPreviewContentProps} from './types';
+
+// Only when the expense is actually held: the hold is appended to the RBR message on its own, so it must not also be picked
+// as the violation to describe. Left alone otherwise, so duplicates and settled expenses keep their existing message.
+function getViolationToDescribe(violations: TransactionPreviewContentProps['violations'], transaction: TransactionPreviewContentProps['transaction']) {
+    return filterReceiptViolations(violations).find((violation) => violation.name !== CONST.VIOLATIONS.HOLD || !transaction?.comment?.hold);
+}
 
 function TransactionPreviewContent({
     action,
@@ -84,65 +91,62 @@ function TransactionPreviewContent({
     const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {environmentURL} = useEnvironment();
-    const isParentPolicyExpenseChat = isPolicyExpenseChat(chatReport);
-    const transactionDetails = useMemo<Partial<TransactionDetails>>(
-        () => getTransactionDetails(transaction, undefined, policy, isParentPolicyExpenseChat) ?? {},
-        [transaction, policy, isParentPolicyExpenseChat],
-    );
-    const {amount, comment: requestComment, merchant, category, currency: requestCurrency} = transactionDetails;
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
-    // Only when the expense is actually held: the hold is appended to the RBR message on its own, so it must not also be picked
-    // as the violation to describe. Left alone otherwise, so duplicates and settled expenses keep their existing message.
-    const filteredViolations = filterReceiptViolations(violations).filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD || !transaction?.comment?.hold);
-    const firstViolation = filteredViolations.at(0);
-    const cardID = firstViolation?.data?.cardID;
-    const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(String(cardID))});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {selector: getStableReportSelector});
     const [policyVendors] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${report?.policyID}`);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.reportID)}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
+    const currentUserDetails = useCurrentUserPersonalDetails();
+    const {personalCardsWithBrokenConnection} = useCardFeedErrors();
+    const animatedHighlightStyle = useAnimatedHighlightStyle({
+        shouldHighlight,
+        highlightColor: theme.messageHighlightBG,
+        backgroundColor: theme.cardBG,
+        shouldApplyOtherStyles: false,
+    });
+    const cardID = getViolationToDescribe(violations, transaction)?.data?.cardID;
+    // Keep this the last hook and derive the violation again below it. React Compiler cannot cache values that alias
+    // an array built before a hook call, and the whole preview derivation depends on this violation.
+    const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(String(cardID))});
+
+    const firstViolation = getViolationToDescribe(violations, transaction);
+    const isParentPolicyExpenseChat = isPolicyExpenseChat(chatReport);
+    const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, policy, isParentPolicyExpenseChat) ?? {};
+    const {amount, comment: requestComment, merchant, category, currency: requestCurrency} = transactionDetails;
     const managerID = report?.managerID ?? reportPreviewAction?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerAccountID = report?.ownerAccountID ?? reportPreviewAction?.childOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerLogin = getLoginByAccountID(ownerAccountID, personalDetails);
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.reportID)}`);
-    const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
-    const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserDetails.email ?? '';
     const currentUserLogin = currentUserDetails.login;
     const currentUserAccountID = currentUserDetails.accountID;
-    const transactionPreviewCommonArguments = useMemo(
-        () => ({
-            iouReport: report,
-            iouReportOwnerLogin: ownerLogin,
-            policy,
-            transaction,
-            action,
-            isBillSplit,
-            violations,
-            transactionDetails,
-        }),
-        [action, report, ownerLogin, policy, isBillSplit, transaction, transactionDetails, violations],
-    );
+    const transactionPreviewCommonArguments = {
+        iouReport: report,
+        iouReportOwnerLogin: ownerLogin,
+        policy,
+        transaction,
+        action,
+        isBillSplit,
+        violations,
+        transactionDetails,
+    };
 
-    const conditionals = useMemo(
-        () =>
-            createTransactionPreviewConditionals({
-                ...transactionPreviewCommonArguments,
-                areThereDuplicates,
-                isReportAPolicyExpenseChat: isParentPolicyExpenseChat,
-                currentUserEmail,
-                currentUserAccountID,
-                reportActions,
-            }),
-        [areThereDuplicates, transactionPreviewCommonArguments, isParentPolicyExpenseChat, currentUserEmail, currentUserAccountID, reportActions],
-    );
+    const conditionals = createTransactionPreviewConditionals({
+        ...transactionPreviewCommonArguments,
+        areThereDuplicates,
+        isReportAPolicyExpenseChat: isParentPolicyExpenseChat,
+        currentUserEmail,
+        currentUserAccountID,
+        reportActions,
+    });
 
     const {shouldShowRBR, shouldShowMerchant, shouldShowSplitShare, shouldShowCategory, shouldShowSkeleton, shouldShowDescription} = conditionals;
 
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const isIOUActionType = isMoneyRequestAction(action);
     const canEdit = isIOUActionType && canEditMoneyRequest(action, transaction, rules, isChatReportArchived, report, policy, reportActions);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
-    const {personalCardsWithBrokenConnection} = useCardFeedErrors();
-    const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL);
+    const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL, buildDynamicRoute);
     const isMarkAsCash = parentReport && currentUserLogin ? isMarkAsCashActionForTransaction(currentUserLogin, parentReport, violations, policy) : false;
 
     const violationMessage = firstViolation
@@ -163,19 +167,15 @@ function TransactionPreviewContent({
           })
         : undefined;
 
-    const previewText = useMemo(
-        () =>
-            getTransactionPreviewTextAndTranslationPaths({
-                dateFnsLocale,
-                ...transactionPreviewCommonArguments,
-                shouldShowRBR,
-                violationMessage,
-                reportActions,
-                originalTransaction,
-                convertToDisplayString,
-            }),
-        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions, originalTransaction, convertToDisplayString, dateFnsLocale],
-    );
+    const previewText = getTransactionPreviewTextAndTranslationPaths({
+        dateFnsLocale,
+        ...transactionPreviewCommonArguments,
+        shouldShowRBR,
+        violationMessage,
+        reportActions,
+        originalTransaction,
+        convertToDisplayString,
+    });
     const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? ''));
 
     // The hold comes last, after whatever else flagged the expense, e.g. "Category missing • This expense was put on hold".
@@ -210,78 +210,43 @@ function TransactionPreviewContent({
     const participantAccountIDs = isMoneyRequestAction(action) && isBillSplit ? (getOriginalMessage(action)?.participantAccountIDs ?? []) : [managerID, ownerAccountID];
     const isCardTransaction = isCardTransactionUtils(transaction);
 
-    // Compute the from/to data only for IOU reports
-    const {from, to} = useMemo(() => {
-        if (!shouldShowPayerAndReceiver) {
-            return {
-                from: undefined,
-                to: undefined,
-            };
-        }
-
-        // For IOU or Split, we want the unprocessed amount because it is important whether the amount was positive or negative
-        const payerAndReceiver = getIOUPayerAndReceiver(managerID, ownerAccountID, personalDetails, transactionRawAmount);
-
-        return {
-            from: payerAndReceiver.from,
-            to: payerAndReceiver.to,
-        };
-    }, [managerID, ownerAccountID, personalDetails, shouldShowPayerAndReceiver, transactionRawAmount]);
+    // For IOU or Split, the raw amount determines which participant is paying.
+    const payerAndReceiver = shouldShowPayerAndReceiver ? getIOUPayerAndReceiver(managerID, ownerAccountID, personalDetails, transactionRawAmount) : undefined;
+    const from = payerAndReceiver?.from;
+    const to = payerAndReceiver?.to;
 
     const shouldShowIOUHeader = !!from && !!to;
 
     // If available, retrieve the split share from the splits object of the transaction, if not, display an even share.
     const actorAccountID = action?.actorAccountID;
-    const splitShare = useMemo(() => {
-        if (!shouldShowSplitShare) {
-            return 0;
-        }
-
+    let splitShare;
+    if (!shouldShowSplitShare) {
+        splitShare = 0;
+    } else {
         const splitAmount = transaction?.comment?.splits?.find((split) => split.accountID === sessionAccountID)?.amount;
         if (splitAmount !== undefined) {
-            return splitAmount;
-        }
-
-        let originalParticipantCount = participantAccountIDs.length;
-
-        if (isBillSplit) {
-            // Try to get the participant count from transaction splits data
-            const transactionSplitsCount = transaction?.comment?.splits?.length;
-            if (transactionSplitsCount && transactionSplitsCount > 0) {
-                originalParticipantCount = transactionSplitsCount;
-            } else if (isMoneyRequestAction(action)) {
-                originalParticipantCount = getOriginalMessage(action)?.participantAccountIDs?.length ?? participantAccountIDs.length;
+            splitShare = splitAmount;
+        } else {
+            let originalParticipantCount = participantAccountIDs.length;
+            if (isBillSplit) {
+                // Try to get the participant count from transaction splits data
+                const transactionSplitsCount = transaction?.comment?.splits?.length;
+                if (transactionSplitsCount && transactionSplitsCount > 0) {
+                    originalParticipantCount = transactionSplitsCount;
+                } else if (isMoneyRequestAction(action)) {
+                    originalParticipantCount = getOriginalMessage(action)?.participantAccountIDs?.length ?? participantAccountIDs.length;
+                }
             }
+            splitShare = calculateAmount(
+                isParentPolicyExpenseChat ? 1 : originalParticipantCount - 1,
+                amount ?? 0,
+                requestCurrency ?? '',
+                actorAccountID === sessionAccountID,
+                false,
+                getCurrencyDecimals,
+            );
         }
-
-        return calculateAmount(
-            isParentPolicyExpenseChat ? 1 : originalParticipantCount - 1,
-            amount ?? 0,
-            requestCurrency ?? '',
-            actorAccountID === sessionAccountID,
-            false,
-            getCurrencyDecimals,
-        );
-    }, [
-        shouldShowSplitShare,
-        isParentPolicyExpenseChat,
-        participantAccountIDs.length,
-        transaction?.comment?.splits,
-        amount,
-        requestCurrency,
-        sessionAccountID,
-        isBillSplit,
-        action,
-        actorAccountID,
-        getCurrencyDecimals,
-    ]);
-
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        shouldHighlight,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: theme.cardBG,
-        shouldApplyOtherStyles: false,
-    });
+    }
 
     const transactionWrapperStyles = [styles.border, styles.moneyRequestPreviewBox, (isIOUSettled || isApproved) && isSettlementOrApprovalPartial && styles.offlineFeedbackPending];
 
@@ -300,7 +265,6 @@ function TransactionPreviewContent({
                 <View style={[(isTransactionScanning || isWhisper) && [styles.reportPreviewBoxHoverBorderColor, styles.reportContainerBorderRadius]]}>
                     <ReportActionItemImages
                         images={receiptImages}
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isHovered={isHovered || isTransactionScanning}
                         size={1}
                         shouldUseAspectRatio={!isMapDistanceRequest(transaction) && !isGPSDistanceRequest(transaction)}
@@ -404,6 +368,7 @@ function TransactionPreviewContent({
                     )}
                     {isReviewDuplicateTransactionPage && !isIOUSettled && !isApproved && !isCardTransaction && areThereDuplicates && (
                         <Button
+                            sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_PREVIEW.KEEP_THIS_ONE_BUTTON}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             style={[styles.ph4, styles.pb4]}
                             onPress={navigateToReviewFields}

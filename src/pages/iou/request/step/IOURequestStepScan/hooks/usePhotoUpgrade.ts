@@ -2,6 +2,8 @@
  * Captures a full-resolution photo alongside the fast snapshot and, once a receipt exists, swaps the
  * higher-quality photo in behind it. Owns capture deadlines, rotation, and upgrade telemetry.
  */
+import {capturePhotoToPath} from '@libs/cameraCapture';
+import type CapturedPhoto from '@libs/cameraCapture/types';
 import Log from '@libs/Log';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {finish as finishUpgrade, isClaimedForRead as wasReceiptClaimed, recordUpgrade, start as startUpgrade} from '@libs/ReceiptStorage/receiptUpgrades';
@@ -11,10 +13,9 @@ import rotatePhotoToUpright from '@pages/iou/request/step/IOURequestStepScan/uti
 
 import CONST from '@src/CONST';
 
-import type {Camera, PhotoFile} from 'react-native-vision-camera';
+import type {CameraPhotoOutput} from 'react-native-vision-camera';
 
 import {useEffect, useRef, useState} from 'react';
-import RNFS from 'react-native-fs';
 
 const PHOTO_CAPTURE_TIMEOUT_MS = 3000;
 
@@ -74,7 +75,7 @@ function withDeadline<T>(promise: Promise<T>, capMs: number, step: string, disca
 }
 
 type PendingPhoto = {
-    promise: Promise<PhotoFile | undefined>;
+    promise: Promise<CapturedPhoto | undefined>;
 
     discard: () => void;
 
@@ -122,7 +123,7 @@ function usePhotoUpgrade() {
         setHasPendingPhotoCapture(false);
     };
 
-    const startPhotoCapture = (camera: Camera) => {
+    const startPhotoCapture = (photoOutput: CameraPhotoOutput) => {
         const orphaned = pendingPhotoRef.current;
         pendingPhotoRef.current = undefined;
         if (orphaned) {
@@ -130,7 +131,7 @@ function usePhotoUpgrade() {
         }
 
         // Abandoning a capture does not stop it: `discard` only marks the result for deletion, and
-        // vision-camera cannot cancel a `takePhoto`. A second one started over a capture still running
+        // vision-camera cannot cancel a `capturePhoto`. A second one started over a capture still running
         // makes them contend, and the next `takeSnapshot` pays for it. 6.6s measured against an 80ms
         // baseline. A receipt keeping its snapshot is the cheaper loss.
         if (photosInFlightRef.current > 0) {
@@ -148,7 +149,7 @@ function usePhotoUpgrade() {
         let failureOutcome: string = CONST.TELEMETRY.UPGRADE_OUTCOME.CAPTURE_FAILED;
         let isDiscarded = false;
 
-        const nativeCapture = camera.takePhoto({flash: 'off', enableShutterSound: false, path: RNFS.TemporaryDirectoryPath});
+        const nativeCapture = capturePhotoToPath(photoOutput, {flashMode: 'off', enableShutterSound: false});
 
         photosInFlightRef.current += 1;
         const releasePhotoSlot = () => {

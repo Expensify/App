@@ -1,3 +1,4 @@
+import useShouldUseFlatNavigationBar from '@components/Navigation/FlatNavigationBar/useShouldUseFlatNavigationBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import QuickCreationActionsBar from '@components/Navigation/QuickCreationActionsBar';
 import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
@@ -9,6 +10,7 @@ import ScrollView from '@components/ScrollView';
 
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useAppLoadSkeletonVisibility} from '@hooks/useInFlightRequests';
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -21,6 +23,7 @@ import openHomePage from '@libs/actions/HomePage';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ComponentRef} from 'react';
@@ -45,10 +48,15 @@ const RIGHT_COLUMN_TEST_ID = 'homePageRightColumn';
 
 function HomePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldUseFlatNavigationBar = useShouldUseFlatNavigationBar();
+    const shouldScrollMainHeader = useIsMobileWebLandscape();
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
     const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.HOME);
-    const tabRootScrollProps = useTabRootScrollProps([styles.homePageContentContainer, pageGutter], {hasBottomSafeAreaPadding: true, hasOfflineIndicatorPadding: true});
+    const tabRootScrollProps = useTabRootScrollProps([styles.homePageContentContainer, !shouldScrollMainHeader && pageGutter], {
+        hasBottomSafeAreaPadding: true,
+        hasOfflineIndicatorPadding: true,
+    });
     const {translate} = useLocalize();
     const triggerScrollEvent = useScrollEventEmitter();
     useDocumentTitle(translate('common.home'));
@@ -137,6 +145,14 @@ function HomePage() {
         </>
     );
 
+    const topBar = (
+        <TopBar
+            breadcrumbLabel={translate('common.home')}
+            shouldShowLoadingBar={isForYouLoading}
+            shouldDisplayHelpButton
+        />
+    );
+
     return (
         <View
             ref={receiptDropTargetRef}
@@ -153,24 +169,22 @@ function HomePage() {
                     enableEdgeToEdgeBottomSafeAreaPadding={false}
                     {...tabRootScreenWrapperProps}
                 >
-                    <TopBar
-                        breadcrumbLabel={translate('common.home')}
-                        shouldShowLoadingBar={isForYouLoading}
-                        shouldDisplayHelpButton
-                    />
+                    {!shouldScrollMainHeader && topBar}
                     <ScrollView
                         style={styles.homePageScrollView}
                         {...tabRootScrollProps}
                         onScroll={triggerScrollEvent}
+                        scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                         addBottomSafeAreaPadding
                         keyboardShouldPersistTaps="handled"
                     >
-                        {!shouldUseNarrowLayout && (
+                        {shouldScrollMainHeader && topBar}
+                        {!shouldUseNarrowLayout && !shouldUseFlatNavigationBar && (
                             <View style={styles.centeredContentWidthLimiter}>
                                 <QuickCreationActionsBar />
                             </View>
                         )}
-                        <View style={styles.homePageMainLayout(shouldUseNarrowLayout)}>{homeLayout}</View>
+                        <View style={[styles.homePageMainLayout(shouldUseNarrowLayout), shouldScrollMainHeader && pageGutter]}>{homeLayout}</View>
                     </ScrollView>
                     <PortalHost name="suggestions" />
                 </ScreenWrapper>

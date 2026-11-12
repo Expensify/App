@@ -1,10 +1,20 @@
-import {filterOutDeprecatedReportActions, getIOUActionForTransactionID, getLinkedTransactionID, getOriginalMessage, getSortedReportActions, isActionOfType} from '@libs/ReportActionsUtils';
+import {
+    filterOutDeprecatedReportActions,
+    getIOUActionForTransactionID,
+    getLatestConciergeFeedbackActionIDFromReportActions,
+    getLinkedTransactionID,
+    getOriginalMessage,
+    getSortedReportActions,
+    isActionOfType,
+} from '@libs/ReportActionsUtils';
+import {hasReportBeenForwardedSinceLastSubmit} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import lodashFindLast from 'lodash/findLast';
 
@@ -51,6 +61,36 @@ function getReportActionByIDSelector(reportActions: OnyxEntry<ReportActions>, re
         return;
     }
     return reportActions[reportActionID];
+}
+
+function getBillProcessorAccountIDSelector(reportActions: OnyxEntry<ReportActions>): number | undefined {
+    const createdAction = Object.values(reportActions ?? {}).find((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED));
+    return getOriginalMessage(createdAction)?.processor;
+}
+
+function getBillPayHistoryParticipantSelector(reportActions: OnyxEntry<ReportActions>, reportActionID: string) {
+    const action = reportActions?.[reportActionID];
+    const isCreatedAction = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED);
+
+    // The creation action has no participant emails, so the creation row reads the sender from the submission action.
+    const submission = isCreatedAction
+        ? Object.values(reportActions ?? {}).find(
+              (reportAction) =>
+                  (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)) &&
+                  !!reportAction.submitterEmail,
+          )
+        : action;
+    const originalMessage =
+        isActionOfType(submission, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(submission, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)
+            ? getOriginalMessage(submission)
+            : undefined;
+
+    return {
+        isCreatedAction,
+        senderLogin: submission?.submitterEmail,
+        receiverLogin: originalMessage?.to,
+        receiverAccountID: originalMessage?.submittedTo,
+    };
 }
 
 function getReimbursedExpectedDateSelector(reportActions: OnyxEntry<ReportActions>, paymentCreated: string): string | undefined {
@@ -142,6 +182,26 @@ function getReceiptScanFailedIOUActionDataSelector(
 const transactionThreadReportIDSelector = (transactionID: string | undefined) => (reportActions: OnyxEntry<ReportActions>) =>
     transactionID ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID)?.childReportID : undefined;
 
+/** Returns the ID of the author's newest comment in the report that can show the feedback prompt. */
+const getLatestFeedbackActionIDByAuthorSelector = (authorAccountID: number | undefined) => (reportActions: OnyxEntry<ReportActions>) =>
+    authorAccountID ? getLatestConciergeFeedbackActionIDFromReportActions(reportActions, authorAccountID) : undefined;
+
+// IDs of reports forwarded since their last submit, so re-renders only happen on a yes/no flip per report.
+function forwardedSinceLastSubmitReportIDsSelector(allReportActions: OnyxCollection<ReportActions>): Record<string, true> | undefined {
+    if (!allReportActions) {
+        return undefined;
+    }
+
+    const result: Record<string, true> = {};
+    for (const key of Object.keys(allReportActions)) {
+        const reportID = key.slice(ONYXKEYS.COLLECTION.REPORT_ACTIONS.length);
+        if (hasReportBeenForwardedSinceLastSubmit({reportID}, allReportActions[key] ?? {})) {
+            result[reportID] = true;
+        }
+    }
+    return result;
+}
+
 type ThreadReplyCounterFields = 'childVisibleActionCount' | 'childCommenterCount' | 'childLastVisibleActionCreated' | 'childOldestFourAccountIDs';
 
 type ReportActionWithoutThreadReplyCounters = Omit<ReportAction, ThreadReplyCounterFields>;
@@ -156,7 +216,23 @@ function getParentReportActionWithoutThreadRepliesSelector(parentReportActions: 
     return parentReportActionWithoutThreadReplies;
 }
 
+/** Keeps only the given reports' actions, so a page reading a few reports isn't woken by every other report's actions. */
+const reportActionsByReportIDsSelector =
+    (reportIDs: string[]) =>
+    (allReportActions: OnyxCollection<ReportActions>): OnyxCollection<ReportActions> => {
+        const result: OnyxCollection<ReportActions> = {};
+        for (const reportID of reportIDs) {
+            const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
+            result[key] = allReportActions?.[key];
+        }
+        return result;
+    };
+
 export {
+    reportActionsByReportIDsSelector,
+    getBillPayHistoryParticipantSelector,
+    getBillProcessorAccountIDSelector,
+    getLatestFeedbackActionIDByAuthorSelector,
     getParentReportActionSelector,
     getLastClosedReportAction,
     getNewestReportActionSelector,
@@ -164,6 +240,7 @@ export {
     getReportActionByIDSelector,
     getReceiptScanFailedIOUActionDataSelector,
     reportVisibleActionsSelector,
+    forwardedSinceLastSubmitReportIDsSelector,
     transactionThreadReportIDSelector,
     getParentReportActionWithoutThreadRepliesSelector,
 };

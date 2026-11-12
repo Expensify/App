@@ -9,7 +9,7 @@ import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import TextWithEmojiFragment from './comment/TextWithEmojiFragment';
@@ -21,7 +21,7 @@ type ReportActionItemBasicMessageProps = Partial<ChildrenProps> & {
 function ReportActionItemBasicMessage({message, children}: ReportActionItemBasicMessageProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const messageContainsCustomEmojiWithText = useMemo(() => containsCustomEmoji(message) && !containsOnlyCustomEmoji(message), [message]);
+    const messageContainsCustomEmojiWithText = containsCustomEmoji(message) && !containsOnlyCustomEmoji(message);
     const selectableStyle = !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone;
 
     return (

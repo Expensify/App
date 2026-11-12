@@ -27,6 +27,7 @@ import {
     getAddedOfficeLocationMessage,
     getUpdatedOfficeLocationMessage,
     getDeletedOfficeLocationMessage,
+    getUpdatedEmployeeOfficeLocationMessage,
     getUnassignedCompanyCardMessage,
     getUpdatedAutoHarvestingMessage,
     getUpdatedCardFeedLiabilityMessage,
@@ -43,7 +44,7 @@ import {
     getWelcomeMessage,
     shouldShowLastActorDisplayName,
 } from '@libs/ReportAlternateTextUtils';
-import {formatReportLastMessageText, getMovedActionMessage, getMovedTransactionMessage, getReportPreviewReportActionMessage, parseMovedTransactionReportIDs} from '@libs/ReportUtils';
+import {formatReportLastMessageText, getMovedActionMessage, getMovedTransactionMessage, getReportPreviewMessage, parseMovedTransactionReportIDs} from '@libs/ReportUtils';
 import {isScanning} from '@libs/TransactionUtils';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
@@ -61,7 +62,7 @@ import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
-import {convertToDisplayString, convertToDisplayStringWithoutCurrency, formatPhoneNumber, getCurrencyDecimalsLocal, localeCompare, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, convertToDisplayStringWithoutCurrency, formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -466,10 +467,52 @@ describe('ReportAlternateTextUtils', () => {
             expect(getAlternateText({lastAction})).toBe('Alice renamed this room to "#new-room" (previously "#old-room")');
         });
 
+        it('should show where the expense policy document lives, matching the #admins room message', () => {
+            // Given a change log for a policy document upload that carries its workspace
+            const lastAction = makeAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_RULES_DOCUMENT, {originalMessage: {isReplacement: false, policyID: 'ABC123'}});
+
+            // When the LHN builds its preview
+            const alternateText = getAlternateText({lastAction});
+
+            // Then the preview carries the same "in Workspace > Overview" wording as the room message, without the link markup
+            expect(alternateText).toBe('added an expense policy document in Workspace > Overview');
+        });
+
         it('should return the plain last message for a report preview in a workspace chat', () => {
             const report = makeReport({chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, reportName: 'Workspace chat'});
             expect(getAlternateText({report, lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW), lastMessageTextFromReport: 'owes $1.00'})).toBe('owes $1.00');
         });
+    });
+
+    it.each([
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ARCHIVE_POLICY, 'archived this workspace'],
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNARCHIVE_POLICY, 'unarchived this workspace'],
+    ] as const)('localizes workspace history previews for %s', (actionName, expectedMessage) => {
+        // Given a changelog whose backend fallback text differs from the localized message.
+        const report = makeReport();
+        const lastAction = makeAction(actionName, {originalMessage: {}});
+
+        // When report and sidebar previews resolve the action.
+        const lastMessage = getLastMessageTextForReport({
+            dateFnsLocale: undefined,
+            conciergeReportID: undefined,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            personalDetails: undefined,
+            translate: translateLocal,
+            convertToDisplayString,
+            report,
+            lastActorDetails: null,
+            isReportArchived: false,
+            lastAction,
+            currentUserLogin: CURRENT_USER_LOGIN,
+            formatPhoneNumber,
+            rules: undefined,
+        });
+        const alternateText = getAlternateText({report, lastAction});
+
+        // Then both previews use the localized changelog instead of the fallback.
+        expect(lastMessage).toBe(expectedMessage);
+        expect(alternateText).toContain(expectedMessage);
     });
 
     describe('getLastMessageTextForReport', () => {
@@ -498,6 +541,7 @@ describe('ReportAlternateTextUtils', () => {
                 isReportArchived: false,
                 lastAction: agentPromptUpdatedAction,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
                 rules: undefined,
             });
 
@@ -533,6 +577,8 @@ describe('ReportAlternateTextUtils', () => {
                 };
                 const transaction: Transaction = {
                     ...createRandomTransaction(0),
+                    // The IOU action's transaction belongs to the IOU report, which is where the preview looks it up
+                    reportID: iouReport.reportID,
                     amount: 100,
                     currency: CONST.CURRENCY.USD,
                     merchant: '',
@@ -560,7 +606,9 @@ describe('ReportAlternateTextUtils', () => {
                     [iouAction.reportActionID]: iouAction,
                 });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-                const reportPreviewMessage = getReportPreviewReportActionMessage(
+                const reportPreviewMessage = getReportPreviewMessage(
+                    translateLocal,
+                    convertToDisplayString,
                     {
                         reportOrID: iouReport,
                         iouReportAction: iouAction,
@@ -569,7 +617,7 @@ describe('ReportAlternateTextUtils', () => {
                         isForListPreview: true,
                         originalReportAction: reportPreviewAction,
                     },
-                    getCurrencyDecimalsLocal,
+                    formatPhoneNumber,
                 );
                 const formattedMessage = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
                 expect(formattedMessage).toBe('$1.00 for A A A');
@@ -625,6 +673,7 @@ describe('ReportAlternateTextUtils', () => {
                     isReportArchived: false,
                     lastAction: createdAction,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 expect(lastMessage).toBe('-$25.00 for Dinner');
@@ -694,6 +743,7 @@ describe('ReportAlternateTextUtils', () => {
                     isReportArchived: false,
                     lastAction: createdAction,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 expect(lastMessage).toBe('-$45.00 for Visible comment');
@@ -748,6 +798,7 @@ describe('ReportAlternateTextUtils', () => {
                     isReportArchived: false,
                     lastAction: createdAction,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 expect(lastMessage).toBe('-$25.00');
@@ -802,6 +853,7 @@ describe('ReportAlternateTextUtils', () => {
                     isReportArchived: false,
                     lastAction: createdAction,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 expect(lastMessage).toBe('$0.00 for Zero amount');
@@ -856,6 +908,7 @@ describe('ReportAlternateTextUtils', () => {
                     isReportArchived: false,
                     lastAction: createdAction,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 expect(lastMessage).toBe('-€25.00 for Lunch');
@@ -909,6 +962,7 @@ describe('ReportAlternateTextUtils', () => {
                     isReportArchived: false,
                     lastAction: createdAction,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 expect(lastMessage).toBe('');
@@ -950,6 +1004,7 @@ describe('ReportAlternateTextUtils', () => {
                     isReportArchived: false,
                     lastAction: createdAction,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 expect(lastMessage).toBe('');
@@ -1017,6 +1072,7 @@ describe('ReportAlternateTextUtils', () => {
                     isReportArchived: false,
                     lastAction: createdAction,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 expect(lastMessage).toBe('');
@@ -1070,9 +1126,83 @@ describe('ReportAlternateTextUtils', () => {
                     isReportArchived: false,
                     lastAction: createdAction,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 expect(lastMessage).toBe('-$25.00 for Missing currency');
+            });
+
+            it.each([
+                {description: '', storedComment: '{"comment":""}', expected: '-$25.00'},
+                {description: 'Team lunch', storedComment: '{"comment":"Team lunch"}', expected: '-$25.00 for Team lunch'},
+            ])('should use the linked transaction description "$description" instead of the raw split comment on the action', async ({description, storedComment, expected}) => {
+                // Given an expense report whose only expense is a split, where the server stored the raw split payload as the action comment
+                const report: Report = {
+                    ...createRandomReport(0, undefined),
+                    reportID: 'expense-report-split',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    currency: CONST.CURRENCY.USD,
+                    transactionCount: 1,
+                };
+                const createdAction: ReportAction = {
+                    ...createRandomReportAction(19),
+                    reportID: report.reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    message: {type: 'COMMENT', text: ''},
+                };
+                const transaction: Transaction = {
+                    ...createRandomTransaction(2),
+                    transactionID: 'split-transaction',
+                    reportID: report.reportID,
+                    amount: 2500,
+                    modifiedAmount: '',
+                    currency: CONST.CURRENCY.USD,
+                    modifiedCurrency: '',
+                    receipt: undefined,
+                    comment: {comment: description, source: CONST.IOU.TYPE.SPLIT, originalTransactionID: 'original-transaction'},
+                };
+                const moneyRequestAction: ReportAction = {
+                    ...createRandomReportAction(20),
+                    reportID: report.reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    created: '2026-04-01 16:00:00.000',
+                    message: {
+                        text: '',
+                        amount: -2500,
+                        currency: CONST.CURRENCY.USD,
+                        comment: storedComment,
+                        IOUTransactionID: transaction.transactionID,
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    },
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [createdAction.reportActionID]: createdAction,
+                    [moneyRequestAction.reportActionID]: moneyRequestAction,
+                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await waitForBatchedUpdates();
+
+                // When the LHN builds the preview from the latest expense action
+                const lastMessage = getLastMessageTextForReport({
+                    rules: undefined,
+                    dateFnsLocale: undefined,
+                    convertToDisplayString,
+                    conciergeReportID: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    personalDetails: undefined,
+                    translate: translateLocal,
+                    report,
+                    lastActorDetails: null,
+                    isReportArchived: false,
+                    lastAction: createdAction,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                });
+
+                // Then the loaded transaction is the source of truth, so the stored JSON never leaks into the preview
+                expect(lastMessage).toBe(expected);
             });
         });
         it('MOVED_TRANSACTION action', async () => {
@@ -1108,8 +1238,9 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: movedTransactionAction,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
             const {fromReportID, toReportID} = parseMovedTransactionReportIDs(movedTransactionAction);
             expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage({translate: translateLocal, fromReportID, toReportID})));
@@ -1141,8 +1272,9 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
-
+                    lastAction: submittedAction,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallySubmitted')));
             });
@@ -1174,8 +1306,9 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
-
+                    lastAction: approvedAction,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyApproved')));
             });
@@ -1209,8 +1342,9 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
-
+                    lastAction: forwardedAction,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
                 expect(lastMessage).toBe(translateLocal('iou.forwarded', memo));
             });
@@ -1241,8 +1375,9 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
-
+                    lastAction: forwardedAction,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyForwarded')));
             });
@@ -1271,8 +1406,9 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
-
+                    lastAction: corporateForceUpgradeAction,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'workspaceActions.forcedCorporateUpgrade')));
             });
@@ -1300,8 +1436,9 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
             expect(lastMessage).toBe(getCustomTaxNameUpdateMessage(translateLocal, action));
         });
@@ -1328,8 +1465,9 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
             expect(lastMessage).toBe(getCurrencyDefaultTaxUpdateMessage(translateLocal, action));
         });
@@ -1361,8 +1499,9 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
 
             // Then it should be built from the translation rather than the text the backend provided
@@ -1390,8 +1529,10 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
             expect(lastMessage).toBe(getAddAgentRuleMessage(translateLocal, action));
         });
@@ -1417,8 +1558,10 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                lastAction: action,
                 conciergeReportID: undefined,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
             expect(lastMessage).toBe(getUpdateAgentRuleMessage(translateLocal, action));
         });
@@ -1444,8 +1587,10 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                lastAction: action,
                 conciergeReportID: undefined,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
             expect(lastMessage).toBe(getDeleteAgentRuleMessage(translateLocal, action));
         });
@@ -1475,8 +1620,9 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
             expect(lastMessage).toBe(getForeignCurrencyDefaultTaxUpdateMessage(translateLocal, action));
         });
@@ -1503,8 +1649,9 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
             expect(lastMessage).toBe(getRequireCompanyCardsEnabledMessage(translateLocal, action));
         });
@@ -1531,8 +1678,9 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
             expect(lastMessage).toBe(getRequiresCategoryMessage(translateLocal, action));
         });
@@ -1562,8 +1710,9 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
             expect(lastMessage).toBe(expectedMessage);
         });
@@ -1593,8 +1742,9 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
 
             // Then the preview reads the same as the in-chat change log rather than the raw stored text
@@ -1612,6 +1762,11 @@ describe('ReportAlternateTextUtils', () => {
                 getUpdatedOfficeLocationMessage,
             ],
             [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_OFFICE_LOCATION, {officeID: 'OFFICE1', name: 'Headquarters'}, getDeletedOfficeLocationMessage],
+            [
+                CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION,
+                {accountID: 1, email: 'member@test.com', name: 'Member One', officeID: 'OFFICE2', officeName: 'New Jersey Office', oldOfficeID: '', oldOfficeName: ''},
+                getUpdatedEmployeeOfficeLocationMessage,
+            ],
         ] as const)('%s action', async (actionName, originalMessage, getMessage) => {
             // Given an office location change log, whose stored text is Auth's English message
             const report: Report = createRandomReport(0, undefined);
@@ -1638,8 +1793,9 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
 
             // Then the preview reads the same translated text as the in-chat change log rather than the stored text
@@ -1668,10 +1824,45 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
             expect(lastMessage).toBe(getUpdatedAutoHarvestingMessage(translateLocal, action));
+        });
+        it('UPDATE_MEMBER_WORK_ARRANGEMENT action', () => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {name: 'Member One', oldValue: false, newValue: true},
+            };
+
+            const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
+                dateFnsLocale: undefined,
+                convertToDisplayString,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+                lastAction: action,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
+            });
+
+            expect(lastMessage).toBe(
+                translateLocal('workspaceActions.updatedMemberWorkArrangement', {
+                    displayName: 'Member One',
+                    newArrangement: translateLocal('workspace.people.officeBased'),
+                    oldArrangement: translateLocal('workspace.people.noRegularWorkspace'),
+                }),
+            );
         });
         it('UPDATE_CUSTOM_UNIT_RATE action', async () => {
             const report: Report = createRandomReport(0, undefined);
@@ -1702,8 +1893,9 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
             expect(lastMessage).toBe(getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action));
         });
@@ -1730,8 +1922,9 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
             expect(lastMessage).toBe(getRequiresTagMessage(translateLocal, action));
         });
@@ -1758,7 +1951,9 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
             expect(lastMessage).toBe(getAddedCardFeedMessage(translateLocal, action));
         });
@@ -1785,7 +1980,9 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
             expect(lastMessage).toBe(getRemovedCardFeedMessage(translateLocal, action));
         });
@@ -1812,7 +2009,9 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
             expect(lastMessage).toBe(getRenamedCardFeedMessage(translateLocal, action));
         });
@@ -1843,7 +2042,9 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
             expect(lastMessage).toBe(getAssignedCompanyCardMessage(translateLocal, action));
         });
@@ -1874,7 +2075,9 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
             expect(lastMessage).toBe(getUnassignedCompanyCardMessage(translateLocal, action));
         });
@@ -1904,7 +2107,9 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
             expect(lastMessage).toBe(getUpdatedCardFeedLiabilityMessage(translateLocal, action));
         });
@@ -1935,7 +2140,9 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
             expect(lastMessage).toBe(getUpdatedCardFeedStatementPeriodMessage(translateLocal, action));
         });
@@ -1962,8 +2169,9 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: takeControlAction,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(translateLocal, takeControlAction)));
         });
@@ -1990,8 +2198,9 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: rerouteAction,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(translateLocal, rerouteAction)));
         });
@@ -2018,8 +2227,9 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: movedAction,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getMovedActionMessage(translateLocal, movedAction, report)));
         });
@@ -2050,8 +2260,9 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: action,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
 
             // Then it should return the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED message
@@ -2084,8 +2295,9 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: undefined,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
             expect(result).toBe(expectedVisibleText);
         });
@@ -2138,6 +2350,7 @@ describe('ReportAlternateTextUtils', () => {
                 isReportArchived: false,
                 lastAction: addCommentAction,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
 
@@ -2164,8 +2377,9 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: undefined,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
             expect(lastMessage).toBe(translateLocal('report.noActivityYet'));
         });
@@ -2201,8 +2415,9 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: undefined,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
             const transactions = [scannedTransaction];
             const scanningTransactions = transactions.filter((transaction) => isScanning(transaction));
@@ -2251,8 +2466,9 @@ describe('ReportAlternateTextUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                lastAction: undefined,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
             expect(result).toBe('');
         });
@@ -2301,10 +2517,12 @@ describe('ReportAlternateTextUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
+                    lastAction: submittedAction,
                     policy,
                     reportMetadata,
 
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
                 expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.queuedToSubmitViaDEW'));
             });
@@ -2343,8 +2561,9 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
-
+                    lastAction: dewSubmitFailedAction,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
                 expect(lastMessage).toBe(customErrorMessage);
             });
@@ -2380,8 +2599,9 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
-
+                    lastAction: dewSubmitFailedAction,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
                 expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.error.genericCreateFailureMessage'));
             });
@@ -2425,8 +2645,9 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     policy,
                     isReportArchived: true,
-
+                    lastAction: closedAction,
                     currentUserLogin: '',
+                    formatPhoneNumber,
                 });
 
                 expect(lastMessage).toBe(translateLocal('reportArchiveReasons.policyDeleted', {policyName: policy.name}));
@@ -2469,8 +2690,9 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     policy,
                     isReportArchived: true,
-
+                    lastAction: closedAction,
                     currentUserLogin: '',
+                    formatPhoneNumber,
                 });
 
                 expect(lastMessage).toBe(translateLocal('reportArchiveReasons.removedFromPolicy', {displayName: 'Hidden', policyName: policy.name}));
@@ -2509,8 +2731,9 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: true,
-
+                    lastAction: closedAction,
                     currentUserLogin: '',
+                    formatPhoneNumber,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
 
@@ -2548,7 +2771,9 @@ describe('ReportAlternateTextUtils', () => {
                     policy: undefined,
                     personalDetails: undefined,
                     isReportArchived: false,
+                    lastAction: changelogAction,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 expect(lastMessage).toBe('changed the "Office Supplies" category default tax rate to "Tax Rate 1 (5%)" (previously "Tax Exempt (0%)")');
@@ -2584,7 +2809,9 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
+                    lastAction: changelogAction,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 expect(lastMessage).toBe('changed the default spend category for "Airlines" to "Travel" (previously "Insurance")');
@@ -2620,7 +2847,9 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
+                    lastAction: action,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
                 expect(lastMessage).toBe(getOverLimitForwardsToUpdateMessage(translateLocal, action, convertToDisplayString));
             });
@@ -2655,7 +2884,9 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
+                    lastAction: action,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
                 expect(lastMessage).toBe(getApprovalLimitUpdateMessage(translateLocal, action, convertToDisplayString));
             });

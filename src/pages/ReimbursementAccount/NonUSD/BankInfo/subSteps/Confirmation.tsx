@@ -10,13 +10,14 @@ import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import type BankInfoSubStepProps from '@pages/ReimbursementAccount/NonUSD/BankInfo/types';
 import {getBankInfoStepValues} from '@pages/ReimbursementAccount/NonUSD/utils/getBankInfoStepValues';
 import getInputKeysForBankInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInputKeysForBankInfoStep';
+import putBankAddressBeforeBankCity from '@pages/ReimbursementAccount/NonUSD/utils/putBankAddressBeforeBankCity';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 import {SafeString} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React from 'react';
 
 const {ACCOUNT_HOLDER_COUNTRY} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 function Confirmation({onNext, onMove, isEditing, corpayFields}: BankInfoSubStepProps) {
@@ -26,34 +27,30 @@ function Confirmation({onNext, onMove, isEditing, corpayFields}: BankInfoSubStep
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const inputKeys = getInputKeysForBankInfoStep(corpayFields);
-    const formFields = corpayFields?.formFields;
-    const values = useMemo(() => getBankInfoStepValues(inputKeys, reimbursementAccountDraft, reimbursementAccount), [inputKeys, reimbursementAccount, reimbursementAccountDraft]);
+    const formFields = corpayFields?.formFields ? putBankAddressBeforeBankCity(corpayFields.formFields) : undefined;
+    const values = getBankInfoStepValues(inputKeys, reimbursementAccountDraft, reimbursementAccount);
 
-    const summaryItems = useMemo(
-        () =>
-            (formFields ?? []).map((field) => {
-                let title = SafeString(values[field.id as keyof typeof values]);
+    const summaryItems = (formFields ?? []).map((field) => {
+        let title = SafeString(values[field.id as keyof typeof values]);
 
-                if (field.id === ACCOUNT_HOLDER_COUNTRY) {
-                    title = CONST.ALL_COUNTRIES[title as keyof typeof CONST.ALL_COUNTRIES];
+        if (field.id === ACCOUNT_HOLDER_COUNTRY) {
+            title = CONST.ALL_COUNTRIES[title as keyof typeof CONST.ALL_COUNTRIES];
+        }
+
+        return {
+            id: field.id,
+            description: field.label,
+            title,
+            shouldShowRightIcon: true,
+            onPress: () => {
+                if (!field.id.includes(CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX)) {
+                    onMove(0);
+                } else {
+                    onMove(1);
                 }
-
-                return {
-                    id: field.id,
-                    description: field.label,
-                    title,
-                    shouldShowRightIcon: true,
-                    onPress: () => {
-                        if (!field.id.includes(CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX)) {
-                            onMove(0);
-                        } else {
-                            onMove(1);
-                        }
-                    },
-                };
-            }),
-        [formFields, onMove, values],
-    );
+            },
+        };
+    });
 
     if (corpayFields?.isLoading) {
         return (
