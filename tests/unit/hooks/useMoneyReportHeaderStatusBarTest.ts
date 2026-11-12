@@ -7,6 +7,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportActionTypeGuards from '@libs/ReportActionTypeGuards';
 import * as ReportPrimaryActionUtils from '@libs/ReportPrimaryActionUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import * as TransactionFields from '@libs/TransactionUtils/fields';
 import * as TransactionViolationUtils from '@libs/TransactionUtils/violations';
 
 import CONST from '@src/CONST';
@@ -83,13 +84,13 @@ describe('useMoneyReportHeaderStatusBar - duplicate transactions', () => {
         // ReportUtils spies go through require() instead (matches other tests spying on this module).
         jest.spyOn(require('@libs/ReportUtils'), 'hasOnlyHeldExpenses').mockReturnValue(false);
         jest.spyOn(require('@libs/ReportUtils'), 'isSettled').mockReturnValue(false);
-        // The violation helpers live in the TransactionUtils/violations leaf module that TransactionUtils only re-exports, so they must be spied at the leaf too.
+        // The violation and field helpers live in leaf modules that TransactionUtils only re-exports, so they must be spied at the leaf too.
         jest.spyOn(TransactionViolationUtils, 'allHavePendingRTERViolation').mockReturnValue(false);
         jest.spyOn(TransactionViolationUtils, 'hasDuplicateTransactions').mockReturnValue(false);
         jest.spyOn(TransactionViolationUtils, 'isBrokenConnectionViolation').mockReturnValue(false);
         jest.spyOn(TransactionUtils, 'hasReceipt').mockReturnValue(false);
         jest.spyOn(TransactionUtils, 'isPayAtEndExpense').mockReturnValue(false);
-        jest.spyOn(TransactionUtils, 'isPending').mockReturnValue(false);
+        jest.spyOn(TransactionFields, 'isPending').mockReturnValue(false);
         jest.spyOn(TransactionUtils, 'isScanning').mockReturnValue(false);
         jest.spyOn(TransactionViolationUtils, 'shouldSuppressBrokenConnectionStatus').mockReturnValue(false);
         jest.spyOn(TransactionViolationUtils, 'shouldShowBrokenConnectionViolationForMultipleTransactions').mockReturnValue(false);
