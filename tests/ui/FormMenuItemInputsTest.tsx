@@ -51,7 +51,11 @@ describe('Composable form picker rows', () => {
         // When the picker row is mounted through its real composable root.
         render(
             <LocaleContextProvider>
-                <Component ref={ref} label="Field" route={ROUTES.HOME} />
+                <Component
+                    ref={ref}
+                    label="Field"
+                    route={ROUTES.HOME}
+                />
             </LocaleContextProvider>,
         );
 
@@ -70,7 +74,12 @@ describe('Composable form picker rows', () => {
         // When the row is rendered in its invalid state.
         render(
             <LocaleContextProvider>
-                <Component ref={ref} label="Field" route={ROUTES.HOME} errorText="Required field" />
+                <Component
+                    ref={ref}
+                    label="Field"
+                    route={ROUTES.HOME}
+                    errorText="Required field"
+                />
             </LocaleContextProvider>,
         );
 
@@ -95,7 +104,14 @@ describe('Composable form picker rows', () => {
             // When the report field selector is rendered with its legacy right label.
             render(
                 <LocaleContextProvider>
-                    <Component ref={ref} label="Field" route={ROUTES.HOME} value={value} errorText={errorText} rightLabel="Required" />
+                    <Component
+                        ref={ref}
+                        label="Field"
+                        route={ROUTES.HOME}
+                        value={value}
+                        errorText={errorText}
+                        rightLabel="Required"
+                    />
                 </LocaleContextProvider>,
             );
 
@@ -108,7 +124,11 @@ describe('Composable form picker rows', () => {
             const ref = createRef<ComponentRef<typeof View>>();
             render(
                 <LocaleContextProvider>
-                    <Component ref={ref} label="Field" route={ROUTES.HOME} />
+                    <Component
+                        ref={ref}
+                        label="Field"
+                        route={ROUTES.HOME}
+                    />
                 </LocaleContextProvider>,
             );
 
