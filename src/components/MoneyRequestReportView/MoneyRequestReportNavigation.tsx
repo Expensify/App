@@ -58,6 +58,10 @@ const searchLoadingSelector = (snapshot: OnyxEntry<SearchResults>): boolean => !
 
 const searchOffsetSelector = (snapshot: OnyxEntry<SearchResults>): number | undefined => snapshot?.search?.offset;
 
+const searchHasMoreResultsSelector = (snapshot: OnyxEntry<SearchResults>): boolean | undefined => snapshot?.search?.hasMoreResults;
+
+const searchPendingSelector = (snapshot: OnyxEntry<SearchResults>): boolean => !!snapshot?.search?.isLoading || snapshot?.search?.state === CONST.SEARCH.SNAPSHOT_STATE.LOADING;
+
 /**
  * Search sections can yield entries that aren't openable reports. An unreported (self-DM) expense is grouped under
  * the "0" placeholder rather than a real report, so paging onto it lands the user on an empty report. It also
@@ -134,6 +138,8 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
     const shouldReturnTripRooms = useShouldReturnTripRooms(lastSearchQuery?.queryJSON?.type);
     const [isSearchLoading = false] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {selector: searchLoadingSelector});
     const [snapshotOffset] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {selector: searchOffsetSelector});
+    const [snapshotHasMoreResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {selector: searchHasMoreResultsSelector});
+    const [isSnapshotPending = false] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {selector: searchPendingSelector});
 
     // Fast path: use the pre-computed IDs from the search context when they are usable and no page is in
     // flight. Otherwise fall back to the standalone list, which is produced by the child below that mounts
@@ -196,6 +202,14 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
             return;
         }
 
+        if (!isSnapshotPending && snapshotHasMoreResults !== undefined && snapshotOffset === (lastSearchQuery.offset ?? 0) && snapshotHasMoreResults !== lastSearchQuery.hasMoreResults) {
+            saveLastSearchParams({
+                ...lastSearchQuery,
+                hasMoreResults: snapshotHasMoreResults,
+            });
+            return;
+        }
+
         if (lastSearchQuery.allowPostSearchRecount) {
             saveLastSearchParams({
                 ...lastSearchQuery,
@@ -222,7 +236,18 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
             ...lastSearchQuery,
             previousLengthOfResults: effectiveAllReports.length,
         });
-    }, [isFocused, currentIndex, allReportsCount, effectiveAllReports.length, lastSearchQuery?.queryJSON, lastSearchQuery, isSearchLoading, snapshotOffset]);
+    }, [
+        isFocused,
+        currentIndex,
+        allReportsCount,
+        effectiveAllReports.length,
+        lastSearchQuery?.queryJSON,
+        lastSearchQuery,
+        isSearchLoading,
+        snapshotOffset,
+        snapshotHasMoreResults,
+        isSnapshotPending,
+    ]);
 
     const goToReportId = (reportId?: string) => {
         if (!reportId) {

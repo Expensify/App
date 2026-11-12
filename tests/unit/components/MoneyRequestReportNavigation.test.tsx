@@ -291,6 +291,27 @@ describe('MoneyRequestReportNavigation', () => {
                 allowPostSearchRecount: false,
             });
         });
+
+        it('takes hasMoreResults from the first page that replaced a stale snapshot', () => {
+            // Given the report was opened while the cached snapshot still ended on the last page, so the params say there is nothing more, and then the first page replaced it
+            jest.mocked(saveLastSearchParams).mockClear();
+            const lastSearchQuery = renderNavigationOnFirstPage('40', {offset: 0, hasMoreResults: false}, {offset: 0, hasMoreResults: true});
+
+            // Then the params take hasMoreResults from the first page, so Next requests page 2 instead of stopping at report 50
+            expect(saveLastSearchParams).toHaveBeenCalledWith({...lastSearchQuery, hasMoreResults: true});
+        });
+
+        it.each([
+            ['while the first page is still loading', {offset: 0, hasMoreResults: true, state: CONST.SEARCH.SNAPSHOT_STATE.LOADING}],
+            ['when the snapshot holds another page', {offset: CONST.SEARCH.RESULTS_PAGE_SIZE * 2, hasMoreResults: true}],
+        ])('keeps hasMoreResults from the params %s', (_label, snapshotSearch) => {
+            // Given the params say there is nothing more, and the snapshot's hasMoreResults doesn't describe the page the params are on
+            jest.mocked(saveLastSearchParams).mockClear();
+            renderNavigationOnFirstPage('40', {offset: 0, hasMoreResults: false}, snapshotSearch);
+
+            // Then hasMoreResults isn't copied from the snapshot, because it belongs to a page that hasn't landed or to another page
+            expect(saveLastSearchParams).not.toHaveBeenCalledWith(expect.objectContaining({hasMoreResults: true}));
+        });
     });
 
     describe('to-do list', () => {
@@ -329,7 +350,7 @@ describe('MoneyRequestReportNavigation', () => {
 });
 
 /** Renders the navigation for `reportID` with the first page of 50 reports in the snapshot, and returns the saved params it starts from. */
-function renderNavigationOnFirstPage(reportID: string, searchParams: {offset: number; hasMoreResults: boolean}, snapshotSearch: {offset: number; hasMoreResults: boolean}) {
+function renderNavigationOnFirstPage(reportID: string, searchParams: {offset: number; hasMoreResults: boolean}, snapshotSearch: {offset: number; hasMoreResults: boolean; state?: string}) {
     const reportIDs = Array.from({length: CONST.SEARCH.RESULTS_PAGE_SIZE}, (_, index) => `${index + 1}`);
     const lastSearchQuery = {
         queryJSON: {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, hash: 1},
