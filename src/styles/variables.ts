@@ -140,6 +140,8 @@ export default {
     nativeTabIconDotCutout: 2,
     /** Gap between the glyph and the label drawn under it, or beside it in landscape, in an iOS native tab bar icon. */
     nativeTabIconLabelGap: 6,
+    /** UIKit puts this much more space before a landscape tab's icon than after it, so the icon adds it after its label to even out the selected pill. */
+    nativeTabIconTrailingInsetIOSLandscape: 8,
     /** Space between the screen edge and the first tab of the iOS 26 floating tab bar. */
     iosNativeTabBarHorizontalInset: 25,
     // UITabBar sizes its items to their icons and gives the selected pill a minimum width, so a label as wide as an even
