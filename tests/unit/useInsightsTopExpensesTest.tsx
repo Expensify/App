@@ -24,6 +24,8 @@ import currencyList from './currencyList.json';
 
 let mockIsOffline = false;
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: mockIsOffline})));
+let mockIsFocused = true;
+jest.mock('@react-navigation/native', () => ({...jest.requireActual<Record<string, unknown>>('@react-navigation/native'), useIsFocused: () => mockIsFocused}));
 let mockCurrentSearchQueryJSON: SearchQueryJSON | undefined;
 jest.mock('@libs/SearchQueryUtils', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/SearchQueryUtils'),
@@ -104,6 +106,7 @@ describe('useInsightsTopExpenses', () => {
 
     beforeEach(async () => {
         mockIsOffline = false;
+        mockIsFocused = true;
         mockCurrentSearchQueryJSON = undefined;
         jest.clearAllMocks();
         await Onyx.set(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID, email: 'submitter@expensify.com'});
@@ -158,6 +161,26 @@ describe('useInsightsTopExpenses', () => {
 
             // Then it requests the expenses without the user having to retry
             expect(search).toHaveBeenCalledTimes(1);
+        });
+
+        it('requests again when the panel regains focus', async () => {
+            // Given a panel that requested its query and then lost focus to an expense opened from it
+            const {rerender} = renderTopExpenses(QUERY);
+            await waitForBatchedUpdatesWithAct();
+            mockIsFocused = false;
+            rerender({query: QUERY});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it sends nothing while hidden
+            expect(search).toHaveBeenCalledTimes(1);
+
+            // When the user goes back to the panel
+            mockIsFocused = true;
+            rerender({query: QUERY});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it requests again, so an edit that moved the expense out of the query drops it from the list
+            expect(search).toHaveBeenCalledTimes(2);
         });
 
         it('requests nothing without a query', async () => {
