@@ -93,6 +93,28 @@ describe('sanitizeLogParams', () => {
         });
     });
 
+    it('redacts bank details that are sent as JSON strings', () => {
+        // Given parameters that carry SSN digits and bank fields inside JSON strings, where key matching can't see them
+        const beneficialOwnersParams = {
+            command: 'UpdateBeneficialOwnersForBankAccount',
+            bankAccountID: 123,
+            beneficialOwners: JSON.stringify([{firstName: 'Jane', ssnLast4: '6789'}]),
+        };
+        const depositAccountParams = {
+            command: 'CreateCollectOnlyDepositAccount',
+            accountNumber: '9876543210123',
+            additionalData: JSON.stringify({country: 'GB', iban: 'GB00TEST00000012345678'}),
+        };
+
+        // When they are sanitized for the logs
+        const beneficialOwnersResult = sanitizeLogParams(beneficialOwnersParams);
+        const depositAccountResult = sanitizeLogParams(depositAccountParams);
+
+        // Then the whole JSON strings are redacted, so the values inside them never reach the logs
+        expect(beneficialOwnersResult).toEqual({command: 'UpdateBeneficialOwnersForBankAccount', bankAccountID: 123, beneficialOwners: '<redacted>'});
+        expect(depositAccountResult).toEqual({command: 'CreateCollectOnlyDepositAccount', accountNumber: '<redacted>', additionalData: '<redacted>'});
+    });
+
     it('redacts accounting integration credentials', () => {
         // Given the parameters of Sage Intacct and NetSuite connections, which carry the customer's ERP credentials
         const intacctParams = {command: 'ConnectPolicyToSageIntacct', policyID: '1', intacctUserID: 'user', intacctPassword: 'hunter2'};
