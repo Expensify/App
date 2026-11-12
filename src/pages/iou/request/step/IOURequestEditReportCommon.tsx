@@ -196,6 +196,12 @@ function IOURequestEditReportCommon({
         outstandingReportsOffset.current += CONST.OUTSTANDING_REPORTS_PAGE_SIZE;
         fetchOutstandingReports(resolvedReportOwnerAccountID, outstandingReportsPolicyID, outstandingReportsOffset.current);
     };
+
+    // The list's onEndReached prop is typed () => void, so it gets a function that does not return the Promise
+    const requestMoreOutstandingReports = () => {
+        loadMoreOutstandingReports();
+    };
+
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         isManualDistanceRequest,
         isOdometerDistanceRequest,
@@ -504,9 +510,7 @@ function IOURequestEditReportCommon({
                 ) : undefined
             }
             listEmptyContent={listHeaderContent}
-            onEndReached={() => {
-                loadMoreOutstandingReports();
-            }}
+            onEndReached={requestMoreOutstandingReports}
             onEndReachedThreshold={0.75}
         />
     );
