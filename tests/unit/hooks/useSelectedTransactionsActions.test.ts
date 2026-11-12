@@ -1030,7 +1030,17 @@ describe('useSelectedTransactionsActions', () => {
 
         mergeOption?.onSelected?.();
 
-        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(transaction.transactionID, [transaction], mockLocalCompare, mockGetCurrencyDecimals, [], false, false, undefined);
+        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(
+            transaction.transactionID,
+            [transaction],
+            mockLocalCompare,
+            mockTranslate,
+            mockGetCurrencyDecimals,
+            [],
+            false,
+            false,
+            undefined,
+        );
     });
 
     it('should resolve IOU actions from the Onyx collection when the paginated report actions miss them', async () => {
