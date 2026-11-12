@@ -288,6 +288,22 @@ describe('WiseBusinessOnboardingPage', () => {
         expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
     });
 
+    it.each([
+        ['left nothing on the device', undefined],
+        ['left another bank account on the device', {achData: {...REIMBURSEMENT_ACCOUNT.achData, bankAccountID: BANK_ACCOUNT_ID + 1}}],
+    ])('reads the details itself when the read the intro page started has ended and %s', async (_label, reimbursementAccount) => {
+        // Given the intro page's read for this bank account, ended without this bank account's details, as when it fails
+        openReimbursementAccountPageForWiseIntro(BANK_ACCOUNT_ID);
+        jest.mocked(openReimbursementAccountPage).mockClear();
+
+        // When the visit opens without a page
+        await renderPage({reimbursementAccount, shouldLeaveReadRunning: true});
+
+        // Then the page reads this bank account and waits, since the form would open without the business details
+        expect(openReimbursementAccountPage).toHaveBeenCalledWith({bankAccountID: BANK_ACCOUNT_ID, shouldPreserveDraft: true});
+        expect(screen.getByTestId(LOADER_TEST_ID)).toBeOnTheScreen();
+    });
+
     it('reads the details itself when the intro page read another bank account', async () => {
         // Given the intro page's read for another bank account, with details for this one left on the device
         openReimbursementAccountPageForWiseIntro(BANK_ACCOUNT_ID + 1);
