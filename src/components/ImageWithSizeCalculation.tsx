@@ -3,8 +3,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
+import type {SingleImageSource} from '@src/types/utils/ReactNativeCompat';
 
-import type {ImageProps, ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
+import type {ImageProps, StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
 
@@ -24,7 +25,7 @@ type OnLoadNativeEvent = {
 };
 
 type ImageWithSizeCalculationProps = {
-    url: string | ImageSourcePropType;
+    url: string | SingleImageSource;
     altText?: string;
     style?: StyleProp<ViewStyle>;
 

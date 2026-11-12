@@ -1,6 +1,8 @@
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useKeyboardState from '@hooks/useKeyboardState';
 
+import type {ScaledSize} from 'react-native';
+
 import {useEffect, useRef} from 'react';
 import {Dimensions, TextInput} from 'react-native';
 import {KeyboardEvents} from 'react-native-keyboard-controller';
@@ -28,7 +30,7 @@ const useLandscapeOnBlurProxy: UseLandscapeOnBlurProxy = (inputRef, onBlur) => {
         let lastWindowWidth = Dimensions.get('window').width;
 
         // Only width changes count, because the soft keyboard itself changes the window height on Android.
-        const subscription = Dimensions.addEventListener('change', ({window}) => {
+        const subscription = Dimensions.addEventListener('change', ({window}: {window: ScaledSize}) => {
             if (window.width === lastWindowWidth) {
                 return;
             }

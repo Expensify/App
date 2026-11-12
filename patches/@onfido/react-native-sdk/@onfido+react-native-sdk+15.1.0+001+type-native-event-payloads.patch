@@ -1,0 +1,54 @@
+diff --git a/node_modules/@onfido/react-native-sdk/js/Onfido.ts b/node_modules/@onfido/react-native-sdk/js/Onfido.ts
+index 34c884f..04b849f 100644
+--- a/node_modules/@onfido/react-native-sdk/js/Onfido.ts
++++ b/node_modules/@onfido/react-native-sdk/js/Onfido.ts
+@@ -27,6 +27,11 @@ export type OnfidoEvent = {
+ const OnfidoSdkModule = NativeModules.OnfidoSdk
+ const eventEmitter = new NativeEventEmitter(OnfidoSdkModule)
+ 
++type BiometricTokenEvent = {
++    customerUserHash: string;
++    biometricToken: string;
++}
++
+ type BiometricTokenCallback = {
+     onTokenGenerated: (customerUserHash: string, biometricToken: string) => void;
+     onTokenRequested: (customerUserHash: string, provideToken: (biometricToken: string) => void) => void;
+@@ -117,7 +122,11 @@ const Onfido = {
+     OnfidoSdk.withAnalyticsCallback()
+ 
+     eventEmitter.removeAllListeners(eventType);
+-    return eventEmitter.addListener(eventType, callback);
++    // Expensify plans to remove the Onfido SDK, so these listener types are patched here instead of fixed upstream.
++    // The native SDK sends the payloads typed below, but `NativeEventEmitter` can't say so on both React Native versions
++    // the App supports: it takes no event map on 0.86 and types every listener argument as `Object` under the Strict
++    // TypeScript API, so each listener's or payload's type is asserted.
++    return eventEmitter.addListener(eventType, callback as (event: unknown) => void);
+   },
+ 
+   addCustomMediaCallback(callback: (result: OnfidoMediaResult) => OnfidoMediaResult) {
+@@ -126,7 +135,7 @@ const Onfido = {
+     // Removing any previously-added listener to avoid multiple invocations
+     eventEmitter.removeAllListeners('onfidoMediaCallback');
+ 
+-    return eventEmitter.addListener('onfidoMediaCallback', callback);
++    return eventEmitter.addListener('onfidoMediaCallback', callback as (result: unknown) => OnfidoMediaResult);
+   },
+ 
+ addBiometricTokenCallback(callback: BiometricTokenCallback): void {
+@@ -135,11 +144,11 @@ addBiometricTokenCallback(callback: BiometricTokenCallback): void {
+     eventEmitter.removeAllListeners('onTokenGenerated');
+     eventEmitter.removeAllListeners('onTokenRequested');
+ 
+-    eventEmitter.addListener('onTokenGenerated', (event) => {
+-        callback.onTokenGenerated(event.customerUserHash, event.biometricToken)
++    eventEmitter.addListener('onTokenGenerated', (event: unknown) => {
++        callback.onTokenGenerated((event as BiometricTokenEvent).customerUserHash, (event as BiometricTokenEvent).biometricToken)
+     });
+-    eventEmitter.addListener('onTokenRequested', (event) => {
+-        callback.onTokenRequested(event.customerUserHash, (biometricToken) => {
++    eventEmitter.addListener('onTokenRequested', (event: unknown) => {
++        callback.onTokenRequested((event as BiometricTokenEvent).customerUserHash, (biometricToken) => {
+             OnfidoSdk.provideBiometricToken(biometricToken)
+         })
+     });

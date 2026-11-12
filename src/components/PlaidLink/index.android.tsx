@@ -13,7 +13,7 @@ function PlaidLink({onExit = () => {}, ...restProps}: PlaidLinkProps) {
         <BaseNativePlaidLink
             key={key}
             onExit={() => {
-                AppStateTracker.getWasAppRelaunchedFromIcon().then((wasAppRelaunchedFromIcon) => {
+                AppStateTracker.getWasAppRelaunchedFromIcon().then((wasAppRelaunchedFromIcon: boolean) => {
                     if (wasAppRelaunchedFromIcon) {
                         setKey((prevKey) => prevKey + 1);
                         return;
