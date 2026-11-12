@@ -185,4 +185,3 @@ function LabelledFileUploadAdapter({
 }
 
 export default LabelledFileUploadAdapter;
-export type {LabelledUpload};

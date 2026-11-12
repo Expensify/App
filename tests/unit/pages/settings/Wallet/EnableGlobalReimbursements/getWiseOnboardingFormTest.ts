@@ -1,5 +1,6 @@
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 import getContentFields from '@components/DynamicForm/utils/getContentFields';
+import isHeading from '@components/DynamicForm/utils/isHeading';
 import isSupportedField from '@components/DynamicForm/utils/isSupportedField';
 import {getPages} from '@components/DynamicForm/utils/paginate';
 
@@ -141,8 +142,9 @@ describe('source of wealth pages built from the requirement attributes', () => {
         // Given a business loan, which takes a loan agreement and a bank statement
         // When the documents page is built
         const [proofPage] = getKYCRequirementPages(getRequirement(CONST.WISE.KYC_REQUIREMENT.BUSINESS_SOURCE_OF_WEALTH_PROOF, {attributes: PROOF_ATTRIBUTES}), {});
-        const loanHeading = proofPage?.content.find((item) => item.key === `${CONST.WISE.SOURCE_OF_WEALTH.BUSINESS_LOAN}-heading`);
-        const revenueHeading = proofPage?.content.find((item) => item.key === `${CONST.WISE.SOURCE_OF_WEALTH.REVENUE}-heading`);
+        const headings = proofPage?.content.filter(isHeading) ?? [];
+        const loanHeading = headings.find((heading) => heading.key === `${CONST.WISE.SOURCE_OF_WEALTH.BUSINESS_LOAN}-heading`);
+        const revenueHeading = headings.find((heading) => heading.key === `${CONST.WISE.SOURCE_OF_WEALTH.REVENUE}-heading`);
 
         // Then each button names its document, the loan heading has no hint, and revenue, whose button offers a choice, keeps its hint
         expect(getProofField(CONST.WISE.SOURCE_OF_WEALTH.BUSINESS_LOAN)?.uploads?.map((upload) => upload.labelKey)).toEqual([
