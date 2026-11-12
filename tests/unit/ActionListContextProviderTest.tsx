@@ -1,7 +1,12 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import {ActionListContextProvider, useActionListContext} from '@pages/inbox/ActionListContext';
+import {ActionListContextProvider, useActionListContext, useActionListReady, useActionListRef} from '@pages/inbox/ActionListContext';
 import type ActionListRefType from '@pages/inbox/ActionListTypes';
+
+function TestList() {
+    useActionListRef();
+    return null;
+}
 
 /**
  * `ActionListContextProvider` owns a private holder and exposes `registerListRef(ref)` / `getListRef()`
@@ -9,6 +14,28 @@ import type ActionListRefType from '@pages/inbox/ActionListTypes';
  * The tests exercise the public surface (the provider + the `useActionListContext` consumer hook).
  */
 describe('ActionListContextProvider', () => {
+    it('resets readiness when the positioned list is replaced', () => {
+        // Given a mounted report whose list has finished its initial positioning.
+        let listKey = 'first';
+        const {result, rerender} = renderHook(() => useActionListReady(), {
+            wrapper: ({children}) => (
+                <ActionListContextProvider>
+                    {children}
+                    <TestList key={listKey} />
+                </ActionListContextProvider>
+            ),
+        });
+        act(() => result.current.setIsReady(true));
+        expect(result.current.isReady).toBe(true);
+
+        // When another list registers with the same provider, it needs its own initial layout.
+        listKey = 'second';
+        rerender({});
+
+        // Then the new list starts covered and publishes its ref before any scroll handler runs.
+        expect(result.current.isReady).toBe(false);
+    });
+
     it('getListRef() returns null before any ref is registered', () => {
         const {result} = renderHook(() => useActionListContext(), {wrapper: ActionListContextProvider});
 

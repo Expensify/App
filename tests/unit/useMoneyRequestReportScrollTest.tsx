@@ -31,13 +31,12 @@ const BOTTOM_OFFSET_AT_TOP = LIST_CONTENT_HEIGHT - LIST_LAYOUT_HEIGHT;
 const LAST_ITEM_INDEX = 4;
 
 const mockScrollToIndex = jest.fn();
-const mockScrollToEnd = jest.fn();
+const mockScrollToBottom = jest.fn();
 jest.mock('@hooks/useReportScrollManager', () => ({
     __esModule: true,
     default: () => ({
         scrollToIndex: mockScrollToIndex,
-        scrollToEnd: mockScrollToEnd,
-        scrollToBottom: jest.fn(),
+        scrollToBottom: mockScrollToBottom,
         scrollToOffset: jest.fn(),
     }),
 }));
@@ -559,7 +558,7 @@ describe('useMoneyRequestReportScroll', () => {
             });
 
             // Then the list reveals the indicator, which lives in the footer below the row a last-item jump targets
-            expect(mockScrollToEnd).toHaveBeenCalledTimes(1);
+            expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
         });
 
         it('should not scroll for the thinking indicator while the list is away from the bottom', async () => {
@@ -576,7 +575,7 @@ describe('useMoneyRequestReportScroll', () => {
             });
 
             // Then the reading position is untouched
-            expect(mockScrollToEnd).not.toHaveBeenCalled();
+            expect(mockScrollToBottom).not.toHaveBeenCalled();
             expect(result.current.isFloatingMessageCounterVisible).toBe(false);
         });
 
@@ -589,7 +588,7 @@ describe('useMoneyRequestReportScroll', () => {
             act(() => {
                 jest.advanceTimersByTime(100);
             });
-            expect(mockScrollToEnd).toHaveBeenCalledTimes(1);
+            expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
 
             // When the thinking label changes, which re-renders the list many times per run
             rerender(buildParams());
@@ -600,7 +599,7 @@ describe('useMoneyRequestReportScroll', () => {
             });
 
             // Then the viewport is not yanked down again
-            expect(mockScrollToEnd).toHaveBeenCalledTimes(1);
+            expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
         });
 
         it('should scroll again for a new thinking-indicator run', async () => {
@@ -612,7 +611,7 @@ describe('useMoneyRequestReportScroll', () => {
             act(() => {
                 jest.advanceTimersByTime(100);
             });
-            expect(mockScrollToEnd).toHaveBeenCalledTimes(1);
+            expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
 
             // When that run ends and another one starts
             mockCandidateAgentIDs = [];
@@ -626,7 +625,7 @@ describe('useMoneyRequestReportScroll', () => {
             });
 
             // Then the new run's indicator is revealed too
-            expect(mockScrollToEnd).toHaveBeenCalledTimes(2);
+            expect(mockScrollToBottom).toHaveBeenCalledTimes(2);
         });
     });
 

@@ -43,6 +43,7 @@ function createReadinessSignals(overrides: Partial<ReportActionsReadinessSignals
         isLoadingInitialReportActions: false,
         isLoadingApp: false,
         reportActionsLength: 0,
+        hasReportActionPages: true,
         oldestReportActionID: undefined,
         hasOlderActions: false,
         hasNewerActions: false,
@@ -58,6 +59,92 @@ function createReadinessSignals(overrides: Partial<ReportActionsReadinessSignals
 }
 
 describe('computeReportActionsSkeletonState', () => {
+    it('keeps a displayed unread action visible while its report refreshes', () => {
+        // Given a cached unread action has already been displayed before reconnecting.
+        const signals = createReadinessSignals({
+            report: unreadReport,
+            hasOnceLoadedReportActions: true,
+            reportActionsLength: 1,
+            isMissingReportActions: false,
+            isReportLoadPending: true,
+            isLoadingInitialReportActions: true,
+        });
+
+        // When OpenReport refreshes that report after reconnecting.
+        const state = computeReportActionsSkeletonState(signals);
+
+        // Then the existing list keeps its viewport instead of remounting behind a skeleton.
+        expect(state.shouldShowLoadingSkeleton).toBe(false);
+    });
+
+    it('shows the loading skeleton while OpenReport is pending for actions without a loaded page', () => {
+        // Given a read chat whose only cached actions came without a page, e.g. from OpenApp after a cache clear
+        const signals = createReadinessSignals({
+            report: readReport,
+            isMissingReportActions: false,
+            reportActionsLength: 3,
+            hasReportActionPages: false,
+            isReportLoadPending: true,
+        });
+
+        // When the skeleton state is computed while its OpenReport is pending
+        const state = computeReportActionsSkeletonState(signals);
+
+        // Then the skeleton shows, so the list never opens at scattered older messages that jump away on load
+        expect(state.shouldShowLoadingSkeleton).toBe(true);
+    });
+
+    it('shows the loading skeleton for actions without a loaded page before OpenReport is queued', () => {
+        // Given a read chat with unpaged cached actions whose screen has not queued OpenReport yet
+        const signals = createReadinessSignals({
+            report: readReport,
+            isMissingReportActions: false,
+            reportActionsLength: 3,
+            hasReportActionPages: false,
+            isReportLoadPending: false,
+            isLoadingInitialReportActions: undefined,
+        });
+
+        // When the skeleton state is computed on that first render
+        const state = computeReportActionsSkeletonState(signals);
+
+        // Then the skeleton already shows, so the list does not mount, mark the chat as read and remount without its unread marker
+        expect(state.shouldShowLoadingSkeleton).toBe(true);
+    });
+
+    it('shows cached actions without a loaded page for an optimistic report', () => {
+        // Given an optimistic chat that only has local actions and no page yet
+        const signals = createReadinessSignals({
+            report: {...readReport, pendingFields: {createReport: 'add'}},
+            isMissingReportActions: false,
+            reportActionsLength: 1,
+            hasReportActionPages: false,
+            isReportLoadPending: true,
+        });
+
+        // When the skeleton state is computed while its OpenReport is pending
+        const state = computeReportActionsSkeletonState(signals);
+
+        // Then the local actions stay visible because they are all there is to show
+        expect(state.shouldShowLoadingSkeleton).toBe(false);
+    });
+
+    it('shows cached actions with a loaded page while OpenReport is pending', () => {
+        // Given a read chat with a page of cached actions from an earlier visit
+        const signals = createReadinessSignals({
+            report: readReport,
+            isMissingReportActions: false,
+            reportActionsLength: 3,
+            isReportLoadPending: true,
+        });
+
+        // When the skeleton state is computed while its OpenReport refreshes the chat
+        const state = computeReportActionsSkeletonState(signals);
+
+        // Then the cached page shows right away
+        expect(state.shouldShowLoadingSkeleton).toBe(false);
+    });
+
     it('shows the loading skeleton for a pending OpenReport matching this report', () => {
         const state = computeReportActionsSkeletonState(
             createReadinessSignals({

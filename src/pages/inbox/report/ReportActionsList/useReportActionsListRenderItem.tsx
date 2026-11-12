@@ -1,7 +1,6 @@
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {shouldKeepBillPayActorHeader} from '@libs/BillPayReportActionUtils';
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
@@ -35,7 +34,7 @@ import {isLinkedToBillSelector} from '@src/selectors/ReportNameValuePairs';
 import type * as OnyxTypes from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
-import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {LegendListRenderItemProps} from '@legendapp/list/react-native';
 
 import {getCustomAgentAccountIDs} from '@selectors/AgentZeroChat';
 import {accountIDSelector} from '@selectors/Session';
@@ -44,6 +43,7 @@ import React from 'react';
 import type {UseReportActionsListRenderItemParams} from './types';
 
 import ReportActionsListRow from './ReportActionsListRow';
+import SkeletonBelowLinkedAction from './SkeletonBelowLinkedAction';
 
 /** Builds the report-actions row renderer and the `extraData` values that must re-render rows when they change. */
 function useReportActionsListRenderItem({
@@ -53,6 +53,7 @@ function useReportActionsListRenderItem({
     isOffline,
     sortedReportActions,
     renderedVisibleReportActions,
+    reportActionsToRender,
     listData,
     canonicalIndexByReportActionID,
     runsByAnchorReportActionID,
@@ -66,8 +67,10 @@ function useReportActionsListRenderItem({
     unreadMarkerReportActionID,
     linkedReportActionID,
     onShowPreviousMessages,
+    shouldShowSkeletonBelowLinkedAction,
+    hasRowsBelowLinkedAction,
+    hideSkeletonBelowLinkedAction,
 }: UseReportActionsListRenderItemParams) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {
         report,
         hasNewerActions,
@@ -129,27 +132,31 @@ function useReportActionsListRenderItem({
         return isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report);
     })();
 
-    const renderItem = ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
+    const renderItem = ({item: reportAction, index}: LegendListRenderItemProps<OnyxTypes.ReportAction>) => {
         const canonicalIndex = canonicalIndexByReportActionID.get(reportAction.reportActionID) ?? index;
         const systemMessageRun = runsByAnchorReportActionID.get(reportAction.reportActionID);
-        const previousReportAction = listData.at(index + 1);
+        const previousReportAction = index > 0 ? listData.at(index - 1) : undefined;
         const previousRun = previousReportAction ? runsByAnchorReportActionID.get(previousReportAction.reportActionID) : undefined;
         const isAfterCollapsedRun = !!previousRun && !previousRun.isExpanded;
         const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
 
         const collapsedSystemMessageRun = systemMessageRun && !systemMessageRun.isExpanded ? systemMessageRun : undefined;
+        const collapsedRunUnreadMarkerReportActionID =
+            unreadMarkerReportActionID && collapsedSystemMessageRun?.reportActionIDs.includes(unreadMarkerReportActionID) && (!shouldUseThreadDividerLine || !shouldHideThreadDividerLine)
+                ? unreadMarkerReportActionID
+                : undefined;
+        const shouldGroupWithPreviousActor =
+            !isAfterCollapsedRun &&
+            !shouldKeepBillPayActorHeader(reportAction, previousReportAction, reportStable, isInvoiceLinkedToBill) &&
+            !isConsecutiveChronosAutomaticTimerAction(reportActionsToRender, canonicalIndex, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
+            isConsecutiveActionMadeByPreviousActor(reportActionsToRender, canonicalIndex, isOffline);
 
-        return (
+        const row = (
             <ReportActionsListRow
                 index={index}
+                isNewest={index === listData.length - 1}
                 collapsedSystemMessageRun={collapsedSystemMessageRun}
-                collapsedSystemMessageRunUnreadMarkerReportActionID={
-                    unreadMarkerReportActionID &&
-                    collapsedSystemMessageRun?.reportActionIDs.includes(unreadMarkerReportActionID) &&
-                    (!shouldUseThreadDividerLine || !shouldHideThreadDividerLine)
-                        ? unreadMarkerReportActionID
-                        : undefined
-                }
+                collapsedSystemMessageRunUnreadMarkerReportActionID={collapsedRunUnreadMarkerReportActionID}
                 expandSystemMessageRun={expandSystemMessageRun}
                 onExpandedSystemMessageReady={reportAction.reportActionID === focusRequestedReportActionID ? onExpandedSystemMessageReady : undefined}
                 hasPreviousMessages={!!hasPreviousMessages}
@@ -162,15 +169,10 @@ function useReportActionsListRenderItem({
                 transactionThreadReport={transactionThreadReport}
                 chatReport={chatReportStable}
                 linkedReportActionID={linkedReportActionID}
-                displayAsGroup={
-                    !isAfterCollapsedRun &&
-                    !shouldKeepBillPayActorHeader(reportAction, previousReportAction, reportStable, isInvoiceLinkedToBill) &&
-                    !isConsecutiveChronosAutomaticTimerAction(renderedVisibleReportActions, canonicalIndex, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
-                    isConsecutiveActionMadeByPreviousActor(renderedVisibleReportActions, canonicalIndex, isOffline)
-                }
+                displayAsGroup={shouldGroupWithPreviousActor}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                 shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
-                shouldDisplayReplyDivider={renderedVisibleReportActions.length > 1}
+                shouldDisplayReplyDivider={reportActionsToRender.length > 1}
                 isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                 isLatestConciergeFeedbackAction={latestConciergeFeedbackActionIDs.includes(reportAction.reportActionID)}
                 reportsParentHierarchy={reportsParentHierarchy}
@@ -179,12 +181,27 @@ function useReportActionsListRenderItem({
                 shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
             />
         );
+        if (reportAction.reportActionID !== linkedReportActionID) {
+            return row;
+        }
+        // The linked row always renders as a fragment, so removing the skeleton does not remount the row.
+        return (
+            <>
+                {row}
+                {shouldShowSkeletonBelowLinkedAction && (
+                    <SkeletonBelowLinkedAction
+                        linkedActionIndex={index}
+                        hasNewerRows={hasRowsBelowLinkedAction}
+                        onNewerRowMeasured={hideSkeletonBelowLinkedAction}
+                    />
+                )}
+            </>
+        );
     };
 
-    // Native mobile does not render updates flatlist the changes even though component did update called.
-    // To notify there something changes we can use extraData prop to flatlist
+    // Ensure row presentation updates when these values change without changing the action data.
     const extraData = [
-        shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined,
+        unreadMarkerReportActionID,
         isArchivedNonExpenseReport(report, isReportArchived),
         draftReportActionID,
         draftMessageHTML,
@@ -192,6 +209,8 @@ function useReportActionsListRenderItem({
         latestConciergeFeedbackActionIDs,
         expandedSystemMessageReportActionIDs,
         focusRequestedReportActionID,
+        shouldShowSkeletonBelowLinkedAction,
+        hasRowsBelowLinkedAction,
     ];
 
     return {renderItem, extraData};

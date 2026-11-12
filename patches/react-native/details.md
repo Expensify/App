@@ -12,7 +12,7 @@
 - Reason: Fixes content jumping issues with `MaintainVisibleContentPosition` on Android, particularly in bidirectional pagination scenarios. The patch:
   1. Changes when the first visible view is calculated - now happens on scroll events instead of during Fabric's willMountItems lifecycle, which was causing incorrect updates
   2. Improves first visible view selection logic to handle Fabric's z-index-based view reordering by finding the view with the smallest position that's still greater than the scroll position
-  3. Preserves a positioned, zero-sized first child as a scroll anchor. LegendList moves this anchor to compensate for item measurements. Selecting its surrounding container or rejecting its empty frame prevents native scroll compensation and makes the chat jump as estimated rows shrink. LegendList 3.7 places the anchor at its adjustment offset plus 10,000,000 pixels, beyond the viewport. The strict visibility check also prevents a fixed, zero-sized spacer at or above the scroll offset in another scroll view from taking over its visible-content anchor.
+  3. Preserves a positioned, zero-sized first child as a scroll anchor. LegendList moves this anchor to compensate for item measurements. Selecting its surrounding container or rejecting its empty frame prevents native scroll compensation and makes the chat jump as estimated rows shrink. LegendList places the anchor at its adjustment offset plus 1,000,000 points, beyond the viewport (10,000,000 before `@legendapp/list` patch 005). The strict visibility check also prevents a fixed, zero-sized spacer at or above the scroll offset in another scroll view from taking over its visible-content anchor.
 - Scope: This changes Android `MaintainVisibleContentPosition` for every React Native scroll view that enables it, not only the report-action list. Keep this in mind when updating React Native or investigating anchoring in other scroll views.
 - Upstream PR/issue: https://github.com/react/react-native/pull/57959 merged on 2026-10-28 as [9bc1a28a9623419d62eb350acd0c172644e2c022](https://github.com/react/react-native/commit/9bc1a28a9623419d62eb350acd0c172644e2c022). It ports the original Android MVCP proposal and includes z-index anchor selection and support for LegendList's positioned, zero-sized anchor.
 - Expected release: React Native 0.89.0, [currently scheduled for 2026-12-07](https://reactnative.dev/releases/overview), unless cherry-picked into an earlier release. The fix landed after the 0.88 branch cut and before the scheduled 0.89 branch cut on 2026-11-03.
@@ -407,3 +407,11 @@
 - E/App issue: https://github.com/Expensify/App/issues/100303
 - PR introducing patch: this PR.
 - 0.86.0 migration note: **drop this patch on the RN 0.88 upgrade** — the unconditional `_firstVisibleView.tag` and `superview` guards are present in `0.88-stable` and absent from `v0.87.1`, which still has only the `enableViewCulling()`-gated check.
+
+### [react-native+0.86.0+050+fix-mvcp-one-frame-jump-android.patch](react-native+0.86.0+050+fix-mvcp-one-frame-jump-android.patch)
+
+- Reason: Returning from a thread can briefly move the linked message when rows above it finish measuring. Android moves the rows and corrects the scroll offset in the same mount, but `View.scrollTo` schedules the scroll view redraw for the next frame. This backports the upstream fix by invalidating the scroll view after either horizontal or vertical anchoring, so the current frame uses the corrected offset.
+- Upstream PR/issue: https://github.com/react/react-native/pull/58187, fixes https://github.com/react/react-native/issues/58186.
+- E/App issue: Tracked in https://github.com/Expensify/App/pull/100733.
+- PR introducing patch: https://github.com/Expensify/App/pull/100733.
+- 0.86.0 migration note: Remove once the adopted React Native release includes the upstream fix.

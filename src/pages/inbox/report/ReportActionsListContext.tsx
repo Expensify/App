@@ -56,6 +56,7 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
         isLoadingInitialReportActions,
         isLoadingApp,
         reportActionsLength,
+        hasReportActionPages,
         oldestUnreadReportAction,
         isSingleExpenseReport,
         isMissingReportActions,
@@ -68,7 +69,7 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
 
     // Before the first successful load, a missing loading-state entry means ReportFetchHandler has not
     // enqueued OpenReport yet. Once a terminal failure writes false, the stored state releases the gate.
-    const shouldKeepInitialReportLoadGated = isReportLoadPending || (!hasOnceLoadedReportActions && isLoadingInitialReportActions !== false);
+    const shouldKeepInitialReportLoadGated = !hasOnceLoadedReportActions && (isReportLoadPending || isLoadingInitialReportActions !== false);
 
     // When opening an unread report, it is very likely that the message we will open to is not the latest,
     // which is the only one we will have in cache.
@@ -90,7 +91,7 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
 
     const shouldShowSkeletonForInitialLoad = isReportLoadPending && (isReportDataIncomplete || isMissingReportActions) && !isOffline;
 
-    const shouldShowSkeletonForAppLoad = !!isLoadingApp && !isOffline;
+    const shouldShowSkeletonForAppLoad = !!isLoadingApp && !hasOnceLoadedReportActions && !isOffline;
 
     // Show skeleton for the Concierge side panel until report data has been loaded
     // at least once. Before the first openReport response, hasOlderActions is
@@ -102,7 +103,18 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
     // actions that arrives right after the initial load shifts the list and breaks the anchor to the linked action.
     const shouldShowSkeletonForLinkedMessageLoad = !!reportActionIDFromRoute && !isOffline && !hasOnceLoadedReportActions && isReportLoadPending;
 
-    const shouldShowInitialSkeleton = shouldShowSkeletonForConciergePanel || shouldShowSkeletonForInitialLoad || shouldShowSkeletonForAppLoad || shouldShowSkeletonForLinkedMessageLoad;
+    // Actions cached without a loaded page, such as the few that OpenApp returns after a cache clear, are scattered
+    // across the history. Showing them would open the chat at old messages that jump away once OpenReport loads the newest page.
+    // Gate from the first render, before OpenReport is queued: a list that mounts early marks the chat as read and loses its unread marker on remount.
+    const shouldShowSkeletonForUnpagedActions =
+        shouldKeepInitialReportLoadGated && !hasOnceLoadedReportActions && !hasReportActionPages && !report?.pendingFields?.createReport && !isOffline;
+
+    const shouldShowInitialSkeleton =
+        shouldShowSkeletonForConciergePanel ||
+        shouldShowSkeletonForInitialLoad ||
+        shouldShowSkeletonForAppLoad ||
+        shouldShowSkeletonForLinkedMessageLoad ||
+        shouldShowSkeletonForUnpagedActions;
 
     const hasDerivedValueTimingIssue = reportActionsLength > 0 && isMissingReportActions;
 

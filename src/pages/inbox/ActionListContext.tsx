@@ -1,6 +1,6 @@
 import type {ReactNode, RefObject} from 'react';
 
-import React, {createContext, useContext, useLayoutEffect, useRef} from 'react';
+import React, {createContext, useContext, useLayoutEffect, useRef, useState} from 'react';
 
 import type ActionListRefType from './ActionListTypes';
 import type {ActionListRef} from './ActionListTypes';
@@ -25,6 +25,14 @@ const ActionListContext = createContext<ActionListContextType>({
     getListRef: () => null,
 });
 
+const ActionListReadyContext = createContext(true);
+const ActionListReadyActionsContext = createContext<(isReady: boolean) => void>(() => {});
+
+/** Coordinates automatic composer focus with the list's visible initial layout. */
+function useActionListReady() {
+    return {isReady: useContext(ActionListReadyContext), setIsReady: useContext(ActionListReadyActionsContext)};
+}
+
 function useActionListContext() {
     return useContext(ActionListContext);
 }
@@ -35,18 +43,24 @@ function useActionListContext() {
  */
 function useActionListRef() {
     const {registerListRef} = useActionListContext();
+    const {setIsReady} = useActionListReady();
     const listRef = useRef<ActionListRef>(null);
 
     useLayoutEffect(() => {
+        setIsReady(false);
         registerListRef(listRef);
-        return () => registerListRef(null);
-    }, [registerListRef]);
+        return () => {
+            registerListRef(null);
+            setIsReady(false);
+        };
+    }, [registerListRef, setIsReady]);
 
     return listRef;
 }
 
 /** Owns the action-list context value so screens don't wire it up themselves. */
 function ActionListContextProvider({children}: {children: ReactNode}) {
+    const [isReady, setIsReady] = useState(false);
     // Each list owns its own ref locally and publishes it here on mount; only the register/get
     // callbacks live in context, so attaching `ref={}` stays local to each list.
     const listRefHolder = useRef<ActionListRefType>(null);
@@ -64,8 +78,14 @@ function ActionListContextProvider({children}: {children: ReactNode}) {
     // The value is only stable refs and ref accessors — none of it triggers re-renders — so a
     // single context is intentional; splitting state/actions into two providers would add ceremony
     // for no benefit.
-    // eslint-disable-next-line rulesdir/context-provider-split-values
-    return <ActionListContext.Provider value={value}>{children}</ActionListContext.Provider>;
+    return (
+        <ActionListReadyActionsContext.Provider value={setIsReady}>
+            <ActionListReadyContext.Provider value={isReady}>
+                {/* eslint-disable-next-line rulesdir/context-provider-split-values */}
+                <ActionListContext.Provider value={value}>{children}</ActionListContext.Provider>
+            </ActionListReadyContext.Provider>
+        </ActionListReadyActionsContext.Provider>
+    );
 }
 
-export {ActionListContext, ActionListContextProvider, useActionListContext, useActionListRef};
+export {ActionListContext, ActionListContextProvider, useActionListContext, useActionListReady, useActionListRef};

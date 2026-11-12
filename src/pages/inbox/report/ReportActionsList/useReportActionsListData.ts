@@ -1,3 +1,6 @@
+/** Prepares chronological report rows, including streamed drafts, initial snapshots, and collapsed system messages. */
+import useInitial from '@hooks/useInitial';
+
 import {getReportActionMessage, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isExpenseReport, isIOUReport, isInvoiceReport} from '@libs/ReportUtils';
 
@@ -7,15 +10,14 @@ import useReportActionsPresentation from '@pages/inbox/report/useReportActionsPr
 
 import CONST from '@src/CONST';
 
-import {useEffect} from 'react';
+import {useEffect, useState} from 'react';
 
 import type {UseReportActionsListDataParams} from './types';
 
 import getReportActionsWithStreamedReply from './getReportActionsWithStreamedReply';
 
-/** Prepares the rendered report rows, including streamed Concierge drafts and collapsed system messages. */
-function useReportActionsListData({sortedVisibleReportActions, sessionStartTime, linkedReportActionID, unreadMarkerReportActionID}: UseReportActionsListDataParams) {
-    const {report, sortedAllReportActions, parentReportAction, isConciergeHiddenHistory, showFullHistory} = useReportActionsListState();
+function useReportActionsListData({sortedVisibleReportActions, isOffline, sessionStartTime, linkedReportActionID, unreadMarkerReportActionID}: UseReportActionsListDataParams) {
+    const {report, sortedAllReportActions, parentReportAction, isInitialReportLoadPending, isConciergeHiddenHistory, showFullHistory} = useReportActionsListState();
     const {draftReportAction, isDraftPendingCompletion} = useConciergeDraft();
     const {clearDraft, revealDraftFromReportAction} = useConciergeDraftActions();
     const showHiddenHistory = isConciergeHiddenHistory && !showFullHistory;
@@ -35,6 +37,20 @@ function useReportActionsListData({sortedVisibleReportActions, sessionStartTime,
         shouldHideDraft,
     });
 
+    // OpenReport starts with a tiny cached page before replacing it with the hydrated page. Keep that
+    // already-visible page mounted until hydration finishes instead of exposing intermediate estimated
+    // layouts. The hydrated list then mounts from scratch using the full dataset.
+    const initialReportActionsSnapshot = useInitial(renderedVisibleReportActions.length > 0 ? renderedVisibleReportActions : undefined);
+    const [hasReleasedInitialSnapshot, setHasReleasedInitialSnapshot] = useState(isOffline || !isInitialReportLoadPending || showFullHistory);
+    const shouldReleaseInitialSnapshot = !hasReleasedInitialSnapshot && (isOffline || !isInitialReportLoadPending || showFullHistory);
+    if (shouldReleaseInitialSnapshot) {
+        setHasReleasedInitialSnapshot(true);
+    }
+    const shouldKeepInitialSnapshot = !hasReleasedInitialSnapshot;
+    const reportActionsToRender = shouldKeepInitialSnapshot ? (initialReportActionsSnapshot ?? renderedVisibleReportActions) : renderedVisibleReportActions;
+
+    // Report actions are stored newest-first. LegendList renders them chronologically.
+    const chronologicalReportActions = [...reportActionsToRender].reverse();
     const shouldCollapseSystemMessages = isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report) || isTransactionThread(parentReportAction);
     const {
         displayReportActions,
@@ -46,19 +62,15 @@ function useReportActionsListData({sortedVisibleReportActions, sessionStartTime,
         focusRequestedReportActionID,
         onExpandedSystemMessageReady,
     } = useReportActionsPresentation({
-        visibleReportActions: shouldCollapseSystemMessages ? renderedVisibleReportActions : [],
+        visibleReportActions: shouldCollapseSystemMessages ? chronologicalReportActions : [],
         linkedReportActionID,
         unreadMarkerReportActionID,
     });
-    const listData = shouldCollapseSystemMessages ? displayReportActions : renderedVisibleReportActions;
-    const canonicalIndexByReportActionID = new Map(renderedVisibleReportActions.map((action, index) => [action.reportActionID, index]));
-    const unreadMarkerListIndex = shouldCollapseSystemMessages
-        ? unreadMarkerReportActionIndex
-        : renderedVisibleReportActions.findIndex((action) => action.reportActionID === unreadMarkerReportActionID);
+    const listData = shouldCollapseSystemMessages ? displayReportActions : chronologicalReportActions;
+    const canonicalIndexByReportActionID = new Map(reportActionsToRender.map((action, index) => [action.reportActionID, index]));
 
     const draftMessageHTML = draftReportAction ? getReportActionMessage(draftReportAction)?.html : undefined;
     const draftReportActionID = draftReportAction?.reportActionID;
-    const draftAutoScrollKey = isSyntheticDraftVisible && draftReportAction ? `${draftReportAction.reportActionID}:${draftMessageHTML ?? ''}` : '';
 
     useEffect(() => {
         if (!draftReportAction || isSyntheticDraftVisible) {
@@ -78,8 +90,11 @@ function useReportActionsListData({sortedVisibleReportActions, sessionStartTime,
         revealDraftFromReportAction(persistedDraftReportAction);
     }, [draftReportAction, isDraftPendingCompletion, persistedDraftReportAction, revealDraftFromReportAction]);
 
+    const unreadMarkerListIndex = shouldCollapseSystemMessages ? unreadMarkerReportActionIndex : listData.findIndex((action) => action.reportActionID === unreadMarkerReportActionID);
+
     return {
         renderedVisibleReportActions,
+        reportActionsToRender,
         listData,
         canonicalIndexByReportActionID,
         runsByAnchorReportActionID,
@@ -91,7 +106,6 @@ function useReportActionsListData({sortedVisibleReportActions, sessionStartTime,
         onExpandedSystemMessageReady,
         draftMessageHTML,
         draftReportActionID,
-        draftAutoScrollKey,
         isDraftPendingCompletion,
     };
 }

@@ -1,7 +1,6 @@
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
@@ -116,7 +115,6 @@ function AncestorReportActionItem({
     const isAncestorReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]);
     const canOpenAncestorReport = canCurrentUserOpenReport(report, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), hasGuidesEmails, isAncestorReportArchived);
 
-    const {isOffline} = useNetwork();
     const {isInNarrowPaneModal} = useResponsiveLayout();
 
     const openLinkedAncestorReport = (isArchived: boolean) => {
@@ -128,7 +126,6 @@ function AncestorReportActionItem({
             },
             isInNarrowPaneModal,
             canUserPerformWriteActionReportUtils(report, isArchived),
-            isOffline,
         );
     };
 

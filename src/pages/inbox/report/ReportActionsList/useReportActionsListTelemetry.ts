@@ -1,35 +1,26 @@
+/** Completes warm report spans once positioned content is visible, including when the report regains focus. */
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 
 import {useReportActionsListState} from '@pages/inbox/report/ReportActionsListContext';
 
-import type {LayoutChangeEvent} from 'react-native';
-
-import {useEffect, useRef} from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import {useEffect} from 'react';
 
 import type {UseReportActionsListTelemetryParams} from './types';
 
-/** Returns the list layout handler, which completes the warm open-report span on the first layout. */
-function useReportActionsListTelemetry({reportID, onLayout}: UseReportActionsListTelemetryParams) {
+function useReportActionsListTelemetry({reportID, listID, loadedInitialViewportListID, shouldShowInitialViewportSkeleton}: UseReportActionsListTelemetryParams) {
+    const isFocused = useIsFocused();
     const {report} = useReportActionsListState();
-    const didLayout = useRef(false);
 
     useEffect(() => {
-        didLayout.current = false;
-    }, [reportID]);
-
-    /**
-     * Runs when the FlatList finishes laying out
-     */
-    return (event: LayoutChangeEvent) => {
-        onLayout?.(event);
-        if (didLayout.current) {
+        const shouldWaitForVisibleViewport = !isFocused || shouldShowInitialViewportSkeleton || loadedInitialViewportListID !== listID;
+        if (shouldWaitForVisibleViewport) {
             return;
         }
-
-        didLayout.current = true;
-
+        // onReady positions the list, but only this committed render has removed its cover.
+        // Refocus also completes new spans when the positioned list stays mounted.
         markOpenReportEnd(reportID, report, {warm: true});
-    };
+    }, [isFocused, listID, loadedInitialViewportListID, report, reportID, shouldShowInitialViewportSkeleton]);
 }
 
 export default useReportActionsListTelemetry;

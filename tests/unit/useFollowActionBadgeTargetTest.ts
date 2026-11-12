@@ -40,11 +40,12 @@ describe('useFollowActionBadgeTarget', () => {
     });
 
     it('follows a newer badge target when the previous target is hidden inside a collapsed run', () => {
+        // Given the previous target is represented by an older summary row in the chronological list.
         const scrollToActionBadgeTarget = jest.fn();
-        const renderedVisibleReportActions = [makeAction('current'), makeAction('summary')];
+        const renderedVisibleReportActions = [makeAction('summary'), makeAction('current')];
         const reportActionIDToDisplayIndex = new Map([
-            ['current', 0],
-            ['previous', 1],
+            ['previous', 0],
+            ['current', 1],
         ]);
         const {rerender} = renderHook(
             ({actionTargetReportActionID, actionBadgeTargetIndex}: {actionTargetReportActionID: string; actionBadgeTargetIndex: number}) =>
@@ -56,11 +57,13 @@ describe('useFollowActionBadgeTarget', () => {
                     reportActionIDToDisplayIndex,
                     scrollToActionBadgeTarget,
                 }),
-            {initialProps: {actionTargetReportActionID: 'previous', actionBadgeTargetIndex: 1}},
+            {initialProps: {actionTargetReportActionID: 'previous', actionBadgeTargetIndex: 0}},
         );
 
-        rerender({actionTargetReportActionID: 'current', actionBadgeTargetIndex: 0});
+        // When the badge advances to a newer action outside the collapsed run.
+        rerender({actionTargetReportActionID: 'current', actionBadgeTargetIndex: 1});
 
+        // Then the list follows the new target using the hidden action's mapped position.
         expect(scrollToActionBadgeTarget).toHaveBeenCalledTimes(1);
     });
 });

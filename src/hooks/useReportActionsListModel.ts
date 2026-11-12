@@ -13,6 +13,7 @@ import {useRoute} from '@react-navigation/native';
 
 import useConciergeAskState from './useConciergeAskState';
 import {useIsAppLoadPending} from './useInFlightRequests';
+import useInitial from './useInitial';
 import useLoadReportActions from './useLoadReportActions';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
@@ -57,8 +58,11 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`, {
         selector: reportActionsListLoadingStateSelector,
     });
-    const hasOnceLoadedReportActions = reportLoadingState?.hasOnceLoadedReportActions;
+    // Cached actions displayed offline must stay mounted when queued loads resume.
+    const hasUsableReportActions = reportLoadingState?.hasOnceLoadedReportActions || (isOffline && reportActions.length > 0);
+    const hasOnceLoadedReportActions = useInitial(hasUsableReportActions ? true : undefined);
     const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
+    const isInitialReportLoadPending = !hasOnceLoadedReportActions && (isReportLoadPending || isLoadingInitialReportActions !== false);
     const isLoadingOlderReportActions = reportLoadingState?.isLoadingOlderReportActions;
     const hasLoadingOlderReportActionsError = reportLoadingState?.hasLoadingOlderReportActionsError;
 
@@ -78,6 +82,7 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
     const isAppLoadPending = useIsAppLoadPending();
 
     const [reportPaginationState] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportID}`);
+    const [hasReportActionPages = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${reportID}`, {selector: (pages) => !!pages?.length});
 
     const {loadOlderChats, loadNewerChats, currentReportOldestActionID} = useLoadReportActions({
         reportID,
@@ -121,6 +126,7 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         isLoadingInitialReportActions,
         isLoadingApp: isAppLoadPending,
         reportActionsLength: reportActions.length,
+        hasReportActionPages,
         oldestReportActionID: currentReportOldestActionID,
         hasOlderActions,
         hasNewerActions,
@@ -139,7 +145,12 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
     const state = {
         report,
         hasOnceLoadedReportActions,
+        isInitialReportLoadPending,
+        isLoadingOlderReportActions,
+        hasLoadingOlderReportActionsError,
+        hasOlderActions,
         hasNewerActions,
+        oldestReportActionID: currentReportOldestActionID,
         sortedAllReportActions,
         oldestUnreadReportAction,
         transactionThreadReport,
@@ -151,6 +162,7 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         isConciergeHiddenHistory,
         showFullHistory,
         hasPreviousMessages,
+        allReportActionIDs,
         persistedReportActionIDs,
         shouldShowConciergeWelcome,
         isConciergeHistoryExpanded,

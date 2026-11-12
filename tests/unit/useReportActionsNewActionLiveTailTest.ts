@@ -1,4 +1,4 @@
-import {act, renderHook} from '@testing-library/react-native';
+import {act, renderHook, waitFor} from '@testing-library/react-native';
 
 import {FALLBACK_NAVIGATION_CONTEXT_VALUE} from '@components/withNavigationFallback';
 
@@ -17,7 +17,7 @@ const mockNavigationSetParams = jest.fn();
 const mockGlobalSetParams = jest.fn();
 const mockOpenReport = jest.fn();
 const mockLogAlert = jest.fn();
-let newActionHandler: ((isFromCurrentUser: boolean, action?: ReportAction) => void) | undefined;
+let newActionHandler: ((isFromCurrentUser: boolean, action: ReportAction | undefined, source: 'local' | 'realtime') => void) | undefined;
 
 jest.mock('@libs/Log', () => ({
     __esModule: true,
@@ -78,7 +78,7 @@ jest.mock('@libs/actions/Report', () => ({
 }));
 
 jest.mock('@libs/actions/Report/reportActionSubscribers', () => ({
-    subscribeToNewActionEvent: (_reportID: string, callback: (isFromCurrentUser: boolean, action?: ReportAction) => void) => {
+    subscribeToNewActionEvent: (_reportID: string, callback: (isFromCurrentUser: boolean, action: ReportAction | undefined, source: 'local' | 'realtime') => void) => {
         newActionHandler = callback;
         return jest.fn();
     },
@@ -89,7 +89,6 @@ type HookParams = Parameters<typeof useReportActionsNewActionLiveTail>[0];
 const reportScrollManager = {
     scrollToBottom: jest.fn(),
     scrollToIndex: jest.fn(),
-    scrollToEnd: jest.fn(),
     scrollToOffset: jest.fn(),
 };
 
@@ -105,7 +104,7 @@ function buildParams(overrides: Partial<HookParams> = {}): HookParams {
         hasNewerActions: true,
         linkedReportActionID: undefined,
         hasNewestReportAction: false,
-        sortedVisibleReportActions: [],
+        renderedVisibleReportActions: [],
         sortedAllReportActionsForPagination: [],
         reportActionPages: undefined,
         setTreatAsNoPaginationAnchor: jest.fn(),
@@ -125,15 +124,191 @@ describe('useReportActionsNewActionLiveTail', () => {
         mockIsInSidePanel = false;
     });
 
+    it.each([false, true])('reaches the cached newest window offline when in side panel is %s', async (isInSidePanel) => {
+        // Given an offline report whose newest cached page does not contain the newest server message.
+        mockIsInSidePanel = isInSidePanel;
+        const linkedAction = getFakeReportAction(2);
+        const newestCachedAction = getFakeReportAction(3);
+        const params = buildParams({
+            isOffline: true,
+            linkedReportActionID: linkedAction.reportActionID,
+            renderedVisibleReportActions: [linkedAction],
+            sortedAllReportActionsForPagination: [newestCachedAction, linkedAction],
+            reportActionPages: [[newestCachedAction.reportActionID], [linkedAction.reportActionID]],
+        });
+        const {result, rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: params});
+
+        // When Latest messages is pressed, release the anchor locally instead of waiting for OpenReport.
+        act(() => result.current.requestLiveTailJump());
+        expect(mockOpenReport).not.toHaveBeenCalled();
+        expect(params.setTreatAsNoPaginationAnchor).toHaveBeenCalledWith(true);
+        expect(mockNavigationSetParams).toHaveBeenCalledTimes(isInSidePanel ? 0 : 1);
+        expect(mockGlobalSetParams).not.toHaveBeenCalled();
+        expect(result.current.isScrollToBottomEnabled).toBe(false);
+
+        // Then request the scroll after the cached newest window enters the list.
+        const newestCachedParams = {...params, linkedReportActionID: '', treatAsNoPaginationAnchor: true, renderedVisibleReportActions: [newestCachedAction]};
+        rerender(newestCachedParams);
+        await waitFor(() => expect(result.current.isScrollToBottomEnabled).toBe(true));
+        act(() => {
+            result.current.setIsScrollToBottomEnabled(false);
+            result.current.completeLiveTailPruneAfterScrollToBottom();
+        });
+        expect(params.setTreatAsNoPaginationAnchor).toHaveBeenLastCalledWith(false);
+
+        // When the reader scrolls away and presses Latest messages again, the completed jump must not block it.
+        rerender({...newestCachedParams, treatAsNoPaginationAnchor: false});
+        act(() => result.current.requestLiveTailJump());
+        expect(result.current.isScrollToBottomEnabled).toBe(false);
+        expect(params.setTreatAsNoPaginationAnchor).toHaveBeenLastCalledWith(true);
+        rerender(newestCachedParams);
+
+        // Then another local scroll is requested without ever needing the uncached server message.
+        await waitFor(() => expect(result.current.isScrollToBottomEnabled).toBe(true));
+    });
+
+    it('waits for the newest page before requesting the Latest messages scroll', async () => {
+        // Given a historical page, with its linked action still anchoring pagination.
+        const params = buildParams({linkedReportActionID: 'old-action'});
+        const {result, rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: params});
+
+        // When Latest messages is pressed repeatedly while its request is pending.
+        act(() => {
+            result.current.requestLiveTailJump();
+            result.current.requestLiveTailJump();
+        });
+        await waitForBatchedUpdates();
+        expect(mockOpenReport).toHaveBeenCalledTimes(1);
+        expect(result.current.isScrollToBottomEnabled).toBe(false);
+        expect(mockNavigationSetParams).not.toHaveBeenCalled();
+
+        // Then completing the request releases that report's anchor, but still waits for the newest row to render.
+        const loadedParams = {...params, prevIsLoadingInitialReportActions: true, reportLoadingState: {isLoadingInitialReportActions: false}};
+        rerender(loadedParams);
+        expect(mockNavigationSetParams).toHaveBeenCalledWith({reportActionID: ''});
+        expect(mockGlobalSetParams).not.toHaveBeenCalled();
+        expect(result.current.isScrollToBottomEnabled).toBe(false);
+
+        rerender({...loadedParams, linkedReportActionID: '', treatAsNoPaginationAnchor: true, hasNewestReportAction: true});
+        await act(async () => Promise.resolve());
+        expect(result.current.isScrollToBottomEnabled).toBe(true);
+        act(() => {
+            result.current.setIsScrollToBottomEnabled(false);
+            result.current.completeLiveTailPruneAfterScrollToBottom();
+        });
+        rerender({...loadedParams, linkedReportActionID: '', hasNewestReportAction: true});
+        expect(result.current.isScrollToBottomEnabled).toBe(false);
+        expect(mockOpenReport).toHaveBeenCalledTimes(1);
+    });
+
+    it('requests one post-render scroll once the sent comment is rendered', () => {
+        const action = getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT});
+        const {result, rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {
+            initialProps: buildParams({hasNewerActions: false, hasNewestReportAction: true}),
+        });
+
+        act(() => {
+            newActionHandler?.(true, action, 'local');
+        });
+
+        expect(result.current.isScrollToBottomEnabled).toBe(false);
+        expect(reportScrollManager.scrollToBottom).not.toHaveBeenCalled();
+
+        rerender(buildParams({hasNewerActions: false, hasNewestReportAction: true, renderedVisibleReportActions: [action]}));
+
+        expect(result.current.isScrollToBottomEnabled).toBe(true);
+    });
+
+    it('clears a pending sent-comment scroll when switching reports', () => {
+        // Given a sent action that has not entered the rendered page yet.
+        const action = getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT});
+        const params = buildParams({hasNewerActions: false, hasNewestReportAction: true});
+        const {result, rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: params});
+        act(() => newActionHandler?.(true, action, 'local'));
+
+        // When the reader switches reports and returns before the timeout, with the row now loaded.
+        rerender({...params, reportID: '2'});
+        rerender({...params, renderedVisibleReportActions: [action]});
+
+        // Then the old send request does not reclaim the viewport.
+        expect(result.current.isScrollToBottomEnabled).toBe(false);
+    });
+
+    it('does not scroll for a payload-less realtime echo', () => {
+        const {result} = renderHook(() => useReportActionsNewActionLiveTail(buildParams({hasNewerActions: false, hasNewestReportAction: true})));
+
+        act(() => {
+            newActionHandler?.(true, undefined, 'realtime');
+        });
+
+        expect(result.current.isScrollToBottomEnabled).toBe(false);
+        expect(mockOpenReport).not.toHaveBeenCalled();
+    });
+
+    it('keeps the live-tail jump for a local action without a report action payload', async () => {
+        // Given a report showing an older page
+        renderHook(() => useReportActionsNewActionLiveTail(buildParams()));
+
+        // When a local money request sends a payload-less notification
+        act(() => {
+            newActionHandler?.(true, undefined, 'local');
+        });
+        await waitForBatchedUpdates();
+
+        // Then the report opens its latest page
+        expect(mockOpenReport).toHaveBeenCalledTimes(1);
+    });
+
+    it('expires a sent-comment scroll request when the action never enters the list', () => {
+        // Given a sent action that is filtered out or fails to appear
+        jest.useFakeTimers();
+        const action = getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT});
+        const {result, rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {
+            initialProps: buildParams({hasNewerActions: false, hasNewestReportAction: true}),
+        });
+        act(() => {
+            newActionHandler?.(true, action, 'local');
+        });
+
+        // When the action finally appears well after the send attempt
+        act(() => {
+            jest.advanceTimersByTime(10000);
+        });
+        rerender(buildParams({hasNewerActions: false, hasNewestReportAction: true, renderedVisibleReportActions: [action]}));
+
+        // Then the stale request does not pull the reader to the bottom
+        expect(result.current.isScrollToBottomEnabled).toBe(false);
+        jest.useRealTimers();
+    });
+
+    it('does not queue a bottom scroll that would compete with a report-preview target', () => {
+        const preview = getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW});
+        const {result} = renderHook(() => useReportActionsNewActionLiveTail(buildParams({hasNewerActions: false, hasNewestReportAction: true, renderedVisibleReportActions: [preview]})));
+
+        act(() => {
+            newActionHandler?.(true, preview, 'local');
+        });
+
+        expect(reportScrollManager.scrollToBottom).toHaveBeenCalledTimes(1);
+        expect(result.current.isScrollToBottomEnabled).toBe(false);
+    });
+
     it('shows the cached newest window when sending offline from a linked action', () => {
-        // Given an older linked action while offline
+        // Given an older linked action while offline.
         const params = buildParams({isOffline: true, linkedReportActionID: '2'});
-        const {result} = renderHook(() => useReportActionsNewActionLiveTail(params));
-        // When the current user sends a comment
-        act(() => newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT})));
-        // Then reveal the cached live tail and release the override after scrolling
+        const action = getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT});
+        const {result, rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: params});
+
+        // When the current user sends a comment, release the old pagination anchor without a request.
+        act(() => newActionHandler?.(true, action, 'local'));
         expect(params.setTreatAsNoPaginationAnchor).toHaveBeenLastCalledWith(true);
         expect(mockNavigationSetParams.mock.calls).toEqual([[{reportActionID: ''}]]);
+        expect(mockOpenReport).not.toHaveBeenCalled();
+        expect(result.current.isScrollToBottomEnabled).toBe(false);
+
+        // Then scroll only after the chronological list contains the sent comment, and release the override afterwards.
+        rerender({...params, linkedReportActionID: '', treatAsNoPaginationAnchor: true, hasNewestReportAction: true, renderedVisibleReportActions: [action]});
+        expect(result.current.isScrollToBottomEnabled).toBe(true);
         act(() => result.current.completeLiveTailPruneAfterScrollToBottom());
         expect(params.setTreatAsNoPaginationAnchor).toHaveBeenLastCalledWith(false);
     });
@@ -152,7 +327,7 @@ describe('useReportActionsNewActionLiveTail', () => {
 
         // When the current user sends a comment while the newest actions are not loaded
         act(() => {
-            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
+            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}), 'local');
         });
         await waitForBatchedUpdates();
 
@@ -169,14 +344,15 @@ describe('useReportActionsNewActionLiveTail', () => {
         );
     });
 
-    it('returns the openReport helper that the "Latest messages" pill reuses', async () => {
-        // Given the hook for report 1. The pill in useReportActionsScroll calls this helper instead of reading the inputs itself.
+    it('returns the live-tail request that the "Latest messages" pill reuses', async () => {
+        // Given the hook for report 1. The pill in useReportActionsScroll calls this request instead of reading the openReport inputs itself.
         const {result} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildParams()});
 
-        // When the pill calls the returned helper
-        await act(async () => {
-            await result.current.openReportAtLiveTail();
+        // When the pill requests the live tail
+        act(() => {
+            result.current.requestLiveTailJump();
         });
+        await waitForBatchedUpdates();
 
         // Then openReport runs once, for this report
         expect(mockOpenReport).toHaveBeenCalledTimes(1);
@@ -187,7 +363,7 @@ describe('useReportActionsNewActionLiveTail', () => {
         const {rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildParams()});
 
         act(() => {
-            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
+            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}), 'local');
         });
         await waitForBatchedUpdates();
 
@@ -211,7 +387,7 @@ describe('useReportActionsNewActionLiveTail', () => {
         const {rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildParams({setTreatAsNoPaginationAnchor})});
 
         act(() => {
-            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
+            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}), 'local');
         });
 
         expect(() =>
@@ -233,7 +409,7 @@ describe('useReportActionsNewActionLiveTail', () => {
         const {rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildParams({setTreatAsNoPaginationAnchor})});
 
         act(() => {
-            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
+            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}), 'local');
         });
 
         rerender(
@@ -252,20 +428,22 @@ describe('useReportActionsNewActionLiveTail', () => {
     it('scrolls straight to the bottom when an unread marker is set but the newest actions are already loaded', async () => {
         // Given a report scrolled up with an unread marker from another user's comment, and the newest actions already loaded
         const setIsFloatingMessageCounterVisible = jest.fn();
-        const {result} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {
+        const action = getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT});
+        const {result, rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {
             initialProps: buildParams({unreadMarkerReportActionID: '2', hasNewerActions: false, hasNewestReportAction: true, setIsFloatingMessageCounterVisible}),
         });
 
         // When the current user sends a comment
         act(() => {
-            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
+            newActionHandler?.(true, action, 'local');
         });
         await waitForBatchedUpdates();
 
-        // Then the list scrolls to the bottom directly, without an openReport round trip
+        // Then the caller receives a scroll request once the optimistic row renders, without an openReport round trip.
         expect(mockOpenReport).not.toHaveBeenCalled();
         expect(setIsFloatingMessageCounterVisible).toHaveBeenCalledWith(false);
-        expect(reportScrollManager.scrollToBottom).toHaveBeenCalledTimes(1);
+        expect(result.current.isScrollToBottomEnabled).toBe(false);
+        rerender(buildParams({unreadMarkerReportActionID: '2', hasNewerActions: false, hasNewestReportAction: true, renderedVisibleReportActions: [action]}));
         expect(result.current.isScrollToBottomEnabled).toBe(true);
     });
 
@@ -277,7 +455,7 @@ describe('useReportActionsNewActionLiveTail', () => {
 
         // When the current user sends a comment
         act(() => {
-            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
+            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}), 'local');
         });
         await waitForBatchedUpdates();
 

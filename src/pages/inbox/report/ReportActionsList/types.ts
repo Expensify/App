@@ -18,6 +18,7 @@ type ReportActionsListProps = {
 
 type UseReportActionsListDataParams = {
     sortedVisibleReportActions: OnyxTypes.ReportAction[];
+    isOffline: boolean;
     sessionStartTime: string | null;
     linkedReportActionID: string | undefined;
     unreadMarkerReportActionID: string | null;
@@ -28,15 +29,13 @@ type UseReportActionsListScrollParams = Pick<
     | 'reportID'
     | 'sortedVisibleReportActions'
     | 'renderedVisibleReportActions'
-    | 'hasScrolledOverThreshold'
     | 'markNewestActionAsRead'
     | 'completeSkippedMarkAsRead'
     | 'unreadMarkerReportActionID'
     | 'unreadMarkerReportActionIndex'
-    | 'draftAutoScrollKey'
 > &
     Pick<ReturnType<typeof useReportActionsPresentation>, 'reportActionIDToDisplayIndex' | 'focusRequestedReportActionID'> &
-    Pick<UseReportActionsListDataParams, 'linkedReportActionID'> &
+    Pick<UseReportActionsListDataParams, 'isOffline' | 'linkedReportActionID'> &
     Pick<ReportActionsListProps, 'onLayout'> & {
         actionBadgeTargetID: string | undefined;
         onScrolledOverThresholdChange: (isOverThreshold: boolean) => void;
@@ -45,6 +44,7 @@ type UseReportActionsListScrollParams = Pick<
 type UseReportActionsListRenderItemParams = Pick<
     ReturnType<typeof useReportActionsListData>,
     | 'renderedVisibleReportActions'
+    | 'reportActionsToRender'
     | 'listData'
     | 'canonicalIndexByReportActionID'
     | 'runsByAnchorReportActionID'
@@ -56,15 +56,35 @@ type UseReportActionsListRenderItemParams = Pick<
     | 'draftReportActionID'
     | 'isDraftPendingCompletion'
 > &
-    Pick<UseReportActionsListDataParams, 'linkedReportActionID' | 'unreadMarkerReportActionID'> &
+    Pick<UseReportActionsListDataParams, 'isOffline' | 'linkedReportActionID' | 'unreadMarkerReportActionID'> &
     Pick<ReportActionsListProps, 'reportID'> & {
         reportNameValuePairs: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
         isReportArchived: boolean;
-        isOffline: boolean;
         sortedReportActions: OnyxTypes.ReportAction[];
         onShowPreviousMessages: () => void;
+        shouldShowSkeletonBelowLinkedAction: boolean;
+        hasRowsBelowLinkedAction: boolean;
+        hideSkeletonBelowLinkedAction: () => void;
     };
 
-type UseReportActionsListTelemetryParams = Pick<ReportActionsListProps, 'reportID' | 'onLayout'>;
+type UseReportActionsListTelemetryParams = {
+    reportID: string;
+    listID: string;
+    loadedInitialViewportListID: string | undefined;
+    shouldShowInitialViewportSkeleton: boolean;
+};
 
-export type {ReportActionsListProps, UseReportActionsListDataParams, UseReportActionsListScrollParams, UseReportActionsListRenderItemParams, UseReportActionsListTelemetryParams};
+type ReportActionsListScrollMetrics = {
+    offset: number;
+    contentHeight: number;
+    viewportHeight: number;
+};
+
+export type {
+    ReportActionsListProps,
+    UseReportActionsListDataParams,
+    UseReportActionsListScrollParams,
+    UseReportActionsListRenderItemParams,
+    UseReportActionsListTelemetryParams,
+    ReportActionsListScrollMetrics,
+};

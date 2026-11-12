@@ -1,5 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
+import {ActionListContextProvider, useActionListReady} from '@pages/inbox/ActionListContext';
 import useShouldSkipComposerAutoFocus from '@pages/inbox/report/ReportActionCompose/useShouldSkipComposerAutoFocus';
 
 import CONST from '@src/CONST';
@@ -75,5 +76,17 @@ describe('useShouldSkipComposerAutoFocus', () => {
 
         // Then the composer auto-focuses as usual
         expect(result.current).toBe(false);
+    });
+
+    it('waits for the message viewport to appear before allowing automatic focus', () => {
+        // Given a report whose composer mounts while its messages are still covered by the skeleton.
+        const {result} = renderHook(() => ({skipAutoFocus: useShouldSkipComposerAutoFocus(chatReport), readiness: useActionListReady()}), {wrapper: ActionListContextProvider});
+        expect(result.current.skipAutoFocus).toBe(true);
+
+        // When the list reports its positioned viewport is visible.
+        act(() => result.current.readiness.setIsReady(true));
+
+        // Then automatic focus can resume, including for a draft restored before the list was ready.
+        expect(result.current.skipAutoFocus).toBe(false);
     });
 });

@@ -26,7 +26,17 @@ type ActionListRef = {
     getLayout?: (index: number) => unknown;
     computeVisibleIndices?: () => {startIndex: number; endIndex: number} | undefined;
     /** Measured item positions supplied by LegendList. Other list implementations can omit this. */
-    getState?: () => {positionByKey: (key: string) => number | undefined; scroll?: number; contentLength?: number; scrollLength?: number} | undefined;
+    getState?: () =>
+        | {
+              positionByKey: (key: string) => number | undefined;
+              sizeAtIndex?: (index: number) => number | undefined;
+              elementAtIndex?: (index: number) => unknown;
+              scroll?: number;
+              contentLength?: number;
+              scrollLength?: number;
+              headerSize?: number;
+          }
+        | undefined;
 };
 
 /** Ref to the underlying list instance attached via `ref={}`. */

@@ -1,11 +1,15 @@
+/** Owns LegendList positioning, end following, pagination, and scroll events for report actions. */
+import allowLegendListItemOverflow from '@components/LegendList/allowLegendListItemOverflow';
+
+import useEmitComposerScrollEvents from '@hooks/useEmitComposerScrollEvents';
 import useReportActionsScroll from '@hooks/useReportActionsScroll';
 import useReportScrollManager from '@hooks/useReportScrollManager';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
-import {useActionListRef} from '@pages/inbox/ActionListContext';
+import {useActionListContext, useActionListRef} from '@pages/inbox/ActionListContext';
+import type {ActionListRef} from '@pages/inbox/ActionListTypes';
 import {useReportActionsListActions, useReportActionsListState} from '@pages/inbox/report/ReportActionsListContext';
 import useFollowActionBadgeTarget from '@pages/inbox/report/useFollowActionBadgeTarget';
 import useScrollToEditingReportAction from '@pages/inbox/report/useScrollToEditingReportAction';
@@ -13,49 +17,42 @@ import useScrollToEditingReportAction from '@pages/inbox/report/useScrollToEditi
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
+import type {LegendListRef, OnViewableItemsChangedInfo} from '@legendapp/list/react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
-import {useEffect, useRef} from 'react';
+import {useEffect, useEffectEvent, useImperativeHandle, useRef, useState} from 'react';
 
-import type {UseReportActionsListScrollParams} from './types';
+import type {ReportActionsListScrollMetrics, UseReportActionsListScrollParams} from './types';
 
-/**
- * Create a unique key for each action in the FlatList.
- * We use the reportActionID that is a string representation of a random 64-bit int, which should be
- * random enough to avoid collisions
- */
-function keyExtractor(item: OnyxTypes.ReportAction): string {
-    // A report has exactly one CREATED action. Using a stable key lets FlashList recycle the same cell
-    // when the optimistic CREATED is swapped for the server one, avoiding a remount-induced scroll jump.
-    if (item.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-        return CONST.REPORT.ACTIONS.TYPE.CREATED;
-    }
-    return item.reportActionID;
-}
+import {getReportActionItemType, getReportActionKey} from './reportActionListUtils';
 
-/** Owns initial positioning, pagination, unread tracking, and scroll events for the report-actions list. */
+const PAGINATION_THRESHOLD = 0.75;
+
 function useReportActionsListScroll({
     reportID,
     sortedVisibleReportActions,
     renderedVisibleReportActions: listData,
     reportActionIDToDisplayIndex,
-    hasScrolledOverThreshold,
     markNewestActionAsRead,
     completeSkippedMarkAsRead,
     unreadMarkerReportActionID,
     unreadMarkerReportActionIndex,
-    draftAutoScrollKey,
     focusRequestedReportActionID,
     actionBadgeTargetID,
-    linkedReportActionID,
+    isOffline,
+    linkedReportActionID: reportActionIDFromRoute,
     onScrolledOverThresholdChange,
     onLayout,
 }: UseReportActionsListScrollParams) {
-    const {windowHeight} = useWindowDimensions();
     const {
         report,
         hasOnceLoadedReportActions,
+        isInitialReportLoadPending,
+        isLoadingOlderReportActions,
+        hasLoadingOlderReportActionsError,
+        hasOlderActions,
         hasNewerActions,
+        oldestReportActionID,
         sortedAllReportActions,
         oldestUnreadReportAction,
         transactionThreadReport,
@@ -63,14 +60,103 @@ function useReportActionsListScroll({
         treatAsNoPaginationAnchor,
         isConciergeHiddenHistory,
         showFullHistory,
+        allReportActionIDs,
     } = useReportActionsListState();
-    const {setTreatAsNoPaginationAnchor, loadOlderChats, loadNewerChats} = useReportActionsListActions();
+    const {setTreatAsNoPaginationAnchor, loadOlderChats, loadNewerChats, handleShowPreviousMessages} = useReportActionsListActions();
     const showHiddenHistory = isConciergeHiddenHistory && !showFullHistory;
+    const lastRequestedOldestActionIDRef = useRef<string | undefined>(undefined);
+    const emitComposerScrollEvents = useEmitComposerScrollEvents({enabled: true});
 
-    // Remount the list when the deep-linked message or unread anchor changes (scroll positioning), or when the report changes.
-    const listID = [reportID, linkedReportActionID, hasOnceLoadedReportActions ? undefined : oldestUnreadReportAction?.reportActionID].join(':');
+    // Clearing a link after sending returns to the live tail of the same list. Only opening a link
+    // needs fresh initial positioning, including reopening the same action after its link was cleared.
+    const [linkedActionListState, setLinkedActionListState] = useState({reportActionID: reportActionIDFromRoute, version: 0});
+    if (linkedActionListState.reportActionID !== reportActionIDFromRoute) {
+        setLinkedActionListState({
+            reportActionID: reportActionIDFromRoute,
+            version: linkedActionListState.version + (reportActionIDFromRoute ? 1 : 0),
+        });
+    }
 
+    // OpenReport can first provide a tiny cached page and then replace it with the hydrated page. Remounting
+    // gives the complete dataset a fresh initial layout so initialScrollAtEnd targets its actual end.
+    const listID = [
+        reportID,
+        linkedActionListState.version,
+        hasOnceLoadedReportActions ? 'hydrated' : 'initial',
+        hasOnceLoadedReportActions ? undefined : oldestUnreadReportAction?.reportActionID,
+    ].join(':');
+
+    const {getScrollOffset, scrollOffsetRef} = useActionListContext();
     const listRef = useActionListRef();
+    const legendListRef = useRef<LegendListRef>(null);
+    const headerSizeRef = useRef(0);
+
+    useImperativeHandle(
+        listRef,
+        (): ActionListRef => ({
+            getScrollableNode: (): unknown => legendListRef.current?.getScrollableNode(),
+            getState: () => {
+                const state = legendListRef.current?.getState();
+                return state ? {...state, headerSize: headerSizeRef.current} : undefined;
+            },
+            computeVisibleIndices: () => {
+                const state = legendListRef.current?.getState();
+                return state ? {startIndex: state.start, endIndex: state.end} : undefined;
+            },
+            scrollToEnd: (options) => {
+                legendListRef.current?.scrollToEnd(options);
+            },
+            scrollToIndex: (options) => {
+                legendListRef.current?.scrollToIndex(options);
+            },
+            scrollToOffset: (options) => {
+                legendListRef.current?.scrollToOffset(options);
+            },
+        }),
+        [],
+    );
+
+    const shouldRestoreTailAfterHistoryRevealRef = useRef(false);
+    const oldestLoadedActionID = allReportActionIDs.at(-1);
+    const oldestLoadedActionIDAtHistoryRevealRef = useRef<string | undefined>(undefined);
+    const distanceFromBottomRef = useRef(getScrollOffset());
+    const shouldFollowEndOnResizeRef = useRef(false);
+    const onShowPreviousMessages = () => {
+        // Revealing older actions can make a short session scrollable before the requested history page arrives.
+        // Follow the tail only when the reader was actually there; the action-visible threshold is much wider.
+        shouldRestoreTailAfterHistoryRevealRef.current = distanceFromBottomRef.current <= 1 && !hasNewerActions;
+        const shouldWaitForHistoryPage = shouldRestoreTailAfterHistoryRevealRef.current && hasOlderActions;
+        oldestLoadedActionIDAtHistoryRevealRef.current = shouldWaitForHistoryPage ? oldestLoadedActionID : undefined;
+        if (shouldRestoreTailAfterHistoryRevealRef.current) {
+            shouldFollowEndOnResizeRef.current = true;
+        }
+        handleShowPreviousMessages();
+    };
+
+    useEffect(() => {
+        if (!showFullHistory) {
+            shouldRestoreTailAfterHistoryRevealRef.current = false;
+            return;
+        }
+        if (!shouldRestoreTailAfterHistoryRevealRef.current) {
+            return;
+        }
+        const animationFrame = requestAnimationFrame(() => {
+            const shouldSkipTailRestoration = !shouldRestoreTailAfterHistoryRevealRef.current || !shouldFollowEndOnResizeRef.current;
+            if (shouldSkipTailRestoration) {
+                return;
+            }
+            legendListRef.current?.scrollToEnd({animated: false});
+            const hasReceivedHistoryPage = oldestLoadedActionID !== oldestLoadedActionIDAtHistoryRevealRef.current || !hasOlderActions;
+            const hasFinishedHistoryReveal =
+                !oldestLoadedActionIDAtHistoryRevealRef.current || (!isLoadingOlderReportActions && (hasReceivedHistoryPage || hasLoadingOlderReportActionsError));
+            if (hasFinishedHistoryReveal) {
+                shouldRestoreTailAfterHistoryRevealRef.current = false;
+            }
+        });
+        return () => cancelAnimationFrame(animationFrame);
+    }, [showFullHistory, listData.length, oldestLoadedActionID, hasOlderActions, isLoadingOlderReportActions, hasLoadingOlderReportActionsError]);
+
     const reportScrollManager = useReportScrollManager();
 
     // Which rows are on screen, tracked so an edit started on a message the user can already see doesn't move the list.
@@ -78,7 +164,8 @@ function useReportActionsListScroll({
 
     const expandedFocusIndex = focusRequestedReportActionID ? (reportActionIDToDisplayIndex.get(focusRequestedReportActionID) ?? -1) : -1;
     useEffect(() => {
-        if (expandedFocusIndex < 0 || viewableRowIndexesRef.current.has(expandedFocusIndex)) {
+        const shouldSkipExpandedActionScroll = expandedFocusIndex < 0 || viewableRowIndexesRef.current.has(expandedFocusIndex);
+        if (shouldSkipExpandedActionScroll) {
             return;
         }
 
@@ -102,11 +189,10 @@ function useReportActionsListScroll({
         },
     });
 
-    // Find the index of the action badge target in the rendered actions list (which is what the FlatList uses as data)
+    // Find the index of the action badge target in the chronological data rendered by LegendList.
     const actionBadgeTargetIndex = actionBadgeTargetID
         ? (reportActionIDToDisplayIndex.get(actionBadgeTargetID) ?? listData.findIndex((action) => action.reportActionID === actionBadgeTargetID))
         : -1;
-
     const {
         trackVerticalScrolling,
         onViewableItemsChanged,
@@ -114,14 +200,19 @@ function useReportActionsListScroll({
         isActionBadgeAboveViewport,
         scrollToBottomAndMarkReportAsRead,
         scrollToActionBadgeTarget,
-        flushPendingScrollToBottom,
         shouldBeAlignedToTop,
-        shouldFocusToTopOnMount,
         initialScrollIndex,
         initialScrollIndexParams,
-        maintainVisibleContentPosition,
+        shouldShowNewerActionsSkeleton,
+        shouldShowSkeletonBelowLinkedAction,
+        hasRowsBelowLinkedAction,
+        hideSkeletonBelowLinkedAction,
         onLoad,
+        onItemSizeChanged,
+        trackLinkedMessageScroll,
+        stopLinkedMessagePositioning,
     } = useReportActionsScroll({
+        listID,
         reportID,
         report,
         transactionThreadReport,
@@ -129,35 +220,157 @@ function useReportActionsListScroll({
         sortedVisibleReportActions,
         renderedVisibleReportActions: listData,
         reportActionIDToDisplayIndex,
-        keyExtractor,
-        hasScrolledOverThreshold,
+        keyExtractor: getReportActionKey,
         markNewestActionAsRead,
         completeSkippedMarkAsRead,
         unreadMarkerReportActionID,
         unreadMarkerReportActionIndex,
         hasNewerActions,
-        draftAutoScrollKey,
         actionBadgeTargetIndex,
         sortedAllReportActionsForPagination: sortedAllReportActions ?? [],
         treatAsNoPaginationAnchor,
         setTreatAsNoPaginationAnchor,
     });
 
-    const trackScrollPositionAndThreshold = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        trackVerticalScrolling(event);
-        onScrolledOverThresholdChange(event.nativeEvent.contentOffset.y >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
-    };
+    const [loadedInitialViewportListID, setLoadedInitialViewportListID] = useState<string>();
+    // Cover every initial LegendList layout, including cached chats, until the rows are positioned.
+    // Offline reports still need their cached rows positioned, but cannot wait for OpenReport.
+    const shouldShowInitialViewportSkeleton = loadedInitialViewportListID !== listID || (!isOffline && isInitialReportLoadPending);
 
-    const trackViewableRowIndexes = (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
-        viewableRowIndexesRef.current = new Set(info.viewableItems.map((token) => token.index).filter((index) => index !== null));
-        onViewableItemsChanged(info);
-    };
+    const readyEndListIDRef = useRef<string | undefined>(undefined);
+    const lastScrollMetricsRef = useRef<ReportActionsListScrollMetrics | undefined>(undefined);
+    const endCorrectionFrameRef = useRef<number | undefined>(undefined);
+    const userScrolledListIDRef = useRef<string | undefined>(undefined);
+    const userDraggedListIDRef = useRef<string | undefined>(undefined);
 
-    const loadOlderChatsOnEndReached = () => {
-        if (showHiddenHistory) {
+    const stopFollowingEnd = () => {
+        userScrolledListIDRef.current = listID;
+        shouldFollowEndOnResizeRef.current = false;
+        shouldRestoreTailAfterHistoryRevealRef.current = false;
+        if (endCorrectionFrameRef.current === undefined) {
             return;
         }
+        cancelAnimationFrame(endCorrectionFrameRef.current);
+        endCorrectionFrameRef.current = undefined;
+    };
+
+    const stopAutomaticPositioning = () => {
+        userDraggedListIDRef.current = listID;
+        stopLinkedMessagePositioning();
+        stopFollowingEnd();
+    };
+
+    const scheduleEndCorrection = () => {
+        const shouldSkipEndCorrection = readyEndListIDRef.current !== listID || !shouldFollowEndOnResizeRef.current || hasNewerActions || endCorrectionFrameRef.current !== undefined;
+        if (shouldSkipEndCorrection) {
+            return;
+        }
+        endCorrectionFrameRef.current = requestAnimationFrame(() => {
+            endCorrectionFrameRef.current = undefined;
+            const shouldFollowListEnd = readyEndListIDRef.current === listID && shouldFollowEndOnResizeRef.current;
+            if (shouldFollowListEnd) {
+                legendListRef.current?.scrollToEnd({animated: false});
+            }
+        });
+    };
+
+    useEffect(
+        () => () => {
+            if (endCorrectionFrameRef.current === undefined) {
+                return;
+            }
+            cancelAnimationFrame(endCorrectionFrameRef.current);
+            endCorrectionFrameRef.current = undefined;
+        },
+        [listID],
+    );
+
+    const updateVisibleItemOverflow = (info: OnViewableItemsChangedInfo<OnyxTypes.ReportAction>) => {
+        viewableRowIndexesRef.current = new Set(info.viewableItems.map((token) => token.index));
+        onViewableItemsChanged(info);
+        for (const item of info.changed) {
+            if (!item.isViewable) {
+                continue;
+            }
+            allowLegendListItemOverflow(legendListRef.current, item.index);
+        }
+    };
+
+    const markInitialViewportReady = () => {
+        // onLoad only means rows rendered; keep their estimated positions covered until initial scrolling settles.
+        onLoad();
+        setLoadedInitialViewportListID(listID);
+        readyEndListIDRef.current = listID;
+        // An unread marker near the newest action lands at the end. Rows above it are still measured after
+        // onReady, so keep that end in view instead of exposing older messages.
+        const isUnreadInitialScroll = initialScrollIndex !== undefined && !reportActionIDFromRoute && !shouldBeAlignedToTop;
+        const didLandAtEnd = initialScrollIndex === undefined || (isUnreadInitialScroll && !!legendListRef.current?.getState()?.isAtEnd);
+        shouldFollowEndOnResizeRef.current = didLandAtEnd && !hasNewerActions && userScrolledListIDRef.current !== listID;
+        lastScrollMetricsRef.current = undefined;
+        // The final row can grow after LegendList's initial end estimate (for example, Concierge feedback).
+        scheduleEndCorrection();
+    };
+
+    const loadOlderChatsOnStartReached = () => {
+        const shouldSkipOlderPageRequest = showHiddenHistory || isOffline || !hasOlderActions || !oldestReportActionID || lastRequestedOldestActionIDRef.current === oldestReportActionID;
+        if (shouldSkipOlderPageRequest) {
+            return;
+        }
+
+        lastRequestedOldestActionIDRef.current = oldestReportActionID;
         loadOlderChats(false);
+    };
+
+    const trackScrollPositionAndThreshold = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        trackLinkedMessageScroll(event);
+        const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent;
+        const distanceFromBottom = Math.max(0, contentSize.height - layoutMeasurement.height - contentOffset.y);
+        distanceFromBottomRef.current = distanceFromBottom;
+        const isNearStart = contentOffset.y <= layoutMeasurement.height * PAGINATION_THRESHOLD;
+        const previousMetrics = lastScrollMetricsRef.current;
+        const canFollowListEnd = readyEndListIDRef.current === listID && !hasNewerActions;
+        if (canFollowListEnd) {
+            if (distanceFromBottom < CONST.REPORT.ACTIONS.AUTOSCROLL_TO_TOP_THRESHOLD) {
+                // A list opened at an unread or linked message can settle near the end. Following it from there would
+                // push that message out of view as rows resize, so wait until the list reaches the end or the user drags.
+                const shouldFollowResizingEnd = initialScrollIndex === undefined || distanceFromBottom <= 1 || userDraggedListIDRef.current === listID;
+                if (shouldFollowResizingEnd) {
+                    shouldFollowEndOnResizeRef.current = true;
+                }
+            } else {
+                const hasReaderMovedAwayFromEnd =
+                    (previousMetrics && contentOffset.y < previousMetrics.offset - 1) ||
+                    (previousMetrics &&
+                        previousMetrics.contentHeight === contentSize.height &&
+                        previousMetrics.viewportHeight === layoutMeasurement.height &&
+                        endCorrectionFrameRef.current === undefined);
+                if (hasReaderMovedAwayFromEnd) {
+                    // A pending history request must not reclaim the end after the reader has moved away.
+                    stopFollowingEnd();
+                }
+            }
+        }
+        lastScrollMetricsRef.current = {offset: contentOffset.y, contentHeight: contentSize.height, viewportHeight: layoutMeasurement.height};
+
+        if (!isNearStart) {
+            lastRequestedOldestActionIDRef.current = undefined;
+        } else if (readyEndListIDRef.current === listID) {
+            // Before the initial scroll lands, the list still reports offsets near the top. Loading older actions then
+            // inserts a page above the target while it is being positioned.
+            loadOlderChatsOnStartReached();
+        }
+
+        const bottomRelativeEvent = {
+            ...event,
+            nativeEvent: {
+                ...event.nativeEvent,
+                contentOffset: {...contentOffset, y: distanceFromBottom},
+            },
+        };
+
+        trackVerticalScrolling(bottomRelativeEvent);
+        onScrolledOverThresholdChange(distanceFromBottom >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
+        emitComposerScrollEvents();
     };
 
     const loadNewerChatsAfterTransitions = () => {
@@ -173,6 +386,24 @@ function useReportActionsListScroll({
         });
     };
 
+    // The skeleton below a linked final action can keep the list end outside onEndReachedThreshold once the link sits at
+    // the top, so request the newer page directly unless LegendList already did.
+    const loadNewerChatsBelowLinkedAction = useEffectEvent(() => {
+        if (legendListRef.current?.getState()?.isEndReached) {
+            return;
+        }
+        loadNewerChatsAfterTransitions();
+    });
+    const isInitialViewportLoaded = loadedInitialViewportListID === listID;
+    useEffect(() => {
+        const shouldSkipLinkedPageRequest = !isInitialViewportLoaded || !shouldShowNewerActionsSkeleton;
+        if (shouldSkipLinkedPageRequest) {
+            return;
+        }
+        const frame = requestAnimationFrame(loadNewerChatsBelowLinkedAction);
+        return () => cancelAnimationFrame(frame);
+    }, [isInitialViewportLoaded, shouldShowNewerActionsSkeleton]);
+
     useFollowActionBadgeTarget({
         reportID,
         actionTargetReportActionID: actionBadgeTargetID,
@@ -182,38 +413,58 @@ function useReportActionsListScroll({
         scrollToActionBadgeTarget,
     });
 
+    // Keep bottom-relative scroll metrics current when the viewport is resized.
+    const recordTimeToMeasureItemLayout = (event: LayoutChangeEvent) => {
+        onLayout?.(event);
+        const state = legendListRef.current?.getState();
+        const canMeasureBottomOffset = state && readyEndListIDRef.current === listID;
+        if (canMeasureBottomOffset) {
+            const distanceFromBottom = Math.max(0, state.contentLength - state.scrollLength - state.scroll);
+            scrollOffsetRef.current = distanceFromBottom;
+            distanceFromBottomRef.current = distanceFromBottom;
+        }
+        scheduleEndCorrection();
+    };
+
+    const trackContentSizeChange = () => {
+        trackVerticalScrolling(undefined);
+        scheduleEndCorrection();
+    };
+
     return {
         listID,
+        loadedInitialViewportListID,
+        shouldShowInitialViewportSkeleton,
+        shouldShowNewerActionsSkeleton,
+        shouldShowSkeletonBelowLinkedAction,
+        hasRowsBelowLinkedAction,
+        hideSkeletonBelowLinkedAction,
         shouldBeAlignedToTop,
+        onShowPreviousMessages,
         isFloatingMessageCounterVisible,
         isActionBadgeAboveViewport,
         scrollToBottomAndMarkReportAsRead,
         scrollToActionBadgeTarget,
-        listProps: {
-            ref: listRef,
-            keyExtractor,
-            getItemType: (item: OnyxTypes.ReportAction) => item.actionName,
-            onEndReached: loadOlderChatsOnEndReached,
-            onEndReachedThreshold: 0.75,
-            onStartReached: loadNewerChatsAfterTransitions,
-            onStartReachedThreshold: 0.75,
-            onLayout: (event: LayoutChangeEvent) => {
-                onLayout?.(event);
-                flushPendingScrollToBottom();
-            },
+        legendListProps: {
+            ref: legendListRef,
+            keyExtractor: getReportActionKey,
+            getItemType: getReportActionItemType,
+            onEndReached: loadNewerChatsAfterTransitions,
+            onEndReachedThreshold: PAGINATION_THRESHOLD,
+            onLayout: recordTimeToMeasureItemLayout,
             onScroll: trackScrollPositionAndThreshold,
-            onViewableItemsChanged: trackViewableRowIndexes,
-            overrideProps: {
-                isInvertedVirtualizedList: true,
-                contentOffset: shouldFocusToTopOnMount ? {x: 0, y: windowHeight} : undefined,
-            },
-            initialScrollIndex,
-            initialScrollIndexParams,
-            maintainVisibleContentPosition,
-            onLoad,
-            onContentSizeChange: () => {
-                trackVerticalScrolling(undefined);
-                flushPendingScrollToBottom();
+            onScrollBeginDrag: stopAutomaticPositioning,
+            onStartReached: loadOlderChatsOnStartReached,
+            onStartReachedThreshold: PAGINATION_THRESHOLD,
+            onViewableItemsChanged: updateVisibleItemOverflow,
+            initialScrollAtEnd: initialScrollIndex === undefined,
+            initialScrollIndex: initialScrollIndex === undefined ? undefined : {index: initialScrollIndex, ...initialScrollIndexParams},
+            alignItemsAtEnd: !shouldBeAlignedToTop,
+            onReady: markInitialViewportReady,
+            onItemSizeChanged,
+            onContentSizeChange: trackContentSizeChange,
+            onMetricsChange: ({headerSize}: {headerSize: number}) => {
+                headerSizeRef.current = headerSize;
             },
         },
     };

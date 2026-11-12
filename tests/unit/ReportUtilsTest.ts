@@ -176,6 +176,7 @@ import {
     getWhisperDisplayNames,
     getWorkspaceIcon,
     getWorkspaceNameUpdatedMessage,
+    navigateToLinkedReportAction,
     hasActionWithErrorsForTransaction,
     hasEmptyReportsForPolicy,
     hasExpensifyGuidesEmails,
@@ -369,6 +370,7 @@ jest.mock('@libs/Log', () => ({
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
+    goBack: jest.fn(),
     setNavigationActionToMicrotaskQueue: jest.fn(),
     navigate: jest.fn(),
     getActiveRoute: jest.fn(() => 'mock-route'),
@@ -626,6 +628,35 @@ describe('ReportUtils', () => {
         return waitForBatchedUpdates();
     });
     beforeEach(() => IntlStore.load(CONST.LOCALES.DEFAULT).then(waitForBatchedUpdates));
+
+    describe('navigateToLinkedReportAction', () => {
+        it('returns to the linked parent action using cached visibility', () => {
+            // Given the thread's parent action is visible in the cached report, including while offline.
+            const parentReport = {...createRandomReport(1), reportID: '1234'};
+            const parentAction = {...createRandomReportAction(1), reportActionID: '5678', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT};
+            jest.mocked(Navigation.goBack).mockClear();
+
+            // When the reader taps the parent message, navigation must carry its link back to the parent.
+            navigateToLinkedReportAction({report: parentReport, reportAction: parentAction, shouldDisplayNewMarker: false}, false, true, {'1234': {'5678': true}});
+
+            // Then the parent can position and highlight the message instead of restoring an unrelated viewport.
+            expect(Navigation.goBack).toHaveBeenLastCalledWith(ROUTES.REPORT_WITH_ID.getRoute('1234', '5678'));
+        });
+
+        it('does not link a parent action hidden from the reader', () => {
+            // Given a cached parent action that the visibility rules exclude.
+            const parentReport = {...createRandomReport(1), reportID: '1234'};
+            const parentAction = {...createRandomReportAction(1), reportActionID: '5678', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT};
+            jest.mocked(Navigation.goBack).mockClear();
+
+            // When the reader returns from its thread.
+            navigateToLinkedReportAction({report: parentReport, reportAction: parentAction, shouldDisplayNewMarker: false}, false, true, {'1234': {'5678': false}});
+
+            // Then the ordinary report remains reachable without targeting a message it cannot display.
+            expect(Navigation.goBack).toHaveBeenCalledTimes(1);
+            expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('1234'));
+        });
+    });
 
     describe('getIOUReportActionDisplayMessage', () => {
         const iouReportID = '1234567890';
