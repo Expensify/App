@@ -111,4 +111,4 @@ Historical reports created in Expensify Classic are available in the **Spend** t
 
 ## Do I have to use New Expensify?
 
-Not necessarily. If your account is eligible, you can continue using Expensify Classic. However, new features and workflow improvements are focused on New Expensify.[Learn who can switch to Expensify Classic](/articles/new-expensify/settings/Switch-between-New-Expensify-and-Expensify-Classic#who-can-switch-between-new-expensify-and-expensify-classic).
+Not necessarily. If your account is eligible, you can continue using Expensify Classic. However, new features and workflow improvements are focused on New Expensify. [Learn who can switch to Expensify Classic](/articles/new-expensify/settings/Switch-between-New-Expensify-and-Expensify-Classic#who-can-switch-between-new-expensify-and-expensify-classic).
