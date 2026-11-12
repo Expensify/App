@@ -361,6 +361,7 @@ describe('actions/IOU/Hold', () => {
                 initialReportID: 'existing-thread',
                 initialReport: undefined,
                 transactionReport: iouReport,
+                transactionReportActions: undefined,
                 isOffline: true,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
@@ -1325,13 +1326,11 @@ describe('actions/IOU/Hold', () => {
             [CONST.REPORT.STATUS_NUM.SUBMITTED, false],
             [CONST.REPORT.STATUS_NUM.APPROVED, false],
             [CONST.REPORT.STATUS_NUM.REIMBURSED, false],
-        ])('should build the optimistic next step only for an open report (statusNum %p, builds next step: %p)', async (statusNum, shouldBuildNextStep) => {
-            // Given a held expense in an expense report with the given status. unholdRequest reads the report from Onyx.
+        ])('should build the optimistic next step only for an open report (statusNum %p, builds next step: %p)', (statusNum, shouldBuildNextStep) => {
+            // Given a held expense in an expense report with the given status
             const policy: Policy = createRandomPolicy(577);
             const iouReport: Report = {...buildOptimisticIOUReport(1, 2, 100, '1', 'USD', getCurrencyDecimalsLocal), policyID: policy.id, statusNum};
             const transaction = buildOptimisticTransaction({transactionParams: {amount: 100, currency: 'USD', reportID: iouReport.reportID}});
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
-            await waitForBatchedUpdates();
             const request = jest.spyOn(jest.requireActual<{write: typeof write}>('@libs/API'), 'write').mockResolvedValue(undefined);
 
             // When the hold is removed
@@ -1339,6 +1338,8 @@ describe('actions/IOU/Hold', () => {
                 transactionID: transaction.transactionID,
                 transaction,
                 reportID: 'existing-thread',
+                transactionReport: iouReport,
+                report: undefined,
                 policy,
                 isOffline: false,
                 currentUserLogin: RORY_EMAIL,
@@ -1902,6 +1903,83 @@ describe('actions/IOU/Hold', () => {
                     const transactionUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE_COLLECTION && entry.key === ONYXKEYS.COLLECTION.TRANSACTION);
                     expect(Object.keys(transactionUpdate?.value ?? {})).not.toContain(`${ONYXKEYS.COLLECTION.TRANSACTION}${scanFailedTransaction.transactionID}`);
                 });
+        });
+
+        test('builds a held expense report from the expense report when the policy chat is not loaded', async () => {
+            // Given a submitted expense report whose policy chat was never opened, which is what a vacation delegate has locally
+            const chatReportID = '99';
+            const baseIouReport = buildOptimisticIOUReport(1, 2, -300, chatReportID, 'USD', getCurrencyDecimalsLocal);
+            const iouReport: Report = {
+                ...baseIouReport,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: 'policy-1',
+                total: -300,
+                nonReimbursableTotal: 0,
+                unheldTotal: -200,
+                unheldNonReimbursableTotal: 0,
+                reimbursableTotal: -300,
+                unheldReimbursableTotal: -200,
+            };
+            const heldTransaction = buildHeldTransaction(iouReport.reportID, -100);
+            const heldIouAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: heldTransaction.amount,
+                currency: 'USD',
+                comment: '',
+                participants: [],
+                transactionID: heldTransaction.transactionID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+            const reportCollection: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
+            };
+            const transactionCollection: TransactionCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${heldTransaction.transactionID}`]: heldTransaction,
+            };
+            const actionCollection: ReportActionsCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: {
+                    [heldIouAction.reportActionID]: heldIouAction,
+                },
+            };
+            await Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection});
+            await waitForBatchedUpdates();
+
+            // When the held expenses are moved onto their own report without a chat report
+            const result = getReportFromHoldRequestsOnyxData({
+                chatReport: undefined,
+                iouReport,
+                recipient: {accountID: 1},
+                policy: undefined,
+                isASAPSubmitBetaEnabled: false,
+                isApprovalFlow: true,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+            });
+
+            // Then the new report is an expense report for only the held amount, still tied to the expense report's chat
+            const newReportUpdate = result.optimisticData.find(
+                (entry) => entry.onyxMethod === Onyx.METHOD.MERGE && entry.key === `${ONYXKEYS.COLLECTION.REPORT}${result.optimisticHoldReportID}`,
+            );
+            expect(newReportUpdate?.value).toEqual(
+                expect.objectContaining({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    chatReportID,
+                    total: -100,
+                }),
+            );
+
+            // And the report being approved keeps only the unheld total, so returning to it does not show the held amount again
+            const totalsUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE && entry.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
+            expect(totalsUpdate?.value).toEqual({total: -200, nonReimbursableTotal: 0, reimbursableTotal: -200});
+
+            // And nothing is written against the missing chat report
+            const chatReportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`;
+            const chatReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`;
+            expect(result.optimisticData.some((entry) => entry.key === chatReportKey || entry.key === chatReportActionsKey)).toBe(false);
+            expect(result.successData.some((entry) => entry.key === chatReportActionsKey)).toBe(false);
+            expect(result.failureData.some((entry) => entry.key === chatReportKey || entry.key === chatReportActionsKey)).toBe(false);
+            expect(result.optimisticHoldActionID).toEqual(expect.any(String));
         });
     });
 });

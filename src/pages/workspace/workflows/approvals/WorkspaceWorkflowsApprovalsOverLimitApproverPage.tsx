@@ -28,7 +28,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React from 'react';
 
@@ -38,8 +37,7 @@ type WorkspaceWorkflowsApprovalsOverLimitApproverPageProps = WithPolicyAndFullsc
 function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetails, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsOverLimitApproverPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
-    const isApprovalWorkflowLoading = isLoadingOnyxValue(approvalWorkflowMetadata);
+    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const personalDetailsByEmail = usePersonalDetailsByEmail();
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
@@ -61,7 +59,7 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
     const shouldFilterOutExpensifyTeam = shouldFilterExpensifyTeam(policy?.owner, currentUserLogin);
 
     const allApprovers: SelectionListApprover[] = (() => {
-        if (isApprovalWorkflowLoading || !employeeList) {
+        if (!employeeList) {
             return [];
         }
 
@@ -123,7 +121,7 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
             .filter((approver): approver is SelectionListApprover => !!approver);
     })();
 
-    const shouldShowListEmptyContent = !!approvalWorkflow && !isApprovalWorkflowLoading;
+    const shouldShowListEmptyContent = !!approvalWorkflow;
 
     const goBack = () => {
         Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(policyID, approverIndex));

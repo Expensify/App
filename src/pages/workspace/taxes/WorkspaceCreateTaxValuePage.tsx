@@ -70,6 +70,7 @@ function WorkspaceCreateTaxValuePage({
                 maxLength={CONST.MAX_TAX_RATE_INTEGER_PLACES}
                 footer={
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.CREATE_VALUE_SAVE}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         onPress={save}
