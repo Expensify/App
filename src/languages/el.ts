@@ -58,7 +58,8 @@ const translations: TranslationDeepObject<typeof en> = {
         chartFailedToLoad: 'Δεν ήταν δυνατή η φόρτωση του γραφήματος. Ανανεώστε τη σελίδα και δοκιμάστε ξανά.',
         dismiss: 'Κλείσιμο',
         resizeColumn: ({columnName}: {columnName: string}) => `Αλλαγή μεγέθους της στήλης ${columnName}`,
-        columnWidth: ({width}: {width: number}) => `${width} pixel`,
+        resizePanel: 'Αλλαγή μεγέθους πλαισίου',
+        widthInPixels: ({width}: {width: number}) => `${width} pixel`,
         proceed: 'Συνέχεια',
         unshare: 'Αναίρεση κοινής χρήσης',
         yes: 'Ναι',
@@ -11215,7 +11216,9 @@ ${reportName}`,
             completed: 'Ολοκληρώθηκε',
             amount: {
                 lessThan: (amount?: string) => `Λιγότερο από ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Μικρότερο ή ίσο με ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Μεγαλύτερο από ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Μεγαλύτερο ή ίσο με ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `Μεταξύ ${greaterThan} και ${lessThan}`;
