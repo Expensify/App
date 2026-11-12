@@ -13,7 +13,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import {getCleanedTagName} from '@libs/PolicyUtils';
-import {compareDuplicateTransactionFields, getTransactionID} from '@libs/TransactionUtils';
+import {getTransactionID} from '@libs/TransactionUtils';
+import {compareDuplicateTransactionFields} from '@libs/TransactionUtils/duplicates';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

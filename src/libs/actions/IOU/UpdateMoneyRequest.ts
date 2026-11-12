@@ -39,8 +39,8 @@ import {
     isMapBasedDistanceRequest,
     isOnHold,
     isScanning,
-    removeTransactionFromDuplicateTransactionViolation,
 } from '@libs/TransactionUtils';
+import {removeTransactionFromDuplicateTransactionViolation} from '@libs/TransactionUtils/duplicates';
 import ViolationsUtils, {syncCustomUnitRateOutOfDateRangeViolation} from '@libs/Violations/ViolationsUtils';
 
 import {trackMerchantRuleSuggestion} from '@userActions/MerchantRuleSuggestion';

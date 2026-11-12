@@ -43,15 +43,6 @@ import {deepEqual} from 'fast-equals';
 
 import {hasValidModifiedAmount, isAmountMissing, isFailedScanAmountPlaceholder} from './amountUtils';
 import buildOptimisticTransaction from './buildOptimisticTransaction';
-// eslint-disable-next-line import/no-cycle
-import {
-    buildMergeDuplicatesParams,
-    buildNewTransactionAfterReviewingDuplicates,
-    canMergeDuplicates,
-    compareDuplicateTransactionFields,
-    removeSettledAndApprovedTransactions,
-    removeTransactionFromDuplicateTransactionViolation,
-} from './duplicates';
 import {
     getCurrency,
     getCreated,
@@ -97,7 +88,6 @@ import {
     hasTaxRateWithMatchingValue,
     transformedTaxRates,
 } from './tax';
-// eslint-disable-next-line import/no-cycle
 import {
     allHavePendingRTERViolation,
     getTransactionViolations,
@@ -1751,16 +1741,10 @@ export {
     hasWarningTypeViolation,
     isCustomUnitRateIDForP2P,
     getRateID,
-    compareDuplicateTransactionFields,
     getTransactionID,
-    buildNewTransactionAfterReviewingDuplicates,
-    buildMergeDuplicatesParams,
-    canMergeDuplicates,
     getReimbursable,
     hasNonReimbursableTransactions,
     isPayAtEndExpense,
-    removeSettledAndApprovedTransactions,
-    removeTransactionFromDuplicateTransactionViolation,
     getCardName,
     getDeleteExpenseTitle,
     getDeleteConfirmationPrompt,
@@ -1832,4 +1816,3 @@ export {
 };
 
 export type {ManuallyEnteredScanFields};
-export type {MergeDuplicatesTransactionParams} from './duplicates';

@@ -44,6 +44,7 @@ import type {PersonalDetails, Policy, PolicyTagLists, RecentWaypoint, Report, Re
 import type {ReportMergeUpdate} from '../utils/typeGuards';
 
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
+import {removeTransactionFromDuplicateTransactionViolation} from '../../src/libs/TransactionUtils/duplicates';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
@@ -3799,7 +3800,7 @@ describe('removeTransactionFromDuplicateTransactionViolation', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`]: [makeDuplicateViolation([TXN_A, TXN_C])],
         };
 
-        TransactionUtils.removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B, TXN_C), transactionViolations);
+        removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B, TXN_C), transactionViolations);
 
         expect(onyxData.successData?.length).toBe(1);
         const successEntry = onyxData.successData?.at(0);
@@ -3820,7 +3821,7 @@ describe('removeTransactionFromDuplicateTransactionViolation', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`]: [makeDuplicateViolation([TXN_A])],
         };
 
-        TransactionUtils.removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
+        removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
 
         expect(onyxData.optimisticData?.length).toBe(1);
         expect(onyxData.successData?.length).toBe(1);
@@ -3839,7 +3840,7 @@ describe('removeTransactionFromDuplicateTransactionViolation', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`]: [makeDuplicateViolation([TXN_A])],
         };
 
-        TransactionUtils.removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
+        removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
 
         const successEntry = onyxData.successData?.at(0);
         expect(successEntry?.value).toBeNull();
@@ -3854,7 +3855,7 @@ describe('removeTransactionFromDuplicateTransactionViolation', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`]: originalBViolations,
         };
 
-        TransactionUtils.removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
+        removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
 
         expect(onyxData.failureData?.length).toBe(1);
         const failureEntry = onyxData.failureData?.at(0);
@@ -3870,7 +3871,7 @@ describe('removeTransactionFromDuplicateTransactionViolation', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`]: [makeDuplicateViolation([TXN_A]), makeCategoryViolation()],
         };
 
-        TransactionUtils.removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
+        removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
 
         const successEntry = onyxData.successData?.at(0);
         expect(successEntry?.value).toEqual([makeCategoryViolation()]);
@@ -3890,7 +3891,7 @@ describe('removeTransactionFromDuplicateTransactionViolation', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`]: [makeDuplicateViolation([TXN_A])],
         };
 
-        TransactionUtils.removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
+        removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
 
         expect(onyxData.optimisticData?.length).toBe(1);
         expect(onyxData.successData).toBeUndefined();
