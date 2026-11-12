@@ -268,29 +268,34 @@ describe('AuthScreensInitHandler', () => {
     });
 
     it('signs out when logging in as a new user via a supportal transition', async () => {
+        // Given a signed-in account and a supportal transition link for another account
         mockedGetCurrentUrl.mockReturnValue(`https://new.expensify.com/${ROUTES.TRANSITION_BETWEEN_APPS}?authTokenType=${CONST.AUTH_TOKEN_TYPES.SUPPORT}`);
         mockedIsLoggingInAsNewUser.mockReturnValue(true);
 
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
         await waitForBatchedUpdates();
 
+        // When the signed-in screens initialize
         renderAuthScreensInitHandler();
         await waitForBatchedUpdatesWithAct();
 
+        // Then the current account is signed out right away, because a supportal link does not ask to switch accounts
         expect(signOutAndRedirectToSignIn).toHaveBeenCalledWith(false, true, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
     });
 
     it('does not sign out for a non-supportal transition', async () => {
+        // Given a signed-in account and a transition link for another account
         mockedGetCurrentUrl.mockReturnValue(`https://new.expensify.com/${ROUTES.TRANSITION_BETWEEN_APPS}`);
         mockedIsLoggingInAsNewUser.mockReturnValue(true);
 
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
         await waitForBatchedUpdates();
 
+        // When the signed-in screens initialize
         renderAuthScreensInitHandler();
         await waitForBatchedUpdatesWithAct();
 
-        // LogOutPreviousUserPage owns this case, gated behind its own confirm modal.
+        // Then the current account stays signed in, because LogOutPreviousUserPage asks before it switches accounts
         expect(signOutAndRedirectToSignIn).not.toHaveBeenCalled();
     });
 
