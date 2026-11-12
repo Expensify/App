@@ -21,9 +21,7 @@ const canvasKitNoiseFilterIntegration: Integration = {
             values.length > 0 &&
             values.every(
                 (value) =>
-                    value.mechanism?.type === 'auto.browser.global_handlers.onunhandledrejection' &&
-                    value.mechanism.handled === false &&
-                    CANVASKIT_LOAD_MESSAGES.has(value.value ?? ''),
+                    value.mechanism?.type === 'auto.browser.global_handlers.onunhandledrejection' && value.mechanism.handled === false && CANVASKIT_LOAD_MESSAGES.has(value.value ?? ''),
             );
         return isCanvasKitRejection ? null : event;
     },

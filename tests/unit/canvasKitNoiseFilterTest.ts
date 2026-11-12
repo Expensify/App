@@ -16,19 +16,16 @@ function processEvent(event: Event) {
 }
 
 describe('CanvasKitNoiseFilter', () => {
-    it.each([WASM_FETCH_ERROR, 'Aborted(both async and sync fetching of the wasm failed)', 'WebAssembly is not defined'])(
-        'drops the leaked browser rejection: %s',
-        (message) => {
-            // Given the exact CanvasKit initialization signature captured by the browser SDK
-            const event = makeEvent(message);
+    it.each([WASM_FETCH_ERROR, 'Aborted(both async and sync fetching of the wasm failed)', 'WebAssembly is not defined'])('drops the leaked browser rejection: %s', (message) => {
+        // Given the exact CanvasKit initialization signature captured by the browser SDK
+        const event = makeEvent(message);
 
-            // When the noise filter processes it
-            const result = processEvent(event);
+        // When the noise filter processes it
+        const result = processEvent(event);
 
-            // Then only the duplicate unhandled report is discarded
-            expect(result).toBeNull();
-        },
-    );
+        // Then only the duplicate unhandled report is discarded
+        expect(result).toBeNull();
+    });
 
     it('keeps the chart boundary warning with the same error message', () => {
         // Given the real failure reported intentionally by the chart boundary
