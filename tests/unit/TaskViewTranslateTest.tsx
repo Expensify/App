@@ -1,9 +1,13 @@
-import {render} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
+import MenuItem from '@components/MenuItem';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import TaskView from '@components/ReportActionItem/TaskView';
 
-import {getDisplayNameForParticipant} from '@libs/ReportUtils';
+import {getDisplayNameForParticipant, isOpenTaskReport} from '@libs/ReportUtils';
+import Navigation from '@libs/Navigation/Navigation';
+
+import * as TaskActions from '@userActions/Task';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,6 +25,8 @@ const mockFormatPhoneNumber = jest.fn((value: string) => value);
 jest.mock('@hooks/useLocalize', () => () => ({translate: mockTranslate, formatPhoneNumber: mockFormatPhoneNumber, localeCompare: (a: string, b: string) => a.localeCompare(b)}));
 
 jest.mock('@components/RenderHTML', () => () => null);
+jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn(), getActiveRoute: () => ''}));
+jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute', () => (route: string) => route);
 
 jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
     __esModule: true,
@@ -28,13 +34,12 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
 }));
 
 jest.mock('@libs/ReportUtils', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const actual = jest.requireActual('@libs/ReportUtils');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    const actual = jest.requireActual<{isOpenTaskReport: typeof isOpenTaskReport}>('@libs/ReportUtils');
     return {
         ...actual,
         __esModule: true,
         getDisplayNameForParticipant: jest.fn(() => 'SPY_NAME'),
+        isOpenTaskReport: jest.fn(actual.isOpenTaskReport),
     };
 });
 
@@ -46,6 +51,52 @@ describe('TaskView', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
         return waitForBatchedUpdates();
+    });
+
+    beforeEach(() => {
+        jest.mocked(isOpenTaskReport).mockReturnValue(true);
+    });
+
+    afterEach(async () => {
+        await Onyx.clear();
+        jest.restoreAllMocks();
+        jest.clearAllMocks();
+    });
+
+    describe.each([false, true])('assignee assigned=%s', (hasAssignee) => {
+        it.each([
+            [true, true],
+            [true, false],
+            [false, true],
+            [false, false],
+        ])('modifiable=%s open=%s only enables editable rows without dimming', async (isModifiable, isOpen) => {
+            // Given every combination of task edit permission and open/completed state.
+            jest.spyOn(TaskActions, 'canModifyTask').mockReturnValue(isModifiable);
+            jest.spyOn(TaskActions, 'canActionTask').mockReturnValue(false);
+            jest.mocked(isOpenTaskReport).mockReturnValue(isOpen);
+            const taskReport: Report = {...createRegularTaskReport(1, TASK_MANAGER_ACCOUNT_ID), managerID: hasAssignee ? TASK_MANAGER_ACCOUNT_ID : undefined};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`, taskReport);
+            await waitForBatchedUpdates();
+
+            // When the assigned UserPill or empty field row is rendered and pressed.
+            render(
+                <OnyxListItemProvider>
+                    <TaskView report={taskReport} parentReport={undefined} action={undefined} />
+                </OnyxListItemProvider>,
+            );
+            const assigneeRoot = screen.UNSAFE_getAllByType(MenuItem.Root).find((root) => root.props.sentryLabel === CONST.SENTRY_LABEL.TASK.VIEW_ASSIGNEE);
+            if (!assigneeRoot) {
+                throw new Error('Missing task assignee row');
+            }
+            fireEvent.press(assigneeRoot, {nativeEvent: {}});
+
+            // Then only editable tasks have an action/chevron; no variant receives disabled opacity.
+            const isEditable = isModifiable && isOpen;
+            expect(assigneeRoot.props.isDisabled).toBeUndefined();
+            expect(!!assigneeRoot.props.onPress).toBe(isEditable);
+            expect(assigneeRoot.findAll((node) => node.type === MenuItem.Chevron)).toHaveLength(isEditable ? 1 : 0);
+            expect(Navigation.navigate).toHaveBeenCalledTimes(isEditable ? 1 : 0);
+        });
     });
 
     it('resolves the assignee display name through the translate function from useLocalize', async () => {
