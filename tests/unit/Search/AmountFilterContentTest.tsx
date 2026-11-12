@@ -10,6 +10,8 @@ import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 import useAmountFilterCurrency from '@hooks/useAmountFilterCurrency';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 
+import type * as CurrencyUtils from '@libs/CurrencyUtils';
+
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
 
 import CONST from '@src/CONST';
@@ -28,11 +30,17 @@ jest.mock('@hooks/useShouldFooterBeInsideList', () => () => false);
 jest.mock('@hooks/useDefaultExpensePolicy', () => jest.fn(() => undefined));
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key, preferredLocale: 'en'}));
 jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: false}));
-jest.mock('@hooks/useCurrencyList', () => ({
-    useCurrencyListActions: () => ({
-        getCurrencyDecimals: (currency: string) => (currency === 'JPY' || currency === 'VND' ? 0 : 2),
-    }),
-}));
+jest.mock('@hooks/useCurrencyList', () => {
+    const {convertToDisplayStringWithoutCurrencyForLocale} = jest.requireActual<typeof CurrencyUtils>('@libs/CurrencyUtils');
+    const getCurrencyDecimals = (currency?: string) => (currency === 'JPY' || currency === 'VND' ? 0 : 2);
+
+    return {
+        useCurrencyListActions: () => ({
+            getCurrencyDecimals,
+            convertToDisplayStringWithoutCurrency: (amount: number, currency?: string) => convertToDisplayStringWithoutCurrencyForLocale('en', amount, currency, getCurrencyDecimals),
+        }),
+    };
+});
 
 const mockedNumberWithSymbolForm = jest.mocked(NumberWithSymbolForm);
 
@@ -42,11 +50,143 @@ beforeEach(() => {
 });
 
 describe('AmountFilterContent currency selection', () => {
+    it.each([
+        {EqualTo: '5000', GreaterThanOrEqualTo: '4000', LessThanOrEqualTo: undefined},
+        {EqualTo: '5000', GreaterThanOrEqualTo: undefined, LessThanOrEqualTo: '6000'},
+        {EqualTo: '5000', GreaterThanOrEqualTo: '4000', LessThanOrEqualTo: '6000'},
+    ])('preserves equality alongside inclusive bounds when confirming $GreaterThanOrEqualTo / $LessThanOrEqualTo', (value) => {
+        // Given a raw query combines equality with an inclusive comparison or range.
+        const onChange = jest.fn();
+        render(
+            <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
+                value={value}
+                onChange={onChange}
+            />,
+        );
+
+        // When the user confirms the selected comparison without changes.
+        fireEvent.press(screen.getByRole('button'));
+
+        // Then equality remains active so the confirmation cannot broaden the search.
+        expect(onChange).toHaveBeenCalledWith({
+            amountEqualTo: value.EqualTo,
+            amountGreaterThan: undefined,
+            amountLessThan: undefined,
+            amountGreaterThanOrEqualTo: value.GreaterThanOrEqualTo,
+            amountLessThanOrEqualTo: value.LessThanOrEqualTo,
+        });
+    });
+
+    it('clears equality and inclusive bounds when choosing a replacement comparison', () => {
+        // Given a raw query combines equality with an inclusive lower bound.
+        const onChange = jest.fn();
+        render(
+            <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
+                value={{EqualTo: '5000', GreaterThanOrEqualTo: '4000'}}
+                onChange={onChange}
+            />,
+        );
+
+        // When the user replaces the active comparison with a strict lower bound.
+        fireEvent.press(screen.getByTestId('base-list-item-GreaterThan'), {nativeEvent: {}});
+        act(() => jest.mocked(NumberWithSymbolForm).mock.lastCall?.[0].onInputChange?.('60'));
+        fireEvent.press(screen.getByRole('button'));
+
+        // Then the replacement does not retain hidden constraints from the original query.
+        expect(onChange).toHaveBeenCalledWith({
+            amountEqualTo: undefined,
+            amountGreaterThan: '60.00 USD',
+            amountLessThan: undefined,
+            amountGreaterThanOrEqualTo: undefined,
+            amountLessThanOrEqualTo: undefined,
+        });
+    });
+
+    it('retains both operators when a raw query constrains the same side twice', () => {
+        // Given the strict bound is stronger than the inclusive bound selected by the editor.
+        const onChange = jest.fn();
+        render(
+            <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
+                value={{GreaterThan: '6000', GreaterThanOrEqualTo: '5000'}}
+                onChange={onChange}
+            />,
+        );
+
+        // When the user confirms without changing either constraint.
+        fireEvent.press(screen.getByRole('button'));
+
+        // Then reopening the filter cannot broaden the result set from over 60 to at least 50.
+        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({amountGreaterThan: '6000', amountGreaterThanOrEqualTo: '5000'}));
+    });
+
+    it('keeps inclusive range operators and currencies when confirming Between', () => {
+        // Given NL parsing supplied an inclusive AUD range rather than the editor's strict range.
+        const onChange = jest.fn();
+        render(
+            <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
+                value={{GreaterThanOrEqualTo: '50.00 AUD', LessThanOrEqualTo: '100.00 AUD'}}
+                onChange={onChange}
+            />,
+        );
+
+        // When the lower bound is edited and the existing Between selection is confirmed.
+        const [lowerBound, upperBound] = screen.UNSAFE_getAllByType(AmountFilterInput);
+        expect(lowerBound?.props).toMatchObject({amount: '50.00', currency: 'AUD', label: 'search.filters.amount.greaterThanOrEqualTo'});
+        expect(upperBound?.props).toMatchObject({amount: '100.00', currency: 'AUD', label: 'search.filters.amount.lessThanOrEqualTo'});
+        act(() => jest.mocked(NumberWithSymbolForm).mock.calls.at(-2)?.[0].onInputChange?.('60'));
+        fireEvent.press(screen.getByRole('button'));
+
+        // Then editing does not silently exclude the original endpoints or enable strict comparisons.
+        expect(onChange).toHaveBeenCalledWith({
+            amountEqualTo: undefined,
+            amountGreaterThan: undefined,
+            amountLessThan: undefined,
+            amountGreaterThanOrEqualTo: '60.00 AUD',
+            amountLessThanOrEqualTo: '100.00 AUD',
+        });
+    });
+
+    it('clears inclusive bounds when switching to Equal to', () => {
+        // Given an inclusive range must not remain active behind a replacement amount filter.
+        const onChange = jest.fn();
+        render(
+            <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
+                value={{GreaterThanOrEqualTo: '50.00 AUD', LessThanOrEqualTo: '100.00 AUD'}}
+                onChange={onChange}
+            />,
+        );
+
+        // When Equal to replaces Between.
+        fireEvent.press(screen.getByTestId('base-list-item-EqualTo'), {nativeEvent: {}});
+        act(() => jest.mocked(NumberWithSymbolForm).mock.lastCall?.[0].onInputChange?.('75'));
+        fireEvent.press(screen.getByRole('button'));
+
+        // Then both inclusive operands are explicitly removed from the merged form.
+        expect(onChange).toHaveBeenCalledWith({
+            amountEqualTo: '75.00 USD',
+            amountGreaterThan: undefined,
+            amountLessThan: undefined,
+            amountGreaterThanOrEqualTo: undefined,
+            amountLessThanOrEqualTo: undefined,
+        });
+    });
+
     it('stacks Between inputs vertically on desktop', () => {
         // Given a saved range rendered with desktop layout and real theme styles.
         render(
             <ThemeStylesProvider>
                 <AmountFilterContent
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
                     value={{EqualTo: undefined, GreaterThan: '10.00 USD', LessThan: '20.00 GBP'}}
                     onChange={jest.fn()}
@@ -92,6 +232,7 @@ describe('AmountFilterContent currency selection', () => {
         // Given a saved USD amount that allows fractional input.
         render(
             <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT}
                 value={{EqualTo: '12.34 USD', GreaterThan: undefined, LessThan: undefined}}
                 onChange={jest.fn()}
@@ -110,6 +251,39 @@ describe('AmountFilterContent currency selection', () => {
 
         // Then two-decimal precision becomes available again.
         expect(mockedNumberWithSymbolForm.mock.lastCall?.[0]).toMatchObject({currency: '', decimals: 2});
+    });
+
+    it.each([
+        {baseFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, label: 'Greater than ', amount: ''},
+        {baseFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, label: 'Less than ', amount: '12.00'},
+        {baseFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT, label: 'Greater than ', amount: ''},
+        {baseFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT, label: 'Less than ', amount: '12.00'},
+    ])('keeps $baseFilterKey input and button names in sync with currency for $label', ({baseFilterKey, label, amount}) => {
+        // Given a range label whose translation leaves space for an optional amount
+        const renderInput = (currency?: string) => (
+            <AmountFilterInput
+                baseFilterKey={baseFilterKey}
+                amount={amount}
+                currency={currency}
+                label={label}
+                onAmountChange={jest.fn()}
+                onCurrencyChange={jest.fn()}
+            />
+        );
+        const {rerender} = render(renderInput('USD'));
+
+        // When currency is selected, removed, or restored without remounting the input
+        for (const currency of ['USD', '', undefined, 'AED']) {
+            rerender(renderInput(currency));
+
+            // Then each independently focused control includes currency context without changing the amount
+            const currencyName = currency || 'common.anyCurrency';
+            expect(jest.mocked(NumberWithSymbolForm).mock.lastCall?.[0]).toMatchObject({
+                accessibilityLabel: `${label.trim()}, ${currencyName}`,
+                currencyButtonAccessibilityLabel: `${label.trim()}, common.selectCurrency, ${currencyName}`,
+                value: amount,
+            });
+        }
     });
 
     it.each(['Greater than ', 'Less than '])('trims the %s label in the currency button name', (label) => {
@@ -138,6 +312,7 @@ describe('AmountFilterContent currency selection', () => {
         const onChange = jest.fn();
         render(
             <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 baseFilterKey={baseFilterKey}
                 value={{EqualTo: '1200', GreaterThan: undefined, LessThan: undefined}}
                 onChange={onChange}
@@ -170,6 +345,7 @@ describe('AmountFilterContent currency selection', () => {
         const onChange = jest.fn();
         render(
             <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 baseFilterKey={baseFilterKey}
                 value={{EqualTo: undefined, GreaterThan: undefined, LessThan: undefined}}
                 onChange={onChange}
@@ -195,6 +371,7 @@ describe('AmountFilterContent currency selection', () => {
         const onChange = jest.fn();
         render(
             <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
                 value={{EqualTo: '1200', GreaterThan: undefined, LessThan: undefined}}
                 onChange={onChange}
@@ -214,6 +391,7 @@ describe('AmountFilterContent currency selection', () => {
         const onChange = jest.fn();
         render(
             <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 baseFilterKey={baseFilterKey}
                 value={{EqualTo: '0.10 USD', GreaterThan: undefined, LessThan: undefined}}
                 onChange={onChange}
@@ -241,6 +419,7 @@ describe('AmountFilterContent currency selection', () => {
         const onChange = jest.fn();
         render(
             <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
                 value={{EqualTo: '12.00 USD', GreaterThan: undefined, LessThan: undefined}}
                 onChange={onChange}
@@ -263,6 +442,7 @@ describe('AmountFilterContent currency selection', () => {
         const onChange = jest.fn();
         render(
             <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT}
                 value={{EqualTo: undefined, GreaterThan: undefined, LessThan: undefined}}
                 onChange={onChange}
@@ -290,6 +470,7 @@ describe('AmountFilterContent currency selection', () => {
         const onChange = jest.fn();
         render(
             <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT}
                 value={{EqualTo: undefined, GreaterThan: '10.00 JPY', LessThan: '20.00 GBP'}}
                 onChange={onChange}
@@ -312,6 +493,7 @@ describe('AmountFilterContent currency selection', () => {
         const onChange = jest.fn();
         render(
             <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
                 value={{EqualTo: undefined, GreaterThan: '0.10 USD', LessThan: '20.00 GBP'}}
                 onChange={onChange}
@@ -335,6 +517,7 @@ describe('AmountFilterContent currency selection', () => {
         // When its existing editor is rendered.
         render(
             <AmountFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL}
                 value={{EqualTo: '1200', GreaterThan: undefined, LessThan: undefined}}
                 onChange={onChange}
@@ -350,6 +533,59 @@ describe('AmountFilterContent currency selection', () => {
 });
 
 describe('AmountPopup currency selection', () => {
+    it('preserves both same-side constraints when applying an active chip comparison', () => {
+        // Given a raw query includes a stricter comparison alongside the inclusive operand.
+        const updateFilterForm = jest.fn();
+        render(
+            <AmountPopup
+                baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
+                label="Amount"
+                value={{GreaterThan: '6000', GreaterThanOrEqualTo: '5000'}}
+                updateFilterForm={updateFilterForm}
+                closeOverlay={jest.fn()}
+            />,
+        );
+
+        // When the existing inclusive comparison is opened and both popup steps are applied unchanged.
+        fireEvent.press(screen.getByText('search.filters.amount.greaterThanOrEqualTo'), {nativeEvent: {}});
+        act(() => jest.mocked(BasePopup).mock.lastCall?.[0].onApply());
+        act(() => jest.mocked(BasePopup).mock.lastCall?.[0].onApply());
+
+        // Then confirming the chip cannot broaden the search by dropping the strict bound.
+        expect(updateFilterForm).toHaveBeenCalledWith(expect.objectContaining({amountGreaterThan: '6000', amountGreaterThanOrEqualTo: '5000'}));
+    });
+
+    it('edits an inclusive chip bound without changing its operator or the other bound', () => {
+        // Given the chip popup opens an inclusive range produced by Describe your search.
+        const updateFilterForm = jest.fn();
+        const closeOverlay = jest.fn();
+        render(
+            <AmountPopup
+                baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
+                label="Amount"
+                value={{GreaterThanOrEqualTo: '50.00 AUD', LessThanOrEqualTo: '100.00 AUD'}}
+                updateFilterForm={updateFilterForm}
+                closeOverlay={closeOverlay}
+            />,
+        );
+
+        // When the inclusive lower bound is edited and both popup steps are applied.
+        fireEvent.press(screen.getByText('search.filters.amount.greaterThanOrEqualTo'), {nativeEvent: {}});
+        act(() => jest.mocked(NumberWithSymbolForm).mock.lastCall?.[0].onInputChange?.('60'));
+        act(() => jest.mocked(BasePopup).mock.lastCall?.[0].onApply());
+        act(() => jest.mocked(BasePopup).mock.lastCall?.[0].onApply());
+
+        // Then the popup submits both inclusive operands and closes normally.
+        expect(updateFilterForm).toHaveBeenCalledWith({
+            amountEqualTo: '',
+            amountGreaterThan: undefined,
+            amountLessThan: undefined,
+            amountGreaterThanOrEqualTo: '60.00 AUD',
+            amountLessThanOrEqualTo: '100.00 AUD',
+        });
+        expect(closeOverlay).toHaveBeenCalled();
+    });
+
     it('submits the default policy currency for a new quick filter', () => {
         // Given a new purchase-amount filter and a GBP default expense policy.
         jest.mocked(useDefaultExpensePolicy).mockReturnValue(createMock<Policy>({outputCurrency: 'GBP'}));

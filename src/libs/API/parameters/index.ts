@@ -386,6 +386,7 @@ export type {default as SetWorkspaceAutoHarvestingParams} from './SetWorkspaceAu
 export type {default as SetWorkspaceAutoReportingFrequencyParams} from './SetWorkspaceAutoReportingFrequencyParams';
 export type {default as SetGlobalReimbursementFXPreferenceParams} from './SetGlobalReimbursementFXPreferenceParams';
 export type {default as ToggleCollectDepositAccountsParams} from './ToggleCollectDepositAccountsParams';
+export type {default as SetReimbursementCountriesParams} from './SetReimbursementCountriesParams';
 export type {default as SetWorkspaceAutoReportingMonthlyOffsetParams} from './SetWorkspaceAutoReportingMonthlyOffsetParams';
 export type {default as UpdatePolicyTimezoneParams} from './UpdatePolicyTimezoneParams';
 export type {default as SetWorkspaceApprovalModeParams} from './SetWorkspaceApprovalModeParams';
@@ -560,6 +561,7 @@ export type {default as OpenCardDetailsPageParams} from './OpenCardDetailsPagePa
 export type {default as SetPolicyCategoryDescriptionRequiredParams} from './SetPolicyCategoryDescriptionRequiredParams';
 export type {default as SetPolicyCategoryAttendeesRequiredParams} from './SetPolicyCategoryAttendeesRequiredParams';
 export type {default as SetPolicyCategoryApproverParams} from './SetPolicyCategoryApproverParams';
+export type {default as SetPolicyMemberCategoryVisibilityParams} from './SetPolicyMemberCategoryVisibilityParams';
 export type {default as SetWorkspaceCategoryDescriptionHintParams} from './SetWorkspaceCategoryDescriptionHintParams';
 export type {default as SetPolicyCategoryTaxParams} from './SetPolicyCategoryTaxParams';
 export type {default as SetPolicyCategoryMaxAmountParams} from './SetPolicyCategoryMaxAmountParams';
@@ -633,6 +635,8 @@ export type {default as TogglePolicyPerDiemParams} from './TogglePolicyPerDiemPa
 export type {default as OpenPolicyPerDiemRatesPageParams} from './OpenPolicyPerDiemRatesPageParams';
 export type {default as TogglePlatformMuteParams} from './TogglePlatformMuteParams';
 export type {default as GetCorpayBankAccountFieldsParams} from './GetCorpayBankAccountFieldsParams';
+export type {default as GetWiseBankAccountFieldsParams} from './GetWiseBankAccountFieldsParams';
+export type {default as CreateWiseBankAccountParams} from './CreateWiseBankAccountParams';
 export type {default as BankAccountCreateCorpayParams} from './BankAccountCreateCorpayParams';
 export type {default as JoinAccessiblePolicyParams} from './JoinAccessiblePolicyParams';
 export type {default as AskToJoinPolicyParams} from './AskToJoinPolicyParams';
@@ -654,6 +658,7 @@ export type {default as CreatePerDiemRequestParams} from './CreatePerDiemRequest
 export type {default as QueueExpensifyCardForBillingParams} from './QueueExpensifyCardForBillingParams';
 export type {default as GetCorpayOnboardingFieldsParams} from './GetCorpayOnboardingFieldsParams';
 export type {default as GetWiseKYCReviewEmbeddedLinkParams} from './GetWiseKYCReviewEmbeddedLinkParams';
+export type {default as GetWiseQuoteParams} from './GetWiseQuoteParams';
 export type {SaveCorpayOnboardingCompanyDetailsParams} from './SaveCorpayOnboardingCompanyDetailsParams';
 export type {default as AcceptSpotnanaTermsParams} from './AcceptSpotnanaTermsParams';
 export type {default as SaveCorpayOnboardingBeneficialOwnerParams} from './SaveCorpayOnboardingBeneficialOwnerParams';
@@ -699,6 +704,7 @@ export type {default as QueueExportSearchWithTemplateParams} from './QueueExport
 export type {default as QueueBulkPayReportsParams} from './QueueBulkPayReportsParams';
 export type {default as QueueBulkApproveReportsParams} from './QueueBulkApproveReportsParams';
 export type {default as QueueBulkSubmitReportsParams} from './QueueBulkSubmitReportsParams';
+export type {default as QueueBulkChangeReportPolicyParams} from './QueueBulkChangeReportPolicyParams';
 export type {default as QueueBulkMarkAsExportedParams} from './QueueBulkMarkAsExportedParams';
 export type {default as AssignReportToMeParams} from './AssignReportToMeParams';
 export type {default as AddReportApproverParams} from './AddReportApproverParams';
@@ -718,6 +724,7 @@ export type {default as AddMemberToDomainParams} from './AddMemberToDomainParams
 export type {default as GetInsightsParams} from './GetInsightsParams';
 export type {default as OpenSearchPageParams} from './OpenSearchPageParams';
 export type {default as ParseExpenseFiltersParams} from './ParseExpenseFiltersParams';
+export type {default as TranslateReceiptParams} from './TranslateReceiptParams';
 export type {default as OpenSearchTagFiltersPageParams} from './OpenSearchTagFiltersPageParams';
 export type {default as OpenSearchTagFiltersPageResponse} from './OpenSearchTagFiltersPageResponse';
 export type {default as OpenBulkChangeApproverPageParams} from './OpenBulkChangeApproverPageParams';

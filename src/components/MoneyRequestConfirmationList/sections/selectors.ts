@@ -1,8 +1,7 @@
-import {canSendInvoice} from '@libs/PolicyUtils';
 import {
     getCategory,
-    getCreated,
     getCurrency,
+    getFormattedCreated,
     getMerchant,
     getTag,
     getTagForDisplay,
@@ -12,15 +11,13 @@ import {
     isFailedScanAmountPlaceholder,
     isMerchantMissing,
     isScanning,
-    isScanRequest,
     willFieldBeAutomaticallyFilled,
 } from '@libs/TransactionUtils';
 
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Participant} from '@src/types/onyx/IOU';
 
 /** Onyx selectors used by the confirmation field leaves. */
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 
 type Transaction = OnyxTypes.Transaction;
 
@@ -42,7 +39,7 @@ const dateStateSelector = (t: OnyxEntry<Transaction>): DateState | undefined => 
         return undefined;
     }
     return {
-        iouCreated: getCreated(t),
+        iouCreated: getFormattedCreated(t),
         isMissing: isCreatedMissing(t),
         hasReceipt: hasReceipt(t),
         isCreatedSet: t.isCreatedSet ?? false,
@@ -114,7 +111,7 @@ const transactionTagSelector = (t: OnyxEntry<Transaction>) => (t ? getTag(t) : u
 
 // --- CategoryField ---
 
-type CategoryState = {category: string; willAutoFill: boolean; isAutoFillFromReceipt: boolean};
+type CategoryState = {category: string; willAutoFill: boolean};
 
 const categoryStateSelector = (t: OnyxEntry<Transaction>): CategoryState | undefined => {
     if (!t) {
@@ -123,10 +120,6 @@ const categoryStateSelector = (t: OnyxEntry<Transaction>): CategoryState | undef
     return {
         category: getCategory(t),
         willAutoFill: willFieldBeAutomaticallyFilled(t, 'category'),
-        // On a scan the category is read off the receipt, so `Automatic` describes the value the row ends up
-        // holding. On a manual expense it is a promise about a field that is still empty, since categorization
-        // only runs once the expense is created.
-        isAutoFillFromReceipt: isScanRequest(t),
     };
 };
 
@@ -243,7 +236,7 @@ const taxSliceSelector = (t: OnyxEntry<Transaction>): TaxSlice | undefined => {
 
 // --- ConfirmationFieldList: useFooterDerivedFlags ---
 
-type DerivedFlagsSlice = Pick<Transaction, 'modifiedCurrency' | 'currency' | 'iouRequestType' | 'reportID' | 'managedCard' | 'reimbursable'>;
+type DerivedFlagsSlice = Pick<Transaction, 'modifiedCurrency' | 'currency' | 'reportID' | 'managedCard' | 'reimbursable'>;
 
 const derivedFlagsSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<DerivedFlagsSlice> => {
     if (!t) {
@@ -252,7 +245,6 @@ const derivedFlagsSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Derived
     const slice: DerivedFlagsSlice = {
         modifiedCurrency: t.modifiedCurrency,
         currency: t.currency,
-        iouRequestType: t.iouRequestType,
         reportID: t.reportID,
         managedCard: t.managedCard,
         reimbursable: t.reimbursable,
@@ -373,29 +365,14 @@ const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportF
     };
 };
 
-// --- InvoiceSenderField ---
-
-type InvoiceSenderWorkspace = {id: string | undefined; name: string | undefined; avatarURL: string | undefined} | undefined;
-
-const invoiceSenderWorkspaceSelector = (p: OnyxEntry<OnyxTypes.Policy>): InvoiceSenderWorkspace => {
-    if (!p) {
-        return undefined;
-    }
-    return {id: p.id, name: p.name, avatarURL: p.avatarURL};
-};
-
-const createCanUpdateSenderWorkspaceSelector =
-    (selectedParticipants: Participant[], currentUserLogin: string | undefined, isFromGlobalCreate: boolean) =>
-    (policies: OnyxCollection<OnyxTypes.Policy>): boolean => {
-        const isInvoiceRoomParticipant = selectedParticipants.some((participant) => participant.isInvoiceRoom);
-        return canSendInvoice(policies ?? null, currentUserLogin) && isFromGlobalCreate && !isInvoiceRoomParticipant;
-    };
+function shouldReportFieldBeEditable(outstandingReports: Array<OnyxEntry<OnyxTypes.Report>>, currentReportID: string | undefined, isUnreportedOrNew: boolean): boolean {
+    return isUnreportedOrNew ? outstandingReports.length >= 1 : outstandingReports.some((report) => report?.reportID !== currentReportID);
+}
 
 export {
     amountSliceSelector,
     attendeeSliceSelector,
     categoryStateSelector,
-    createCanUpdateSenderWorkspaceSelector,
     createTagDisplaySelector,
     transactionTagSelector,
     dateStateSelector,
@@ -403,11 +380,11 @@ export {
     descriptionStateSelector,
     distanceMapSliceSelector,
     invoiceSenderSliceSelector,
-    invoiceSenderWorkspaceSelector,
     merchantStateSelector,
     perDiemSliceSelector,
     receiptSliceSelector,
     reportFieldTransactionStateSelector,
+    shouldReportFieldBeEditable,
     tagSliceSelector,
     taxSliceSelector,
     timeStateSelector,

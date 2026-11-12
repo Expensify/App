@@ -76,6 +76,7 @@ function QuickbooksDesktopTravelBillingConfigurationPage({policy}: WithPolicyCon
                     errorRowStyles={[styles.ph5]}
                 >
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.TRAVEL_BILLING_PAYABLE_ACCOUNT}
                         name={section.description}
                         onPress={section.onPress}
                         value={section.title}

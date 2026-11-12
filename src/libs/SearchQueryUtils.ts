@@ -20,6 +20,7 @@ import type {
     SearchQueryJSON,
     SearchQueryString,
     SearchWithdrawalType,
+    SelectedTransactions,
     SyntaxFilterKey,
     UserFriendlyKey,
     UserFriendlyValue,
@@ -209,6 +210,14 @@ function isFooterTotal(value: string): value is SearchFooterTotal {
 }
 
 const VALID_GROUP_BYS = new Set<string>(Object.values(CONST.SEARCH.GROUP_BY));
+
+/** Group-bys only Insights queries use. The Search command doesn't return data for them yet (see https://github.com/Expensify/App/issues/105303) */
+const INSIGHTS_ONLY_GROUP_BYS = new Set<string>([CONST.SEARCH.GROUP_BY.VIOLATION, CONST.SEARCH.GROUP_BY.PAID_BY]);
+
+function isGroupBySupportedBySearch(groupBy: string | undefined): boolean {
+    return !groupBy || !INSIGHTS_ONLY_GROUP_BYS.has(groupBy);
+}
+
 // Create reverse lookup maps for O(1) performance
 const createKeyToUserFriendlyMap = () => {
     const map = new Map<string, string>();
@@ -642,6 +651,8 @@ function buildAmountFilterQuery(filterKey: SearchAmountFilterKeys, filterValues:
     const equalTo = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`];
     const lessThan = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`];
     const greaterThan = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`];
+    const greaterThanOrEqualTo = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN_OR_EQUAL_TO}`];
+    const lessThanOrEqualTo = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN_OR_EQUAL_TO}`];
 
     const amountStrings = [];
 
@@ -655,6 +666,14 @@ function buildAmountFilterQuery(filterKey: SearchAmountFilterKeys, filterValues:
 
     if (lessThan) {
         amountStrings.push(`${filterKey}<${sanitizeSearchValue(lessThan)}`);
+    }
+
+    if (greaterThanOrEqualTo) {
+        amountStrings.push(`${filterKey}>=${sanitizeSearchValue(greaterThanOrEqualTo)}`);
+    }
+
+    if (lessThanOrEqualTo) {
+        amountStrings.push(`${filterKey}<=${sanitizeSearchValue(lessThanOrEqualTo)}`);
     }
 
     if (negatedAmount) {
@@ -1310,8 +1329,65 @@ function buildQueryStringWithResetFilters(currentQueryJSON: SearchQueryJSON, def
     });
 }
 
+function getDisplayDefaultQueryJSON(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON | undefined) {
+    return defaultQueryJSON ?? buildSearchQueryJSON(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${currentQueryJSON.type}`);
+}
+
+function buildQueryStringWithResetDisplay(currentQueryJSON: SearchQueryJSON, searchDefaultQueryJSON: SearchQueryJSON | undefined) {
+    const defaultQueryJSON = getDisplayDefaultQueryJSON(currentQueryJSON, searchDefaultQueryJSON);
+    if (!defaultQueryJSON) {
+        return buildSearchQueryString(currentQueryJSON);
+    }
+
+    const defaultGroupCurrencyFilters = defaultQueryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY);
+    const keptFilters = currentQueryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY);
+
+    return buildSearchQueryString({
+        ...currentQueryJSON,
+        sortBy: defaultQueryJSON.sortBy,
+        sortOrder: defaultQueryJSON.sortOrder,
+        groupBy: defaultQueryJSON.groupBy,
+        view: defaultQueryJSON.view,
+        isViewExplicitlySet: defaultQueryJSON.isViewExplicitlySet,
+        rawFilterList: undefined,
+        limit: defaultQueryJSON.limit,
+        columns: defaultQueryJSON.columns,
+        flatFilters: [...keptFilters, ...defaultGroupCurrencyFilters],
+    });
+}
+
 function hasFiltersChangedFromDefault(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON, ignoredFilterKeys: ReadonlySet<SearchFilterKey> = NON_FILTER_CHIP_KEYS) {
     return getQueryHashWithoutFilters(currentQueryJSON, ignoredFilterKeys) !== getQueryHashWithoutFilters(defaultQueryJSON, ignoredFilterKeys);
+}
+
+function getGroupCurrencyValue(queryJSON: SearchQueryJSON) {
+    return getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY).value?.at(0);
+}
+
+function getColumnsValue(queryJSON: SearchQueryJSON) {
+    return [queryJSON.columns ?? []].flat().join(',');
+}
+
+function getChangedDisplayOptionsCount(currentQueryJSON: SearchQueryJSON | undefined, searchDefaultQueryJSON: SearchQueryJSON | undefined): number {
+    if (!currentQueryJSON) {
+        return 0;
+    }
+
+    const defaultQueryJSON = getDisplayDefaultQueryJSON(currentQueryJSON, searchDefaultQueryJSON);
+    if (!defaultQueryJSON) {
+        return 0;
+    }
+
+    const changedOptions = [
+        currentQueryJSON.sortBy !== defaultQueryJSON.sortBy || currentQueryJSON.sortOrder !== defaultQueryJSON.sortOrder,
+        currentQueryJSON.groupBy !== defaultQueryJSON.groupBy,
+        currentQueryJSON.view !== defaultQueryJSON.view,
+        currentQueryJSON.limit !== defaultQueryJSON.limit,
+        getGroupCurrencyValue(currentQueryJSON) !== getGroupCurrencyValue(defaultQueryJSON),
+        getColumnsValue(currentQueryJSON) !== getColumnsValue(defaultQueryJSON),
+    ];
+
+    return changedOptions.filter(Boolean).length;
 }
 
 function isSearchQuerySavable(currentQueryJSON: SearchQueryJSON | undefined, defaultQueryJSON: SearchQueryJSON | undefined) {
@@ -1325,7 +1401,7 @@ function isSearchQuerySavable(currentQueryJSON: SearchQueryJSON | undefined, def
         return true;
     }
 
-    return hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON, NON_SAVABLE_FILTER_KEYS);
+    return hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON, NON_SAVABLE_FILTER_KEYS) || getChangedDisplayOptionsCount(currentQueryJSON, defaultQueryJSON) > 0;
 }
 
 function getSanitizedRawFilters(queryJSON: SearchQueryJSON): RawQueryFilter[] | undefined {
@@ -2125,11 +2201,14 @@ function buildFilterFormValuesFromQuery(
             filtersForm[rangeKey] = undefined;
         }
 
-        if (AMOUNT_FILTER_KEYS.includes(filterKey as SearchAmountFilterKeys)) {
+        const amountFilterKey = AMOUNT_FILTER_KEYS.find((key: string) => key === filterKey);
+        if (amountFilterKey) {
             const negatedKey = `${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.NOT_MODIFIER}`;
             const equalToKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`;
             const lessThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`;
             const greaterThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`;
+            const greaterThanOrEqualToKey = `${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN_OR_EQUAL_TO}` as const;
+            const lessThanOrEqualToKey = `${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN_OR_EQUAL_TO}` as const;
 
             const isValidAmount = (value: string) => {
                 const parsed = parseAmountFilterValue(value);
@@ -2151,6 +2230,12 @@ function buildFilterFormValuesFromQuery(
             filtersForm[greaterThanKey] =
                 filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN && isValidAmount(filter.value.toString()))?.value.toString() ??
                 filtersForm[greaterThanKey];
+            filtersForm[greaterThanOrEqualToKey] =
+                filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO && isValidAmount(filter.value.toString()))?.value.toString() ??
+                filtersForm[greaterThanOrEqualToKey];
+            filtersForm[lessThanOrEqualToKey] =
+                filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO && isValidAmount(filter.value.toString()))?.value.toString() ??
+                filtersForm[lessThanOrEqualToKey];
             filtersForm[negatedKey] =
                 filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO && isValidAmount(filter.value.toString()))?.value.toString() ??
                 filtersForm[negatedKey];
@@ -3122,6 +3207,34 @@ function buildFilterQueryWithSortDefaults(
 }
 
 /**
+ * Restores sorting omitted from readable search input unless the user specifies sorting
+ * or changes the search type, grouping, or view in a way that requires new defaults.
+ * rawQuery must be the submitted input before normalization adds default sort fields.
+ */
+function getQueryWithPreservedSort(query: SearchQueryString, previousQuery: Readonly<SearchQueryJSON>, rawQuery: SearchQueryString): SearchQueryString {
+    // Clearing the input starts a fresh search rather than editing the saved filters.
+    if (!rawQuery.trim()) {
+        return query;
+    }
+
+    const queryJSON = buildSearchQueryJSON(query, rawQuery);
+    if (!queryJSON || queryJSON.type !== previousQuery.type) {
+        return query;
+    }
+
+    const hasExplicitSort = queryJSON.rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY || filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER);
+    if (
+        hasExplicitSort ||
+        shouldResetSort({newGroupBy: queryJSON.groupBy, oldGroupBy: previousQuery.groupBy}) ||
+        shouldResetSortForViewChange({newView: queryJSON.view, oldView: previousQuery.view, groupBy: queryJSON.groupBy})
+    ) {
+        return query;
+    }
+
+    return buildSearchQueryString({...queryJSON, sortBy: previousQuery.sortBy, sortOrder: previousQuery.sortOrder});
+}
+
+/**
  * Builds an optimistic Snapshot update to ensure offline data for Tasks and Chat messages appears in Search.
  */
 function buildOptimisticSnapshotData(type: SearchDataTypes, data: NullishDeep<SearchResultDataType>): OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT> | undefined {
@@ -3323,7 +3436,27 @@ function getValidLastQuery(lastQuery: string | undefined, defaultQuery: string) 
     return lastQuery;
 }
 
+function getAllMatchingReportQuery(queryJSON: SearchQueryJSON, excludedTransactions: SelectedTransactions): SearchQueryJSON | undefined {
+    const excludedEntries = Object.values(excludedTransactions);
+    if (excludedEntries.some((transaction) => !transaction.reportID)) {
+        return undefined;
+    }
+    const excludedReportIDs = [...new Set(excludedEntries.map((transaction) => transaction.reportID).filter((reportID): reportID is string => !!reportID))];
+    if (excludedReportIDs.length === 0) {
+        return queryJSON;
+    }
+
+    const flatFilters = queryJSON.flatFilters.map((filter) => ({...filter, filters: [...filter.filters]}));
+    flatFilters.push({
+        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
+        filters: excludedReportIDs.map((reportID) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: reportID})),
+    });
+
+    return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters}));
+}
+
 export {
+    getAllMatchingReportQuery,
     getDateRangeDisplayValueFromFormValue,
     getRangeBoundariesFromFormValue,
     getRangeQueryValue,
@@ -3333,8 +3466,10 @@ export {
     getFooterSelectionFromQuery,
     getQueryWithFooterSelection,
     getQueryWithoutGroupBy,
+    isGroupBySupportedBySearch,
     hasFiltersChangedFromDefault,
     isSearchQuerySavable,
+    getChangedDisplayOptionsCount,
     isSearchDatePreset,
     normalizeDatePreset,
     normalizeDatePresetsInQuery,
@@ -3345,6 +3480,7 @@ export {
     buildSearchQueryJSON,
     buildSearchQueryString,
     buildQueryStringWithResetFilters,
+    buildQueryStringWithResetDisplay,
     buildUserReadableQueryString,
     buildFilterValuesString,
     getDisplayQueryFiltersForKey,
@@ -3357,6 +3493,7 @@ export {
     sanitizeSearchValue,
     getKeywordQueryForSearchInput,
     getQueryWithUpdatedValues,
+    getQueryWithPreservedSort,
     getKeywordQueryWithCurrentSearchContext,
     getCurrentSearchQueryJSON,
     getSearchRootParamsFromRootState,
