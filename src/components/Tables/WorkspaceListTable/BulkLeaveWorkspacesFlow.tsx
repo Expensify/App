@@ -9,14 +9,16 @@ import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import {close} from '@libs/actions/Modal';
 import {queueBulkLeavePolicy} from '@libs/actions/Policy/Policy';
 import {isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
-import {getBulkActionSkippedNotice, getBulkLeaveWorkspacesConfirmationPrompt} from '@libs/WorkspacesSettingsUtils';
+import {getBulkActionSkippedNotice, getBulkLeaveWorkspacesWarnings} from '@libs/WorkspacesSettingsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 
 import type {WorkspaceRowData} from '.';
+
+import BulkActionConfirmationPrompt from './BulkActionConfirmationPrompt';
 
 type BulkLeaveWorkspacesFlowProps = {
     /** Every selected workspace, including the ones the user can't leave */
@@ -57,8 +59,9 @@ function BulkLeaveWorkspacesFlow({selectedRows, policyIDs, onConfirm, onDismiss}
             const payerRows = selectedRows.filter((row) => !policyIDs.includes(row.policyID) && getPolicy(row)?.achAccount?.reimburser === userLogin);
             const skippedWorkspaceNames = selectedRows.filter((row) => !policyIDs.includes(row.policyID) && !payerRows.includes(row)).map((row) => row.title);
 
-            const warnings = getBulkLeaveWorkspacesConfirmationPrompt(
+            const warnings = getBulkLeaveWorkspacesWarnings(
                 [...rowsToLeave, ...payerRows].map((row) => ({
+                    policyID: row.policyID,
                     policy: getPolicy(row),
                     name: row.title,
                     ownerDisplayName: row.ownerName ?? '',
@@ -75,7 +78,13 @@ function BulkLeaveWorkspacesFlow({selectedRows, policyIDs, onConfirm, onDismiss}
 
             showConfirmModal({
                 title: translate('workspace.common.leaveWorkspacesTitle', {count: policyIDs.length}),
-                prompt: [warnings, skippedNotice].filter(Boolean).join('\n\n'),
+                prompt:
+                    warnings.length > 0 || !!skippedNotice ? (
+                        <BulkActionConfirmationPrompt
+                            warnings={warnings}
+                            notice={skippedNotice}
+                        />
+                    ) : undefined,
                 confirmText: translate('common.leave'),
                 cancelText: translate('common.cancel'),
                 buttonVariant: CONST.BUTTON_VARIANT.DANGER,

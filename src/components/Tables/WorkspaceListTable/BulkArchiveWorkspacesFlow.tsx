@@ -9,15 +9,17 @@ import {close} from '@libs/actions/Modal';
 import {queueBulkArchivePolicy} from '@libs/actions/Policy/Policy';
 import {getCardFeedsForDisplayPerPolicy} from '@libs/CardFeedUtils';
 import {filterInactiveCards} from '@libs/CardUtils';
-import {getBulkActionSkippedNotice, getBulkArchiveWorkspacesConfirmationPrompt} from '@libs/WorkspacesSettingsUtils';
+import {getBulkActionSkippedNotice, getBulkArchiveWorkspacesWarnings} from '@libs/WorkspacesSettingsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import {useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 
 import type {WorkspaceRowData} from '.';
+
+import BulkActionConfirmationPrompt from './BulkActionConfirmationPrompt';
 
 type BulkArchiveWorkspacesFlowProps = {
     /** Every selected workspace, including the ones the user can't archive */
@@ -56,12 +58,13 @@ function BulkArchiveWorkspacesFlow({selectedRows, policyIDs, onConfirm, onDismis
             const rowsToArchive = selectedRows.filter((row) => policyIDs.includes(row.policyID));
             const skippedWorkspaceNames = selectedRows.filter((row) => !policyIDs.includes(row.policyID)).map((row) => row.title);
 
-            const warnings = getBulkArchiveWorkspacesConfirmationPrompt(
+            const warnings = getBulkArchiveWorkspacesWarnings(
                 rowsToArchive.map((row) => {
                     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${row.policyID}`];
                     const hasPolicyAccount = !!policy?.policyAccountID;
                     const expensifyCards = filterInactiveCards(allCardsLists?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${policy?.policyAccountID}_${CONST.EXPENSIFY_CARD.BANK}`]);
                     return {
+                        policyID: row.policyID,
                         name: row.title,
                         hasExpensifyCards: !!policy?.areExpensifyCardsEnabled && hasPolicyAccount,
                         hasCards:
@@ -76,7 +79,13 @@ function BulkArchiveWorkspacesFlow({selectedRows, policyIDs, onConfirm, onDismis
 
             showConfirmModal({
                 title: translate('workspace.common.archiveWorkspacesTitle', {count: policyIDs.length}),
-                prompt: [warnings, skippedNotice].filter(Boolean).join('\n\n'),
+                prompt:
+                    warnings.length > 0 || !!skippedNotice ? (
+                        <BulkActionConfirmationPrompt
+                            warnings={warnings}
+                            notice={skippedNotice}
+                        />
+                    ) : undefined,
                 confirmText: translate('common.archive'),
                 cancelText: translate('common.cancel'),
                 buttonVariant: CONST.BUTTON_VARIANT.DANGER,

@@ -2,8 +2,8 @@ import {getWorkspaceAddressStreetLines} from '@libs/WorkspaceDisplayUtils';
 import {
     getBrickRoadForPolicy,
     getBulkActionSkippedNotice,
-    getBulkArchiveWorkspacesConfirmationPrompt,
-    getBulkLeaveWorkspacesConfirmationPrompt,
+    getBulkArchiveWorkspacesWarnings,
+    getBulkLeaveWorkspacesWarnings,
     getChatTabBrickRoad,
     getChatTabBrickRoadReportID,
     getLeaveWorkspaceConfirmationPrompt,
@@ -298,18 +298,20 @@ describe('WorkspacesSettingsUtils', () => {
         });
     });
 
-    describe('getBulkLeaveWorkspacesConfirmationPrompt', () => {
+    describe('getBulkLeaveWorkspacesWarnings', () => {
         // The stub keeps the owner name in the output so the tests can tell the owner groups apart.
+        const listed = (...names: string[]) => names.map((name) => ({policyID: name, name}));
         const translate = <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>): string => [path, ...parameters].join(':');
         const userEmail = 'user@example.com';
         const buildWorkspace = (name: string, policy: Policy, ownerDisplayName = 'Owner A') => ({
+            policyID: name,
             policy,
             name,
             ownerDisplayName,
             isApproverOfOutstandingReports: false,
         });
 
-        it('uses the singular warning for a single workspace and the plural one for several', () => {
+        it('uses the plural wording for every warning, even one that lists a single workspace', () => {
             // Given one workspace the user audits and two they administer
             const workspaces = [
                 buildWorkspace('Admin 1', createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN})),
@@ -317,13 +319,14 @@ describe('WorkspacesSettingsUtils', () => {
                 buildWorkspace('Admin 2', createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN})),
             ];
 
-            // When the bulk leave prompt is built
-            const prompt = getBulkLeaveWorkspacesConfirmationPrompt(workspaces, userEmail, translate);
+            // When the bulk leave warnings are built
+            const warnings = getBulkLeaveWorkspacesWarnings(workspaces, userEmail, translate);
 
-            // Then each warning lists its workspaces, worded for how many it covers, with auditor before admin
-            expect(prompt).toBe(
-                `common.leaveWorkspaceConfirmationAuditor\n${CONST.DOT_SEPARATOR} Auditor 1\n\ncommon.leaveWorkspacesConfirmationAdmin\n${CONST.DOT_SEPARATOR} Admin 1\n${CONST.DOT_SEPARATOR} Admin 2`,
-            );
+            // Then each warning lists its workspaces in plural wording, with auditor before admin
+            expect(warnings).toEqual([
+                {warning: 'common.leaveWorkspacesConfirmationAuditor', workspaces: listed('Auditor 1')},
+                {warning: 'common.leaveWorkspacesConfirmationAdmin', workspaces: listed('Admin 1', 'Admin 2')},
+            ]);
         });
 
         it('groups the warnings that name the owner by owner', () => {
@@ -334,24 +337,28 @@ describe('WorkspacesSettingsUtils', () => {
                 buildWorkspace('Approver 3', createMock<Policy>({approver: userEmail}), 'Owner A'),
             ];
 
-            // When the bulk leave prompt is built
-            const prompt = getBulkLeaveWorkspacesConfirmationPrompt(workspaces, userEmail, translate);
+            // When the bulk leave warnings are built
+            const warnings = getBulkLeaveWorkspacesWarnings(workspaces, userEmail, translate);
 
             // Then each owner gets their own warning, so the owner named in it is right for every workspace listed under it
-            expect(prompt).toBe(
-                `common.leaveWorkspacesConfirmationApprover:Owner A\n${CONST.DOT_SEPARATOR} Approver 1\n${CONST.DOT_SEPARATOR} Approver 3\n\ncommon.leaveWorkspaceConfirmationApprover:Owner B\n${CONST.DOT_SEPARATOR} Approver 2`,
-            );
+            expect(warnings).toEqual([
+                {warning: 'common.leaveWorkspacesConfirmationApprover:Owner A', workspaces: listed('Approver 1', 'Approver 3')},
+                {warning: 'common.leaveWorkspacesConfirmationApprover:Owner B', workspaces: listed('Approver 2')},
+            ]);
         });
 
         it('lists the workspaces the user pays for last', () => {
             // Given the user is the payer of one workspace and a member of another
             const workspaces = [buildWorkspace('Payer 1', createMock<Policy>({achAccount: {reimburser: userEmail}})), buildWorkspace('Member 1', createMock<Policy>({}))];
 
-            // When the bulk leave prompt is built
-            const prompt = getBulkLeaveWorkspacesConfirmationPrompt(workspaces, userEmail, translate);
+            // When the bulk leave warnings are built
+            const warnings = getBulkLeaveWorkspacesWarnings(workspaces, userEmail, translate);
 
             // Then the payer warning comes after the warnings for the workspaces being left
-            expect(prompt).toBe(`common.leaveWorkspaceConfirmation\n${CONST.DOT_SEPARATOR} Member 1\n\ncommon.leaveWorkspaceReimburser\n${CONST.DOT_SEPARATOR} Payer 1`);
+            expect(warnings).toEqual([
+                {warning: 'common.leaveWorkspacesConfirmation', workspaces: listed('Member 1')},
+                {warning: 'common.leaveWorkspacesReimburser', workspaces: listed('Payer 1')},
+            ]);
         });
     });
 
@@ -384,39 +391,46 @@ describe('WorkspacesSettingsUtils', () => {
         });
     });
 
-    describe('getBulkArchiveWorkspacesConfirmationPrompt', () => {
+    describe('getBulkArchiveWorkspacesWarnings', () => {
         const translate = <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>): string => [path, ...parameters].join(':');
 
         it('lists each workspace under the card warning that applies to it', () => {
             // Given two workspaces with Expensify Cards, one with other cards and one without any cards
             const workspaces = [
-                {name: 'Expensify 1', hasExpensifyCards: true, hasCards: true},
-                {name: 'Company 1', hasExpensifyCards: false, hasCards: true},
-                {name: 'No cards', hasExpensifyCards: false, hasCards: false},
-                {name: 'Expensify 2', hasExpensifyCards: true, hasCards: true},
+                {policyID: '1', name: 'Expensify 1', hasExpensifyCards: true, hasCards: true},
+                {policyID: '2', name: 'Company 1', hasExpensifyCards: false, hasCards: true},
+                {policyID: '3', name: 'No cards', hasExpensifyCards: false, hasCards: false},
+                {policyID: '4', name: 'Expensify 2', hasExpensifyCards: true, hasCards: true},
             ];
 
-            // When the bulk archive prompt is built
-            const prompt = getBulkArchiveWorkspacesConfirmationPrompt(workspaces, translate);
+            // When the bulk archive warnings are built
+            const warnings = getBulkArchiveWorkspacesWarnings(workspaces, translate);
 
-            // Then a workspace with Expensify Cards only gets that warning, like the single archive confirmation, and the workspace without cards isn't listed
-            expect(prompt).toBe(
-                `workspace.common.archiveWorkspacesWithExpensifyCardsConfirmation\n${CONST.DOT_SEPARATOR} Expensify 1\n${CONST.DOT_SEPARATOR} Expensify 2\n\nworkspace.common.archiveWithThirdPartyCardsConfirmation\n${CONST.DOT_SEPARATOR} Company 1`,
-            );
+            // Then a workspace with Expensify Cards only gets that warning, like the single archive confirmation, the wording stays plural, and the workspace without cards isn't listed
+            expect(warnings).toEqual([
+                {
+                    warning: 'workspace.common.archiveWorkspacesWithExpensifyCardsConfirmation',
+                    workspaces: [
+                        {policyID: '1', name: 'Expensify 1'},
+                        {policyID: '4', name: 'Expensify 2'},
+                    ],
+                },
+                {warning: 'workspace.common.archiveWorkspacesWithThirdPartyCardsConfirmation', workspaces: [{policyID: '2', name: 'Company 1'}]},
+            ]);
         });
 
-        it('returns an empty prompt when none of the workspaces have cards', () => {
+        it('has no warnings when none of the workspaces have cards', () => {
             // Given workspaces without any cards
             const workspaces = [
-                {name: 'No cards 1', hasExpensifyCards: false, hasCards: false},
-                {name: 'No cards 2', hasExpensifyCards: false, hasCards: false},
+                {policyID: '1', name: 'No cards 1', hasExpensifyCards: false, hasCards: false},
+                {policyID: '2', name: 'No cards 2', hasExpensifyCards: false, hasCards: false},
             ];
 
-            // When the bulk archive prompt is built
-            const prompt = getBulkArchiveWorkspacesConfirmationPrompt(workspaces, translate);
+            // When the bulk archive warnings are built
+            const warnings = getBulkArchiveWorkspacesWarnings(workspaces, translate);
 
             // Then there is no card warning to show
-            expect(prompt).toBe('');
+            expect(warnings).toEqual([]);
         });
     });
 
