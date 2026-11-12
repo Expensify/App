@@ -1,3 +1,4 @@
+import EnvironmentBadge from '@components/EnvironmentBadge';
 import LoadingBar from '@components/LoadingBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
@@ -71,6 +72,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
                         >
                             {breadcrumbLabel}
                         </Text>
+                        <EnvironmentBadge />
                     </Animated.View>
                 </View>
                 {children}
