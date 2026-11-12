@@ -12,6 +12,8 @@ import type {InvoiceReceiver} from '@src/types/onyx/Report';
 
 import React from 'react';
 
+import type mockOnyxWithLivePersonalDetails from '../../../../utils/mockOnyxWithLivePersonalDetails';
+
 const SENDER_POLICY_ID = 'senderPolicy';
 const RECEIVER_POLICY_ID = 'receiverPolicy';
 const RECEIVER_POLICY_NAME = 'Receiver Workspace';
@@ -78,7 +80,7 @@ let mockPersonalDetails: PersonalDetailsList | undefined = {};
 
 // The live list, which the component reads while there is no Search snapshot
 jest.mock('react-native-onyx', () =>
-    jest.requireActual<{default: (getPersonalDetails: () => unknown) => unknown}>('../../../../utils/mockOnyxWithLivePersonalDetails').default(() => mockPersonalDetails),
+    jest.requireActual<{default: typeof mockOnyxWithLivePersonalDetails}>('../../../../utils/mockOnyxWithLivePersonalDetails').default(() => mockPersonalDetails),
 );
 
 const renderWithPersonalDetails = (ui: React.ReactElement) => render(ui);

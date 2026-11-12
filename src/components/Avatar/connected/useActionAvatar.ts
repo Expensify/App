@@ -174,7 +174,6 @@ function useActionAvatar({action: passedAction, report, shouldUseRealActor}: Use
     });
     const reportPreviewSenderID = isIOUReportPreview ? iouReportIcons.senderAccountID : senderAccountIDFromLookup;
 
-    const delegateAccountIDFromAction = getDelegateAccountIDFromReportAction(action);
     const [isInvoiceLinkedToBill = false] = useOnyx(
         `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(isOtherAction && isInvoiceReport(iouReport) ? iouReport?.reportID : undefined)}`,
         {selector: isLinkedToBillSelector},
@@ -183,8 +182,6 @@ function useActionAvatar({action: passedAction, report, shouldUseRealActor}: Use
     const [billProcessorAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(isBillPayHistory ? iouReport?.reportID : undefined)}`, {
         selector: getBillProcessorAccountIDSelector,
     });
-    const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(action);
-
     const [chatReportParentActionAccountIDs] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.parentReportID)}`, {
         selector: parentActionAccountIDsSelector(chatReport?.parentReportActionID),
     });
@@ -198,8 +195,8 @@ function useActionAvatar({action: passedAction, report, shouldUseRealActor}: Use
         action?.adminAccountID,
         action?.childOwnerAccountID,
         action?.childManagerAccountID,
-        delegateAccountIDFromAction,
-        humanAgentAccountID,
+        getDelegateAccountIDFromReportAction(action),
+        getHumanAgentAccountIDFromReportAction(action),
         billProcessorAccountID,
         reportPreviewSenderID,
         CONST.ACCOUNT_ID.CONCIERGE,
@@ -213,6 +210,7 @@ function useActionAvatar({action: passedAction, report, shouldUseRealActor}: Use
         ...(chatReportParentActionAccountIDs ?? []),
         ...(iouReportParentActionAccountIDs ?? []),
     ]);
+    const delegateAccountIDFromAction = getDelegateAccountIDFromReportAction(action);
     const delegatePersonalDetails = delegateAccountIDFromAction ? personalDetails?.[delegateAccountIDFromAction] : undefined;
     const actorAccountID = getReportActionActorAccountID(action, iouReport, chatReport, delegatePersonalDetails, shouldUseRealActor, {
         isInvoiceLinkedToBill,
@@ -313,6 +311,7 @@ function useActionAvatar({action: passedAction, report, shouldUseRealActor}: Use
 
     // Every other action follows `useReportActionAvatars` with an action passed in. That hook still renders other surfaces until
     // https://github.com/Expensify/App/issues/94591 deletes it, so a fix to these rules belongs in both places until then.
+    const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(action);
     const isAInvoiceReport = isInvoiceReport(iouReport ?? null);
     // Actions inside an invoice report picture their actor, named by display name.
     const shouldUseActorAccountID = isAInvoiceReport && !isAReportPreviewAction;

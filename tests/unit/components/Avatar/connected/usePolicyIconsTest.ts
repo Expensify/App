@@ -12,6 +12,8 @@ import type {PersonalDetailsList} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
+import type mockOnyxWithLivePersonalDetails from '../../../../utils/mockOnyxWithLivePersonalDetails';
+
 import waitForBatchedUpdatesWithAct from '../../../../utils/waitForBatchedUpdatesWithAct';
 
 const POLICY_ID = 'policy123';
@@ -42,7 +44,7 @@ let mockPersonalDetails: PersonalDetailsList = {};
 
 // The live list, which the component reads while there is no Search snapshot
 jest.mock('react-native-onyx', () =>
-    jest.requireActual<{default: (getPersonalDetails: () => unknown) => unknown}>('../../../../utils/mockOnyxWithLivePersonalDetails').default(() => mockPersonalDetails),
+    jest.requireActual<{default: typeof mockOnyxWithLivePersonalDetails}>('../../../../utils/mockOnyxWithLivePersonalDetails').default(() => mockPersonalDetails),
 );
 
 // Passthrough spy on `useOnyx`, so a test can assert which keys the hook subscribes to.

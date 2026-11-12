@@ -145,8 +145,6 @@ function useReportActionAvatars({
     const [billProcessorAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(isBillPayHistory ? iouReport?.reportID : undefined)}`, {
         selector: getBillProcessorAccountIDSelector,
     });
-    const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(action);
-
     const [chatReportParentActionAccountIDs] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.parentReportID)}`, {
         selector: parentActionAccountIDsSelector(chatReport?.parentReportActionID),
     });
@@ -162,7 +160,7 @@ function useReportActionAvatars({
         action?.childOwnerAccountID,
         action?.childManagerAccountID,
         delegateAccountID,
-        humanAgentAccountID,
+        getHumanAgentAccountIDFromReportAction(action),
         billProcessorAccountID,
         reportPreviewSenderID,
         policyAccountID,
@@ -183,6 +181,7 @@ function useReportActionAvatars({
         isInvoiceLinkedToBill,
         processorAccountID: billProcessorAccountID,
     });
+    const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(action);
 
     const isAInvoiceReport = isInvoiceReport(iouReport ?? null);
 

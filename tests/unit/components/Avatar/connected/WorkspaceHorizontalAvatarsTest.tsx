@@ -11,6 +11,8 @@ import type {ReportAvatarFields} from '@selectors/Report';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import type mockOnyxWithLivePersonalDetails from '../../../../utils/mockOnyxWithLivePersonalDetails';
+
 import waitForBatchedUpdatesWithAct from '../../../../utils/waitForBatchedUpdatesWithAct';
 
 const PARENT_REPORT_ID = 'parentChat456';
@@ -43,7 +45,7 @@ const mockPersonalDetails = PERSONAL_DETAILS;
 
 // The live list, which the component reads while there is no Search snapshot
 jest.mock('react-native-onyx', () =>
-    jest.requireActual<{default: (getPersonalDetails: () => unknown) => unknown}>('../../../../utils/mockOnyxWithLivePersonalDetails').default(() => mockPersonalDetails),
+    jest.requireActual<{default: typeof mockOnyxWithLivePersonalDetails}>('../../../../utils/mockOnyxWithLivePersonalDetails').default(() => mockPersonalDetails),
 );
 
 const renderWithPersonalDetails = (ui: React.ReactElement) => render(ui);

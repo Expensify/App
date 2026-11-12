@@ -11,6 +11,8 @@ import type {PersonalDetailsList, Report} from '@src/types/onyx';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import type mockOnyxWithLivePersonalDetails from '../../../../utils/mockOnyxWithLivePersonalDetails';
+
 import waitForBatchedUpdatesWithAct from '../../../../utils/waitForBatchedUpdatesWithAct';
 
 const REPORT_ID = 'report123';
@@ -48,7 +50,7 @@ let mockPersonalDetails: PersonalDetailsList = {};
 
 // The live list, which the component reads while there is no Search snapshot
 jest.mock('react-native-onyx', () =>
-    jest.requireActual<{default: (getPersonalDetails: () => unknown) => unknown}>('../../../../utils/mockOnyxWithLivePersonalDetails').default(() => mockPersonalDetails),
+    jest.requireActual<{default: typeof mockOnyxWithLivePersonalDetails}>('../../../../utils/mockOnyxWithLivePersonalDetails').default(() => mockPersonalDetails),
 );
 
 jest.mock('@components/Avatar/connected/WorkspaceSubscriptAvatar', () => {
