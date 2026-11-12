@@ -342,7 +342,9 @@ function FormProvider({
                     return KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
                 }
                 if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_AND_DISMISS) {
-                    return KeyboardUtils.dismissKeyboardAndExecute(() => onSubmit(trimmedStringValues));
+                    return KeyboardUtils.dismissKeyboardAndExecute(() => {
+                        onSubmit(trimmedStringValues);
+                    });
                 }
                 return onSubmit(trimmedStringValues);
             };
