@@ -12,6 +12,7 @@ import ScrollView from '@components/ScrollView';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
+import useIsTabVisible from '@hooks/useIsTabVisible';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -30,13 +31,14 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type {AIInsight, InsightsDashboard as InsightsDashboardRecord, InsightsDashboardID, InsightsScope} from '@src/types/onyx';
 import viewRef from '@src/types/utils/viewRef';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useEffectEvent} from 'react';
+import React, {useEffect, useEffectEvent, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 
@@ -307,6 +309,8 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     const shouldScrollMainHeader = useIsMobileWebLandscape();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
+    const isDashboardVisible = useIsTabVisible(SCREENS.INSIGHTS);
+    const wasFocusedRef = useRef(isFocused);
     const {login} = useCurrentUserPersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const arePoliciesLoaded = policies !== undefined;
@@ -346,12 +350,15 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     });
 
     useEffect(() => {
-        if (!isFocused) {
+        const wasFocused = wasFocusedRef.current;
+        wasFocusedRef.current = isFocused;
+        // An RHP opened beside a wide dashboard leaves it visible, so only closing the RHP fetches again, because the RHP may have changed the expenses behind the charts.
+        if (!isDashboardVisible || (wasFocused && !isFocused)) {
             return;
         }
         onRequestConditionsChanged();
         // Leaves out jsonQuery so toggling Compare mode doesn't refetch, since every response covers it. The effective bucket and the eligible charts are listed because the hash leaves them out, so changing them triggers a refetch while a pure Running total toggle does not.
-    }, [dashboardID, hash, queryGroupBy, eligibleGraphKeys, isFocused, isOffline]);
+    }, [dashboardID, hash, queryGroupBy, eligibleGraphKeys, isDashboardVisible, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
     const [hasLoadedBefore = false] = useOnyx(ONYXKEYS.COLLECTION.INSIGHTS, {
