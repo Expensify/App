@@ -283,7 +283,10 @@ function prepareCustomUnitRateUpdates(customUnit: CustomUnit, subRatesToBeDelete
     };
 }
 
-function prepareCustomUnitRate(rate: Rate): Rate {
+/**
+ * Returns a copy of the rate without the client-only Onyx fields, which the API does not accept.
+ */
+function getCustomUnitRateForAPI(rate: Rate): Rate {
     const customUnitRate = lodashDeepClone(rate);
     delete customUnitRate.pendingAction;
     delete customUnitRate.pendingFields;
@@ -327,7 +330,7 @@ function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | 
         optimisticRates = targetedUpdates.optimisticRates;
         failureRates = targetedUpdates.failureRates;
 
-        const sanitizedRateUpdates = Object.values(targetedUpdates.customUnitRateUpdates).map(prepareCustomUnitRate);
+        const sanitizedRateUpdates = Object.values(targetedUpdates.customUnitRateUpdates).map(getCustomUnitRateForAPI);
         if (targetedUpdates.customUnitRateIDs.length) {
             parameters = {
                 policyID,
@@ -440,7 +443,7 @@ function updateWorkspacePerDiemRate(policyID: string, customUnitID: string, curr
     const parameters = {
         policyID,
         customUnitID,
-        customUnitRate: JSON.stringify(prepareCustomUnitRate(updatedRate)),
+        customUnitRate: JSON.stringify(getCustomUnitRateForAPI(updatedRate)),
     };
 
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, parameters, onyxData);
