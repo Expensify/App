@@ -274,6 +274,7 @@ function DescribeRuleForm({
         // The admin keeps their own description over the suggestion. Therefore it goes to the agent rule page and not back to Concierge.
         if (refusal && refusalSuggestedPrompt && onAgentRuleFallback) {
             Log.info('[GenerateRule] Created an agent rule after a refusal', false, {policyID, generationID: refusal.generationID, reason: refusal.reason});
+            setSubmittedGenerationID(undefined);
             onAgentRuleFallback(prompt, refusal.generationID, refusal.state);
             finish();
             return;

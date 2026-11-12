@@ -135,14 +135,22 @@ jest.mock('@components/Form/FormProvider', () => {
         children,
         onSubmit,
         submitButtonText,
+        footerContent,
         ref,
     }: {
         children: React.ReactNode;
         onSubmit: (values: {prompt: string}) => void;
         submitButtonText: string;
+        footerContent?: React.ReactNode;
         ref: React.Ref<{scrollTo: (y: number) => void; scrollToEnd: () => void}>;
     }) {
-        ReactModule.useImperativeHandle(ref, () => ({scrollTo: mockScrollTo, scrollToEnd: mockScrollToEnd}));
+        ReactModule.useImperativeHandle(ref, () => ({
+            scrollTo: mockScrollTo,
+            scrollToEnd: mockScrollToEnd,
+            resetForm: ({prompt}: {prompt: string}) => {
+                mockPrompt = prompt;
+            },
+        }));
         return ReactModule.createElement(
             ReactModule.Fragment,
             null,
@@ -152,6 +160,7 @@ jest.mock('@components/Form/FormProvider', () => {
                 {accessibilityLabel: submitButtonText, onPress: () => onSubmit({prompt: mockPrompt})},
                 ReactModule.createElement(Text, null, submitButtonText),
             ),
+            footerContent,
         );
     }
     return MockFormProvider;
@@ -518,6 +527,54 @@ describe('New rule describe section', () => {
             reason: CONST.GENERATED_RULE.IMPOSSIBLE_REASON.NO_CAPABILITY,
         });
         logSpy.mockRestore();
+    });
+
+    it('clears the refusal after Create anyway and accepts a new suggestion with one press', async () => {
+        // Given New rule stays mounted behind the agent rule editor, so its local state survives going back
+        const prompt = 'Text the approver when a report is submitted';
+        const suggestedPrompt = 'Comment on the report when it is submitted';
+        await renderRulesNewPage();
+        const {generationID} = describeRule(writeSpy, prompt);
+        const refusal = {
+            generationID,
+            state: CONST.GENERATED_RULE.STATE.IMPOSSIBLE,
+            reason: CONST.GENERATED_RULE.IMPOSSIBLE_REASON.NO_CAPABILITY,
+            explanation: 'Rules cannot send text messages.',
+            suggestedPrompt,
+        };
+        await answerGeneration(refusal);
+        expect(screen.getByText('workspace.rules.newRule.impossible.useSuggestion')).toBeOnTheScreen();
+
+        // When the admin opens the agent rule editor with their own description
+        fireEvent.press(screen.getByLabelText('workspace.rules.newRule.impossible.createAnyway'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the form is ready for a new description when revealed, but the editor can still read the original answer
+        expect(screen.getByLabelText('common.next')).toBeOnTheScreen();
+        expect(screen.queryByText('workspace.rules.newRule.impossible.useSuggestion')).toBeNull();
+        expect(screen.queryByText('workspace.rules.newRule.impossible.explanationWithSuggestion Rules cannot send text messages.')).toBeNull();
+        expect(await getOnyxValue(ONYXKEYS.GENERATED_RULE)).toEqual(refusal);
+
+        // When the admin describes the rule again and accepts the new suggestion with one press
+        writeSpy.mockClear();
+        jest.mocked(Navigation.navigate).mockClear();
+        const {generationID: nextGenerationID} = describeRule(writeSpy, prompt);
+        await answerGeneration({...refusal, generationID: nextGenerationID});
+        fireEvent.press(screen.getByText('workspace.rules.newRule.impossible.useSuggestion'));
+        await waitForBatchedUpdatesWithAct();
+        const requests = writeSpy.mock.calls.filter(([command]) => command === WRITE_COMMANDS.GENERATE_RULE);
+        expect(requests).toHaveLength(2);
+        const suggestedParameters = requests.at(-1)?.at(1);
+        if (!isGenerateRuleParams(suggestedParameters)) {
+            throw new Error('The suggestion did not request GenerateRule');
+        }
+        expect(suggestedParameters.prompt).toBe(suggestedPrompt);
+        await answerGeneration({generationID: suggestedParameters.generationID, state: CONST.GENERATED_RULE.STATE.AGENT_RULE, agentRulePrompt: suggestedPrompt});
+
+        // Then the suggestion opens the agent rule editor once, without a second press
+        expect(await getOnyxValue(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM_DRAFT)).toEqual({prompt: suggestedPrompt});
+        expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RULES_AGENT_NEW.getRoute(POLICY_ID, suggestedParameters.generationID));
     });
 
     it('loads the policy categories when the workspace uses categories and none are loaded', async () => {
