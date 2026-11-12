@@ -315,7 +315,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
                     customText={translate('workspace.common.selected', {count: selectedKeys.length})}
                     options={options}
                     isSplitButton={false}
-                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
+                    style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : styles.pr2}
                     isDisabled={!selectedKeys.length}
                 />
             );
@@ -325,7 +325,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
             return (
                 <Button
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.LIST_VALUES_ADD_VALUE}
-                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
+                    style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : styles.pr2}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => Navigation.navigate(getAddValueRoute(isInvoicePage, policyID, reportFieldID))}
                 >
