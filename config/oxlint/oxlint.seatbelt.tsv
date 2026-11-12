@@ -1517,7 +1517,6 @@
 "../../src/pages/settings/Wallet/AddCardToDigitalWalletPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/settings/Wallet/AddDebitCardPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/BankAccountPurposePage/index.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/Wallet/BankAccountPurposePage/substeps/BankAccountPurpose.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	2
 "../../src/pages/settings/Wallet/BankAccountPurposePage/substeps/CountrySelection.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Wallet/CardAddedToWalletPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/ChooseTransferAccountPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1890,7 +1889,6 @@
 "../../src/pages/workspace/expensifyCard/DynamicWorkspaceExpensifyCardDetailsPage.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/expensifyCard/DynamicWorkspaceExpensifyCardDetailsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/expensifyCard/DynamicWorkspaceSettlementAccountPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/expensifyCard/issueNew/CardTypeStep.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	2
 "../../src/pages/workspace/expensifyCard/issueNew/LimitTypeStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/expensifyCard/issueNew/spendRules/SetSpendRulesStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/expensifyCard/issueNew/spendRules/SetSpendRulesStep.tsx"	"react-hooks/purity"	2
@@ -1899,7 +1897,6 @@
 "../../src/pages/workspace/expensifyCard/WorkspaceCardSettingsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/expensifyCard/WorkspaceCardsListLabel.tsx"	"react-hooks/purity"	1
 "../../src/pages/workspace/expensifyCard/WorkspaceExpensifyCardAddWorkEmailPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/expensifyCard/WorkspaceExpensifyCardBankAccounts.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/workspace/expensifyCard/WorkspaceExpensifyCardBankAccounts.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/expensifyCard/WorkspaceExpensifyCardBankAccounts.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/expensifyCard/WorkspaceExpensifyCardFeedSelectorPage.tsx"	"no-restricted-imports"	1
@@ -1964,9 +1961,7 @@
 "../../src/pages/workspace/rules/AgentRules/AddAgentRulePage.tsx"	"react/no-unstable-nested-components"	1
 "../../src/pages/workspace/rules/FlagForReviewRules/FlagForReviewRuleAmountPageBase.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/workspace/rules/IndividualExpenseRulesSectionRevamp.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
-"../../src/pages/workspace/rules/MerchantRules/ExpenseDefaultTypePage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/workspace/rules/MerchantRules/MerchantRulePageBase.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
-"../../src/pages/workspace/rules/RulesNewPage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/workspace/rules/SpendRules/SpendRulePageBase.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/tags/DynamicEditTagPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/tags/DynamicTagApproverPage.tsx"	"no-restricted-imports"	1
