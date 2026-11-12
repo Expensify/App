@@ -29,7 +29,7 @@ import {
     isMapOrGPSRequired,
     isSharedGovernmentRateCurrency,
 } from '@libs/PolicyDistanceRatesUtils';
-import {getDistanceRateCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, getUKFuelRateTaxErrors, isControlPolicy} from '@libs/PolicyUtils';
 import {getUnitTranslationKey} from '@libs/WorkspaceDisplayUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -46,7 +46,7 @@ import {
     setPolicyRequireMapOrGPS,
     setWorkspaceDistanceAutoUpdate,
 } from '@userActions/Policy/DistanceRate';
-import {enableDistanceRequestTax} from '@userActions/Policy/Policy';
+import {dismissUKFuelRateTaxError, enableDistanceRequestTax} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -115,6 +115,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     const {canWrite: canWriteDistanceRates, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES);
     const isDistanceTrackTaxEnabled = !!customUnit?.attributes?.taxEnabled;
     const isPolicyTrackTaxEnabled = !!policy?.tax?.trackingEnabled;
+    const fuelRateTaxErrors = getUKFuelRateTaxErrors(policy, translate);
 
     const defaultCategory = customUnit?.defaultCategory;
     const defaultUnit = customUnit?.attributes?.unit;
@@ -371,6 +372,12 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                             </View>
                         )}
                     </OfflineWithFeedback>
+                    <OfflineWithFeedback
+                        errors={fuelRateTaxErrors}
+                        errorRowStyles={styles.mh5}
+                        pendingAction={customUnit?.pendingFields?.isUKFuelRateTaxErrorDismissed}
+                        onClose={canWriteDistanceRates && customUnit ? () => dismissUKFuelRateTaxError(policyID, customUnit) : undefined}
+                    />
                 </ContentWrapper>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
