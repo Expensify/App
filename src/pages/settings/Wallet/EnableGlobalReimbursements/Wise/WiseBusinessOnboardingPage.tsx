@@ -5,6 +5,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useDismissWiseGlobalReimbursementsBanners from '@hooks/useDismissWiseGlobalReimbursementsBanners';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -26,7 +27,6 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {hideBankAccountErrors, openReimbursementAccountPage} from '@userActions/BankAccounts';
 import {clearSensitiveAnswers, saveDraftAnswers} from '@userActions/DynamicForm';
 import {clearDraftValues} from '@userActions/FormActions';
-import {dismissProductTraining} from '@userActions/Welcome';
 import saveWiseOnboardingPage, {clearWiseOnboardingUnsavedPages} from '@userActions/WiseOnboarding';
 
 import CONST from '@src/CONST';
@@ -186,14 +186,7 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
 
     // Starting onboarding for any account retires both banners for good, and the writes wait for the form so the read is not queued behind them
     const isEligible = isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData, bankAccount?.bankCurrency);
-    const hasFormOpened = isNewVisit && isPrefillDone && isEligible;
-    useEffect(() => {
-        if (!hasFormOpened) {
-            return;
-        }
-        dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER);
-        dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WORKSPACE_BANNER);
-    }, [hasFormOpened]);
+    useDismissWiseGlobalReimbursementsBanners(isNewVisit && isPrefillDone && isEligible);
 
     useEffect(() => {
         if (!isPrefillPending) {
