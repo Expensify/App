@@ -222,7 +222,13 @@ function getInvoiceReportName(
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
     policy?: OnyxEntry<Policy>,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
+    isLinkedToBill = false,
 ): string {
+    // Users can rename an invoice linked to a bill, so it shows its stored name even when it has an invoice room.
+    if (isLinkedToBill && report?.reportName) {
+        return report.reportName;
+    }
+
     const moneyRequestReportName = getMoneyRequestReportName({
         report,
         policy,

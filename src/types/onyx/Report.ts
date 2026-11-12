@@ -212,6 +212,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Invoice room receiver data */
         invoiceReceiver?: InvoiceReceiver;
 
+        /** Whether the current user must act on this invoice, like a sender who must add a bank account before a payment can finish */
+        isAwaitingActionFromCurrentUser?: boolean;
+
         /** Number of transactions in the report */
         transactionCount?: number;
 

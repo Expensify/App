@@ -20,11 +20,13 @@ import type {Report, ReportAction, Transaction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {isLinkedToBillSelector} from '@selectors/ReportNameValuePairs';
 import React from 'react';
 import {View} from 'react-native';
 
 type SearchActionHeaderProps = {
-    action: ReportAction;
+    /** Search rows also carry fields from the Search snapshot, such as `isInvoiceLinkedToBill`. */
+    action: ReportAction & {isInvoiceLinkedToBill?: boolean};
     /** The report this action belongs to. */
     report: OnyxEntry<Report>;
     /** Whether the underlying action is a whisper. Used to skip bottom margin when WhisperBanner is rendered below. */
@@ -49,6 +51,12 @@ function SearchActionHeaderContent({action, report, isWhisper, onPress, children
     } else if (isInvoiceReport(report)) {
         reportForHeaderReportID = report?.reportID;
     }
+    const [isLiveInvoiceLinkedToBill = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportForHeaderReportID)}`, {
+        selector: isLinkedToBillSelector,
+    });
+
+    // Live Onyx may have the invoice without its report name value pairs, which only the Search snapshot carries.
+    const isInvoiceLinkedToBill = isLiveInvoiceLinkedToBill || !!action.isInvoiceLinkedToBill;
     const reportTransactionsCollection = useReportTransactionsCollection(reportForHeaderReportID);
     const linkedTransactions = Object.values(reportTransactionsCollection ?? {}).filter((transaction): transaction is Transaction => !!transaction);
 
@@ -63,6 +71,7 @@ function SearchActionHeaderContent({action, report, isWhisper, onPress, children
         convertToDisplayString,
         personalDetailsList,
         derivedReportName,
+        isInvoiceLinkedToBill,
     );
 
     return (

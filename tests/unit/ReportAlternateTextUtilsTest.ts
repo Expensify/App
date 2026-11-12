@@ -122,16 +122,23 @@ type AlternateTextCase = {
     lastAction?: ReportAction;
     lastMessageTextFromReport?: string;
     isReportArchived?: boolean;
+    personalDetails?: PersonalDetailsList;
 };
 
-function getAlternateText({report = makeReport(), lastAction, lastMessageTextFromReport = 'Fixture last message', isReportArchived = false}: AlternateTextCase): string | undefined {
+function getAlternateText({
+    report = makeReport(),
+    lastAction,
+    lastMessageTextFromReport = 'Fixture last message',
+    isReportArchived = false,
+    personalDetails = PERSONAL_DETAILS,
+}: AlternateTextCase): string | undefined {
     return getReportAlternateText({
         report,
         lastAction,
         lastActionReport: undefined,
         card: undefined,
         lastMessageTextFromReport,
-        personalDetails: PERSONAL_DETAILS,
+        personalDetails,
         policy: undefined,
         invoiceReceiverPolicy: undefined,
         isReportArchived,
@@ -297,6 +304,49 @@ describe('ReportAlternateTextUtils', () => {
                 makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {actorAccountID: 42, person: [{type: 'TEXT', style: 'strong', text: 'Mystery Person'}]}),
             );
             expect(result).toBe('Mystery Person');
+        });
+
+        it('should fall back to the action person text when the actor personal details have no name', () => {
+            // Given an actor from another company, like the payer on an invoice, whose personal details have no name or login
+            const personalDetails = {...PERSONAL_DETAILS, 42: {accountID: 42}};
+
+            // When the LHN names the actor of the last action
+            const result = getLastActorDisplayNameFromLastVisibleActions(
+                makeReport(),
+                null,
+                CURRENT_USER_ACCOUNT_ID,
+                personalDetails,
+                false,
+                translateLocal,
+                undefined,
+                makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {
+                    actorAccountID: 42,
+                    person: [{type: 'TEXT', style: 'strong', text: 'payer@company.com'}],
+                }),
+            );
+
+            // Then it uses the name saved on the action instead of Hidden
+            expect(result).toBe('payer@company.com');
+        });
+
+        it('should keep the personal details name over the action person text', () => {
+            // Given an actor whose personal details have a name, and an action that saved an older name
+            // When the LHN names the actor of the last action
+            const result = getLastActorDisplayNameFromLastVisibleActions(
+                makeReport(),
+                null,
+                CURRENT_USER_ACCOUNT_ID,
+                PERSONAL_DETAILS,
+                false,
+                translateLocal,
+                undefined,
+                makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {
+                    person: [{type: 'TEXT', style: 'strong', text: 'Old Name'}],
+                }),
+            );
+
+            // Then it uses the current name from personal details
+            expect(result).toBe('Alice');
         });
 
         it('should fall back to the passed lastActorDetails when there is no last action', () => {

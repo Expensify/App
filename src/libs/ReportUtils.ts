@@ -5039,6 +5039,20 @@ function getDeletedParentActionMessageForChatReport(reportAction: OnyxEntry<Repo
 }
 
 /**
+ * Returns the message for a queued payment. An invoice sender needs a business deposit account, so the message on an
+ * invoice doesn't ask for a personal bank account.
+ */
+function getReimbursementQueuedMessageKey(
+    report: OnyxEntry<Report>,
+    paymentType: string | undefined,
+): 'iou.waitingOnEnabledWallet' | 'iou.waitingOnVendorBankAccount' | 'iou.waitingOnBankAccount' {
+    if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+        return 'iou.waitingOnEnabledWallet';
+    }
+    return isInvoiceReport(report) ? 'iou.waitingOnVendorBankAccount' : 'iou.waitingOnBankAccount';
+}
+
+/**
  * Returns the preview message for `REIMBURSEMENT_QUEUED` action
  */
 function getReimbursementQueuedActionMessage({
@@ -5064,14 +5078,7 @@ function getReimbursementQueuedActionMessage({
             formatPhoneNumber,
             hiddenTranslation: translate('common.hidden'),
         }) ?? '';
-    const originalMessage = getOriginalMessage(reportAction);
-    let messageKey: TranslationPaths;
-    if (originalMessage?.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-        messageKey = 'iou.waitingOnEnabledWallet';
-    } else {
-        messageKey = 'iou.waitingOnBankAccount';
-    }
-    return translate(messageKey, submitterDisplayName);
+    return translate(getReimbursementQueuedMessageKey(report, getOriginalMessage(reportAction)?.paymentType), submitterDisplayName);
 }
 
 /**
@@ -5369,6 +5376,14 @@ function getReasonAndReportActionThatRequiresAttention({
                 reportAction: fraudAlertAction,
             };
         }
+    }
+
+    // An invoice linked to a bill has no parent chat, so its own green dot tells the sender to act, like adding a bank
+    // account so the bill's payment can finish.
+    if (isInvoiceReport(optionOrReport) && optionOrReport.isAwaitingActionFromCurrentUser && optionOrReport.ownerAccountID === currentUserAccountID) {
+        return {
+            reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
+        };
     }
 
     if (isJoinRequestInAdminRoom(optionOrReport, currentUserLogin)) {
@@ -14943,6 +14958,7 @@ function getChatListItemReportName(
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
     derivedReportName: string | undefined,
+    isInvoiceLinkedToBill = false,
 ): string {
     const {translate, formatPhoneNumber} = Localize;
     const reportForHeader = getReportForHeader(report, parentReport);
@@ -14950,7 +14966,17 @@ function getChatListItemReportName(
         // Search snapshots of invoice reports may only carry `parentReportID` as the invoice room ID, so fall back to it
         // when `chatReportID` is missing (without mutating the Onyx report) so `getInvoiceReportName` resolves the NewDot title.
         const invoiceReport = reportForHeader.chatReportID ? reportForHeader : {...reportForHeader, chatReportID: reportForHeader.parentReportID};
-        return getInvoiceReportName(invoiceReport, linkedTransactions, translate, formatPhoneNumber, convertToDisplayString, personalDetailsList);
+        return getInvoiceReportName(
+            invoiceReport,
+            linkedTransactions,
+            translate,
+            formatPhoneNumber,
+            convertToDisplayString,
+            personalDetailsList,
+            undefined,
+            undefined,
+            isInvoiceLinkedToBill,
+        );
     }
 
     if (action?.reportName) {
@@ -16027,6 +16053,7 @@ export {
     getPolicyName,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
+    getReimbursementQueuedMessageKey,
     getReportDescription,
     getReportFieldKey,
     getReportFieldMaps,

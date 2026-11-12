@@ -389,6 +389,32 @@ describe('reportAttributes compute — policy change code flow', () => {
         expect(result?.reports.invoiceChild?.reportName).not.toBe('Old Child');
     });
 
+    it("recomputes an invoice name when only the invoice's bill link arrives", () => {
+        // Given an invoice whose cached name was computed before Auth linked it to a bill
+        const invoice: Report = {...createRandomReport(32, undefined), reportID: 'billInvoice', type: CONST.REPORT.TYPE.INVOICE, policyID: 'policy1', chatReportID: undefined};
+        const invoiceReports: OnyxCollection<Report> = {[`${ONYXKEYS.COLLECTION.REPORT}billInvoice`]: invoice};
+        const billLink = {[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}billInvoice`]: {billID: 'linkedBill'}};
+        const args = buildArgs(policies, invoiceReports);
+        args[5] = billLink;
+        const existingValue: ReportAttributesDerivedValue = {
+            reports: {billInvoice: {reportName: 'Acme owes $1.00', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}}},
+            locale: null,
+        };
+        const computeReportNameMock = jest.requireMock<{default: jest.Mock}>('@libs/computeReportName').default;
+        computeReportNameMock.mockClear();
+
+        // When only the invoice's reportNameValuePairs update with the bill link
+        const result = config.compute(args, {
+            currentValue: existingValue,
+            sourceValues: {[ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS]: billLink},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS]),
+        });
+
+        // Then the invoice name is computed again with the link, because a linked invoice shows its stored name
+        expect(computeReportNameMock).toHaveBeenCalledWith(expect.objectContaining({report: invoice, allReportNameValuePairs: billLink}));
+        expect(result?.reports.billInvoice?.reportName).toBe('Test Report');
+    });
+
     it('keeps report names cached when only a policy badge field changes (no name recompute)', () => {
         // Seed previousPolicies by doing an initial compute
         config.compute(buildArgs(), {
