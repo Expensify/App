@@ -50,7 +50,10 @@ describe('Composable address selectors', () => {
         // Given an empty address field whose description style is now owned by the placeholder leaf.
         const {rerender} = render(
             <LocaleContextProvider>
-                <Component inputID="address" value="" />
+                <Component
+                    inputID="address"
+                    value=""
+                />
             </LocaleContextProvider>,
         );
         expect(screen.UNSAFE_getAllByType(MenuItem.FieldNamePlaceholder)).toHaveLength(1);
@@ -59,7 +62,10 @@ describe('Composable address selectors', () => {
         // When a valid code is selected (CA is both a country and a state code).
         rerender(
             <LocaleContextProvider>
-                <Component inputID="address" value="CA" />
+                <Component
+                    inputID="address"
+                    value="CA"
+                />
             </LocaleContextProvider>,
         );
 
@@ -74,7 +80,10 @@ describe('Composable address selectors', () => {
         const ref = createRef<ComponentRef<typeof View>>();
         render(
             <LocaleContextProvider>
-                <Component ref={ref} inputID="address" />
+                <Component
+                    ref={ref}
+                    inputID="address"
+                />
             </LocaleContextProvider>,
         );
 
@@ -97,7 +106,10 @@ describe('Composable address selectors', () => {
         // When the invalid field is rendered.
         render(
             <LocaleContextProvider>
-                <Component inputID="address" errorText={errorText} />
+                <Component
+                    inputID="address"
+                    errorText={errorText}
+                />
             </LocaleContextProvider>,
         );
 
@@ -133,7 +145,10 @@ describe('Composable address selectors', () => {
         // When the state selector is rendered.
         render(
             <LocaleContextProvider>
-                <StateSelector label="State / Province" wrapperStyle={wrapperStyle} />
+                <StateSelector
+                    label="State / Province"
+                    wrapperStyle={wrapperStyle}
+                />
             </LocaleContextProvider>,
         );
 
