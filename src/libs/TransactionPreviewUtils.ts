@@ -248,7 +248,6 @@ function getTransactionPreviewTextAndTranslationPaths({
     }
 
     if (hasReceiptError(transaction) && RBRMessage === undefined) {
-        // A server rejection travels on the receipt error, so name that reason instead of blaming the upload.
         const serverReason = getReceiptErrorServerReason(transaction);
         RBRMessage = serverReason ? {text: Str.htmlDecode(serverReason)} : {translationPath: 'iou.error.receiptFailureMessageShort'};
     }

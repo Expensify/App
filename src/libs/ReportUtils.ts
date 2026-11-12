@@ -11251,13 +11251,7 @@ function hasReceiptError(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return Object.values(errorMessages).some((error) => isReceiptError(error));
 }
 
-/**
- * When the server rejected an expense write for a reason of its own, the receipt error carries that reason as a
- * message (see ExpenseCreateErrorUtils). Surfaces that would otherwise show generic receipt-failure copy use it
- * instead, so a rejected scan expense names the real reason rather than blaming the receipt upload.
- */
 function getReceiptErrorServerReason(transaction: OnyxInputOrEntry<Transaction>): string | undefined {
-    // The server's reason is written only to the transaction's `errors`; route and waypoint errors never carry one.
     const receiptError = Object.values(transaction?.errors ?? {}).find(isReceiptError);
     return receiptError?.message?.trim() ? receiptError.message : undefined;
 }

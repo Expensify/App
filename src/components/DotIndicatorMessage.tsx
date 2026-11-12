@@ -131,8 +131,6 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, isSelectab
 
     if (receiptError) {
         const isStackedLayout = !(isInNarrowPaneModal && !isSmallScreenWidth);
-        // The server's reason travels on the receipt error when the expense was rejected for a reason of its own
-        // rather than a receipt problem. It goes through the same decode/HTML path as any other server error text.
         const messageRow = (
             <View style={[styles.dotIndicatorMessage, isStackedLayout && styles.alignItemsStart, styles.flex1]}>
                 {receiptError.message ? (

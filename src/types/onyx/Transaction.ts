@@ -326,11 +326,6 @@ type ReceiptError = {
     /** Parameters required to retry the failed action */
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams | string;
 
-    /**
-     * Text to show in place of the generic "upload failed" copy. Set when the server rejected the expense for a
-     * reason of its own rather than a receipt problem, so the row names that reason while keeping the receipt's
-     * Save button and its lack of a plain dismiss control.
-     */
     message?: string;
 
     error: typeof CONST.IOU.RECEIPT_ERROR;
