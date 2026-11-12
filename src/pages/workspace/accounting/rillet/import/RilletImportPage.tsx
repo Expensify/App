@@ -6,6 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearRilletErrorField, updateRilletEnableNewCategories, updateRilletFieldMapping, updateRilletSyncTaxRates} from '@libs/actions/connections/Rillet';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -13,6 +14,7 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -29,6 +31,7 @@ function RilletImportPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))}
             displayName="RilletImportPage"
             headerTitle="workspace.accounting.import"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
@@ -46,6 +49,7 @@ function RilletImportPage({policy}: WithPolicyConnectionsProps) {
                 title={translate('workspace.accounting.accounts')}
                 subtitle={translate('workspace.rillet.accountTypesDescription')}
                 switchAccessibilityLabel={translate('workspace.accounting.accounts')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RILLET.ACCOUNTS_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive
@@ -56,6 +60,7 @@ function RilletImportPage({policy}: WithPolicyConnectionsProps) {
                 title={translate('workspace.rillet.enableNewAccountsTitle')}
                 subtitle={translate('workspace.rillet.enableNewAccountsDescription')}
                 switchAccessibilityLabel={translate('workspace.rillet.enableNewAccountsTitle')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RILLET.ENABLE_NEW_ACCOUNTS_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive={enableNewCategories}
@@ -76,6 +81,7 @@ function RilletImportPage({policy}: WithPolicyConnectionsProps) {
                         key={field.id}
                         title={field.name}
                         switchAccessibilityLabel={field.name}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RILLET.DIMENSION_SWITCH}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.mv3, styles.mh5]}
                         isActive={isImported}
@@ -92,6 +98,7 @@ function RilletImportPage({policy}: WithPolicyConnectionsProps) {
                     <ToggleSettingOptionRow
                         title={translate('workspace.taxes.taxRates')}
                         switchAccessibilityLabel={translate('workspace.taxes.taxRates')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RILLET.TAX_RATES_SWITCH}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.mv3, styles.mh5]}
                         isActive={syncTaxRates}

@@ -2,8 +2,10 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
 import AccountAvatarButton from '@components/Navigation/AccountAvatarButton';
+import useFlatNavSidebarRowProps from '@components/Navigation/FlatNavigationBar/useFlatNavSidebarRowProps';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
+import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SidePanelButton from '@components/SidePanel/SidePanelButton';
@@ -35,7 +37,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 import getDomainMenuItems, {DOMAIN_MENU_ICON_NAMES} from './getDomainMenuItems';
@@ -45,10 +47,14 @@ type DomainInitialPageProps = PlatformStackScreenProps<DomainSplitNavigatorParam
 function DomainInitialPage({route}: DomainInitialPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(DOMAIN_MENU_ICON_NAMES);
     const styles = useThemeStyles();
+    const getFlatNavRowProps = useFlatNavSidebarRowProps();
+    const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.WORKSPACES);
+    const tabRootScrollProps = useTabRootScrollProps(styles.flexColumn);
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
     const activeRoute = useNavigationState((state) => findFocusedRoute(state)?.name);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const menuItemWrapperStyle = styles.sectionMenuItem(shouldUseNarrowLayout);
     const {translate} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const domainAccountID = route.params?.domainAccountID;
@@ -77,12 +83,12 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
         action: singleExecution(waitForNavigate(() => Navigation.navigate(item.route))),
     }));
 
-    const fetchDomainData = useCallback(() => {
+    const fetchDomainData = () => {
         if (!domainAccountID) {
             return;
         }
         openDomainPage(domainAccountID);
-    }, [domainAccountID]);
+    };
 
     useEffect(() => {
         fetchDomainData();
@@ -104,8 +110,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
         <ScreenWrapper
             testID="DomainInitialPage"
             enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.WORKSPACES} />}
-            bottomContentStyle={styles.overflowVisible}
+            {...tabRootScreenWrapperProps}
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.dismissModal()}
@@ -124,26 +129,35 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                     <AccountAvatarButton />
                 </HeaderWithBackButtonAndTitle>
 
-                <ScrollView contentContainerStyle={styles.flexColumn}>
+                <ScrollView {...tabRootScrollProps}>
                     <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                         {/*
                             Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
                             In this case where user can click on menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
                         */}
-                        {domainMenuItems.map((item) => (
-                            <HighlightableMenuItem
-                                key={item.translationKey}
-                                disabled={isExecuting && !(item.screenName && activeRoute?.startsWith(item.screenName))}
-                                title={translate(item.translationKey)}
-                                icon={item.icon}
-                                onPress={item.action}
-                                brickRoadIndicator={item.brickRoadIndicator}
-                                wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
-                                focused={!!(item.screenName && activeRoute?.startsWith(item.screenName))}
-                                shouldIconUseAutoWidthStyle
-                                shouldGreyOutWhenDisabled={false}
-                            />
-                        ))}
+                        {domainMenuItems.map((item) => {
+                            const isItemFocused = !!(item.screenName && activeRoute?.startsWith(item.screenName));
+                            const {shouldShowBasicTitle, titleStyle, hoveredTitleStyle, selectedStyle, hoveredStyle} = getFlatNavRowProps(isItemFocused);
+                            return (
+                                <HighlightableMenuItem
+                                    sentryLabel={item.sentryLabel}
+                                    key={item.translationKey}
+                                    disabled={isExecuting && !isItemFocused}
+                                    title={translate(item.translationKey)}
+                                    icon={item.icon}
+                                    onPress={item.action}
+                                    brickRoadIndicator={item.brickRoadIndicator}
+                                    wrapperStyle={[menuItemWrapperStyle, selectedStyle]}
+                                    hoveredStyle={hoveredStyle}
+                                    shouldShowBasicTitle={shouldShowBasicTitle}
+                                    titleStyle={titleStyle}
+                                    hoveredTitleStyle={hoveredTitleStyle}
+                                    focused={isItemFocused}
+                                    shouldIconUseAutoWidthStyle
+                                    shouldGreyOutWhenDisabled={false}
+                                />
+                            );
+                        })}
                     </View>
                 </ScrollView>
             </FullPageNotFoundView>

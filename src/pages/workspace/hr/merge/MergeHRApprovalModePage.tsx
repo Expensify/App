@@ -26,13 +26,14 @@ function MergeHRApprovalModePage({
 
     const config: HRApprovalModeProviderConfig<MergeApprovalMode> = {
         testID: 'MergeHRApprovalModePage',
+        saveSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.HR.APPROVAL_MODE_SAVE.MERGE,
         isConnected: (policy) => isMergeConnected(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR),
         approvalModes: CONST.MERGE.APPROVAL_MODE,
         getCurrentApprovalMode: (policy) => policy?.connections?.merge_hris?.config?.approvalMode ?? undefined,
         getProviderName: (policy) => getConnectedHRProvider(policy)?.displayName ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.merge_hris,
         getHeaderTitle: (providerName) => translate('workspace.hr.providerApprovalMode', providerName),
-        handleSave: ({draftApprovalMode, currentApprovalMode}) =>
-            updateMergeApprovalMode({policyID, connectionName: CONST.POLICY.CONNECTIONS.NAME.MERGE_HR, approvalMode: draftApprovalMode, currentApprovalMode}),
+        handleSave: ({draftApprovalMode, currentApprovalMode, rules}) =>
+            updateMergeApprovalMode({policyID, connectionName: CONST.POLICY.CONNECTIONS.NAME.MERGE_HR, approvalMode: draftApprovalMode, currentApprovalMode, rules}),
     };
 
     return (

@@ -53,7 +53,6 @@ function ExpandedChartBox({width, height, clippedHeight, providerScale, backgrou
                     <VictoryChartContent
                         explicitSize={{width, height}}
                         headless={false}
-                        shouldUseStaticCanvas
                     />
                 </VictoryChartScaledProvider>
             </View>

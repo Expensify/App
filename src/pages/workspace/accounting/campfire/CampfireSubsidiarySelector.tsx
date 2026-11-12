@@ -63,15 +63,15 @@ function CampfireSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
             icon={illustrations.Telescope}
             iconWidth={variables.emptyListIconWidth}
             iconHeight={variables.emptyListIconHeight}
-            title={translate('workspace.campfire.noSubsidiariesFound')}
-            subtitle={translate('workspace.campfire.noSubsidiariesFoundDescription')}
+            title={translate('workspace.campfire.noEntitiesFound')}
+            subtitle={translate('workspace.campfire.noEntitiesFoundDescription')}
             containerStyle={styles.pb10}
         />
     );
 
     const listHeaderComponent = (
         <View style={[styles.pb2, styles.ph5]}>
-            <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.campfire.subsidiarySelectDescription')}</Text>
+            <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.campfire.entitySelectDescription')}</Text>
         </View>
     );
 
@@ -88,7 +88,7 @@ function CampfireSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
             initiallyFocusedOptionKey={campfireConfig?.subsidiaryID}
             headerContent={listHeaderComponent}
             onBackButtonPress={() => Navigation.goBack()}
-            title="workspace.campfire.subsidiary"
+            title="workspace.campfire.entity"
             listEmptyContent={listEmptyContent}
             pendingAction={settingsPendingAction([CONST.CAMPFIRE_CONFIG.SUBSIDIARY_ID], campfireConfig?.pendingFields)}
             errors={getLatestErrorField(campfireConfig ?? {}, CONST.CAMPFIRE_CONFIG.SUBSIDIARY_ID)}

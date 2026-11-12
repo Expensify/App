@@ -22,6 +22,7 @@ type ExpenseMenuItemProps = {
 };
 
 function ExpenseMenuItem({reportID}: ExpenseMenuItemProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Coins', 'Receipt', 'Cash', 'Transfer', 'MoneyCircle']);
@@ -29,6 +30,7 @@ function ExpenseMenuItem({reportID}: ExpenseMenuItemProps) {
 
     return (
         <FABFocusableMenuItem
+            sentryLabel={CONST.SENTRY_LABEL.FAB_MENU.CREATE_EXPENSE}
             itemId={ITEM_ID}
             pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.CREATE_EXPENSE}
             icon={getIconForAction(CONST.IOU.TYPE.CREATE, icons)}
@@ -36,7 +38,7 @@ function ExpenseMenuItem({reportID}: ExpenseMenuItemProps) {
             onPress={() =>
                 interceptAnonymousUser(() => {
                     startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, draftTransactionIDs, undefined, undefined, undefined, true);
-                })
+                }, session)
             }
             shouldCallAfterModalHide={shouldUseNarrowLayout}
         />

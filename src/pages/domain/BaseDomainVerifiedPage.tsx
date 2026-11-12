@@ -1,7 +1,7 @@
 import ConfirmationPage from '@components/ConfirmationPage';
+import FixedFooter from '@components/FixedFooter';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
-import LottieAnimations from '@components/LottieAnimations';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -19,6 +19,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import {isAdminSelector} from '@src/selectors/Domain';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
@@ -32,9 +33,12 @@ type BaseDomainVerifiedPageProps = {
 
     /** Route to navigate to when the user confirms verification success */
     confirmDestination?: Route;
+
+    /** Sentry label for the confirm button, one per destination */
+    confirmSentryLabel: SentryLabel;
 };
 
-function BaseDomainVerifiedPage({domainAccountID, redirectTo, confirmDestination = ROUTES.DOMAIN_INITIAL.getRoute(domainAccountID)}: BaseDomainVerifiedPageProps) {
+function BaseDomainVerifiedPage({domainAccountID, redirectTo, confirmDestination = ROUTES.DOMAIN_INITIAL.getRoute(domainAccountID), confirmSentryLabel}: BaseDomainVerifiedPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -64,19 +68,22 @@ function BaseDomainVerifiedPage({domainAccountID, redirectTo, confirmDestination
             shouldShowOfflineIndicator={false}
         >
             <HeaderWithBackButtonAndTitle title={translate('domain.domainVerified.title')} />
-            <ConfirmationPage
-                illustration={LottieAnimations.Fireworks}
-                heading={translate('domain.domainVerified.header')}
-                descriptionComponent={
+            <ConfirmationPage>
+                <ConfirmationPage.Content style={styles.p10}>
+                    <ConfirmationPage.Illustration />
+                    <ConfirmationPage.Heading>{translate('domain.domainVerified.header')}</ConfirmationPage.Heading>
                     <View style={[styles.renderHTML, styles.flexRow]}>
                         <RenderHTML html={translate('domain.domainVerified.description', {domainName: Str.extractEmailDomain(domain.email)})} />
                     </View>
-                }
-                innerContainerStyle={styles.p10}
-                buttonText={translate('common.buttonConfirm')}
-                shouldShowButton
-                onButtonPress={() => Navigation.navigate(confirmDestination)}
-            />
+                </ConfirmationPage.Content>
+                <FixedFooter>
+                    <ConfirmationPage.PrimaryButton
+                        sentryLabel={confirmSentryLabel}
+                        text={translate('common.buttonConfirm')}
+                        onPress={() => Navigation.navigate(confirmDestination)}
+                    />
+                </FixedFooter>
+            </ConfirmationPage>
         </ScreenWrapper>
     );
 }

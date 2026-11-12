@@ -1,5 +1,5 @@
 import ConfirmationPage from '@components/ConfirmationPage';
-import FormHelpMessage from '@components/FormHelpMessage';
+import FixedFooter from '@components/FixedFooter';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
@@ -13,11 +13,11 @@ import useRedirectOnDomainAccessChange from '@hooks/useRedirectOnDomainAccessCha
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearRequestAdminshipError, requestDomainAdminship} from '@libs/actions/Domain';
-import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/types';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -71,7 +71,7 @@ function DomainAlreadyExistsPage({route}: DomainAlreadyExistsPageProps) {
     }, [domainAccountID]);
 
     if (isRedirecting) {
-        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (
@@ -80,36 +80,39 @@ function DomainAlreadyExistsPage({route}: DomainAlreadyExistsPageProps) {
                 title={translate('domain.domainAlreadyExists.headerTitle')}
                 onBackButtonPress={goToDomainsList}
             />
-            <ConfirmationPage
-                illustration={EmptyStateDomainExists}
-                illustrationStyle={styles.domainAlreadyExistsIllustrationStyle}
-                heading={translate('domain.domainAlreadyExists.title')}
-                innerContainerStyle={styles.p10}
-                description={translate('domain.domainAlreadyExists.description')}
-                descriptionStyle={styles.textSupporting}
-                footerComponent={
-                    !!requestError && (
-                        <FormHelpMessage
-                            message={getLatestErrorMessage({errors: requestError})}
-                            style={styles.mb0}
-                        />
-                    )
-                }
-                shouldShowSecondaryButton
-                secondaryButtonText={translate('domain.common.neverMind')}
-                onSecondaryButtonPress={goToDomainsList}
-                shouldShowButton
-                buttonText={translate(hasPendingRequest ? 'domain.requestSent' : 'domain.domainAlreadyExists.requestAccess')}
-                isButtonLoading={isRequestPending}
-                isButtonDisabled={!isRequestPending && (!!hasPendingRequest || isOffline)}
-                onButtonPress={() => {
-                    if (!currentUserAccountID) {
-                        return;
-                    }
-                    setHasSubmittedRequest(true);
-                    requestDomainAdminship(domainAccountID, currentUserAccountID, !!isTransientDomainEntry);
-                }}
-            />
+            <ConfirmationPage>
+                <ConfirmationPage.Content
+                    style={styles.p10}
+                    requestErrors={requestError}
+                >
+                    <ConfirmationPage.Illustration
+                        illustration={EmptyStateDomainExists}
+                        illustrationStyle={styles.domainAlreadyExistsIllustrationStyle}
+                    />
+                    <ConfirmationPage.Heading>{translate('domain.domainAlreadyExists.title')}</ConfirmationPage.Heading>
+                    <ConfirmationPage.Description style={styles.textSupporting}>{translate('domain.domainAlreadyExists.description')}</ConfirmationPage.Description>
+                </ConfirmationPage.Content>
+                <FixedFooter>
+                    <ConfirmationPage.SecondaryButton
+                        sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ALREADY_EXISTS_NEVER_MIND}
+                        text={translate('domain.common.neverMind')}
+                        onPress={goToDomainsList}
+                    />
+                    <ConfirmationPage.PrimaryButton
+                        sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ALREADY_EXISTS_REQUEST_ACCESS}
+                        text={translate(hasPendingRequest ? 'domain.requestSent' : 'domain.domainAlreadyExists.requestAccess')}
+                        isLoading={isRequestPending}
+                        isDisabled={!isRequestPending && (!!hasPendingRequest || isOffline)}
+                        onPress={() => {
+                            if (!currentUserAccountID) {
+                                return;
+                            }
+                            setHasSubmittedRequest(true);
+                            requestDomainAdminship(domainAccountID, currentUserAccountID, !!isTransientDomainEntry);
+                        }}
+                    />
+                </FixedFooter>
+            </ConfirmationPage>
         </ScreenWrapper>
     );
 }

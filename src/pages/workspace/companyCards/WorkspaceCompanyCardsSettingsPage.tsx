@@ -2,7 +2,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -21,7 +20,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
 import {deleteWorkspaceCompanyCardFeed, setAddNewCompanyCardStepAndData, setWorkspaceCompanyCardTransactionLiability} from '@libs/actions/CompanyCards';
-import {getCompanyCardFeed, getCompanyFeeds, getCustomOrFormattedFeedName, getDomainOrWorkspaceAccountID, getSelectedFeed, isCSVUploadFeed, isDirectFeed} from '@libs/CardUtils';
+import {
+    getCompanyCardFeed,
+    getCompanyFeeds,
+    getCustomOrFormattedFeedName,
+    getDomainOrWorkspaceAccountID,
+    getEffectiveFeedReimbursable,
+    getSelectedFeed,
+    isCSVUploadFeed,
+    isDirectFeed,
+} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -37,7 +45,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type WorkspaceCompanyCardsSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS>;
@@ -57,7 +65,7 @@ function WorkspaceCompanyCardsSettingsPage({
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const {currencyList} = useCurrencyListState();
 
-    const selectedFeed = useMemo(() => getSelectedFeed(lastSelectedFeed, cardFeeds), [cardFeeds, lastSelectedFeed]);
+    const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const feed = selectedFeed ? getCompanyCardFeed(selectedFeed) : undefined;
     const {showConfirmModal} = useConfirmModal();
 
@@ -73,17 +81,17 @@ function WorkspaceCompanyCardsSettingsPage({
     const isDirectFeedType = isDirectFeed(feed);
     const isCsvFeed = isCSVUploadFeed(feed);
 
-    const statementCloseDate = useMemo(() => {
-        if (!selectedFeedData?.statementPeriodEndDay) {
-            return undefined;
-        }
+    let statementCloseDate;
+    if (!selectedFeedData?.statementPeriodEndDay) {
+        statementCloseDate = undefined;
+    } else if (typeof selectedFeedData?.statementPeriodEndDay === 'number') {
+        statementCloseDate = selectedFeedData.statementPeriodEndDay;
+    } else {
+        statementCloseDate = translate(`workspace.companyCards.statementCloseDate.${selectedFeedData.statementPeriodEndDay}`);
+    }
 
-        if (typeof selectedFeedData?.statementPeriodEndDay === 'number') {
-            return selectedFeedData.statementPeriodEndDay;
-        }
-
-        return translate(`workspace.companyCards.statementCloseDate.${selectedFeedData.statementPeriodEndDay}`);
-    }, [translate, selectedFeedData?.statementPeriodEndDay]);
+    const effectiveReimbursable = getEffectiveFeedReimbursable(selectedFeedData?.forceReimbursable);
+    const reimbursable = effectiveReimbursable ? translate(`workspace.companyCards.reimbursable.${effectiveReimbursable}`) : '';
 
     const navigateToChangeFeedName = () => {
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME.getRoute(policyID));
@@ -91,6 +99,10 @@ function WorkspaceCompanyCardsSettingsPage({
 
     const navigateToChangeStatementCloseDate = () => {
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE.getRoute(policyID));
+    };
+
+    const navigateToChangeReimbursable = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_REIMBURSABLE.getRoute(policyID));
     };
 
     const deleteCompanyCardFeed = () => {
@@ -149,25 +161,36 @@ function WorkspaceCompanyCardsSettingsPage({
                     <HeaderWithBackButton title={translate('common.settings')} />
                     <View style={styles.flex1}>
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.SETTINGS_FEED_NAME}
                             value={feedName}
                             name={translate('workspace.moreFeatures.companyCards.cardFeedName')}
                             onPress={navigateToChangeFeedName}
                         />
                         <OfflineWithFeedback pendingAction={selectedFeedData?.pendingFields?.statementPeriodEndDay}>
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={statementCloseDate?.toString()}
-                                description={translate('workspace.moreFeatures.companyCards.statementCloseDateTitle')}
-                                style={[styles.moneyRequestMenuItem]}
-                                titleStyle={styles.flex1}
+                            <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.SETTINGS_STATEMENT_CLOSE_DATE}
+                                value={statementCloseDate?.toString()}
+                                name={translate('workspace.moreFeatures.companyCards.statementCloseDateTitle')}
                                 onPress={navigateToChangeStatementCloseDate}
-                                brickRoadIndicator={selectedFeedData?.errorFields?.statementPeriodEndDay ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            />
+                            >
+                                {!!selectedFeedData?.errorFields?.statementPeriodEndDay && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                            </MenuItemField>
+                        </OfflineWithFeedback>
+                        <OfflineWithFeedback pendingAction={selectedFeedData?.pendingFields?.forceReimbursable}>
+                            <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.SETTINGS_REIMBURSABLE}
+                                value={reimbursable}
+                                name={translate('workspace.companyCards.reimbursable.title')}
+                                onPress={navigateToChangeReimbursable}
+                            >
+                                {!!selectedFeedData?.errorFields?.forceReimbursable && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                            </MenuItemField>
                         </OfflineWithFeedback>
                         <View style={[styles.mv3, styles.mh5]}>
                             <ToggleSettingOptionRow
                                 title={translate('workspace.moreFeatures.companyCards.personal')}
                                 switchAccessibilityLabel={translate('workspace.moreFeatures.companyCards.personal')}
+                                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.PERSONAL_LIABILITY_SWITCH}
                                 onToggle={onToggleLiability}
                                 isActive={isPersonal}
                                 disabled={isPending}
@@ -176,6 +199,7 @@ function WorkspaceCompanyCardsSettingsPage({
                         </View>
                         {isDirectFeedType && (
                             <MenuItem.Root
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.SETTINGS_REFRESH_FEED}
                                 onPress={() => {
                                     if (!isUserValidated) {
                                         verifyAccountAndResume(undefined);
@@ -197,6 +221,7 @@ function WorkspaceCompanyCardsSettingsPage({
                         )}
                         {isCsvFeed && (
                             <MenuItemAction
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.SETTINGS_IMPORT_SPREADSHEET}
                                 icon={icons.Table}
                                 title={translate('spreadsheet.importSpreadsheet')}
                                 onPress={() => {
@@ -213,6 +238,7 @@ function WorkspaceCompanyCardsSettingsPage({
                             />
                         )}
                         <MenuItemAction
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.SETTINGS_REMOVE_FEED}
                             icon={icons.Trashcan}
                             title={translate('workspace.moreFeatures.companyCards.removeCardFeed')}
                             onPress={() => {

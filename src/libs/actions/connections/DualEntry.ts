@@ -12,21 +12,22 @@ import type {
     UpdateDualEntryExporterParams,
     UpdateDualEntryExportToMultipleAccountsParams,
     UpdateDualEntryFieldMappingParams,
+    UpdateDualEntryFxExpenseAccountParams,
     UpdateDualEntrySettlementsAccountParams,
     UpdateDualEntrySubsidiaryParams,
     UpdateDualEntrySyncExpensifyCardSettlementsParams,
     UpdateDualEntrySyncReimbursedReportsParams,
     UpdateDualEntrySyncTaxRatesParams,
-    UpdateDualEntrySyncTravelInvoicingSettlementsParams,
-    UpdateDualEntryTravelInvoicingPayableAccountParams,
-    UpdateDualEntryTravelInvoicingSettlementsAccountParams,
+    UpdateDualEntrySyncTravelBillingSettlementsParams,
+    UpdateDualEntryTravelBillingPayableAccountParams,
+    UpdateDualEntryTravelBillingSettlementsAccountParams,
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {DualEntryAutoSync, DualEntryCoding, DualEntryConnectionsConfig, DualEntryExport, DualEntrySync} from '@src/types/onyx/Policy';
+import type {DualEntryAccount, DualEntryAutoSync, DualEntryCoding, DualEntryConnectionsConfig, DualEntryExport, DualEntrySync} from '@src/types/onyx/Policy';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -707,6 +708,15 @@ function updateDualEntryBillPaymentAccount(policyID: string, billPaymentAccountI
     write(WRITE_COMMANDS.UPDATE_DUALENTRY_BILL_PAYMENT_ACCOUNT, parameters, onyxData);
 }
 
+function updateDualEntryFxExpenseAccount(policyID: string, fxExpenseAccountID: DualEntryAccount['id'], oldFxExpenseAccountID?: DualEntrySync['fxExpenseAccountID']) {
+    const onyxData = prepareDualEntrySyncOnyxData(policyID, CONST.DUALENTRY_CONFIG.FX_EXPENSE_ACCOUNT_ID, fxExpenseAccountID, oldFxExpenseAccountID ?? null);
+    const parameters: UpdateDualEntryFxExpenseAccountParams = {
+        policyID,
+        fxExpenseAccountID,
+    };
+    write(WRITE_COMMANDS.UPDATE_DUALENTRY_FX_EXPENSE_ACCOUNT, parameters, onyxData);
+}
+
 function updateDualEntrySyncExpensifyCardSettlements(policyID: string, enabled: DualEntrySync['syncExpensifyCardSettlements'], oldEnabled?: DualEntrySync['syncExpensifyCardSettlements']) {
     const onyxData = prepareDualEntrySyncOnyxData(policyID, CONST.DUALENTRY_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS, enabled, oldEnabled ?? null);
     const parameters: UpdateDualEntrySyncExpensifyCardSettlementsParams = {
@@ -729,53 +739,53 @@ function updateDualEntrySettlementsAccount(
     write(WRITE_COMMANDS.UPDATE_DUALENTRY_SETTLEMENTS_ACCOUNT, parameters, onyxData);
 }
 
-function updateDualEntrySyncTravelInvoicingSettlements(
+function updateDualEntrySyncTravelBillingSettlements(
     policyID: string,
     enabled: DualEntrySync['syncTravelInvoicingSettlements'],
     oldEnabled?: DualEntrySync['syncTravelInvoicingSettlements'],
 ) {
     const onyxData = prepareDualEntrySyncOnyxData(policyID, CONST.DUALENTRY_CONFIG.SYNC_TRAVEL_BILLING_SETTLEMENTS, enabled, oldEnabled ?? null);
-    const parameters: UpdateDualEntrySyncTravelInvoicingSettlementsParams = {
+    const parameters: UpdateDualEntrySyncTravelBillingSettlementsParams = {
         policyID,
         enabled,
     };
-    write(WRITE_COMMANDS.UPDATE_DUALENTRY_SYNC_TRAVEL_INVOICING_SETTLEMENTS, parameters, onyxData);
+    write(WRITE_COMMANDS.UPDATE_DUALENTRY_SYNC_TRAVEL_BILLING_SETTLEMENTS, parameters, onyxData);
 }
 
-function updateDualEntryTravelInvoicingSettlementsAccount(
+function updateDualEntryTravelBillingSettlementsAccount(
     policyID: string,
-    travelInvoicingSettlementsBankAccountID: DualEntrySync['travelInvoicingSettlementsBankAccountID'],
-    oldTravelInvoicingSettlementsBankAccountID?: DualEntrySync['travelInvoicingSettlementsBankAccountID'],
+    travelBillingSettlementsBankAccountID: DualEntrySync['travelInvoicingSettlementsBankAccountID'],
+    oldTravelBillingSettlementsBankAccountID?: DualEntrySync['travelInvoicingSettlementsBankAccountID'],
 ) {
     const onyxData = prepareDualEntrySyncOnyxData(
         policyID,
         CONST.DUALENTRY_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID,
-        travelInvoicingSettlementsBankAccountID,
-        oldTravelInvoicingSettlementsBankAccountID ?? null,
+        travelBillingSettlementsBankAccountID,
+        oldTravelBillingSettlementsBankAccountID ?? null,
     );
-    const parameters: UpdateDualEntryTravelInvoicingSettlementsAccountParams = {
+    const parameters: UpdateDualEntryTravelBillingSettlementsAccountParams = {
         policyID,
-        travelInvoicingSettlementsBankAccountID,
+        travelBillingSettlementsBankAccountID,
     };
-    write(WRITE_COMMANDS.UPDATE_DUALENTRY_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT, parameters, onyxData);
+    write(WRITE_COMMANDS.UPDATE_DUALENTRY_TRAVEL_BILLING_SETTLEMENTS_ACCOUNT, parameters, onyxData);
 }
 
-function updateDualEntryTravelInvoicingPayableAccount(
+function updateDualEntryTravelBillingPayableAccount(
     policyID: string,
-    travelInvoicingPayableAccountID: DualEntryExport['travelInvoicingPayableAccountID'],
-    oldTravelInvoicingPayableAccountID?: DualEntryExport['travelInvoicingPayableAccountID'],
+    travelBillingPayableAccountID: DualEntryExport['travelInvoicingPayableAccountID'],
+    oldTravelBillingPayableAccountID?: DualEntryExport['travelInvoicingPayableAccountID'],
 ) {
     const onyxData = prepareDualEntryExportOnyxData(
         policyID,
         CONST.DUALENTRY_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT_ID,
-        travelInvoicingPayableAccountID,
-        oldTravelInvoicingPayableAccountID ?? null,
+        travelBillingPayableAccountID,
+        oldTravelBillingPayableAccountID ?? null,
     );
-    const parameters: UpdateDualEntryTravelInvoicingPayableAccountParams = {
+    const parameters: UpdateDualEntryTravelBillingPayableAccountParams = {
         policyID,
-        travelInvoicingPayableAccountID,
+        travelBillingPayableAccountID,
     };
-    write(WRITE_COMMANDS.UPDATE_DUALENTRY_TRAVEL_INVOICING_PAYABLE_ACCOUNT, parameters, onyxData);
+    write(WRITE_COMMANDS.UPDATE_DUALENTRY_TRAVEL_BILLING_PAYABLE_ACCOUNT, parameters, onyxData);
 }
 
 function updateDualEntryExportToMultipleAccounts(policyID: string, enabled: DualEntryExport['exportToMultipleAccounts'], oldEnabled?: DualEntryExport['exportToMultipleAccounts']) {
@@ -817,11 +827,12 @@ export {
     updateDualEntryAccountingMethod,
     updateDualEntrySyncReimbursedReports,
     updateDualEntryBillPaymentAccount,
+    updateDualEntryFxExpenseAccount,
     updateDualEntrySyncExpensifyCardSettlements,
     updateDualEntrySettlementsAccount,
-    updateDualEntrySyncTravelInvoicingSettlements,
-    updateDualEntryTravelInvoicingSettlementsAccount,
-    updateDualEntryTravelInvoicingPayableAccount,
+    updateDualEntrySyncTravelBillingSettlements,
+    updateDualEntryTravelBillingSettlementsAccount,
+    updateDualEntryTravelBillingPayableAccount,
     updateDualEntryExportToMultipleAccounts,
     updateDualEntryCardProgramAccount,
 };

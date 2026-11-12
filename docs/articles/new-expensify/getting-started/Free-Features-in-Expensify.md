@@ -21,7 +21,7 @@ Anyone with an Expensify account can use the free features — no workspace requ
 ## Where to find free features in Expensify
 
 - **Web:** Use the navigation tabs on the left to access **Inbox**, **Spend**, or **Account**.
-- **Mobile:** Use the navigation tabs on the bottom to access **Inbox**, **Spend**, or **Account**.
+- **Mobile:** Use the navigation tabs on the bottom to access **Inbox** or **Spend**. Select your profile icon to access **Account**.
 
 ---
 

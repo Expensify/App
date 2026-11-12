@@ -1,4 +1,4 @@
-import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 import ScrollView from '@components/ScrollView';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -37,16 +37,14 @@ function WorkspaceWorkflowsPayerSuccessPage() {
             addBottomSafeAreaPadding
             contentContainerStyle={styles.flexGrow1}
         >
-            <ConfirmationPage
+            <ConfirmationPageDefault
                 heading={translate('walletPage.shareBankAccountSuccess')}
                 description={translate('walletPage.shareBankAccountSuccessDescription')}
                 illustration={illustrations.ShareBank}
-                shouldShowButton
                 descriptionStyle={[styles.ph4, styles.textSupporting]}
                 illustrationStyle={styles.successBankSharedCardIllustration}
                 onButtonPress={onButtonPress}
                 buttonText={translate('common.buttonConfirm')}
-                containerStyle={styles.h100}
             />
         </ScrollView>
     );

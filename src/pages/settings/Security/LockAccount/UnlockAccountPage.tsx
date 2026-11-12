@@ -1,4 +1,4 @@
-import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -32,18 +32,16 @@ function UnlockAccountPage() {
                 title={translate('unlockAccountPage.accountLocked')}
             />
             <ScrollView contentContainerStyle={styles.flexGrow1}>
-                <ConfirmationPage
+                <ConfirmationPageDefault
                     illustration={icons.EmptyStateSpyPigeon}
                     heading={translate('unlockAccountPage.yourAccountIsLocked')}
                     description={translate('unlockAccountPage.chatToConciergeToUnlock')}
-                    shouldShowButton
                     descriptionStyle={styles.colorMuted}
                     buttonText={translate('unlockAccountPage.chatWithConcierge')}
                     onButtonPress={() => {
                         requestUnlockAccount(currentUserPersonalDetails.accountID);
                         Navigation.navigate(ROUTES.CONCIERGE);
                     }}
-                    containerStyle={styles.h100}
                 />
             </ScrollView>
         </ScreenWrapper>

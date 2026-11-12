@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDefaultCardName} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 
 import Navigation from '@navigation/Navigation';
 
@@ -17,7 +18,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import {clearCardErrorField, clearCardNameValuePairsErrorField, setPersonalCardReimbursable} from '@userActions/Card';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Card, PersonalDetails} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -37,7 +38,7 @@ type PersonalCardDetailsHeaderMenuProps = {
     shouldShowBreakConnection: boolean;
     onBreakConnection: () => void;
     onUnassignCard: () => void;
-    onDeleteCard?: () => void;
+    onDeleteCard: () => void;
 };
 
 function PersonalCardDetailsHeaderMenu({
@@ -77,8 +78,9 @@ function PersonalCardDetailsHeaderMenu({
                 }}
             >
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.PERSONAL_CARD.NAME}
                     name={translate('workspace.moreFeatures.companyCards.cardName')}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_EDIT_NAME.getRoute(cardID))}
+                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PERSONAL_CARD_EDIT_NAME.path))}
                     value={
                         customCardNames?.[cardID] ?? (isCSVImportedPersonalCard ? card?.nameValuePairs?.cardTitle : undefined) ?? card?.cardName ?? getDefaultCardName(cardholder?.firstName)
                     }
@@ -92,6 +94,7 @@ function PersonalCardDetailsHeaderMenu({
                 subtitle={translate('cardPage.markTransactionsDescription')}
                 shouldPlaceSubtitleBelowSwitch
                 switchAccessibilityLabel={translate('cardPage.markTransactionsAsReimbursable')}
+                switchSentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.PERSONAL_CARD_REIMBURSABLE_SWITCH}
                 isActive={reimbursableSetting}
                 onToggle={(isOn) => card && setPersonalCardReimbursable(card.cardID, isOn, reimbursableSetting)}
                 pendingAction={card?.pendingFields?.reimbursable}
@@ -112,8 +115,9 @@ function PersonalCardDetailsHeaderMenu({
                     }}
                 >
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.PERSONAL_CARD.TRANSACTION_START_DATE}
                         name={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_EDIT_TRANSACTION_START_DATE.getRoute(cardID))}
+                        onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PERSONAL_CARD_EDIT_TRANSACTION_START_DATE.path))}
                         value={transactionStartDateTitle}
                     >
                         {!!card?.errorFields?.scrapeMinDate && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
@@ -123,6 +127,7 @@ function PersonalCardDetailsHeaderMenu({
             <View style={styles.mt4}>
                 {isCSVImportedPersonalCard && (
                     <MenuItemAction
+                        sentryLabel={CONST.SENTRY_LABEL.PERSONAL_CARD.IMPORT_SPREADSHEET}
                         icon={icons.Table}
                         title={translate('spreadsheet.importSpreadsheet')}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute(Number(cardID)))}
@@ -130,6 +135,7 @@ function PersonalCardDetailsHeaderMenu({
                 )}
                 {shouldShowBreakConnection && (
                     <MenuItemAction
+                        sentryLabel={CONST.SENTRY_LABEL.PERSONAL_CARD.BREAK_CONNECTION}
                         icon={icons.Trashcan}
                         isDisabled={isOffline || card?.isLoadingLastUpdated}
                         title="Break connection (Testing)"
@@ -137,19 +143,23 @@ function PersonalCardDetailsHeaderMenu({
                     />
                 )}
                 {isCSVImportedPersonalCard ? (
-                    <MenuItem
-                        icon={icons.Trashcan}
-                        title={translate('common.delete')}
-                        style={styles.mb1}
-                        onPress={onDeleteCard}
-                    />
+                    <View style={styles.mb1}>
+                        <MenuItemAction
+                            sentryLabel={CONST.SENTRY_LABEL.PERSONAL_CARD.DELETE}
+                            icon={icons.Trashcan}
+                            title={translate('common.delete')}
+                            onPress={onDeleteCard}
+                        />
+                    </View>
                 ) : (
-                    <MenuItem
-                        icon={expensifyIcons.RemoveMembers}
-                        title={translate('workspace.moreFeatures.companyCards.removeCard')}
-                        style={styles.mb1}
-                        onPress={onUnassignCard}
-                    />
+                    <View style={styles.mb1}>
+                        <MenuItemAction
+                            sentryLabel={CONST.SENTRY_LABEL.PERSONAL_CARD.REMOVE}
+                            icon={expensifyIcons.RemoveMembers}
+                            title={translate('workspace.moreFeatures.companyCards.removeCard')}
+                            onPress={onUnassignCard}
+                        />
+                    </View>
                 )}
             </View>
         </>

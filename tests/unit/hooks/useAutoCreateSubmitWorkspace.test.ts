@@ -70,6 +70,7 @@ function setupDefaultMocks() {
         isRestrictedToPreferredPolicy: false,
         preferredPolicyID: undefined,
         isRestrictedPolicyCreation: false,
+        isLoadingPreferredPolicy: false,
     });
 
     jest.mocked(useHasActiveAdminPolicies).mockReturnValue(false);
@@ -112,7 +113,7 @@ describe('useAutoCreateSubmitWorkspace', () => {
 
     it('creates a Submit workspace with the correct parameters for a new EMPLOYER user', () => {
         // Given a new user going through onboarding with no existing workspace (onboardingPolicyID is undefined,
-        // hasEditableGroupPolicy is false, and policy creation is not restricted)
+        // hasGroupPolicyWhereReportCanBeCreated is false, and policy creation is not restricted)
 
         // When the autoCreateSubmitWorkspace function is invoked during onboarding
         const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
@@ -183,7 +184,7 @@ describe('useAutoCreateSubmitWorkspace', () => {
         // Then the user should be navigated to the newly created Submit workspace
         // so they land on their workspace immediately after onboarding
         expect(navigateSpy).toHaveBeenCalledTimes(1);
-        expect(navigateSpy).toHaveBeenCalledWith(MOCK_POLICY_ID, expect.any(Boolean));
+        expect(navigateSpy).toHaveBeenCalledWith(MOCK_POLICY_ID);
     });
 
     it('reuses the existing onboarding workspace instead of creating a new one', async () => {
@@ -236,12 +237,33 @@ describe('useAutoCreateSubmitWorkspace', () => {
         expect(createWorkspaceSpy).not.toHaveBeenCalled();
     });
 
+    it('skips workspace creation when the user is a member who can create reports on a paid group policy', async () => {
+        // Given a user who is a regular member (not an admin) of a paid group policy
+        const existingPaidPolicy = createMock<PolicyType>({
+            id: 'existing-paid-policy-id',
+            name: 'Existing Paid Workspace',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.USER,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${existingPaidPolicy.id}`, existingPaidPolicy);
+        await waitForBatchedUpdates();
+
+        // When onboarding completes
+        const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
+        result.current('Jane', 'Smith');
+
+        // Then no Submit workspace should be created because the user can already create reports there,
+        // matching the check the Submit plan welcome modal guard uses
+        expect(createWorkspaceSpy).not.toHaveBeenCalled();
+    });
+
     it('skips workspace creation when the user domain restricts policy creation', () => {
         // Given a user whose domain security group has enableRestrictedPolicyCreation set to true
         jest.mocked(usePreferredPolicy).mockReturnValue({
             isRestrictedToPreferredPolicy: false,
             preferredPolicyID: undefined,
             isRestrictedPolicyCreation: true,
+            isLoadingPreferredPolicy: false,
         });
 
         // When the onboarding flow runs
@@ -260,6 +282,7 @@ describe('useAutoCreateSubmitWorkspace', () => {
             isRestrictedToPreferredPolicy: false,
             preferredPolicyID: undefined,
             isRestrictedPolicyCreation: true,
+            isLoadingPreferredPolicy: false,
         });
 
         // When the onboarding flow runs
@@ -295,7 +318,30 @@ describe('useAutoCreateSubmitWorkspace', () => {
         expect(createWorkspaceSpy).not.toHaveBeenCalled();
         expect(completeOnboardingSpy).not.toHaveBeenCalled();
         expect(navigateSpy).toHaveBeenCalledTimes(1);
-        expect(navigateSpy).toHaveBeenCalledWith(existingSubmitPolicy.id, expect.any(Boolean));
+        expect(navigateSpy).toHaveBeenCalledWith(existingSubmitPolicy.id);
+    });
+
+    it('creates a new Submit workspace when the only existing one is pending deletion', async () => {
+        // Given an already-onboarded user whose only Submit workspace was deleted while offline,
+        // so it is still in Onyx with a pending DELETE action
+        const deletedSubmitPolicy = createMock<PolicyType>({
+            id: 'deleted-submit-policy-id',
+            name: 'Deleted Submit Workspace',
+            type: CONST.POLICY.TYPE.SUBMIT,
+            role: CONST.POLICY.ROLE.ADMIN,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${deletedSubmitPolicy.id}`, deletedSubmitPolicy);
+        await waitForBatchedUpdates();
+
+        // When the user confirms the Submit plan welcome modal
+        const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
+        await result.current('John', 'Doe', false);
+
+        // Then a new Submit workspace is created and the user lands on it, because a workspace
+        // being deleted should not count as an existing one to reuse
+        expect(createWorkspaceSpy).toHaveBeenCalledTimes(1);
+        expect(navigateSpy).toHaveBeenCalledWith(MOCK_POLICY_ID);
     });
 
     it('keeps the Home fallback for onboarding callers when creation is skipped', async () => {
@@ -317,7 +363,7 @@ describe('useAutoCreateSubmitWorkspace', () => {
         // behavior (landing on Home) so this fix stays scoped to already-onboarded callers
         expect(createWorkspaceSpy).not.toHaveBeenCalled();
         expect(navigateSpy).toHaveBeenCalledTimes(1);
-        expect(navigateSpy).toHaveBeenCalledWith(undefined, expect.any(Boolean));
+        expect(navigateSpy).toHaveBeenCalledWith(undefined);
     });
 
     it('uses the localCurrencyCode from personal details for workspace currency', () => {

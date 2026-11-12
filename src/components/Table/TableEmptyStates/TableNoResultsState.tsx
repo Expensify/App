@@ -21,10 +21,11 @@ type TableNoResultsStateProps = Omit<GenericEmptyStateComponentProps, 'headerMed
 export default function TableNoResultsState(emptyStateProps: TableNoResultsStateProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isEmptyResult, tableListMetadata} = useTableContext();
+    const {isEmptyResult, isDefaultViewEmpty, tableListMetadata} = useTableContext();
     const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
 
-    if (!isEmptyResult) {
+    // The default view hiding every row is not a search/filter result, so the empty state handles it instead.
+    if (!isEmptyResult || isDefaultViewEmpty) {
         return null;
     }
 
