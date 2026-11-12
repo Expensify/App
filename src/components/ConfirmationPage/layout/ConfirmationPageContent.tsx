@@ -1,0 +1,45 @@
+import FormHelpMessage from '@components/FormHelpMessage';
+import ScrollView from '@components/ScrollView';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
+import type {Errors} from '@src/types/onyx/OnyxCommon';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import {View} from 'react-native';
+
+type ConfirmationPageContentProps = {
+    /** Errors rendered as a message at the bottom of the content area, above the footer */
+    requestErrors?: Errors | null;
+
+    /** Additional style for the centered container wrapping the children */
+    style?: StyleProp<ViewStyle>;
+
+    /** Content to render, typically the illustration, heading and description */
+    children?: React.ReactNode;
+};
+
+function ConfirmationPageContent({requestErrors, style, children}: ConfirmationPageContentProps) {
+    const styles = useThemeStyles();
+
+    return (
+        <View style={styles.flex1}>
+            <ScrollView contentContainerStyle={styles.flexGrow1}>
+                <View style={[styles.screenCenteredContainer, styles.alignItemsCenter, style]}>{children}</View>
+            </ScrollView>
+            {!!requestErrors && (
+                <View style={[styles.pAbsolute, styles.b0, styles.l0, styles.r0, styles.ph5]}>
+                    <FormHelpMessage
+                        message={getLatestErrorMessage({errors: requestErrors})}
+                        style={styles.mb0}
+                    />
+                </View>
+            )}
+        </View>
+    );
+}
+
+export default ConfirmationPageContent;

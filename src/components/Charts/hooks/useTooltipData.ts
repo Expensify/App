@@ -1,21 +1,31 @@
-import type {ChartDataPoint} from '@components/Charts/types';
+import type {ChartDataPoint, ChartSeries} from '@components/Charts/types';
+import {getPrimaryValue} from '@components/Charts/utils';
+import formatChartCount from '@components/Charts/utils/formatChartCount';
+import type {TooltipValue} from '@components/Charts/utils/formatTooltipValue';
+import type {SearchChartCountDimension} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
 
 import {formatPercentOfTotal} from '@libs/PercentageUtils';
 
-type TooltipData = {
+import type {NonEmptyTuple} from 'type-fest';
+
+type TooltipData = TooltipValue & {
     label: string;
-    amount: string;
-    percentage?: string;
 };
 
 /**
- * Formats tooltip content for the active chart data point.
- * Computes the display amount using the provided formatter and reads the share of total spend off the point.
+ * Formats the active point's primary value with its share of the total, and the other measure of its expenses:
+ * the spend behind a count, or the count behind an amount.
  */
-function useTooltipData(activeDataIndex: number, data: ChartDataPoint[], formatAmount: (value: number) => string): TooltipData | null {
-    const {preferredLocale} = useLocalize();
+function useTooltipData(
+    activeDataIndex: number,
+    data: ChartDataPoint[],
+    series: NonEmptyTuple<ChartSeries>,
+    formatAmount: (value: number) => string,
+    countDimension: SearchChartCountDimension,
+): TooltipData | null {
+    const {translate, preferredLocale, numberFormat} = useLocalize();
 
     if (activeDataIndex < 0 || activeDataIndex >= data.length) {
         return null;
@@ -24,11 +34,15 @@ function useTooltipData(activeDataIndex: number, data: ChartDataPoint[], formatA
     if (!dataPoint) {
         return null;
     }
+    const [{key: primarySeriesKey}] = series;
+    const value = getPrimaryValue(dataPoint, primarySeriesKey);
 
     return {
         label: dataPoint.label,
-        amount: formatAmount(dataPoint.total),
-        percentage: dataPoint.percentOfTotal === undefined ? undefined : formatPercentOfTotal(dataPoint.percentOfTotal, dataPoint.total, preferredLocale),
+        value: formatAmount(value),
+        percentage: dataPoint.percentOfTotal === undefined ? undefined : formatPercentOfTotal(dataPoint.percentOfTotal, value, preferredLocale),
+        secondaryValue:
+            dataPoint.seriesTotals?.[primarySeriesKey] ?? (dataPoint.count === undefined ? undefined : formatChartCount(dataPoint.count, countDimension, translate, numberFormat)),
     };
 }
 

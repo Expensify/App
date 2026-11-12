@@ -1,0 +1,28 @@
+diff --git a/node_modules/expo-image-manipulator/build/NativeImageManipulatorModule.web.d.ts b/node_modules/expo-image-manipulator/build/NativeImageManipulatorModule.web.d.ts
+index 627ef30..e93a4bf 100644
+--- a/node_modules/expo-image-manipulator/build/NativeImageManipulatorModule.web.d.ts
++++ b/node_modules/expo-image-manipulator/build/NativeImageManipulatorModule.web.d.ts
+@@ -7,6 +7,6 @@ declare class ImageManipulator extends NativeModule {
+     Image: typeof ImageManipulatorImageRef;
+     manipulate(source: string | SharedRef<'image'>): ImageManipulatorContext;
+ }
+-declare const _default: typeof ImageManipulator;
++declare const _default: ImageManipulator;
+ export default _default;
+ //# sourceMappingURL=NativeImageManipulatorModule.web.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/expo-image-manipulator/build/web/ImageManipulatorContext.web.d.ts b/node_modules/expo-image-manipulator/build/web/ImageManipulatorContext.web.d.ts
+index 9991c3b..60f3aa8 100644
+--- a/node_modules/expo-image-manipulator/build/web/ImageManipulatorContext.web.d.ts
++++ b/node_modules/expo-image-manipulator/build/web/ImageManipulatorContext.web.d.ts
+@@ -9,8 +9,8 @@ export default class ImageManipulatorContext extends SharedObject {
+     set currentTask(task: Promise<HTMLCanvasElement>);
+     constructor(loader?: ContextLoader);
+     resize(size: {
+-        width: number;
+-        height: number;
++        width?: number;
++        height?: number;
+     }): ImageManipulatorContext;
+     rotate(degrees: number): ImageManipulatorContext;
+     flip(flipType: FlipType): ImageManipulatorContext;

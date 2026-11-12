@@ -1,0 +1,104 @@
+name: Search filter and column checklist
+
+# Search filters and columns need matching table, sorting, and export support. Remind the author when a PR adds one
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Comment when a Search filter or column is added
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          script: |
+            const MARKER = '<!-- search-filter-column-checklist -->';
+            const {owner, repo} = context.repo;
+            const pr = context.payload.pull_request;
+            const files = await github.paginate(github.rest.pulls.listFiles, {owner, repo, pull_number: pr.number});
+            if (!files.some((file) => ['src/CONST/index.ts', 'src/hooks/useAdvancedSearchFilters.ts'].includes(file.filename))) {
+              return;
+            }
+
+            const comments = await github.paginate(github.rest.issues.listComments, {owner, repo, issue_number: pr.number});
+            if (comments.some((comment) => comment.user?.login === 'github-actions[bot]' && comment.body?.includes(MARKER))) {
+              return;
+            }
+
+            const readFile = async (path, ref) => {
+              const {data} = await github.rest.repos.getContent({owner, repo, path, ref});
+              return Buffer.from(data.content, 'base64').toString('utf8');
+            };
+
+            const [baseConst, headConst, baseFilters, headFilters] = await Promise.all([
+              readFile('src/CONST/index.ts', pr.base.sha),
+              readFile('src/CONST/index.ts', `refs/pull/${pr.number}/head`),
+              readFile('src/hooks/useAdvancedSearchFilters.ts', pr.base.sha),
+              readFile('src/hooks/useAdvancedSearchFilters.ts', `refs/pull/${pr.number}/head`),
+            ]);
+
+            const objectBody = (source, marker) => {
+              const start = source.indexOf(marker);
+              if (start < 0) {
+                throw new Error(`Search registry not found: ${marker}`);
+              }
+              const open = source.indexOf('{', start + marker.length);
+              let depth = 0;
+              for (let i = open; i < source.length; i++) {
+                if (source[i] === '{') depth++;
+                if (source[i] === '}' && --depth === 0) return source.slice(open + 1, i);
+              }
+              throw new Error(`Search registry is incomplete: ${marker}`);
+            };
+
+            const keys = (body) => new Set([...body.matchAll(/^\s*([A-Z][A-Z0-9_]*):/gm)].map((match) => match[1]));
+            const hasNewKey = (before, after) => [...after].some((key) => !before.has(key));
+            const referenceCounts = (body, pattern) => {
+              const counts = new Map();
+              for (const [, key] of body.matchAll(pattern)) counts.set(key, (counts.get(key) ?? 0) + 1);
+              return counts;
+            };
+
+            const hasNewReference = (before, after) => [...after].some(([key, count]) => count > (before.get(key) ?? 0));
+            const filterKeys = (source) => keys(objectBody(source, 'SYNTAX_FILTER_KEYS:'));
+            const filterPickerKeys = (source) => referenceCounts(objectBody(source, 'const typeFiltersKeys ='), /CONST\.SEARCH\.SYNTAX_FILTER_KEYS\.([A-Z0-9_]+)/g);
+            const columnKeys = (source) => keys(objectBody(source, 'TABLE_COLUMNS:'));
+
+            const searchColumnKeys = (source) => {
+              const entries = objectBody(source, 'get COLUMN_AVAILABILITY()').split(/^ {16}(?=[A-Z][A-Z0-9_]*:)/m);
+              return new Set(entries.filter((entry) => /\bsearch:\s*true\b/.test(entry)).map((entry) => entry.match(/^([A-Z][A-Z0-9_]*):/)[1]));
+            };
+
+            const pickerColumnCounts = (source) => {
+              const pickerBodies = ['get TYPE_CUSTOM_COLUMNS()', 'get GROUP_CUSTOM_COLUMNS()'].map((marker) => objectBody(source, marker));
+              return referenceCounts(pickerBodies.join('\n'), /this\.TABLE_COLUMNS\.([A-Z0-9_]+)/g);
+            };
+
+            const addsFilter = hasNewKey(filterKeys(baseConst), filterKeys(headConst)) || hasNewReference(filterPickerKeys(baseFilters), filterPickerKeys(headFilters));
+            const addsColumn = hasNewKey(columnKeys(baseConst), columnKeys(headConst)) || hasNewKey(searchColumnKeys(baseConst), searchColumnKeys(headConst)) ||
+              hasNewReference(pickerColumnCounts(baseConst), pickerColumnCounts(headConst));
+            if (!addsFilter && !addsColumn) {
+              return;
+            }
+
+            const body = [
+              MARKER,
+              'It looks like this PR adds a search filter or column. Please double check the following:',
+              '',
+              '- [ ] The filter is available in the Search filters dropdown and returns the expected results.',
+              '- [ ] The filter has a matching column that can be shown through **Display > Edit columns**.',
+              '- [ ] The column can be sorted by clicking its header.',
+              '- [ ] **Export > Current view** includes the column in the exported CSV.',
+            ].join('\n');
+
+            await github.rest.issues.createComment({owner, repo, issue_number: pr.number, body});

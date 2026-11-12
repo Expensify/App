@@ -21,7 +21,7 @@ import CONST from '@src/CONST';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import RevokeRow from './RevokeRow';
@@ -91,44 +91,35 @@ function MultifactorAuthenticationRevokePage() {
         Navigation.goBack();
     };
 
-    const executeRevoke = useCallback(
-        async (params: Parameters<typeof revokeMultifactorAuthenticationCredentials>[0], setLoading: (loading: boolean) => void) => {
-            setLoading(true);
-            setErrorMessage(undefined);
-            const result = await revokeMultifactorAuthenticationCredentials(params);
-            setLoading(false);
-            if (result.httpStatusCode !== 200) {
-                setErrorMessage(translate('multifactorAuthentication.revoke.error'));
-            }
-        },
-        [translate],
-    );
+    const executeRevoke = async (params: Parameters<typeof revokeMultifactorAuthenticationCredentials>[0], setLoading: (loading: boolean) => void) => {
+        setLoading(true);
+        setErrorMessage(undefined);
+        const result = await revokeMultifactorAuthenticationCredentials(params);
+        setLoading(false);
+        if (result.httpStatusCode !== 200) {
+            setErrorMessage(translate('multifactorAuthentication.revoke.error'));
+        }
+    };
 
     // Since localCredentialID is loaded asynchronously, a callback that closed over it directly could see a stale
     // undefined and make revokeThisDevice silently no-op, or make revokeOtherDevices send empty params and
     // accidentally revoke ALL credentials. These take the key as an argument so the caller supplies the latest value.
-    const revokeThisDevice = useCallback(
-        async (keyID: string) => {
-            await executeRevoke({onlyKeyID: keyID}, setIsThisDeviceLoading);
-        },
-        [executeRevoke],
-    );
+    const revokeThisDevice = async (keyID: string) => {
+        await executeRevoke({onlyKeyID: keyID}, setIsThisDeviceLoading);
+    };
 
-    const revokeOtherDevices = useCallback(
-        async (currentDeviceKeyID: string) => {
-            const params = {exceptKeyID: currentDeviceKeyID};
-            await executeRevoke(params, setIsOtherDevicesLoading);
-        },
-        [executeRevoke],
-    );
+    const revokeOtherDevices = async (currentDeviceKeyID: string) => {
+        const params = {exceptKeyID: currentDeviceKeyID};
+        await executeRevoke(params, setIsOtherDevicesLoading);
+    };
 
-    const revokeAll = useCallback(async () => {
+    const revokeAll = async () => {
         const setLoading = (loading: boolean) => {
             setIsThisDeviceLoading(loading);
             setIsOtherDevicesLoading(loading);
         };
         await executeRevoke({}, setLoading);
-    }, [executeRevoke]);
+    };
 
     // isConfirmLoading keeps the modal open in a loading state after the promise resolves, so every path has to call closeModal() to dismiss it.
     const handleRevokeConfirm = async (mode: ConfirmMode) => {
@@ -217,6 +208,7 @@ function MultifactorAuthenticationRevokePage() {
                             {isCurrentDeviceRegistered && (
                                 <RevokeRow
                                     title={translate('multifactorAuthentication.revoke.thisDevice')}
+                                    sentryLabel={CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.REVOKE_THIS_DEVICE}
                                     isLoading={isThisDeviceLoading}
                                     onPress={() => {
                                         if (!localCredentialID) {
@@ -229,6 +221,7 @@ function MultifactorAuthenticationRevokePage() {
                             {otherDeviceCount > 0 && (
                                 <RevokeRow
                                     title={translate('multifactorAuthentication.revoke.otherDevices', {count: otherDeviceCount})}
+                                    sentryLabel={CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.REVOKE_OTHER_DEVICES}
                                     isLoading={isOtherDevicesLoading}
                                     onPress={() => {
                                         promptRevoke(otherDevicesConfirmMode());
@@ -247,6 +240,7 @@ function MultifactorAuthenticationRevokePage() {
                 <View style={[styles.flexRow, styles.m5, styles.mt0]}>
                     {hasDevices ? (
                         <Button
+                            sentryLabel={CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.REVOKE_ALL}
                             size={CONST.BUTTON_SIZE.LARGE}
                             variant={CONST.BUTTON_VARIANT.DANGER}
                             style={styles.flex1}
@@ -257,6 +251,7 @@ function MultifactorAuthenticationRevokePage() {
                         </Button>
                     ) : (
                         <Button
+                            sentryLabel={CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.REVOKE_DISMISS}
                             size={CONST.BUTTON_SIZE.LARGE}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             style={styles.flex1}

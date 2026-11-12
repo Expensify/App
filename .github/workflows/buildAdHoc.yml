@@ -36,6 +36,10 @@ on:
         type: string
         default: 'false'
 
+concurrency:
+  group: adhoc-${{ github.event_name }}-${{ format('app-{0}-mobile-{1}', inputs.APP_PR_NUMBER || inputs.APP_REF, inputs.MOBILE_EXPENSIFY_PR || inputs.MOBILE_EXPENSIFY_REF) }}
+  cancel-in-progress: ${{ github.event_name != 'push' }}
+
 jobs:
   postGitHubCommentBuildStarted:
     name: Post build started comment
@@ -105,49 +109,47 @@ jobs:
       ref: ${{ inputs.APP_REF }}
       environment: adhoc
       pull-request-number: ${{ inputs.APP_PR_NUMBER }}
+      build-preview-worker: true
     secrets: inherit
 
   deployWebAdHoc:
-    name: Deploy Web to S3 (adhoc)
+    name: Deploy the PR Worker Preview and web assets
     needs: [buildWeb]
-    if: ${{ fromJSON(inputs.BUILD_WEB) && inputs.APP_PR_NUMBER != '' }}
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    env:
+      WRANGLER_SEND_METRICS: false
     steps:
-      - name: Download web build artifact
-        # v7
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+      - name: Checkout trusted preview tooling, not the PR branch
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+        with:
+          WORKSPACES: '["web/cloudflare-worker"]'
+
+      - name: Download the matching web assets
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: web-build-tar-gz-artifact
-          path: ./
+          path: ${{ runner.temp }}/adhoc-artifacts/assets
 
-      - name: Extract web build
-        run: tar -xzvf "${{ needs.buildWeb.outputs.TAR_FILENAME }}"
-
-      - name: Configure AWS Credentials
-        # v6
-        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7
+      - name: Download the branch Worker bundle as data
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          name: adhoc-worker-artifact
+          path: ${{ runner.temp }}/adhoc-artifacts/worker
 
-      - name: Deploy to S3
+      - name: Deploy and verify the PR Preview and assets together
         run: |
-          BUCKET="s3://ad-hoc-expensify-cash/web/${{ inputs.APP_PR_NUMBER }}"
-
-          aws s3 sync dist "$BUCKET" --delete --acl public-read \
-            --exclude "*.br" \
-            --exclude "index.html" \
-            --exclude "service-worker.js" \
-            --exclude "workbox-*.js" \
-            --cache-control "public,max-age=31536000,immutable"
-
-          aws s3 sync dist "$BUCKET" --acl public-read \
-            --exclude "*" \
-            --include "index.html" \
-            --include "service-worker.js" \
-            --include "workbox-*.js" \
-            --cache-control "no-cache,no-store,must-revalidate"
+          bun scripts/deployAdhocCloudflareWorker.ts \
+            --pr-number ${{ inputs.APP_PR_NUMBER }} --sha ${{ needs.buildWeb.outputs.BUILD_SHA }} \
+            --artifact-directory "${{ runner.temp }}/adhoc-artifacts"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_WORKERS_DEPLOY_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 3eb3df6f8c190fa13c3fc0a53c30af1a
 
   postGithubComment:
     runs-on: blacksmith-4vcpu-ubuntu-2404
@@ -167,6 +169,7 @@ jobs:
           REPO: App
           APP_PR_NUMBER: ${{ inputs.APP_PR_NUMBER }}
           MOBILE_EXPENSIFY_PR_NUMBER: ${{ inputs.MOBILE_EXPENSIFY_PR }}
+          MOBILE_EXPENSIFY_REF: ${{ inputs.MOBILE_EXPENSIFY_REF }}
           GITHUB_TOKEN: ${{ github.token }}
           COMMENT_PREFIX: ':test_tube::test_tube: Use the links below to test this adhoc build'
           ANDROID: ${{ needs.buildAndroid.result }}
@@ -174,7 +177,7 @@ jobs:
           WEB: ${{ needs.buildWeb.result == 'failure' && 'failure' || needs.deployWebAdHoc.result }}
           ANDROID_LINK: ${{ needs.buildAndroid.outputs.ROCK_ARTIFACT_URL }}
           IOS_LINK: ${{ needs.buildIOS.outputs.ROCK_ARTIFACT_URL }}
-          WEB_LINK: https://${{ inputs.APP_PR_NUMBER }}.pr-testing.expensify.com
+          WEB_LINK: https://${{ inputs.APP_PR_NUMBER }}.adhoc.expensify.com
 
       - name: Publish links to apps for download on Expensify/Mobile-Expensify PR
         if: ${{ inputs.MOBILE_EXPENSIFY_PR != '' }}
@@ -182,6 +185,7 @@ jobs:
         with:
           REPO: Mobile-Expensify
           MOBILE_EXPENSIFY_PR_NUMBER: ${{ inputs.MOBILE_EXPENSIFY_PR }}
+          MOBILE_EXPENSIFY_REF: ${{ inputs.MOBILE_EXPENSIFY_REF }}
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           COMMENT_PREFIX: ':test_tube::test_tube: Use the links below to test this adhoc build'
           ANDROID: ${{ needs.buildAndroid.result }}
@@ -217,12 +221,13 @@ jobs:
           github-token: ${{ github.token }}
           script: |
             const prNumber = '${{ inputs.APP_PR_NUMBER }}';
-            const webLink = prNumber && '${{ needs.deployWebAdHoc.result }}' === 'success' ? `https://${prNumber}.pr-testing.expensify.com` : '';
+            const webResult = '${{ needs.deployWebAdHoc.result }}';
+            const webLink = prNumber && webResult === 'success' ? `https://${prNumber}.adhoc.expensify.com` : '';
             const androidLink = '${{ needs.buildAndroid.outputs.ROCK_ARTIFACT_URL }}' || '';
             const iosLink = '${{ needs.buildIOS.outputs.ROCK_ARTIFACT_URL }}' || '';
             const mobileExpensifySHA = '${{ steps.getMobileExpensifySHA.outputs.SHA }}' || '';
 
-            const webFailed = '${{ needs.buildWeb.result }}' === 'failure' || '${{ needs.deployWebAdHoc.result }}' === 'failure';
+            const webFailed = '${{ needs.buildWeb.result }}' === 'failure' || webResult === 'failure';
             const webStatus = webLink ? '✅ Success' : webFailed ? '❌ Failed' : '⏭️ Skipped';
             const androidStatus = androidLink ? '✅ Success' : '${{ needs.buildAndroid.result }}' === 'failure' ? '❌ Failed' : '⏭️ Skipped';
             const iosStatus = iosLink ? '✅ Success' : '${{ needs.buildIOS.result }}' === 'failure' ? '❌ Failed' : '⏭️ Skipped';

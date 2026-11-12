@@ -2,6 +2,7 @@ import {getEmptyDateValues} from '@libs/SearchQueryUtils';
 
 import {fromSearchDateValues, parseInsightsFilters, toSearchDateValues} from '@pages/Insights/insightsFilterParsing';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
+import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
 import {buildInsightsQueryString} from '@pages/Insights/insightsQueries';
 
 import CONST from '@src/CONST';
@@ -53,6 +54,17 @@ describe('insightsFilterParsing', () => {
             expect(day.date).toEqual({on: '2026-03-04'});
         });
 
+        it('reads the deprecated year-to-date preset as this year', () => {
+            // Given a dashboard saved before Year to date was replaced by This year
+            const query = 'groupBy:month groupCurrency:USD date:year-to-date';
+
+            // When its stored query is read back
+            const parsed = parseInsightsFilters(query);
+
+            // Then it reads back as This year, so the date picker checks the row it lists
+            expect(parsed.date).toEqual({preset: CONST.SEARCH.DATE_PRESETS.THIS_YEAR});
+        });
+
         it('reads both ends of a range, which the query carries as two separate filters', () => {
             // Given a query bounded at both ends
             const query = 'groupBy:month groupCurrency:USD date>=2026-01-01 date<=2026-03-31';
@@ -70,6 +82,28 @@ describe('insightsFilterParsing', () => {
 
             // Then no date is read back, so the caller's default stays in place
             expect(parsed.date).toBeUndefined();
+        });
+
+        it('reads back a dashboard grouped by day', () => {
+            // Given a dashboard grouped by day, the finest time bucket the headline chart offers
+            const filters: InsightsFilters = {...FILTERS, groupBy: CONST.SEARCH.GROUP_BY.DAY};
+
+            // When its stored query is read back
+            const parsed = parseInsightsFilters(buildInsightsQueryString(filters));
+
+            // Then the daily grouping survives the round trip instead of falling back to the default
+            expect(parsed.groupBy).toBe(CONST.SEARCH.GROUP_BY.DAY);
+        });
+
+        it('reads back a dashboard showing running total, which rides the saved query like any grouping', () => {
+            // Given a dashboard whose grouping is running total, a value the shared Search parser does not know
+            const filters: InsightsFilters = {...FILTERS, groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY};
+
+            // When its stored query is read back
+            const parsed = parseInsightsFilters(buildInsightsQueryString(filters));
+
+            // Then running total survives the round trip, so the dashboard reopens accumulating spend instead of falling back to the default
+            expect(parsed.groupBy).toBe(INSIGHTS_RUNNING_TOTAL_GROUP_BY);
         });
 
         it('ignores a group-by no Insights chart offers', () => {

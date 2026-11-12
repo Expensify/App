@@ -1,7 +1,8 @@
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
-import {reportAvatarFieldsSelector, reportAvatarKindSelector, reportPolicyFieldsSelector} from '@selectors/Report';
+import {reportAvatarFieldsSelector, reportAvatarKindSelector, reportParentChainSelector, reportPolicyFieldsSelector} from '@selectors/Report';
 
 const REPORT_ID = 'report123';
 const PARENT_REPORT_ID = 'parentReport123';
@@ -38,13 +39,15 @@ describe('reportAvatarKindSelector', () => {
         ['a system chat', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SYSTEM}, CONST.REPORT_AVATAR_KIND.DEFAULT],
         // A trip room is itself a thread of its trip preview, so it routes to the thread wrapper.
         ['a trip room', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM, ...threadFields}, CONST.REPORT_AVATAR_KIND.CHAT_THREAD],
-        ['a trip room without parent fields', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM}, CONST.REPORT_AVATAR_KIND.DEFAULT],
+        ['a trip room without parent fields', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM}, CONST.REPORT_AVATAR_KIND.TRIP_ROOM],
         ['a report without a type', {}, CONST.REPORT_AVATAR_KIND.DEFAULT],
         // Legacy getIcons classifies chats purely off chatType — a chat row whose type hasn't populated yet still routes by it.
         ['a group chat without a type', {chatType: CONST.REPORT.CHAT_TYPE.GROUP}, CONST.REPORT_AVATAR_KIND.GROUP_CHAT],
         ['a policy room without a type', {chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM}, CONST.REPORT_AVATAR_KIND.ROOM],
         // The thread check requires type=chat (isChatThread semantics), so without a type the chatType wins.
         ['a group chat without a type but with parent fields', {chatType: CONST.REPORT.CHAT_TYPE.GROUP, ...threadFields}, CONST.REPORT_AVATAR_KIND.GROUP_CHAT],
+        // Legacy isTripRoom requires type=chat.
+        ['a trip room without a type', {chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM}, CONST.REPORT_AVATAR_KIND.DEFAULT],
     ] as const)('should return the kind for %s', (_case, overrides, expectedKind) => {
         expect(reportAvatarKindSelector(createReport(overrides))).toBe(expectedKind);
     });
@@ -102,5 +105,66 @@ describe('reportPolicyFieldsSelector', () => {
 
     it('should return undefined when the report is not in Onyx', () => {
         expect(reportPolicyFieldsSelector(undefined)).toBeUndefined();
+    });
+});
+
+describe('reportParentChainSelector', () => {
+    const GRANDPARENT_REPORT_ID = 'grandparentReport123';
+    const GRANDPARENT_REPORT_ACTION_ID = 'grandparentReportAction123';
+    const UNRELATED_REPORT_ID = 'unrelatedReport123';
+
+    const reportKey = (reportID: string) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
+
+    it('should return the parent links of the report and every ancestor, and nothing else', () => {
+        // Given a thread -> parent -> grandparent chain plus an unrelated report in the collection
+        const reports = {
+            [reportKey(REPORT_ID)]: createReport({...threadFields, lastMessageText: 'Hello'}),
+            [reportKey(PARENT_REPORT_ID)]: createReport({reportID: PARENT_REPORT_ID, parentReportID: GRANDPARENT_REPORT_ID, parentReportActionID: GRANDPARENT_REPORT_ACTION_ID}),
+            [reportKey(GRANDPARENT_REPORT_ID)]: createReport({reportID: GRANDPARENT_REPORT_ID}),
+            [reportKey(UNRELATED_REPORT_ID)]: createReport({reportID: UNRELATED_REPORT_ID, ...threadFields}),
+        };
+
+        // When the selector is applied for the thread
+        const result = reportParentChainSelector(REPORT_ID)(reports);
+
+        // Then only the chain entries are returned, projected to the parent link fields, so unrelated reports cannot affect the result
+        expect(result).toEqual({
+            [reportKey(REPORT_ID)]: threadFields,
+            [reportKey(PARENT_REPORT_ID)]: {parentReportID: GRANDPARENT_REPORT_ID, parentReportActionID: GRANDPARENT_REPORT_ACTION_ID},
+            [reportKey(GRANDPARENT_REPORT_ID)]: {parentReportID: undefined, parentReportActionID: undefined},
+        });
+    });
+
+    it('should stop at the first ancestor that is not in Onyx', () => {
+        // Given a thread whose parent report is not loaded
+        const reports = {[reportKey(REPORT_ID)]: createReport(threadFields)};
+
+        // When the selector is applied for the thread
+        const result = reportParentChainSelector(REPORT_ID)(reports);
+
+        // Then only the thread's own links are returned, which is all the error-clearing walk can use
+        expect(result).toEqual({[reportKey(REPORT_ID)]: threadFields});
+    });
+
+    it('should terminate when the parent links form a cycle', () => {
+        // Given two reports that list each other as parent (corrupt data must not hang the UI thread)
+        const reports = {
+            [reportKey(REPORT_ID)]: createReport(threadFields),
+            [reportKey(PARENT_REPORT_ID)]: createReport({reportID: PARENT_REPORT_ID, parentReportID: REPORT_ID, parentReportActionID: 'action1'}),
+        };
+
+        // When the selector is applied for the thread
+        const result = reportParentChainSelector(REPORT_ID)(reports);
+
+        // Then each report on the cycle appears once
+        expect(Object.keys(result ?? {})).toEqual([reportKey(REPORT_ID), reportKey(PARENT_REPORT_ID)]);
+    });
+
+    it('should return an empty collection when the report ID is missing or the collection is not loaded', () => {
+        // Given no report ID, or no report collection
+        // When the selector is applied
+        // Then nothing is returned, so the caller's walk does not fall back to stale data
+        expect(reportParentChainSelector(undefined)({[reportKey(REPORT_ID)]: createReport(threadFields)})).toEqual({});
+        expect(reportParentChainSelector(REPORT_ID)(undefined)).toEqual({});
     });
 });

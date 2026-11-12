@@ -22,6 +22,7 @@ function TestCrash() {
         <View>
             <TestToolRow title={toolRowTitle}>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.TEST_TOOL_MENU.TEST_CRASH}
                     size={CONST.BUTTON_SIZE.SMALL}
                     onPress={testCrash}
                 >

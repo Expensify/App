@@ -52,7 +52,9 @@ function DynamicWorkspaceEditTagsPage({route}: DynamicWorkspaceEditTagsPageProps
         if (values[INPUT_IDS.POLICY_TAGS_NAME]?.trim() === '0') {
             errors[INPUT_IDS.POLICY_TAGS_NAME] = translate('workspace.tags.invalidTagNameError');
         }
-        if (policyTags && Object.values(policyTags).find((tag) => tag.orderWeight !== orderWeight && tag.name === values[INPUT_IDS.POLICY_TAGS_NAME])) {
+        // A tag list's Onyx key can differ from its name (e.g. "Sub-projects_2"), and renaming writes the list to the new name as its key, so check keys too
+        const newName = values[INPUT_IDS.POLICY_TAGS_NAME];
+        if (policyTags && Object.entries(policyTags).some(([key, tagList]) => tagList.orderWeight !== orderWeight && (tagList.name === newName || key === newName))) {
             errors[INPUT_IDS.POLICY_TAGS_NAME] = translate('workspace.tags.existingTagError');
         }
         return errors;

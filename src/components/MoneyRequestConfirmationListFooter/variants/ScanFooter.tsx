@@ -32,13 +32,11 @@ function ScanFooter({
     return (
         <ExpenseFormLayoutContext.Provider value={dropdownRowsExpenseFormLayout}>
             <View style={isCompactMode ? styles.flex1 : undefined}>
-                <View style={isCompactMode ? styles.dContents : styles.mv2}>
-                    <ReceiptSection
-                        policy={policy}
-                        showMoreFields={showMoreFields}
-                        {...receiptOptions}
-                    />
-                </View>
+                <ReceiptSection
+                    policy={policy}
+                    showMoreFields={showMoreFields}
+                    {...receiptOptions}
+                />
 
                 <ConfirmationFieldList
                     policy={policy}
@@ -56,7 +54,6 @@ function ScanFooter({
                         amountDisplay={amountDisplay}
                         requiredFlags={requiredFlags}
                         errorState={errorState}
-                        isParticipantPickerVisible={visibilityFlags.isParticipantPickerVisible}
                     />
                 </ConfirmationFieldList>
             </View>

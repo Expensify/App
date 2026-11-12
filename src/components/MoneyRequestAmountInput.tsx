@@ -17,6 +17,7 @@ import type {TextInputWithSymbolProps} from './TextInputWithSymbol/types';
 import NumberWithSymbolForm from './NumberWithSymbolForm';
 import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 
+/** @deprecated Use AmountFormFieldProps or KeypadAmountEditorProps instead. See contributingGuides/NUMBER_WITH_SYMBOL_FORM_MIGRATION.md. */
 type MoneyRequestAmountInputProps = {
     /** IOU amount saved in Onyx */
     amount?: number;
@@ -114,6 +115,9 @@ type MoneyRequestAmountInputProps = {
 } & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix' | 'onFocus' | 'onBlur' | 'symbolTextStyle'>;
 
 /**
+ * @deprecated Use AmountFormField (for inline split rows) or KeypadAmountEditor (for full-screen forms) instead.
+ * See contributingGuides/NUMBER_WITH_SYMBOL_FORM_MIGRATION.md.
+ *
  * Specialized money amount input with currency and money amount formatting.
  */
 function MoneyRequestAmountInput({

@@ -2,7 +2,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {BankName} from '@src/types/onyx/Bank';
+import CONST from '@src/CONST';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -31,7 +31,11 @@ type SettlementAccountSelectorProps = {
     initiallyFocusedItemKey?: string;
 };
 
-function BankAccountListItemLeftElement({bankName}: {bankName: BankName}) {
+type BankAccountListItemLeftElementProps = {
+    bankName: string;
+};
+
+function BankAccountListItemLeftElement({bankName}: BankAccountListItemLeftElementProps) {
     const styles = useThemeStyles();
     const {icon, iconSize, iconStyles} = getBankIcon({bankName, styles});
 
@@ -73,6 +77,7 @@ function SettlementAccountSelector({
     const addNewBankAccountItem =
         showAddNewAccountOption && onAddNewBankAccount ? (
             <MenuItemAction
+                sentryLabel={CONST.SENTRY_LABEL.SETTLEMENT_ACCOUNT_SELECTOR.ADD_NEW_BANK_ACCOUNT}
                 icon={icons.Plus}
                 title={translate('workspace.expensifyCard.addNewBankAccount')}
                 onPress={onAddNewBankAccount}

@@ -6,6 +6,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
+import {resolveLayoutSpacing} from '@styles/layoutSpacing';
+
 import CONST from '@src/CONST';
 
 import React from 'react';
@@ -23,7 +25,7 @@ function WorkflowsSectionCard(item: ToggleSettingOptionRowProps) {
 
     return (
         <Section
-            containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}
+            containerStyles={resolveLayoutSpacing(isSmallScreenWidth).cardPadding}
             renderTitle={() => <View />}
         >
             <ToggleSettingOptionRow
@@ -33,6 +35,7 @@ function WorkflowsSectionCard(item: ToggleSettingOptionRowProps) {
                 subtitle={item.subtitle}
                 subtitleStyle={[styles.textLabelSupportingEmptyValue, styles.lh20]}
                 switchAccessibilityLabel={item.switchAccessibilityLabel}
+                switchSentryLabel={item.switchSentryLabel}
                 shouldAnchorSwitchToTop
                 onToggle={item.onToggle}
                 subMenuItems={item.subMenuItems}

@@ -98,18 +98,25 @@ describe('useDefaultParticipants', () => {
     });
 
     it('should seed the default workspace chat for a global create expense', async () => {
-        const participants = await renderDefaultParticipants(CONST.IOU.TYPE.CREATE);
+        // Given a global create expense whose default workspace has auto-reporting on
+        // When the default participants are resolved
+        const {participants, defaultPolicy} = await renderDefaultParticipantsResult(CONST.IOU.TYPE.CREATE);
 
+        // Then the workspace chat is seeded and its workspace is returned, so callers can use its currency without subscribing to the policy themselves
         expect(participants).toEqual([expect.objectContaining({reportID: workspaceChat.reportID, policyID: POLICY_ID, isPolicyExpenseChat: true, selected: true})]);
+        expect(defaultPolicy?.id).toBe(POLICY_ID);
     });
 
     it('should seed the self DM when the active destination is a personal policy', async () => {
         await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, PERSONAL_POLICY_ID);
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${PERSONAL_POLICY_ID}`, mockPersonalPolicy);
 
-        const participants = await renderDefaultParticipants(CONST.IOU.TYPE.CREATE);
+        const {participants, defaultPolicy} = await renderDefaultParticipantsResult(CONST.IOU.TYPE.CREATE);
 
         expect(participants).toEqual([expect.objectContaining({reportID: mockSelfDMReport.reportID, isSelfDM: true, selected: true})]);
+
+        // The self DM has no workspace, so no default policy is returned and the draft keeps the Payment currency
+        expect(defaultPolicy).toBeUndefined();
     });
 
     it.each([

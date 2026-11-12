@@ -14,7 +14,6 @@ import SearchAdvancedFiltersButton from './SearchAdvancedFiltersButton';
 import SearchDisplayDropdownButton from './SearchDisplayDropdownButton';
 import SearchFiltersBarWide from './SearchFiltersBarWide';
 import SearchPageInput from './SearchPageInput';
-import SearchSaveButton from './SearchSaveButton';
 
 type SearchActionsBarWideProps = {
     queryJSON: SearchQueryJSON;
@@ -38,7 +37,6 @@ function SearchActionsBarWide({queryJSON, searchResults, onSort}: SearchActionsB
                     searchResults={searchResults}
                     onSort={onSort}
                 />
-                <SearchSaveButton />
                 <SearchActionsBarCreateButton />
             </View>
         </View>

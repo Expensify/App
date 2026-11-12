@@ -57,7 +57,7 @@ jest.mock('@hooks/useFilesValidation', () => {
 jest.mock('react-native-vision-camera', () => ({
     useCameraDevice: jest.fn(() => null),
     useCameraDevices: jest.fn(() => []),
-    useCameraFormat: jest.fn(() => null),
+    usePhotoOutput: jest.fn(() => ({capturePhoto: jest.fn()})),
 }));
 
 jest.mock('@pages/iou/request/step/IOURequestStepScan/hooks/useScanRouteParams', () => ({
@@ -85,7 +85,7 @@ function getTransactionsDraftOnyx(transactionID: string): Promise<OnyxEntry<Tran
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`,
             callback: (val) => {
                 resolve(val);
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
             },
         });
     });

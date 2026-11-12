@@ -174,6 +174,7 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
                         onSelectRow={onSelectCardRule}
                         footerContent={
                             <FormAlertWithSubmitButton
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.SPEND_RULE_SELECTION_SAVE}
                                 buttonText={translate('common.save')}
                                 onSubmit={onSubmit}
                                 shouldShowLoadingImmediatelyOnPress={false}

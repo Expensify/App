@@ -23,6 +23,7 @@ import type {Transaction} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -32,7 +33,7 @@ type DuplicateTransactionItemProps = {
     isSelected: boolean;
     shouldShowSelection?: boolean;
     onSelectTransaction: (transactionID: string) => void;
-    onPreviewPressed: (reportID: string) => void;
+    onPreviewPressed: (reportID: string, transactionID: string | undefined) => void;
 };
 
 function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldShowSelection = true, onSelectTransaction, onPreviewPressed}: DuplicateTransactionItemProps) {
@@ -42,6 +43,7 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldSh
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${report?.policyID}`, {selector: fullPolicySnapshotLastModifiedSelector});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
@@ -67,7 +69,7 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldSh
         }
 
         if (action.childReportID) {
-            onPreviewPressed(action.childReportID);
+            onPreviewPressed(action.childReportID, transaction?.transactionID);
             return;
         }
 
@@ -82,12 +84,13 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldSh
             iouReportAction: action,
             transaction,
             personalDetails,
+            fullPolicySnapshotLastModified,
         });
         if (!transactionThreadReport?.reportID) {
             return;
         }
 
-        onPreviewPressed(transactionThreadReport.reportID);
+        onPreviewPressed(transactionThreadReport.reportID, transaction?.transactionID);
     };
 
     if (!action || !report || !transaction) {

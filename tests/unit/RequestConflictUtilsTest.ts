@@ -1,17 +1,16 @@
 import {
     enablePolicyFeatureCommand,
     resolveCommentDeletionConflicts,
-    resolveDetachReceiptConflicts,
     resolveDuplicationConflictAction,
     resolveEditCommentWithNewAddCommentRequest,
     resolveEnableFeatureConflicts,
     resolveOpenAppDuplicationConflictAction,
     resolveOpenReportDuplicationConflictAction,
     resolveReconnectDuplicationConflictAction,
+    resolveVacationDelegateDeletionConflicts,
 } from '@libs/actions/RequestConflictUtils';
 import {WRITE_COMMANDS} from '@libs/API/types';
 
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyRequest} from '@src/types/onyx/Request';
 
 import type {OnyxKey} from 'react-native-onyx';
@@ -153,7 +152,7 @@ describe('RequestConflictUtils', () => {
         const reportActionID = '2';
         const persistedRequests = [{command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file: {uri: 'blob:local'}, attachmentID: '5'}}, {command: 'OpenReport'}];
         const parameters = {reportID: '1', reportActionID, reportComment: 'attachment removed'};
-        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, true);
+        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, ['5']);
         expect(result).toEqual({
             conflictAction: {
                 type: 'replace',
@@ -161,6 +160,151 @@ describe('RequestConflictUtils', () => {
                 request: {command: 'AddComment', data: {reportID: '1', reportActionID, reportComment: 'attachment removed'}},
             },
         });
+    });
+
+    it('resolveEditCommentWithNewAddCommentRequest should drop only the queued attachments the edit removed', () => {
+        // Given a queued message with three files and an attachment ID for each
+        const reportActionID = '2';
+        const persistedRequests = [
+            {
+                command: 'AddTextAndAttachment',
+                // eslint-disable-next-line @typescript-eslint/naming-convention -- the API names extra files file_1, file_2, ...
+                data: {reportActionID, reportComment: 'test', file: {uri: 'blob:a'}, file_1: {uri: 'blob:b'}, file_2: {uri: 'blob:c'}, attachmentID: '5', attachmentIDs: '5,6,7'},
+            },
+        ];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'b removed'};
+
+        // When the edit removes the middle file
+        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, ['6']);
+
+        // Then the request still sends the other two files, renumbered with their own IDs
+        expect(result.conflictAction).toEqual({
+            type: 'replace',
+            index: 0,
+            request: {
+                command: 'AddTextAndAttachment',
+                // eslint-disable-next-line @typescript-eslint/naming-convention -- the API names extra files file_1, file_2, ...
+                data: {reportID: '1', reportActionID, reportComment: 'b removed', file: {uri: 'blob:a'}, file_1: {uri: 'blob:c'}, attachmentID: '5', attachmentIDs: '5,7'},
+            },
+        });
+    });
+
+    it('resolveEditCommentWithNewAddCommentRequest should move the remaining queued attachment into the first slot', () => {
+        // Given a queued message with three files
+        const reportActionID = '2';
+        const persistedRequests = [
+            {
+                command: 'AddTextAndAttachment',
+                // eslint-disable-next-line @typescript-eslint/naming-convention -- the API names extra files file_1, file_2, ...
+                data: {reportActionID, reportComment: 'test', file: {uri: 'blob:a'}, file_1: {uri: 'blob:b'}, file_2: {uri: 'blob:c'}, attachmentID: '5', attachmentIDs: '5,6,7'},
+            },
+        ];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'only b left'};
+
+        // When the edit removes the first and last files
+        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, ['5', '7']);
+
+        // Then the request sends the one file left as a single attachment
+        expect(result.conflictAction).toEqual({
+            type: 'replace',
+            index: 0,
+            request: {
+                command: 'AddTextAndAttachment',
+                data: {reportID: '1', reportActionID, reportComment: 'only b left', file: {uri: 'blob:b'}, attachmentID: '6'},
+            },
+        });
+    });
+
+    it('resolveEditCommentWithNewAddCommentRequest should rename the queued attachment when the edit renamed it', () => {
+        // Given a text-and-attachment request still queued, with the file picked on native as a plain object
+        const reportActionID = '2';
+        const attachmentID = '5';
+        const persistedRequests = [
+            {command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file: {uri: 'blob:local', name: 'data.csv'}, attachmentID}},
+            {command: 'OpenReport'},
+        ];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'text edited'};
+
+        // When an edit renames the attachment before the request is sent
+        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, [], {[attachmentID]: 'renamed.csv'});
+
+        // Then the queued request carries the edited text and the file under its new name, since the server names the attachment after the upload
+        expect(result).toEqual({
+            conflictAction: {
+                type: 'replace',
+                index: 0,
+                request: {
+                    command: 'AddTextAndAttachment',
+                    data: {reportID: '1', reportActionID, reportComment: 'text edited', file: {uri: 'blob:local', name: 'renamed.csv'}, attachmentID},
+                },
+            },
+        });
+    });
+
+    it('resolveEditCommentWithNewAddCommentRequest should keep the extension when the new name has none', () => {
+        // Given a queued attachment the editor renames to a bare word
+        const reportActionID = '2';
+        const attachmentID = '5';
+        const persistedRequests = [
+            {command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file: {uri: 'blob:local', name: 'data.csv'}, attachmentID}},
+            {command: 'OpenReport'},
+        ];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'text edited'};
+
+        // When the rename is applied to the queued file
+        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, [], {[attachmentID]: 'report'});
+
+        // Then the original extension travels with it, because the server names the stored file after the upload and
+        // a download can only add back an extension the stored copy already has
+        expect(result).toEqual({
+            conflictAction: {
+                type: 'replace',
+                index: 0,
+                request: {
+                    command: 'AddTextAndAttachment',
+                    data: {reportID: '1', reportActionID, reportComment: 'text edited', file: {uri: 'blob:local', name: 'report.csv'}, attachmentID},
+                },
+            },
+        });
+    });
+
+    it('resolveEditCommentWithNewAddCommentRequest should rebuild a renamed File, whose name cannot be reassigned', () => {
+        // Given a queued request whose attachment is a web File, where the name is read-only
+        const reportActionID = '2';
+        const attachmentID = '5';
+        const file = new File(['id,total\n1,2'], 'data.csv', {type: 'text/csv'});
+        const queuedRequest = {command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file, attachmentID}};
+        const persistedRequests = [queuedRequest, {command: 'OpenReport'}];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'text edited'};
+
+        // When an edit renames the attachment before the request is sent
+        resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, [], {[attachmentID]: 'renamed.csv'});
+        const renamedFile = queuedRequest.data.file;
+
+        // Then a new File under the new name replaces it and keeps the original type
+        expect(renamedFile).toBeInstanceOf(File);
+        expect(renamedFile.name).toBe('renamed.csv');
+        expect(renamedFile.type).toBe('text/csv');
+    });
+
+    it('resolveEditCommentWithNewAddCommentRequest should keep the native upload properties when it renames a File', () => {
+        // Given a queued attachment shaped the way readFileAsync builds one for the native share flow
+        const reportActionID = '2';
+        const attachmentID = '5';
+        const localUri = 'file:///storage/emulated/0/Android/data/com.expensify.chat/files/Download/Receipts-Upload/data.csv';
+        const file = Object.assign(new File(['id,total\n1,2'], 'data.csv', {type: 'text/csv'}), {uri: localUri, source: localUri});
+        const queuedRequest = {command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file, attachmentID}};
+        const persistedRequests = [queuedRequest, {command: 'OpenReport'}];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'text edited'};
+
+        // When an offline edit renames it
+        resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, [], {[attachmentID]: 'renamed.csv'});
+        const renamedFile = queuedRequest.data.file;
+
+        // Then the properties the native payload reads to find the file on disk survive the rename
+        expect(renamedFile.name).toBe('renamed.csv');
+        expect(renamedFile.source).toBe(localUri);
+        expect(renamedFile.uri).toBe(localUri);
     });
 
     it('resolveEditCommentWithNewAddCommentRequest should keep the queued attachment when the edit kept it', () => {
@@ -238,67 +382,31 @@ describe('RequestConflictUtils', () => {
         });
     });
 
-    describe('resolveDetachReceiptConflicts', () => {
-        it('returns push when no replace-receipt requests match transactionID', () => {
-            const persistedRequests = [{command: 'OpenReport'}, {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '2'}}, {command: 'CloseAccount'}];
-            const result = resolveDetachReceiptConflicts<OnyxKey>(persistedRequests, {transactionID: '1', reportActionID: '1'});
-            expect(result).toEqual({conflictAction: {type: 'push'}});
-        });
-
-        it('returns push when exactly one replace-receipt request matches transactionID', () => {
-            const persistedRequests = [{command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '1'}}];
-            const result = resolveDetachReceiptConflicts<OnyxKey>(persistedRequests, {transactionID: '1', reportActionID: '1'});
-            expect(result).toEqual({conflictAction: {type: 'push'}});
-        });
-
-        it('deletes all but the last matching replace-receipt request and pushes new request', () => {
+    describe('resolveVacationDelegateDeletionConflicts', () => {
+        it('drops a queued self-service set and keeps a domain admin set for a member', () => {
+            // Given a self-service set queued offline (e.g. a changed clear after date) next to a domain admin's set for a member
             const persistedRequests = [
-                {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '1'}},
+                {command: WRITE_COMMANDS.SET_VACATION_DELEGATE, data: {vacationDelegateEmail: 'delegate@example.com', clearAfter: '2026-10-02 06:59:59'}},
                 {command: 'OpenReport'},
-                {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '1'}},
-                {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '2'}},
-                {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '1'}},
+                {command: WRITE_COMMANDS.SET_VACATION_DELEGATE, data: {vacationDelegateEmail: 'delegate@example.com', domainAccountID: 123}},
             ];
 
-            const result = resolveDetachReceiptConflicts<OnyxKey>(persistedRequests, {transactionID: '1', reportActionID: '1'});
-            expect(result).toEqual({conflictAction: {type: 'delete', indices: [0, 2], pushNewRequest: true}});
-        });
+            // When the user removes their own delegate
+            const result = resolveVacationDelegateDeletionConflicts<OnyxKey>(persistedRequests);
 
-        it('rolls back the receipt added actions owned by the deleted replace-receipt requests', () => {
-            const updateSpy = jest.spyOn(Onyx, 'update');
-            const firstReplacedReportActionID = '10';
-            const secondReplacedReportActionID = '11';
-            const persistedRequests = [
-                {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '1', reportActionID: firstReplacedReportActionID}},
-                {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '1', reportActionID: secondReplacedReportActionID}},
-                {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '1', reportActionID: '12'}},
-            ];
-
-            const result = resolveDetachReceiptConflicts<OnyxKey>(persistedRequests, {transactionID: '1', reportActionID: '1'}, '5');
-
-            expect(result).toEqual({conflictAction: {type: 'delete', indices: [0, 1], pushNewRequest: true}});
-            expect(updateSpy).toHaveBeenCalledWith([
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}5`,
-                    value: {[firstReplacedReportActionID]: null, [secondReplacedReportActionID]: null},
-                },
-            ]);
-            updateSpy.mockClear();
-        });
-
-        it('does not roll back anything when the transaction thread is not known', () => {
-            const updateSpy = jest.spyOn(Onyx, 'update');
-            const persistedRequests = [
-                {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '1', reportActionID: '10'}},
-                {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '1', reportActionID: '11'}},
-            ];
-
-            const result = resolveDetachReceiptConflicts<OnyxKey>(persistedRequests, {transactionID: '1', reportActionID: '1'});
-
+            // Then only the self-service set is dropped, since its response would bring the removed delegate back, and the removal is still sent
             expect(result).toEqual({conflictAction: {type: 'delete', indices: [0], pushNewRequest: true}});
-            expect(updateSpy).not.toHaveBeenCalled();
-            updateSpy.mockClear();
+        });
+
+        it('pushes when no self-service set is queued', () => {
+            // Given a queue with only unrelated requests and a domain admin's set for a member
+            const persistedRequests = [{command: 'OpenReport'}, {command: WRITE_COMMANDS.SET_VACATION_DELEGATE, data: {domainAccountID: 123}}];
+
+            // When the user removes their own delegate
+            const result = resolveVacationDelegateDeletionConflicts<OnyxKey>(persistedRequests);
+
+            // Then nothing is dropped and the removal is pushed as usual
+            expect(result).toEqual({conflictAction: {type: 'push'}});
         });
     });
 
