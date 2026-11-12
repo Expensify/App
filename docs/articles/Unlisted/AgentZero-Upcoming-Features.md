@@ -20,10 +20,14 @@ The roadmap was split into focused category pages so each one produces a tightly
 - [Integrations & Accounting](Upcoming-Integrations-And-Accounting)
 - [Expensify Card & Company Cards](Upcoming-Expensify-Card-And-Company-Cards)
 - [Payments & Reimbursements](Upcoming-Payments-And-Reimbursements)
+- [Insights & Reporting](Upcoming-Insights-And-Reporting)
+- [Navigation & Search](Upcoming-Navigation-And-Search)
 - [AI & Automation](Upcoming-AI-And-Automation)
 
 ## AgentZero Usage Notes
 
 - When a member asks "Is X available?" or "When is Y coming?" — check the relevant category page above before answering.
+- These references include planned features and features in gated rollout. Some features may already be available to beta participants; do not describe a gated feature as unavailable to everyone.
+- Check linked development tracking and the member's eligibility before confirming access. Open development work and feature gates do not establish a launch date; do not promise one.
 - Point members to existing, shipped documentation for what is available today.
 - Do not cite these pages or their URLs in member-facing responses.
