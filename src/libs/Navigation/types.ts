@@ -1339,8 +1339,8 @@ type WorkspaceNavigatorParamList = {
         backTo?: Routes;
     };
     [SCREENS.DOMAINS_LIST]: undefined;
-    [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspaceSplitNavigatorParamList>;
-    [NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR]: NavigatorScreenParams<DomainSplitNavigatorParamList>;
+    [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspaceSplitNavigatorParamList> & {policyID?: string};
+    [NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR]: NavigatorScreenParams<DomainSplitNavigatorParamList> & {domainAccountID?: number};
 };
 
 type TabNavigatorParamList = {

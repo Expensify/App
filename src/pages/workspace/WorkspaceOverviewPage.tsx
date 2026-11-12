@@ -119,8 +119,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const {isBetaEnabled} = usePermissions();
     const canArchivePolicies = isBetaEnabled(CONST.BETAS.ARCHIVE_POLICIES);
 
-    const backTo = route.params.backTo;
-    const routePolicyID = route.params.policyID;
+    const backTo = route.params?.backTo;
+    const routePolicyID = route.params?.policyID;
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const [isComingFromGlobalReimbursementsFlow] = useOnyx(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW);
@@ -297,7 +297,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const mentionReportContextValue = {policyID, currentReportID: undefined, exactlyMatch: true};
 
     const fetchPolicyData = () => {
-        if (policyDraftID || !isFocused) {
+        if (policyDraftID || !isFocused || !routePolicyID) {
             return;
         }
         openPolicyProfilePage(routePolicyID);
@@ -402,7 +402,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             showLockedAccountModal();
             return;
         }
-        clearInviteDraft(route.params.policyID);
+        clearInviteDraft(route.params?.policyID);
         Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE.path));
     };
 
@@ -977,7 +977,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                     shouldShowRightIcon={!readOnly}
                                     interactive={!readOnly}
                                     wrapperStyle={[styles.sectionMenuItemTopDescription, shouldShowRulesDocumentSubSection && styles.mt4]}
-                                    onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(route.params.policyID))}
+                                    onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(route.params?.policyID))}
                                     shouldRenderAsHTML
                                 />
                             </OfflineWithFeedback>

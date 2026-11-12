@@ -79,6 +79,25 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
     const routes = [...stateWithoutMarker.routes];
     let modified = stateWithoutMarker !== state;
 
+    // React Navigation can keep the scope beside its hint keys or inside the nested params hint.
+    // Only copy screen params so those hints never reach the sidebar or central screen.
+    const nestedParentParams = parentRoute.params && 'params' in parentRoute.params ? parentRoute.params.params : undefined;
+    const getParentScreenParams = (screen: string) => {
+        const paramNames = getParamsFromRoute(screen, !isNarrowLayout);
+        return {...pick(nestedParentParams, paramNames), ...pick(parentRoute.params, paramNames)};
+    };
+
+    // StackRouter creates the initial sidebar even when its params were lost along with the nested state.
+    const sidebarIndex = routes.findIndex((route) => route.name === sidebarScreen);
+    const sidebarRoute = routes.at(sidebarIndex);
+    if (sidebarIndex !== -1 && sidebarRoute && isEmptyObject(sidebarRoute.params)) {
+        const copiedParams = {...getParentScreenParams(sidebarScreen), ...pick(routes.at(-1)?.params, getParamsFromRoute(sidebarScreen, !isNarrowLayout))};
+        if (!isEmptyObject(copiedParams)) {
+            routes[sidebarIndex] = {...sidebarRoute, params: copiedParams};
+            modified = true;
+        }
+    }
+
     // A side modal (RHP) is drawn on top of the full screen route instead of replacing it, so it must not be counted as a root route here.
     const hasSingleFullScreenRootRoute = rootState?.routes.filter((route) => !isSideModalNavigator(route.name)).length === 1;
 
@@ -92,7 +111,7 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
     // - defaultCentralScreen to cover central pane.
     if (!routes.some((route) => route.name === sidebarScreen) && shouldSplitHaveSidebar) {
         const paramsFromRoute = getParamsFromRoute(sidebarScreen, !isNarrowLayout);
-        const copiedParams = pick(routes.at(-1)?.params, paramsFromRoute);
+        const copiedParams = {...getParentScreenParams(sidebarScreen), ...pick(routes.at(-1)?.params, paramsFromRoute)};
 
         // We don't want to get an empty object as params because it breaks some navigation logic when comparing if routes are the same.
         const params = isEmptyObject(copiedParams) ? undefined : copiedParams;
@@ -117,9 +136,11 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
             const previousSelectedCentralScreen =
                 previousSameNavigatorState?.routes && previousSameNavigatorState.routes.length > 1 ? previousSameNavigatorState.routes.at(-1)?.name : undefined;
 
+            const centralScreen = previousSelectedCentralScreen ?? defaultCentralScreen;
+            const copiedParams = {...getParentScreenParams(centralScreen), ...routes.at(0)?.params};
             routes.push({
-                name: previousSelectedCentralScreen ?? defaultCentralScreen,
-                params: routes.at(0)?.params,
+                name: centralScreen,
+                params: isEmptyObject(copiedParams) ? undefined : copiedParams,
             });
             modified = true;
         }
