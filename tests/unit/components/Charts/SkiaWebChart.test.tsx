@@ -6,6 +6,8 @@ import SkiaWebChart from '@components/Charts/SkiaWebChart';
 import getSkiaWebUnsupportedReason from '@components/Charts/SkiaWebChart/getSkiaWebUnsupportedReason';
 import {getCartesianChartHeight} from '@components/Charts/utils/chartHeights';
 
+import {markCanvasKitLoadStarted} from '@libs/telemetry/integrations/canvasKitNoiseFilter';
+
 import type {ComponentType} from 'react';
 
 import * as Sentry from '@sentry/react-native';
@@ -18,6 +20,8 @@ import waitForBatchedUpdatesWithAct from '../../../utils/waitForBatchedUpdatesWi
 jest.mock('@components/Charts/SkiaWebChart/getSkiaWebUnsupportedReason', () => jest.fn());
 
 jest.mock('@shopify/react-native-skia/lib/module/web', () => ({LoadSkiaWeb: jest.fn()}));
+
+jest.mock('@libs/telemetry/integrations/canvasKitNoiseFilter', () => ({markCanvasKitLoadStarted: jest.fn()}));
 
 jest.mock('@sentry/react-native', () => ({captureException: jest.fn(), setUser: jest.fn()}));
 
@@ -39,6 +43,7 @@ const CHART_LOADING_HEIGHT = getCartesianChartHeight();
 
 const mockGetSkiaWebUnsupportedReason = jest.mocked(getSkiaWebUnsupportedReason);
 const mockLoadSkiaWeb = jest.mocked(LoadSkiaWeb);
+const mockMarkCanvasKitLoadStarted = jest.mocked(markCanvasKitLoadStarted);
 const mockCaptureException = jest.mocked(Sentry.captureException);
 
 function LoadedChart() {
@@ -107,6 +112,7 @@ describe('SkiaWebChart', () => {
         expect(screen.getByText('common.unableToDisplayChart')).toBeTruthy();
         expect(screen.getByText(reason)).toBeTruthy();
         expect(mockLoadSkiaWeb).not.toHaveBeenCalled();
+        expect(mockMarkCanvasKitLoadStarted).not.toHaveBeenCalled();
         expect(getComponent).not.toHaveBeenCalled();
     });
 
@@ -144,6 +150,10 @@ describe('SkiaWebChart', () => {
     it('should mount the chart once Skia loads when WebGL is supported', async () => {
         // Given a browser with WebGL
         mockGetSkiaWebUnsupportedReason.mockReturnValue(undefined);
+        mockLoadSkiaWeb.mockImplementationOnce(() => {
+            expect(mockMarkCanvasKitLoadStarted).toHaveBeenCalledTimes(1);
+            return Promise.resolve();
+        });
 
         // When the chart mounts for the first time and its loads settle
         render(
@@ -187,6 +197,7 @@ describe('SkiaWebChart', () => {
         expect(screen.getByTestId('loaded-chart')).toBeTruthy();
         expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeNull();
         expect(getComponent).toHaveBeenCalledTimes(1);
+        expect(mockMarkCanvasKitLoadStarted).toHaveBeenCalledTimes(1);
     });
 
     it('should load the chart again on the next mount after a load fails', async () => {

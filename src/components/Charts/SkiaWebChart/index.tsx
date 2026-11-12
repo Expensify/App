@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Log from '@libs/Log';
+import {markCanvasKitLoadStarted} from '@libs/telemetry/integrations/canvasKitNoiseFilter';
 
 import variables from '@styles/variables';
 
@@ -63,6 +64,7 @@ function getLazyChart<TProps>(getComponent: ChartLoader<TProps>) {
 
     const LazyChart = lazy(async () => {
         try {
+            markCanvasKitLoadStarted();
             // The glue mutates `opts` into the module object, so give each load its own object rather than sharing one.
             await LoadSkiaWeb({locateFile: locateCanvasKitFile});
             return await getComponent();
