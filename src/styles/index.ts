@@ -5201,7 +5201,6 @@ const staticStyles = (theme: ThemeColors) =>
             bottom: -8,
             left: -8,
             height: 12,
-            width: 22,
             paddingLeft: 4,
             paddingRight: 4,
             alignItems: 'center',
