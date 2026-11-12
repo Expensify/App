@@ -526,7 +526,9 @@ function IOURequestEditReportCommon({
                 ) : undefined
             }
             listEmptyContent={listHeaderContent}
-            onEndReached={loadMoreOutstandingReports}
+            onEndReached={() => {
+                loadMoreOutstandingReports();
+            }}
             onEndReachedThreshold={0.75}
         />
     );

@@ -521,12 +521,7 @@ function BaseSelectionListImpl({
                         indicatorStyle="white"
                         keyboardShouldPersistTaps="always"
                         showsVerticalScrollIndicator={showScrollIndicator}
-                        onEndReached={
-                            onEndReached &&
-                            (() => {
-                                onEndReached();
-                            })
-                        }
+                        onEndReached={onEndReached}
                         onEndReachedThreshold={onEndReachedThreshold}
                         testID="selection-list"
                         style={style?.listStyle}

@@ -342,6 +342,7 @@ function FormProvider({
                     return KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
                 }
                 if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_AND_DISMISS) {
+                    // dismissKeyboardAndExecute takes a () => void callback, so the Promise from an async onSubmit is not returned
                     return KeyboardUtils.dismissKeyboardAndExecute(() => {
                         onSubmit(trimmedStringValues);
                     });
