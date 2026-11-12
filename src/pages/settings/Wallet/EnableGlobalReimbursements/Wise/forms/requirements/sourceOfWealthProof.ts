@@ -42,11 +42,11 @@ function getUploads(attributes: WiseKYCRequirement['attributes'], source: Source
 }
 
 /**
- * A source's heading and its upload buttons, shown while the source funds daily operations. The field key names the source, so each saved file's key names its source and its document type.
+ * A source's heading and its upload buttons, shown while the source is picked, since Wise needs proof of every source, funding daily operations or not. The field key names the source, so each saved file's key names its source and its document type.
  * The heading lists the documents to pick from when a button offers a choice, since a button for one document is named after it.
  */
 function getSourceSection(attributes: WiseKYCRequirement['attributes'], source: SourceOfWealth): DynamicFormContentItem[] {
-    const showWhen = {key: CONST.WISE.SOURCE_OF_FUNDS_KEY, equals: [source]};
+    const showWhen = {key: CONST.WISE.SOURCE_OF_WEALTH_INFO_KEY, equals: [source]};
     const uploads = getUploads(attributes, source);
     return [
         {
@@ -68,7 +68,7 @@ function getSourceSection(attributes: WiseKYCRequirement['attributes'], source: 
     ];
 }
 
-/** Documents proving each source that funds daily operations, each labelled with a document type Wise accepts for its source */
+/** Documents proving each picked source, each labelled with a document type Wise accepts for its source */
 function getSourceOfWealthProofPage(attributes: WiseKYCRequirement['attributes']): DynamicFormPage {
     return {
         key: CONST.WISE.KYC_REQUIREMENT.BUSINESS_SOURCE_OF_WEALTH_PROOF,

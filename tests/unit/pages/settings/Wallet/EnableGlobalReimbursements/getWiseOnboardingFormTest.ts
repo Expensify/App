@@ -153,14 +153,14 @@ describe('source of wealth pages built from the requirement attributes', () => {
         expect(revenueHeading?.descriptionKey).toBe('walletPage.wiseOnboarding.sourceOfWealthProof.hints.REVENUE');
     });
 
-    it('offers every document type for a source Wise lists none for, and shows a source only while it funds daily operations', () => {
+    it('offers every document type for a source Wise lists none for, and shows a source while it is picked', () => {
         // Given Wise lists no document types for grants
         // When the documents page is built
         const grantsField = getProofField(CONST.WISE.SOURCE_OF_WEALTH.GRANTS);
 
-        // Then grants offer every type, since Wise accepts any of them, and the section follows the daily operations answer
+        // Then grants offer every type, since Wise accepts any of them, and the section follows the sources page, since Wise needs proof of every picked source
         expect(grantsField?.uploads?.flatMap((upload) => upload.fileTypes.map((option) => option.key))).toEqual(Object.values(CONST.WISE.SOURCE_OF_WEALTH_DOCUMENT_TYPE));
-        expect(grantsField?.showWhen).toEqual({key: CONST.WISE.SOURCE_OF_FUNDS_KEY, equals: [CONST.WISE.SOURCE_OF_WEALTH.GRANTS]});
+        expect(grantsField?.showWhen).toEqual({key: CONST.WISE.SOURCE_OF_WEALTH_INFO_KEY, equals: [CONST.WISE.SOURCE_OF_WEALTH.GRANTS]});
     });
 });
 
@@ -207,7 +207,6 @@ describe('getFirstUnansweredRequirementPageKey', () => {
         const answers = {
             companyRole: CONST.WISE.COMPANY_ROLE.OWNER,
             businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE],
-            sourceOfFunds: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE],
             [`proofFile-${CONST.WISE.SOURCE_OF_WEALTH.REVENUE}`]: [],
         };
 
@@ -224,12 +223,15 @@ describe('getFirstUnansweredRequirementPageKey', () => {
     });
 
     it('finds the proof page while one of the picked sources has no document', () => {
-        // Given two sources funding daily operations, and a document for only one of them
-        const sources = [CONST.WISE.SOURCE_OF_WEALTH.GRANTS, CONST.WISE.SOURCE_OF_WEALTH.DONATIONS];
-        const answers = {businessSourceOfWealthInfo: sources, sourceOfFunds: sources, [`proofFile-${CONST.WISE.SOURCE_OF_WEALTH.GRANTS}`]: [getDocumentEntry('GRANT_APPROVAL_LETTER')]};
+        // Given grants and donations picked, only grants funding daily operations, and a document for grants alone
+        const answers = {
+            businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.GRANTS, CONST.WISE.SOURCE_OF_WEALTH.DONATIONS],
+            sourceOfFunds: [CONST.WISE.SOURCE_OF_WEALTH.GRANTS],
+            [`proofFile-${CONST.WISE.SOURCE_OF_WEALTH.GRANTS}`]: [getDocumentEntry('GRANT_APPROVAL_LETTER')],
+        };
 
         // When the next requirement page to open is looked up
-        // Then it is the proof page, since Wise needs documents for each source
+        // Then it is the proof page, since Wise needs documents for every picked source, funding daily operations or not
         expect(getFirstUnansweredRequirementPageKey(form, answers)).toBe(PROOF_ROUTE_KEY);
     });
 
@@ -237,7 +239,6 @@ describe('getFirstUnansweredRequirementPageKey', () => {
         // Given both requirement pages answered, with a document for each picked source
         const answers = {
             businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.GRANTS, CONST.WISE.SOURCE_OF_WEALTH.DONATIONS],
-            sourceOfFunds: [CONST.WISE.SOURCE_OF_WEALTH.GRANTS, CONST.WISE.SOURCE_OF_WEALTH.DONATIONS],
             [`proofFile-${CONST.WISE.SOURCE_OF_WEALTH.GRANTS}`]: [getDocumentEntry('GRANT_APPROVAL_LETTER')],
             [`proofFile-${CONST.WISE.SOURCE_OF_WEALTH.DONATIONS}`]: [getDocumentEntry('DONATION_RECEIPTS')],
         };

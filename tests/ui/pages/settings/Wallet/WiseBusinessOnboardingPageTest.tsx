@@ -605,7 +605,6 @@ describe('WiseBusinessOnboardingPage', () => {
         await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {
             bankAccountID: String(BANK_ACCOUNT_ID),
             businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE],
-            sourceOfFunds: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE],
             [`proofFile-${CONST.WISE.SOURCE_OF_WEALTH.REVENUE}`]: [{id: 'TAX_DOCUMENTS', fileType: 'TAX_DOCUMENTS', files: [toSavedFile('kyc/1/proof.pdf')]}],
         });
         const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});

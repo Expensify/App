@@ -201,7 +201,7 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
 
     /**
      * Saves a page to Wise as the user leaves it. The two source of wealth pages save one step, which the server replaces whole, so the daily operations page sends the picked sources too.
-     * Changing the picked sources drops the daily operations answers of the sources no longer picked, and the documents page leaves out the files of a source that no longer funds them.
+     * Changing the picked sources drops the daily operations answers of the sources no longer picked, and the documents page leaves out the files of a source no longer picked.
      */
     const savePage = (page: DynamicFormPage, answers: DynamicFormValues, sensitiveAnswers: DynamicFormValues) => {
         const step = getOnboardingStep(form, page.key);
