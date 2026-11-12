@@ -2677,7 +2677,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     return {
                         text: template.name,
                         value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
-                        sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_EXPORT_MENU.TEMPLATE,
+                        // Basic export does the same work as the fallback row below, so it shares its label
+                        sentryLabel: isBasicExport ? CONST.SENTRY_LABEL.SEARCH.BULK_EXPORT_MENU.BASIC_EXPORT : CONST.SENTRY_LABEL.SEARCH.BULK_EXPORT_MENU.TEMPLATE,
                         icon: isDefaultTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
                         description: template.description,
                         onSelected: () => {
