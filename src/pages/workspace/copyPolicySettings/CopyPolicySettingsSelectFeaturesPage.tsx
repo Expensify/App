@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+import useRulesPrefetch from '@hooks/useRulesPrefetch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setCopyPolicySettingsData} from '@libs/actions/Policy/CopyPolicySettings';
@@ -55,6 +56,7 @@ import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useRoute} from '@react-navigation/native';
+import {createExpenseDefaultRuleCountSelector} from '@selectors/Rule';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
@@ -82,6 +84,8 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const [copyPolicySettings] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${sourcePolicyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${sourcePolicyID}`);
+    const [codingRulesCount = 0] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: createExpenseDefaultRuleCountSelector(sourcePolicyID)});
+    useRulesPrefetch();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
@@ -117,7 +121,6 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const policyFields = Object.values(getReportFieldsByPolicyID(sourcePolicy) ?? {}).filter((field) => field.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const reportFieldsCount = policyFields.filter((field) => field.target !== CONST.REPORT_FIELD_TARGETS.INVOICE).length;
     const invoiceFieldsCount = policyFields.filter((field) => field.target === CONST.REPORT_FIELD_TARGETS.INVOICE).length;
-    const codingRulesCount = Object.values(sourcePolicy?.rules?.codingRules ?? {}).filter((rule) => rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const connectedIntegration = getAllValidConnectedIntegration(sourcePolicy, CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES);
     const distanceRatesCount = Object.values(getDistanceRateCustomUnit(sourcePolicy)?.rates ?? {}).filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const perDiemRates = getPerDiemCustomUnit(sourcePolicy)?.rates ?? {};
@@ -290,17 +293,41 @@ function CopyPolicySettingsSelectFeaturesPage() {
 
     const selectableFeatures: Part[] = availableFeatureRows.filter((row) => !isFeatureDisabled(row.part)).map((row) => row.part);
 
+    const isMembersPart = (part: Part) => part === CONST.POLICY.POLICY_FEATURE.MEMBERS;
+
+    const confirmCopyMembers = () => {
+        const targetNames = targetPolicies.map((policy) => policy?.name).filter((name): name is string => !!name);
+        const prompt = translate('workspace.copyPolicySettings.confirmMembers.prompt', {count: targetPolicyIDs.length, targetWorkspaceName: targetNames.at(0) ?? ''});
+
+        return showConfirmModal({
+            id: 'copyPolicySettingsConfirmMembers',
+            title: translate('workspace.copyPolicySettings.confirmMembers.title'),
+            prompt,
+            confirmText: translate('common.confirm'),
+            cancelText: translate('common.cancel'),
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+        }).then((result) => result.action === ModalActions.CONFIRM);
+    };
+
     const toggleFeature = (item: FeatureListItem) => {
         const part = item.keyForList;
         if (isFeatureDisabled(part)) {
             return;
         }
-        setSelectedFeatures((prev) => {
-            const current = prev ?? resolvedSelectedFeatures;
-            if (current.includes(part)) {
-                return current.filter((selectedPart) => selectedPart !== part);
+        const isSelected = (selectedFeatures ?? resolvedSelectedFeatures).includes(part);
+        // Copying members replaces the target workspace's existing members, so confirm before selecting it.
+        if (isSelected || !isMembersPart(part)) {
+            setSelectedFeatures((prev) => {
+                const current = prev ?? resolvedSelectedFeatures;
+                return isSelected ? current.filter((selectedPart) => selectedPart !== part) : [...current, part];
+            });
+            return;
+        }
+        confirmCopyMembers().then((isConfirmed) => {
+            if (!isConfirmed) {
+                return;
             }
-            return [...current, part];
+            setSelectedFeatures((prev) => [...(prev ?? resolvedSelectedFeatures), part]);
         });
     };
 
@@ -310,7 +337,16 @@ function CopyPolicySettingsSelectFeaturesPage() {
             setSelectedFeatures([]);
             return;
         }
-        setSelectedFeatures(Array.from(new Set([...selectedAvailableFeatures, ...selectableFeatures])));
+        const nextSelection = Array.from(new Set([...selectedAvailableFeatures, ...selectableFeatures]));
+        // Copying members replaces the target workspace's existing members, so confirm when Select all adds it.
+        const isAddingMembers = selectableFeatures.some(isMembersPart) && !selectedAvailableFeatures.some(isMembersPart);
+        if (!isAddingMembers) {
+            setSelectedFeatures(nextSelection);
+            return;
+        }
+        confirmCopyMembers().then((isConfirmed) => {
+            setSelectedFeatures(isConfirmed ? nextSelection : nextSelection.filter((part) => !isMembersPart(part)));
+        });
     };
 
     const saveAndNavigate = () => {
@@ -377,6 +413,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
                 <View style={[styles.flex1]}>
                     <View style={[styles.searchListHeaderContainerStyle, styles.pv3, styles.ph5, styles.flexRow, styles.alignItemsCenter]}>
                         <Checkbox
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COPY_SETTINGS_SELECT_FEATURES_SELECT_ALL}
                             accessibilityLabel={translate('accessibilityHints.selectAllFeatures')}
                             isChecked={selectableFeatures.length > 0 && selectableFeatures.every((part) => selectedAvailableFeatures.includes(part))}
                             isIndeterminate={selectedAvailableFeatures.length > 0 && selectedAvailableFeatures.length < selectableFeatures.length}

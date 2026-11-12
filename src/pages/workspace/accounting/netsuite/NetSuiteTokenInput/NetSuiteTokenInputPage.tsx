@@ -1,9 +1,7 @@
 import ConnectionLayout from '@components/ConnectionLayout';
 import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
 
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -13,6 +11,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import type {CustomSubPageTokenInputProps} from '@pages/workspace/accounting/netsuite/types';
+import {isNetSuiteRestConnection} from '@pages/workspace/accounting/netsuite/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
@@ -49,20 +48,24 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isProduction} = useEnvironment();
-    const {isBetaEnabled} = usePermissions();
     const {params} = useRoute<NetSuiteTokenInputRoute>();
     const {authType} = params;
 
-    const canUseNetSuiteOAuth = isBetaEnabled(CONST.BETAS.NETSUITE_OAUTH);
-    // Only dev and staging can move a beta member back to token-based authentication. Production ignores the route param.
-    const canSwitchToTokenAuthentication = canUseNetSuiteOAuth && !isProduction;
+    const hasAuthError = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
+    const netSuiteConnection = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE];
+    // The TBA form keeps the workspace settings only when it repairs a TBA connection that has an authentication error.
+    // It resets a working TBA connection to the default settings. New TBA tokens do not move an OAuth connection off OAuth.
+    const canSwitchToTokenAuthentication = !isNetSuiteRestConnection(netSuiteConnection?.options?.config, netSuiteConnection) && (isEmptyObject(netSuiteConnection) || hasAuthError);
     const isTokenAuthenticationSelected = canSwitchToTokenAuthentication && authType === CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.TBA;
-    const isOAuthFlow = canUseNetSuiteOAuth && !isTokenAuthenticationSelected;
+    const isOAuthFlow = !isTokenAuthenticationSelected;
+
+    // isMigration is true when set explicitly via route param (e.g. from a nudge button) or when the
+    // page is opened directly and there is an existing TBA connection (tokenID present).
+    const isMigrationFromParam = params.isMigration === 'true';
+    const isMigrationFromConnection = !!netSuiteConnection?.tokenID;
+    const isMigration = isMigrationFromParam || isMigrationFromConnection;
     const pages = isOAuthFlow ? oauthPages : tokenPages;
     const stepNames = isOAuthFlow ? CONST.NETSUITE_CONFIG.TOKEN_INPUT.OAUTH_STEP_INDEX_LIST : CONST.NETSUITE_CONFIG.TOKEN_INPUT.STEP_INDEX_LIST;
-
-    const hasAuthError = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
 
     const submit = () => {
         Navigation.dismissModal();
@@ -71,7 +74,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
     const {CurrentPage, nextPage, prevPage, pageIndex, moveTo, currentPageName} = useSubPage<CustomSubPageTokenInputProps>({
         pages,
         onFinished: submit,
-        buildRoute: (pageName) => ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(params.policyID, pageName, authType),
+        buildRoute: (pageName) => ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(params.policyID, pageName, authType, isMigrationFromParam),
     });
 
     const handleBackButtonPress = () => {
@@ -82,7 +85,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
         prevPage();
     };
 
-    const shouldPageBeBlocked = !isEmptyObject(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]) && !hasAuthError;
+    const shouldPageBeBlocked = !isEmptyObject(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]) && !hasAuthError && !isMigrationFromConnection;
 
     return (
         <ConnectionLayout
@@ -114,6 +117,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
                 currentPageName={currentPageName}
                 policyID={policyID}
                 isOAuthFlow={isOAuthFlow}
+                isMigration={isMigration}
                 shouldShowTokenAuthenticationLink={canSwitchToTokenAuthentication && isOAuthFlow}
             />
         </ConnectionLayout>

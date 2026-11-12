@@ -8,6 +8,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -24,55 +25,52 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/NetSuiteTokenInputForm';
 
-import React, {useCallback} from 'react';
+import {authTokenTypeSelector} from '@selectors/Session';
+import React from 'react';
 import {View} from 'react-native';
 
 import connectToNetSuiteOAuthSetup from './connectToNetSuiteOAuthSetup';
 
-function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow, shouldShowTokenAuthenticationLink}: CustomSubPageTokenInputProps) {
+function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow, isMigration, shouldShowTokenAuthenticationLink}: CustomSubPageTokenInputProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
     const {inputCallbackRef} = useAutoFocusInput();
     const {environmentURL} = useEnvironment();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
     const formInputs = isOAuthFlow ? [INPUT_IDS.NETSUITE_ACCOUNT_ID] : Object.values(INPUT_IDS);
 
-    const validate = useCallback(
-        (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM> = {};
+    const validate = (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM> = {};
+        const inputs = isOAuthFlow ? [INPUT_IDS.NETSUITE_ACCOUNT_ID] : Object.values(INPUT_IDS);
 
-            for (const formInput of formInputs) {
-                if (formValues[formInput]) {
-                    continue;
-                }
-                addErrorMessage(errors, formInput, translate('common.error.fieldRequired'));
+        for (const formInput of inputs) {
+            if (formValues[formInput]) {
+                continue;
             }
-            return errors;
-        },
-        [formInputs, translate],
-    );
+            addErrorMessage(errors, formInput, translate('common.error.fieldRequired'));
+        }
+        return errors;
+    };
 
-    const connectPolicy = useCallback(
-        (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM>) => {
-            if (!policyID) {
-                return;
-            }
+    const connectPolicy = (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM>) => {
+        if (!policyID) {
+            return;
+        }
 
-            if (isOAuthFlow) {
-                connectToNetSuiteOAuthSetup(policyID, formValues[INPUT_IDS.NETSUITE_ACCOUNT_ID], environmentURL);
-                return;
-            }
+        if (isOAuthFlow) {
+            connectToNetSuiteOAuthSetup(policyID, formValues[INPUT_IDS.NETSUITE_ACCOUNT_ID], environmentURL, isMigration, session);
+            return;
+        }
 
-            if (shouldUseUpdateNetSuiteTokens(policy)) {
-                updateNetSuiteTokens(policyID, formValues);
-            } else {
-                connectPolicyToNetSuite(policyID, formValues);
-            }
-            onNext();
-        },
-        [onNext, policyID, policy, isOAuthFlow, environmentURL],
-    );
+        if (shouldUseUpdateNetSuiteTokens(policy)) {
+            updateNetSuiteTokens(policyID, formValues);
+        } else {
+            connectPolicyToNetSuite(policyID, formValues);
+        }
+        onNext();
+    };
 
     return (
         <>
@@ -88,7 +86,6 @@ function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow, shouldShowTokenA
                 addBottomSafeAreaPadding={!isMobileSafari()}
                 keyboardSubmitBehavior={isOAuthFlow ? CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY : undefined}
                 shouldShowLoadingImmediatelyOnPress={!isOAuthFlow}
-                footerContent={shouldShowTokenAuthenticationLink ? <NetSuiteTokenAuthenticationLink policyID={policyID} /> : undefined}
             >
                 {formInputs.map((formInput, index) => (
                     <View
@@ -115,6 +112,7 @@ function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow, shouldShowTokenA
                         )}
                     </View>
                 ))}
+                {shouldShowTokenAuthenticationLink && <NetSuiteTokenAuthenticationLink policyID={policyID} />}
             </FormProvider>
         </>
     );

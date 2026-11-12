@@ -209,7 +209,7 @@ function isReportMergeableForDuplicates(report: OnyxEntry<Report>): boolean {
  * merge request that would fail server-side.
  */
 function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Transaction>>): Transaction[] {
-    return transactions.filter((transaction) => !!transaction && isReportMergeableForDuplicates(getReportOrDraftReport(transaction.reportID))) as Transaction[];
+    return transactions.filter((transaction) => !!transaction && isReportMergeableForDuplicates(getReportOrDraftReport({reportID: transaction.reportID}))) as Transaction[];
 }
 
 /**
@@ -396,16 +396,12 @@ function compareDuplicateTransactionFields(
                     }
                 }
             } else if (fieldName === 'reimbursable') {
-                // Managed card transactions are always non-reimbursable. The resolved reimbursable value is applied to
-                // the transaction that is kept, so we only force it to false — and hide the reimbursable review step —
-                // when that kept transaction is itself a managed card. We gate on the selected (kept) transaction rather
-                // than the reviewing transaction: the Review* pages recompute this from the thread's transaction (which
-                // may be the cash expense) while the kept transaction is the managed card, so gating on the reviewing
-                // transaction would re-add the reimbursable step on back navigation. Gating on any duplicate in the set
-                // would instead wrongly convert a kept cash expense to non-reimbursable.
+                // Preserve the imported reimbursable value because company card feeds can be configured as reimbursable.
+                // Use the kept transaction to avoid restoring the review step when navigating back through a cash expense's thread.
+                // Checking any managed card in the duplicates could instead overwrite a kept cash expense's value.
                 const selectedTransaction = transactions.find((transactionItem) => transactionItem?.transactionID === selectedTransactionID) ?? firstTransaction;
                 if (isManagedCardTransaction(selectedTransaction)) {
-                    keep[fieldName] = false;
+                    keep[fieldName] = selectedTransaction?.[keys[0]] ?? selectedTransaction?.[keys[1]] ?? false;
                 } else if (areAllFieldsEqualForKey) {
                     keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
                 } else {
@@ -437,19 +433,25 @@ function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction:
     };
 }
 
+type MergeDuplicatesTransactionParams = Omit<MergeDuplicatesParams, 'transactionID' | 'transactionIDList'> & {
+    transaction: OnyxEntry<Transaction>;
+    transactionList: Transaction[];
+};
+
 function buildMergeDuplicatesParams(
     reviewDuplicates: OnyxEntry<ReviewDuplicates>,
     duplicatedTransactions: Array<OnyxEntry<Transaction>>,
     originalTransaction: Partial<Transaction>,
-): MergeDuplicatesParams {
+    keptTransaction: OnyxEntry<Transaction>,
+): MergeDuplicatesTransactionParams {
     return {
         amount: -getAmount(originalTransaction as OnyxEntry<Transaction>, true),
         reportID: originalTransaction?.reportID,
         receiptID: originalTransaction?.receipt?.receiptID ?? CONST.DEFAULT_NUMBER_ID,
         currency: getCurrency(originalTransaction as OnyxEntry<Transaction>),
         created: getFormattedCreated(originalTransaction as OnyxEntry<Transaction>),
-        transactionID: reviewDuplicates?.transactionID,
-        transactionIDList: removeSettledAndApprovedTransactions(duplicatedTransactions ?? []).map((transaction) => transaction.transactionID),
+        transaction: keptTransaction,
+        transactionList: removeSettledAndApprovedTransactions(duplicatedTransactions ?? []),
         billable: reviewDuplicates?.billable ?? false,
         reimbursable: reviewDuplicates?.reimbursable ?? false,
         category: reviewDuplicates?.category ?? '',
@@ -467,3 +469,5 @@ export {
     removeSettledAndApprovedTransactions,
     removeTransactionFromDuplicateTransactionViolation,
 };
+
+export type {MergeDuplicatesTransactionParams};

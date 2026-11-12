@@ -7,7 +7,6 @@ import TextInput from '@components/TextInput';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setMoneyRequestDescription} from '@libs/actions/IOU/MoneyRequest';
@@ -21,7 +20,6 @@ import variables from '@styles/variables';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -34,14 +32,18 @@ import {View} from 'react-native';
 import ExpenseFieldRow from './ExpenseFieldRow';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {descriptionStateSelector} from './selectors';
+import useSplitDraftBaseTransaction from './useSplitDraftBaseTransaction';
 import useTransactionSelector from './useTransactionSelector';
 
 type DescriptionFieldProps = {
     isDescriptionRequired: boolean;
     policy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** The selected category's description hint, shown below the input */
+    descriptionHint?: string;
 };
 
-function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps) {
+function DescriptionField({isDescriptionRequired, policy, descriptionHint = ''}: DescriptionFieldProps) {
     const {isEditingSplitBill, scrollFocusedInputIntoView, onSubmitForm, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
@@ -51,9 +53,8 @@ function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps
     // top border and label — into view rather than just the inner text area.
     const fieldContainerRef = useRef<ComponentRef<typeof View>>(null);
 
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-
     const descriptionState = useTransactionSelector(transactionID, descriptionStateSelector);
+    const {baseTransaction} = useSplitDraftBaseTransaction(transactionID);
 
     // `getDescription` returns raw `transaction.comment.comment`, which can be HTML for saved transactions.
     // We normalize to markdown so both the read-only and editable inputs receive a consistent format.
@@ -91,7 +92,7 @@ function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps
         // Trimming is deferred to submission time, not during keystrokes, to avoid
         // silently stripping trailing spaces as the user types.
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {comment: newDescription}, getCurrencyDecimals, getCurrencySymbol);
+            setDraftSplitTransaction(transactionID, baseTransaction, {comment: newDescription}, getCurrencyDecimals, getCurrencySymbol);
             return;
         }
 
@@ -106,13 +107,17 @@ function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, reportActionID)));
     };
 
+    // Only the read-only rows render HTML, so the editable input doesn't re-parse the description on every keystroke
+    const descriptionHTML = isReadOnly && iouComment ? Parser.replace(iouComment, {disabledRules: !policy ? ['reportMentions'] : []}) : undefined;
+
     // On the bordered form the editable description is a text input, so a locked one has to read as a disabled input
     // too rather than as a push row, or the same screen answers "this field can't be changed" two different ways.
     const readOnlyDescription = shouldUseDropdownRows ? (
         <ExpenseFieldRow
             name={translate('common.description')}
-            value={iouComment}
-            numberOfLinesValue={2}
+            valueComponent={descriptionHTML ? <MenuItem.FieldValueHTML isMuted>{descriptionHTML}</MenuItem.FieldValueHTML> : undefined}
+            hasValueComponent={!!descriptionHTML}
+            accessibilityLabel={descriptionHTML ? `${translate('common.description')}, ${Parser.htmlToText(descriptionHTML)}` : undefined}
             rightLabel={isDescriptionRequired ? translate('common.required') : ''}
             onPress={openDescriptionPage}
             isDisabled={didConfirm}
@@ -122,7 +127,7 @@ function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps
     ) : (
         <MenuItemFieldHTML
             name={translate('common.description')}
-            value={iouComment ? Parser.replace(iouComment, {disabledRules: !policy ? ['reportMentions'] : []}) : undefined}
+            value={descriptionHTML}
             isDisabled={didConfirm}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
         >
@@ -153,6 +158,8 @@ function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps
                                     maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                                     type="markdown"
                                     excludedMarkdownStyles={!policy ? ['mentionReport'] : []}
+                                    hint={descriptionHint}
+                                    shouldRenderHintAsHTML={!!descriptionHint}
                                 />
                             </View>
                         ) : (

@@ -1,16 +1,18 @@
 import useBackfillWhenNoVisibleActions from '@hooks/useBackfillWhenNoVisibleActions';
-import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
+import useCopySelectionEvent from '@hooks/useCopySelectionEvent';
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
 import useReportActionsListModel from '@hooks/useReportActionsListModel';
-import useStartConciergeSession from '@hooks/useStartConciergeSession';
+
+import {useConciergeChatHistoryActions} from '@pages/inbox/ConciergeChatHistoryContext';
 
 import CONST from '@src/CONST';
 
 import type {ReactNode} from 'react';
 
-import React from 'react';
+import React, {useEffect} from 'react';
 
+import AskConciergeWelcome from './AskConciergeWelcome';
 import {computeReportActionsSkeletonState, ReportActionsListActionsContext, ReportActionsListStateContext} from './ReportActionsListContext';
 import ReportActionsLoadingSkeleton from './ReportActionsLoadingSkeleton';
 
@@ -35,31 +37,21 @@ function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonG
     const {readinessSignals, state, actions} = useReportActionsListModel(reportID, isReportLoadPending);
     const {shouldShowLoadingSkeleton, shouldShowDerivedTimingSkeleton} = computeReportActionsSkeletonState(readinessSignals);
 
-    const {
-        isConciergeMainDM,
-        oldestUnreadReportAction,
-        hasOnceLoadedReportActions,
-        hasCachedReportActions,
-        isMissingReportActions,
-        hasOlderActions,
-        hasNewerActions,
-        isOffline,
-        isLoadingOlderReportActions,
-        hasLoadingOlderReportActionsError,
-        oldestReportActionID,
-    } = readinessSignals;
+    const {isMissingReportActions, hasOlderActions, hasNewerActions, isOffline, isLoadingOlderReportActions, hasLoadingOlderReportActionsError, oldestReportActionID} = readinessSignals;
 
     // Side effects that must run whenever the chat list is shown, including while the skeleton renders.
-    useCopySelectionHelper();
+    useCopySelectionEvent();
     usePendingConciergeResponse(reportID);
 
-    useStartConciergeSession({
-        reportID,
-        isConciergeMainDM,
-        oldestUnreadReportAction,
-        hasOnceLoadedReportActions,
-        hasCachedReportActions,
-    });
+    // Opening the chat marks the unread message as read, so expand the history to keep it on screen afterwards.
+    const {setShowFullHistory: setConciergeShowFullHistory} = useConciergeChatHistoryActions();
+    const {hasUnreadConciergeMessageFromOthers} = readinessSignals;
+    useEffect(() => {
+        if (!hasUnreadConciergeMessageFromOthers) {
+            return;
+        }
+        setConciergeShowFullHistory(true);
+    }, [hasUnreadConciergeMessageFromOthers, setConciergeShowFullHistory]);
 
     useBackfillWhenNoVisibleActions({
         reportID,
@@ -73,6 +65,15 @@ function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonG
         oldestReportActionID,
         loadOlderChats: actions.loadOlderChats,
     });
+
+    if ((shouldShowLoadingSkeleton || shouldShowDerivedTimingSkeleton) && state.shouldShowConciergeWelcome) {
+        return (
+            <AskConciergeWelcome
+                reportID={reportID}
+                onShowPreviousMessages={actions.handleShowPreviousMessages}
+            />
+        );
+    }
 
     if (shouldShowLoadingSkeleton) {
         return (

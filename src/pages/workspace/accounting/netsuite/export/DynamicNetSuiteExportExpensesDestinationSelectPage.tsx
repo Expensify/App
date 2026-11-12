@@ -16,7 +16,7 @@ import {settingsPendingAction} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 
-import {exportExpensesDestinationSettingName} from '@pages/workspace/accounting/netsuite/utils';
+import {exportExpensesDestinationSettingName, getNonReimbursableNetSuiteExportDestinations} from '@pages/workspace/accounting/netsuite/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
@@ -29,7 +29,7 @@ import type SCREENS from '@src/SCREENS';
 import type {ValueOf} from 'type-fest';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback} from 'react';
+import React from 'react';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.NETSUITE_EXPORT_DESTINATION>;
@@ -40,7 +40,8 @@ function DynamicNetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicy
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
     const policyID = policy?.id;
-    const config = policy?.connections?.netsuite?.options.config;
+    const netSuiteConnection = policy?.connections?.netsuite;
+    const config = netSuiteConnection?.options.config;
 
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT>>();
     const params = route.params;
@@ -50,56 +51,58 @@ function DynamicNetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicy
     const currentSettingName = exportExpensesDestinationSettingName(isReimbursable);
     const currentDestination = config?.[currentSettingName];
 
-    const data: MenuListItem[] = Object.values(CONST.NETSUITE_EXPORT_DESTINATION).map((dateType) => ({
+    const exportDestinations = isReimbursable
+        ? Object.values(CONST.NETSUITE_EXPORT_DESTINATION).filter((destination) => destination !== CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE)
+        : getNonReimbursableNetSuiteExportDestinations(config, netSuiteConnection);
+
+    const data: MenuListItem[] = exportDestinations.map((dateType) => ({
         value: dateType,
         text: translate(`workspace.netsuite.exportDestination.values.${dateType}.label`),
+        alternateText:
+            !isReimbursable && dateType === CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE
+                ? translate('workspace.netsuite.exportDestination.values.CREDIT_CARD_CHARGE.legacyTaxHelper')
+                : undefined,
         keyForList: dateType,
         isSelected: currentDestination === dateType,
     }));
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
-    const applyDestination = useCallback(
-        (value: ValueOf<typeof CONST.NETSUITE_EXPORT_DESTINATION>) => {
-            if (!policyID) {
-                return;
-            }
-            if (isReimbursable) {
-                updateNetSuiteReimbursableExpensesExportDestination(policyID, value, currentDestination ?? CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT);
-            } else {
-                updateNetSuiteNonReimbursableExpensesExportDestination(policyID, value, currentDestination ?? CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL);
-            }
+    const applyDestination = (value: ValueOf<typeof CONST.NETSUITE_EXPORT_DESTINATION>) => {
+        if (!policyID) {
+            return;
+        }
+        if (isReimbursable) {
+            updateNetSuiteReimbursableExpensesExportDestination(policyID, value, currentDestination ?? CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT);
+        } else {
+            updateNetSuiteNonReimbursableExpensesExportDestination(policyID, value, currentDestination ?? CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL);
+        }
+        goBack();
+    };
+
+    const selectDestination = async (row: MenuListItem) => {
+        if (row.value === currentDestination || !policyID) {
             goBack();
-        },
-        [currentDestination, isReimbursable, policyID, goBack],
-    );
+            return;
+        }
 
-    const selectDestination = useCallback(
-        async (row: MenuListItem) => {
-            if (row.value === currentDestination || !policyID) {
-                goBack();
-                return;
+        if (!isReimbursable && row.value === CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT && policy?.areCompanyCardsEnabled) {
+            const {action} = await showConfirmModal({
+                title: translate('common.areYouSure'),
+                prompt: translate('workspace.netsuite.exportDestination.expenseReportDestinationConfirmDescription'),
+                confirmText: translate('common.confirm'),
+                cancelText: translate('common.cancel'),
+            });
+            if (action === ModalActions.CONFIRM) {
+                applyDestination(row.value);
             }
+            return;
+        }
 
-            if (!isReimbursable && row.value === CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT && policy?.areCompanyCardsEnabled) {
-                const {action} = await showConfirmModal({
-                    title: translate('common.areYouSure'),
-                    prompt: translate('workspace.netsuite.exportDestination.expenseReportDestinationConfirmDescription'),
-                    confirmText: translate('common.confirm'),
-                    cancelText: translate('common.cancel'),
-                });
-                if (action === ModalActions.CONFIRM) {
-                    applyDestination(row.value);
-                }
-                return;
-            }
-
-            applyDestination(row.value);
-        },
-        [currentDestination, isReimbursable, policyID, goBack, policy?.areCompanyCardsEnabled, showConfirmModal, translate, applyDestination],
-    );
+        applyDestination(row.value);
+    };
 
     return (
         <SelectionScreen
@@ -119,6 +122,7 @@ function DynamicNetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicy
             errors={getLatestErrorField(config, currentSettingName)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => clearNetSuiteErrorField(policyID, currentSettingName)}
+            alternateNumberOfSupportedLines={3}
         />
     );
 }

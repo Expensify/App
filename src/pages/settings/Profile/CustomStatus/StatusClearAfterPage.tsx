@@ -1,6 +1,8 @@
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import type {MenuItemRootProps} from '@components/MenuItem/layout/MenuItemRoot';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -15,6 +17,7 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {validateDateTimeIsAtLeastOneMinuteInFuture} from '@libs/ValidationUtils';
 
+import {callIfAuthenticated} from '@userActions/Session';
 import {updateDraftCustomStatus, updateStatusDraftCustomClearAfterDate} from '@userActions/User';
 
 import CONST from '@src/CONST';
@@ -23,7 +26,8 @@ import ROUTES from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {authTokenTypeSelector} from '@selectors/Session';
+import React, {useEffect, useState} from 'react';
 
 type CustomStatusTypes = ValueOf<typeof CONST.CUSTOM_STATUS_TYPES>;
 
@@ -33,6 +37,36 @@ type StatusType = {
     keyForList: string;
     isSelected: boolean;
 };
+
+type StatusExpiryFieldProps = Pick<MenuItemRootProps, 'onPress' | 'sentryLabel'> & {
+    name: string;
+    value: string;
+    error: string;
+};
+
+function StatusExpiryField({name, value, error, onPress, sentryLabel}: StatusExpiryFieldProps) {
+    return (
+        <MenuItem.Root
+            onPress={onPress}
+            sentryLabel={sentryLabel}
+            accessibilityLabel={[name, value].filter(Boolean).join(', ')}
+        >
+            <MenuItemField.Row
+                name={name}
+                value={value}
+            >
+                {!!error && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                <MenuItem.Chevron />
+            </MenuItemField.Row>
+            {!!error && (
+                <MenuItem.HelpText
+                    isError
+                    message={error}
+                />
+            )}
+        </MenuItem.Root>
+    );
+}
 
 /**
  * @param data - either a value from CONST.CUSTOM_STATUS_TYPES or a dateTime string in the format YYYY-MM-DD HH:mm
@@ -84,43 +118,29 @@ function StatusClearAfterPage() {
     const clearAfter = currentUserPersonalDetails.status?.clearAfter ?? '';
     const [customStatus] = useOnyx(ONYXKEYS.CUSTOM_STATUS_DRAFT);
     const [statusDraftCustomClearAfterDate] = useOnyx(ONYXKEYS.STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
     const draftClearAfter = customStatus?.clearAfter ?? '';
     const [draftPeriod, setDraftPeriod] = useState(() => getSelectedStatusType(draftClearAfter || clearAfter));
-    const statusType = useMemo<StatusType[]>(
-        () =>
-            Object.entries(CONST.CUSTOM_STATUS_TYPES).map(([key, value]) => ({
-                value,
-                text: translate(`statusPage.timePeriods.${value}`),
-                keyForList: key,
-                isSelected: draftPeriod === value,
-            })),
-        [draftPeriod, translate],
-    );
+    const statusType: StatusType[] = Object.entries(CONST.CUSTOM_STATUS_TYPES).map(([key, value]) => ({
+        value,
+        text: translate(`statusPage.timePeriods.${value}`),
+        keyForList: key,
+        isSelected: draftPeriod === value,
+    }));
 
     const {customDateError, customTimeError} = useValidateCustomDate(translate, draftClearAfter);
 
-    const {redBrickDateIndicator, redBrickTimeIndicator} = useMemo(
-        () => ({
-            redBrickDateIndicator: customDateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            redBrickTimeIndicator: customTimeError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-        }),
-        [customTimeError, customDateError],
-    );
+    const updateMode = (mode: StatusType) => {
+        if (mode.value === draftPeriod) {
+            return;
+        }
+        setDraftPeriod(mode.value);
 
-    const updateMode = useCallback(
-        (mode: StatusType) => {
-            if (mode.value === draftPeriod) {
-                return;
-            }
-            setDraftPeriod(mode.value);
-
-            if (mode.value === CONST.CUSTOM_STATUS_TYPES.CUSTOM) {
-                updateStatusDraftCustomClearAfterDate(DateUtils.getOneHourFromNow());
-            }
-        },
-        [draftPeriod],
-    );
+        if (mode.value === CONST.CUSTOM_STATUS_TYPES.CUSTOM) {
+            updateStatusDraftCustomClearAfterDate(DateUtils.getOneHourFromNow());
+        }
+    };
 
     useEffect(() => {
         updateStatusDraftCustomClearAfterDate(draftClearAfter || clearAfter);
@@ -128,44 +148,34 @@ function StatusClearAfterPage() {
     }, []);
 
     const customStatusDate = DateUtils.extractDate(statusDraftCustomClearAfterDate ?? '');
-    // The sentinel and empty cases are guarded here because, unlike `extractTime12Hour`, the display formatter parses
+    // The Never and empty cases are guarded here because, unlike `extractTime12Hour`, the display formatter parses
     // whatever it is handed.
     const customStatusTime =
         statusDraftCustomClearAfterDate && statusDraftCustomClearAfterDate !== CONST.CUSTOM_STATUS_TYPES.NEVER
             ? DateUtils.formatToLocalTime(statusDraftCustomClearAfterDate, dateFnsLocale)
             : '';
 
-    const listFooterContent = useMemo(() => {
-        if (draftPeriod !== CONST.CUSTOM_STATUS_TYPES.CUSTOM) {
-            return;
-        }
-        return (
+    const listFooterContent =
+        draftPeriod !== CONST.CUSTOM_STATUS_TYPES.CUSTOM ? undefined : (
             <>
-                <MenuItemWithTopDescription
-                    title={customStatusDate}
-                    description={translate('statusPage.date')}
-                    shouldShowRightIcon
-                    containerStyle={styles.pr2}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_DATE)}
-                    errorText={customDateError}
-                    titleStyle={styles.flex1}
-                    brickRoadIndicator={redBrickDateIndicator}
+                <StatusExpiryField
+                    name={translate('statusPage.date')}
+                    value={customStatusDate}
+                    error={customDateError}
+                    onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_DATE), session)}
+                    sentryLabel={CONST.SENTRY_LABEL.CUSTOM_STATUS.CLEAR_AFTER_DATE}
                 />
-                <MenuItemWithTopDescription
-                    title={customStatusTime}
-                    description={translate('statusPage.time')}
-                    shouldShowRightIcon
-                    containerStyle={styles.pr2}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME)}
-                    errorText={customTimeError}
-                    titleStyle={styles.flex1}
-                    brickRoadIndicator={redBrickTimeIndicator}
+                <StatusExpiryField
+                    name={translate('statusPage.time')}
+                    value={customStatusTime}
+                    error={customTimeError}
+                    onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME), session)}
+                    sentryLabel={CONST.SENTRY_LABEL.CUSTOM_STATUS.CLEAR_AFTER_TIME}
                 />
             </>
         );
-    }, [translate, styles.pr2, styles.flex1, draftPeriod, customStatusDate, customStatusTime, redBrickDateIndicator, redBrickTimeIndicator, customDateError, customTimeError]);
 
-    const saveAndGoBack = useCallback(() => {
+    const saveAndGoBack = () => {
         if (!draftPeriod) {
             return;
         }
@@ -182,34 +192,26 @@ function StatusClearAfterPage() {
         updateDraftCustomStatus({clearAfter: calculatedDraftDate});
 
         Navigation.goBack(ROUTES.SETTINGS_STATUS);
-    }, [draftPeriod, statusType, statusDraftCustomClearAfterDate]);
+    };
 
-    const initialFocusedIndex = useMemo(() => {
-        return statusType.find((item) => item.isSelected)?.keyForList;
-    }, [statusType]);
+    const initialFocusedIndex = statusType.find((item) => item.isSelected)?.keyForList;
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('statusPage.save'),
-            onConfirm: saveAndGoBack,
-        }),
-        [saveAndGoBack, translate],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('statusPage.save'),
+        onConfirm: saveAndGoBack,
+    };
 
-    const timePeriodOptions = useCallback(
-        () => (
-            <SelectionList
-                data={statusType}
-                ListItem={SingleSelectListItem}
-                onSelectRow={updateMode}
-                listFooterContent={listFooterContent}
-                confirmButtonOptions={confirmButtonOptions}
-                initiallyFocusedItemKey={initialFocusedIndex}
-                shouldUpdateFocusedIndex
-            />
-        ),
-        [statusType, updateMode, listFooterContent, confirmButtonOptions, initialFocusedIndex],
+    const timePeriodOptions = () => (
+        <SelectionList
+            data={statusType}
+            ListItem={SingleSelectListItem}
+            onSelectRow={updateMode}
+            listFooterContent={listFooterContent}
+            confirmButtonOptions={confirmButtonOptions}
+            initiallyFocusedItemKey={initialFocusedIndex}
+            shouldUpdateFocusedIndex
+        />
     );
 
     return (

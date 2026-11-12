@@ -30,10 +30,10 @@ function useReconcileHighContrastIntent() {
         const baseTheme = getBaseTheme(currentTheme);
         const targetTheme = highContrastIntent ? getContrastTheme(baseTheme) : baseTheme;
         if (currentTheme !== targetTheme) {
-            updateTheme(targetTheme, false);
+            updateTheme(targetTheme, false, session);
         }
         setHighContrastIntent(null);
-    }, [isLoadingApp, highContrastIntent, preferredTheme, session?.authToken]);
+    }, [isLoadingApp, highContrastIntent, preferredTheme, session]);
 }
 
 export default useReconcileHighContrastIntent;

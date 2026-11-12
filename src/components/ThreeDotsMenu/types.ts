@@ -8,6 +8,14 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
+type ThreeDotsMenuHandle = {
+    hidePopoverMenu: () => void;
+    isPopupMenuVisible: boolean;
+
+    /** Re-measures the anchor of the open menu, for callers that know the anchor has moved */
+    updateMenuPosition?: () => void;
+};
+
 type ThreeDotsMenuProps = WithSentryLabel & {
     /** Tooltip for the popup icon */
     iconTooltip?: TranslationPaths;
@@ -56,7 +64,7 @@ type ThreeDotsMenuProps = WithSentryLabel & {
     /** Is the menu nested? This prop is used to omit html warning when we are nesting a button inside another button */
     isNested?: boolean;
 
-    threeDotsMenuRef?: React.RefObject<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean} | null>;
+    threeDotsMenuRef?: React.RefObject<ThreeDotsMenuHandle | null>;
     isContainerFocused?: boolean;
 };
 
@@ -90,3 +98,4 @@ type ThreeDotsMenuWithOptionalAnchorProps =
       });
 
 export default ThreeDotsMenuWithOptionalAnchorProps;
+export type {ThreeDotsMenuHandle};

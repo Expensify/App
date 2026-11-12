@@ -1,3 +1,5 @@
+import useDecisionModal from '@hooks/useDecisionModal';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import {setIsUsingImportedState, setPreservedAccount, setPreservedUserSession} from '@libs/actions/App';
@@ -12,7 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import React, {useState} from 'react';
+import React from 'react';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 
 import type ImportOnyxStateProps from './types';
@@ -31,7 +33,8 @@ function readOnyxFile(fileUri: string) {
 }
 
 export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
-    const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
+    const {translate} = useLocalize();
+    const {showDecisionModal} = useDecisionModal();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
@@ -62,18 +65,16 @@ export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
             })
             .catch((error) => {
                 console.error('Error importing state:', error);
-                setIsErrorModalVisible(true);
+                showDecisionModal({
+                    title: translate('initialSettingsPage.troubleshoot.invalidFile'),
+                    prompt: translate('initialSettingsPage.troubleshoot.invalidFileDescription'),
+                    secondOptionText: translate('common.ok'),
+                });
             })
             .finally(() => {
                 setIsLoading(false);
             });
     };
 
-    return (
-        <BaseImportOnyxState
-            onFileRead={handleFileRead}
-            isErrorModalVisible={isErrorModalVisible}
-            setIsErrorModalVisible={setIsErrorModalVisible}
-        />
-    );
+    return <BaseImportOnyxState onFileRead={handleFileRead} />;
 }

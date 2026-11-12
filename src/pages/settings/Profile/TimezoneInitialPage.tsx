@@ -47,6 +47,7 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
                         </Text>
                         <Switch
                             accessibilityLabel={translate('timezonePage.getLocationAutomatically')}
+                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.TIMEZONE_AUTOMATIC_SWITCH}
                             isOn={!!timezone.automatic}
                             onToggle={(isAutomatic: boolean) => {
                                 // Updates setting for automatic timezone selection.
@@ -63,6 +64,7 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
                     </View>
                 </View>
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.TIMEZONE_SELECT}
                     name={translate('timezonePage.timezone')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_TIMEZONE_SELECT)}
                     isDisabled={!!timezone.automatic}

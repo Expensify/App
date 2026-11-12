@@ -7,12 +7,12 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import type {SourceLoadEventPayload, VideoThumbnail} from 'expo-video';
+import type {VideoThumbnail} from 'expo-video';
 
 import {Str} from 'expensify-common';
 import {useEvent} from 'expo';
 import {useVideoPlayer} from 'expo-video';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import {checkIsFileImage} from './Attachments/AttachmentView';
@@ -43,10 +43,8 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
 
     const fillStyle = aspectRatio < 1 ? styles.h100 : styles.w100;
     const [isEncryptedPDF, setIsEncryptedPDF] = useState(false);
-    const fileName = useMemo(() => {
-        const rawFileName = getFileName(source);
-        return cleanFileName(rawFileName);
-    }, [source]);
+    const rawFileName = getFileName(source);
+    const fileName = cleanFileName(rawFileName);
 
     const isVideo = typeof source === 'string' && Str.isVideo(source);
     const isFileImage = checkIsFileImage(source, fileName);
@@ -54,7 +52,7 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
     const [thumbnail, setThumbnail] = useState<VideoThumbnail | null>(null);
     const videoPlayer = useVideoPlayer(isVideo ? source : null);
 
-    const {videoSource} = useEvent(videoPlayer, 'sourceLoad', {videoSource: null} as SourceLoadEventPayload);
+    const videoSource = useEvent(videoPlayer, 'sourceLoad', null)?.videoSource;
 
     useEffect(() => {
         if (!videoSource) {

@@ -42,7 +42,7 @@ import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 
-import type {NullishDeep, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
 
 import {Num} from 'expensify-common';
 import Onyx from 'react-native-onyx';
@@ -347,9 +347,13 @@ async function getScimToken(domainName: string): Promise<ScimTokenWithState> {
             };
         }
 
+        if (!('SCIMToken' in response) || typeof response.SCIMToken !== 'string') {
+            return {state: ScimTokenState.ERROR, error: genericError};
+        }
+
         return {
             state: ScimTokenState.VALUE,
-            value: (response as {SCIMToken: string}).SCIMToken,
+            value: response.SCIMToken,
         };
     } catch (error) {
         return {
@@ -1257,8 +1261,10 @@ function clearDomainErrors(domainAccountID: number) {
  * @param defaultSecurityGroupID Security group ID to be used for optimistic updates
  */
 function addMemberToDomain(domainAccountID: number, email: string, defaultSecurityGroupID: string) {
-    const DOMAIN_SECURITY_GROUP = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${defaultSecurityGroupID}`;
+    const DOMAIN_SECURITY_GROUP: SecurityGroupKey = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${defaultSecurityGroupID}`;
     const optimisticAccountID = generateAccountID(email);
+    const optimisticMembership: NonNullable<OnyxMergeInput<typeof ONYXKEYS.COLLECTION.DOMAIN>> = {};
+    optimisticMembership[DOMAIN_SECURITY_GROUP] = {shared: {[optimisticAccountID]: 'read'}};
 
     const optimisticData: Array<
         | OnyxUpdate<
@@ -1272,13 +1278,7 @@ function addMemberToDomain(domainAccountID: number, email: string, defaultSecuri
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-            value: {
-                [DOMAIN_SECURITY_GROUP]: {
-                    shared: {
-                        [optimisticAccountID]: 'read',
-                    },
-                },
-            } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>,
+            value: optimisticMembership,
         },
         buildPersonalDetailsUpdate({
             [optimisticAccountID]: {
@@ -1660,18 +1660,32 @@ function clearValidateDomainTwoFactorCodeError() {
     Onyx.set(ONYXKEYS.VALIDATE_DOMAIN_TWO_FACTOR_CODE, null);
 }
 
-function setDomainVacationDelegate(domainAccountID: number, domainMemberAccountID: number, creator: string, vacationer: string, delegate: string, vacationDelegate?: BaseVacationDelegate) {
+/**
+ * @param clearAfter - UTC datetime (yyyy-MM-dd HH:mm:ss) when the backend should clear the delegate. No value means it never clears.
+ */
+function setDomainVacationDelegate(
+    domainAccountID: number,
+    domainMemberAccountID: number,
+    creator: string,
+    vacationer: string,
+    delegate: string,
+    vacationDelegate?: BaseVacationDelegate,
+    clearAfter?: string,
+) {
+    const optimisticVacationDelegate: NullishDeep<BaseVacationDelegate> = {
+        delegate,
+        creator,
+        clearAfter: clearAfter ?? null,
+        previousDelegate: vacationDelegate?.delegate,
+        previousClearAfter: vacationDelegate?.clearAfter ?? null,
+    };
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
             value: {
-                [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}`]: {
-                    delegate,
-                    creator,
-                    previousDelegate: vacationDelegate?.delegate,
-                },
-            } as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, BaseVacationDelegate>,
+                [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}`]: optimisticVacationDelegate,
+            } as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, NullishDeep<BaseVacationDelegate>>,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1704,6 +1718,7 @@ function setDomainVacationDelegate(domainAccountID: number, domainMemberAccountI
             value: {
                 [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}`]: {
                     previousDelegate: null,
+                    previousClearAfter: null,
                 },
             } as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, NullishDeep<BaseVacationDelegate>>,
         },
@@ -1760,6 +1775,7 @@ function setDomainVacationDelegate(domainAccountID: number, domainMemberAccountI
         creator,
         vacationerEmail: vacationer,
         vacationDelegateEmail: delegate,
+        clearAfter,
         overridePolicyDiffWarning: true,
         domainAccountID,
     };
@@ -1776,7 +1792,9 @@ function deleteDomainVacationDelegate(domainAccountID: number, domainMemberAccou
                 [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}`]: {
                     creator: null,
                     delegate: null,
+                    clearAfter: null,
                     previousDelegate: vacationDelegate?.delegate,
+                    previousClearAfter: vacationDelegate?.clearAfter ?? null,
                 },
             } as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, NullishDeep<BaseVacationDelegate>>,
         },
@@ -1864,10 +1882,11 @@ function deleteDomainVacationDelegate(domainAccountID: number, domainMemberAccou
     API.write(WRITE_COMMANDS.DELETE_VACATION_DELEGATE, {vacationerEmail: vacationer, domainAccountID}, {optimisticData, successData, failureData});
 }
 
-function clearVacationDelegateError(domainAccountID: number, domainMemberAccountID: number, domainMemberEmail: string, previousDelegate?: string) {
+function clearVacationDelegateError(domainAccountID: number, domainMemberAccountID: number, domainMemberEmail: string, previousDelegate?: string, previousClearAfter?: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}`]: {
             delegate: previousDelegate ?? null,
+            clearAfter: previousClearAfter ?? null,
         },
     } as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, NullishDeep<BaseVacationDelegate>>);
 
@@ -2161,23 +2180,15 @@ function changeDomainSecurityGroup(
     targetSecurityGroupKey: SecurityGroupKey,
 ) {
     const accountIDStr = String(accountID);
+    const optimisticMembership: NonNullable<OnyxMergeInput<typeof ONYXKEYS.COLLECTION.DOMAIN>> = {};
+    optimisticMembership[currentSecurityGroupKey] = {shared: {[accountIDStr]: null}};
+    optimisticMembership[targetSecurityGroupKey] = {shared: {[accountIDStr]: 'read'}};
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-            value: {
-                [currentSecurityGroupKey]: {
-                    shared: {
-                        [accountIDStr]: null,
-                    },
-                },
-                [targetSecurityGroupKey]: {
-                    shared: {
-                        [accountIDStr]: 'read',
-                    },
-                },
-            } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>,
+            value: optimisticMembership,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2212,22 +2223,16 @@ function changeDomainSecurityGroup(
         },
     ];
 
+    const rollbackMembership: NonNullable<OnyxMergeInput<typeof ONYXKEYS.COLLECTION.DOMAIN>> = {};
+    // The target assignment must win when both keys name the same group.
+    rollbackMembership[currentSecurityGroupKey] = {shared: {[accountIDStr]: currentSecurityGroup.shared?.[accountIDStr]}};
+    rollbackMembership[targetSecurityGroupKey] = {shared: {[accountIDStr]: null}};
+
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-            value: {
-                [currentSecurityGroupKey]: {
-                    shared: {
-                        [accountIDStr]: currentSecurityGroup.shared?.[accountIDStr],
-                    },
-                },
-                [targetSecurityGroupKey]: {
-                    shared: {
-                        [accountIDStr]: null,
-                    },
-                },
-            } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>,
+            value: rollbackMembership,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,

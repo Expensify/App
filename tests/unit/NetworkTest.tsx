@@ -1,6 +1,6 @@
 import {reconnectApp} from '@libs/actions/App';
 import * as Reconnect from '@libs/actions/Reconnect';
-import {AUTHENTICATION_COMMAND} from '@libs/API/types';
+import {AUTHENTICATION_COMMAND, SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import {reset as resetFailureTracker} from '@libs/FailureTracker';
 import {resetReauthentication} from '@libs/Middleware/Reauthentication';
 
@@ -152,8 +152,7 @@ describe('NetworkTests', () => {
 
         // 2. Mock Setup Phase - Configure XHR mocks for the test sequence
         const mockedXhr = jest
-            .spyOn(HttpUtils, 'xhr')
-            .mockReset()
+            .fn<ReturnType<typeof HttpUtils.xhr>, Parameters<typeof HttpUtils.xhr>>()
             // First call: Return NOT_AUTHENTICATED to trigger reauthentication
             .mockImplementationOnce(() =>
                 Promise.resolve({
@@ -162,6 +161,11 @@ describe('NetworkTests', () => {
             )
             // Second call: Return a pending promise that we'll resolve later
             .mockImplementationOnce(() => pendingAuthRequest);
+
+        // LoadPersonalDetails bypasses the queue and would otherwise consume the mocks above
+        jest.spyOn(HttpUtils, 'xhr')
+            .mockReset()
+            .mockImplementation((...args) => (args[0] === SIDE_EFFECT_REQUEST_COMMANDS.LOAD_PERSONAL_DETAILS ? Promise.resolve({jsonCode: CONST.JSON_CODE.SUCCESS}) : mockedXhr(...args)));
 
         // 3. Test Execution Phase - Start with online network
         setHasRadio(true);

@@ -12,6 +12,7 @@ import type Navigation from '@libs/Navigation/Navigation';
 
 import React from 'react';
 
+import {setupGlobalFetchMock} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 /**
@@ -21,6 +22,8 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
  * boolean threaded into `SelectionList`, NOT that the input actually receives focus — the real focus path
  * runs through `useFocusEffect` + a `setTimeout` racing the popover animation, which is verified on device.
  */
+
+jest.mock('@libs/API');
 
 // Capture the props the pickers pass down to SelectionList so we can assert on `textInputOptions.disableAutoFocus`.
 // Prefix `mock` so jest allows the variable inside the factory below.
@@ -49,6 +52,9 @@ jest.mock('@react-navigation/native', () => {
         })),
     };
 });
+
+// The pickers fetch categories/tags on mount. Without a mock, that request throws under Jest and fails whichever test is running.
+setupGlobalFetchMock();
 
 function getLastDisableAutoFocus(): boolean | undefined {
     const lastCall = mockSelectionList.mock.calls.at(-1);

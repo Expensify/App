@@ -1,0 +1,14 @@
+{
+    "$schema": "node_modules/wrangler/config-schema.json",
+    "name": "new-expensify-live-local",
+    "main": "src/index.ts",
+    "compatibility_date": "2026-09-26",
+    "workers_dev": false,
+    "preview_urls": false,
+    // Live development needs neither a dist/ directory nor Cloudflare bindings.
+    "vars": {
+        "ENVIRONMENT": "development",
+        "DEV_UPSTREAM": "http://127.0.0.1:8083",
+        "DEV_CONNECT_ORIGINS": "[]",
+    },
+}

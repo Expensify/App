@@ -1,7 +1,7 @@
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import type {SelectionListHandle} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
@@ -9,16 +9,21 @@ import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
-import type {ActionHandledType} from '@hooks/useHoldMenuSubmit';
+import useIsInPreloadedTab from '@hooks/useIsInPreloadedTab';
+import useLoadSearchCardData from '@hooks/useLoadSearchCardData';
 import useLocalize from '@hooks/useLocalize';
+import useMarkPreloadedTabContentReady from '@hooks/useMarkPreloadedTabContentReady';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSaveSortedReportIDs from '@hooks/useSaveSortedReportIDs';
-import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
+import useSearchAutoRefetch, {getPolicyIDsFromSearchResults} from '@hooks/useSearchAutoRefetch';
+import useSearchListContentContainerStyle from '@hooks/useSearchListContentContainerStyle';
 import useSearchShouldCalculateTotals, {getSearchRequestOffsetForMissingAllMatchingCount} from '@hooks/useSearchShouldCalculateTotals';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useStableArrayReference from '@hooks/useStableArrayReference';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -26,6 +31,13 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {consumePageRequestedSearch, setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
+import {
+    CAROUSEL_SOURCE,
+    clearActiveTransactionIDsForSource,
+    disownActiveTransactionIDs,
+    setActiveTransactionIDs,
+    shouldRefreshActiveTransactionIDs,
+} from '@libs/actions/TransactionThreadNavigation';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import openInternalRouteInNewTab, {isModifiedMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
@@ -36,18 +48,22 @@ import {flushPendingSearchWrite, hasPendingSearchWrite} from '@libs/pendingSearc
 import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
 import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
-import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryString, getFilterFromQuery} from '@libs/SearchQueryUtils';
 import {
+    canEditSearchColumns,
     createAndOpenSearchTransactionThread,
     doesSearchItemMatchSort,
     getValidGroupBy,
     getWideAmountIndicators,
+    isCashBackWithdrawalGroup,
+    isCreatedDateType,
     isGroupedItemArray,
     isReportActionListItemType,
     isSearchDataLoaded,
     isSearchPending,
     isSearchResultsEmpty as isSearchResultsEmptyUtil,
     isTaskListItemType,
+    isTripListItemType,
     isTransactionGroupListItemType,
     isTransactionListItemType,
     isTransactionReportGroupListItemType,
@@ -64,7 +80,7 @@ import {
     getNavigateToReportsSpans,
 } from '@libs/telemetry/navigateToReportsSpans';
 import {cancelSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
-import {isTransactionPendingDelete, shouldShowAttendees} from '@libs/TransactionUtils';
+import {isDeletedTransaction, isTransactionPendingDelete, shouldShowAttendees} from '@libs/TransactionUtils';
 
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
@@ -80,8 +96,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
+import {createMemberCustomFieldsSelector, fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@src/selectors/Policy';
 import type {SaveSearch} from '@src/types/onyx';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -92,11 +108,12 @@ import type {ValueOf} from 'type-fest';
 
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
-import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
+import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType} from './SearchList/ListItem/types';
 import type {CommonSearchViewProps} from './searchViewProps';
 import type {SearchColumnType, SearchParams, SearchQueryJSON, SearchSortBy, SortOrder} from './types';
 
@@ -104,16 +121,20 @@ import ChatSearchView from './ChatSearchView';
 import ExpenseFlatSearchView from './ExpenseFlatSearchView';
 import ExpenseGroupedSearchView from './ExpenseGroupedSearchView';
 import ExpenseReportSearchView from './ExpenseReportSearchView';
+import useHideSearchColumn from './hooks/useHideSearchColumn';
 import useLiveRowLimit from './hooks/useLiveRowLimit';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
 import useShouldShowBulkActionBar from './hooks/useShouldShowBulkActionBar';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
+import SearchColumnMenu from './SearchColumnMenu';
 import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
+import {useRegisterSearchScrollView, useSearchListScrollLockStyle} from './SearchListScrollLockContext';
 import {SearchScopeProvider} from './SearchScopeProvider';
 import SearchTableHeader from './SearchTableHeader';
 import SearchWriteActionsProvider from './SearchWriteActionsProvider';
 import TaskSearchView from './TaskSearchView';
+import TripSearchView from './TripSearchView';
 
 type SearchProps = {
     queryJSON: SearchQueryJSON;
@@ -130,8 +151,6 @@ type SearchProps = {
      *  Consolidates span-ending logic in one place. Accepts `wasListEmpty` for telemetry attributes. */
     onDestinationVisible?: (wasListEmpty: boolean, source: 'focus' | 'layout') => void;
 };
-
-type HoldMenuCallback = (item: TransactionReportGroupListItemType, requestType: ActionHandledType, paymentType?: PaymentMethodType) => void;
 
 function Search({
     queryJSON,
@@ -151,7 +170,11 @@ function Search({
     const prevIsOffline = usePrevious(isOffline);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout, isLargeScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const searchListContentContainerStyle = useSearchListContentContainerStyle(!!hasFilterBars);
     const styles = useThemeStyles();
+    const chartTabRootScrollProps = useTabRootScrollProps(styles.flexGrow1, {fillsVisibleArea: true});
+    const chartScrollLockStyle = useSearchListScrollLockStyle();
+    const chartScrollViewRef = useRegisterSearchScrollView();
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
 
@@ -174,13 +197,14 @@ function Search({
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
     });
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
+    });
+    const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT, {
+        selector: fullPolicySnapshotLastModifiedByPolicyIDSelector,
     });
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
@@ -190,6 +214,9 @@ function Search({
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
 
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+    const shouldReturnTripRooms = useShouldReturnTripRooms(type);
+    const {isBetaEnabled} = usePermissions();
+    const shouldShowColumnMenu = isBetaEnabled(CONST.BETAS.PINNABLE_TABLE_COLUMNS) && canEditSearchColumns(type, shouldReturnTripRooms);
 
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     // getSections only needs the boolean (it gates attendees on unreported transactions for the
@@ -197,8 +224,6 @@ function Search({
     // getSections memo on every unrelated policy update (Pusher pushes); the boolean only flips when
     // attendee tracking on the moving policy toggles. Rows derive their own display gate independently.
     const isAttendeesEnabledForMovingPolicy = shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, policyForMovingExpenses);
-
-    const [, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
 
     const isSnapshotPending = isSearchPending(searchResults);
 
@@ -219,6 +244,8 @@ function Search({
     const isAllMatchingItemsCountMissing = isExpenseAllMatchingSelection && typeof searchResults?.search?.count !== 'number';
     const shouldCalculateExpenseTotals = useSearchShouldCalculateTotals(currentSearchKey, offset === 0 || isAllMatchingItemsCountMissing, isExpenseAllMatchingSelection);
     const shouldCalculateTotals = (areAllMatchingItemsSelected && !isExpenseAllMatchingSelection) || shouldCalculateExpenseTotals;
+    // Live to-do pages load without totals. A response with totals restarts the counted reports, so a later page would drop page 1's.
+    const shouldCalculateNextPageTotals = shouldCalculateTotals && !shouldUseLiveData;
     const previousShouldCalculateTotals = usePrevious(shouldCalculateTotals);
     const searchRequestOffset = getSearchRequestOffsetForMissingAllMatchingCount(offset, searchResults?.search?.offset, isAllMatchingItemsCountMissing);
     // For an expense-report "select all matching", the total the bulk-actions button waits for is the server
@@ -243,10 +270,13 @@ function Search({
     const shouldCalculateTotalsOnRetry = useSearchShouldCalculateTotals(currentSearchKey, true, areAllMatchingItemsSelected);
 
     const previousReportActions = usePrevious(reportActions);
+    const searchResultPolicyIDs = useStableArrayReference(getPolicyIDsFromSearchResults(searchResults?.data));
+    const memberCustomFieldsSelector = useMemo(() => createMemberCustomFieldsSelector(searchResultPolicyIDs), [searchResultPolicyIDs]);
+    const [memberCustomFields] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: memberCustomFieldsSelector});
+    const previousMemberCustomFields = usePrevious(memberCustomFields);
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
-    const searchListRef = useRef<SelectionListHandle<SearchListItem> | null>(null);
 
     const savedSearchSelector = useCallback(
         (searches: OnyxEntry<SaveSearch>) => {
@@ -265,9 +295,6 @@ function Search({
     const isSearchResultsEmptyRef = useRef(isSearchResultsEmpty);
     isSearchResultsEmptyRef.current = isSearchResultsEmpty;
 
-    // When grouping by card, we need cardFeeds to display feed names
-    const isCardFeedsLoading = validGroupBy === CONST.SEARCH.GROUP_BY.CARD && cardFeedsResult?.status === 'loading';
-
     useEffect(() => {
         if (prevValidGroupBy === validGroupBy) {
             return;
@@ -275,7 +302,7 @@ function Search({
         clearSelectedTransactions();
     }, [validGroupBy, prevValidGroupBy, clearSelectedTransactions]);
 
-    const {newSearchResultKeys, handleSelectionListScroll, newTransactions, hasQueuedHighlights} = useSearchHighlightAndScroll({
+    const {newTransactions} = useSearchAutoRefetch({
         searchResults,
         transactions,
         previousTransactions,
@@ -285,7 +312,8 @@ function Search({
         shouldCalculateTotals,
         reportActions,
         previousReportActions,
-        shouldUseLiveData,
+        memberCustomFields,
+        previousMemberCustomFields,
     });
 
     const {
@@ -309,22 +337,20 @@ function Search({
     } = useSearchSnapshot({
         queryJSON,
         searchResults,
-        newSearchResultKeys,
         transactions,
         reportActions,
         visibleRowLimit: shouldUseLiveData ? liveRowLimit : undefined,
         selectedTransactions,
     });
 
-    // Mirror `hasQueuedHighlights` into a ref so the post-create-flow `useFocusEffect`
-    // (which has empty deps) can read the latest value without re-creating its callback.
-    // Used to skip the deferral that would otherwise hide the freshly-added row from
-    // FlashList during the RHP dismiss transition, which would prevent the highlight
-    // animation from ever firing on it.
-    const hasQueuedHighlightsRef = useRef(hasQueuedHighlights);
-    useEffect(() => {
-        hasQueuedHighlightsRef.current = hasQueuedHighlights;
-    }, [hasQueuedHighlights]);
+    // Deleted expenses have no report owner, so their From column falls back to the cardholder. Search opens with only
+    // some cards, so load the rest whenever a deleted expense can be on screen. Grouped searches never set
+    // hasDeletedTransaction, so check the status filter too. A negated filter such as status!:drafts still admits
+    // deleted expenses unless it excludes them.
+    const statusFilter = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS);
+    const hasDeletedStatus = !!statusFilter.value?.includes(CONST.SEARCH.STATUS.EXPENSE.DELETED);
+    const isDeletedStatusQuery = statusFilter.isNegated ? !hasDeletedStatus : hasDeletedStatus;
+    useLoadSearchCardData(hasDeletedTransaction || isDeletedStatusQuery);
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
     // we also need to check that the searchResults matches the type and status of the current search
@@ -385,14 +411,6 @@ function Search({
                 return;
             }
 
-            // If the highlight hook already queued rows for the post-create animation,
-            // skip the skeleton-during-transition defer. Otherwise FlashList stays empty
-            // for ~1s while the RHP dismiss transition runs, the row never mounts inside
-            // the 300ms highlight window, and `useAnimatedHighlightStyle` never fires.
-            if (hasQueuedHighlightsRef.current) {
-                return;
-            }
-
             // Show skeleton while the RHP dismiss animation plays. The transition
             // hasn't started yet when useFocusEffect fires (it begins after paint),
             // so waitForUpcomingTransition defers until the animation actually ends.
@@ -413,11 +431,11 @@ function Search({
     // so we never fall through to the empty-state check with stale zero-length data.
     const isDeferringHeavyWork = !isOffline && shouldDeferHeavySearchWork;
     const isSearchLoadingWithNoResults = isSearchPending(searchResults) && Array.isArray(searchResults?.data) && searchResults.data.length === 0;
-    // Every write of `errors` stores the response code next to them, so a reload keeps the classification
-    // that component state would have lost. `null` means no response has been recorded for this query yet.
+    // The response code is persisted next to the errors it explains, so a reload keeps the classification
+    // that component state would have lost. `null` means the code for these errors has not been stored yet.
     const responseStatusCode = searchResults?.search?.responseJsonCode ?? null;
     const hasUnresolvedErrors = hasErrors && responseStatusCode === null;
-    const isWaitingForInitialData = !shouldUseLiveData && !isOffline && (!isDataLoaded || isSearchLoadingWithNoResults || hasUnresolvedErrors || isCardFeedsLoading);
+    const isWaitingForInitialData = !shouldUseLiveData && !isOffline && (!isDataLoaded || isSearchLoadingWithNoResults || hasUnresolvedErrors);
     const shouldShowLoadingState = isDeferringHeavyWork || isWaitingForInitialData;
     const shouldShowRowSkeleton = (!skeletonWasDisplayed || shouldShowLoadingState) && showPendingExpensePlaceholder && !hasErrors;
 
@@ -434,12 +452,11 @@ function Search({
         Log.info('[Search] Showing skeleton', false, {
             isOffline,
             isDataLoaded,
-            isCardFeedsLoading,
             isSearchLoading: !!searchResults?.search?.isLoading,
             hasErrors,
             shouldUseLiveData,
         });
-    }, [hasErrors, isCardFeedsLoading, isDataLoaded, isOffline, searchResults?.search?.isLoading, shouldShowLoadingState, shouldUseLiveData]);
+    }, [hasErrors, isDataLoaded, isOffline, searchResults?.search?.isLoading, shouldShowLoadingState, shouldUseLiveData]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
@@ -447,8 +464,15 @@ function Search({
     }, [lastSearchType, setShouldShowFiltersBarLoading, shouldShowLoadingState, type]);
 
     const shouldRetrySearchWithTotalsOrGroupedRef = useRef(false);
+    const autoSearchedHashRef = useRef<number | undefined>(undefined);
+    const isInPreloadedTab = useIsInPreloadedTab();
 
     useEffect(() => {
+        // A preloaded tab sends no request while hidden, including from the migrated-modal and reconnect branches below.
+        if (isInPreloadedTab) {
+            return;
+        }
+
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT;
 
@@ -477,7 +501,10 @@ function Search({
             return;
         }
 
-        if (hasErrors && !shouldRefreshOnReconnect) {
+        // A stale error an earlier visit left on this hash must not block this instance's first request,
+        // except when the server judged the query itself malformed, because re-sending it cannot succeed.
+        const isInvalidQuery = responseStatusCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
+        if (hasErrors && !shouldRefreshOnReconnect && (isInvalidQuery || autoSearchedHashRef.current === queryJSON.hash)) {
             return;
         }
 
@@ -501,9 +528,12 @@ function Search({
 
         // The page already fetched this first page, and that request finished before Search mounts, so search() no longer sees it.
         if (!shouldRefreshOnReconnect && searchRequestOffset === 0 && isDataLoaded && consumePageRequestedSearch(queryJSON.hash, shouldCalculateTotals)) {
+            // That request was made for this mount, so an error it leaves behind is this instance's own.
+            autoSearchedHashRef.current = queryJSON.hash;
             return;
         }
 
+        autoSearchedHashRef.current = queryJSON.hash;
         handleSearch({
             queryJSON,
             searchKey: currentSearchKey,
@@ -566,6 +596,7 @@ function Search({
 
     const isUnmounted = useRef(false);
     const hasHadFirstLayout = useRef(false);
+    const markPreloadedTabContentReady = useMarkPreloadedTabContentReady();
     const navigateToReportsSpanOnMount = useRef(getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS));
     const newNavigateToReportsSpansOnMount = useRef(getNavigateToReportsSpans());
 
@@ -622,19 +653,80 @@ function Search({
         }, 0);
     }, [areItemsGrouped, filteredData]);
 
-    const onSelectRow = useCallback(
-        (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => {
-            if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+    const carouselSiblingTransactionIDs = useMemo(
+        () =>
+            (filteredData as SearchListItem[])
+                .filter(
+                    (t): t is TransactionListItemType => !!t && isTransactionListItemType(t) && t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isDeletedTransaction(t),
+                )
+                .map((t) => t.transactionID),
+        [filteredData],
+    );
+
+    // This search results list owns the carousel it seeds. Drilling into a report hands ownership over to that
+    // report's own list; the refresh effect below then leaves the carousel alone until the user comes back out.
+    const carouselSource = CAROUSEL_SOURCE.search(hash);
+    const hasSeededCarouselRef = useRef(false);
+
+    // Read at press time rather than closed over, so rebuilding the rows doesn't give onSelectRow (and every row) a new identity.
+    const carouselSiblingTransactionIDsRef = useRef(carouselSiblingTransactionIDs);
+    useLayoutEffect(() => {
+        carouselSiblingTransactionIDsRef.current = carouselSiblingTransactionIDs;
+    }, [carouselSiblingTransactionIDs]);
+
+    // Hands this list's expenses to the carousel for the expense the user is opening in *this* tab.
+    //
+    // It is called at each in-tab navigation rather than once at the top of `onSelectRow`, because a Cmd/Ctrl+click
+    // opens a background tab without navigating here: seeding up front rewrote the carousel of whatever was already
+    // open in the RHP, which then paged through unrelated Spend results. Releasing is scoped to this source for the
+    // same reason - the unscoped clear used to wipe a carousel another screen owned.
+    const seedCarouselForOpenedExpense = useCallback(() => {
+        const siblingTransactionIDs = carouselSiblingTransactionIDsRef.current;
+        if (siblingTransactionIDs.length > 1) {
+            setActiveTransactionIDs(siblingTransactionIDs, {source: carouselSource, snapshotHash: hash});
+            // Mark the seed so the release effect below knows this instance owns a carousel. Without it an instance
+            // that only ever seeded from a row press skipped its own cleanup and stranded `search:<hash>` behind.
+            hasSeededCarouselRef.current = true;
+            return;
+        }
+        clearActiveTransactionIDsForSource(carouselSource);
+        hasSeededCarouselRef.current = false;
+    }, [carouselSource, hash]);
+
+    const selectRow = useCallback(
+        async (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => {
+            const readConciergeChat = async () => {
+                const conciergeReportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID);
+                return Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+            };
+            // A cash back row has no expenses to open, and Enter on a focused row still lands here.
+            if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isCashBackWithdrawalGroup(item)) {
+                return;
+            }
+
+            if (isTripListItemType(item)) {
+                const tripRoute = ROUTES.SEARCH_REPORT.getRoute({reportID: item.reportID, backTo: Navigation.getActiveRoute()});
+                if (openInternalRouteInNewTab(tripRoute, event)) {
+                    return;
+                }
+                requestAnimationFrame(() => Navigation.navigate(tripRoute));
                 return;
             }
 
             const isTransactionItem = isTransactionListItemType(item);
             const backTo = Navigation.getActiveRoute();
+
             // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
             if (isTransactionItem && !item?.reportAction?.childReportID) {
                 // If the report is unreported (self DM), we want to open the track expense thread instead of a report with an ID of 0
                 const shouldOpenTransactionThread = !isOneTransactionReport(item.report) || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
                 const shouldOpenTransactionThreadInNewTab = shouldOpenTransactionThread && isModifiedMousePress(event);
+                // When opening an expense from the Spend page (flat transaction list), populate the carousel
+                // with all sibling transactions so prev/next navigation works in the RHP transaction view.
+                if (shouldOpenTransactionThread && !shouldOpenTransactionThreadInNewTab) {
+                    seedCarouselForOpenedExpense();
+                }
+                const conciergeChat = await readConciergeChat();
                 const targetReportID = createAndOpenSearchTransactionThread({
                     conciergeChat,
                     getCurrencyDecimals,
@@ -649,9 +741,17 @@ function Search({
                     delegateAccountID,
                     IOUTransactionID: item?.reportAction?.childReportID,
                     shouldNavigate: shouldOpenTransactionThread && !shouldOpenTransactionThreadInNewTab,
+                    fullPolicySnapshotLastModifiedByPolicyID,
                 });
                 if (shouldOpenTransactionThreadInNewTab && targetReportID) {
-                    openInternalRouteInNewTab(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo}), event);
+                    openInternalRouteInNewTab(
+                        ROUTES.SEARCH_REPORT.getRoute({
+                            reportID: targetReportID,
+                            backTo,
+                            anchorTransactionID: item.transactionID,
+                        }),
+                        event,
+                    );
                 }
                 if (shouldOpenTransactionThread) {
                     return;
@@ -699,21 +799,25 @@ function Search({
                 const firstTransaction = item.transactions.at(0);
                 if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
                     if (!firstTransaction?.reportAction?.childReportID) {
-                        createAndOpenSearchTransactionThread({
-                            conciergeChat,
-                            getCurrencyDecimals,
-                            item: firstTransaction,
-                            introSelected,
-                            backTo,
-                            currentUserLogin: email ?? '',
-                            currentUserAccountID: accountID,
-                            personalDetails,
-                            isSelfTourViewed,
-                            hasCompletedGuidedSetupFlow,
-                            delegateAccountID,
-                            IOUTransactionID: firstTransaction?.reportAction?.childReportID,
-                            transactionPreviewData,
-                            shouldNavigate: false,
+                        // Nothing after this needs the thread ID, so read the Concierge chat without awaiting and keep the new-tab and navigation code inside the click
+                        readConciergeChat().then((conciergeChat) => {
+                            createAndOpenSearchTransactionThread({
+                                conciergeChat,
+                                getCurrencyDecimals,
+                                item: firstTransaction,
+                                introSelected,
+                                backTo,
+                                currentUserLogin: email ?? '',
+                                currentUserAccountID: accountID,
+                                personalDetails,
+                                isSelfTourViewed,
+                                hasCompletedGuidedSetupFlow,
+                                delegateAccountID,
+                                IOUTransactionID: firstTransaction?.reportAction?.childReportID,
+                                transactionPreviewData,
+                                shouldNavigate: false,
+                                fullPolicySnapshotLastModifiedByPolicyID,
+                            });
                         });
                     } else {
                         setOptimisticDataForTransactionThreadPreview(
@@ -787,9 +891,16 @@ function Search({
                 setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, getCurrencyDecimals, delegateAccountID, transactionItem?.reportAction?.childReportID);
             }
 
-            const route = ROUTES.SEARCH_REPORT.getRoute({reportID, backTo});
+            const route = ROUTES.SEARCH_REPORT.getRoute({
+                reportID,
+                backTo,
+                anchorTransactionID: isTransactionItem ? transactionItem.transactionID : undefined,
+            });
             if (openInternalRouteInNewTab(route, event)) {
                 return;
+            }
+            if (isTransactionItem) {
+                seedCarouselForOpenedExpense();
             }
             requestAnimationFrame(() => Navigation.navigate(route));
         },
@@ -807,11 +918,87 @@ function Search({
             offset,
             searchResults?.search?.hasMoreResults,
             currentSearchKey,
+            seedCarouselForOpenedExpense,
             getCurrencyDecimals,
-            conciergeChat,
             delegateAccountID,
+            fullPolicySnapshotLastModifiedByPolicyID,
         ],
     );
+
+    const onSelectRow = useCallback(
+        (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => {
+            selectRow(item, transactionPreviewData, event);
+        },
+        [selectRow],
+    );
+
+    const carouselSiblingsKey = carouselSiblingTransactionIDs.join(',');
+    const [activeCarouselTransactionIDs] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
+
+    // This list stays mounted behind the RHP, so it keeps the carousel in step with the results (an expense
+    // deleted from the list has to leave the carousel too). The active IDs are a dependency, not just a guard, so
+    // that it re-runs and stands down when another screen takes ownership - see TransactionThreadNavigation.ts.
+    useEffect(() => {
+        if (shouldShowLoadingState) {
+            return;
+        }
+        // The release below clears the carousel on the way out, which flips the active IDs and re-runs this effect.
+        // Without this guard that re-run would immediately re-seed the carousel the user just left behind.
+        if (!isSearchTopmostFullScreenRoute()) {
+            return;
+        }
+        if (!shouldRefreshActiveTransactionIDs(carouselSource, carouselSiblingTransactionIDs)) {
+            return;
+        }
+        setActiveTransactionIDs(carouselSiblingTransactionIDs, {source: carouselSource, snapshotHash: hash});
+        hasSeededCarouselRef.current = true;
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- carouselSiblingsKey is an order-sensitive proxy for the array, which is rebuilt on every search data change
+    }, [carouselSiblingsKey, activeCarouselTransactionIDs, carouselSource, hash, shouldShowLoadingState, isFocused]);
+
+    // The effect above seeds the carousel with no row press, so this list has to release it when the user leaves
+    // for another tab - otherwise the Spend page's expenses page on inside any one-transaction report opened later.
+    //
+    // Blur, not unmount: the Spend tab uses `freezeOnBlur` without `unmountOnBlur`, so leaving it for the Inbox
+    // never unmounts this component. Hence `isFocused` as a dependency. Opening the RHP over Search also blurs it,
+    // so the release stands down while Search is still the topmost full-screen route, which also keeps a re-sort
+    // from stripping the arrows of an expense open in the RHP.
+    //
+    // Teardown is deliberately separate from the seeding effect: folding it in would run the cleanup on every
+    // re-seed, and a run that then bailed at one of the guards would leave the carousel cleared.
+    useEffect(() => {
+        return () => {
+            if (!hasSeededCarouselRef.current) {
+                return;
+            }
+            if (isSearchTopmostFullScreenRoute()) {
+                return;
+            }
+            hasSeededCarouselRef.current = false;
+            clearActiveTransactionIDsForSource(carouselSource);
+        };
+    }, [carouselSource, isFocused]);
+
+    // An unmounting instance always gives up ownership, even while Search is still the topmost full-screen route.
+    // This page is keyed by the query hash, so sorting, filtering or switching Spend tabs unmounts this instance
+    // and mounts a new one under `search:<newHash>`. The blur-time release above stands down in that moment
+    // (Search is still topmost), which left `search:<oldHash>` owning the carousel with no mounted screen able to
+    // refresh or release it, so the replacement list could never seed and the stale one kept driving the arrows.
+    //
+    // It hands ownership over rather than clearing: the expense open in the RHP keeps its arrows while the new
+    // results load, instead of losing them for the duration - and for good, when the new results no longer hold
+    // that expense. The header already drops the arrows on its own once the open expense isn't in the list.
+    //
+    // `carouselSource` is constant for an instance's lifetime (the hash is its React key), so this runs on
+    // unmount only.
+    useEffect(() => {
+        return () => {
+            if (!hasSeededCarouselRef.current) {
+                return;
+            }
+            hasSeededCarouselRef.current = false;
+            disownActiveTransactionIDs(carouselSource);
+        };
+    }, [carouselSource]);
 
     // getColumnsToShow allocates a fresh array on every call; preserve the previous reference
     // when contents are equal so downstream consumers don't re-render on Onyx snapshot churn
@@ -825,6 +1012,7 @@ function Search({
 
     const previousColumns = usePrevious(currentColumns);
     const [columnsToShow, setColumnsToShow] = useState<SearchColumnType[]>(getEmptyArray);
+    const {hidableColumns, hideColumn} = useHideSearchColumn(queryJSON, columnsToShow);
 
     // If columns have changed, trigger an animation before settings columnsToShow to prevent
     // new columns appearing before the fade out animation happens
@@ -844,7 +1032,7 @@ function Search({
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
-    const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled);
+    const canSelectMultiple = !isChat && !isTask && !shouldReturnTripRooms && (!isSmallScreenWidth || isMobileSelectionModeEnabled);
 
     useSaveSortedReportIDs(type, sortedData);
 
@@ -917,7 +1105,14 @@ function Search({
             // a reload strands an adopted page in loading, so re-ask it once; search() drops it if it is still running
             if (isLivePageAdopted && !isOffline) {
                 setIsLivePageAdopted(false);
-                handleSearch({queryJSON, searchKey: currentSearchKey, offset: nextOffset, shouldCalculateTotals, prevReportsLength: filteredDataLength, isLoading: false});
+                handleSearch({
+                    queryJSON,
+                    searchKey: currentSearchKey,
+                    offset: nextOffset,
+                    shouldCalculateTotals: shouldCalculateNextPageTotals,
+                    prevReportsLength: filteredDataLength,
+                    isLoading: false,
+                });
             }
             return;
         }
@@ -940,7 +1135,7 @@ function Search({
             queryJSON,
             searchKey: currentSearchKey,
             offset: nextOffset,
-            shouldCalculateTotals,
+            shouldCalculateTotals: shouldCalculateNextPageTotals,
             prevReportsLength: filteredDataLength,
             isLoading: false,
         });
@@ -967,7 +1162,7 @@ function Search({
         handleSearch,
         queryJSON,
         currentSearchKey,
-        shouldCalculateTotals,
+        shouldCalculateNextPageTotals,
         filteredDataLength,
     ]);
 
@@ -998,6 +1193,10 @@ function Search({
 
     const onLayoutBase = useCallback(() => {
         hasHadFirstLayout.current = true;
+        // Not visible yet: the submit spans and the pending write wait for the first open, which the focus effect below handles.
+        if (isInPreloadedTab) {
+            return;
+        }
         onDestinationVisible?.(isSearchResultsEmptyRef.current, 'layout');
         endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
             [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true,
@@ -1007,16 +1206,15 @@ function Search({
         TransitionTracker.runAfterTransitions({
             callback: () => flushPendingSearchWrite(),
         });
-    }, [onDestinationVisible]);
+    }, [onDestinationVisible, isInPreloadedTab]);
 
     // Deferred layout only needs the base work (no scroll handling, no content-ready signal).
     const onDeferredLayout = onLayoutBase;
 
     const onLayout = useCallback(() => {
         onLayoutBase();
-        handleSelectionListScroll(stableSortedData, searchListRef.current);
         onContentReady?.();
-    }, [onLayoutBase, handleSelectionListScroll, stableSortedData, onContentReady]);
+    }, [onLayoutBase, onContentReady]);
 
     // Must be a ref, not state: cancelNavigationSpans is called during render
     // (inside conditional returns), so using setState would trigger infinite re-renders.
@@ -1056,12 +1254,17 @@ function Search({
 
     const onLayoutChart = useCallback(() => {
         hasHadFirstLayout.current = true;
+        // The chart has no onContentReady (that would also dismiss the submit overlay), so it tells a preloaded tab directly.
+        markPreloadedTabContentReady();
+        if (isInPreloadedTab) {
+            return;
+        }
         endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
             [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true,
         });
         endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_FIRST);
         endNavigateToReportsContentLoad();
-    }, []);
+    }, [isInPreloadedTab, markPreloadedTabContentReady]);
 
     // Tracks whether the pending-expense tracking was re-armed on re-focus
     // (subsequent expense creation while Search stays mounted). Used by the
@@ -1081,8 +1284,18 @@ function Search({
             // stays mounted (the original hasPendingWriteOnMountRef only covers the first).
             if (hasPendingSearchWrite() && !showPendingExpensePlaceholder) {
                 wasRearmedRef.current = true;
-                rearmTracking();
-                setSkeletonWasDisplayed(true);
+                const rearm = () => {
+                    rearmTracking();
+                    setSkeletonWasDisplayed(true);
+                };
+
+                // On a wide pre-mount reveal Search focuses while the RHP is sliding out. Re-arming re-renders the whole list,
+                // so a transition keeps that render from blocking the slide.
+                if (Navigation.getIsRevealingPreMountedFullscreen()) {
+                    startTransition(rearm);
+                } else {
+                    rearm();
+                }
             }
 
             onDestinationVisible?.(isSearchResultsEmptyRef.current, 'focus');
@@ -1141,6 +1354,7 @@ function Search({
                       shouldShowYearApproved: false,
                       shouldShowYearPosted: false,
                       shouldShowYearExported: false,
+                      shouldShowYearPaid: false,
                       shouldShowYearWithdrawn: false,
                   },
         [searchResults?.data, isExpenseReportType, type],
@@ -1155,6 +1369,40 @@ function Search({
                       shouldShowTaxAmountInWideColumn: false,
                   },
         [searchResults?.data],
+    );
+
+    // The same flags the column header below is built from, so a row and its heading can't disagree about how wide a
+    // column is. Read once here because they are decided across the whole search, not from the rows currently loaded.
+    // Memoized above the early returns: this file doesn't compile with React Compiler, and a new object re-renders every row.
+    const isActionColumnWide = isTask || hasDeletedTransaction;
+    const isDateColumnCreated = isCreatedDateType(type);
+    const columnSizeOptions: GetReportTableColumnStylesParams = useMemo(
+        () => ({
+            isActionColumnWide,
+            isDateColumnCreated,
+            isDateColumnWide: yearIndicators.shouldShowYearCreated,
+            isSubmittedColumnWide: yearIndicators.shouldShowYearSubmitted,
+            isApprovedColumnWide: yearIndicators.shouldShowYearApproved,
+            isPostedColumnWide: yearIndicators.shouldShowYearPosted,
+            isExportedColumnWide: yearIndicators.shouldShowYearExported,
+            isPaidColumnWide: yearIndicators.shouldShowYearPaid,
+            isWithdrawnColumnWide: yearIndicators.shouldShowYearWithdrawn,
+            isAmountColumnWide: amountIndicators.shouldShowAmountInWideColumn,
+            isTaxAmountColumnWide: amountIndicators.shouldShowTaxAmountInWideColumn,
+        }),
+        [
+            isActionColumnWide,
+            isDateColumnCreated,
+            yearIndicators.shouldShowYearCreated,
+            yearIndicators.shouldShowYearSubmitted,
+            yearIndicators.shouldShowYearApproved,
+            yearIndicators.shouldShowYearPosted,
+            yearIndicators.shouldShowYearExported,
+            yearIndicators.shouldShowYearPaid,
+            yearIndicators.shouldShowYearWithdrawn,
+            amountIndicators.shouldShowAmountInWideColumn,
+            amountIndicators.shouldShowTaxAmountInWideColumn,
+        ],
     );
 
     const onSortPress = useCallback(
@@ -1182,6 +1430,8 @@ function Search({
         return <View onLayout={onDeferredLayout} />;
     }
 
+    const listContainerStyle = shouldUseNarrowLayout ? searchListContentContainerStyle : styles.mt3;
+
     // This is a performance optimization for the submit-expense->search path only.
     // The SearchPage skeleton (useSearchLoadingState) doesn't cover this case because
     // Search must mount for its onLayout to flush the deferred CreateMoneyRequest API write, which would block the JS thread causing a slowdown on post expense creation navigation
@@ -1190,7 +1440,7 @@ function Search({
             <SearchRowSkeleton
                 shouldAnimate
                 onLayout={onSkeletonLayout}
-                containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3}
+                containerStyle={listContainerStyle}
             />
         );
     }
@@ -1199,6 +1449,15 @@ function Search({
         Log.alert('[Search] Undefined search type');
         cancelNavigationSpans();
         return <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>;
+    }
+
+    if (hasUnresolvedErrors) {
+        return (
+            <SearchRowSkeleton
+                shouldAnimate
+                containerStyle={listContainerStyle}
+            />
+        );
     }
 
     if (hasErrors) {
@@ -1214,9 +1473,11 @@ function Search({
                 shouldCalculateTotals: shouldCalculateTotalsOnRetry,
                 prevReportsLength: filteredDataLength,
                 isLoading: !!searchResults?.search?.isLoading,
+                // Must match the page-level request this retry triggers, or search() re-sends the query as an upgrade.
+                shouldSaveRecentSearch: true,
             });
         };
-        // failureData stores NO_RESPONSE when the request never got a server answer, so only the results' freshness is in
+        // search() stores NO_RESPONSE when the request never got a server answer, so only the results' freshness is in
         // doubt and the refresh copy fits. Any code the server did return marks a real failure and keeps the error copy,
         // and an invalid query gets no button because re-sending it cannot succeed.
         let failureKind: ValueOf<typeof CONST.SEARCH.FAILURE_KIND> = CONST.SEARCH.FAILURE_KIND.FAILED;
@@ -1248,7 +1509,7 @@ function Search({
             },
         } as const;
         return (
-            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3, styles.flex1]}>
+            <View style={[listContainerStyle, styles.flex1]}>
                 <FullPageErrorView
                     shouldShow
                     containerStyle={styles.searchBlockingErrorViewContainer}
@@ -1272,7 +1533,7 @@ function Search({
     ) {
         cancelNavigationSpans();
         return (
-            <View style={[styles.flex1, isInLandscapeMode ? undefined : [shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3]]}>
+            <View style={[styles.flex1, isInLandscapeMode ? undefined : [listContainerStyle]]}>
                 <EmptySearchView
                     similarSearchHash={similarSearchHash}
                     type={type}
@@ -1280,13 +1541,14 @@ function Search({
                     queryJSON={queryJSON}
                     violationSnapshotStartedAt={searchResults?.search?.violationSnapshotStartedAt}
                     onScroll={onSearchListScroll}
-                    contentContainerStyle={isInLandscapeMode ? styles.searchListContentContainerStyles(!!hasFilterBars) : undefined}
+                    contentContainerStyle={isInLandscapeMode ? searchListContentContainerStyle : undefined}
                 />
             </View>
         );
     }
 
-    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported, shouldShowYearWithdrawn} = yearIndicators;
+    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported, shouldShowYearPaid, shouldShowYearWithdrawn} =
+        yearIndicators;
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = amountIndicators;
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
     const tableHeaderVisible = canSelectMultiple || shouldShowTableHeader;
@@ -1313,13 +1575,14 @@ function Search({
         return (
             <SearchScopeProvider>
                 <Animated.ScrollView
-                    style={styles.flex1}
-                    contentContainerStyle={styles.flexGrow1}
+                    ref={chartScrollViewRef}
+                    style={[styles.flex1, chartScrollLockStyle]}
+                    {...chartTabRootScrollProps}
                     onScroll={onSearchListScroll}
                     onLayout={onLayoutChart}
                     scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                 >
-                    <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3, styles.mh4, styles.mb4, styles.flex1]}>
+                    <View style={[listContainerStyle, styles.mh4, styles.mb4, styles.flex1]}>
                         <SearchChartWrapper
                             title={chartTitle}
                             groupBy={validGroupBy}
@@ -1338,10 +1601,10 @@ function Search({
         );
     }
 
-    // Transaction lists (expense, invoice, trip) render through the flat or grouped view depending on groupBy;
-    // chat, expense-report and task each have their own dedicated view. Every view composes BaseSearchList
-    // directly, and the snapshot, lifecycle and selection providers stay here so the data layer runs once.
-    const isTransactionListView = type !== CONST.SEARCH.DATA_TYPES.CHAT && type !== CONST.SEARCH.DATA_TYPES.TASK && type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+    // Transaction lists (expense, invoice, and trip without the TravelApproval beta) render through the flat or grouped view
+    // depending on groupBy; chat, expense-report, task and trip rooms each have their own dedicated view. Every view composes
+    // BaseSearchList directly, and the snapshot, lifecycle and selection providers stay here so the data layer runs once.
+    const isTransactionListView = type !== CONST.SEARCH.DATA_TYPES.CHAT && type !== CONST.SEARCH.DATA_TYPES.TASK && type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && !shouldReturnTripRooms;
 
     let searchTablePaddingRightStyle;
     if (!isTask) {
@@ -1349,7 +1612,7 @@ function Search({
     }
     const searchTableHeader = !shouldShowTableHeader ? undefined : (
         // Match the rows' trailing arrow spacing so the header columns line up with them.
-        <View style={[searchTablePaddingRightStyle, styles.flex1]}>
+        <View style={[searchTablePaddingRightStyle, styles.flex1, styles.alignSelfStretch]}>
             <SearchTableHeader
                 canSelectMultiple={canSelectMultiple}
                 columns={columnsToShow}
@@ -1362,14 +1625,23 @@ function Search({
                 shouldShowYearApproved={shouldShowYearApproved}
                 shouldShowYearPosted={shouldShowYearPosted}
                 shouldShowYearExported={shouldShowYearExported}
+                shouldShowYearPaid={shouldShowYearPaid}
                 shouldShowYearWithdrawn={shouldShowYearWithdrawn}
                 isAmountColumnWide={shouldShowAmountInWideColumn}
                 isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
                 shouldShowSorting
                 groupBy={validGroupBy}
-                isExpenseReportView={isExpenseReportType}
-                isActionColumnWide={isTask || hasDeletedTransaction}
-            />
+                // Trip rows share the expense report layout (Total without flex), so the header aligns the same way
+                isExpenseReportView={isExpenseReportType || shouldReturnTripRooms}
+                isActionColumnWide={isActionColumnWide}
+            >
+                {shouldShowColumnMenu && (
+                    <SearchColumnMenu
+                        hidableColumns={hidableColumns}
+                        hideColumn={hideColumn}
+                    />
+                )}
+            </SearchTableHeader>
         </View>
     );
 
@@ -1384,22 +1656,7 @@ function Search({
             />
         ) : undefined;
 
-    // The same flags the column header above is built from, so a row and its heading can't disagree about how wide a
-    // column is. Read once here because they are decided across the whole search, not from the rows currently loaded.
-    const columnSizeOptions: GetReportTableColumnStylesParams = {
-        isActionColumnWide: isTask || hasDeletedTransaction,
-        isDateColumnWide: shouldShowYearCreated,
-        isSubmittedColumnWide: shouldShowYearSubmitted,
-        isApprovedColumnWide: shouldShowYearApproved,
-        isPostedColumnWide: shouldShowYearPosted,
-        isExportedColumnWide: shouldShowYearExported,
-        isWithdrawnColumnWide: shouldShowYearWithdrawn,
-        isAmountColumnWide: shouldShowAmountInWideColumn,
-        isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
-    };
-
     const commonViewProps: CommonSearchViewProps = {
-        ref: searchListRef,
         queryJSON,
         data: stableSortedData,
         columns: columnsToShow,
@@ -1417,7 +1674,7 @@ function Search({
         isMobileSelectionModeEnabled,
         newTransactions,
         hasLoadedAllTransactions,
-        isActionColumnWide: isTask || hasDeletedTransaction,
+        isActionColumnWide,
         columnSizeOptions,
     };
 
@@ -1444,6 +1701,8 @@ function Search({
         searchListContent = <ChatSearchView {...commonViewProps} />;
     } else if (isExpenseReportType) {
         searchListContent = <ExpenseReportSearchView {...commonViewProps} />;
+    } else if (shouldReturnTripRooms) {
+        searchListContent = <TripSearchView {...commonViewProps} />;
     } else {
         // TASK is the only remaining data type.
         searchListContent = <TaskSearchView {...commonViewProps} />;
@@ -1453,8 +1712,10 @@ function Search({
         <SearchScopeProvider>
             <SearchWriteActionsProvider
                 filteredData={filteredData}
+                renderedData={stableSortedData}
                 totalSelectableItemsCount={totalSelectableItemsCount}
                 searchResults={searchResults}
+                searchHash={hash}
                 transactions={transactions}
                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                 type={type}
@@ -1470,7 +1731,6 @@ function Search({
 
 Search.displayName = 'Search';
 
-export type {HoldMenuCallback};
 const WrappedSearch = Sentry.withProfiler(Search) as typeof Search;
 WrappedSearch.displayName = 'Search';
 
