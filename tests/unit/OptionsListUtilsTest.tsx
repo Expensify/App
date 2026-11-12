@@ -1401,7 +1401,9 @@ describe('OptionsListUtils', () => {
             const approveOnlyPolicyID = 'APPROVE_ONLY_POLICY_1';
             const approveOnlyChatReportID = '901';
 
-            const buildPolicyWithRole = (role: Policy['role']): Policy => ({
+            // The member role defaults to the workspace role, which is how a policy usually arrives when both agree.
+            // Passing them separately models a member whose own role differs from the workspace-wide one.
+            const buildPolicyWithRole = (role: Policy['role'], memberRole: Policy['role'] = role): Policy => ({
                 id: approveOnlyPolicyID,
                 name: 'Approve Only Workspace',
                 role,
@@ -1412,7 +1414,7 @@ describe('OptionsListUtils', () => {
                 employeeList: {
                     [CURRENT_USER_EMAIL]: {
                         email: CURRENT_USER_EMAIL,
-                        role,
+                        role: memberRole,
                     },
                 },
             });
@@ -1487,6 +1489,15 @@ describe('OptionsListUtils', () => {
                 const {options: results} = getOptionsForPolicy(buildPolicyWithRole(CONST.POLICY.ROLE.USER));
 
                 expect(results.workspaceChats).toEqual(expect.arrayContaining([expect.objectContaining({reportID: approveOnlyChatReportID})]));
+            });
+
+            it('should exclude the workspace chat when only the member role is approveOnly and the workspace role is admin', () => {
+                // Given a workspace whose own role allows everything, while the current user's member entry is Approve-only
+                const {options: results} = getOptionsForPolicy(buildPolicyWithRole(CONST.POLICY.ROLE.ADMIN, CONST.POLICY.ROLE.APPROVE_ONLY));
+
+                // Then the chat is still excluded, because the permission is decided by the member's own role
+                expect(results.workspaceChats).toEqual([]);
+                expect(results.recentReports.find((report) => report.reportID === approveOnlyChatReportID)).toBeUndefined();
             });
         });
 

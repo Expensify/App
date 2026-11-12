@@ -3269,6 +3269,8 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, rules
  *
  * @param policyParam - the report's policy from the caller's own snapshot. It's ignored when it isn't the report's policy.
  * @param currentUserAccountID - falls back to the session's account ID when omitted
+ * @param currentUserLogin - falls back to the session's email when omitted. The create-expenses check needs it: the
+ * role that decides it is the current member's own `employeeList` entry, not `policy.role`.
  */
 function canAddTransaction(
     moneyRequestReport: OnyxEntry<Report>,
@@ -3277,6 +3279,7 @@ function canAddTransaction(
     isMovingTransaction = false,
     policyParam?: OnyxEntry<Policy>,
     currentUserAccountID?: number,
+    currentUserLogin?: string,
 ): boolean {
     // A bill mirrors the vendor's invoice, so its expenses come only from that invoice.
     // isMoneyRequestReport excludes bills today. This check keeps bills blocked once bills count as expense reports.
@@ -3289,7 +3292,11 @@ function canAddTransaction(
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = policyParam?.id && policyParam.id === moneyRequestReport?.policyID ? policyParam : getPolicy(moneyRequestReport?.policyID);
 
-    if (policy && !canCreateExpensesOnPolicy(policy)) {
+    // The create-expenses permission belongs to the member, not to the workspace as a whole, so this reads the current
+    // member's role rather than the workspace-level one. An admin-level `policy.role` must not let a member whose own
+    // role forbids creating expenses add one. currentUserLogin will be required eventually, like currentUserAccountID,
+    // so callers subscribe to it and pass it in. See https://github.com/Expensify/App/issues/66412
+    if (policy && !canCreateExpensesOnPolicy(policy, currentUserLogin ?? deprecatedCurrentUserEmail)) {
         return false;
     }
 
@@ -11975,7 +11982,14 @@ function hasIOUWaitingOnCurrentUserBankAccount(chatReport: OnyxInputOrEntry<Repo
  * - in a 1:1 DM chat
  */
 // TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
-function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, otherParticipants: number[], rules: OnyxCollection<Rule>, currentUserAccountID?: number): boolean {
+function canRequestMoney(
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    otherParticipants: number[],
+    rules: OnyxCollection<Rule>,
+    currentUserAccountID?: number,
+    currentUserLogin?: string,
+): boolean {
     // User cannot submit expenses in a chat thread, task report or in a chat room
     if (isChatThread(report) || isTaskReport(report) || isSupportTicket(report) || isChatRoom(report) || isSelfDM(report) || isGroupChat(report)) {
         return false;
@@ -11991,8 +12005,10 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
         return false;
     }
 
-    // Members without create-expenses permission get no create options in the workspace chats and reports.
-    if (!!policy?.id && report?.policyID === policy.id && !canCreateExpensesOnPolicy(policy)) {
+    // The create-expenses permission belongs to the member, not to the workspace as a whole, so this reads the current
+    // member's role rather than the workspace-level one. A workspace whose global role allows creating expenses must not
+    // offer the option to a member whose own role does not.
+    if (!!policy?.id && report?.policyID === policy.id && !canCreateExpensesOnPolicy(policy, currentUserLogin ?? deprecatedCurrentUserEmail)) {
         return false;
     }
 
@@ -12067,6 +12083,7 @@ function getMoneyRequestOptions(
     isReportArchived = false,
     isRestrictedToPreferredPolicy = false,
     currentUserAccountID?: number,
+    currentUserLogin?: string,
 ): IOUType[] {
     const isTeachersUniteReportValue = isTeachersUniteReport(report);
 
@@ -12109,7 +12126,7 @@ function getMoneyRequestOptions(
         options = [CONST.IOU.TYPE.TRACK];
     }
 
-    if (canRequestMoney(report, policy, otherParticipants, rules, currentUserAccountID)) {
+    if (canRequestMoney(report, policy, otherParticipants, rules, currentUserAccountID, currentUserLogin)) {
         if (!isTeachersUniteReportValue) {
             options = [...options, CONST.IOU.TYPE.SUBMIT];
             if (!filterDeprecatedTypes) {
@@ -12180,8 +12197,9 @@ function temporary_getMoneyRequestOptions(
     isReportArchived = false,
     isRestrictedToPreferredPolicy = false,
     currentUserAccountID?: number,
+    currentUserLogin?: string,
 ): Array<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE>> {
-    return getMoneyRequestOptions(report, policy, reportParticipants, rules, true, isReportArchived, isRestrictedToPreferredPolicy, currentUserAccountID) as Array<
+    return getMoneyRequestOptions(report, policy, reportParticipants, rules, true, isReportArchived, isRestrictedToPreferredPolicy, currentUserAccountID, currentUserLogin) as Array<
         Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE>
     >;
 }
@@ -12436,6 +12454,7 @@ function canCreateRequest(
     isReportArchived: boolean | undefined,
     rules: OnyxCollection<Rule>,
     isRestrictedToPreferredPolicy = false,
+    currentUserLogin?: string,
 ): boolean {
     const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
 
@@ -12443,7 +12462,7 @@ function canCreateRequest(
         return false;
     }
 
-    const requestOptions = getMoneyRequestOptions(report, policy, participantAccountIDs, rules, false, isReportArchived, isRestrictedToPreferredPolicy);
+    const requestOptions = getMoneyRequestOptions(report, policy, participantAccountIDs, rules, false, isReportArchived, isRestrictedToPreferredPolicy, undefined, currentUserLogin);
     requestOptions.push(CONST.IOU.TYPE.CREATE);
 
     return requestOptions.includes(iouType);

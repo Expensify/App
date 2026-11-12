@@ -63,7 +63,7 @@ const ACCESS_VARIANTS = {
         isValidMoneyRequestType(iouType) &&
         // Allow the user to submit the expense if we are submitting the expense in global menu or the report can create the expense
 
-        (isEmptyObject(report?.reportID) || canCreateRequest(report, policy, iouType, isReportArchived, rules, isRestrictedToPreferredPolicy)) &&
+        (isEmptyObject(report?.reportID) || canCreateRequest(report, policy, iouType, isReportArchived, rules, isRestrictedToPreferredPolicy, login)) &&
         (iouType !== CONST.IOU.TYPE.INVOICE || canSendInvoice),
 } as const satisfies Record<
     string,

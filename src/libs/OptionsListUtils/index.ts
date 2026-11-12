@@ -2008,7 +2008,9 @@ function isValidReport(
         return false;
     }
 
-    if (isPolicyExpenseChat && excludeWorkspacesWithoutCreateExpensePermission && !canCreateExpensesOnPolicy(policy)) {
+    // The create-expenses permission belongs to the member, so this checks the current member's `employeeList` entry
+    // rather than the workspace-level role. Same reason as `getActivePoliciesWithExpenseChat`.
+    if (isPolicyExpenseChat && excludeWorkspacesWithoutCreateExpensePermission && !canCreateExpensesOnPolicy(policy, currentUserLogin)) {
         return false;
     }
 
