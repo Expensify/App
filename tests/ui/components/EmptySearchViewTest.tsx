@@ -249,7 +249,7 @@ describe('EmptySearchView', () => {
             // When the user presses Create expense
             fireEvent.press(await screen.findByText(translateLocal('iou.createExpense')));
 
-            // Then the drafts are read on press and passed on, so starting a new flow still clears the old draft
+            // Then that draft goes to startMoneyRequest, so starting a new flow still clears it
             await waitFor(() => expect(startMoneyRequestSpy).toHaveBeenCalledWith(CONST.IOU.TYPE.CREATE, expect.any(String), ['draft1']));
         });
 

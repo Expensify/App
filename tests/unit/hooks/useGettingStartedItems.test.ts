@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention -- test fixtures use backend-shaped object keys that don't follow camelCase: email addresses for PolicyEmployeeList entries and human-readable names / 'GL Code' for PolicyCategories */
-import {renderHook, waitFor} from '@testing-library/react-native';
+import {act, renderHook, waitFor} from '@testing-library/react-native';
 
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -1864,16 +1864,20 @@ describe('useGettingStartedItems', () => {
             });
 
             it('should pass the draft IDs that exist when createExpense is pressed', async () => {
-                // Given a draft written after the hook rendered. The hook no longer subscribes to drafts, so it must read them when pressed
+                // Given a draft written after the hook rendered, which only a read at press time sees
                 startMoneyRequest.mockClear();
                 await setupTrackPersonalScenario({policy: {areCategoriesEnabled: true}});
                 const {result} = renderHook(() => useGettingStartedItems());
-                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}draft1`, {transactionID: 'draft1'});
+                await act(async () => {
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}draft1`, {transactionID: 'draft1'});
+                });
+                const createExpenseItem = result.current.items.find((item) => item.key === 'createExpense');
+                expect(createExpenseItem?.onPress).toBeDefined();
 
                 // When the user presses createExpense
-                result.current.items.find((item) => item.key === 'createExpense')?.onPress?.();
+                createExpenseItem?.onPress?.();
 
-                // Then the press reads the current drafts instead of a value captured at render, so the old flow's draft is still cleared
+                // Then that draft goes to startMoneyRequest, so starting a new flow still clears it
                 await waitFor(() => expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.CREATE, expect.any(String), ['draft1']));
             });
 

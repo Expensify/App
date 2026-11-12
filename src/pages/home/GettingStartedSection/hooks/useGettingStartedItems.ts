@@ -240,8 +240,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             subText: translate('homePage.gettingStartedSection.createExpenseSubText'),
             isComplete: hasCreatedExpense,
             onPress: () => {
-                // Read the drafts on press instead of subscribing. Starting Create expense writes a draft, and a subscription here
-                // would re-render Home in the same commit that opens the Create expense page.
+                // Read the drafts on press, since a subscription would re-render Home when Create expense writes its draft.
                 Onyx.get(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT).then((drafts) => startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), validTransactionDraftIDsSelector(drafts)));
             },
         });

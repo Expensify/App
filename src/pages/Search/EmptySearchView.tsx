@@ -61,7 +61,7 @@ type EmptySearchViewProps = {
     onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     contentContainerStyle?: StyleProp<ViewStyle>;
 
-    /** Whether the Search screen is focused. A hidden tab ignores draft writes, so starting Create expense does not re-render it. */
+    /** Whether the Search screen is focused. While hidden, the tab ignores draft writes. */
     isScreenFocused?: boolean;
 };
 
@@ -204,7 +204,7 @@ function EmptySearchViewContent({
 
     const handleCreateMoneyRequest = (iouType: typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE) => {
         interceptAnonymousUser(() => {
-            // Read the drafts on press instead of subscribing, so a draft write from Create expense doesn't re-render this hidden tab.
+            // Read the drafts on press, since a subscription would re-render this hidden tab when Create expense writes its draft.
             Onyx.get(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT).then((drafts) => startMoneyRequest(iouType, generateReportID(), validTransactionDraftIDsSelector(drafts)));
         }, session);
     };
