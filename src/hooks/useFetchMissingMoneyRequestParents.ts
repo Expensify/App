@@ -39,10 +39,7 @@ function missingParentsSelector(reports: OnyxCollection<Report>): MissingParent[
     return [...missingParents.values()];
 }
 
-/**
- * In Focus mode OpenApp leaves out an expense report that looks read by its own timestamps, even when its transaction thread has an unread comment.
- * Without the parent, the LHN can't show the report as unread, so we load each such parent once without marking anything as read.
- */
+/** Opens each missing parent once without marking it as read, so the LHN can show it as unread. */
 function useFetchMissingMoneyRequestParents() {
     const {isOffline} = useNetwork();
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
