@@ -138,7 +138,7 @@ function resetPusherDraftPace(runtime: PusherDraftPaceRefs) {
     lastPaceTickTimeRef.current = 0;
 }
 
-function clearCachedPusherDraft(runtime: PusherDraftPacingRuntime) {
+function clearCachedPusherDraft(runtime: PusherDraftPaceRefs & Pick<PusherDraftPacingRuntime, 'completedReportActionIDsRef' | 'currentDraftRef' | 'reportID' | 'setDraft'>) {
     const {completedReportActionIDsRef, currentDraftRef, reportID, setDraft} = runtime;
 
     // Clearing the display must not let delayed Pusher events restart a completed reply.
@@ -900,7 +900,6 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
 
     const clearDraft = () => {
         clearCachedPusherDraft({
-            personalDetailsListRef,
             completedReportActionIDsRef,
             completedPusherDraftEventRef,
             currentDraftRef,
@@ -909,7 +908,6 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
             finalRenderedHTMLRevealLastStageRef,
             finalRenderedHTMLRevealStartedAtRef,
             finalRenderedHTMLRevealTokensRef,
-            isGroupPolicyReport,
             lastPaceTickTimeRef,
             latestPusherDraftEventRef,
             pusherPaceIntervalRef,
@@ -920,7 +918,6 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
             visibleBodyMarkdownRef,
             visibleSourceMarkdownRef,
             visibleSourceOffsetRef,
-            visibleSequenceRef,
         });
     };
 
