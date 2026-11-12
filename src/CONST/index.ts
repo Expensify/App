@@ -2829,6 +2829,18 @@ const CONST = {
             EXPENSE_HAS_RECEIPT: 'expense_has_receipt',
             EXPENSE_COMMAND: 'expense_command',
             EXPENSE_JSON_CODE: 'expense_json_code',
+            /** Low-cardinality reason for an expense API rejection, derived from the server's error UUID, then its message, then its response code. See EXPENSE_FAILURE_REASON. */
+            EXPENSE_FAILURE_REASON: 'expense_failure_reason',
+            /** How much attention an expense API rejection deserves. See EXPENSE_FAILURE_CLASS. */
+            EXPENSE_FAILURE_CLASS: 'expense_failure_class',
+            /** Which of the server's identifiers the reason was derived from: its error UUID, its message, the response code, or none. See EXPENSE_REASON_SOURCE. */
+            EXPENSE_REASON_SOURCE: 'expense_reason_source',
+            /**
+             * The server's own identifier for the error site that threw. Forwarded verbatim, so this is the one expense tag
+             * whose values are server-authored text rather than our constants. It stays low-cardinality because the values are
+             * source literals in Web-Expensify, one per throw site, around 250 of them in the command path.
+             */
+            EXPENSE_ERROR_UUID: 'expense_error_uuid',
             MFA_SCENARIO: 'mfa_scenario',
             MFA_ERROR_REASON: 'mfa_error_reason',
             BUILD_TYPE: 'build_type',
@@ -2847,6 +2859,113 @@ const CONST = {
             REPORT_ACTION: 'report_action',
             REPORT_CREATION: 'report_creation',
             API_RESPONSE: 'api_response',
+        },
+        /**
+         * Why the server rejected an expense write. Every value is a string we picked, never text lifted from the response,
+         * so tag cardinality stays bounded however the server rewords its messages. Derived in `trackExpenseApiError`, which
+         * reads the server's error UUID first, then its message, then its response code. Names come from the cause at the
+         * throw site in Web-Expensify, not from the English text the client happens to receive: several throw sites share one
+         * message, and two of them mean different things (see the notes below).
+         */
+        EXPENSE_FAILURE_REASON: {
+            /**
+             * `403 New request cannot be added to this expense report`, thrown when the report's state or status is past
+             * SUBMITTED. On a Submit & Close policy the first expense auto-closes the report, so the rest of a batch lands here.
+             */
+            EXPENSE_REPORT_CLOSED: 'expense_report_closed',
+
+            /** `403 New request cannot be added to this IOU report`, thrown unless the IOU report is exactly SUBMITTED. */
+            IOU_REPORT_NOT_SUBMITTED: 'iou_report_not_submitted',
+
+            /** `403 New request cannot be added to this report`, thrown when instant-submit found the report not OPEN. */
+            REPORT_NOT_OPEN: 'report_not_open',
+
+            /** `403 New money request cannot be added to this report`, thrown for a money request aimed at the user's own DM. */
+            SELF_DM: 'self_dm',
+
+            /**
+             * A report that will not take the expense, identified only by wording: the plural message four throw sites share,
+             * reached with no UUID to tell them apart, or the singular `403 New expense cannot be added to this report`, which
+             * the API passes through unmapped.
+             */
+            REPORT_UNAVAILABLE: 'report_unavailable',
+
+            /**
+             * `401 Unauthorized` from an ownership, membership or policy-match check, which the API relabels as "…permissions
+             * required to create expense on this policy." It is not a role check: the approve-only role is the separate
+             * `MEMBER_CANNOT_CREATE_EXPENSES`. This is a stale-or-wrong target, the same family as the closed-report reasons.
+             */
+            TARGET_UNAUTHORIZED: 'target_unauthorized',
+
+            /** `401 User cannot add transactions to this report`, thrown when the report has no policy. */
+            REPORT_WRITE_FORBIDDEN: 'report_write_forbidden',
+
+            /** Raw `401 This member cannot create expenses on this policy.`: the member's own role is approve-only. */
+            MEMBER_CANNOT_CREATE_EXPENSES: 'member_cannot_create_expenses',
+
+            SELF_REQUEST: 'self_request',
+            INVALID_AMOUNT: 'invalid_amount',
+            INVALID_ATTENDEE: 'invalid_attendee',
+            RECEIPT_AND_RECEIPT_ID: 'receipt_and_receipt_id',
+            RECEIPT_ALREADY_ATTACHED: 'receipt_already_attached',
+            CHAT_ALREADY_EXISTS: 'chat_already_exists',
+            POLICY_NOT_EXPENSE_ENABLED: 'policy_not_expense_enabled',
+            PAYER_NOT_ALLOWED: 'payer_not_allowed',
+
+            /** The server admitted the write failed and sent no detail beyond that, so there is nothing to classify. */
+            SERVER_GENERIC: 'server_generic',
+
+            /** The server asked for a newer app build, so nothing about the expense itself failed. */
+            APP_VERSION_DEPRECATED: 'app_version_deprecated',
+
+            /**
+             * The session expired mid-write. Reauthentication consumes almost every 407 before it reaches here, so what does
+             * arrive is a 407 it gave up on without signing the user out. Still not an expense problem, so it is routed away
+             * from the issue stream rather than dropped, which leaves the question of where it should surface.
+             */
+            NOT_AUTHENTICATED: 'not_authenticated',
+
+            /** A rejection that carried no server message and no response code we match. */
+            NO_MESSAGE: 'no_message',
+
+            /** A server error we have no mapping for yet. Watch this bucket to find reasons worth naming. */
+            OTHER: 'other',
+        },
+        /**
+         * How much attention an expense API rejection deserves, so an expected rejection can be told apart from a real failure.
+         */
+        EXPENSE_FAILURE_CLASS: {
+            /** The server enforcing a business rule about the user's situation, working as designed. */
+            EXPECTED: 'expected',
+
+            /** The server rejecting a request shape we build, such as a param combination our own types should prevent. */
+            CLIENT_BUG: 'client_bug',
+
+            /** A rejection no fix on our side would prevent, such as a build the server refuses to serve. */
+            NOT_OUR_PROBLEM: 'not_our_problem',
+            /** A rejection we have no mapping for, so it stays visible until someone classifies it. */
+            UNCLASSIFIED: 'unclassified',
+        },
+        /**
+         * Which response field the failure reason came from. `error_uuid` means the classification rested on the server's own
+         * error-site id and will survive a rewording of its text.
+         *
+         * The matches are exact, so a rewording on the API side moves a rejection out of `message` and into `other`, and the
+         * `message` count falls rather than rising. Read a falling `message` count against a rising `other` count as the
+         * signal that the API changed its wording, then mine the `errorMessage` extra on those events for the new strings.
+         */
+        EXPENSE_REASON_SOURCE: {
+            ERROR_UUID: 'error_uuid',
+            MESSAGE: 'message',
+
+            /** The reason rests on the response code, which tells us far less than either of the two above. */
+            JSON_CODE_ONLY: 'json_code_only',
+
+            /** A UUID arrived that we have not mapped: a throw site nobody has named yet. */
+            UNKNOWN_ERROR_UUID: 'unknown_error_uuid',
+
+            /** No UUID, no message we know, no code we match. */
+            NONE: 'none',
         },
         DB_SIZE_SOURCE: {
             SQLITE: 'sqlite',
@@ -3353,6 +3472,106 @@ const CONST = {
         ALREADY_CREATED_TRANSACTION: 'Transaction already created.',
         ALREADY_PAID: 'The request has already been paid',
         SERVICE_UNAVAILABLE: 'Service unavailable',
+    },
+    /**
+     * Identifiers Web-Expensify gives each expense-write error site. They arrive as the response's `UUID` and are fixed per
+     * throw site, which makes them the most reliable thing to classify on: a rewording of the message cannot break a match.
+     * The value of each key is the UUID literal at that site, and the comment names the Auth error it maps from.
+     * Source: Web-Expensify `lib/Auth.php`, the `catch (ExpException)` ladder in `Auth::requestMoney`. Verified against
+     * upstream/main `c9ef75bc39b`.
+     *
+     * Only RequestMoney has this ladder. TrackExpense re-throws unmapped, so a TrackExpense rejection arrives with the raw
+     * Auth error and no UUID at all, and can only be matched by message.
+     */
+    EXPENSE_ERROR_UUID: {
+        /** Maps `401 Unauthorized`, thrown by an ownership, membership or policy-match check. */
+        TARGET_UNAUTHORIZED: '20621D04-93E4-4CA6-B7ED-729CA171B7C2',
+
+        /** Maps `401 User cannot add transactions to this report`. */
+        REPORT_WRITE_FORBIDDEN: '9EAFACEA-4E73-4216-BB60-1DFA4BDE243A',
+
+        /** Maps `403 New request cannot be added to this IOU report`. The API reuses it for a `404 user not found` mapping that Auth never throws. */
+        IOU_REPORT_NOT_SUBMITTED: 'D59B5F7D-38B3-4E68-B83A-2FB5DBDACD97',
+
+        /** Maps `403 New request cannot be added to this expense report`. */
+        EXPENSE_REPORT_CLOSED: '9FC073E8-D25E-4D06-A8DD-50829801ED9A',
+
+        /** Maps `403 New request cannot be added to this report`. */
+        REPORT_NOT_OPEN: 'E46EEEA9-714C-4E31-A763-5BC9B38CA0B4',
+
+        /** Maps `403 New money request cannot be added to this report`. */
+        SELF_DM: 'E9DABDCE-75CA-4728-92A8-6AEA557102E7',
+
+        /** Maps `405 Invalid attendee data`. */
+        INVALID_ATTENDEE: 'bf85a3d8-1d0f-407e-98b1-570394602f0a',
+
+        /** Maps `405 Invalid attendee array format`, which the API words differently but means the same. */
+        INVALID_ATTENDEE_FORMAT: '28447b0f-56c8-4c3d-a67e-a790c7b50fc6',
+
+        /** Maps `405 Cannot pass both receipt and receiptID params`, whose message the API words as a generic failure. */
+        RECEIPT_AND_RECEIPT_ID: 'E243B69F-D4C0-48FA-9493-3F7D9654D973',
+
+        /** Maps `405 Receipt already attached`. */
+        RECEIPT_ALREADY_ATTACHED: 'C7E84C93-FC41-4674-8954-D49E8BEE04CB',
+
+        /** Maps `405 invalid amount`. */
+        INVALID_AMOUNT: 'B7A91555-A88C-4E86-B5FC-BB4F0EB9C6A9',
+
+        /** Maps `405 active policy is not expense chat enabled`. */
+        POLICY_NOT_EXPENSE_ENABLED: '57112904-7C25-4798-BA23-B5FC6EA25D37',
+
+        /** Maps `406 Chat report with these participants already exists with different ID`. */
+        CHAT_ALREADY_EXISTS: 'F12EAA71-A469-4665-8125-D33131FDFA22',
+
+        /** Maps `406 Trying to make money transaction to themselves`. */
+        SELF_REQUEST: 'F8C3CB72-5DEC-4C7E-A3F1-93F120BF121A',
+
+        /** Maps `406 Creating expense should not specify payer`, whose message the API words as a policy problem. */
+        PAYER_NOT_ALLOWED: '559B3218-8870-4AAD-AB64-FDF3C0087770',
+
+        /** Thrown before any command runs, when the app version is below the minimum. Source: Web-Expensify `api.php`. */
+        APP_VERSION_DEPRECATED: '65d6d532-e161-4886-b06e-a6cf7c08bd24',
+    },
+    /**
+     * Exact `message` values the API returns for a rejected expense write, used only when no `EXPENSE_ERROR_UUID` matched:
+     * a rejection that Web-Expensify passes through unmapped carries no UUID, and TrackExpense never has one.
+     *
+     * An unmapped `ExpException` reaches us with the raw Auth error line, which includes its status prefix, because the API
+     * merges the exception's data over its message. Hence the prefixed keys below. Strings belong here rather than at their
+     * use sites because they are wire values: a rewording on the server is found by searching for the old one.
+     */
+    EXPENSE_CREATION_ERROR_MESSAGE: {
+        /** Four throw sites share this wording, so on its own it cannot say which report state rejected the write. */
+        REPORT_UNAVAILABLE_SHARED: 'New expenses cannot be added to this report.',
+
+        /**
+         * Relabels the ownership/membership/policy-mismatch 401. Prefer the UUID: the text says "permissions", but the cause
+         * is not a permission check, and the role check that would fit this wording is a different rejection.
+         */
+        TARGET_UNAUTHORIZED: 'You do not have the permissions required to create expense on this policy.',
+
+        /** Relabels `401 User cannot add transactions to this report`. */
+        REPORT_WRITE_FORBIDDEN: 'You do not have the permissions required to create expense on this report.',
+
+        /** Passed through unmapped, with no UUID: the Auth error line as thrown. */
+        MEMBER_CANNOT_CREATE_EXPENSES: '401 This member cannot create expenses on this policy.',
+
+        /** Passed through unmapped, with no UUID: the Auth error line as thrown. */
+        REPORT_UNAVAILABLE_RAW: '403 New expense cannot be added to this report',
+
+        SELF_REQUEST: 'The accounts in this request are associated, you cannot request money from yourself.',
+        INVALID_AMOUNT: 'The amount provided is invalid, please update it and try creating the expense again.',
+        INVALID_ATTENDEE: 'The attendee data is invalid.',
+        INVALID_ATTENDEE_FORMAT: 'The attendee data format is invalid.',
+        RECEIPT_ALREADY_ATTACHED: 'This receipt is already attached to another expense or has already finished SmartScanning. Please check the Expenses table.',
+        CHAT_ALREADY_EXISTS: 'There is a previously existing chat between these users.',
+        POLICY_NOT_EXPENSE_ENABLED: 'Unable to create expense on your active policy, please reach out to Concierge if this issue persists.',
+
+        /** Words a generic failure, from two throw sites that the UUID tells apart. */
+        SERVER_GENERIC: 'Something went wrong when trying to create expense. try again or reach out to Concierge.',
+
+        /** Thrown before the command runs, when the app version is below the minimum. Not about the expense at all. */
+        APP_VERSION_DEPRECATED: 'Deprecated app version',
     },
     SIGN_OUT_REASON: {
         USER_SIGN_OUT: 'userSignOut',
