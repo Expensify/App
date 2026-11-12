@@ -3,13 +3,12 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
-import {normalizeCountryCode} from '@libs/CountryUtils';
+import {getCountryCode, normalizeCountryCode} from '@libs/CountryUtils';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 
 import AddressPage from '@pages/AddressPage';
 
 import type {FormOnyxValues} from '@src/components/Form/types';
-import type {Country} from '@src/CONST';
 import {updateAddress as updateAddressPersonalDetails} from '@src/libs/actions/PersonalDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
@@ -39,14 +38,14 @@ function PersonalAddressPage() {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [defaultCountry, defaultCountryStatus] = useOnyx(ONYXKEYS.COUNTRY);
     const isLoading = isLoadingOnyxValue(defaultCountryStatus);
-    const address = normalizeCountryCode(getCurrentAddress(privatePersonalDetails)) as Address;
+    const address = normalizeCountryCode(getCurrentAddress(privatePersonalDetails));
 
     if (isLoading) {
         return <FullScreenLoadingIndicator />;
     }
     return (
         <AddressPage
-            defaultCountry={defaultCountry as Country}
+            defaultCountry={getCountryCode(defaultCountry)}
             address={address}
             isLoadingApp={isLoadingApp}
             updateAddress={(values) => updateAddress(values, privatePersonalDetails?.addresses ?? [])}

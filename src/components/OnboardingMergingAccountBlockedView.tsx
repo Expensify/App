@@ -60,6 +60,7 @@ function OnboardingMergingAccountBlockedView({workEmail, isVsb, onConfirm}: Onbo
                 subtitleStyle={[styles.colorMuted]}
             />
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.MERGING_ACCOUNT_BLOCKED_CONFIRM}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.LARGE}
                 style={[styles.mb5]}

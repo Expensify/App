@@ -6,6 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import Navigation from '@libs/Navigation/Navigation';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -27,6 +28,7 @@ function ReportDetailsMenuDebugItem({reportID}: ReportDetailsMenuDebugItemProps)
 
     return (
         <MenuItem.Root
+            sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.DEBUG}
             onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID))}
             accessibilityLabel={translate('debug.debug')}
         >
