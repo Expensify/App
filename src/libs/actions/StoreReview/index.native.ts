@@ -14,21 +14,17 @@ import {hasAction as hasStoreReviewAction, isAvailableAsync, requestReview as re
 async function requestReview(): Promise<void> {
     try {
         // Determine if any review action is possible on this build/device/config
-        const hasAction = typeof hasStoreReviewAction === 'function' && (await hasStoreReviewAction());
+        const hasAction = await hasStoreReviewAction();
         if (!hasAction) {
             Log.info('[StoreReview] No review action found', false, {hasAction});
             return;
         }
 
         // Check if available before requesting (returns false on web, TestFlight, Android <5.0)
-        const available = typeof isAvailableAsync === 'function' && (await isAvailableAsync());
+        const available = await isAvailableAsync();
         if (available) {
             Log.info('[StoreReview] Requesting review', false, {available});
-            if (typeof requestNativeReview === 'function') {
-                await requestNativeReview();
-            } else {
-                Log.hmmm('[StoreReview] No requestNativeReview function found');
-            }
+            await requestNativeReview();
             return;
         }
 
