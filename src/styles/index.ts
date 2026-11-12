@@ -4141,6 +4141,12 @@ const staticStyles = (theme: ThemeColors) =>
             fontWeight: FontUtils.fontWeight.bold,
         },
 
+        // Lays a centered heading's label over the hidden copy that sizes its slot
+        searchColumnMenuLabelOverlay: {
+            ...StyleSheet.absoluteFill,
+            justifyContent: 'center',
+        },
+
         zIndex10: {
             zIndex: 10,
         },
@@ -4420,6 +4426,20 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
             backgroundColor: theme.buttonDefaultBG,
             borderRadius: 20,
+        },
+
+        receiptScanningLine: {
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            borderTopWidth: CONST.RECEIPT.TRANSLATION_SCAN_LINE_HEIGHT,
+            borderTopColor: theme.success,
+        },
+
+        translatedReceiptCard: {
+            width: '100%',
+            maxWidth: 400,
         },
 
         bgGreenSuccess: {

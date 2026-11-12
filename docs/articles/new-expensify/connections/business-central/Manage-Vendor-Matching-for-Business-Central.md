@@ -4,8 +4,6 @@ description: Learn how Dynamics 365 Business Central vendor matching assigns ven
 keywords: [Dynamics 365 Business Central, Business Central, D365, vendor matching, vendor, blocked vendor, company card expenses]
 internalScope: Audience is workspace admins using the Dynamics 365 Business Central connection. Covers imported Business Central vendors, automatic and manual vendor assignment, blocked vendor filtering, and vendors that are no longer valid. Does not cover Business Central connection setup, Business Central export configuration, or vendor matching for other accounting connections.
 order: 3
-noindex: true
-sitemap: false
 ---
 
 # Manage Vendor Matching for Dynamics 365 Business Central

@@ -7,7 +7,6 @@ import Log from '@libs/Log';
 import saveLastRoute from '@libs/saveLastRoute';
 
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject, ImagePickerResponse} from '@src/types/utils/Attachment';
 
 import type {ReactNativeBlobUtilReadStream} from 'react-native-blob-util';
@@ -753,31 +752,6 @@ const isValidReceiptExtension = (file: FileObject) => {
     return CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.some((extension) => extension === normalizedExtension);
 };
 
-const validateReceipt = (file: FileObject, setUploadReceiptError: (isInvalid: boolean, title: TranslationPaths, reason: TranslationPaths) => void) => {
-    return validateImageForCorruption(file)
-        .then(() => {
-            if (!isValidReceiptExtension(file)) {
-                setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
-                return false;
-            }
-
-            if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
-                setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceededWithLimit');
-                return false;
-            }
-
-            if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-                setUploadReceiptError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
-                return false;
-            }
-            return true;
-        })
-        .catch(() => {
-            setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
-            return false;
-        });
-};
-
 const hasHeicOrHeifExtension = (file: FileObject) => {
     return file.name?.toLowerCase().endsWith('.heic') || file.name?.toLowerCase().endsWith('.heif');
 };
@@ -1062,13 +1036,11 @@ export {
     getExportFileName,
     appendTimeToFileName,
     ANDROID_SAFE_FILE_NAME_LENGTH,
-    truncateFileNameToSafeLengthOnAndroid,
     readFileAsync,
     base64ToFile,
     convertFileObjectOrUriToBase64DataURL,
     isLocalFile,
     validateImageForCorruption,
-    isImage,
     getFileResolution,
     isHighResolutionImage,
     verifyFileFormat,
@@ -1077,7 +1049,6 @@ export {
     getImageDimensionsAfterResize,
     resizeImageIfNeeded,
     createFile,
-    validateReceipt,
     normalizeFileObject,
     getMimeTypeFromUri,
     isValidReceiptExtension,
