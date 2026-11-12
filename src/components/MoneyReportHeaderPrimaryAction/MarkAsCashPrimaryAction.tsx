@@ -13,14 +13,16 @@ import type {SimpleActionProps} from './types';
 
 import useTransactionThreadData from './useTransactionThreadData';
 
-function MarkAsCashPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
+function MarkAsCashPrimaryAction({reportID, chatReportID, isDisabled}: SimpleActionProps) {
     const {translate} = useLocalize();
     const {requestParentReportAction, iouTransactionID, transactionThreadReport} = useTransactionThreadData(reportID, chatReportID);
     const transactionViolations = useTransactionViolations(iouTransactionID);
 
     return (
         <Button
+            sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_PRIMARY_ACTION.MARK_AS_CASH}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
+            isDisabled={isDisabled}
             onPress={() => {
                 if (!requestParentReportAction || !iouTransactionID || !transactionThreadReport?.reportID) {
                     return;

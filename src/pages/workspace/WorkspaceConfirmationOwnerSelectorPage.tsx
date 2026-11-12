@@ -1,4 +1,3 @@
-import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
@@ -22,7 +21,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
 import type {Participant} from '@src/types/onyx/IOU';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
@@ -162,12 +160,7 @@ function WorkspaceConfirmationOwnerSelectorPageContent({currentOwner}: Workspace
 
 function WorkspaceConfirmationOwnerSelectorPage() {
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
-    const [draftValues, draftValuesMetadata] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM_DRAFT);
-
-    // Wait for the draft to load so the initial owner selection is seeded correctly on mount
-    if (isLoadingOnyxValue(draftValuesMetadata)) {
-        return <FullscreenLoadingIndicator />;
-    }
+    const [draftValues] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM_DRAFT);
 
     return <WorkspaceConfirmationOwnerSelectorPageContent currentOwner={draftValues?.owner ?? currentUserLogin ?? ''} />;
 }

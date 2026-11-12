@@ -1,6 +1,6 @@
 import Icon from '@components/Icon';
-import Text from '@components/Text';
 
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -11,6 +11,9 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import React from 'react';
 import {View} from 'react-native';
 
+import getTabIconFill from './getTabIconFill';
+import TabBarLabel from './TabBarLabel';
+
 type TabBarItemProps = {
     icon: IconAsset;
     label: string;
@@ -20,40 +23,39 @@ type TabBarItemProps = {
     numberOfLines?: number;
 };
 
-function getIconFill(isSelected: boolean, isHovered: boolean, theme: ReturnType<typeof useTheme>) {
-    if (isSelected) {
-        return theme.iconMenu;
-    }
-    if (isHovered) {
-        return theme.success;
-    }
-    return theme.icon;
-}
-
 function TabBarItem({icon, label, isSelected, isHovered = false, statusIndicatorColor, numberOfLines = 2}: TabBarItemProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    const iconSize = shouldUseNarrowLayout ? variables.iconFloatingTabBar : variables.iconBottomBar;
 
     return (
-        <>
+        <View
+            style={[
+                styles.navigationTabBarItem,
+                shouldUseNarrowLayout && styles.navigationTabBarItemNarrow,
+                shouldUseNarrowLayout && isSelected && styles.navigationTabBarItemSelected,
+                isInLandscapeMode && [styles.flexRow, styles.gap1Half],
+            ]}
+        >
             <View>
                 <Icon
                     src={icon}
-                    fill={getIconFill(isSelected, isHovered, theme)}
-                    width={variables.iconBottomBar}
-                    height={variables.iconBottomBar}
+                    fill={getTabIconFill(isSelected, isHovered, theme)}
+                    width={iconSize}
+                    height={iconSize}
                 />
                 {!!statusIndicatorColor && (
                     <View style={[styles.navigationTabBarStatusIndicator, styles.statusIndicatorColor(statusIndicatorColor), isHovered && {borderColor: theme.sidebarHover}]} />
                 )}
             </View>
-            <Text
+            <TabBarLabel
+                label={label}
+                isSelected={isSelected}
                 numberOfLines={numberOfLines}
-                style={[styles.textSmall, styles.textAlignCenter, styles.mt1Half, isSelected ? styles.textBold : styles.textSupporting, styles.navigationTabBarLabel]}
-            >
-                {label}
-            </Text>
-        </>
+                style={!isInLandscapeMode && (shouldUseNarrowLayout ? styles.mt1 : styles.mt1Half)}
+            />
+        </View>
     );
 }
 

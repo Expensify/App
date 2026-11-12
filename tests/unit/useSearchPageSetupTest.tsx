@@ -2,6 +2,8 @@ import {renderHook} from '@testing-library/react-native';
 
 import useSearchPageSetup from '@hooks/useSearchPageSetup';
 
+import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
+import {markPendingSearchWrite, resetForTesting as resetPendingSearchWrite} from '@libs/pendingSearchWrite';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
@@ -10,6 +12,7 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 
 import type * as ReactNavigation from '@react-navigation/native';
 
+const mockClearSelectedTransactions = jest.fn<void, [number | boolean | undefined, boolean | undefined]>();
 const mockOpenSearch = jest.fn<void, [unknown, number | undefined]>();
 const mockSearch = jest.fn<void, unknown[]>();
 const mockMarkPageRequestedSearch = jest.fn<void, unknown[]>();
@@ -21,6 +24,9 @@ let mockLastFocusCallback: (() => void) | undefined;
 let mockFocusCleanups: Array<() => void> = [];
 // Mutable so a test can move a real effect dependency and force the effect to run again.
 let mockSearchKey: SearchKey | undefined;
+// Mutable so a test can open a tab that was preloaded at idle.
+let mockIsInPreloadedTab = false;
+let mockShouldUseLiveData = false;
 
 jest.mock('@react-navigation/native', () => {
     const actualNavigation: typeof ReactNavigation = jest.requireActual('@react-navigation/native');
@@ -53,12 +59,14 @@ jest.mock('@libs/actions/ReportNavigation', () => ({
 
 jest.mock('@hooks/useNetwork', () => () => ({isOffline: mockIsOffline}));
 
+jest.mock('@hooks/useIsInPreloadedTab', () => () => mockIsInPreloadedTab);
+
 jest.mock('@hooks/useSearchShouldCalculateTotals', () => () => false);
 
 jest.mock('@components/Search/SearchContext', () => ({
-    useSearchResultsContext: () => ({shouldUseLiveData: false, currentSearchResults: mockSearchResults}),
+    useSearchResultsContext: () => ({shouldUseLiveData: mockShouldUseLiveData, currentSearchResults: mockSearchResults}),
     useSearchQueryContext: () => ({currentSearchKey: mockSearchKey}),
-    useSearchSelectionActions: () => ({clearSelectedTransactions: jest.fn()}),
+    useSearchSelectionActions: () => ({clearSelectedTransactions: mockClearSelectedTransactions}),
     useSearchSelectionContext: () => ({areAllMatchingItemsSelected: false}),
 }));
 
@@ -105,22 +113,46 @@ function buildLoadedButPendingSnapshot(hash: number): SearchResults {
     } as unknown as SearchResults;
 }
 
+/** Results the page already has on screen, as the idle tab preload leaves behind once its request finished. */
+function buildLoadedSnapshot(hash: number): SearchResults {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    return {
+        search: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            hash,
+            isLoading: false,
+            offset: 0,
+            state: CONST.SEARCH.SNAPSHOT_STATE.LOADED,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+        },
+        data: {},
+    } as unknown as SearchResults;
+}
+
 /** The hashes openSearch() was asked to clear, ignoring the plain calls that only load bank account data. */
 function getClearedHashes() {
     return mockOpenSearch.mock.calls.map((call) => call[1]).filter((hash) => hash !== undefined);
 }
 
+const mockedSaveLastSearchParams = jest.mocked(saveLastSearchParams);
+
 describe('useSearchPageSetup', () => {
     beforeEach(() => {
+        mockedSaveLastSearchParams.mockClear();
+        mockClearSelectedTransactions.mockClear();
         mockOpenSearch.mockClear();
         mockSearch.mockClear();
         mockSearchResults = undefined;
         mockSearchKey = undefined;
+        mockIsInPreloadedTab = false;
+        mockShouldUseLiveData = false;
         mockIsOffline = false;
         mockLastFocusCallback = undefined;
         mockMarkPageRequestedSearch.mockClear();
         mockClearPageRequestedSearch.mockClear();
         mockFocusCleanups = [];
+        resetPendingSearchWrite();
     });
 
     it('claims the first page only when the page is the one requesting it', () => {
@@ -181,6 +213,15 @@ describe('useSearchPageSetup', () => {
 
         // Then the error is dropped, because errored and terminal reads as resolved and nothing would request again
         expect(getClearedHashes()).toEqual([queryJSON?.hash]);
+    });
+
+    it('clears the selection when the search itself changes', () => {
+        const {rerender} = renderHook(({queryJSON: currentQueryJSON}) => useSearchPageSetup(currentQueryJSON), {initialProps: {queryJSON}});
+        mockClearSelectedTransactions.mockClear();
+
+        rerender({queryJSON: queryJSONB});
+
+        expect(mockClearSelectedTransactions).toHaveBeenCalledWith(queryJSONB?.hash);
     });
 
     it('does not clear the same hash twice when the failure comes straight back', () => {
@@ -260,5 +301,82 @@ describe('useSearchPageSetup', () => {
 
         // Then each query got exactly one clear, so switching back and forth cannot re-request forever
         expect(getClearedHashes()).toEqual([queryJSON?.hash, queryJSONB?.hash]);
+    });
+    describe('in a tab preloaded at idle', () => {
+        it('holds the request and the saved search params until the preloaded tab is opened', () => {
+            // Given a preloaded tab with nothing cached for its query, which no other test has saved yet
+            const uncachedQueryJSON = buildSearchQueryJSON('type:expense status:drafts');
+            mockIsInPreloadedTab = true;
+            const {rerender} = renderHook(() => useSearchPageSetup(uncachedQueryJSON));
+
+            // Then nothing is requested or written while the user has not opened the tab
+            expect(mockSearch).not.toHaveBeenCalled();
+            expect(mockedSaveLastSearchParams).not.toHaveBeenCalled();
+
+            // When the user opens the tab
+            mockIsInPreloadedTab = false;
+            rerender({});
+
+            // Then the page requests the query once, as on a normal visit, and records it as a recent search
+            expect(mockSearch).toHaveBeenCalledTimes(1);
+            expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: 0, shouldSaveRecentSearch: true}));
+            expect(mockSearch).not.toHaveBeenCalledWith(expect.objectContaining({shouldShowLoading: false}));
+            expect(mockedSaveLastSearchParams).toHaveBeenCalledTimes(1);
+        });
+
+        it('refreshes the query and records it as a recent search once, when the preloaded tab is first opened', () => {
+            // Given a preloaded tab built from cached results, so the page has nothing to request yet
+            mockIsInPreloadedTab = true;
+            mockSearchResults = buildLoadedSnapshot(queryJSON?.hash ?? 0);
+            const {rerender} = renderHook(() => useSearchPageSetup(queryJSON));
+            expect(mockSearch).not.toHaveBeenCalled();
+
+            // When the user opens the tab
+            mockIsInPreloadedTab = false;
+            rerender({});
+
+            // Then the page refreshes the query like a normal visit would, records the recent search, and keeps the preloaded
+            // results on screen instead of flashing a loading state over them
+            expect(mockSearch).toHaveBeenCalledTimes(1);
+            expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: 0, shouldSaveRecentSearch: true, shouldShowLoading: false}));
+
+            // And a later render does not repeat it
+            rerender({});
+            expect(mockSearch).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not refresh cached results when a submit opens the preloaded tab before its create request is sent', () => {
+            // Given a preloaded tab with cached results, and a submit whose expense is not written yet
+            mockIsInPreloadedTab = true;
+            mockSearchResults = buildLoadedSnapshot(queryJSON?.hash ?? 0);
+            const {rerender} = renderHook(() => useSearchPageSetup(queryJSON));
+            markPendingSearchWrite();
+
+            // When the submit opens the tab
+            mockIsInPreloadedTab = false;
+            rerender({});
+
+            // Then no request is sent, so a stale response cannot overwrite the new expense's optimistic row
+            expect(mockSearch).not.toHaveBeenCalled();
+        });
+
+        it('requests a to-do search once when the preloaded tab is first opened', () => {
+            // Given a preloaded tab showing a to-do search, which reads live rows and is otherwise requested by Search on mount
+            mockIsInPreloadedTab = true;
+            mockShouldUseLiveData = true;
+            const {rerender} = renderHook(() => useSearchPageSetup(queryJSON));
+            expect(mockSearch).not.toHaveBeenCalled();
+
+            // When the user opens the tab
+            mockIsInPreloadedTab = false;
+            rerender({});
+            rerender({});
+
+            // Then its first page is requested once, without saving it as a recent search, like Search does for a to-do on mount
+            expect(mockSearch).toHaveBeenCalledTimes(1);
+            expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: 0}));
+            expect(mockSearch).not.toHaveBeenCalledWith(expect.objectContaining({shouldSaveRecentSearch: true}));
+            expect(mockedSaveLastSearchParams).not.toHaveBeenCalled();
+        });
     });
 });

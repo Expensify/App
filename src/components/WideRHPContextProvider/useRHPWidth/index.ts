@@ -1,6 +1,12 @@
+import useOnyx from '@hooks/useOnyx';
+
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {navigationRef} from '@libs/Navigation/Navigation';
 
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {getReportType} from '@src/selectors/Report';
 
 import {useRoute} from '@react-navigation/native';
 import {useEffect} from 'react';
@@ -24,6 +30,8 @@ function useRHPWidth(width: RHPWidth) {
     const route = useRoute();
     const reportID = route.params && 'reportID' in route.params && typeof route.params.reportID === 'string' ? route.params.reportID : '';
     const {setRHPWidth, removeRHPRouteKey, getReportRHPWidthHint, unmarkReportRHPWidth} = useWideRHPActions();
+    const [reportType] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: getReportType});
+    const isWideHintExcluded = reportType === CONST.REPORT.TYPE.INVOICE || reportType === CONST.REPORT.TYPE.TASK;
 
     const onClose = () => {
         removeRHPRouteKey(route);
@@ -41,10 +49,11 @@ function useRHPWidth(width: RHPWidth) {
 
     // Register the width; a higher hint outranks the caller so the screen opens pre-marked before its data loads.
     useEffect(() => {
-        const hint = reportID ? getReportRHPWidthHint(reportID) : undefined;
+        const storedHint = reportID ? getReportRHPWidthHint(reportID) : undefined;
+        const hint = storedHint === 'wide' && isWideHintExcluded ? undefined : storedHint;
         const effectiveWidth: RHPWidth = hint && getWidthOrder(hint) > getWidthOrder(width) ? hint : width;
         setRHPWidth(route, effectiveWidth);
-    }, [width, reportID, route, setRHPWidth, getReportRHPWidthHint]);
+    }, [width, reportID, route, setRHPWidth, getReportRHPWidthHint, isWideHintExcluded]);
 
     // Clear the hint once the caller's width reaches it; onClose handles the never-reached case.
     useEffect(() => {

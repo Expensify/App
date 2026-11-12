@@ -18,7 +18,7 @@ import CONST from '@src/CONST';
 import KeyboardUtils from '@src/utils/keyboard';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {memo, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 
 type EmojiPickerButtonProps = {
     /** Flag to disable the emoji picker button */
@@ -103,4 +103,4 @@ function EmojiPickerButton({isDisabled = false, emojiPickerID = '', shiftVertica
     );
 }
 
-export default memo(EmojiPickerButton);
+export default EmojiPickerButton;

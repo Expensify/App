@@ -11,6 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -50,6 +51,7 @@ function RulesRequireFieldsPage({
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {showConfirmModal} = useConfirmModal();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     // The self-heal below writes to the server, so it needs the same Tags write check the Tags table uses.
     const {canWrite: canWriteTags} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
@@ -137,10 +139,14 @@ function RulesRequireFieldsPage({
         const hasTagLevelChanges = hasPerLevelTagRequired && changedTagLevels.length > 0;
         const hasSingleTagChange = !hasPerLevelTagRequired && tagRequired !== initialTagRequired;
         const categoryUpdateForTagRecompute = hasCategoryChange ? {requiresCategory: categoryRequired} : {};
+        // Only one of the two calls below should carry this, otherwise both requests would ask the backend to complete
+        // the same onboarding task with the same reportActionID.
+        let reviewWorkspaceSettingsTaskData = getReviewWorkspaceSettingsTaskCompletion();
 
         if (hasCategoryChange) {
             // With a tag change in the same save, the tag action owns the one violation recompute and carries requiresCategory into it.
-            setWorkspaceRequiresCategory(policyData, categoryRequired, isVendorMatchingBetaEnabled, !hasTagLevelChanges && !hasSingleTagChange);
+            setWorkspaceRequiresCategory(policyData, categoryRequired, isVendorMatchingBetaEnabled, !hasTagLevelChanges && !hasSingleTagChange, reviewWorkspaceSettingsTaskData);
+            reviewWorkspaceSettingsTaskData = {};
         }
 
         if (hasTagLevelChanges) {
@@ -152,7 +158,7 @@ function RulesRequireFieldsPage({
                 categoryUpdateForTagRecompute,
             );
         } else if (hasSingleTagChange) {
-            setPolicyRequiresTag(policyData, tagRequired, isVendorMatchingBetaEnabled, categoryUpdateForTagRecompute);
+            setPolicyRequiresTag(policyData, tagRequired, isVendorMatchingBetaEnabled, categoryUpdateForTagRecompute, reviewWorkspaceSettingsTaskData);
         }
 
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
@@ -216,7 +222,7 @@ function RulesRequireFieldsPage({
             if (action !== ModalActions.CONFIRM) {
                 return;
             }
-            Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+            Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.ACCOUNTING));
             return;
         }
 
@@ -266,7 +272,7 @@ function RulesRequireFieldsPage({
             if (action !== ModalActions.CONFIRM) {
                 return;
             }
-            Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+            Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.ACCOUNTING));
             return;
         }
 
@@ -307,6 +313,7 @@ function RulesRequireFieldsPage({
                     <ToggleSettingOptionRow
                         title={translate('workspace.rules.requireFields.category')}
                         switchAccessibilityLabel={translate('workspace.rules.requireFields.category')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_CATEGORY_SWITCH}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={styles.pv3}
                         isActive={categoryRequired}
@@ -321,7 +328,7 @@ function RulesRequireFieldsPage({
                     />
 
                     {hasPerLevelTagRequired ? (
-                        tagLists.map((tagList, tagListIndex) => {
+                        tagLists.map((tagList) => {
                             const label = getTagListLabel(tagList.name, genericTagLabel);
                             // Per the Tags table row: only this level's own tags gate its switch.
                             const areLevelTagsEnabled = hasEnabledOptions(Object.values(tagList.tags ?? {}));
@@ -331,6 +338,7 @@ function RulesRequireFieldsPage({
                                     key={tagList.name}
                                     title={label}
                                     switchAccessibilityLabel={label}
+                                    switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_TAG_LEVEL_SWITCH}
                                     shouldPlaceSubtitleBelowSwitch
                                     wrapperStyle={styles.pv3}
                                     isActive={getLevelRequired(tagList)}
@@ -340,7 +348,7 @@ function RulesRequireFieldsPage({
                                     disabledAction={shouldShowTagLock ? promptEnableTags : undefined}
                                     pendingAction={tagList.pendingFields?.required}
                                     errors={tagList.errorFields?.required ?? undefined}
-                                    onCloseError={() => clearPolicyTagListErrorField({policyID, tagListIndex, errorField: 'required', policyTags})}
+                                    onCloseError={() => clearPolicyTagListErrorField({policyID, tagListIndex: tagList.orderWeight, errorField: 'required', policyTags})}
                                     onToggle={(isOn) => handleTagListRequiredToggle(isOn, tagList)}
                                 />
                             );
@@ -349,6 +357,7 @@ function RulesRequireFieldsPage({
                         <ToggleSettingOptionRow
                             title={singleTagRowLabel}
                             switchAccessibilityLabel={singleTagRowLabel}
+                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_TAG_SWITCH}
                             shouldPlaceSubtitleBelowSwitch
                             wrapperStyle={styles.pv3}
                             isActive={tagRequired}

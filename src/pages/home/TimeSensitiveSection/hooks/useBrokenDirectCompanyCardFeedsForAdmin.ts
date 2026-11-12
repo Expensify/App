@@ -4,8 +4,6 @@ import {getCardFeedWithDomainID, isBrokenConnectionPastDismissThreshold, isDirec
 
 import type {TimeSensitiveAdminPolicy} from '@selectors/Policy';
 
-import {useMemo} from 'react';
-
 type BrokenCompanyCardConnection = {
     /** The policy ID associated with this connection */
     policyID: string;
@@ -28,51 +26,49 @@ type BrokenCompanyCardConnection = {
 function useBrokenDirectCompanyCardFeedsForAdmin(adminPolicies: TimeSensitiveAdminPolicy[] | undefined): BrokenCompanyCardConnection[] {
     const {cardsWithBrokenFeedConnection} = useCardFeedErrors();
 
-    return useMemo(() => {
-        if (!cardsWithBrokenFeedConnection || !adminPolicies) {
-            return [];
+    if (!cardsWithBrokenFeedConnection || !adminPolicies) {
+        return [];
+    }
+
+    const brokenCompanyCardConnectionsByFeed = new Map<string, BrokenCompanyCardConnection>();
+
+    for (const card of Object.values(cardsWithBrokenFeedConnection)) {
+        if (!card?.fundID) {
+            continue;
         }
 
-        const brokenCompanyCardConnectionsByFeed = new Map<string, BrokenCompanyCardConnection>();
-
-        for (const card of Object.values(cardsWithBrokenFeedConnection)) {
-            if (!card?.fundID) {
-                continue;
-            }
-
-            // Only direct OAuth/Plaid feeds are user-fixable; commercial feeds (vcf/cdf/etc.) are file-based
-            if (!isDirectFeed(card.bank)) {
-                continue;
-            }
-
-            // Stop offering the task once the connection has been unresolved past the grace period. The card stays in
-            // `cardsWithBrokenFeedConnection` so the Company cards page can still fix it. We just stop prompting here.
-            if (isBrokenConnectionPastDismissThreshold(card)) {
-                continue;
-            }
-
-            const cardFundID = Number(card.fundID);
-            const matchingPolicy = adminPolicies.find((policy) => policy.policyAccountID === cardFundID);
-
-            if (!matchingPolicy) {
-                continue;
-            }
-
-            const feedKey = getCardFeedWithDomainID(card.bank, card.fundID);
-            if (brokenCompanyCardConnectionsByFeed.has(feedKey)) {
-                continue;
-            }
-
-            brokenCompanyCardConnectionsByFeed.set(feedKey, {
-                policyID: matchingPolicy.id,
-                policyName: matchingPolicy.name,
-                cardID: String(card.cardID),
-                feedKey,
-            });
+        // Only direct OAuth/Plaid feeds are user-fixable; commercial feeds (vcf/cdf/etc.) are file-based
+        if (!isDirectFeed(card.bank)) {
+            continue;
         }
 
-        return Array.from(brokenCompanyCardConnectionsByFeed.values());
-    }, [adminPolicies, cardsWithBrokenFeedConnection]);
+        // Stop offering the task once the connection has been unresolved past the grace period. The card stays in
+        // `cardsWithBrokenFeedConnection` so the Company cards page can still fix it. We just stop prompting here.
+        if (isBrokenConnectionPastDismissThreshold(card)) {
+            continue;
+        }
+
+        const cardFundID = Number(card.fundID);
+        const matchingPolicy = adminPolicies.find((policy) => policy.policyAccountID === cardFundID);
+
+        if (!matchingPolicy) {
+            continue;
+        }
+
+        const feedKey = getCardFeedWithDomainID(card.bank, card.fundID);
+        if (brokenCompanyCardConnectionsByFeed.has(feedKey)) {
+            continue;
+        }
+
+        brokenCompanyCardConnectionsByFeed.set(feedKey, {
+            policyID: matchingPolicy.id,
+            policyName: matchingPolicy.name,
+            cardID: String(card.cardID),
+            feedKey,
+        });
+    }
+
+    return Array.from(brokenCompanyCardConnectionsByFeed.values());
 }
 
 export default useBrokenDirectCompanyCardFeedsForAdmin;

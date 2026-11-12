@@ -219,6 +219,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                             {isEditFlow ? (
                                 <>
                                     <MenuItemWithTopDescription
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_LIMIT_APPROVER}
                                         accessibilityLabel={approverDisplayName}
                                         titleStyle={styles.textNormalThemeText}
                                         description={translate('workflowsPage.approver')}
@@ -268,6 +269,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                             </View>
 
                             <MenuItemWithTopDescription
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_LIMIT_ADDITIONAL_APPROVER}
                                 accessibilityLabel={selectedApproverDisplayName}
                                 titleStyle={styles.textNormalThemeText}
                                 description={translate('workflowsApprovalLimitPage.additionalApproverLabel')}
@@ -294,7 +296,10 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                             />
 
                             {shouldShowRemoveLimitRow && (
-                                <MenuItemSectionRoot onPress={handleSkip}>
+                                <MenuItemSectionRoot
+                                    onPress={handleSkip}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_LIMIT_REMOVE}
+                                >
                                     <MenuItem.Row>
                                         <MenuItem.Leading>
                                             <MenuItem.Icon src={icons.Trashcan} />
@@ -311,6 +316,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                     <FixedFooter addBottomSafeAreaPadding>
                         {!isEditFlow && (
                             <Button
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_LIMIT_SKIP}
                                 size={CONST.BUTTON_SIZE.LARGE}
                                 onPress={handleSkip}
                                 style={styles.mb3}
@@ -319,6 +325,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                             </Button>
                         )}
                         <Button
+                            sentryLabel={isEditFlow ? CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_LIMIT_SUBMIT.SAVE : CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_LIMIT_SUBMIT.NEXT}
                             size={CONST.BUTTON_SIZE.LARGE}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={handleSubmit}

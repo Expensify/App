@@ -1,9 +1,13 @@
 /* cspell:disable */
+import DateUtils from '@libs/DateUtils';
 import {formatTransitLocationLabel, getAirReservations, getPNRReservationDataFromTripReport, getReservationsFromTripReport, isPnrCancelled} from '@libs/TripReservationUtils';
 
 import CONST from '@src/CONST';
 import type {ReportNameValuePairs} from '@src/types/onyx';
-import type {Pnr, RailPnr, TripData} from '@src/types/onyx/TripData';
+import type {HotelPnr, Pnr, RailPnr, TripData} from '@src/types/onyx/TripData';
+
+import cloneDeep from 'lodash/cloneDeep';
+import unset from 'lodash/unset';
 
 import {airReservationPnrData, airReservationTravelers} from '../data/TripAirReservationData';
 import {createRandomReport} from '../utils/collections/reports';
@@ -2090,7 +2094,7 @@ const hotelPnr: Pnr = {
             room: {
                 roomName: 'Deluxe Suite',
                 cancellationPolicy: {
-                    policy: 'Non-refundable',
+                    policy: CONST.CANCELLATION_POLICY.FREE_CANCELLATION_UNTIL,
                     deadline: {iso8601: '2023-10-04T15:00:00Z'},
                     deadlineUtc: {
                         iso8601: '',
@@ -2282,6 +2286,16 @@ const hotelPnrData = asDefined(hotelPnr.data.hotelPnr);
 const carPnrData = asDefined(carPnr.data.carPnr);
 const railPnrData = asDefined(railPnr.data.railPnr);
 const railInwardJourney = asDefined(railPnrData.inwardJourney);
+const hotelPnrWithTraveler: Pnr = {
+    ...hotelPnr,
+    data: {
+        ...hotelPnr.data,
+        hotelPnr: {
+            ...hotelPnrData,
+            travelerInfos: [{loyaltyInfos: [], travelerIdx: 0, userId: asDefined(hotelPnr.data.pnrTravelers.at(0)).userId}],
+        },
+    },
+};
 
 describe('TripReservationUtils', () => {
     describe('getAirReservations', () => {
@@ -2705,6 +2719,122 @@ describe('TripReservationUtils', () => {
         });
     });
 
+    describe('missing booking dates and durations', () => {
+        it.each(['departAt', 'arriveAt', 'duration'] as const)('should preserve mixed-trip reservations when rail %s is missing', (field) => {
+            // Given a mixed trip with one rail date or duration omitted by the travel provider
+            const report = createRandomReport(1, undefined);
+            const payload = cloneDeep(tripWithAllReservations);
+            const railData = asDefined(payload.pnrs.find((pnr) => pnr.data.railPnr)?.data.railPnr);
+            Reflect.deleteProperty(asDefined(railData.legInfos.at(0)), field);
+
+            // When the Home page extracts all reservations from the trip
+            const result = getReservationsFromTripReport(report, {tripData: {tripID: 'trip123', payload}});
+
+            // Then other bookings are unchanged and the rail reservation keeps its available details
+            const expected = getReservationsFromTripReport(report, {tripData: {tripID: 'trip123', payload: tripWithAllReservations}});
+            expect(result).toHaveLength(7);
+            expect(result.filter((item) => item.reservation.type !== CONST.RESERVATION_TYPE.TRAIN)).toEqual(
+                expected.filter((item) => item.reservation.type !== CONST.RESERVATION_TYPE.TRAIN),
+            );
+            const railReservation = asDefined(result.find((item) => item.reservation.type === CONST.RESERVATION_TYPE.TRAIN)?.reservation);
+            const expectedRail = asDefined(expected.find((item) => item.reservation.type === CONST.RESERVATION_TYPE.TRAIN)?.reservation);
+            expect(railReservation).toEqual({
+                ...expectedRail,
+                start: {...expectedRail.start, date: field === 'departAt' ? '' : expectedRail.start.date},
+                end: {...expectedRail.end, date: field === 'arriveAt' ? '' : expectedRail.end.date},
+                duration: field === 'duration' ? 0 : expectedRail.duration,
+            });
+        });
+
+        it('should preserve mixed-trip reservations when a flight duration is missing', () => {
+            // Given a mixed trip containing a flight without duration metadata
+            const report = createRandomReport(1, undefined);
+            const payload = cloneDeep(tripWithAllReservations);
+            const airData = asDefined(payload.pnrs.at(0)?.data.airPnr);
+            Reflect.deleteProperty(asDefined(asDefined(airData.legs.at(0)).flights.at(0)), 'duration');
+
+            // When the Home page extracts the reservations
+            const result = getReservationsFromTripReport(report, {tripData: {tripID: 'trip123', payload}});
+
+            // Then only the missing duration defaults to zero and every booking remains available
+            const expected = getReservationsFromTripReport(report, {tripData: {tripID: 'trip123', payload: tripWithAllReservations}});
+            expect(result).toEqual(expected.map((item) => (item.reservation.reservationID === airPnrDirect.pnrId ? {...item, reservation: {...item.reservation, duration: 0}} : item)));
+        });
+
+        it('should preserve mixed-trip reservations when a car cancellation deadline is missing', () => {
+            // Given a car cancellation policy that has text but no deadline
+            const report = createRandomReport(1, undefined);
+            const payload = cloneDeep(tripWithAllReservations);
+            const carData = asDefined(payload.pnrs.find((pnr) => pnr.data.carPnr)?.data.carPnr);
+            Reflect.deleteProperty(asDefined(carData.cancellationPolicy), 'deadline');
+
+            // When the Home page extracts the reservations
+            const result = getReservationsFromTripReport(report, {tripData: {tripID: 'trip123', payload}});
+
+            // Then the policy text and other bookings are retained without inventing a deadline
+            const expected = getReservationsFromTripReport(report, {tripData: {tripID: 'trip123', payload: tripWithAllReservations}});
+            expect(result).toEqual(
+                expected.map((item) => (item.reservation.type === CONST.RESERVATION_TYPE.CAR ? {...item, reservation: {...item.reservation, cancellationDeadline: null}} : item)),
+            );
+        });
+    });
+
+    describe('optional booking information', () => {
+        it.each<{pnr: Pnr; field: string; reservationCount: number; expectedDetails: Record<string, unknown>}>([
+            {pnr: airPnrDirect, field: 'airPnr.travelerInfos.0.userId', reservationCount: 7, expectedDetails: {travelerPersonalInfo: {name: '', email: ''}}},
+            {pnr: airPnrDirect, field: 'airPnr.travelerInfos.0.tickets', reservationCount: 6, expectedDetails: {}},
+            {pnr: airPnrDirect, field: 'airPnr.travelerInfos.0.tickets.0.flightCoupons', reservationCount: 6, expectedDetails: {}},
+            {pnr: airPnrDirect, field: 'airPnr.legs.0.flights.0.duration.iso8601', reservationCount: 7, expectedDetails: {duration: 0}},
+            {pnr: hotelPnrWithTraveler, field: 'hotelPnr.travelerInfos', reservationCount: 7, expectedDetails: {travelerPersonalInfo: {name: '', email: ''}}},
+            {pnr: hotelPnrWithTraveler, field: 'hotelPnr.travelerInfos.0.userId', reservationCount: 7, expectedDetails: {travelerPersonalInfo: {name: '', email: ''}}},
+            {pnr: hotelPnr, field: 'hotelPnr.room.cancellationPolicy.deadlineUtc', reservationCount: 7, expectedDetails: {cancellationDeadline: '2023-10-04T15:00:00Z'}},
+            {pnr: airPnrDirect, field: 'pnrTravelers.0.personalInfo', reservationCount: 7, expectedDetails: {travelerPersonalInfo: {name: '', email: ''}}},
+            {pnr: airPnrDirect, field: 'pnrTravelers.0.personalInfo.name', reservationCount: 7, expectedDetails: {travelerPersonalInfo: {name: '', email: 'john.doe@example.com'}}},
+            {pnr: carPnr, field: 'carPnr.cancellationPolicy', reservationCount: 7, expectedDetails: {cancellationPolicy: null, cancellationDeadline: null}},
+            {pnr: railPnr, field: 'railPnr.legInfos.0.originInfo', reservationCount: 7, expectedDetails: {start: {longName: undefined, shortName: '', cityName: undefined}}},
+            {pnr: railPnr, field: 'railPnr.legInfos.0.destinationInfo', reservationCount: 7, expectedDetails: {end: {longName: undefined, shortName: '', cityName: undefined}}},
+            {pnr: railPnr, field: 'railPnr.legInfos.0.duration.iso8601', reservationCount: 7, expectedDetails: {duration: 0}},
+            {pnr: railPnr, field: 'railPnr.passengerInfos', reservationCount: 7, expectedDetails: {travelerPersonalInfo: {name: '', email: ''}}},
+            {pnr: railPnr, field: 'railPnr.tickets.0.passengerRefs.0', reservationCount: 7, expectedDetails: {travelerPersonalInfo: {name: '', email: ''}}},
+            {pnr: railPnr, field: 'railPnr.legInfos.0', reservationCount: 6, expectedDetails: {}},
+            {pnr: railPnr, field: 'railPnr.tickets', reservationCount: 6, expectedDetails: {}},
+        ])('should preserve available bookings when $field is missing', ({pnr, field, reservationCount, expectedDetails}) => {
+            // Given a mixed trip with one optional field omitted from a booking
+            const report = createRandomReport(1, undefined);
+            const incompletePnr = cloneDeep(pnr);
+            unset(incompletePnr.data, field);
+            const payload = {...tripWithAllReservations, pnrs: tripWithAllReservations.pnrs.map((item) => (item.pnrId === pnr.pnrId ? incompletePnr : item))};
+
+            // When the Home page and trip room parse the reservations
+            const result = getReservationsFromTripReport(report, {tripData: {tripID: 'trip123', payload}});
+
+            // Then only unavailable details are omitted and unrelated reservations stay unchanged
+            const expected = getReservationsFromTripReport(report, {tripData: {tripID: 'trip123', payload: tripWithAllReservations}});
+            expect(result).toHaveLength(reservationCount);
+            expect(result.filter((item) => item.reservation.reservationID !== pnr.pnrId).map((item) => item.reservation)).toEqual(
+                expected.filter((item) => item.reservation.reservationID !== pnr.pnrId).map((item) => item.reservation),
+            );
+            if (reservationCount === 7) {
+                expect(result.find((item) => item.reservation.reservationID === pnr.pnrId)?.reservation).toMatchObject(expectedDetails);
+            }
+        });
+
+        it('should use last confirmed tickets when the current air tickets are missing', () => {
+            // Given a cancelled flight whose coupons are available only on its last confirmed tickets
+            const report = createRandomReport(1, undefined);
+            const pnr = cloneDeep(airPnrDirect);
+            const traveler = asDefined(asDefined(pnr.data.airPnr).travelerInfos.at(0));
+            traveler.lastConfirmedTickets = traveler.tickets;
+            Reflect.deleteProperty(traveler, 'tickets');
+
+            // When the reservations are extracted
+            const result = getReservationsFromTripReport(report, {tripData: {tripID: 'trip123', payload: {...basicTripData, pnrs: [pnr]}}});
+
+            // Then the last known flight remains available without changing its details
+            expect(result).toEqual(getReservationsFromTripReport(report, {tripData: {tripID: 'trip123', payload: {...basicTripData, pnrs: [airPnrDirect]}}}));
+        });
+    });
+
     describe('rail traveler information', () => {
         it.each<{description: string; passengerInfos: RailPnr['passengerInfos']}>([
             {description: 'passenger entry', passengerInfos: []},
@@ -2778,8 +2908,8 @@ describe('TripReservationUtils', () => {
                         legInfos: [
                             {
                                 ...firstLeg,
-                                originInfo: {...firstLeg.originInfo, code: 'urn:trainline:public:nloc:at000408'},
-                                destinationInfo: {...firstLeg.destinationInfo, code: 'urn:trainline:public:nloc:at001685'},
+                                originInfo: {...asDefined(firstLeg.originInfo), code: 'urn:trainline:public:nloc:at000408'},
+                                destinationInfo: {...asDefined(firstLeg.destinationInfo), code: 'urn:trainline:public:nloc:at001685'},
                             },
                             ...railPnrData.legInfos.slice(1),
                         ],
@@ -2832,6 +2962,109 @@ describe('TripReservationUtils', () => {
             expect(trainReservation?.type).toEqual(CONST.RESERVATION_TYPE.TRAIN);
             expect(trainReservation?.start?.shortName).toEqual('STX');
             expect(trainReservation?.end?.shortName).toEqual('STY');
+        });
+    });
+
+    describe('hotel cancellation deadline', () => {
+        function getHotelCancellationDeadline(cancellationPolicy: HotelPnr['room']['cancellationPolicy'], checkIn: string) {
+            const pnr: Pnr = {
+                ...hotelPnr,
+                data: {
+                    ...hotelPnr.data,
+                    hotelPnr: {...hotelPnrData, checkInDateTime: {iso8601: checkIn}, room: {...hotelPnrData.room, cancellationPolicy}},
+                },
+            };
+            const result = getReservationsFromTripReport(createRandomReport(1, undefined), {tripData: {tripID: 'trip123', payload: {...basicTripData, pnrs: [pnr]}}});
+            return result.at(0)?.reservation.cancellationDeadline;
+        }
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        it('should show the deadline Spotnana returns instead of check-in minus the duration', () => {
+            // Given a London booking whose deadline is 23:59 two days before check-in, while check-in minus `P1D` would give Oct 20 3:00 PM
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2026-10-01T00:00:00Z'));
+            const cancellationDeadline = getHotelCancellationDeadline(
+                {
+                    policy: 'Free cancellation',
+                    deadline: {iso8601: '2026-10-19T23:59:00'},
+                    deadlineUtc: {iso8601: '2026-10-19T23:59:00+01:00'},
+                    durationBeforeArrivalDeadline: {iso8601: 'P1D'},
+                },
+                '2026-10-21T15:00:00',
+            );
+
+            // When the deadline is formatted for the hotel details page
+            const formattedDeadline = DateUtils.getFormattedCancellationDate(cancellationDeadline ?? '', undefined);
+
+            // Then it matches the deadline Spotnana shows, in the hotel's timezone
+            expect(cancellationDeadline).toBe('2026-10-19T23:59:00+01:00');
+            expect(formattedDeadline).toBe('Monday, Oct 19 11:59 PM, GMT+1');
+        });
+
+        it('should fall back to the hotel-local deadline when deadlineUtc has no offset', () => {
+            // Given a booking whose deadlineUtc is empty but whose hotel-local deadline is set
+            // When the hotel reservation is parsed
+            const cancellationDeadline = getHotelCancellationDeadline(
+                {
+                    policy: 'Free cancellation',
+                    deadline: {iso8601: '2026-10-19T23:59:00'},
+                    deadlineUtc: {iso8601: ''},
+                },
+                '2026-10-21T15:00:00',
+            );
+
+            // Then the hotel-local deadline is used instead of dropping to the generic policy text
+            expect(cancellationDeadline).toBe('2026-10-19T23:59:00');
+        });
+
+        it('should prefer the hotel-local deadline when deadlineUtc ends in Z', () => {
+            // Given a deadlineUtc normalized to UTC and a hotel-local deadline
+            // When the hotel reservation is parsed
+            const cancellationDeadline = getHotelCancellationDeadline(
+                {
+                    policy: 'Free cancellation',
+                    deadline: {iso8601: '2026-10-19T23:59:00'},
+                    deadlineUtc: {iso8601: '2026-10-19T22:59:00Z'},
+                },
+                '2026-10-21T15:00:00',
+            );
+
+            // Then the hotel-local time is used so it matches what Spotnana shows, not the UTC time
+            expect(cancellationDeadline).toBe('2026-10-19T23:59:00');
+        });
+
+        it('should fall back to deadlineUtc ending in Z when there is no hotel-local deadline', () => {
+            // Given a deadlineUtc normalized to UTC and no hotel-local deadline
+            // When the hotel reservation is parsed
+            const cancellationDeadline = getHotelCancellationDeadline(
+                {
+                    policy: 'Free cancellation',
+                    deadlineUtc: {iso8601: '2026-10-19T22:59:00Z'},
+                },
+                '2026-10-21T15:00:00',
+            );
+
+            // Then the UTC deadline is still shown rather than dropping to the generic policy text
+            expect(cancellationDeadline).toBe('2026-10-19T22:59:00Z');
+        });
+
+        it('should not return a deadline for a non-refundable room', () => {
+            // Given a non-refundable room that still has deadlines set
+            // When the hotel reservation is parsed
+            const cancellationDeadline = getHotelCancellationDeadline(
+                {
+                    policy: CONST.CANCELLATION_POLICY.NON_REFUNDABLE,
+                    deadline: {iso8601: '2026-10-19T23:59:00'},
+                    deadlineUtc: {iso8601: '2026-10-19T23:59:00+01:00'},
+                },
+                '2026-10-21T15:00:00',
+            );
+
+            // Then no deadline is returned, so the page shows "Non-refundable" instead of "Free cancellation until …"
+            expect(cancellationDeadline).toBeUndefined();
         });
     });
 

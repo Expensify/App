@@ -38,6 +38,12 @@ function openPlaidBankLogin(allowDebit: boolean, bankAccountID: number) {
             value: '',
         },
         {
+            // The response re-derives this flag from the server-side throttle state, so a value persisted by an earlier attempt must not be shown as current.
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_PLAID_DISABLED,
+            value: false,
+        },
+        {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
             value: {
@@ -85,6 +91,12 @@ function openPlaidCompanyCardLogin(country: string, domain?: string, feed?: Card
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
             value: '',
+        },
+        {
+            // The response re-derives this flag from the server-side throttle state, so a value persisted by an earlier attempt must not be shown as current.
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_PLAID_DISABLED,
+            value: false,
         },
     ];
 

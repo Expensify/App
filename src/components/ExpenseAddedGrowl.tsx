@@ -4,13 +4,16 @@ import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useReportTransactions from '@hooks/useReportTransactions';
 
+import {close} from '@libs/actions/Modal';
 import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import {mergeExpenseAddedGrowlTransactionIDs} from '@libs/actions/Transaction';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import navigateToCreatedExpense from '@libs/Navigation/helpers/navigateToCreatedExpense';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {findSelfDMReportID, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,6 +21,7 @@ import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 import type {Dispatch, SetStateAction} from 'react';
 
+import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
 import {useEffect, useRef, useState} from 'react';
 
 import GrowlNotificationContent from './GrowlNotification/GrowlNotificationContent';
@@ -93,6 +97,9 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
     const iouReport = isMoneyRequestReport(report) || isInvoiceReport(report) ? report : undefined;
     const iouReportID = iouReport?.reportID;
     const reportTransactions = useReportTransactions(iouReportID);
+    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(iouReport?.policyID)}`, {
+        selector: fullPolicySnapshotLastModifiedSelector,
+    });
 
     useEffect(() => {
         if (active) {
@@ -129,6 +136,10 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
     // Build the thread on press rather than when the growl shows, so it is only created if the user taps
     // "View" and is built against the freshest Onyx data.
     const navigateToExpense = () => {
+        // The expense was deleted while the growl was up, so there is nothing left to open.
+        if (!transaction || isTransactionPendingDelete(transaction)) {
+            return;
+        }
         let threadReportID = transaction?.transactionThreadReportID ?? iouAction?.childReportID;
         if (threadReportID) {
             setOptimisticTransactionThread(threadReportID, iouReport?.reportID, iouAction?.reportActionID, iouReport?.policyID);
@@ -142,6 +153,7 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
                 iouReportAction: iouAction,
                 transaction,
                 personalDetails,
+                fullPolicySnapshotLastModified,
             });
             threadReportID = optimisticThread?.reportID;
         }
@@ -149,7 +161,8 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
             Log.warn('[ExpenseAddedGrowl] Unable to resolve transaction thread reportID on View press.');
             return;
         }
-        navigateToCreatedExpense({threadReportID, transactionID: active.transactionID, iouReportID, reportTransactions});
+        // The growl sits above popovers, so close any open one first, the same as tapping a notification.
+        close(() => navigateToCreatedExpense({threadReportID, transactionID: active.transactionID, iouReportID, reportTransactions}));
     };
 
     return (

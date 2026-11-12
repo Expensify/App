@@ -6,12 +6,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {TransactionViolation} from '@src/types/onyx';
+import type {PolicyVendors, TransactionViolation} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import Text from './Text';
@@ -27,6 +27,8 @@ type ViolationMessagesProps = {
     connectionLink?: string;
     routeDistanceMeters?: number | null;
     distanceUnit?: Unit;
+    policyVendors?: PolicyVendors;
+    transactionCurrency?: string;
 };
 
 export default function ViolationMessages({
@@ -40,38 +42,38 @@ export default function ViolationMessages({
     isMarkAsCash,
     routeDistanceMeters,
     distanceUnit,
+    policyVendors,
+    transactionCurrency,
 }: ViolationMessagesProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
-    const filteredViolations = useMemo(() => filterReceiptViolations(violations), [violations]);
+    const filteredViolations = filterReceiptViolations(violations);
 
-    const violationMessages = useMemo(
-        () =>
-            filteredViolations.map((violation) => {
-                const cardID = violation.data?.cardID;
-                const card = cardID ? cardList?.[cardID] : undefined;
-                return [
-                    violation.name,
-                    ViolationsUtils.getViolationTranslation({
-                        dateFnsLocale,
-                        violation,
-                        translate,
-                        convertToDisplayString,
-                        canEdit,
-                        companyCardPageURL,
-                        connectionLink,
-                        card,
-                        isMarkAsCash,
-                        routeDistanceMeters,
-                        distanceUnit,
-                    }),
-                ];
+    const violationMessages = filteredViolations.map((violation) => {
+        const cardID = violation.data?.cardID;
+        const card = cardID ? cardList?.[cardID] : undefined;
+        return [
+            violation.name,
+            ViolationsUtils.getViolationTranslation({
+                dateFnsLocale,
+                violation,
+                translate,
+                convertToDisplayString,
+                canEdit,
+                companyCardPageURL,
+                connectionLink,
+                card,
+                isMarkAsCash,
+                routeDistanceMeters,
+                distanceUnit,
+                policyVendors,
+                transactionCurrency,
             }),
-        [canEdit, translate, convertToDisplayString, filteredViolations, companyCardPageURL, connectionLink, cardList, isMarkAsCash, routeDistanceMeters, distanceUnit, dateFnsLocale],
-    );
+        ];
+    });
 
     return (
         <View style={[styles.mtn1, isLast ? styles.mb2 : styles.mb1, containerStyle, styles.gap1]}>
