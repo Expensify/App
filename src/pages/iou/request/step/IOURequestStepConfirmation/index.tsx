@@ -3,7 +3,7 @@ import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import LoadingIndicator from '@components/LoadingIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PrevNextButtons from '@components/PrevNextButtons';
@@ -761,22 +761,22 @@ function IOURequestStepConfirmationContent({
                      * so this inner header must be hidden to prevent duplicate back buttons and title layout issues.
                      */}
                     {!shouldHideHeader && (
-                        <HeaderWithBackButton
-                            title={headerTitle}
-                            subtitle={hasMultipleTransactions ? `${currentTransactionIndex + 1} ${translate('common.of')} ${transactions.length}` : undefined}
-                            onBackButtonPress={navigateBack}
-                            /** Skip focus of the first interactive element in the header to make sure that Enter key submits the expense on the confirmation page instead of navigating back.  */
-                            shouldSkipFocusAfterTransition
-                        >
-                            {hasMultipleTransactions ? (
+                        // Skip focus of the first interactive element in the header to make sure that Enter key submits the expense on the confirmation page instead of navigating back.
+                        <Header shouldSkipFocusAfterTransition>
+                            <Header.BackButton onPress={navigateBack} />
+                            <Header.Title
+                                title={headerTitle}
+                                subtitle={hasMultipleTransactions ? `${currentTransactionIndex + 1} ${translate('common.of')} ${transactions.length}` : undefined}
+                            />
+                            {hasMultipleTransactions && (
                                 <PrevNextButtons
                                     isPrevButtonDisabled={currentTransactionIndex === 0}
                                     isNextButtonDisabled={currentTransactionIndex === transactions.length - 1}
                                     onNext={() => startTransition(showNextTransaction)}
                                     onPrevious={() => startTransition(showPreviousTransaction)}
                                 />
-                            ) : null}
-                        </HeaderWithBackButton>
+                            )}
+                        </Header>
                     )}
                     <View style={styles.flex1}>
                         {(isLoading || (isScanRequest(transaction) && !Object.values(receiptFiles).length)) && <LoadingIndicator />}

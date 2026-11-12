@@ -1,5 +1,5 @@
 import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -82,7 +82,7 @@ function SearchAdvancedFiltersBase() {
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
         >
-            <HeaderWithBackButton title={translate('search.filtersHeader')} />
+            <HeaderWithBackButtonAndTitle title={translate('search.filtersHeader')} />
             <FilterList
                 contentContainerStyle={[styles.pb5]}
                 type={currentDraftFilters.type}
