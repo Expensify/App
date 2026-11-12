@@ -125,9 +125,7 @@ function ReportDetailsTitleSectionContent({report}: ReportDetailsTitleSectionCon
                     >
                         <MenuItem.Row>
                             <MenuItemField.Content name={translate('task.title')}>
-                                {!!reportName && (
-                                    <MenuItem.FieldValue style={styles.newKansasLarge}>{reportName}</MenuItem.FieldValue>
-                                )}
+                                {!!reportName && <MenuItem.FieldValue style={styles.newKansasLarge}>{reportName}</MenuItem.FieldValue>}
                             </MenuItemField.Content>
                             {shouldShowEditableTitleField && !isFieldDisabled && (
                                 <MenuItem.Trailing>

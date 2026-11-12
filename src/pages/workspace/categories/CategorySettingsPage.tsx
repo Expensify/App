@@ -43,10 +43,10 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
+import FontUtils from '@styles/utils/FontUtils';
+
 import {clearCategoryErrors, deleteWorkspaceCategories, setWorkspaceCategoryEnabled} from '@userActions/Policy/Category';
 import {callIfAuthenticated} from '@userActions/Session';
-
-import FontUtils from '@styles/utils/FontUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

@@ -45,8 +45,7 @@ jest.mock('@components/RenderHTML', () => {
 jest.mock('@components/MenuItem/leaves/trailing/icons/MenuItemBrickRoadIndicator', () => {
     const ReactMock = jest.requireActual<typeof React>('react');
     const {Text} = jest.requireActual<typeof ReactNative>('react-native');
-    return ({status}: {status: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>}) =>
-        ReactMock.createElement(Text, {testID: 'contact-method-indicator'}, `${status}-brickRoadIndicator`);
+    return ({status}: {status: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>}) => ReactMock.createElement(Text, {testID: 'contact-method-indicator'}, `${status}-brickRoadIndicator`);
 });
 
 describe('DynamicContactMethodsPage', () => {

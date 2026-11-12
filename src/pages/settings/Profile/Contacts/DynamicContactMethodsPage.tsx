@@ -17,9 +17,9 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {expensifyLoginsSelector, getContactMethodsOptions} from '@libs/UserUtils';
 
-import {callIfAuthenticated} from '@userActions/Session';
-
 import FontUtils from '@styles/utils/FontUtils';
+
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -82,7 +82,10 @@ function DynamicContactMethodsPage() {
                             >
                                 <MenuItem.Root
                                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.CONTACT_METHOD_ROW}
-                                    onPress={callIfAuthenticated(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHOD_DETAILS.getRoute(option.partnerUserID))), session)}
+                                    onPress={callIfAuthenticated(
+                                        () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHOD_DETAILS.getRoute(option.partnerUserID))),
+                                        session,
+                                    )}
                                     isDisabled={!!option.pendingAction}
                                 >
                                     <MenuItem.Row>

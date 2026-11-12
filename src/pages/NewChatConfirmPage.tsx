@@ -121,7 +121,10 @@ function AvatarAndGroupNameSection({setAvatarFile, optimisticReportID}: AvatarAn
                 onPress={navigateToEditChatName}
                 style={styles.ph4}
             >
-                <MenuItemField.Row name={translate('newRoomPage.groupName')} value={groupName}>
+                <MenuItemField.Row
+                    name={translate('newRoomPage.groupName')}
+                    value={groupName}
+                >
                     <MenuItem.Chevron />
                 </MenuItemField.Row>
             </MenuItem.Root>

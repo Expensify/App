@@ -76,9 +76,9 @@ import StringUtils from '@libs/StringUtils';
 import {getWorkspaceTimezone} from '@libs/SubmissionScheduleUtils';
 import {getLeaveWorkspaceConfirmationPrompt} from '@libs/WorkspacesSettingsUtils';
 
-import {callIfAuthenticated} from '@userActions/Session';
-
 import variables from '@styles/variables';
+
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
