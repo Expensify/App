@@ -1514,7 +1514,6 @@ const ONYXKEYS = {
         LOGIN_TO_ACCOUNT_ID_MAP: 'loginToAccountIDMap',
         GUIDE_ACCOUNT_IDS: 'guideAccountIDs',
         SPEND_DATA_SIGNATURE: 'spendDataSignature',
-        ONE_ON_ONE_CHAT_REPORT_IDS: 'oneOnOneChatReportIDs',
     },
 
     /** Stores HybridApp specific state required to interoperate with OldDot */
@@ -2123,7 +2122,6 @@ type OnyxDerivedValuesMapping = {
     [ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP]: OnyxTypes.LoginToAccountIDMapDerivedValue;
     [ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE]: OnyxTypes.SpendDataSignatureDerivedValue;
     [ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS]: OnyxTypes.GuideAccountIDsDerivedValue;
-    [ONYXKEYS.DERIVED.ONE_ON_ONE_CHAT_REPORT_IDS]: OnyxTypes.OneOnOneChatReportIDsDerivedValue;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping & OnyxDerivedValuesMapping;

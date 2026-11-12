@@ -1,3 +1,4 @@
+import useOneOnOneChatReportID from '@hooks/useOneOnOneChatReportID';
 import useOnyx from '@hooks/useOnyx';
 import usePreMountDestination from '@hooks/usePreMountDestination';
 
@@ -13,7 +14,7 @@ import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OneOnOneChatReportIDsDerivedValue, Report} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type Transaction from '@src/types/onyx/Transaction';
 
@@ -105,9 +106,7 @@ function useSubmitDestinationPreMount({
     const p2pRecipientAccountID = firstParticipant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
     // Read reports reactively: if the chat lands mid-flow the optimistic ID must drop out, or we'd reveal an uncreated report.
-    const existingP2PChatSelector = (chatReportIDs: OnyxEntry<OneOnOneChatReportIDsDerivedValue>) =>
-        isP2PDestination ? chatReportIDs?.reportIDs?.[getParticipantsChatKey([p2pRecipientAccountID, currentUserAccountID])] : undefined;
-    const [existingP2PDestinationReportID] = useOnyx(ONYXKEYS.DERIVED.ONE_ON_ONE_CHAT_REPORT_IDS, {selector: existingP2PChatSelector});
+    const existingP2PDestinationReportID = useOneOnOneChatReportID(isP2PDestination ? getParticipantsChatKey([p2pRecipientAccountID, currentUserAccountID]) : undefined);
     const optimisticP2PDestinationReportID = !existingP2PDestinationReportID && reusableP2PReportID ? reusableP2PReportID : undefined;
 
     // Trust `report` when it already belongs to this participant (their chat, or an IOU report under it), so a

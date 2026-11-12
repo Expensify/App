@@ -11720,7 +11720,7 @@ function shouldReportBeInOptionList(params: ShouldReportBeInOptionListParams) {
 }
 
 /**
- * Stable key for a participant set, used by the `ONE_ON_ONE_CHAT_REPORT_IDS` derived value.
+ * Stable key for a participant set, used to look up 1:1 chats by participants.
  *
  * Sorting uses the default comparator to match `getChatByParticipants`, which compares `.sort()`ed number arrays.
  * That sort is lexicographic: [2, 10] becomes [10, 2]. A numeric sort here would stop matching.
