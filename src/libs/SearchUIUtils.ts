@@ -1995,7 +1995,7 @@ function getTransactionsSections({
 
     for (const key of transactionKeys) {
         const transactionItem = data[key];
-        const report = getReportOrDraftReport({reportID: transactionItem.reportID}) ?? data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
+        const report = getReportOrDraftReport({reportID: transactionItem.reportID, reportDraft: {}}) ?? data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
 
         const isActionLoading = !!isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${transactionItem.reportID}`);
         // Keep the tracked optimistic item visible before the server snapshot arrives, but only under
@@ -2686,7 +2686,8 @@ function createAndOpenSearchTransactionThread({
 
     // The transaction thread can be created from the chat page and the snapshot data is stale
     if (hasActualTransactionThread) {
-        transactionThreadReport = getReportOrDraftReport({reportID: iouReportAction.childReportID});
+        // The child of an IOU action is that expense's transaction thread, which is never a draft.
+        transactionThreadReport = getReportOrDraftReport({reportID: iouReportAction.childReportID, reportDraft: {}});
     }
 
     // Only create a new thread when there's no existing childReportID.
@@ -2698,7 +2699,8 @@ function createAndOpenSearchTransactionThread({
         const transaction = shouldPassTransactionData ? getTransactionFromTransactionListItem(item) : undefined;
         const transactionViolations = shouldPassTransactionData ? item.violations : undefined;
         const reportActionToPass = iouReportAction ?? item.reportAction ?? ({reportActionID} as OnyxTypes.ReportAction);
-        const iouReport = getReportOrDraftReport({reportID: item.reportID}) ?? item.report;
+        // A transaction list item's reportID is the expense report holding it, so there is no draft to resolve.
+        const iouReport = getReportOrDraftReport({reportID: item.reportID, reportDraft: {}}) ?? item.report;
         transactionThreadReport = createTransactionThreadReport({
             introSelected,
             conciergeChat,
@@ -3162,7 +3164,9 @@ function getReportSections({
             const transactionItem = {...data[key]};
             const reportAction = moneyRequestReportActionsByTransactionID.get(transactionItem.transactionID);
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`;
-            const report = (getReportOrDraftReport({reportID: transactionItem.reportID}) ?? data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`]) as OnyxTypes.Report | undefined;
+            const report = (getReportOrDraftReport({reportID: transactionItem.reportID, reportDraft: {}}) ?? data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`]) as
+                | OnyxTypes.Report
+                | undefined;
             const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
             const shouldShowBlankTo = !report || isOpenExpenseReport(report);
             const transactionViolations = getTransactionViolations(
@@ -7597,7 +7601,7 @@ function getColumnsToShow({
             if (customResult) {
                 const reportForCustomColumns = Array.isArray(data)
                     ? report
-                    : (getReportOrDraftReport({reportID: transaction.reportID}) ?? data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`]);
+                    : (getReportOrDraftReport({reportID: transaction.reportID, reportDraft: {}}) ?? data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`]);
                 for (const column of reportCustomColumns) {
                     if (hasReportCustomColumnValue(column, reportForCustomColumns)) {
                         columns[column] = true;

@@ -1416,7 +1416,7 @@ function getAllSortedTransactions(iouReportID?: string): Array<OnyxEntry<Transac
 function isExpenseSplit(transaction: OnyxEntry<Transaction>, originalTransaction?: OnyxEntry<Transaction>): boolean {
     const isAddedToReport = !!transaction?.reportID && transaction.reportID !== CONST.REPORT.SPLIT_REPORT_ID && transaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
     if (isAddedToReport) {
-        const report = getReportOrDraftReport({reportID: transaction.reportID});
+        const report = getReportOrDraftReport({reportID: transaction.reportID, reportDraft: {}});
         if (report && report.type !== CONST.REPORT.TYPE.EXPENSE) {
             return false;
         }

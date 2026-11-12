@@ -201,7 +201,8 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     const otherSplitExpenses = splitExpensesList?.filter((item) => item.transactionID !== splitExpenseTransactionID) ?? [];
     const canRemoveSplit = !requiresExactSum || otherSplitExpenses.some((item) => !frozenSplitTransactionIDs.has(item.transactionID));
 
-    const draftTransactionReport = getReportOrDraftReport({reportID: splitExpenseDraftTransaction?.reportID});
+    // The draft here is the unsaved split transaction, not a REPORT_DRAFT entry: its report is the expense report being split.
+    const draftTransactionReport = getReportOrDraftReport({reportID: splitExpenseDraftTransaction?.reportID, reportDraft: {}});
     const isSelfDMSplit = isSelfDM(draftTransactionReport);
     const isExpenseUnreported = isSelfDMSplit;
     const [draftTransactionPolicyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${draftTransactionReport?.policyID}`, {

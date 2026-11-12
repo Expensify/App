@@ -165,7 +165,8 @@ function useSelectedTransactionsActions({
             continue;
         }
 
-        const parentReport = getReportOrDraftReport({reportID, report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]});
+        // reportID is the selected expense's own report, which is never a draft, so there is nothing to look up in REPORT_DRAFT.
+        const parentReport = getReportOrDraftReport({reportID, report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`], reportDraft: {}});
         const ownerAccountID = parentReport?.ownerAccountID;
 
         if (typeof ownerAccountID === 'number') {

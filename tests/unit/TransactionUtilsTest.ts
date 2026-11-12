@@ -6927,3 +6927,34 @@ describe('buildOptimisticTransaction distance customUnit', () => {
         expect(existingTransaction.comment?.customUnit?.quantity).toBe(10);
     });
 });
+
+describe('removeSettledAndApprovedTransactions', () => {
+    const DRAFT_ONLY_REPORT_ID = '700';
+
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+        return waitForBatchedUpdates();
+    });
+
+    afterAll(() => Onyx.clear());
+
+    it('ignores the REPORT_DRAFT collection when deciding whether an expense is still mergeable', async () => {
+        // Given an approved report that exists only in REPORT_DRAFT, and an expense pointing at it. Expense reports are
+        // never drafts, so reading one here would mean the resolution went to the collection behind the caller's back.
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${DRAFT_ONLY_REPORT_ID}`, {
+            reportID: DRAFT_ONLY_REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+        });
+        await waitForBatchedUpdates();
+
+        // When filtering that expense down to the ones Auth's MergeTransactions command would accept
+        const transaction = {...createRandomTransaction(1), transactionID: 'tx1', reportID: DRAFT_ONLY_REPORT_ID};
+        const mergeable = TransactionUtils.removeSettledAndApprovedTransactions([transaction]);
+
+        // Then the draft's approved status is not applied, so a duplicate merge is no longer blocked by REPORT_DRAFT
+        // (https://github.com/Expensify/App/issues/66414)
+        expect(mergeable).toEqual([transaction]);
+    });
+});

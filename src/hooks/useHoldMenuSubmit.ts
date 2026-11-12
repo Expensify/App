@@ -87,8 +87,9 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
         // like the last message text/time so it doesn't re-render on every new message). The pay/approve actions
         // restore the report on failure by merging it back in, so we grab the full reports here to make sure the
         // chat's last message comes back correctly if the payment fails.
-        const currentMoneyRequestReport = getReportOrDraftReport({reportID: moneyRequestReport?.reportID}) ?? moneyRequestReport;
-        const currentChatReport = getReportOrDraftReport({reportID: chatReport?.reportID}) ?? chatReport;
+        // A report can only be paid or approved once its workspace exists, so neither of these is still a REPORT_DRAFT entry.
+        const currentMoneyRequestReport = getReportOrDraftReport({reportID: moneyRequestReport?.reportID, reportDraft: {}}) ?? moneyRequestReport;
+        const currentChatReport = getReportOrDraftReport({reportID: chatReport?.reportID, reportDraft: {}}) ?? chatReport;
 
         if (isApprove) {
             approveMoneyRequest({

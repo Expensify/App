@@ -43,7 +43,8 @@ function getSelectedTransactionOwnerAccountID(
         }
     }
 
-    return getReportOrDraftReport({reportID: selection.reportID, report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selection.reportID}`]})?.ownerAccountID;
+    // Only chats of a workspace being created are ever drafts, so an expense report has none to resolve
+    return getReportOrDraftReport({reportID: selection.reportID, report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selection.reportID}`], reportDraft: {}})?.ownerAccountID;
 }
 
 export default getSelectedTransactionOwnerAccountID;
