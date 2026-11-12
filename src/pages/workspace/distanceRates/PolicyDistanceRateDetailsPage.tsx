@@ -216,6 +216,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                         onClose={() => clearErrorFields('name')}
                     >
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.RATE_DETAILS_NAME}
                             name={translate('common.name')}
                             onPress={canWriteDistanceRates ? editRateName : undefined}
                             value={DistanceRequestUtils.getRateDisplayName(rate)}
@@ -228,6 +229,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                         onClose={() => clearErrorFields('rate')}
                     >
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.RATE_DETAILS_RATE}
                             name={translate('workspace.distanceRates.rate')}
                             onPress={canWriteDistanceRates ? editRateValue : undefined}
                             value={`${rateValueToDisplay} / ${unitToDisplay}`}
@@ -240,6 +242,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                         onClose={() => clearErrorFields('startDate')}
                     >
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.RATE_DETAILS_START_DATE}
                             name={translate('workspace.distanceRates.startDate')}
                             onPress={canWriteDistanceRates ? editStartDate : undefined}
                             value={rate.startDate ? DateUtils.formatToReadableString(rate.startDate, dateFnsLocale) : ''}
@@ -252,6 +255,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                         onClose={() => clearErrorFields('endDate')}
                     >
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.RATE_DETAILS_END_DATE}
                             name={translate('workspace.distanceRates.endDate')}
                             onPress={canWriteDistanceRates ? editEndDate : undefined}
                             value={rate.endDate ? DateUtils.formatToReadableString(rate.endDate, dateFnsLocale) : ''}
@@ -266,6 +270,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                         >
                             <View style={styles.w100}>
                                 <MenuItemField
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.RATE_DETAILS_TAX_RATE}
                                     name={translate('workspace.taxes.taxRate')}
                                     onPress={canWriteDistanceRates ? editTaxRateValue : undefined}
                                     value={taxRate}
@@ -282,6 +287,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                             onClose={() => clearErrorFields('taxClaimablePercentage')}
                         >
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.RATE_DETAILS_TAX_RECLAIMABLE}
                                 name={translate('workspace.taxes.taxReclaimableOn')}
                                 onPress={canWriteDistanceRates ? editTaxReclaimableValue : undefined}
                                 value={taxClaimableValueToDisplay}
@@ -290,6 +296,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                     )}
                     {canWriteDistanceRates && (
                         <MenuItemAction
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.RATE_DETAILS_DELETE}
                             icon={icons.Trashcan}
                             title={translate('common.delete')}
                             onPress={async () => {

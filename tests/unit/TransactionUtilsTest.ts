@@ -2,7 +2,19 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import DateUtils from '@libs/DateUtils';
 import {translate as translateWithLocale} from '@libs/Localize';
-import {doesMoneyRequestDraftHaveUserInput, shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
+import {
+    doesMoneyRequestDraftHaveUserInput,
+    isDistanceTypeRequest,
+    isGPSDistanceRequest,
+    isManualDistanceRequest,
+    isMapDistanceRequest,
+    isOdometerDistanceRequest,
+    isPerDiemRequest,
+    isScanRequest,
+    isTimeRequest,
+    shouldShowBrokenConnectionViolation,
+    shouldShowBrokenConnectionViolationForMultipleTransactions,
+} from '@libs/TransactionUtils';
 import hasDistanceRouteErrors from '@libs/TransactionUtils/hasDistanceRouteErrors';
 
 import CONST from '@src/CONST';
@@ -23,7 +35,7 @@ import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collec
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
-import {formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal} from '../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
@@ -4379,7 +4391,7 @@ describe('TransactionUtils', () => {
                 taxValue: '5%',
             });
 
-            const result = TransactionUtils.getTaxRateTitle(policy, transaction, false, undefined);
+            const result = TransactionUtils.getTaxRateTitle(translateLocal, policy, transaction, false, undefined);
 
             expect(result).toBe('Tax Rate 1 (5%)');
         });
@@ -4390,7 +4402,7 @@ describe('TransactionUtils', () => {
                 taxValue: '15%',
             });
 
-            const result = TransactionUtils.getTaxRateTitle(policy, transaction, true, policyForMovingExpenses);
+            const result = TransactionUtils.getTaxRateTitle(translateLocal, policy, transaction, true, policyForMovingExpenses);
 
             expect(result).toBe('Tax Rate 1 - Default Policy (15%)');
         });
@@ -4401,7 +4413,7 @@ describe('TransactionUtils', () => {
                 taxValue: '5%',
             });
 
-            const result = TransactionUtils.getTaxRateTitle(policy, transaction, true, policyForMovingExpenses);
+            const result = TransactionUtils.getTaxRateTitle(translateLocal, policy, transaction, true, policyForMovingExpenses);
 
             expect(result).toBe('Tax Rate 1 (5%)');
         });
@@ -4412,7 +4424,7 @@ describe('TransactionUtils', () => {
                 taxValue: undefined,
             });
 
-            const result = TransactionUtils.getTaxRateTitle(policy, transaction, false, undefined);
+            const result = TransactionUtils.getTaxRateTitle(translateLocal, policy, transaction, false, undefined);
 
             expect(result).toBe('Tax exempt (0%) • Default');
         });
@@ -4428,7 +4440,7 @@ describe('TransactionUtils', () => {
                 taxValue: undefined,
             });
 
-            const result = TransactionUtils.getTaxRateTitle(policyWithTrackingDisabled, transaction, false, undefined);
+            const result = TransactionUtils.getTaxRateTitle(translateLocal, policyWithTrackingDisabled, transaction, false, undefined);
 
             expect(result).toBe('');
         });
@@ -4439,7 +4451,7 @@ describe('TransactionUtils', () => {
                 taxValue: '10%',
             });
 
-            const result = TransactionUtils.getTaxRateTitle(undefined, transaction, false, undefined);
+            const result = TransactionUtils.getTaxRateTitle(translateLocal, undefined, transaction, false, undefined);
 
             expect(result).toBe('');
         });
@@ -6149,26 +6161,26 @@ describe('TransactionUtils', () => {
     });
 
     describe.each([
-        {fn: 'isDistanceTypeRequest', match: CONST.IOU.REQUEST_TYPE.DISTANCE, other: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP},
-        {fn: 'isMapDistanceRequest', match: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, other: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS},
-        {fn: 'isGPSDistanceRequest', match: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS, other: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP},
-        {fn: 'isManualDistanceRequest', match: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, other: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP},
-        {fn: 'isOdometerDistanceRequest', match: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, other: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP},
-        {fn: 'isScanRequest', match: CONST.IOU.REQUEST_TYPE.SCAN, other: CONST.IOU.REQUEST_TYPE.MANUAL},
-        {fn: 'isPerDiemRequest', match: CONST.IOU.REQUEST_TYPE.PER_DIEM, other: CONST.IOU.REQUEST_TYPE.TIME},
-        {fn: 'isTimeRequest', match: CONST.IOU.REQUEST_TYPE.TIME, other: CONST.IOU.REQUEST_TYPE.PER_DIEM},
-    ] as const)('$fn', ({fn, match, other}) => {
+        {name: 'isDistanceTypeRequest', fn: isDistanceTypeRequest, match: CONST.IOU.REQUEST_TYPE.DISTANCE, other: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP},
+        {name: 'isMapDistanceRequest', fn: isMapDistanceRequest, match: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, other: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS},
+        {name: 'isGPSDistanceRequest', fn: isGPSDistanceRequest, match: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS, other: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP},
+        {name: 'isManualDistanceRequest', fn: isManualDistanceRequest, match: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, other: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP},
+        {name: 'isOdometerDistanceRequest', fn: isOdometerDistanceRequest, match: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, other: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP},
+        {name: 'isScanRequest', fn: isScanRequest, match: CONST.IOU.REQUEST_TYPE.SCAN, other: CONST.IOU.REQUEST_TYPE.MANUAL},
+        {name: 'isPerDiemRequest', fn: isPerDiemRequest, match: CONST.IOU.REQUEST_TYPE.PER_DIEM, other: CONST.IOU.REQUEST_TYPE.TIME},
+        {name: 'isTimeRequest', fn: isTimeRequest, match: CONST.IOU.REQUEST_TYPE.TIME, other: CONST.IOU.REQUEST_TYPE.PER_DIEM},
+    ] as const)('$name', ({fn, match, other}) => {
         describe(`when iouRequestType matches`, () => {
             it('returns true', () => {
                 const transaction = generateTransaction({iouRequestType: match});
-                expect(TransactionUtils[fn](transaction)).toBe(true);
+                expect(fn(transaction)).toBe(true);
             });
         });
 
         describe('when iouRequestType is a different request type', () => {
             it('returns false', () => {
                 const transaction = generateTransaction({iouRequestType: other});
-                expect(TransactionUtils[fn](transaction)).toBe(false);
+                expect(fn(transaction)).toBe(false);
             });
         });
 
@@ -6176,14 +6188,14 @@ describe('TransactionUtils', () => {
             it('returns false', () => {
                 const transaction = {...generateTransaction(), iouRequestType: null};
                 // @ts-expect-error -- null intentionally models a legacy runtime value.
-                expect(TransactionUtils[fn](transaction)).toBe(false);
+                expect(fn(transaction)).toBe(false);
             });
         });
 
         describe('when iouRequestType is undefined', () => {
             it('returns false', () => {
                 const transaction = generateTransaction({iouRequestType: undefined});
-                expect(TransactionUtils[fn](transaction)).toBe(false);
+                expect(fn(transaction)).toBe(false);
             });
         });
     });

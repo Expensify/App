@@ -259,6 +259,7 @@ function ImportSpreadsheet({
             <FilePicker acceptableFileTypes={acceptableFileTypes}>
                 {({openPicker}) => (
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.IMPORT_SPREADSHEET.CHOOSE_FILE}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         accessibilityLabel={translate('common.chooseFile')}
                         style={[styles.pt9]}

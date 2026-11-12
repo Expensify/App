@@ -34,7 +34,7 @@ import Parser from '@libs/Parser';
 import {getPersonalDetailsListByIDs} from '@libs/PersonalDetailsUtils';
 import {isAllowedToComment} from '@libs/ReportUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -231,7 +231,7 @@ function DynamicNewTaskPage() {
                                 <MenuItem.Root
                                     sentryLabel={CONST.SENTRY_LABEL.TASK.NEW_TASK_ASSIGNEE_FIELD}
                                     accessibilityLabel={`${translate('task.assignee')}, ${assignee.displayName}`}
-                                    onPress={callFunctionIfActionIsAllowed(navigateToAssignee, false, session)}
+                                    onPress={callIfAuthenticated(navigateToAssignee, session)}
                                 >
                                     <MenuItem.Row>
                                         <MenuItem.Content>

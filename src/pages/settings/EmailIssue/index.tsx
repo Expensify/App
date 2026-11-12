@@ -122,6 +122,7 @@ function EmailIssuePage() {
             </ScrollView>
             <FixedFooter style={styles.gap3}>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.EMAIL_ISSUE.GET_HELP_FROM_CONCIERGE}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={() => {
                         navigateToConciergeChat({
@@ -139,6 +140,7 @@ function EmailIssuePage() {
                     <Button.Text>{translate('emailIssuePage.getHelpFromConcierge')}</Button.Text>
                 </Button>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.EMAIL_ISSUE.COMPLETED_STEPS}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     isLoading={isUnblockingEmail}
