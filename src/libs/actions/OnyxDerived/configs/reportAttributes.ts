@@ -180,8 +180,15 @@ const reportReferencesAccountIDs = (report: Report, accountIDs: Set<number>): bo
     return false;
 };
 
+// A chat's actions keep the same object until they change, so each chat's index is reused across computes.
+const previewActionsByChatReportActions = new WeakMap<ReportActions, Map<string, ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>>();
+
 // Keeps the first preview action for each child report, the one getReportPreviewReportAction finds.
 const getPreviewActionsByChildReportID = (chatReportActions: ReportActions) => {
+    const cachedPreviewActions = previewActionsByChatReportActions.get(chatReportActions);
+    if (cachedPreviewActions) {
+        return cachedPreviewActions;
+    }
     const previewActions = new Map<string, ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>();
     for (const reportAction of Object.values(chatReportActions)) {
         if (!reportAction || !isReportPreviewAction(reportAction)) {
@@ -192,6 +199,7 @@ const getPreviewActionsByChildReportID = (chatReportActions: ReportActions) => {
             previewActions.set(linkedReportID, reportAction);
         }
     }
+    previewActionsByChatReportActions.set(chatReportActions, previewActions);
     return previewActions;
 };
 
