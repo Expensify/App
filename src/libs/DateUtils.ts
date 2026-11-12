@@ -223,7 +223,7 @@ function datetimeToCalendarTime(locale: Locale | undefined, datetime: string, cu
         return `${yesterdayAt} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}${tz}`;
     }
     if (date >= startOfCurrentWeek && date <= endOfCurrentWeek) {
-        return `${format(date, CONST.DATE.MONTH_DAY_ABBR_FORMAT, {locale: dateFnsLocale})} ${at} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}${tz}`;
+        return `${formatToMonthDay(date, dateFnsLocale)} ${at} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}${tz}`;
     }
     return `${format(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, {locale: dateFnsLocale})} ${at} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}${tz}`;
 }
@@ -867,9 +867,7 @@ function formatWithUTCTimeZone(datetime: string, dateFormat: string, dateFnsLoca
  *
  * Format a date using the UTC timezone, for machine-readable output only (e.g. yyyy-MM-dd sent to the API or used as a
  * key). Anything a user reads must go through `formatWithUTCTimeZone` so it follows their language.
- * param datetime
- * param dateFormat
- * returns If the date is valid, returns the formatted date with the UTC timezone, otherwise returns an empty string.
+ * @returns If the date is valid, returns the formatted date with the UTC timezone, otherwise returns an empty string.
  */
 function formatMachineDateWithUTCTimeZone(datetime: string, dateFormat: MachineDateFormat = CONST.DATE.FNS_FORMAT_STRING) {
     const date = toDate(datetime, {timeZone: 'UTC'});
@@ -1115,6 +1113,52 @@ function doesDateBelongToAPastYear(date: string): boolean {
 }
 
 /**
+ * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language and
+ * timezone. A formatter with no timezone would keep the device's timezone from when it was created, so local dates are
+ * formatted in UTC after `toUTCWallClockDate` instead.
+ */
+const memoizedCreateMonthDayFormatter = memoize((localeCode: string, timeZone: string) => new Intl.DateTimeFormat(localeCode, {month: 'short', day: 'numeric', timeZone}));
+
+/**
+ * Formats a date as an abbreviated month and day, e.g. `Jun 20`.
+ *
+ * date-fns has no localized token for a month and day without a year, and a hand-written `MMM d` fixes the US order,
+ * so German put the month before the day and Japanese lost the suffix it writes after the day (`6月20日`).
+ *
+ * @param timeZone pass 'UTC' when the date is a calendar value that must not shift with the device's timezone
+ */
+function formatToMonthDay(date: Date, dateFnsLocale: DateFnsLocale | undefined, timeZone?: string): string {
+    if (!isValid(date)) {
+        return '';
+    }
+    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
+    const localeCode = dateFnsLocale?.code ?? 'en-US';
+    if (timeZone) {
+        return memoizedCreateMonthDayFormatter(localeCode, timeZone).format(date);
+    }
+    return memoizedCreateMonthDayFormatter(localeCode, 'UTC').format(toUTCWallClockDate(date));
+}
+
+/**
+ * Formats a calendar date (such as a transaction date) as an abbreviated month and day, adding the year only when the
+ * date is not in the current year. The date is read as UTC so the displayed day never shifts with the device's timezone.
+ *
+ * @returns Jun 20, or Jun 20, 2025 for a past year
+ */
+function formatToMonthDayWithOptionalYearInUTC(datetime: string, dateFnsLocale: DateFnsLocale | undefined): string {
+    const date = toDate(datetime, {timeZone: 'UTC'});
+    if (!isValid(date)) {
+        return '';
+    }
+    // Read the date's year in UTC, the timezone it is shown in, and compare it with the device's current year. Reading the
+    // date in the device's timezone treated a January 1 date as the previous year behind UTC and added a year to it.
+    if (date.getUTCFullYear() !== new Date().getFullYear()) {
+        return formatWithUTCTimeZone(datetime, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, dateFnsLocale);
+    }
+    return formatToMonthDay(date, dateFnsLocale, 'UTC');
+}
+
+/**
  * Returns a boolean value indicating whether the card has expired.
  * @param expiryMonth month when card expires (starts from 1 so can be any number between 1 and 12)
  * @param expiryYear year when card expires
@@ -1146,8 +1190,32 @@ function isValidDateString(dateString: string) {
     return !Number.isNaN(date.getTime());
 }
 
-function getFormattedDateRangeForPerDiem(date1: Date, date2: Date, dateFnsLocale: DateFnsLocale | undefined): string {
-    return `${format(date1, 'MMM d, yyyy', {locale: dateFnsLocale})} - ${format(date2, 'MMM d, yyyy', {locale: dateFnsLocale})}`;
+/**
+ * Formats the date range that goes into a per-diem expense's merchant, e.g. January 22, 2026 to January 23, 2026.
+ *
+ * The server builds the saved merchant itself, in English and in this exact form, whatever the user's language. The app
+ * shows this one until the server's arrives, so it matches it rather than following the user's language; otherwise the
+ * merchant would visibly change once the expense is saved.
+ */
+function getFormattedDateRangeForPerDiem(date1: Date, date2: Date): string {
+    return `${format(date1, 'MMMM dd, yyyy', {locale: enUS})} to ${format(date2, 'MMMM dd, yyyy', {locale: enUS})}`;
+}
+
+/**
+ * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language.
+ * They format in UTC, so pass dates through `toUTCWallClockDate` to show them in the device's current timezone.
+ */
+const memoizedCreateNumericDateWithYearFormatter = memoize((localeCode: string) => new Intl.DateTimeFormat(localeCode, {year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'UTC'}));
+
+/**
+ * Formats a date as a short numeric date with the year, in the language's own order and separators, e.g. 06/20/2026 in
+ * English and 20.06.2026 in German.
+ *
+ * date-fns' `P` gives the same result in most languages, but writes a two-digit year in Greek and Chinese.
+ */
+function formatToNumericDateWithYear(date: Date, dateFnsLocale: DateFnsLocale | undefined): string {
+    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
+    return memoizedCreateNumericDateWithYearFormatter(dateFnsLocale?.code ?? 'en-US').format(toUTCWallClockDate(date));
 }
 
 /**
@@ -1399,18 +1467,38 @@ function getShortFormattedMonthForSearch(year: number, month: number, dateFnsLoc
 }
 
 /**
- * Returns a formatted date range.
+ * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language and
+ * whether the year is shown.
+ * They format in UTC, so pass dates through `toUTCWallClockDate` to show them in the device's current timezone.
+ */
+const memoizedCreateSearchDateRangeFormatter = memoize(
+    (localeCode: string, shouldIncludeYear: boolean) =>
+        new Intl.DateTimeFormat(localeCode, {year: shouldIncludeYear ? 'numeric' : undefined, month: 'short', day: 'numeric', timeZone: 'UTC'}),
+);
+
+/**
+ * Formats a Search date range with `Intl`'s range format, so each language orders the dates and joins them its own way,
+ * and parts the two dates share (such as the month or year) are written once.
+ */
+function formatSearchDateRange(start: Date, end: Date, dateFnsLocale: DateFnsLocale | undefined, shouldIncludeYear: boolean): string {
+    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
+    // Hermes lacks `formatRange`, so native apps get it from polyfillDateTimeFormatRange.
+    return memoizedCreateSearchDateRangeFormatter(dateFnsLocale?.code ?? 'en-US', shouldIncludeYear).formatRange(toUTCWallClockDate(start), toUTCWallClockDate(end));
+}
+
+/**
+ * Returns a formatted date range, e.g. Sep 1 – 7, 2025.
  */
 function getFormattedDateRangeForSearch(startDate: string, endDate: string, dateFnsLocale: DateFnsLocale | undefined, shouldShowFullYear = false, shouldOmitCurrentYear = false): string {
     const start = parse(startDate, 'yyyy-MM-dd', new Date());
     const end = parse(endDate, 'yyyy-MM-dd', new Date());
-    if (shouldShowFullYear || !isSameYear(new Date(start), new Date(end))) {
-        return `${format(start, 'MMM d, yyyy', {locale: dateFnsLocale})} - ${format(end, 'MMM d, yyyy', {locale: dateFnsLocale})}`;
+    if (!isValid(start) || !isValid(end)) {
+        return '';
     }
-    if (shouldOmitCurrentYear && isThisYear(start) && isThisYear(end)) {
-        return `${format(start, 'MMM d', {locale: dateFnsLocale})} - ${format(end, 'MMM d', {locale: dateFnsLocale})}`;
-    }
-    return `${format(start, 'MMM d', {locale: dateFnsLocale})} - ${format(end, 'MMM d, yyyy', {locale: dateFnsLocale})}`;
+    // The year is only left out when the caller asks to omit the current one and the whole range falls in it, since the
+    // reader then knows which year is meant. A range in any other year, or across two years, would be ambiguous without it.
+    const shouldOmitYear = !shouldShowFullYear && shouldOmitCurrentYear && isThisYear(start) && isThisYear(end);
+    return formatSearchDateRange(start, end, dateFnsLocale, !shouldOmitYear);
 }
 
 /** Returns a compact date range, e.g. "Sep 1 - 7, ’25". */
@@ -1456,7 +1544,7 @@ function getFormattedQuarterForSearch(year: number, quarter: number, dateFnsLoca
     // `I kw.` in Polish and `第一季` in Chinese. `Intl.DateTimeFormat` has no quarter option at all, so date-fns is
     // the only way to localize this. The quarter still comes before the year by hand, because neither library has
     // a canned pattern pairing the two.
-    return `${format(quarterStart, 'QQQ yyyy', {locale: dateFnsLocale})} (${format(quarterStart, 'MMM d', {locale: dateFnsLocale})} - ${format(quarterEnd, 'MMM d', {locale: dateFnsLocale})})`;
+    return `${format(quarterStart, 'QQQ yyyy', {locale: dateFnsLocale})} (${formatSearchDateRange(quarterStart, quarterEnd, dateFnsLocale, false)})`;
 }
 
 /**
@@ -1541,6 +1629,8 @@ const DateUtils = {
     getFormattedTransportDateAndHour,
     getFormattedCancellationDate,
     doesDateBelongToAPastYear,
+    formatToMonthDay,
+    formatToMonthDayWithOptionalYearInUTC,
     isCardExpired,
     getDifferenceInDaysFromNow,
     isValidDateString,
@@ -1550,6 +1640,7 @@ const DateUtils = {
     isFutureDay,
     isTransactionDateFuture,
     getFormattedDateRangeForPerDiem,
+    formatToNumericDateWithYear,
     getFormattedSplitDateRange,
     formatInTimeZoneWithFallback,
     formatToLongDateInTimeZone,

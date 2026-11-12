@@ -93,6 +93,7 @@ function ChangeBillingCurrency() {
                     <PaymentCardCurrencyHeader />
                     <View style={[styles.mt5, styles.mhn5]}>
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.BILLING_CURRENCY}
                             name={translate('common.currency')}
                             value={currency}
                             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PAYMENT_CARD_CURRENCY_SELECTOR.path))}
