@@ -170,6 +170,7 @@ function getMatchingFullScreenRoute(route: NavigationRoute, isDeeplink = false) 
                 name: RHP_TO_WORKSPACE[route.name],
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
             },
+            pick(route.params, ['policyID']),
         );
 
         return getTabNavigatorState({
@@ -203,6 +204,7 @@ function getMatchingFullScreenRoute(route: NavigationRoute, isDeeplink = false) 
                 name: RHP_TO_DOMAIN[route.name],
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
             },
+            pick(route.params, ['domainAccountID']),
         );
 
         return getTabNavigatorState({
