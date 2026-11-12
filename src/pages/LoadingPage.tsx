@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,9 +21,8 @@ function LoadingPage({onBackButtonPress, title}: LoadingPageProps) {
 
     return (
         <ScreenWrapper testID="LoadingPage">
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 onBackButtonPress={onBackButtonPress}
-                shouldShowBackButton
                 title={title}
             />
             <View style={[styles.flex1, styles.fullScreenLoading]}>

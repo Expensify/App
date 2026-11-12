@@ -2,7 +2,7 @@ import AddExistingExpenseFooter from '@components/AddExistingExpenseFooter';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import FixedFooter from '@components/FixedFooter';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import UnreportedExpensesSkeleton from '@components/Skeletons/UnreportedExpensesSkeleton';
@@ -145,7 +145,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
                 testID="NewChatSelectorPage"
                 focusTrapSettings={{active: false}}
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('iou.addExistingExpense')}
                     onBackButtonPress={Navigation.goBack}
                 />
@@ -163,7 +163,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
                 testID="NewChatSelectorPage"
                 focusTrapSettings={{active: false}}
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('iou.addExistingExpense')}
                     onBackButtonPress={Navigation.goBack}
                 />
@@ -212,7 +212,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
             focusTrapSettings={{active: false}}
         >
             <CollapsibleHeaderOnKeyboard>
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('iou.addExistingExpense')}
                     onBackButtonPress={Navigation.goBack}
                 />
