@@ -41,14 +41,15 @@ type SplitCategoryTaxControllerProps = {
  * `contributingGuides/ACTIVITY_SCREENS.md`). Keying it on the arrival would lose every pick made over there.
  * A category the screen opened with is recorded rather than replayed, so a tax the user chose for it earlier
  * survives. A pick made while `GetRules` had failed is replayed again once a retry lands the rules, since that
- * pick resolved against no rules at all.
+ * pick resolved against no rules at all, unless the tax it left has been changed by hand in the meantime.
  */
 function SplitCategoryTaxController({transactionID, transaction, policy, policyCategories, isEditingSplitBill}: SplitCategoryTaxControllerProps) {
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {areRulesLoading, haveRulesLoaded} = useRulesPrefetch(isEditingSplitBill && arePolicyRulesEnabled(policy, policyCategories));
-    // Wrapped, so that the category this opened on is told apart from not having recorded one yet.
-    const [resolvedCategory, setResolvedCategory] = useState<{value: string | undefined; wasResolvedWithoutRules: boolean}>();
+    // Wrapped, so that the category this opened on is told apart from not having recorded one yet. `pendingReplay`
+    // marks a resolution that had no rules to read, and holds the tax it left behind.
+    const [resolvedCategory, setResolvedCategory] = useState<{value: string | undefined; pendingReplay: {taxCode: string | undefined} | undefined}>();
     const category = transaction?.category;
 
     useEffect(() => {
@@ -58,7 +59,7 @@ function SplitCategoryTaxController({transactionID, transaction, policy, policyC
 
         if (!resolvedCategory) {
             // eslint-disable-next-line react-hooks/set-state-in-effect -- the category the screen opened on is only knowable on the first run, and replaying it would overwrite a tax picked for it earlier
-            setResolvedCategory({value: category, wasResolvedWithoutRules: false});
+            setResolvedCategory({value: category, pendingReplay: undefined});
             return;
         }
 
@@ -66,21 +67,30 @@ function SplitCategoryTaxController({transactionID, transaction, policy, policyC
         // A failed fetch settles the wait, so a pick made in that window was resolved against an empty collection
         // and left the previous category's tax in place. A retry that lands the rules is the first chance to
         // resolve it properly.
-        const haveRulesArrivedSinceThePick = resolvedCategory.wasResolvedWithoutRules && haveRulesLoaded;
+        const haveRulesArrivedSinceThePick = !!resolvedCategory.pendingReplay && haveRulesLoaded;
         if (areRulesLoading || (!hasCategoryChanged && !haveRulesArrivedSinceThePick)) {
             return;
         }
 
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- which category has been resolved is history, so it cannot be derived from the current render
-        setResolvedCategory({value: category, wasResolvedWithoutRules: hasCategoryChanged && !haveRulesLoaded});
-
-        if (!transaction) {
+        // A tax that no longer matches the one the pick left is one the user has chosen since, so the retry gives
+        // up rather than replacing it. Picking the category again is what asks for it to be resolved afresh.
+        const hasTaxBeenPickedSince = !hasCategoryChanged && resolvedCategory.pendingReplay?.taxCode !== transaction?.taxCode;
+        if (hasTaxBeenPickedSince || !transaction) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- whether a replay is still owed is history, so it cannot be derived from the current render
+            setResolvedCategory({value: category, pendingReplay: undefined});
             return;
         }
 
         // Clearing the category is replayed too. Its tax falls back to the workspace default, and that fallback is
         // itself read from the rules, so without the rules the pick left the previous category's tax in place.
         setDraftSplitTransaction(transactionID, transaction, {category: category ?? ''}, getCurrencyDecimals, getCurrencySymbol, policy, undefined, undefined, rules);
+
+        // A resolution with no rules to read leaves the draft's tax where it is, so the tax going in is also the
+        // one a retry will find unless the user picks another. Recording it here rather than reading it back off
+        // the draft keeps this from racing the write, at the cost of skipping the retry in the narrow window where
+        // a reconnect has cleared the fetched flag but the previous response's rules are still in the collection.
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- which category has been resolved is history, so it cannot be derived from the current render
+        setResolvedCategory({value: category, pendingReplay: haveRulesLoaded ? undefined : {taxCode: transaction.taxCode}});
     }, [areRulesLoading, haveRulesLoaded, resolvedCategory, category, isEditingSplitBill, transactionID, transaction, policy, rules, getCurrencyDecimals, getCurrencySymbol]);
 
     return null;

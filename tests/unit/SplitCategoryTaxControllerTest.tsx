@@ -149,19 +149,36 @@ describe('SplitCategoryTaxController', () => {
     });
 
     it('replays a category picked while the rules fetch had failed, once a retry lands them', () => {
-        // Given a `GetRules` that failed, which settles the wait with no rules
+        // Given a split carrying the tax its previous category left, and a `GetRules` that failed, which settles
+        // the wait with no rules
         mockHaveRulesLoaded = false;
-        const {rerender} = render(<SplitCategoryTaxController {...withCategory(undefined)} />);
+        const withPreviousTax = (category: string | undefined) => withCategory(category, {transaction: {...transaction, category, taxCode: 'tax_previous'}});
+        const {rerender} = render(<SplitCategoryTaxController {...withPreviousTax('Equipment')} />);
 
-        // When the user picks a category, which resolves its tax against an empty collection, and a reconnect
-        // then lands the rules
-        rerender(<SplitCategoryTaxController {...withCategory('Car')} />);
+        // When the user picks a category, which has no rule to resolve against and so leaves that tax in place,
+        // and a reconnect then lands the rules
+        rerender(<SplitCategoryTaxController {...withPreviousTax('Car')} />);
         mockHaveRulesLoaded = true;
-        rerender(<SplitCategoryTaxController {...withCategory('Car')} />);
+        rerender(<SplitCategoryTaxController {...withPreviousTax('Car')} />);
 
-        // Then the pick is written a second time, because the first one had no rule to resolve against and so
-        // left the previous category's tax in place
+        // Then the pick is written a second time, because the rules it needed had not arrived the first time
         expect(mockSetDraftSplitTransaction).toHaveBeenCalledTimes(2);
+    });
+
+    it('drops the retry when the tax has been picked by hand since the category was', () => {
+        // Given a category picked while the rules fetch had failed, which left the previous category's tax
+        mockHaveRulesLoaded = false;
+        const {rerender} = render(<SplitCategoryTaxController {...withCategory('Equipment', {transaction: {...transaction, category: 'Equipment', taxCode: 'tax_previous'}})} />);
+        rerender(<SplitCategoryTaxController {...withCategory('Car', {transaction: {...transaction, category: 'Car', taxCode: 'tax_previous'}})} />);
+
+        // When the user picks a tax by hand and a reconnect then lands the rules
+        const manuallyTaxed = withCategory('Car', {transaction: {...transaction, category: 'Car', taxCode: 'tax_manual'}});
+        rerender(<SplitCategoryTaxController {...manuallyTaxed} />);
+        mockHaveRulesLoaded = true;
+        rerender(<SplitCategoryTaxController {...manuallyTaxed} />);
+
+        // Then nothing more is written, so the rate the user chose stands rather than the category rule replacing it
+        expect(mockSetDraftSplitTransaction).toHaveBeenCalledTimes(1);
     });
 
     it('leaves the category the screen opened with alone when a retry lands the rules', () => {
