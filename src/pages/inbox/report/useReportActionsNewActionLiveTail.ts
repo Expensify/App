@@ -47,8 +47,8 @@ type UseReportActionsNewActionLiveTailParams = {
     hasNewerActions: boolean;
     linkedReportActionID: string | undefined;
     hasNewestReportAction: boolean;
-    sortedVisibleReportActions: OnyxTypes.ReportAction[];
-    sortedAllReportActionsForPagination: OnyxTypes.ReportAction[];
+    visibleActions: OnyxTypes.ReportAction[];
+    cachedActions: OnyxTypes.ReportAction[];
     reportActionPages: OnyxTypes.Pages | undefined;
     setTreatAsNoPaginationAnchor: (value: boolean) => void;
     treatAsNoPaginationAnchor: boolean;
@@ -75,8 +75,8 @@ function useReportActionsNewActionLiveTail({
     hasNewerActions,
     linkedReportActionID,
     hasNewestReportAction,
-    sortedVisibleReportActions,
-    sortedAllReportActionsForPagination,
+    visibleActions,
+    cachedActions,
     reportActionPages,
     setTreatAsNoPaginationAnchor,
     treatAsNoPaginationAnchor,
@@ -141,7 +141,7 @@ function useReportActionsNewActionLiveTail({
                     setTreatAsNoPaginationAnchor(true);
                     navigation.setParams({reportActionID: ''});
                 }
-                const index = sortedVisibleReportActions.findIndex((item) => item.reportActionID === action?.reportActionID);
+                const index = visibleActions.findIndex((item) => item.reportActionID === action?.reportActionID);
                 if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                     if (index > 0) {
                         // Only the scrollToBottom() branches should arm the pending scroll-to-bottom flush. Arming it here too
@@ -170,7 +170,7 @@ function useReportActionsNewActionLiveTail({
         if (liveTailJumpRef.current.stage !== 'await_prune') {
             return;
         }
-        pruneReportActionPagesToNewestWindow(reportID, sortedAllReportActionsForPagination, reportActionPages);
+        pruneReportActionPagesToNewestWindow(reportID, cachedActions, reportActionPages);
         setTreatAsNoPaginationAnchor(false);
         liveTailJumpRef.current = {stage: 'idle'};
     };

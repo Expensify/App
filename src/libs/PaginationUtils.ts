@@ -90,8 +90,15 @@ function findLastItem(page: string[], idToIndex: Map<string, number>, lastSorted
 
 /**
  * Finds the index and id of the first and last items of each page in `sortedItems`.
+ * Pass `shouldIncludeIDs: false` when only the bounds are needed, to skip copying every page's IDs.
  */
-function getPagesWithIndexes<TResource>(sortedItems: TResource[], pages: Pages, getID: (item: TResource) => string, idToIndex?: Map<string, number>): PageWithIndex[] {
+function getPagesWithIndexes<TResource>(
+    sortedItems: TResource[],
+    pages: Pages,
+    getID: (item: TResource) => string,
+    idToIndex?: Map<string, number>,
+    shouldIncludeIDs = true,
+): PageWithIndex[] {
     const idToIndexMap = idToIndex ?? buildIDToIndexMap(sortedItems, getID);
     const lastSortedItemIndex = sortedItems.length - 1;
 
@@ -110,6 +117,10 @@ function getPagesWithIndexes<TResource>(sortedItems: TResource[], pages: Pages, 
                 const temp = firstItem;
                 firstItem = lastItem;
                 lastItem = temp;
+            }
+
+            if (!shouldIncludeIDs) {
+                return {ids: [], firstID: firstItem.id, firstIndex: firstItem.index, lastID: lastItem.id, lastIndex: lastItem.index};
             }
 
             const ids = sortedItems.slice(firstItem.index, lastItem.index + 1).map((item) => getID(item));
@@ -392,7 +403,8 @@ function getContinuousChain<TResource>(sortedItems: TResource[], pages: Pages, g
         return {data: !!id && !didFindItem ? [] : sortedItems, hasNextPage: false, hasPreviousPage: false, resourceItem};
     }
 
-    const pagesWithIndexes = getPagesWithIndexes(sortedItems, pages, getID, idToIndex);
+    // Reading the chain only needs each page's bounds.
+    const pagesWithIndexes = getPagesWithIndexes(sortedItems, pages, getID, idToIndex, false);
 
     let page: PageWithIndex = {
         ids: [],

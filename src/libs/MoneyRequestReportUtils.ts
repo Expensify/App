@@ -118,6 +118,15 @@ function getReportIDForTransaction(transactionItem: TransactionListItemType, IOU
  * Filters all available transactions and returns the ones that belong to not removed action and not removed parent action.
  */
 function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>, reportActions: ReportAction[], isOffline = false, includeOrphanedTransactions = false) {
+    // The first IOU action of each transaction, as `getIOUActionForTransactionID` finds it, indexed once instead of scanning every action per transaction.
+    const iouActionByTransactionID = new Map<string, ReportAction>();
+    for (const reportAction of reportActions) {
+        const transactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : undefined;
+        if (transactionID && !iouActionByTransactionID.has(transactionID)) {
+            iouActionByTransactionID.set(transactionID, reportAction);
+        }
+    }
+
     const nonDeletedTransactions = Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
         if (!transaction) {
             return false;
@@ -132,7 +141,7 @@ function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>,
             return true;
         }
 
-        const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
+        const action = iouActionByTransactionID.get(transaction.transactionID);
         if (!action && includeOrphanedTransactions) {
             return true;
         }

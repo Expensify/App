@@ -1,7 +1,6 @@
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getContinuousChain} from '@libs/PaginationUtils';
 import {getSortedReportActionsForDisplay} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction} from '@libs/ReportUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
@@ -12,7 +11,6 @@ import {useState} from 'react';
 
 import useInitial from './useInitial';
 import useOnyx from './useOnyx';
-import useReportIsArchived from './useReportIsArchived';
 
 type UsePaginatedReportActionsOptions = {
     /** Whether to link to the oldest unread report action, if no other report action id is provided. */
@@ -30,23 +28,23 @@ type UsePaginatedReportActionsOptions = {
     shouldSnapshotInitialLastReadTime?: boolean;
 };
 
+/** Sorts the report's stored actions, hidden ones included. Every caller gets the same array for the same Onyx value. */
+function selectCachedActions(reportActions: OnyxEntry<ReportActions>): ReportAction[] {
+    return getSortedReportActionsForDisplay(reportActions, undefined, true);
+}
+
 /**
- * Get the longest continuous chunk of reportActions including the linked reportAction. If not linking to a specific action, returns the continuous chunk of newest reportActions.
+ * Reads one report's actions in the two shapes callers need:
+ * - `cachedActions`: every action of the report in the Onyx cache, newest first, including hidden ones.
+ * - `windowActions`: the continuous part of `cachedActions` around the linked action, the oldest unread action, or the newest action, so it has no gaps.
  */
 function usePaginatedReportActions(reportID: string | undefined, reportActionID?: string, options?: UsePaginatedReportActionsOptions) {
     const {shouldLinkToOldestUnreadReportAction = false, treatAsNoPaginationAnchor = false, shouldSnapshotInitialLastReadTime = false} = options ?? {};
 
     const nonEmptyStringReportID = getNonEmptyStringOnyxID(reportID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nonEmptyStringReportID}`);
-    const isReportArchived = useReportIsArchived(report?.reportID);
-    const hasWriteAccess = canUserPerformWriteAction(report, isReportArchived);
-
-    const getSortedAllReportActionsSelector = (allReportActions: OnyxEntry<ReportActions>): ReportAction[] => {
-        return getSortedReportActionsForDisplay(allReportActions, hasWriteAccess, true, undefined, nonEmptyStringReportID);
-    };
-
-    const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nonEmptyStringReportID}`, {
-        selector: getSortedAllReportActionsSelector,
+    const [cachedActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nonEmptyStringReportID}`, {
+        selector: selectCachedActions,
     });
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${nonEmptyStringReportID}`);
 
@@ -71,21 +69,21 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
         }
 
         const initialLastReadTime = shouldSnapshotInitialLastReadTime ? firstDefinedLastReadTime : firstRenderLastReadTime;
-        if (!initialLastReadTime || !sortedAllReportActions?.length) {
+        if (!initialLastReadTime || !cachedActions?.length) {
             return undefined;
         }
 
-        return sortedAllReportActions.findLast((reportAction) => reportAction.created > initialLastReadTime)?.reportActionID;
+        return cachedActions.findLast((reportAction) => reportAction.created > initialLastReadTime)?.reportActionID;
     };
     const id = getPaginationAnchorID();
 
     const {
-        data: reportActions,
+        data: windowActions,
         hasNextPage,
         hasPreviousPage,
         resourceItem,
-    } = sortedAllReportActions?.length
-        ? getContinuousChain(sortedAllReportActions, reportActionPages ?? [], (reportAction) => reportAction.reportActionID, id)
+    } = cachedActions?.length
+        ? getContinuousChain(cachedActions, reportActionPages ?? [], (reportAction) => reportAction.reportActionID, id)
         : {data: [], hasNextPage: false, hasPreviousPage: false, resourceItem: undefined};
 
     // When `treatAsNoPaginationAnchor` is set, we intentionally ignore `reportActionID` for pagination
@@ -95,10 +93,10 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
     const oldestUnreadReportAction = !treatAsNoPaginationAnchor && shouldLinkToOldestUnreadReportAction && resourceItem && !reportActionID ? resourceItem.item : undefined;
 
     return {
-        reportActions,
+        windowActions,
         linkedAction,
         oldestUnreadReportAction,
-        sortedAllReportActions,
+        cachedActions,
         hasOlderActions: hasNextPage,
         hasNewerActions: hasPreviousPage,
         report,

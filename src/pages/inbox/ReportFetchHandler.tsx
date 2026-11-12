@@ -150,8 +150,8 @@ function ReportFetchHandler() {
     const reportID = reportOnyx?.reportID;
     const report = reportOnyx;
 
-    const {reportActions: unfilteredReportActions, linkedAction} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
-    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+    const {windowActions, linkedAction} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
+    const reportActions = getFilteredReportActionsForReportView(windowActions);
     const prevReportActions = usePrevious(reportActions);
 
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedAction?.childReportID}`);

@@ -3,7 +3,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getCombinedReportActions, getFilteredReportActionsForReportView, isCreatedAction} from '@libs/ReportActionsUtils';
 import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport, isReportTransactionThread as isReportTransactionThreadUtil, shouldReportAlignToTop} from '@libs/ReportUtils';
 
-import getReportActionsToDisplay from '@pages/inbox/report/getReportActionsToDisplay';
+import getReportActionsToDisplay, {buildPlaceholderCreatedAction, buildPlaceholderExpenseAction} from '@pages/inbox/report/getReportActionsToDisplay';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
@@ -21,13 +21,22 @@ import useParentReportAction from './useParentReportAction';
 import useTransactionThread from './useTransactionThread';
 
 type UseReportActionsPaginationResult = {
-    reportActions: ReportAction[];
-    allReportActions: ReportAction[];
-    allReportActionIDs: string[];
+    /** Every action of the report in the Onyx cache, newest first, including hidden ones. */
+    cachedActions: ReportAction[] | undefined;
+
+    /** The report's own actions in the loaded window, without deleted expenses and hidden report previews. */
+    reportViewActions: ReportAction[];
+
+    /** IDs of `reportViewActions`. They tell the report's own actions apart from its one-expense thread's in `combinedActions`. */
+    reportViewActionIDs: string[];
+
+    /** `reportViewActions` merged with the one-expense thread's actions, plus placeholder rows while the report loads. */
+    combinedActions: ReportAction[];
+
+    /** IDs of the stored actions in `combinedActions`, so without placeholders. */
     persistedReportActionIDs: string[];
     hasOlderActions: boolean;
     hasNewerActions: boolean;
-    sortedAllReportActions: ReportAction[] | undefined;
     oldestUnreadReportAction: ReportAction | undefined;
     transactionThreadReportID: string | undefined;
     transactionThreadReport: OnyxEntry<Report>;
@@ -40,8 +49,6 @@ type UseReportActionsPaginationResult = {
 function useReportActionsPagination(reportID: string | undefined, reportActionIDFromRoute: string | undefined): UseReportActionsPaginationResult {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const {isOffline} = useNetwork();
-    const {getCurrencyDecimals} = useCurrencyListActions();
-    const delegateAccountID = useDelegateAccountID();
     const parentReportAction = useParentReportAction(report);
 
     const [treatAsNoPaginationAnchor, setTreatAsNoPaginationAnchor] = useState(false);
@@ -49,68 +56,44 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction);
+    const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
 
-    const {
-        reportActions: unfilteredReportActions,
-        hasOlderActions,
-        hasNewerActions,
-        sortedAllReportActions,
-        oldestUnreadReportAction,
-    } = usePaginatedReportActions(reportID, reportActionIDFromRoute, {
+    const {windowActions, hasOlderActions, hasNewerActions, cachedActions, oldestUnreadReportAction} = usePaginatedReportActions(reportID, reportActionIDFromRoute, {
         shouldLinkToOldestUnreadReportAction: !shouldBeAlignedToTop,
         treatAsNoPaginationAnchor,
         // Scope the first-defined lastReadTime snapshot to Concierge so the cold-open unread anchor resolves
         // (https://github.com/Expensify/App/issues/93196) without changing regular inbox chat pagination.
-        shouldSnapshotInitialLastReadTime: isConciergeChatReport(report, conciergeReportID),
+        shouldSnapshotInitialLastReadTime: isConciergeChat,
     });
-    const thread = useTransactionThread({reportID, report, allReportActions: getFilteredReportActionsForReportView(unfilteredReportActions), isOffline});
+    const thread = useTransactionThread({reportID, report, reportViewActions: getFilteredReportActionsForReportView(windowActions), isOffline});
 
     const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
-
-    // React Compiler does not memoize a value created before a hook call and used after it, so these are computed again below the last hook.
-    const allReportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
-    const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
-
-    const isReportTransactionThread = isReportTransactionThreadUtil(report);
-
-    const lastAction = allReportActions?.at(-1);
-    const shouldAddCreatedAction = !isCreatedAction(lastAction) && (isMoneyRequestReport(report) || isInvoiceReport(report) || isReportTransactionThread || isConciergeChat);
-
     const reportPreviewAction = getReportPreviewReportAction(report?.chatReportID, report?.reportID, chatReportActions);
 
-    // When we are offline before opening an IOU/Expense report,
-    // the total of the report and sometimes the expense aren't displayed because these actions aren't returned until `OpenReport` API is complete.
-    // We generate a fake created action here if it doesn't exist to display the total whenever possible because the total just depends on report data
-    // and we also generate an expense action if the number of expenses in allReportActions is less than the total number of expenses
-    // to display at least one expense action to match the total data.
-    const reportActionsToDisplay = getReportActionsToDisplay(
-        allReportActions,
-        lastAction,
-        report,
+    // Only these report fields feed the arrays. Passing them on their own keeps a write to any other field, like
+    // lastReadTime, from rebuilding the arrays and re-rendering the list.
+    const isReportMoneyRequest = isMoneyRequestReport(report);
+    const {reportViewActions, reportViewActionIDs, combinedActions, persistedReportActionIDs} = useCombinedReportActions({
+        windowActions,
+        reportID,
+        ownerAccountID: report?.ownerAccountID,
+        reportTotal: report?.total,
+        isMoneyRequestReport: isReportMoneyRequest,
+        canHavePlaceholderCreatedAction: isReportMoneyRequest || isInvoiceReport(report) || isReportTransactionThreadUtil(report) || isConciergeChat,
         reportPreviewAction,
-        thread.transactionThreadReport,
-        shouldAddCreatedAction,
-        getCurrencyDecimals,
-        delegateAccountID,
-    );
-
-    const reportActions = reportActionsToDisplay
-        ? getCombinedReportActions(reportActionsToDisplay, thread.transactionThreadReportID ?? null, thread.transactionThreadReportActions ?? [])
-        : [];
-
-    const allReportActionIDs = allReportActions.map((action) => action.reportActionID);
-    // A one-expense report shows the comments of its transaction thread. Onyx stores those comments under the
-    // reportID of the thread, therefore allReportActionIDs does not contain them.
-    const persistedReportActionIDs = [...allReportActionIDs, ...(thread.transactionThreadReportActions ?? []).map((action) => action.reportActionID)];
+        transactionThreadReportID: thread.transactionThreadReportID,
+        transactionThreadReport: thread.transactionThreadReport,
+        transactionThreadReportActions: thread.transactionThreadReportActions,
+    });
 
     return {
-        reportActions,
-        allReportActions,
-        allReportActionIDs,
+        cachedActions,
+        reportViewActions,
+        reportViewActionIDs,
+        combinedActions,
         persistedReportActionIDs,
         hasOlderActions,
         hasNewerActions,
-        sortedAllReportActions,
         oldestUnreadReportAction,
         transactionThreadReportID: thread.transactionThreadReportID,
         transactionThreadReport: thread.transactionThreadReport,
@@ -119,6 +102,64 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
         setTreatAsNoPaginationAnchor,
         reportPreviewAction,
     };
+}
+
+type UseCombinedReportActionsParams = {
+    windowActions: ReportAction[];
+    reportID: string | undefined;
+    ownerAccountID: number | undefined;
+    reportTotal: number | undefined;
+    isMoneyRequestReport: boolean;
+    canHavePlaceholderCreatedAction: boolean;
+    reportPreviewAction: ReturnType<typeof getReportPreviewReportAction>;
+    transactionThreadReportID: string | undefined;
+    transactionThreadReport: OnyxEntry<Report>;
+    transactionThreadReportActions: ReportAction[] | undefined;
+};
+
+/** Builds `reportViewActions` and `combinedActions` from primitive and stable inputs only, so React Compiler keeps them until one of those changes. */
+function useCombinedReportActions({
+    windowActions,
+    reportID,
+    ownerAccountID,
+    reportTotal,
+    isMoneyRequestReport: isReportMoneyRequest,
+    canHavePlaceholderCreatedAction,
+    reportPreviewAction,
+    transactionThreadReportID,
+    transactionThreadReport,
+    transactionThreadReportActions,
+}: UseCombinedReportActionsParams) {
+    const {getCurrencyDecimals} = useCurrencyListActions();
+    const delegateAccountID = useDelegateAccountID();
+
+    const reportViewActions = getFilteredReportActionsForReportView(windowActions);
+    const oldestAction = reportViewActions.at(-1);
+    const shouldAddCreatedAction = canHavePlaceholderCreatedAction && !isCreatedAction(oldestAction);
+
+    // Built from fields a new message doesn't change, so the placeholder rows keep their identity while the user chats.
+    const placeholderCreatedAction = shouldAddCreatedAction ? buildPlaceholderCreatedAction(ownerAccountID, oldestAction?.created) : undefined;
+    const placeholderExpenseAction =
+        isReportMoneyRequest && !!reportTotal
+            ? buildPlaceholderExpenseAction(reportID, (placeholderCreatedAction ?? oldestAction)?.created, delegateAccountID, getCurrencyDecimals)
+            : undefined;
+
+    const reportActionsToDisplay = getReportActionsToDisplay({
+        reportViewActions,
+        isMoneyRequestReport: isReportMoneyRequest,
+        reportPreviewAction,
+        transactionThreadReport,
+        placeholderCreatedAction,
+        placeholderExpenseAction,
+    });
+    const combinedActions = getCombinedReportActions(reportActionsToDisplay, transactionThreadReportID ?? null, transactionThreadReportActions ?? []);
+
+    const reportViewActionIDs = reportViewActions.map((action) => action.reportActionID);
+    // A one-expense report shows the comments of its transaction thread. Onyx stores those comments under the
+    // reportID of the thread, therefore reportViewActionIDs does not contain them.
+    const persistedReportActionIDs = [...reportViewActionIDs, ...(transactionThreadReportActions ?? []).map((action) => action.reportActionID)];
+
+    return {reportViewActions, reportViewActionIDs, combinedActions, persistedReportActionIDs};
 }
 
 export default useReportActionsPagination;

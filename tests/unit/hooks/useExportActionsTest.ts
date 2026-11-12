@@ -76,7 +76,7 @@ jest.mock('@hooks/useLazyAsset', () => ({
 
 jest.mock('@hooks/usePaginatedReportActions', () => ({
     __esModule: true,
-    default: () => ({reportActions: []}),
+    default: () => ({windowActions: []}),
 }));
 
 let mockReportTransactions: Record<string, Transaction> = {};

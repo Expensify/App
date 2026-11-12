@@ -121,10 +121,10 @@ function getMockReportLoadingState(selector: unknown, hasOnceLoadedReportActions
 }
 
 const defaultPaginatedReportActionsResult: ReturnType<typeof usePaginatedReportActions> = {
-    reportActions: [],
+    windowActions: [],
     linkedAction: undefined,
     oldestUnreadReportAction: undefined,
-    sortedAllReportActions: undefined,
+    cachedActions: undefined,
     hasNewerActions: false,
     hasOlderActions: false,
     report: undefined,
@@ -353,7 +353,7 @@ describe('ReportActionsList (body)', () => {
 
         mockUsePaginatedReportActions.mockReturnValue({
             ...defaultPaginatedReportActionsResult,
-            reportActions: mockReportActions,
+            windowActions: mockReportActions,
         });
 
         mockUseParentReportAction.mockReturnValue(undefined as ReturnType<typeof useParentReportAction>);
@@ -426,8 +426,8 @@ describe('ReportActionsList (body)', () => {
             );
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
-                reportActions: hasNewestPage ? [survey, reply] : [reply],
-                sortedAllReportActions: [survey, reply],
+                windowActions: hasNewestPage ? [survey, reply] : [reply],
+                cachedActions: [survey, reply],
                 hasNewerActions: !hasNewestPage,
             });
             mockUseUnreadMarker.mockReturnValue({unreadMarkerReportActionID: hasUnreadMarker ? reply.reportActionID : null, unreadMarkerReportActionIndex: hasUnreadMarker ? 0 : -1});
@@ -496,7 +496,7 @@ describe('ReportActionsList (body)', () => {
                 }
                 return getMockOnyxValue(key, options);
             });
-            mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: actions, sortedAllReportActions: actions});
+            mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, windowActions: actions, cachedActions: actions});
             mockUseUnreadMarker.mockImplementation(jest.requireActual<{default: typeof useUnreadMarker}>('@hooks/useUnreadMarker').default);
             jest.mocked(usePrevious).mockImplementation(jest.requireActual<{default: typeof usePrevious}>('@hooks/usePrevious').default);
             const focusSpy = jest.spyOn(Visibility, 'hasFocus').mockReturnValue(false);
@@ -569,12 +569,12 @@ describe('ReportActionsList (body)', () => {
             });
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
-                reportActions: actions,
-                sortedAllReportActions: actions,
+                windowActions: actions,
+                cachedActions: actions,
             });
-            mockUseUnreadMarker.mockImplementation(({sortedVisibleReportActions}: Parameters<typeof useUnreadMarker>[0]) => {
+            mockUseUnreadMarker.mockImplementation(({visibleActions}: Parameters<typeof useUnreadMarker>[0]) => {
                 const [unreadMarkerReportActionID, unreadMarkerReportActionIndex] = getUnreadMarkerReportAction({
-                    visibleReportActions: sortedVisibleReportActions,
+                    visibleReportActions: visibleActions,
                     earliestReceivedOfflineMessageIndex: undefined,
                     currentUserAccountID: 100,
                     prevSortedVisibleReportActionsObjects: {},
@@ -635,7 +635,7 @@ describe('ReportActionsList (body)', () => {
         const renderSystemActions = (reportType?: OnyxTypes.Report['type']) => {
             mockReport.type = reportType;
             mockUseNetwork.mockReturnValue({isOffline: false});
-            mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: systemActions});
+            mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, windowActions: systemActions});
             return renderReportActionsList();
         };
         const getCapturedSystemActionIDs = () =>
@@ -675,7 +675,7 @@ describe('ReportActionsList (body)', () => {
             mockUseNetwork.mockReturnValue({isOffline: false});
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
-                reportActions: [getSystemAction(0), payment, getSystemAction(1), getSystemAction(2), created],
+                windowActions: [getSystemAction(0), payment, getSystemAction(1), getSystemAction(2), created],
             });
 
             // When the standard report list constructs its summary
@@ -709,7 +709,7 @@ describe('ReportActionsList (body)', () => {
             mockReport.type = CONST.REPORT.TYPE.EXPENSE;
             mockReport.isWaitingOnBankAccount = true;
             mockUseNetwork.mockReturnValue({isOffline: false});
-            mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: [getSystemAction(0), payment, created]});
+            mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, windowActions: [getSystemAction(0), payment, created]});
 
             // When the visible list is built, only the real update remains, with its normal header
             renderReportActionsList();
@@ -743,7 +743,7 @@ describe('ReportActionsList (body)', () => {
             mockUseUnreadMarker.mockReturnValue({unreadMarkerReportActionID: 'system-older', unreadMarkerReportActionIndex: 1});
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
-                reportActions: [getSystemAction(0), getSystemAction(1), ...(hasPersistedCreatedAction ? [created] : [])],
+                windowActions: [getSystemAction(0), getSystemAction(1), ...(hasPersistedCreatedAction ? [created] : [])],
             });
 
             // When the unread pair is collapsed, scrolling still targets the summary
@@ -859,7 +859,7 @@ describe('ReportActionsList (body)', () => {
         it('marks the newest Concierge reply as the feedback target', () => {
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
-                reportActions: [...mockReportActions, conciergeReply],
+                windowActions: [...mockReportActions, conciergeReply],
             });
 
             renderReportActionsList();
@@ -897,7 +897,7 @@ describe('ReportActionsList (body)', () => {
             });
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
-                reportActions: [...mockReportActions, expenseAction],
+                windowActions: [...mockReportActions, expenseAction],
             });
 
             // When the list renders
@@ -926,7 +926,7 @@ describe('ReportActionsList (body)', () => {
             });
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
-                reportActions: [...mockReportActions, conciergeReply, agentReply],
+                windowActions: [...mockReportActions, conciergeReply, agentReply],
             });
 
             // When the list renders
@@ -945,7 +945,7 @@ describe('ReportActionsList (body)', () => {
             });
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
-                reportActions: [...mockReportActions, conciergeReply],
+                windowActions: [...mockReportActions, conciergeReply],
             });
 
             renderReportActionsList();
@@ -964,7 +964,7 @@ describe('ReportActionsList (body)', () => {
             });
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
-                reportActions: [savedReply, ...mockReportActions],
+                windowActions: [savedReply, ...mockReportActions],
             });
 
             // When the saved reply is available after streaming finishes
@@ -985,7 +985,7 @@ describe('ReportActionsList (body)', () => {
             });
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
-                reportActions: [...mockReportActions, conciergeReply],
+                windowActions: [...mockReportActions, conciergeReply],
             });
 
             renderReportActionsList();
@@ -997,7 +997,7 @@ describe('ReportActionsList (body)', () => {
             // A deep link can open an older page where the newest loaded reply is not the newest in the report
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
-                reportActions: [...mockReportActions, conciergeReply],
+                windowActions: [...mockReportActions, conciergeReply],
                 hasNewerActions: true,
             });
 
@@ -1091,7 +1091,7 @@ describe('ReportActionsList (body)', () => {
             mockUseOnyx.mockImplementation((key, options) =>
                 key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}` ? [supportReport, {status: 'loaded'}] : getMockOnyxValue(key, options),
             );
-            mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: actions, sortedAllReportActions: actions});
+            mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, windowActions: actions, cachedActions: actions});
             mockUseConciergeDraft.mockReturnValue({draftReportAction: savedReply, hasActiveDraft: true, isDraftPendingCompletion: false});
             mockUseConciergeDraftActions.mockReturnValue({clearDraft, dispatchLocalDraftEvent: jest.fn(), revealDraftFromReportAction: jest.fn()});
 
@@ -1116,8 +1116,8 @@ describe('ReportActionsList (body)', () => {
             const revealDraftFromReportAction = jest.fn();
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
-                reportActions: mockReportActions,
-                sortedAllReportActions: [...mockReportActions, persistedReportAction],
+                windowActions: mockReportActions,
+                cachedActions: [...mockReportActions, persistedReportAction],
             });
             const revealingDraftState = {
                 draftReportAction: revealingDraft,
@@ -1177,8 +1177,8 @@ describe('ReportActionsList (body)', () => {
             const clearDraft = jest.fn();
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
-                reportActions: [mergedReportAction, ...mockReportActions],
-                sortedAllReportActions: [mergedReportAction, ...mockReportActions],
+                windowActions: [mergedReportAction, ...mockReportActions],
+                cachedActions: [mergedReportAction, ...mockReportActions],
             });
             mockUseConciergeDraft.mockReturnValue({
                 draftReportAction: completedDraft,
@@ -1211,8 +1211,8 @@ describe('ReportActionsList (body)', () => {
             const revealDraftFromReportAction = jest.fn();
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
-                reportActions: [optimisticReportAction, ...mockReportActions],
-                sortedAllReportActions: [optimisticReportAction, ...mockReportActions],
+                windowActions: [optimisticReportAction, ...mockReportActions],
+                cachedActions: [optimisticReportAction, ...mockReportActions],
             });
             mockUseConciergeDraft.mockReturnValue({
                 draftReportAction: optimisticReportAction,
@@ -1532,7 +1532,7 @@ describe('ReportActionsList (body)', () => {
 
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
-                reportActions: oldReportActions,
+                windowActions: oldReportActions,
             });
             mockUseIsInSidePanel.mockReturnValue(true);
             mockUseSidePanelState.mockReturnValue({...defaultSidePanelState, sessionStartTime: DateUtils.getDBTime()});
@@ -1550,7 +1550,7 @@ describe('ReportActionsList (body)', () => {
 
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
-                reportActions: oldReportActions,
+                windowActions: oldReportActions,
             });
             mockUseIsInSidePanel.mockReturnValue(false);
 
@@ -1564,7 +1564,7 @@ describe('ReportActionsList (body)', () => {
 
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
-                reportActions: oldReportActions,
+                windowActions: oldReportActions,
             });
             mockUseIsInSidePanel.mockReturnValue(false);
 
@@ -1596,7 +1596,7 @@ describe('ReportActionsList (body)', () => {
 
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
-                reportActions: actionsWithNewMessage,
+                windowActions: actionsWithNewMessage,
             });
             mockUseIsInSidePanel.mockReturnValue(true);
             mockUseSidePanelState.mockReturnValue({...defaultSidePanelState, sessionStartTime: sessionStart});
@@ -1700,7 +1700,7 @@ describe('ReportActionsList (body)', () => {
             setupMainDMConciergeMocks();
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
-                reportActions: oldReportActions,
+                windowActions: oldReportActions,
                 hasOlderActions: false,
             });
 
@@ -1717,7 +1717,7 @@ describe('ReportActionsList (body)', () => {
             setupMainDMConciergeMocks(true);
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
-                reportActions: oldReportActions,
+                windowActions: oldReportActions,
                 hasOlderActions: false,
             });
 

@@ -8,6 +8,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 
+import {shallowEqual} from 'fast-equals';
+
 /**
  * Returns true if the action's visibility depends on runtime context that can't be cached,
  * such as write permissions, policy settings, or sibling actions.
@@ -66,31 +68,32 @@ export default createOnyxDerivedValueConfig({
 
         const currentUserAccountID = session?.accountID;
         const reportActionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_ACTIONS];
+        const reportUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT];
         const reportNameValuePairsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS];
 
-        // Recompute only the reports whose actions or NVPs changed when we have a usable delta.
-        // Otherwise recompute everything: on first load, when there's no delta, or on a SESSION or
-        // REPORT change. SESSION is checked via triggeredKeys, not sourceValues, so a session cleared
-        // to `undefined` still forces the full recompute.
-        const isIncremental =
-            !!(reportActionsUpdates ?? reportNameValuePairsUpdates) && !triggeredKeys?.has(ONYXKEYS.SESSION) && !triggeredKeys?.has(ONYXKEYS.COLLECTION.REPORT) && !!currentValue;
+        // A report only changes its own actions' visibility, through its support ticket type, so only changed reports are recomputed.
+        // SESSION is read from triggeredKeys so a session cleared to `undefined` still forces a full recompute.
+        const isIncremental = !!(reportActionsUpdates ?? reportUpdates ?? reportNameValuePairsUpdates) && !triggeredKeys?.has(ONYXKEYS.SESSION) && !!currentValue;
 
         const result: VisibleReportActionsDerivedValue = isIncremental ? {...currentValue} : {};
         const reportIDsToProcess = isIncremental
             ? new Set([
                   ...Object.keys(reportActionsUpdates ?? {}).map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '')),
+                  ...Object.keys(reportUpdates ?? {}).map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, '')),
                   ...Object.keys(reportNameValuePairsUpdates ?? {})
                       .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ''))
                       .filter((reportID) => isSupportTicket(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])),
               ])
             : new Set(Object.keys(allReportActions).map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '')));
 
+        let hasChanged = !isIncremental;
         for (const reportID of reportIDsToProcess) {
             const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
             const reportActions = allReportActions[reportActionsKey];
 
             // The member was removed entirely — drop the report from the result.
             if (!reportActions) {
+                hasChanged ||= reportID in result;
                 delete result[reportID];
                 continue;
             }
@@ -98,9 +101,19 @@ export default createOnyxDerivedValueConfig({
             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
             const isSupportTicketReport = isSupportTicket(report);
             const isReplacedSupportTicket = isSupportTicketReport && !!allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`]?.reopenedAsReportID;
-            result[reportID] = computeReportVisibility(reportActions, currentUserAccountID, isSupportTicketReport, isReplacedSupportTicket);
+            const reportVisibility = computeReportVisibility(reportActions, currentUserAccountID, isSupportTicketReport, isReplacedSupportTicket);
+            const previousReportVisibility = currentValue?.[reportID];
+
+            // Keep the previous map when nothing changed, so selectors scoped to this report see the same reference.
+            if (previousReportVisibility && shallowEqual(previousReportVisibility, reportVisibility)) {
+                result[reportID] = previousReportVisibility;
+                continue;
+            }
+            result[reportID] = reportVisibility;
+            hasChanged = true;
         }
 
-        return result;
+        // Most writes, like a new lastReadTime, change no visibility. Returning the same value skips the write and its notifications.
+        return !hasChanged && currentValue ? currentValue : result;
     },
 });

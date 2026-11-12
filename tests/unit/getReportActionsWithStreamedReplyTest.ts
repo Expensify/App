@@ -15,7 +15,7 @@ Object.freeze(actions);
 Object.freeze(newer);
 Object.freeze(older);
 
-const defaults = {sortedVisibleReportActions: actions, draftReportAction: reply, isDraftPendingCompletion: true, hasPersistedDraft: false, shouldHideDraft: false};
+const defaults = {visibleActions: actions, draftReportAction: reply, isDraftPendingCompletion: true, hasPersistedDraft: false, shouldHideDraft: false};
 
 describe('getReportActionsWithStreamedReply', () => {
     it.each([
@@ -54,7 +54,7 @@ describe('getReportActionsWithStreamedReply', () => {
         const source = [newer, savedReply, older];
         Object.freeze(source);
         // When the partial reply takes its place temporarily.
-        const result = getReportActionsWithStreamedReply({...defaults, sortedVisibleReportActions: source, hasPersistedDraft: true});
+        const result = getReportActionsWithStreamedReply({...defaults, visibleActions: source, hasPersistedDraft: true});
         // Then it replaces rather than duplicates the action and preserves the saved source.
         expect(result.reportActionsWithStreamedReply).toEqual([newer, reply, older]);
         expect(result.reportActionsWithStreamedReply.at(1)).toBe(reply);
@@ -67,7 +67,7 @@ describe('getReportActionsWithStreamedReply', () => {
         const placeholder = {...reply, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
         const source = [newer, placeholder, older];
         // When completion is known but no confirmed saved action has been found.
-        const result = getReportActionsWithStreamedReply({...defaults, sortedVisibleReportActions: source, isDraftPendingCompletion: false});
+        const result = getReportActionsWithStreamedReply({...defaults, visibleActions: source, isDraftPendingCompletion: false});
         // Then the placeholder stays authoritative without a synthetic copy.
         expect(result.reportActionsWithStreamedReply).toBe(source);
         expect(result.isSyntheticDraftVisible).toBe(false);
@@ -78,7 +78,7 @@ describe('getReportActionsWithStreamedReply', () => {
         const timestamp = reply.created;
         const source = [createAction('20', timestamp), createAction('10', timestamp)];
         // When a reply with an intermediate ID arrives.
-        const result = getReportActionsWithStreamedReply({...defaults, sortedVisibleReportActions: source, draftReportAction: createAction('15', timestamp)});
+        const result = getReportActionsWithStreamedReply({...defaults, visibleActions: source, draftReportAction: createAction('15', timestamp)});
         // Then the existing report-action comparator decides its position.
         expect(result.reportActionsWithStreamedReply.map((action) => action.reportActionID)).toEqual(['20', '15', '10']);
         expect(result.isSyntheticDraftVisible).toBe(true);
@@ -88,7 +88,7 @@ describe('getReportActionsWithStreamedReply', () => {
         // Given a synthetic CREATED action whose timestamp is ahead of the reply.
         const created = {...createAction('created', '2030-01-01 00:00:00.000'), actionName: CONST.REPORT.ACTIONS.TYPE.CREATED};
         // When the reply is inserted into that list.
-        const result = getReportActionsWithStreamedReply({...defaults, sortedVisibleReportActions: [created]});
+        const result = getReportActionsWithStreamedReply({...defaults, visibleActions: [created]});
         // Then CREATED remains the oldest row rather than taking timestamp precedence.
         expect(result.reportActionsWithStreamedReply).toEqual([reply, created]);
         expect(result.isSyntheticDraftVisible).toBe(true);
@@ -98,7 +98,7 @@ describe('getReportActionsWithStreamedReply', () => {
         // Given no visible actions and a reply that still needs to be shown.
         const source: ReportAction[] = [];
         // When the reply is included.
-        const result = getReportActionsWithStreamedReply({...defaults, sortedVisibleReportActions: source});
+        const result = getReportActionsWithStreamedReply({...defaults, visibleActions: source});
         // Then the reply is present without mutating the empty source.
         expect(result.reportActionsWithStreamedReply).toEqual([reply]);
         expect(source).toEqual([]);

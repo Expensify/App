@@ -181,8 +181,8 @@ function buildParams(overrides: Partial<ScrollParams> = {}): ScrollParams {
         report: createMockReport({reportID: REPORT_ID}),
         transactionThreadReport: undefined,
         parentReportAction: undefined,
-        sortedVisibleReportActions: [makeAction('1')],
-        renderedVisibleReportActions: [makeAction('1')],
+        visibleActions: [makeAction('1')],
+        listData: [makeAction('1')],
         keyExtractor: (item: ReportAction) => item.reportActionID,
         hasScrolledOverThreshold: false,
         markNewestActionAsRead: mockMarkNewestActionAsRead,
@@ -192,7 +192,7 @@ function buildParams(overrides: Partial<ScrollParams> = {}): ScrollParams {
         hasNewerActions: false,
         draftAutoScrollKey: '',
         actionBadgeTargetIndex: -1,
-        sortedAllReportActionsForPagination: [],
+        cachedActions: [],
         treatAsNoPaginationAnchor: false,
         setTreatAsNoPaginationAnchor: mockSetTreatAsNoPaginationAnchor,
         ...overrides,
@@ -295,7 +295,7 @@ describe('useReportActionsScroll', () => {
         it('uses the linked report action as the initial scroll key', async () => {
             mockRouteParams = {reportActionID: LINKED_ACTION_ID};
 
-            const {result} = await renderScroll({sortedVisibleReportActions: [makeAction(LINKED_ACTION_ID)]});
+            const {result} = await renderScroll({visibleActions: [makeAction(LINKED_ACTION_ID)]});
 
             expect(result.current.initialScrollKey).toBe(LINKED_ACTION_ID);
             expect(result.current.shouldFocusToTopOnMount).toBe(false);
@@ -304,7 +304,7 @@ describe('useReportActionsScroll', () => {
         it('falls back to the unread marker action as the initial scroll key', async () => {
             const {result} = await renderScroll({
                 unreadMarkerReportActionID: UNREAD_ACTION_ID,
-                sortedVisibleReportActions: [makeAction(UNREAD_ACTION_ID)],
+                visibleActions: [makeAction(UNREAD_ACTION_ID)],
             });
 
             expect(result.current.initialScrollKey).toBe(UNREAD_ACTION_ID);
@@ -314,8 +314,8 @@ describe('useReportActionsScroll', () => {
             const {result} = await renderScroll({
                 unreadMarkerReportActionID: UNREAD_ACTION_ID,
                 reportActionIDToDisplayIndex: new Map([[UNREAD_ACTION_ID, 1]]),
-                sortedVisibleReportActions: [makeAction('1'), makeAction(UNREAD_ACTION_ID)],
-                renderedVisibleReportActions: [makeAction('1'), makeAction(UNREAD_SUMMARY_ACTION_ID)],
+                visibleActions: [makeAction('1'), makeAction(UNREAD_ACTION_ID)],
+                listData: [makeAction('1'), makeAction(UNREAD_SUMMARY_ACTION_ID)],
             });
 
             expect(result.current.initialScrollKey).toBe(UNREAD_ACTION_ID);
@@ -327,7 +327,7 @@ describe('useReportActionsScroll', () => {
             mockRouteParams = {reportActionID: LINKED_ACTION_ID};
 
             const {result} = await renderScroll({
-                sortedVisibleReportActions: [makeAction(LINKED_ACTION_ID, {actionName: CONST.REPORT.ACTIONS.TYPE.CREATED})],
+                visibleActions: [makeAction(LINKED_ACTION_ID, {actionName: CONST.REPORT.ACTIONS.TYPE.CREATED})],
             });
 
             expect(result.current.initialScrollKey).toBeUndefined();
@@ -594,7 +594,7 @@ describe('useReportActionsScroll', () => {
         it('does not scroll to bottom on mount when there is an initial scroll key', async () => {
             mockRouteParams = {reportActionID: LINKED_ACTION_ID};
 
-            await renderScroll({sortedVisibleReportActions: [makeAction(LINKED_ACTION_ID)]});
+            await renderScroll({visibleActions: [makeAction(LINKED_ACTION_ID)]});
             flushTransitions();
 
             expect(mockScrollToBottom).not.toHaveBeenCalled();
@@ -662,11 +662,11 @@ describe('useReportActionsScroll', () => {
             mockIsSafari = true;
 
             // Whisper absent first, so the rerender adds it as new.
-            const {rerender} = await renderScroll({sortedVisibleReportActions: [makeAction('2')]});
+            const {rerender} = await renderScroll({visibleActions: [makeAction('2')]});
             mockTransitionCallbacks.length = 0;
             mockScrollToBottom.mockClear();
 
-            rerender(buildParams({sortedVisibleReportActions: [makeAction('1', {actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER})]}));
+            rerender(buildParams({visibleActions: [makeAction('1', {actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER})]}));
             flushTransitions();
 
             expect(mockScrollToBottom).toHaveBeenCalled();
@@ -677,11 +677,11 @@ describe('useReportActionsScroll', () => {
 
             // Whisper present on both renders → not new → must not scroll.
             const whisper = makeAction('1', {actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER});
-            const {rerender} = await renderScroll({sortedVisibleReportActions: [whisper]});
+            const {rerender} = await renderScroll({visibleActions: [whisper]});
             mockTransitionCallbacks.length = 0;
             mockScrollToBottom.mockClear();
 
-            rerender(buildParams({sortedVisibleReportActions: [whisper]}));
+            rerender(buildParams({visibleActions: [whisper]}));
             flushTransitions();
 
             expect(mockScrollToBottom).not.toHaveBeenCalled();
@@ -690,11 +690,11 @@ describe('useReportActionsScroll', () => {
         it('scrolls to bottom when a new IOU action with an error appears', async () => {
             const erroredAction = makeAction('1', {errors: {error1: 'Something went wrong'}});
 
-            const {rerender} = await renderScroll({sortedVisibleReportActions: [makeAction('2')]});
+            const {rerender} = await renderScroll({visibleActions: [makeAction('2')]});
             mockTransitionCallbacks.length = 0;
             mockScrollToBottom.mockClear();
 
-            rerender(buildParams({sortedVisibleReportActions: [erroredAction]}));
+            rerender(buildParams({visibleActions: [erroredAction]}));
             flushTransitions();
 
             expect(mockScrollToBottom).toHaveBeenCalled();
@@ -703,15 +703,15 @@ describe('useReportActionsScroll', () => {
         it('does not scroll to bottom when an IOU error clears (retry succeeds)', async () => {
             // Error appears → scrolls (covered above), then the retry succeeds and the error clears.
             const erroredAction = makeAction('1', {errors: {error1: 'Something went wrong'}});
-            const {rerender} = await renderScroll({sortedVisibleReportActions: [makeAction('2')]});
-            rerender(buildParams({sortedVisibleReportActions: [erroredAction]}));
+            const {rerender} = await renderScroll({visibleActions: [makeAction('2')]});
+            rerender(buildParams({visibleActions: [erroredAction]}));
             flushTransitions();
 
             mockTransitionCallbacks.length = 0;
             mockScrollToBottom.mockClear();
 
             // Same action, error resolved → no current error → must not yank the list to the bottom.
-            rerender(buildParams({sortedVisibleReportActions: [makeAction('1')]}));
+            rerender(buildParams({visibleActions: [makeAction('1')]}));
             flushTransitions();
 
             expect(mockScrollToBottom).not.toHaveBeenCalled();
@@ -719,7 +719,7 @@ describe('useReportActionsScroll', () => {
 
         it('scrolls to bottom when a new error appears alongside an existing unresolved error', async () => {
             const existing = makeAction('1', {errors: {error1: 'Something went wrong'}});
-            const {rerender} = await renderScroll({sortedVisibleReportActions: [existing]});
+            const {rerender} = await renderScroll({visibleActions: [existing]});
             flushTransitions();
 
             mockTransitionCallbacks.length = 0;
@@ -727,7 +727,7 @@ describe('useReportActionsScroll', () => {
 
             // A second, newer action fails while '1' is still errored → genuinely new error → scroll.
             const newer = makeAction('2', {errors: {error1: 'Something went wrong'}});
-            rerender(buildParams({sortedVisibleReportActions: [newer, existing]}));
+            rerender(buildParams({visibleActions: [newer, existing]}));
             flushTransitions();
 
             expect(mockScrollToBottom).toHaveBeenCalled();

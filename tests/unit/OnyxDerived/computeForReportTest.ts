@@ -1,8 +1,10 @@
-import {computeForReport} from '@libs/actions/OnyxDerived/configs/sortedReportActions';
+import sortedReportActionsConfig, {computeForReport} from '@libs/actions/OnyxDerived/configs/sortedReportActions';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxKey} from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {SortedReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -236,5 +238,73 @@ describe('computeForReport', () => {
 
             expect(result.transactionThreadReportID).toBe(transactionThreadReportID);
         });
+    });
+});
+
+describe('sortedReportActions', () => {
+    const expenseReportID = '1';
+    const transactionThreadReportID = '2';
+    const chatReportID = '3';
+    const unrelatedReportID = '4';
+    const expenseActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`;
+    const threadActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`;
+    const unrelatedActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${unrelatedReportID}`;
+    const iouAction = createAction('100', '2024-01-01 10:00:00.000', {
+        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+        childReportID: transactionThreadReportID,
+        reportID: expenseReportID,
+        originalMessage: {IOUTransactionID: 'txn1', type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 100, currency: 'USD'},
+    });
+    const allReports: OnyxCollection<Report> = {
+        [`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`]: createMockReport({reportID: expenseReportID, type: CONST.REPORT.TYPE.EXPENSE, chatReportID}),
+        [`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]: createMockReport({reportID: chatReportID, type: CONST.REPORT.TYPE.CHAT}),
+        [`${ONYXKEYS.COLLECTION.REPORT}${unrelatedReportID}`]: createMockReport({reportID: unrelatedReportID, type: CONST.REPORT.TYPE.CHAT}),
+    };
+    const initialReportActions: OnyxCollection<ReportActions> = {
+        [expenseActionsKey]: toReportActions(iouAction),
+        [threadActionsKey]: toReportActions(createAction('200', '2024-01-01 11:00:00.000')),
+        [unrelatedActionsKey]: toReportActions(createAction('400', '2024-01-01 09:00:00.000')),
+    };
+    const currentValue: SortedReportActionsDerivedValue = sortedReportActionsConfig.compute([initialReportActions, allReports, undefined], {
+        currentValue: undefined,
+        sourceValues: undefined,
+        triggeredKeys: new Set<OnyxKey>(),
+    });
+
+    it('recomputes only the reports linked to a changed chat report', () => {
+        // Given the chat report of the expense report changed, and nothing else
+        const changedReports = {[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]: allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]};
+
+        // When only the report collection triggers a recompute
+        const result = sortedReportActionsConfig.compute([initialReportActions, allReports, undefined], {
+            currentValue,
+            sourceValues: {[ONYXKEYS.COLLECTION.REPORT]: changedReports},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.REPORT]),
+        });
+
+        // Then the expense report is recomputed because its chat report changed, and because its sorted actions came out the
+        // same, the derived value keeps its previous reference so Onyx skips the write and the subscriber notifications
+        expect(result.sortedActions[expenseReportID]).toEqual(currentValue.sortedActions[expenseReportID]);
+        expect(result.sortedActions[unrelatedReportID]).toBe(currentValue.sortedActions[unrelatedReportID]);
+        expect(result).toBe(currentValue);
+    });
+
+    it('updates the last action of an expense report when its transaction thread gets a new action', () => {
+        // Given a one-transaction expense report whose transaction thread gets a newer comment
+        expect(currentValue.transactionThreadIDs[expenseReportID]).toBe(transactionThreadReportID);
+        const newThreadAction = createAction('201', '2024-01-01 12:00:00.000');
+        const threadActions = {...initialReportActions[threadActionsKey], [newThreadAction.reportActionID]: newThreadAction};
+        const allReportActions = {...initialReportActions, [threadActionsKey]: threadActions};
+
+        // When only the thread's actions trigger a recompute
+        const result = sortedReportActionsConfig.compute([allReportActions, allReports, undefined], {
+            currentValue,
+            sourceValues: {[ONYXKEYS.COLLECTION.REPORT_ACTIONS]: {[threadActionsKey]: threadActions}},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.REPORT_ACTIONS]),
+        });
+
+        // Then the expense report shows the thread's newest comment as its last action
+        expect(result.lastActions[expenseReportID]?.reportActionID).toBe(newThreadAction.reportActionID);
+        expect(result.sortedActions[unrelatedReportID]).toBe(currentValue.sortedActions[unrelatedReportID]);
     });
 });
