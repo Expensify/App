@@ -26,8 +26,8 @@ function parsePhoneNumber(phoneNumber: string, options?: PhoneNumberParseOptions
             possible: false,
             number: {
                 ...parsedPhoneNumber.number,
-                // `number` is optional in the invalid type, so keep the parser's `input` and fall back to the raw string.
-                input: parsedPhoneNumber.number?.input ?? phoneNumber,
+                // The invalid type marks `number` optional, so set `input` here. awesome-phonenumber sets it to the raw string too.
+                input: phoneNumber,
                 e164: phoneNumberWithoutSpecialChars,
                 international: phoneNumberWithoutSpecialChars,
                 national: phoneNumberWithoutSpecialChars,
@@ -50,7 +50,7 @@ function parsePhoneNumber(phoneNumber: string, options?: PhoneNumberParseOptions
         possible: false,
         number: {
             ...parsedPhoneNumber.number,
-            input: parsedPhoneNumber.number?.input ?? phoneNumber,
+            input: phoneNumber,
 
             // mimic the behavior of awesome-phonenumber
             e164: phoneNumberWithoutSpecialChars,

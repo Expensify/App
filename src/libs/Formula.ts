@@ -883,6 +883,6 @@ function resolveReportFieldValue(
     return compute(field.defaultValue, {report, policy, fieldValues, fieldsByName, getCurrencyDecimals});
 }
 
-export {FORMULA_PART_TYPES, compute, computeWithMetadata, parse, hasCircularReferences, resolveReportFieldValue};
+export {compute, computeWithMetadata, parse, hasCircularReferences, resolveReportFieldValue};
 
-export type {FormulaContext, FieldList, FormulaPart, MinimalTransaction};
+export type {FormulaContext, FieldList, MinimalTransaction};
