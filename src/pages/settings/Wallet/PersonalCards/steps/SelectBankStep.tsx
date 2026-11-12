@@ -17,6 +17,7 @@ import {getPersonalBankCardDetailsImage} from '@libs/CardUtils';
 
 import variables from '@styles/variables';
 
+import {getPersonalCardBankConnection} from '@userActions/getCompanyCardBankConnection';
 import {setAddNewPersonalCardStepAndData} from '@userActions/PersonalCards';
 
 import CONST from '@src/CONST';
@@ -26,6 +27,8 @@ import type {ValueOf} from 'type-fest';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
+
+import openBankConnection from './BankConnection/openBankConnection';
 
 function SelectBankStep() {
     const {translate} = useLocalize();
@@ -43,6 +46,13 @@ function SelectBankStep() {
         if (!bankSelected) {
             setHasError(true);
         } else {
+            if (!isOtherBankSelected) {
+                const bankConnectionURL = getPersonalCardBankConnection(bankSelected);
+                if (bankConnectionURL) {
+                    // Browsers only reliably allow popups while handling a direct user action.
+                    openBankConnection(bankConnectionURL);
+                }
+            }
             setAddNewPersonalCardStepAndData({
                 step: bankSelected === CONST.PERSONAL_CARDS.BANKS.OTHER ? CONST.PERSONAL_CARDS.STEP.PLAID_CONNECTION : CONST.PERSONAL_CARDS.STEP.BANK_CONNECTION,
                 data: {
