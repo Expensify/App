@@ -259,7 +259,7 @@ describe('actions/Policy/PerDiem', () => {
         );
     });
 
-    it('uses the compact clear-all mode only when every Per Diem row is selected', () => {
+    it('uses the compact clear-all mode when every Per Diem row is selected', () => {
         // Given every subrate in the custom unit is selected.
         const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
@@ -299,6 +299,44 @@ describe('actions/Policy/PerDiem', () => {
                 optimisticData: [
                     expect.objectContaining({
                         value: {customUnits: {[customUnitID]: {rates: []}}},
+                    }),
+                ],
+            }),
+        );
+    });
+
+    it('deletes a fully selected destination by ID instead of clearing all rates when another destination remains', () => {
+        // Given every subrate of one destination is selected while another destination stays unselected.
+        const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+        // When the selected rows are deleted.
+        deleteWorkspacePerDiemRates('policy', customUnit, [
+            {
+                destination: 'Destination One',
+                subRateName: 'Breakfast',
+                rate: 1700,
+                currency: 'USD',
+                rateID,
+                subRateID: 'breakfast',
+            },
+            {
+                destination: 'Destination One',
+                subRateName: 'Lunch',
+                rate: 1904,
+                currency: 'USD',
+                rateID,
+                subRateID: 'lunch',
+            },
+        ]);
+
+        // Then only that destination is removed by ID, because clearing all rates would also delete the unselected destination.
+        expect(writeSpy).toHaveBeenCalledWith(
+            WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT,
+            {policyID: 'policy', customUnitID, customUnitRateIDs: JSON.stringify([rateID])},
+            expect.objectContaining({
+                optimisticData: [
+                    expect.objectContaining({
+                        value: {customUnits: {[customUnitID]: {rates: {[rateID]: null}}}},
                     }),
                 ],
             }),
