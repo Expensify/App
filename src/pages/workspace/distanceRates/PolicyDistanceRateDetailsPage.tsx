@@ -148,7 +148,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
     };
 
     const deleteRate = () => {
-        deletePolicyDistanceRates(policyID, customUnit, [rateID], eligibleTransactionIDs ?? [], transactionViolations);
+        deletePolicyDistanceRates(policyID, customUnit, [rateID], eligibleTransactionIDs ?? [], transactionViolations, policy?.shouldAutoUpdateGovernmentDistanceRates);
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
     };
 

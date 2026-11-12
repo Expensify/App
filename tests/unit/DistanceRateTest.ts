@@ -141,6 +141,72 @@ describe('DistanceRate', () => {
         });
     });
 
+    describe('deletePolicyDistanceRates with auto-update on', () => {
+        const customUnitID = '5A55C2B68DDCB';
+        const governmentRateID = '7255CA72C7E7B';
+        const customRateID = '7255CA72C7E72';
+
+        const customUnit: CustomUnit = {
+            attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+            customUnitID,
+            enabled: true,
+            name: 'Distance',
+            rates: {
+                [governmentRateID]: {
+                    customUnitRateID: governmentRateID,
+                    name: '2025 United States',
+                    rate: 70,
+                    currency: 'USD',
+                    enabled: true,
+                    attributes: {governmentRate: {sourceRateID: 'US_2025-01-01', rate: 70, startDate: '2025-01-01'}},
+                },
+                [customRateID]: {customUnitRateID: customRateID, name: 'Custom', rate: 50, currency: 'USD', enabled: true},
+            },
+        };
+        const policy: Policy = {
+            ...createRandomPolicy(5),
+            areDistanceRatesEnabled: true,
+            outputCurrency: 'USD',
+            shouldAutoUpdateGovernmentDistanceRates: true,
+            customUnits: {[customUnitID]: customUnit},
+        };
+
+        afterEach(() => {
+            resetQueue();
+            return Onyx.clear();
+        });
+
+        it('should turn off auto-update when a government rate is deleted', async () => {
+            // Given a workspace that auto-updates its government rates
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When the admin deletes one of its government rates
+            pause();
+            deletePolicyDistanceRates(policy.id, customUnit, [governmentRateID], [], undefined, policy.shouldAutoUpdateGovernmentDistanceRates);
+            await waitForBatchedUpdates();
+
+            // Then auto-update turns off, since the workspace no longer has the complete set of government rates
+            const onyxPolicy = await getPolicyFromOnyx(policy.id);
+            expect(onyxPolicy.shouldAutoUpdateGovernmentDistanceRates).toBeUndefined();
+            expect(onyxPolicy.pendingFields?.shouldAutoUpdateGovernmentDistanceRates).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+        });
+
+        it('should keep auto-update on when only a custom rate is deleted', async () => {
+            // Given a workspace that auto-updates its government rates
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When the admin deletes a rate they created themselves
+            pause();
+            deletePolicyDistanceRates(policy.id, customUnit, [customRateID], [], undefined, policy.shouldAutoUpdateGovernmentDistanceRates);
+            await waitForBatchedUpdates();
+
+            // Then auto-update stays on, since every government rate is still there
+            const onyxPolicy = await getPolicyFromOnyx(policy.id);
+            expect(onyxPolicy.shouldAutoUpdateGovernmentDistanceRates).toBe(true);
+            expect(onyxPolicy.pendingFields?.shouldAutoUpdateGovernmentDistanceRates).toBeUndefined();
+        });
+    });
+
     describe('enablePolicyDistanceRates', () => {
         it('should disable all rates except the default rate when the we disable the feature', async () => {
             const customUnitID = '5A55C2B68DDCB';

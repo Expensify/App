@@ -448,10 +448,14 @@ function deletePolicyDistanceRates(
     rateIDsToDelete: string[],
     transactionIDsAffected: string[],
     transactionViolations: OnyxCollection<TransactionViolation[]>,
+    shouldAutoUpdateGovernmentDistanceRates?: boolean,
 ) {
     const currentRates = customUnit.rates;
     const optimisticRates: Record<string, Partial<Rate>> = {};
     const failureRates: Record<string, Partial<Rate>> = {};
+
+    // Auto-update keeps the workspace's government rates complete, so deleting any of them opts the workspace out of it
+    const shouldTurnOffAutoUpdate = !!shouldAutoUpdateGovernmentDistanceRates && rateIDsToDelete.some((rateID) => !!currentRates[rateID]?.attributes?.governmentRate);
 
     for (const rateID of rateIDsToDelete) {
         optimisticRates[rateID] = {
@@ -470,6 +474,9 @@ function deletePolicyDistanceRates(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                ...(shouldTurnOffAutoUpdate
+                    ? {shouldAutoUpdateGovernmentDistanceRates: null, pendingFields: {shouldAutoUpdateGovernmentDistanceRates: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}
+                    : {}),
                 customUnits: {
                     [customUnit.customUnitID]: {
                         rates: optimisticRates,
@@ -479,11 +486,22 @@ function deletePolicyDistanceRates(
         },
     ];
 
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = shouldTurnOffAutoUpdate
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                  value: {pendingFields: {shouldAutoUpdateGovernmentDistanceRates: null}},
+              },
+          ]
+        : [];
+
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                ...(shouldTurnOffAutoUpdate ? {shouldAutoUpdateGovernmentDistanceRates: true, pendingFields: {shouldAutoUpdateGovernmentDistanceRates: null}} : {}),
                 customUnits: {
                     [customUnit.customUnitID]: {
                         rates: failureRates,
@@ -531,7 +549,7 @@ function deletePolicyDistanceRates(
         customUnitRateID: rateIDsToDelete,
     };
 
-    API.write(WRITE_COMMANDS.DELETE_POLICY_DISTANCE_RATES, params, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.DELETE_POLICY_DISTANCE_RATES, params, {optimisticData, successData, failureData});
 }
 
 function updateDistanceTaxClaimableValue(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[]) {

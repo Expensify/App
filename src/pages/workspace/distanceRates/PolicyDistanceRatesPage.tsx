@@ -250,7 +250,7 @@ function PolicyDistanceRatesPage({
 
         const transactionIDsAffected = selectedDistanceRates.flatMap((rateID) => eligibleTransactionsData?.rateIDToTransactionIDsMap?.[rateID] ?? []);
 
-        deletePolicyDistanceRates(policyID, customUnit, selectedDistanceRates, transactionIDsAffected, transactionViolations);
+        deletePolicyDistanceRates(policyID, customUnit, selectedDistanceRates, transactionIDsAffected, transactionViolations, policy?.shouldAutoUpdateGovernmentDistanceRates);
         setSelectedDistanceRates([]);
     };
 
