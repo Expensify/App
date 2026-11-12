@@ -1,4 +1,5 @@
 import useUploadErrorAnnouncement from '@components/DynamicForm/hooks/useUploadErrorAnnouncement';
+import FSClassView from '@components/FSClassView';
 import UploadFile from '@components/UploadFile';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -6,9 +7,9 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {ComponentProps, ComponentRef, Ref} from 'react';
+import type {View} from 'react-native';
 
 import React, {useState} from 'react';
-import {View} from 'react-native';
 
 /** UploadFile settings the adapter passes through unchanged */
 type UploadFileSettings = Pick<ComponentProps<typeof UploadFile>, 'buttonText' | 'acceptedFileTypes' | 'fileLimit' | 'maxFileSize' | 'accessibilityLabel'>;
@@ -37,9 +38,9 @@ function FileUploadAdapter({value, onInputChange = () => {}, errorText = '', for
 
     // UploadFile takes no FullStory class, so the mask goes on a View around it
     return (
-        <View
+        <FSClassView
             ref={ref}
-            fsClass={forwardedFSClass}
+            forwardedFSClass={forwardedFSClass}
         >
             <UploadFile
                 {...uploadFileProps}
@@ -53,7 +54,7 @@ function FileUploadAdapter({value, onInputChange = () => {}, errorText = '', for
                 errorText={shownError}
                 shouldExtendRemoveTouchArea
             />
-        </View>
+        </FSClassView>
     );
 }
 

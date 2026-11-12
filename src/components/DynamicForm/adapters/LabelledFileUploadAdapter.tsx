@@ -4,6 +4,7 @@ import FileTypeMenuButton from '@components/DynamicForm/components/FileTypeMenuB
 import type {FileTypeOption} from '@components/DynamicForm/components/FileTypeMenuButton';
 import useUploadErrorAnnouncement from '@components/DynamicForm/hooks/useUploadErrorAnnouncement';
 import {getListItemFiles, getListItems} from '@components/DynamicForm/utils/listItems';
+import FSClassView from '@components/FSClassView';
 import Text from '@components/Text';
 import UploadedFileChip from '@components/UploadFile/components/UploadedFileChip';
 import UploadFilePicker from '@components/UploadFile/components/UploadFilePicker';
@@ -12,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
+import CONST from '@src/CONST';
 import type {DynamicFormListItem} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
@@ -95,9 +97,9 @@ function LabelledFileUploadAdapter({
     };
 
     return (
-        <View
+        <FSClassView
             ref={ref}
-            fsClass={forwardedFSClass}
+            forwardedFSClass={forwardedFSClass}
         >
             {uploads.map((upload, index) => {
                 const uploadEntries = getFiles(upload);
@@ -131,6 +133,7 @@ function LabelledFileUploadAdapter({
                                 if (upload.types.length === 1 && onlyType) {
                                     return (
                                         <Button
+                                            sentryLabel={CONST.SENTRY_LABEL.UPLOAD_FILE.UPLOAD_BUTTON}
                                             accessibilityLabel={buttonAccessibilityLabel}
                                             onPress={() => openPicker((files) => addFiles(onlyType.value, files))}
                                         >
@@ -177,7 +180,7 @@ function LabelledFileUploadAdapter({
                     </View>
                 );
             })}
-        </View>
+        </FSClassView>
     );
 }
 

@@ -43,7 +43,7 @@ Follow the steps below to confirm entity-level configuration and permissions.
 
 1. Go to **Settings > Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**, then select **Configure** next to Sage Intacct.
 4. Review the export configuration.
 5. Confirm whether the Workspace is set to sync at the top level or entity level.
 6. If using Expensify Card Auto Reconciliation, configure the Workspace to sync at the **entity level**.
@@ -76,8 +76,9 @@ If the account does not exist, ensure the integration user has permission to cre
 
 1. Go to **Settings > Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
-4. Click **Sync Now**.
+3. Select **Connections**, then select **Configure** next to Sage Intacct.
+4. Select **More (⋮)**.
+5. Select **Sync now**.
 
 If the Workspace is configured at the entity level and permissions are correct, the sync should complete successfully.
 

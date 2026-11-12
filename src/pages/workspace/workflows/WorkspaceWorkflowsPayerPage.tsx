@@ -396,6 +396,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                             addBottomSafeAreaPadding
                             footerContent={
                                 <FormAlertWithSubmitButton
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.PAYER_SAVE}
                                     isLoading={isLoading}
                                     shouldShowLoadingImmediatelyOnPress={false}
                                     message={translate('walletPage.shareBankAccountNoAdminsSelected')}

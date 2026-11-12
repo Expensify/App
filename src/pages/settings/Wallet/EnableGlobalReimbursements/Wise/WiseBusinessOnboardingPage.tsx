@@ -15,9 +15,10 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useWiseOnboardingSaveStatus from '@hooks/useWiseOnboardingSaveStatus';
 
-import {isBankAccountEligibleForGlobalReimbursements} from '@libs/BankAccountUtils';
+import {isBankAccountEligibleForGlobalReimbursements, isWiseOnboardingSubmitted} from '@libs/BankAccountUtils';
 import {getSavedFileAnswers} from '@libs/getWiseOnboardingPageParams';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import {isWiseGlobalReimbursementsIntroPath} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import Navigation from '@navigation/Navigation';
@@ -41,7 +42,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {deepEqual} from 'fast-equals';
 import pick from 'lodash/pick';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useEffectEvent, useState} from 'react';
 
 import {getKeptSourceOfFunds} from './forms/requirements/sourceOfFunds';
 import getWiseBusinessOnboardingPrefill, {getMissingPrefill, WISE_BUSINESS_ACCOUNT_KEYS} from './getWiseBusinessOnboardingPrefill';
@@ -84,6 +85,18 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         goBackToIntro();
     }, [isWiseReimbursementsBetaEnabled, goBackToIntro]);
 
+    // A submitted business has nothing left to submit, and the back path follows the focused route, so introPath stays out of the effect and the status page opens once
+    const isOnboardingSubmitted = isWiseOnboardingSubmitted(bankAccount?.accountData);
+    const openStatusPage = useEffectEvent(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path, introPath), {forceReplace: true}));
+    // A deep link renders this page before the root state holds it, so the back path is not this account's intro until then
+    const isIntroPathReady = isWiseGlobalReimbursementsIntroPath(introPath, bankAccountID);
+    useEffect(() => {
+        if (!isOnboardingSubmitted || !isIntroPathReady) {
+            return;
+        }
+        openStatusPage();
+    }, [isOnboardingSubmitted, isIntroPathReady]);
+
     // The flow's inputs read the draft once, when a page mounts, so the prefill lands in the draft before the flow renders. It runs once per visit, since
     // swapping the flow for a loader later would drop an SSN the user is typing.
     const [isPrefillDone, setIsPrefillDone] = useState(false);
@@ -92,7 +105,7 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     // which mounts the page again, so only a visit that opens without a page reads them. A read is not queued offline, so an offline visit uses what the
     // device holds.
     const [isNewVisit] = useState(!route.params.subPage);
-    const shouldReadBusinessAccount = isNewVisit && !isOffline;
+    const shouldReadBusinessAccount = isNewVisit && !isOffline && !isOnboardingSubmitted;
     const [hasBusinessAccountReadStarted, setHasBusinessAccountReadStarted] = useState(false);
 
     // The reimbursement account's errors are shared with the other bank account flows, so a new visit drops any left from them or from an earlier visit
@@ -125,7 +138,8 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         isLoadingOnyxValue(bankAccountListMetadata, privatePersonalDetailsMetadata, draftMetadata, businessAccountMetadata) ||
         isWaitingForBankAccount ||
         isWaitingForBusinessAccount ||
-        isWaitingForConnection;
+        isWaitingForConnection ||
+        isOnboardingSubmitted;
 
     // The draft holds the answers for one bank account, so a visit for another account starts it over
     const draftBankAccountID = String(bankAccountID);
@@ -244,7 +258,7 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         );
     }
 
-    if (!isPrefillDone || !isWiseReimbursementsBetaEnabled) {
+    if (!isPrefillDone || !isWiseReimbursementsBetaEnabled || isOnboardingSubmitted) {
         return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 

@@ -44,8 +44,8 @@ Workspace admins can manually select a vendor from the searchable **Vendor** fie
 ## How to set a fallback (default) vendor for non-reimbursable expenses
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [workspace name]**.
-2. Select **Accounting**.
-3. Under **Xero**, select **Export**.
+2. Select **Connections**, then select **Configure** next to Xero.
+3. Select **Export**.
 4. Select **Default vendor**.
 5. Choose a vendor from the list. 
 

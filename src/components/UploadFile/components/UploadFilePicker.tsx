@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 
+import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {ReactNode} from 'react';
@@ -97,6 +98,7 @@ function UploadFilePicker({
                 }
                 return (
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.UPLOAD_FILE.UPLOAD_BUTTON}
                         accessibilityLabel={accessibilityLabel ?? buttonText}
                         onPress={() => openPickerFor(onUpload ?? (() => {}))}
                     >

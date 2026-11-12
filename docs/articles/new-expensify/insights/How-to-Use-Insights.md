@@ -71,7 +71,7 @@ You can start with an insight, open its results in **Spend**, and customize the 
 
 ## How to export insight data
 
-Insights summarize expense data, but grouped totals and chart summaries cannot be exported directly.
+In **Insights**, select **Export** to export the current dashboard as a PNG image. On web, the image downloads; on mobile, you can save or share it.
 
 To export the underlying expenses, open the related results in **Spend** and select the individual expenses you want to export. This lets you download expense-level data for additional analysis or reporting outside Expensify.
 

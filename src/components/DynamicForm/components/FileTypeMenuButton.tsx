@@ -65,6 +65,7 @@ function FileTypeMenuButton({buttonText, accessibilityLabel, types, onSelect}: F
                 collapsable={false}
             >
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.UPLOAD_FILE.UPLOAD_BUTTON}
                     accessibilityLabel={accessibilityLabel}
                     onPress={openMenu}
                 >

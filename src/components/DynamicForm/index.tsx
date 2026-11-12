@@ -29,8 +29,8 @@ import DynamicFormListItemPage from './components/DynamicFormListItemPage';
 import DynamicFormShell from './components/DynamicFormShell';
 import getAnswerKeys from './utils/getAnswerKeys';
 import getContentFields from './utils/getContentFields';
-import getDynamicFieldErrors from './utils/getDynamicFieldErrors';
 import getPageTitle, {isPageShown} from './utils/getPageTitle';
+import getShownPageErrors from './utils/getShownPageErrors';
 import getSubmittedAnswers from './utils/getSubmittedAnswers';
 import {getHiddenProvidedKeys} from './utils/hasProvidedAnswer';
 import hasSensitiveAnswer from './utils/hasSensitiveAnswer';
@@ -51,6 +51,7 @@ function DynamicFormFlow({
     formID,
     headerTitle,
     confirmationTitle,
+    confirmationSubtitle,
     testID,
     buildRoute,
     shouldReplaceRoute,
@@ -63,10 +64,13 @@ function DynamicFormFlow({
     isSubmitting,
     submitError,
     isSavingPages,
+    isRefreshingRequirements,
+    refreshError,
     unsavedPageKeys,
     layout = 'auto',
     hasConfirmation = true,
     shouldDisableNextWhenOffline,
+    children,
 }: DynamicFormFlowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -99,9 +103,7 @@ function DynamicFormFlow({
     const firstShownPageIndex = subPages.findIndex((page) => !skipPages.includes(page.pageName));
     const lastShownPageIndex = findLastPageIndex<DynamicFormSubPageProps>(subPages, skipPages);
 
-    /** Pages the answers hide are never asked, so they cannot be the first gap */
-    const getFirstIncompletePageIndex = (answers: DynamicFormValues) =>
-        pages.findIndex((page) => isPageShown(page, answers, allFields) && Object.keys(getDynamicFieldErrors(getContentFields(page.content), answers, translate, allFields)).length > 0);
+    const getFirstIncompletePageIndex = (answers: DynamicFormValues) => getShownPageErrors(pages, answers, translate, allFields).findIndex((errors) => !isEmptyObject(errors));
 
     // A visit opened without a page in the URL drops the sensitive answers of earlier visits, so it starts from what the draft holds
     // A page whose save did not go through comes first, so the user sees which page to save again
@@ -115,6 +117,9 @@ function DynamicFormFlow({
         const firstIncompleteIndex = getFirstIncompletePageIndex(draftValues);
         startFrom = firstIncompleteIndex === -1 ? lastShownPageIndex : firstIncompleteIndex;
     }
+
+    // Each page is its own route, so a confirmation page opened again after a fix starts without marks, and the next Confirm marks what is still missing
+    const [shouldShowFieldErrors, setShouldShowFieldErrors] = useState(false);
 
     const {CurrentPage, isEditing, currentPageName, pageIndex, nextPage, prevPage, moveTo, resetToPage, isRedirecting} = useSubPage<DynamicFormSubPageProps>({
         pages: subPages,
@@ -134,11 +139,19 @@ function DynamicFormFlow({
         Navigation.goBack(buildRoute(pageName));
     };
 
-    /** The confirmation page can be opened by URL before every page is answered, so an incomplete form goes back to its first gap instead. Without a confirmation page the last page's answers arrive here, before their draft is saved. */
+    /**
+     * The confirmation page can be reached before every field is answered, such as by URL or after a new form from the server adds a required field. It then stays
+     * open and marks the rows to fix, since a page that jumps away does not say why. Without a confirmation page the last page's answers arrive here, before their draft
+     * is saved, and an incomplete form goes back to its first gap.
+     */
     function submitIfComplete(lastPageValues?: unknown) {
         const answers = {...values, ...toDynamicFormValues(lastPageValues)};
         const firstIncompleteIndex = getFirstIncompletePageIndex(answers);
         const incompletePage = firstIncompleteIndex === -1 ? undefined : pages.at(firstIncompleteIndex);
+        if (incompletePage && hasConfirmationPage) {
+            setShouldShowFieldErrors(true);
+            return;
+        }
         if (incompletePage) {
             returnTo(incompletePage.key);
             return;
@@ -370,11 +383,17 @@ function DynamicFormFlow({
                     onListItemSave={saveListItem}
                     onListItemsChange={changeListItems}
                     confirmationTitle={confirmationTitle}
+                    confirmationSubtitle={confirmationSubtitle}
                     isSubmitting={isSubmitting}
                     submitError={submitError}
                     isSavingPages={isSavingPages}
+                    isRefreshingRequirements={isRefreshingRequirements}
+                    refreshError={refreshError}
+                    shouldShowFieldErrors={shouldShowFieldErrors}
                     shouldDisableNextWhenOffline={shouldDisableNextWhenOffline}
-                />
+                >
+                    {children}
+                </CurrentPage>
             )}
         </DynamicFormShell>
     );

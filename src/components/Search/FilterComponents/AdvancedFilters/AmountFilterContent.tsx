@@ -8,7 +8,6 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useAmountFilterCurrency from '@hooks/useAmountFilterCurrency';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -19,6 +18,7 @@ import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -28,7 +28,7 @@ import {View} from 'react-native';
 
 const BETWEEN_MODIFIER = 'Between';
 
-type AmountFilterContentProps = {
+type AmountFilterContentProps = WithRequiredSentryLabel & {
     baseFilterKey: SearchAmountFilterKeys;
     value: SearchAmountValues;
     buttonSize?: Exclude<ValueOf<typeof CONST.BUTTON_SIZE>, typeof CONST.BUTTON_SIZE.SMALL>;
@@ -98,7 +98,6 @@ type AmountBetweenInputProps = {
 
 function AmountBetweenInput({ref, baseFilterKey, greaterThanValue, lessThanValue, autoFocus}: AmountBetweenInputProps) {
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const initialGreaterThan = getAmountFilterInputValue(greaterThanValue);
     const initialLessThan = getAmountFilterInputValue(lessThanValue);
@@ -131,11 +130,10 @@ function AmountBetweenInput({ref, baseFilterKey, greaterThanValue, lessThanValue
     const lessThanLabel = translate('search.filters.amount.lessThan');
 
     return (
-        <View style={[shouldUseNarrowLayout ? styles.flexColumn : styles.flexRow, styles.gap1, styles.ph4, styles.mv2]}>
+        <View style={[styles.flexColumn, styles.gap1, styles.ph4, styles.mv2]}>
             <AmountFilterInput
                 ref={inputRef}
                 baseFilterKey={baseFilterKey}
-                containerStyles={styles.flex1}
                 amount={greaterThanAmount}
                 currency={greaterThanCurrency}
                 onAmountChange={setGreaterThanAmount}
@@ -144,7 +142,6 @@ function AmountBetweenInput({ref, baseFilterKey, greaterThanValue, lessThanValue
             />
             <AmountFilterInput
                 baseFilterKey={baseFilterKey}
-                containerStyles={styles.flex1}
                 amount={lessThanAmount}
                 currency={lessThanCurrency}
                 onAmountChange={setLessThanAmount}
@@ -155,7 +152,7 @@ function AmountBetweenInput({ref, baseFilterKey, greaterThanValue, lessThanValue
     );
 }
 
-function AmountFilterContent({baseFilterKey, value, autoFocus, buttonSize, style, buttonText, onChange}: AmountFilterContentProps) {
+function AmountFilterContent({baseFilterKey, value, autoFocus, buttonSize, style, buttonText, sentryLabel, onChange}: AmountFilterContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -211,6 +208,7 @@ function AmountFilterContent({baseFilterKey, value, autoFocus, buttonSize, style
 
     const button = (
         <Button
+            sentryLabel={sentryLabel}
             style={[styles.ph5, styles.pb5]}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             size={buttonSize}
