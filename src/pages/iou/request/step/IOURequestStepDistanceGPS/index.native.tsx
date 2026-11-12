@@ -274,9 +274,7 @@ function IOURequestStepDistanceGPS({
                             type="error"
                         />
                         <GPSButtons
-                            navigateToNextStep={() => {
-                                navigateToNextStep();
-                            }}
+                            navigateToNextStep={navigateToNextStep}
                             setShouldShowStartError={setShouldShowStartError}
                             setShouldShowPermissionsError={setShouldShowPermissionsError}
                             reportID={reportID}

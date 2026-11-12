@@ -273,9 +273,7 @@ function useReportSelectionActions({
             removeTransaction(transaction.transactionID, {isDeleted: false});
         };
         Navigation.dismissToSuperWideRHP({
-            afterTransition: () => {
-                moveToPersonalPolicy();
-            },
+            afterTransition: moveToPersonalPolicy,
         });
     };
 

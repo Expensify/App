@@ -31,7 +31,7 @@ import openSettings from './openSettings';
 
 type ButtonsProps = {
     /** Function to call when user clicks next button after ending a trip */
-    navigateToNextStep: () => void;
+    navigateToNextStep: () => void | Promise<void>;
 
     /** Function to call when there is an error starting GPS tracking */
     setShouldShowStartError: React.Dispatch<React.SetStateAction<boolean>>;

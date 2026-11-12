@@ -88,11 +88,7 @@ function useSendMoneySubmission({transaction, receiptFiles, report, participants
         }
     }
 
-    return {
-        sendMoney: (paymentMethod: PaymentMethodType | undefined, options: SendMoneyOptions) => {
-            sendMoney(paymentMethod, options);
-        },
-    };
+    return {sendMoney};
 }
 
 export default useSendMoneySubmission;
