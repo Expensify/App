@@ -1,5 +1,5 @@
 /** A `SortableTableHeader` child that turns each column's heading into the column's menu: sorting, and hiding and editing the columns. */
-import * as ColumnHeaderMenu from '@components/Table/ColumnHeaderMenu';
+import ColumnHeaderMenu from '@components/Table/ColumnHeaderMenu';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';

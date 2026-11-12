@@ -173,6 +173,11 @@ function getColumnHeaderLabel() {
     return TestHelper.translateLocal('workspace.taxes.taxReclaimableOn');
 }
 
+// The heading opens the column menu, which is named after the column.
+function getColumnHeadingLabel() {
+    return TestHelper.translateLocal('search.columnMenu.openMenu', {columnName: getColumnHeaderLabel()});
+}
+
 /** Returns the tax reclaimable cell texts in the order the rows are rendered. */
 function getRenderedAmounts() {
     return screen.queryAllByText(AMOUNT_TEXT).map((element) => String(element.props.children));
@@ -218,7 +223,7 @@ describe('PolicyDistanceRatesPage tax reclaimable column', () => {
         await renderPage([buildRate('cars', {attributes: {taxClaimablePercentage: 0.5, taxRateExternalID: TAX_RATE_ID}})]);
 
         // Then the column header is shown
-        expect(screen.getByLabelText(getColumnHeaderLabel())).toBeTruthy();
+        expect(screen.getByLabelText(getColumnHeadingLabel())).toBeTruthy();
     });
 
     it('hides the header when no rate has an amount', async () => {
@@ -226,7 +231,7 @@ describe('PolicyDistanceRatesPage tax reclaimable column', () => {
         await renderPage([buildRate('cars', {attributes: {taxRateExternalID: TAX_RATE_ID}}), buildRate('bikes')]);
 
         // Then the column is hidden, like the date columns when no rate has a date, so the table has no empty column
-        expect(screen.queryByLabelText(getColumnHeaderLabel())).toBeNull();
+        expect(screen.queryByLabelText(getColumnHeadingLabel())).toBeNull();
         expect(getRenderedAmounts()).toEqual([]);
     });
 
@@ -238,7 +243,7 @@ describe('PolicyDistanceRatesPage tax reclaimable column', () => {
         await renderPage([buildRate('cars', {attributes: {taxClaimablePercentage: 0.5, taxRateExternalID: TAX_RATE_ID}})], settings);
 
         // Then neither the header nor the amount is shown, matching the rate details page that hides the field in this case
-        expect(screen.queryByLabelText(getColumnHeaderLabel())).toBeNull();
+        expect(screen.queryByLabelText(getColumnHeadingLabel())).toBeNull();
         expect(getRenderedAmounts()).toEqual([]);
     });
 
@@ -262,7 +267,7 @@ describe('PolicyDistanceRatesPage tax reclaimable column', () => {
         ]);
 
         // Then the column is shown, but only the rate with a percentage shows an amount, since the others have nothing to reclaim
-        expect(screen.getByLabelText(getColumnHeaderLabel())).toBeTruthy();
+        expect(screen.getByLabelText(getColumnHeadingLabel())).toBeTruthy();
         expect(getRenderedAmounts()).toEqual(['$5.00']);
 
         // And only that row's label mentions the tax reclaimable amount
@@ -277,7 +282,7 @@ describe('PolicyDistanceRatesPage tax reclaimable column', () => {
         ]);
 
         // Then both rows show their amount, because expenses still apply the percentage when the rate has no valid tax rate
-        expect(screen.getByLabelText(getColumnHeaderLabel())).toBeTruthy();
+        expect(screen.getByLabelText(getColumnHeadingLabel())).toBeTruthy();
         expect(getRenderedAmounts().sort()).toEqual(['$2.00', '$5.00']);
     });
 

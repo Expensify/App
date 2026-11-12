@@ -1,7 +1,6 @@
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
-import * as ColumnHeaderMenu from '@components/Table/ColumnHeaderMenu';
 import Text from '@components/Text';
 
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
@@ -25,6 +24,7 @@ import {StyleSheet, View} from 'react-native';
 import type {TableColumn, TableData} from './types';
 
 import {rendersColumnHeaderInListHeader} from './buildTableListData';
+import ColumnHeaderMenu from './ColumnHeaderMenu';
 import {useColumnResizeController} from './columnResize/ColumnResizeContext';
 import ColumnResizeHandle from './columnResize/ColumnResizeHandle';
 import {TABLE_ROW_DATA_SET} from './columnResize/columnWidthExpressions';

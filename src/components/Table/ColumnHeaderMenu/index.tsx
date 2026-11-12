@@ -26,6 +26,21 @@ function Content({children}: ContentProps) {
     return <PopoverMenu.Content anchorAlignment={MENU_ANCHOR_ALIGNMENT}>{children}</PopoverMenu.Content>;
 }
 
-export {Root, Item, Separator} from '@components/PopoverMenu/v2';
-export {Trigger, Content, SortItems};
+const ColumnHeaderMenu = {
+    Root: PopoverMenu.Root,
+
+    /** The column's heading, which opens the menu. */
+    Trigger,
+
+    Content,
+
+    /** Sorts the table by the column, ascending or descending. */
+    SortItems,
+
+    Item: PopoverMenu.Item,
+
+    Separator: PopoverMenu.Separator,
+};
+
+export default ColumnHeaderMenu;
 export type {ColumnSorting} from './ColumnHeaderMenuSortItems';
