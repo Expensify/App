@@ -1,6 +1,8 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
+import FormHelpMessage from '@components/FormHelpMessage';
+import MenuItem from '@components/MenuItem';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
@@ -88,6 +90,11 @@ describe('ApprovalWorkflowSection', () => {
 
         // Then the admin sees an error telling them to fix it
         expect(screen.getByText('workflowsPage.approverNotWorkspaceMember')).toBeTruthy();
+        const errorMessage = screen.UNSAFE_getAllByType(FormHelpMessage).find((message) => message.props.message === 'workflowsPage.approverNotWorkspaceMember');
+        expect(errorMessage?.props.shouldShowRedDotIndicator).toBe(true);
+        expect(errorMessage?.props.style).toEqual(expect.arrayContaining([expect.objectContaining({alignItems: 'flex-start'})]));
+        const approverRow = screen.UNSAFE_getAllByType(MenuItem).find((item) => item.props.errorText === 'workflowsPage.approverNotWorkspaceMember');
+        expect(approverRow?.props.brickRoadIndicator).toBeUndefined();
     });
 
     it('does not show the non-member error for a regular approver', () => {

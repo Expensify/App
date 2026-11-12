@@ -187,7 +187,8 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
                     titleComponent={!approvalWorkflow.isDefault ? <UserPills users={memberPills} /> : undefined}
                     errorText={approvalWorkflow?.errors?.members ? translate(approvalWorkflow.errors.members) : undefined}
-                    brickRoadIndicator={approvalWorkflow?.errors?.members ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    shouldShowRedDotIndicator
+                    errorTextStyle={styles.alignItemsStart}
                     shouldShowRightIcon={!approvalWorkflow.isDefault}
                     interactive={!approvalWorkflow.isDefault}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_EDITOR_MEMBERS}
@@ -235,7 +236,8 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                                 onPress={() => editApprover(approverIndex)}
                                 shouldShowRightIcon
                                 hintText={hintText}
-                                brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                shouldShowRedDotIndicator
+                                errorTextStyle={styles.alignItemsStart}
                                 errorText={errorText}
                                 shouldRenderErrorAsHTML
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_EDITOR_APPROVER}

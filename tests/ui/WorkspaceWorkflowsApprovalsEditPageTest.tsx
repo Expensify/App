@@ -1,6 +1,7 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -403,6 +404,9 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
 
             // Then the approver shows the error right away, before any Save attempt
             expect(await screen.findByText(translateLocal('workflowsPage.approverNotWorkspaceMember'))).toBeOnTheScreen();
+            const errorMessage = screen.UNSAFE_getAllByType(FormHelpMessage).find((message) => message.props.message === translateLocal('workflowsPage.approverNotWorkspaceMember'));
+            expect(errorMessage?.props.shouldShowRedDotIndicator).toBe(true);
+            expect(errorMessage?.props.style).toEqual(expect.arrayContaining([expect.objectContaining({alignItems: 'flex-start'})]));
 
             // And saving is blocked until the admin picks a new approver or deletes the workflow
             jest.mocked(Navigation.goBack).mockClear();

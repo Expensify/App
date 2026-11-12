@@ -1,4 +1,4 @@
-import {render} from '@testing-library/react-native';
+import {render, screen} from '@testing-library/react-native';
 
 import TabSelectorItem from '@components/TabSelector/TabSelectorItem';
 import Tooltip from '@components/Tooltip';
@@ -25,6 +25,36 @@ describe('TabSelectorItem Component', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+    });
+
+    it.each([true, false])('shows and clears a standalone error dot when active is %s', (isActive) => {
+        // Given a tab whose error state is independent of its selected state
+        jest.mocked(Tooltip).mockImplementation(({children}) => children);
+
+        // When an error is present
+        const {rerender} = render(
+            <TabSelectorItem
+                title={title}
+                tabKey={tabKey}
+                isActive={isActive}
+                shouldShowRedDotIndicator
+            />,
+        );
+
+        // Then a standalone accessible error indicator appears without badge text
+        expect(screen.getByLabelText(CONST.ACCESSIBILITY_LABELS.ERROR)).toBeOnTheScreen();
+
+        // When the error is resolved
+        rerender(
+            <TabSelectorItem
+                title={title}
+                tabKey={tabKey}
+                isActive={isActive}
+            />,
+        );
+
+        // Then the indicator disappears
+        expect(screen.queryByLabelText(CONST.ACCESSIBILITY_LABELS.ERROR)).not.toBeOnTheScreen();
     });
 
     it('should show tooltip for inactive tab with hidden label', () => {

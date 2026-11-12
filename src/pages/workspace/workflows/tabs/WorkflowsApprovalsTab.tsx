@@ -36,7 +36,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getApprovalWorkflow, hasDynamicExternalWorkflow, isControlPolicy, isGroupPolicy, isSubmitPolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import {getApprovalWorkflowSource, INITIAL_APPROVAL_WORKFLOW, isApprovalWorkflowLockedByIntegration} from '@libs/WorkflowUtils';
+import {getApprovalWorkflowSource, INITIAL_APPROVAL_WORKFLOW, isApprovalWorkflowLockedByIntegration, sortApprovalWorkflowsByErrors} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -240,7 +240,8 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
         return tokenizedSearch([workflow], searchInput, () => searchableTexts).length > 0;
     };
 
-    const [workflowSearchInput, setWorkflowSearchInput, searchFilteredWorkflows] = useSearchResults(filteredApprovalWorkflows, filterWorkflow);
+    const sortedApprovalWorkflows = sortApprovalWorkflowsByErrors(filteredApprovalWorkflows);
+    const [workflowSearchInput, setWorkflowSearchInput, searchFilteredWorkflows] = useSearchResults(sortedApprovalWorkflows, filterWorkflow);
     const [isWorkflowListExpanded, setIsWorkflowListExpanded] = useState(false);
 
     useEffect(() => {
