@@ -190,24 +190,22 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
                     shouldEnableDetailPageNavigation
                     openParentReportInCurrentTab={shouldOpenParentReportInCurrentTab}
                 />
-                <Header.Right>
-                    <Header.Actions>
-                        {!shouldDisplayButtonsInSeparateLine && !statusBarProps && (
-                            <MoneyRequestHeaderActions
-                                reportID={reportID}
-                                onBackButtonPress={onBackButtonPress}
-                            />
-                        )}
-                        {shouldDisplayTransactionNavigation && !!carouselTransactionID && (
-                            <MoneyRequestReportTransactionsNavigation
-                                currentTransactionID={carouselTransactionID}
-                                shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
-                            />
-                        )}
-                    </Header.Actions>
-                    {!isReportInRHP && <SearchButton />}
-                    {!isReportInRHP && <SidePanelButton />}
-                </Header.Right>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.pr2]}>
+                    {!shouldDisplayButtonsInSeparateLine && !statusBarProps && (
+                        <MoneyRequestHeaderActions
+                            reportID={reportID}
+                            onBackButtonPress={onBackButtonPress}
+                        />
+                    )}
+                    {shouldDisplayTransactionNavigation && !!carouselTransactionID && (
+                        <MoneyRequestReportTransactionsNavigation
+                            currentTransactionID={carouselTransactionID}
+                            shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
+                        />
+                    )}
+                </View>
+                {!isReportInRHP && <SearchButton />}
+                {!isReportInRHP && <SidePanelButton />}
             </Header>
             {shouldDisplayButtonsInSeparateLine && (
                 <MoneyRequestHeaderActions

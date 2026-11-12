@@ -176,35 +176,31 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                     shouldEnableDetailPageNavigation
                     openParentReportInCurrentTab
                 />
-                <Header.Right>
-                    <Header.Actions>
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                            {shouldRenderActionsInHeaderRow && (
-                                <MoneyReportHeaderActions
-                                    reportID={reportIDProp}
-                                    primaryAction={primaryAction}
-                                    isReportInSearch={isReportInSearch}
-                                    backTo={backTo}
-                                />
-                            )}
-                            {shouldShowTransactionNavigation && !!carouselAnchorTransactionID ? (
-                                <MoneyRequestReportTransactionsNavigation
-                                    currentTransactionID={carouselAnchorTransactionID}
-                                    shouldDisplayNarrowVersion={!shouldShowHeaderButtonsInHeaderRow}
-                                />
-                            ) : (
-                                shouldShowReportNavigation && (
-                                    <MoneyRequestReportNavigation
-                                        reportID={reportIDProp}
-                                        shouldDisplayNarrowVersion={!shouldShowHeaderButtonsInHeaderRow}
-                                    />
-                                )
-                            )}
-                        </View>
-                    </Header.Actions>
-                    {shouldDisplaySearchRouter && <SearchButton />}
-                    {!(isReportInRHP && shouldUseNarrowLayout) && <SidePanelButton />}
-                </Header.Right>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pr2]}>
+                    {shouldRenderActionsInHeaderRow && (
+                        <MoneyReportHeaderActions
+                            reportID={reportIDProp}
+                            primaryAction={primaryAction}
+                            isReportInSearch={isReportInSearch}
+                            backTo={backTo}
+                        />
+                    )}
+                    {shouldShowTransactionNavigation && !!carouselAnchorTransactionID ? (
+                        <MoneyRequestReportTransactionsNavigation
+                            currentTransactionID={carouselAnchorTransactionID}
+                            shouldDisplayNarrowVersion={!shouldShowHeaderButtonsInHeaderRow}
+                        />
+                    ) : (
+                        shouldShowReportNavigation && (
+                            <MoneyRequestReportNavigation
+                                reportID={reportIDProp}
+                                shouldDisplayNarrowVersion={!shouldShowHeaderButtonsInHeaderRow}
+                            />
+                        )
+                    )}
+                </View>
+                {shouldDisplaySearchRouter && <SearchButton />}
+                {!(isReportInRHP && shouldUseNarrowLayout) && <SidePanelButton />}
             </Header>
             {!shouldShowHeaderButtonsInHeaderRow && (
                 <MoneyReportHeaderActions

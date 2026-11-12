@@ -93,11 +93,7 @@ function FullPageNotFoundView({
             <ForceFullScreenView shouldForceFullScreen={shouldForceFullScreen}>
                 <Header>
                     {shouldShowBackButton && <Header.BackButton onPress={onBackButtonPress} />}
-                    {!!shouldDisplaySearchRouter && (isMediumScreenWidth || isLargeScreenWidth) && (
-                        <Header.Right>
-                            <SearchButton />
-                        </Header.Right>
-                    )}
+                    {!!shouldDisplaySearchRouter && (isMediumScreenWidth || isLargeScreenWidth) && <SearchButton />}
                 </Header>
                 <View
                     style={[styles.flex1, styles.blockingViewContainer]}
