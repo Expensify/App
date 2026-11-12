@@ -682,7 +682,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 clearPolicyErrorField(policy.id, 'clientID');
                             }}
                         >
-                            <MenuItemSectionRoot onPress={readOnly ? undefined : onPressClientID}>
+                            <MenuItemSectionRoot
+                                onPress={readOnly ? undefined : onPressClientID}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.CLIENT_ID}
+                            >
                                 <MenuItemField.Row
                                     name={translate('workspace.common.clientID')}
                                     value={policy?.clientID}
@@ -930,6 +933,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                                     {isPolicyAdmin && (
                                                         <View style={[styles.pAbsolute, rulesDocumentMenuPositionStyle]}>
                                                             <ThreeDotsMenu
+                                                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.RULES_DOCUMENT_MENU}
                                                                 menuItems={getRulesDocumentMenuItems(openPicker)}
                                                                 shouldSelfPosition
                                                                 iconStyles={[styles.receiptActionButton]}
@@ -947,6 +951,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                         return (
                                             <View style={[styles.flexRow]}>
                                                 <Button
+                                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.RULES_DOCUMENT_CHOOSE_FILE}
                                                     onPress={() => {
                                                         openPicker({
                                                             onPicked: handleRulesDocumentPicked,

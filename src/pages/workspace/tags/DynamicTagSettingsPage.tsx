@@ -1,8 +1,8 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -20,6 +20,7 @@ import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
@@ -46,6 +47,8 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
+import variables from '@styles/variables';
+
 import {clearPolicyTagErrors, deletePolicyTags, setWorkspaceTagEnabled} from '@userActions/Policy/Tag';
 
 import CONST from '@src/CONST';
@@ -63,6 +66,7 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
     const {policyID, tagName, parentTagsFilter} = route.params;
     const orderWeight = Number(route.params.orderWeight);
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate, formatPhoneNumber} = useLocalize();
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
@@ -204,20 +208,28 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
                     )}
                     <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.name}>
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.SETTINGS_NAME}
                             name={translate(`common.name`)}
                             onPress={canWriteTags && !hasDependentTags ? navigateToEditTag : undefined}
                             value={cleanedTagName}
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.['GL Code']}>
-                        <MenuItemWithTopDescription
-                            description={translate(`workspace.tags.glCode`)}
-                            title={currentPolicyTag?.['GL Code']}
-                            onPress={navigateToEditGlCode}
-                            iconRight={hasAccountingConnections ? expensifyIcons.Lock : undefined}
-                            interactive={canWriteTags && !hasAccountingConnections}
-                            shouldShowRightIcon={canWriteTags}
-                        />
+                        <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.SETTINGS_GL_CODE}
+                            name={translate(`workspace.tags.glCode`)}
+                            value={currentPolicyTag?.['GL Code']}
+                            onPress={canWriteTags && !hasAccountingConnections ? navigateToEditGlCode : undefined}
+                        >
+                            {canWriteTags && hasAccountingConnections && (
+                                <Icon
+                                    src={expensifyIcons.Lock}
+                                    fill={theme.icon}
+                                    width={variables.iconSizeNormal}
+                                    height={variables.iconSizeNormal}
+                                />
+                            )}
+                        </MenuItemField>
                     </OfflineWithFeedback>
 
                     {arePolicyRulesEnabled(policy, policyData.categories) && !isMultiLevelTags && (
@@ -226,6 +238,7 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
                                 <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.tags.tagRules')}</Text>
                             </View>
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.SETTINGS_APPROVER}
                                 name={translate(`workspace.tags.approverDescription`)}
                                 value={approverText}
                                 onPress={canWriteTags ? navigateToEditTagApprover : undefined}
@@ -241,6 +254,7 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
 
                     {canWriteTags && shouldShowDeleteMenuItem && (
                         <MenuItemAction
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.SETTINGS_DELETE}
                             icon={expensifyIcons.Trashcan}
                             title={translate('common.delete')}
                             onPress={async () => {

@@ -20,11 +20,6 @@ import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key, localeCompare: (a: string, b: string) => a.localeCompare(b), formatPhoneNumber: (value: string) => value}));
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn()}));
 
-let mockIsAnchoredDropdownsBetaEnabled = true;
-jest.mock('@hooks/usePermissions', () => () => ({
-    isBetaEnabled: (beta: string) => mockIsAnchoredDropdownsBetaEnabled && beta === jest.requireActual<{default: typeof CONST}>('@src/CONST').default.BETAS.ANCHORED_FIELD_DROPDOWNS,
-}));
-
 // Records what the row decided and renders its list straight away, so each test can read both without pressing anything.
 let mockShouldOpenInDropdown: boolean | undefined;
 type ExpenseFieldDropdownMockProps = Pick<ComponentProps<typeof ExpenseFieldDropdown>, 'shouldOpenInDropdown' | 'renderDropdown'>;
@@ -92,7 +87,6 @@ describe('AttendeeField', () => {
     });
 
     beforeEach(async () => {
-        mockIsAnchoredDropdownsBetaEnabled = true;
         mockShouldOpenInDropdown = undefined;
         mockDropdownTransactionID = undefined;
         await Onyx.clear();
@@ -101,7 +95,7 @@ describe('AttendeeField', () => {
     });
 
     it('opens the attendee list in place while creating an expense', async () => {
-        // Given a draft expense on the create form, with the anchored dropdowns beta on
+        // Given a draft expense on the create form
         // When the form renders the attendees row
         renderAttendeesRow();
 
@@ -110,19 +104,6 @@ describe('AttendeeField', () => {
             expect(mockShouldOpenInDropdown).toBe(true);
         });
         expect(mockDropdownTransactionID).toBe(TRANSACTION_ID);
-    });
-
-    it('keeps the full-page selector when the beta is off', async () => {
-        // Given the same draft, for a user without the anchored dropdowns beta
-        mockIsAnchoredDropdownsBetaEnabled = false;
-
-        // When the form renders the attendees row
-        renderAttendeesRow();
-
-        // Then the row opens the full-page selector as before
-        await waitFor(() => {
-            expect(mockShouldOpenInDropdown).toBe(false);
-        });
     });
 
     it('keeps the full-page selector for a saved expense being edited', async () => {

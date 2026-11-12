@@ -24,6 +24,8 @@ function ConfirmDigitalWalletAddition({card}: ConfirmDigitalWalletAdditionProps)
 
     return (
         <BaseWidgetItem
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM.CONFIRM_DIGITAL_WALLET_ADDITION}
+            buttonSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM_BUTTON.CONFIRM_DIGITAL_WALLET_ADDITION}
             icon={ExpensifyCardIcon}
             title={translate('addCardToDigitalWallet.approvalNeeded', {walletName})}
             subtitle={translate('homePage.timeSensitiveSection.confirmDigitalWalletAddition.subtitle')}

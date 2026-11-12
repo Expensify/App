@@ -57,6 +57,7 @@ function PieChartCanvas({
     valueUnitPosition,
     valueDecimals,
     formatValue: formatValueOverride,
+    countDimension,
     onSlicePress,
     onTooltipPress,
     tooltipFooter,
@@ -299,6 +300,7 @@ function PieChartCanvas({
                     data={data}
                     series={series}
                     formatValue={formatValue}
+                    countDimension={countDimension}
                     chartWidth={donutWidth}
                     initialTooltipPosition={tooltipPosition}
                     onChartMoved={onChartMoved}
