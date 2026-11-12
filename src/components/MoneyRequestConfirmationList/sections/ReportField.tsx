@@ -130,17 +130,12 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     })();
 
     const outstandingReports = useOutstandingReports(undefined, isFromGlobalCreate && !isPerDiemRequest ? undefined : policyID, ownerAccountID, false, ownerPersonalDetail?.login);
-    const eligibleOutstandingReports = isCreatingExpense ? outstandingReports.filter((report) => canAddTransaction(report, rules)) : outstandingReports;
-    // Edits on a report can hide the new-report option; other non-creation flows always offer a choice.
+    // The list offers a new report and, for a new expense, no report at all, so there is always a choice to make.
+    // Editing an expense that is already on a report can hide both (someone else's expense, edited by a non-admin),
+    // so there the row needs another report to choose from. Creating from inside an expense report locks the row,
+    // since the expense can only go on that report.
     const mayHideListOptions = action === CONST.IOU.ACTION.EDIT && !isUnreported;
-    let hasSelectableReports = (!isCreatingExpense && !mayHideListOptions) || shouldReportFieldBeEditable(eligibleOutstandingReports, selectedReportID, isUnreported);
-    if (isCreatingExpense && !isUnreported) {
-        // Keep a single eligible alternative read-only when the automatic destination is "New report".
-        hasSelectableReports = eligibleOutstandingReports.length > 1;
-    }
-    // When creating an expense in an individual report, the report field becomes read-only
-    // since the destination is already determined and there's no need to show a selectable list.
-    const shouldReportBeEditable = hasSelectableReports && !isMoneyRequestReport(reportID);
+    const shouldReportBeEditable = (!mayHideListOptions || shouldReportFieldBeEditable(outstandingReports, selectedReportID, isUnreported)) && !isMoneyRequestReport(reportID);
     // Editing a saved expense's report and moving a per diem expense both navigate on from the list (to the report, or to
     // the destination step when the workspace changes), so those keep the full page.
     const shouldOpenInDropdown = !!transactionID && shouldReportBeEditable && action !== CONST.IOU.ACTION.EDIT && !isPerDiemRequest;

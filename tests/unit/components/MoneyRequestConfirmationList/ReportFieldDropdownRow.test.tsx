@@ -163,32 +163,32 @@ describe('ReportField', () => {
         expect(mockDropdownTransactionID).toBe(TRANSACTION_ID);
     });
 
-    it('keeps creation locked when the workspace has no report open yet', async () => {
+    it('opens the list when the workspace has no report open yet', async () => {
         // Given a workspace with no outstanding report, where the expense would go on a new report
         mockOutstandingReports = [];
 
         // When the form renders the report row
         renderReportRow();
 
-        // Then creation preserves its eligible-report threshold instead of opening an empty list
+        // Then the row still opens its list, which offers a new report or no report at all
         await waitFor(() => {
-            expect(mockShouldOpenInDropdown).toBe(false);
+            expect(mockShouldOpenInDropdown).toBe(true);
         });
-        expect(mockIsInteractive).toBe(false);
+        expect(mockIsInteractive).toBe(true);
     });
 
-    it('keeps creation locked when the workspace has only the report the expense goes on', async () => {
+    it('opens the list when the workspace has only the report the expense goes on', async () => {
         // Given an expense created in a workspace chat whose only outstanding report is the one it will go on
         mockOutstandingReports = [outstandingReport];
 
         // When the form renders the report row
         renderReportRow();
 
-        // Then creation preserves its threshold of more than one eligible report
+        // Then the row still opens its list, which offers a new report next to that one
         await waitFor(() => {
-            expect(mockShouldOpenInDropdown).toBe(false);
+            expect(mockShouldOpenInDropdown).toBe(true);
         });
-        expect(mockIsInteractive).toBe(false);
+        expect(mockIsInteractive).toBe(true);
     });
 
     it('keeps the row locked when editing an expense on the only report it can go on', async () => {
@@ -277,7 +277,7 @@ describe('ReportField', () => {
         await waitForBatchedUpdates();
     };
 
-    it.each([false, true])('shows a locked New report field with only non-reimbursable reports (global create: %s)', async (isFromGlobalCreate) => {
+    it.each([false, true])('shows an interactive New report field with only non-reimbursable reports (global create: %s)', async (isFromGlobalCreate) => {
         // Given two retracted reports which the save path cannot add a new expense to
         await addNonReimbursableExpense(outstandingReport);
         await addNonReimbursableExpense(otherOutstandingReport);
@@ -288,15 +288,15 @@ describe('ReportField', () => {
         // When creating an expense from either the global button or the workspace chat
         renderReportRow();
 
-        // Then the default agrees with the save path and cannot open an empty picker
+        // Then the default agrees with the save path while Create report and None remain available
         await waitFor(() => {
             expect(mockReportName).toBe('iou.newReport');
-            expect(mockIsInteractive).toBe(false);
-            expect(mockShouldOpenInDropdown).toBe(false);
+            expect(mockIsInteractive).toBe(true);
+            expect(mockShouldOpenInDropdown).toBe(true);
         });
     });
 
-    it.each([false, true])('keeps New report locked with one eligible alternative (global create: %s)', async (isFromGlobalCreate) => {
+    it.each([false, true])('keeps New report interactive with one eligible alternative (global create: %s)', async (isFromGlobalCreate) => {
         // Given an ineligible chat default and just one eligible report
         await addNonReimbursableExpense(outstandingReport);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {isFromGlobalCreate});
@@ -306,10 +306,11 @@ describe('ReportField', () => {
         // When the confirmation field is rendered
         renderReportRow();
 
-        // Then the > 1 threshold is preserved, even though another report could be selected
+        // Then the ineligible default falls back to New report without blocking the eligible alternative
         await waitFor(() => {
             expect(mockReportName).toBe('iou.newReport');
-            expect(mockIsInteractive).toBe(false);
+            expect(mockIsInteractive).toBe(true);
+            expect(mockShouldOpenInDropdown).toBe(true);
         });
     });
 

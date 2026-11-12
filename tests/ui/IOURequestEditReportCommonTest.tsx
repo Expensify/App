@@ -5,12 +5,14 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditReportCommon';
+import useReportPickerActions from '@pages/iou/request/step/IOURequestStepReport/hooks/useReportPickerActions';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
 import CONST from '@src/CONST';
+import type {IOUAction} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Report, Transaction} from '@src/types/onyx';
 
 import {NavigationContainer} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
@@ -93,6 +95,27 @@ const renderIOURequestEditReportCommon = ({
             </ComposeProviders>
         </NavigationContainer>,
     );
+
+function ReportPickerWithActions({action, transaction}: {action: IOUAction; transaction: Transaction}) {
+    const {listProps} = useReportPickerActions({
+        action,
+        transaction,
+        transactionID: transaction.transactionID,
+        iouType: CONST.IOU.TYPE.SUBMIT,
+        reportIDFromRoute: FAKE_REPORT_ID,
+        goBack: jest.fn(),
+    });
+
+    return (
+        <IOURequestEditReportCommon
+            {...listProps}
+            createReportSentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+            autoReportSentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+            removeFromReportSentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+            backTo=""
+        />
+    );
+}
 
 describe('IOURequestEditReportCommon', () => {
     describe('RBR', () => {
@@ -194,6 +217,64 @@ describe('IOURequestEditReportCommon', () => {
 
             // Then only creation hides the rejected destination, preserving all existing move callers
             expect(!!screen.queryByText('Expense Report')).toBe(shouldShowReport);
+        });
+
+        it.each([CONST.IOU.ACTION.CREATE, CONST.IOU.ACTION.EDIT])('forwards %s eligibility through the picker hook', async (action) => {
+            // Given an admin with an ineligible non-reimbursable report and an eligible open report
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`, {
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    autoReporting: true,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                    pendingAction: undefined,
+                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${FAKE_TRANSACTION_ID}`, {
+                    transactionID: FAKE_TRANSACTION_ID,
+                    reportID: FAKE_REPORT_ID,
+                    amount: -100,
+                    currency: 'USD',
+                    created: '2026-01-01',
+                    merchant: 'Merchant',
+                    reimbursable: false,
+                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}eligibleReport`, {
+                    reportID: 'eligibleReport',
+                    reportName: 'Eligible Report',
+                    ownerAccountID: FAKE_ACCOUNT_ID,
+                    policyID: FAKE_POLICY_ID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // When the real hook supplies the picker props from the action, without setting isCreatingExpense directly
+            render(
+                <NavigationContainer>
+                    <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                        <ReportPickerWithActions
+                            action={action}
+                            transaction={{
+                                transactionID: 'draftExpense',
+                                reportID: FAKE_REPORT_ID,
+                                amount: -100,
+                                created: '2026-01-01',
+                                currency: 'USD',
+                                merchant: 'Merchant',
+                                participants: [{policyID: FAKE_POLICY_ID, reportID: FAKE_REPORT_ID, isPolicyExpenseChat: true}],
+                            }}
+                        />
+                    </ComposeProviders>
+                </NavigationContainer>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then creation hides the rejected destination, editing preserves the admin bypass, and eligible reports remain visible
+            expect(!!screen.queryByText('Expense Report')).toBe(action === CONST.IOU.ACTION.EDIT);
+            expect(screen.getByText('Eligible Report')).toBeTruthy();
         });
 
         it('does not apply moving eligibility to submitted reports during creation', async () => {

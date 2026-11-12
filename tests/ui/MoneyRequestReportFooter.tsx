@@ -152,14 +152,6 @@ describe('MoneyRequestConfirmationListFooter', () => {
         return waitForBatchedUpdatesWithAct();
     });
 
-    beforeEach(async () => {
-        // Creation eligibility requires the signed-in user to be the report's submitter.
-        await act(async () => {
-            await Onyx.set(ONYXKEYS.SESSION, {accountID: FAKE_ACCOUNT_ID, email: 'reportfooter@example.com'});
-        });
-        await waitForBatchedUpdatesWithAct();
-    });
-
     afterEach(async () => {
         await act(async () => {
             await Onyx.clear();
@@ -207,7 +199,7 @@ describe('MoneyRequestConfirmationListFooter', () => {
         expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
     });
 
-    it('should disable report field when there is only 1 outstanding report and creating from policy chat', async () => {
+    it('should allow editing report field when there is only 1 outstanding report and creating from policy chat', async () => {
         // Given an expense created in a workspace chat whose workspace has one outstanding report, the one it goes on
         const mockTransactionReport: Transaction = {
             ...mockTransaction,
@@ -236,12 +228,12 @@ describe('MoneyRequestConfirmationListFooter', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        // Then creation keeps the field disabled because there is only one eligible report
+        // Then the field can be changed, since the list always offers a new report next to that one
         const reportItem = screen.getByTestId('menu-item-Report');
-        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
+        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
     });
 
-    it('should disable report field when there are no reports available', async () => {
+    it('should allow editing report field when there are no reports available', async () => {
         // Given an expense being created on a workspace with no outstanding report
         const mockTransactionReport: Transaction = {
             ...mockTransaction,
@@ -261,12 +253,12 @@ describe('MoneyRequestConfirmationListFooter', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        // Then creation keeps the field disabled because there are no eligible reports
+        // Then the field can be changed, since the list offers a new report or no report at all
         const reportItem = screen.getByTestId('menu-item-Report');
-        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
+        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
     });
 
-    it('should disable report field when transaction has reportID and creating from FAB with only 1 outstanding report', async () => {
+    it('should allow editing report field when transaction has reportID and creating from FAB with only 1 outstanding report', async () => {
         // Given an expense created from the global create button that already sits on the only outstanding report
         const mockTransactionReport: Transaction = {
             ...mockTransaction,
@@ -295,9 +287,9 @@ describe('MoneyRequestConfirmationListFooter', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        // Then creation keeps the field disabled because a reported expense requires more than one eligible report
+        // Then the field can be changed, since the list always offers a new report next to that one
         const reportItem = screen.getByTestId('menu-item-Report');
-        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
+        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
     });
 
     it('should allow editing report field when transaction is unReported and creating from FAB with only 1 outstanding report', async () => {
