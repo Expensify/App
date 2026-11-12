@@ -4,12 +4,8 @@
  */
 import * as PopoverMenu from '@components/PopoverMenu/v2';
 
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
-
 import CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
-import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 
@@ -30,25 +26,6 @@ function Content({children}: ContentProps) {
     return <PopoverMenu.Content anchorAlignment={MENU_ANCHOR_ALIGNMENT}>{children}</PopoverMenu.Content>;
 }
 
-type ClearSortItemProps = WithRequiredSentryLabel & {
-    onSelect: () => void;
-};
-
-/** Returns the table to its unsorted order. */
-function ClearSortItem({onSelect, sentryLabel}: ClearSortItemProps) {
-    const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Close']);
-
-    return (
-        <PopoverMenu.Item
-            text={translate('search.columnMenu.clearSort')}
-            icon={icons.Close}
-            onSelect={onSelect}
-            sentryLabel={sentryLabel}
-        />
-    );
-}
-
 export {Root, Item, Separator} from '@components/PopoverMenu/v2';
-export {Trigger, Content, SortItems, ClearSortItem};
+export {Trigger, Content, SortItems};
 export type {ColumnSorting} from './ColumnHeaderMenuSortItems';

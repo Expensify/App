@@ -3113,7 +3113,7 @@ describe('Table', () => {
             });
         });
 
-        it('sorts by the chosen order and clears the sort from the menu when the beta is on', async () => {
+        it('sorts by the chosen order, and removes the sort when the active order is picked again, when the beta is on', async () => {
             // Given the column menu beta is on
             await act(async () => {
                 await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.PINNABLE_TABLE_COLUMNS]);
@@ -3130,11 +3130,11 @@ describe('Table', () => {
             expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'name', order: 'desc'});
             expect(tableRef.current?.getProcessedData().map((item) => item.name)).toEqual(['Eggplant', 'Date', 'Carrot', 'Banana', 'Apple']);
 
-            // When the user picks Clear sort from the same menu
+            // When the user picks Sort descending again, the order the column is already sorted in
             await openNameColumnMenu();
-            await pressMenuItem('search.columnMenu.clearSort');
+            await pressMenuItem('search.columnMenu.sortDescending');
 
-            // Then the table goes back to being unsorted
+            // Then the sort is removed, as the third press of a heading does without the menu
             expect(tableRef.current?.getActiveSorting().columnKey).toBeUndefined();
         });
 

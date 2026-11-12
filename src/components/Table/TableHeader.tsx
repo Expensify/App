@@ -1,6 +1,7 @@
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
+import * as ColumnHeaderMenu from '@components/Table/ColumnHeaderMenu';
 import Text from '@components/Text';
 
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
@@ -24,7 +25,6 @@ import {StyleSheet, View} from 'react-native';
 import type {TableColumn, TableData} from './types';
 
 import {rendersColumnHeaderInListHeader} from './buildTableListData';
-import * as ColumnHeaderMenu from './ColumnHeaderMenu';
 import {useColumnResizeController} from './columnResize/ColumnResizeContext';
 import ColumnResizeHandle from './columnResize/ColumnResizeHandle';
 import {TABLE_ROW_DATA_SET} from './columnResize/columnWidthExpressions';
@@ -384,19 +384,14 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
                 <ColumnHeaderMenu.SortItems
                     sorting={{
                         activeSortOrder: isSortingByColumn ? activeSorting.order : undefined,
-                        onSort: (order) => updateSorting({columnKey: column.key, order}),
+                        // Picking the order the column is already sorted in removes the sort, like the third press of a heading without the menu.
+                        onSort: (order) => updateSorting({columnKey: isSortingByColumn && activeSorting.order === order ? undefined : column.key, order}),
                     }}
                     sentryLabels={{
                         ascending: CONST.SENTRY_LABEL.TABLE_HEADER.COLUMN_MENU_ITEM.SORT_ASCENDING,
                         descending: CONST.SENTRY_LABEL.TABLE_HEADER.COLUMN_MENU_ITEM.SORT_DESCENDING,
                     }}
                 />
-                {isSortingByColumn && (
-                    <ColumnHeaderMenu.ClearSortItem
-                        onSelect={() => updateSorting({columnKey: undefined, order: CONST.SEARCH.SORT_ORDER.ASC})}
-                        sentryLabel={CONST.SENTRY_LABEL.TABLE_HEADER.COLUMN_MENU_ITEM.CLEAR_SORT}
-                    />
-                )}
             </ColumnHeaderMenu.Content>
         </ColumnHeaderMenu.Root>
     ) : undefined;

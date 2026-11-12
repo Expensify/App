@@ -913,7 +913,6 @@ const SENTRY_LABEL = {
         COLUMN_MENU_ITEM: {
             SORT_ASCENDING: 'TableHeader-ColumnMenu-SortAscending',
             SORT_DESCENDING: 'TableHeader-ColumnMenu-SortDescending',
-            CLEAR_SORT: 'TableHeader-ColumnMenu-ClearSort',
         },
     },
     SELECTION_LIST: {
