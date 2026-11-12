@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 
+import CONST from '@src/CONST';
 import callOrReturn from '@src/types/utils/callOrReturn';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -96,7 +97,7 @@ function StepScreenWrapper({
                                     tooltipText={singleThreeDotsMenuItem.text ?? ''}
                                     onPress={singleThreeDotsMenuItem.onSelected}
                                     iconSrc={singleThreeDotsMenuItem.icon}
-                                    sentryLabel={singleThreeDotsMenuItem.sentryLabel}
+                                    sentryLabel={singleThreeDotsMenuItem.sentryLabel ?? CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
                                 />
                             ) : (
                                 !!threeDotsMenuItems?.length && <Header.ThreeDotsMenu items={threeDotsMenuItems} />
