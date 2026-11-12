@@ -5,7 +5,7 @@
  * globals, settings, plugins, ignores and rule overrides.
  */
 /* eslint-disable @typescript-eslint/naming-convention -- the rule names in this file are quoted object keys */
-/* eslint-disable import/extensions -- Node loads this file as ESM, which needs the extension on relative imports, while the presets ask for none */
+/* eslint-disable import/extensions -- import/extensions forbids extensions, but Node ESM needs them on relative imports */
 import {buildOxlintConfig} from 'eslint-config-expensify/oxlint';
 import {reactCompilerRuleNames} from 'eslint-config-expensify/oxlint/utils';
 import storybookPlugin from 'eslint-plugin-storybook';
@@ -13,10 +13,9 @@ import storybookPlugin from 'eslint-plugin-storybook';
 import {APP_HOSTED_RULE_IDS_BY_NAME} from './config/oxlint/appHostedRules.mjs';
 import {RULE_BY_CATEGORY} from './config/oxlint/reactCompilerRust.mjs';
 
-// React Compiler rules run as `rc/<name>` (config/oxlint/plugins/rc-rules.mjs), the ones the Rust compiler reports. The
-// package drops the compiler rules oxlint cannot run (see `DROPPED_RULES` in its oxlint/tables.js).
-// oxlint's built-in react/<name> versions are not used: an `eslint-disable` comment for react-hooks/exhaustive-deps or
-// react-hooks/rules-of-hooks also hides every compiler error in that component (https://github.com/oxc-project/oxc/issues/26277).
+// React Compiler rules run as `rc/<name>` (config/oxlint/plugins/rc-rules.mjs), from the Rust compiler, instead of oxlint's
+// own `react/<name>` versions. react-hooks/exhaustive-deps runs hosted for a related reason: with oxlint's version, an
+// `eslint-disable` for it also hides every compiler error in that component (https://github.com/oxc-project/oxc/issues/26277).
 const rcRuleNames = new Set(Object.values(RULE_BY_CATEGORY));
 const unknownRcRules = [...rcRuleNames].filter((name) => !reactCompilerRuleNames.includes(name));
 if (unknownRcRules.length) {
@@ -375,7 +374,7 @@ export default await buildOxlintConfig({
                 'hosted/no-extraneous-dependencies': 'off',
                 'es/no-nullish-coalescing-operators': 'off',
                 'es/no-optional-chaining': 'off',
-                // Stands in for `rulesdir/prefer-at`, which needs the type checker. Default options only: `checkAllIndexAccess` makes it unusable.
+                // Stands in for `rulesdir/prefer-at`, which needs the type checker. Default options only: `checkAllIndexAccess` would also flag reads like `result[0]`.
                 'unicorn/prefer-at': 'error',
                 // eslint-config-prettier turns this off, but the App requires braces on every block.
                 curly: ['error', 'all'],
@@ -392,7 +391,7 @@ export default await buildOxlintConfig({
         {
             files: ['**/*.{ts,tsx,cts,mts}'],
             rules: {
-                // Narrower than the preset: `ignorePrimitives: true` reports `||` only when the left operand
+                // Reports fewer cases than the preset: `ignorePrimitives: true` flags `||` only when the left operand
                 // cannot be `''`, `0`, `0n` or `false`. See contributingGuides/STYLE.md#accessing-object-properties-and-default-values
                 'typescript/prefer-nullish-coalescing': ['error', {ignoreIfStatements: true, ignorePrimitives: true, ignoreTernaryTests: true}],
             },

@@ -1,8 +1,7 @@
 /**
- * The App's `rulesdir` plugin: the rules of eslint-plugin-expensify (from eslint-config-expensify's rulesdir plugin) and
- * of eslint-plugin-local-rules, under the `rulesdir` name ESLint uses. Two rules change: no-inline-useOnyx-selector stays
- * quiet in files React Compiler memoizes, and prefer-locale-compare-from-context is swapped for a copy that needs no type
- * info.
+ * The App's `rulesdir` plugin: the package's rulesdir rules plus the rules in eslint-plugin-local-rules/. It also
+ * differs from the package's in two rules: no-inline-useOnyx-selector stays quiet in files React Compiler memoizes, and
+ * prefer-locale-compare-from-context is added as a copy that needs no type info (the package leaves it out).
  */
 import {rules as expensifyRules} from 'eslint-config-expensify/oxlint/plugins/rulesdir';
 import fs from 'node:fs';

@@ -1,7 +1,6 @@
 /**
- * oxlint and ESLint name some rules differently. This maps oxlint's names for findings back to ESLint's rule IDs, so
- * the lint output and the seatbelt baseline use the same IDs as ESLint. `toEslintRuleID` from
- * eslint-config-expensify/oxlint does the mapping; this adds the App's own hosted rule IDs and the `rc` prefix.
+ * Maps oxlint's finding names to ESLint rule IDs through the package's toEslintRuleID, adding the App's hosted rule IDs
+ * and the `rc` prefix.
  */
 import {toEslintRuleID} from 'eslint-config-expensify/oxlint/utils';
 
