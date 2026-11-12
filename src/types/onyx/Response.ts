@@ -32,6 +32,9 @@ type Response<TKey extends OnyxKey> = {
     /** Collection of onyx updates (SET/MERGE/...) */
     onyxData?: Array<OnyxUpdate<TKey>>;
 
+    /** Pagination pages for the items in onyxData. They are applied after onyxData, and skipped whenever onyxData is skipped. */
+    paginationOnyxData?: Array<OnyxUpdate<TKey>>;
+
     /** ID of the request that triggered this response */
     requestID?: string;
 

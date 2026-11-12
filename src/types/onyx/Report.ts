@@ -53,9 +53,14 @@ type InvoiceReceiverType = InvoiceReceiver['type'];
 /** Record of report participants, indexed by their accountID */
 type Participants = Record<number, Participant>;
 
-/** Report next step */
+/**
+ * Report next step
+ */
 type ReportNextStep = {
+    /** Message key */
     messageKey: ValueOf<typeof CONST.NEXT_STEP.MESSAGE_KEY>;
+
+    /** Icon */
     icon: ValueOf<typeof CONST.NEXT_STEP.ICONS>;
 
     /** The account ID of the user who is required to take action. This could be -1 which translates to "an admin" */
@@ -81,9 +86,6 @@ type ReportNextStep = {
         timeZone?: string;
     };
 
-    /** The fill color of the icon */
-    iconFill?: string;
-
     /** Currency the submitter's deposit account must use for direct reimbursement, named in the waitingForSubmitterAccount copy */
     requiredDepositCurrency?: string;
 
@@ -92,6 +94,14 @@ type ReportNextStep = {
 
     /** Currency the submitter receives the reimbursement in */
     depositCurrency?: string;
+
+    /** The fill color of the icon */
+    iconFill?: string;
+
+    /** Only set while the report waits for final approval or payment on a workspace that auto-exports */
+    autoExport?: {
+        messageKey: ValueOf<typeof CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY>;
+    } | null;
 };
 
 /** Model of report data */

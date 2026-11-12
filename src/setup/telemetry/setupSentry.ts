@@ -1,4 +1,5 @@
 import {isDevelopment} from '@libs/Environment/Environment';
+import {BROWSER_EXTENSION_URL_PATTERNS} from '@libs/isBrowserExtensionError';
 import {
     breadcrumbsIntegration,
     browserProfilingIntegration,
@@ -20,12 +21,6 @@ import * as Sentry from '@sentry/react-native';
 
 import pkg from '../../../package.json';
 import makeDebugTransport from './debugTransport';
-
-/**
- * Schemes browser extensions inject code under. An error whose top stack frame lives at one of these
- * URLs was thrown inside extension code, not ours, so there is nothing for us to act on.
- */
-const EXTENSION_DENY_URLS = [/^chrome-extension:\/\//i, /^moz-extension:\/\//i, /^safari-extension:\/\//i, /^safari-web-extension:\/\//i];
 
 /**
  * Ordered list, not independent entries: Sentry runs each integration's `processEvent` in list order, and the
@@ -81,7 +76,8 @@ function setupSentry(): void {
             // that merely names the bridge in prose still reports.
             /webkit\.messageHandlers\./,
         ],
-        denyUrls: EXTENSION_DENY_URLS,
+        // An error whose top stack frame lives in extension code was not thrown by us, so there is nothing for us to act on
+        denyUrls: BROWSER_EXTENSION_URL_PATTERNS,
         beforeSendTransaction: processBeforeSendTransactions,
         beforeSendSpan: processBeforeSendSpan,
         enableLogs: true,

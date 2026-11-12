@@ -23,6 +23,7 @@ const WRITE_COMMANDS = {
     SET_WORKSPACE_AUTO_REPORTING_FREQUENCY: 'SetWorkspaceAutoReportingFrequency',
     SET_GLOBAL_REIMBURSEMENT_FX_PREFERENCE: 'SetGlobalReimbursementFXPreference',
     TOGGLE_COLLECT_DEPOSIT_ACCOUNTS: 'ToggleCollectDepositAccounts',
+    SET_REIMBURSEMENT_COUNTRIES: 'SetReimbursementCountries',
     SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET: 'SetWorkspaceAutoReportingOffset',
     UPDATE_POLICY_TIMEZONE: 'UpdatePolicyTimezone',
     SET_WORKSPACE_APPROVAL_MODE: 'SetWorkspaceApprovalMode',
@@ -691,6 +692,7 @@ const WRITE_COMMANDS = {
     QUEUE_BULK_PAY_REPORTS: 'QueueBulkPayReports',
     QUEUE_BULK_APPROVE_REPORTS: 'QueueBulkApproveReports',
     QUEUE_BULK_SUBMIT_REPORTS: 'QueueBulkSubmitReports',
+    QUEUE_BULK_CHANGE_REPORT_POLICY: 'QueueBulkChangeReportPolicy',
     QUEUE_BULK_MARK_AS_EXPORTED: 'QueueBulkMarkAsExported',
     CREATE_WORKSPACE_APPROVAL: 'CreateWorkspaceApproval',
     UPDATE_WORKSPACE_APPROVAL: 'UpdateWorkspaceApproval',
@@ -1100,6 +1102,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_FREQUENCY]: Parameters.SetWorkspaceAutoReportingFrequencyParams;
     [WRITE_COMMANDS.SET_GLOBAL_REIMBURSEMENT_FX_PREFERENCE]: Parameters.SetGlobalReimbursementFXPreferenceParams;
     [WRITE_COMMANDS.TOGGLE_COLLECT_DEPOSIT_ACCOUNTS]: Parameters.ToggleCollectDepositAccountsParams;
+    [WRITE_COMMANDS.SET_REIMBURSEMENT_COUNTRIES]: Parameters.SetReimbursementCountriesParams;
     [WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET]: Parameters.SetWorkspaceAutoReportingMonthlyOffsetParams;
     [WRITE_COMMANDS.UPDATE_POLICY_TIMEZONE]: Parameters.UpdatePolicyTimezoneParams;
     [WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE]: Parameters.SetWorkspaceApprovalModeParams;
@@ -1578,6 +1581,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.QUEUE_BULK_PAY_REPORTS]: Parameters.QueueBulkPayReportsParams;
     [WRITE_COMMANDS.QUEUE_BULK_APPROVE_REPORTS]: Parameters.QueueBulkApproveReportsParams;
     [WRITE_COMMANDS.QUEUE_BULK_SUBMIT_REPORTS]: Parameters.QueueBulkSubmitReportsParams;
+    [WRITE_COMMANDS.QUEUE_BULK_CHANGE_REPORT_POLICY]: Parameters.QueueBulkChangeReportPolicyParams;
     [WRITE_COMMANDS.QUEUE_BULK_MARK_AS_EXPORTED]: Parameters.QueueBulkMarkAsExportedParams;
     [WRITE_COMMANDS.EXPORT_REPORT_TO_CSV]: Parameters.ExportReportCSVParams;
     [WRITE_COMMANDS.CREATE_WORKSPACE_APPROVAL]: Parameters.CreateWorkspaceApprovalParams;
@@ -1990,6 +1994,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     GET_INSIGHTS: 'GetInsights',
     GET_SCIM_TOKEN: 'GetSCIMToken',
     PARSE_EXPENSE_FILTERS: 'ParseExpenseFilters',
+    TRANSLATE_RECEIPT: 'TranslateReceipt',
 
     LOG_OUT: 'LogOut',
     CREATE_DIGITAL_WALLET: 'CreateDigitalWallet',
@@ -2055,6 +2060,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.REQUEST_TRAVEL_ACCESS]: null;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_SCIM_TOKEN]: Parameters.GetScimTokenParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.PARSE_EXPENSE_FILTERS]: Parameters.ParseExpenseFiltersParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.TRANSLATE_RECEIPT]: Parameters.TranslateReceiptParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP]: Parameters.CompleteGuidedSetupParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_STATEMENT_PDF]: Parameters.GetStatementPDFParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_EXPENSIFY_CARD_STATEMENT_PDF]: Parameters.GetExpensifyCardStatementPDFParams;

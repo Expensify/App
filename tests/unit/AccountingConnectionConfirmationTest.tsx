@@ -63,9 +63,10 @@ function mockCreateSetupFlowElement() {
     return <View testID={SETUP_FLOW_TEST_ID} />;
 }
 
+let mockHasUnmetConnectPrerequisite = false;
 jest.mock('@pages/workspace/accounting/utils', () => ({
     __esModule: true,
-    getAccountingIntegrationData: () => ({setupConnectionFlow: mockCreateSetupFlowElement()}),
+    getAccountingIntegrationData: () => ({setupConnectionFlow: mockCreateSetupFlowElement(), hasUnmetConnectPrerequisite: mockHasUnmetConnectPrerequisite}),
 }));
 
 jest.mock('@hooks/useLazyAsset', () => ({
@@ -139,6 +140,7 @@ describe('AccountingContextProvider connect-confirmation prompt', () => {
         await Onyx.clear();
         await waitForBatchedUpdates();
         jest.clearAllMocks();
+        mockHasUnmetConnectPrerequisite = false;
     });
 
     it('should mount the setup flow without a prompt when no connection has to be disconnected first', async () => {
@@ -167,6 +169,21 @@ describe('AccountingContextProvider connect-confirmation prompt', () => {
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         expect(getShowConfirmModalOption('cancelText')).toBe('common.cancel');
         expect(screen.queryByTestId(SETUP_FLOW_TEST_ID)).not.toBeOnTheScreen();
+    });
+
+    it('should keep the current connection and mount the setup flow when the workspace cannot connect to the new integration yet', async () => {
+        // Given a workspace with an integration connected that doesn't meet the new integration's prerequisite, like Digits on a workspace outside USD
+        mockHasUnmetConnectPrerequisite = true;
+        const ref = renderProvider();
+
+        // When a connect flow is started that would otherwise replace the existing connection
+        await startFlowNeedingDisconnect(ref);
+
+        // Then the setup flow mounts straight away to ask for the fix, and nothing is disconnected, so backing out of that
+        // ask leaves the workspace with the integration it had
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        expect(mockRemovePolicyConnection).not.toHaveBeenCalled();
+        expect(screen.getByTestId(SETUP_FLOW_TEST_ID)).toBeOnTheScreen();
     });
 
     it('should reuse one prompt when the flow is started again while the prompt is still unanswered', async () => {
