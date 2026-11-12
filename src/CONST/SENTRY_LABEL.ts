@@ -284,7 +284,16 @@ const SENTRY_LABEL = {
         VIDEO: 'VideoPlayer-Video',
         MORE_MENU_DOWNLOAD: 'VideoPlayer-MoreMenuDownload',
         MORE_MENU_PLAYBACK_SPEED: 'VideoPlayer-MoreMenuPlaybackSpeed',
-        PLAYBACK_SPEED_OPTION: 'VideoPlayer-PlaybackSpeedOption',
+        PLAYBACK_SPEED_OPTION: {
+            SPEED_025: 'VideoPlayer-PlaybackSpeedOption-Speed025',
+            SPEED_050: 'VideoPlayer-PlaybackSpeedOption-Speed050',
+            SPEED_075: 'VideoPlayer-PlaybackSpeedOption-Speed075',
+            SPEED_100: 'VideoPlayer-PlaybackSpeedOption-Speed100',
+            SPEED_125: 'VideoPlayer-PlaybackSpeedOption-Speed125',
+            SPEED_150: 'VideoPlayer-PlaybackSpeedOption-Speed150',
+            SPEED_175: 'VideoPlayer-PlaybackSpeedOption-Speed175',
+            SPEED_200: 'VideoPlayer-PlaybackSpeedOption-Speed200',
+        },
     },
     ADDRESS_SEARCH: {
         CURRENT_LOCATION_BUTTON: 'AddressSearch-CurrentLocationButton',
