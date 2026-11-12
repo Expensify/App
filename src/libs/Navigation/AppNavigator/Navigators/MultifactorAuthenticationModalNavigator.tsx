@@ -144,12 +144,12 @@ function MultifactorAuthenticationModalNavigator() {
         opacity: backdropProgress.get() * variables.rhpOverlayOpacity,
     }));
 
+    const [resizeHandleElement, setResizeHandleElement] = useState<HTMLDivElement | null>(null);
     const {width: singleRHPWidth} = useSingleRHPWidth();
     const frameStyle = getRHPFrameStyle({styles, animatedWidth: variables.rhpWidth, singleRHPWidth, shouldUseNarrowLayout, shouldUseCenteredFrame: false});
     const slideFromWidthInterpolator = (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: {kind: 'slide-from-width'}});
     const {isBetaEnabled} = usePermissions();
     const isResizable = isBetaEnabled(CONST.BETAS.RESIZABLE_RHP) && !shouldUseNarrowLayout;
-    const [resizeHandleElement, setResizeHandleElement] = useState<HTMLDivElement | null>(null);
 
     const stackContentStyle = styles.singleRHPStackBox(isResizable);
 
