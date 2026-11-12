@@ -561,6 +561,12 @@ describe('insightsQueries', () => {
 
             // And the page's own date range isn't added on top
             expect(query).not.toContain('2026-10-01');
+
+            // And the expenses are listed as a table grouped by week, the bucket Spend over time plots when the saved Month doesn't fit October
+            expect(queryJSON?.groupBy).toBe(CONST.SEARCH.GROUP_BY.WEEK);
+            expect(queryJSON?.view).toBe(CONST.SEARCH.VIEW.TABLE);
+            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK);
+            expect(queryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
         });
 
         it('has no upper bound when the date range has no end', () => {

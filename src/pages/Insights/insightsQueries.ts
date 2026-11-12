@@ -124,14 +124,19 @@ function applyInsightsFilters(chart: InsightsChartSpec, filters: InsightsFilters
     return chart.workflowStage ? `${query} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.WORKFLOW_STAGE}:${chart.workflowStage}` : query;
 }
 
-/** Builds the Spend page query for the expenses the dashboard leaves out: those dated after `asOfDate` through the end of the date range, in the dashboard's workspaces. */
+/** Builds the Spend page query for the expenses the dashboard leaves out: those dated after `asOfDate` through the end of the date range, in the dashboard's workspaces, grouped by the time bucket Spend over time plots. */
 function buildFutureExpensesQueryString(filters: InsightsFilters, asOfDate: string): SearchQueryString {
     const {end} = getInsightsDateRange(filters.date);
-    return buildQueryStringFromFilterFormValues({
-        ...buildFilterFormValues(filters, false),
-        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-        [FILTER_KEYS.DATE_RANGE]: getRangeQueryValue(getDayAfter(parseISO(asOfDate)), end || undefined),
-    });
+    return buildQueryStringFromFilterFormValues(
+        {
+            ...buildFilterFormValues(filters, false),
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            [FILTER_KEYS.DATE_RANGE]: getRangeQueryValue(getDayAfter(parseISO(asOfDate)), end || undefined),
+            groupBy: getQueryGroupBy(filters),
+            view: CONST.SEARCH.VIEW.TABLE,
+        },
+        {sortOrder: CONST.SEARCH.SORT_ORDER.ASC},
+    );
 }
 
 type InsightsChartQuery = {
