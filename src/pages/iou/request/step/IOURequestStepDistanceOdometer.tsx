@@ -285,18 +285,6 @@ function IOURequestStepDistanceOdometer({
         personalOutputCurrency: personalPolicy?.outputCurrency,
     });
 
-    // Calculate total distance - updated live after every input change
-    const totalDistance = (() => {
-        const start = parseFloat(DistanceRequestUtils.normalizeOdometerText(startReading, fromLocaleDigit));
-        const end = parseFloat(DistanceRequestUtils.normalizeOdometerText(endReading, fromLocaleDigit));
-        if (Number.isNaN(start) || Number.isNaN(end) || !startReading || !endReading) {
-            return null;
-        }
-        const distance = getOdometerTotalDistance(start, end, currentTransaction?.comment);
-        // Show 0 if distance is negative
-        return distance <= 0 ? 0 : distance;
-    })();
-
     // Get image source for web (blob URL) or native (URI string)
     const getImageSource = (image: FileObject | string | {uri?: string} | undefined): string | undefined => {
         if (!image) {
@@ -611,6 +599,18 @@ function IOURequestStepDistanceOdometer({
         onTabSwitchDiscard: handleTabSwitchDiscard,
         onVisibilityChange: setIsDiscardModalVisible,
     });
+
+    // Calculate after the hooks so React Compiler can cache the total and its displayed rounding.
+    const totalDistance = (() => {
+        const start = parseFloat(DistanceRequestUtils.normalizeOdometerText(startReading, fromLocaleDigit));
+        const end = parseFloat(DistanceRequestUtils.normalizeOdometerText(endReading, fromLocaleDigit));
+        if (Number.isNaN(start) || Number.isNaN(end) || !startReading || !endReading) {
+            return null;
+        }
+        const distance = getOdometerTotalDistance(start, end, currentTransaction?.comment);
+        // Show 0 if distance is negative
+        return distance <= 0 ? 0 : distance;
+    })();
 
     const handleSaveForLater = async () => {
         shouldBypassDiscardConfirmationRef.current = true;
