@@ -127,7 +127,7 @@ describe('WiseGlobalReimbursementsIntroPage', () => {
         TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_REIMBURSEMENT_ACCOUNT_PAGE, expectedReads);
         let readBankAccountID: OnyxEntry<number>;
         await TestHelper.getOnyxData({
-            key: ONYXKEYS.RAM_ONLY_WISE_BUSINESS_ACCOUNT_READ,
+            key: ONYXKEYS.RAM_ONLY_WISE_INTRO_READ_BANK_ACCOUNT_ID,
             callback: (value) => {
                 readBankAccountID = value;
             },

@@ -109,13 +109,13 @@ function clearWiseOnboardingUnsavedPages() {
 }
 
 /** Reads the business details the Wise onboarding form prefills from, and records which bank account the read is for so the form does not read them again. */
-function readWiseBusinessAccount(bankAccountID: number) {
-    Onyx.set(ONYXKEYS.RAM_ONLY_WISE_BUSINESS_ACCOUNT_READ, bankAccountID);
+function openReimbursementAccountPageForWiseIntro(bankAccountID: number) {
+    Onyx.set(ONYXKEYS.RAM_ONLY_WISE_INTRO_READ_BANK_ACCOUNT_ID, bankAccountID);
     openReimbursementAccountPage({bankAccountID, shouldPreserveDraft: true});
 }
 
-function clearWiseBusinessAccountRead() {
-    Onyx.set(ONYXKEYS.RAM_ONLY_WISE_BUSINESS_ACCOUNT_READ, null);
+function clearWiseIntroReadBankAccountID() {
+    Onyx.set(ONYXKEYS.RAM_ONLY_WISE_INTRO_READ_BANK_ACCOUNT_ID, null);
 }
 
 function dismissWiseGlobalReimbursementsBanners() {
@@ -166,10 +166,10 @@ function clearWiseBusinessOnboardingSubmission() {
 
 export default saveWiseOnboardingPage;
 export {
-    clearWiseBusinessAccountRead,
+    clearWiseIntroReadBankAccountID,
     clearWiseBusinessOnboardingSubmission,
     clearWiseOnboardingUnsavedPages,
     dismissWiseGlobalReimbursementsBanners,
-    readWiseBusinessAccount,
+    openReimbursementAccountPageForWiseIntro,
     submitWiseBusinessOnboarding,
 };

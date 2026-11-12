@@ -10,8 +10,8 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useOpenReimbursementAccountPageForWiseIntro from '@hooks/useOpenReimbursementAccountPageForWiseIntro';
 import usePermissions from '@hooks/usePermissions';
-import useReadWiseBusinessAccount from '@hooks/useReadWiseBusinessAccount';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -60,7 +60,7 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
     const isEligible = isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData, bankAccount?.bankCurrency);
     // The intro stays mounted under the form on a direct link to the form, which reads for itself
     const isFocused = useIsFocused();
-    useReadWiseBusinessAccount(bankAccountID, isFocused && isEligible && !isOffline && !isOnboardingSubmitted && !!isWiseReimbursementsBetaEnabled);
+    useOpenReimbursementAccountPageForWiseIntro(bankAccountID, isFocused && isEligible && !isOffline && !isOnboardingSubmitted && !!isWiseReimbursementsBetaEnabled);
 
     // Close the page instead of showing "not found" when the user lacks the beta. Wait for betas to load first
     useEffect(() => {

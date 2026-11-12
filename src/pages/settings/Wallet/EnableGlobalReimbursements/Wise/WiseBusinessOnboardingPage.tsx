@@ -103,7 +103,7 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     // device holds.
     const [isNewVisit] = useState(!route.params.subPage);
     const shouldReadBusinessAccount = isNewVisit && !isOffline && !isOnboardingSubmitted;
-    const [introReadBankAccountID] = useOnyx(ONYXKEYS.RAM_ONLY_WISE_BUSINESS_ACCOUNT_READ);
+    const [introReadBankAccountID] = useOnyx(ONYXKEYS.RAM_ONLY_WISE_INTRO_READ_BANK_ACCOUNT_ID);
     const [hasBusinessAccountReadStarted, setHasBusinessAccountReadStarted] = useState(introReadBankAccountID === bankAccountID);
 
     // The reimbursement account's errors are shared with the other bank account flows, so a new visit drops any left from them or from an earlier visit

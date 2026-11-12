@@ -14,7 +14,7 @@ import WiseBusinessOnboardingPage from '@pages/settings/Wallet/EnableGlobalReimb
 
 import {openReimbursementAccountPage} from '@userActions/BankAccounts';
 import {saveDraftAnswers} from '@userActions/DynamicForm';
-import {readWiseBusinessAccount} from '@userActions/WiseOnboarding';
+import {openReimbursementAccountPageForWiseIntro} from '@userActions/WiseOnboarding';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -254,7 +254,7 @@ describe('WiseBusinessOnboardingPage', () => {
 
     it('opens on the details the intro page read, without reading them again', async () => {
         // Given the intro page's read for this bank account, already answered
-        readWiseBusinessAccount(BANK_ACCOUNT_ID);
+        openReimbursementAccountPageForWiseIntro(BANK_ACCOUNT_ID);
         jest.mocked(openReimbursementAccountPage).mockClear();
 
         // When the visit opens without a page
@@ -268,7 +268,7 @@ describe('WiseBusinessOnboardingPage', () => {
 
     it('waits for the read the intro page started while it is still running', async () => {
         // Given the intro page's read for this bank account, not answered yet
-        readWiseBusinessAccount(BANK_ACCOUNT_ID);
+        openReimbursementAccountPageForWiseIntro(BANK_ACCOUNT_ID);
         jest.mocked(openReimbursementAccountPage).mockClear();
         await Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading: true});
 
@@ -290,7 +290,7 @@ describe('WiseBusinessOnboardingPage', () => {
 
     it('reads the details itself when the intro page read another bank account', async () => {
         // Given the intro page's read for another bank account, with details for this one left on the device
-        readWiseBusinessAccount(BANK_ACCOUNT_ID + 1);
+        openReimbursementAccountPageForWiseIntro(BANK_ACCOUNT_ID + 1);
         jest.mocked(openReimbursementAccountPage).mockClear();
 
         // When the visit opens without a page
