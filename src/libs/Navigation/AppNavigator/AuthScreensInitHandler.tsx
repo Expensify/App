@@ -4,6 +4,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useFetchMissingMoneyRequestParents from '@hooks/useFetchMissingMoneyRequestParents';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useHasOwnedPaidPolicy from '@hooks/useHasOwnedPaidPolicy';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
@@ -121,6 +122,7 @@ function AuthScreensInitHandler() {
     reportAttributesRef.current = reportAttributes;
 
     useReconcileHighContrastIntent();
+    useFetchMissingMoneyRequestParents();
 
     const topmostReportID = useRootNavigationState(Navigation.getFocusedReportId);
     // Not `Navigation.isNavigationReady()`: that resolves on the container's first render, before this navigator exists.
