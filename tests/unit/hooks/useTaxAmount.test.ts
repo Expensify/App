@@ -299,6 +299,22 @@ describe('useTaxAmount', () => {
         expect(renders).toContainEqual({defaultTaxCode: 'tax_category', shouldKeepCurrentTaxSelection: false, areRulesLoading: false});
     });
 
+    it('applies the category rule when the rules arrive on a retry after the default was already written', () => {
+        // Given a `GetRules` that failed, which settles the wait with no rules, so the expense is given the
+        // workspace default
+        mockHasTaxRateWithMatchingValue = true;
+        const transaction = {...baseTransaction, category: 'Car'};
+        const {renders, rerenderWith} = renderTaxAmountRenders(transaction);
+        rerenderWith({...transaction, taxCode: 'tax_default'});
+
+        // When a retry lands the rules and the category turns out to carry a rule
+        mockCategoryTaxCodes = {Car: 'tax_category'};
+        rerenderWith({...transaction, taxCode: 'tax_default'});
+
+        // Then the fallback does not read as a rate the user picked, so the rule's rate replaces it
+        expect(renders).toContainEqual({defaultTaxCode: 'tax_category', shouldKeepCurrentTaxSelection: false, areRulesLoading: false});
+    });
+
     it('reports the category rule rate for a track expense being moved', () => {
         // Given a tracked expense being submitted to a workspace whose category carries a tax rule
         mockCategoryTaxCodes = {Car: 'tax_category'};

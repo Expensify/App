@@ -133,7 +133,21 @@ function useTaxAmount({
     const shouldHoldBackDefault = isKeepingArrivedTax && !hasCategoryRuleApplied;
     const defaultTaxCode = categoryTaxCode ?? (shouldRestoreArrivedTax ? (arrivedTax?.taxCode ?? '') : workspaceDefaultTaxCode);
     const defaultTaxValue = (shouldRestoreArrivedTax ? arrivedTax?.taxValue : getTaxValue(policy, transaction, defaultTaxCode)) ?? null;
-    const shouldKeepCurrentTaxSelection = hasTaxRateWithMatchingValue(policy, transaction) && transaction?.taxCode !== previousDefaultTaxCode;
+    // The default this hook has already handed over. A `GetRules` that fails or times out settles the wait with no
+    // rules, so the expense is given the workspace default. Without knowing that rate came from here, the category's
+    // rule landing on a retry would read as a rate the user chose and would never be applied. Only a default the
+    // hook has since moved on from counts, so a rate the user picked that happens to match is still left alone.
+    const [appliedDefaultTaxCode, setAppliedDefaultTaxCode] = useState<string>();
+    const isCarryingSupersededDefault = !!appliedDefaultTaxCode && transaction?.taxCode === appliedDefaultTaxCode && defaultTaxCode !== appliedDefaultTaxCode;
+    const shouldKeepCurrentTaxSelection = hasTaxRateWithMatchingValue(policy, transaction) && transaction?.taxCode !== previousDefaultTaxCode && !isCarryingSupersededDefault;
+
+    useEffect(() => {
+        if (areRulesLoading || shouldHoldBackDefault || !defaultTaxCode || defaultTaxCode === appliedDefaultTaxCode) {
+            return;
+        }
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- which default was handed over is history, so it cannot be derived from the current render
+        setAppliedDefaultTaxCode(defaultTaxCode);
+    }, [appliedDefaultTaxCode, areRulesLoading, defaultTaxCode, shouldHoldBackDefault]);
 
     const commuterExclusionData = isDistanceRequest
         ? DistanceRequestUtils.getCommuterExclusionDisplayData(
