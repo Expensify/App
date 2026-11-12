@@ -1564,6 +1564,11 @@ const CONST = {
     BANK_ACCOUNT_TYPES: {
         WALLET: 'WALLET',
     },
+    TEST_BANK_ACCOUNT_TYPE: {
+        BUSINESS: 'business',
+        PERSONAL: 'personal',
+    },
+    TEST_BANK_ACCOUNT_STAGING_EMAIL_DOMAIN: 'expensifail.com',
     COUNTRY: {
         AS: 'AS',
         AU: 'AU',

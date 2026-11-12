@@ -27,6 +27,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import React from 'react';
 import {Platform, View} from 'react-native';
 
+import BankAccountTestToolRows from './BankAccountTestToolRows';
 import BiometricsTestToolRow from './BiometricsTestToolRow';
 import Button from './Button';
 import Icon from './Icon';
@@ -182,6 +183,8 @@ function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
                             </Button>
                         </TestToolRow>
                     )}
+
+                    <BankAccountTestToolRows />
 
                     {/* Allows testing and revoking biometric multifactor authentication */}
                     {isAgentAccount === false && <BiometricsTestToolRow />}
