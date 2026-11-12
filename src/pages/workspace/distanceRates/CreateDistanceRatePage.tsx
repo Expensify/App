@@ -36,6 +36,7 @@ import {
     getDefaultEuroDistanceRateCountry,
     getDistanceRateCountryForCurrency,
     getEuroDistanceRateCountryOptions,
+    getExpectedUnitForCountry,
     getGovernmentRateAmountForUnit,
     getNoGovernmentRateNote,
     isEuroDistanceRateCountry,
@@ -223,8 +224,15 @@ function CreateDistanceRatePage({
     const kindHint = isGovernmentRateTaken
         ? translate('workspace.distanceRates.addRatePage.alreadyHasGovernmentRate')
         : translate('workspace.distanceRates.addRatePage.matchesAuthority', authority);
+
+    // Saving a government rate switches the workspace to the unit the country publishes its rate in, so the amount is shown in that unit
+    const governmentRateUnit = getExpectedUnitForCountry(governmentRateCountry) ?? distanceUnit;
+    const governmentAmountLabel = translate(
+        'workspace.distanceRates.amountPerUnit',
+        translate(governmentRateUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'common.mile' : 'common.kilometer'),
+    );
     const governmentAmount = currentGovernmentRate
-        ? convertAmountToDisplayString(getGovernmentRateAmountForUnit(currentGovernmentRate.rate, currentGovernmentRate.sourceRateID, distanceUnit), currency)
+        ? convertAmountToDisplayString(getGovernmentRateAmountForUnit(currentGovernmentRate.rate, currentGovernmentRate.sourceRateID, governmentRateUnit), currency)
         : undefined;
 
     return (
@@ -389,12 +397,12 @@ function CreateDistanceRatePage({
                                 <View style={styles.mhn5}>
                                     {governmentAmount ? (
                                         <MenuItemField
-                                            name={translate('workspace.distanceRates.amountPerUnit', unitLabel)}
+                                            name={governmentAmountLabel}
                                             value={governmentAmount}
                                         />
                                     ) : (
                                         <View style={[styles.ph5, styles.pv3]}>
-                                            <Text style={styles.textLabelSupporting}>{translate('workspace.distanceRates.amountPerUnit', unitLabel)}</Text>
+                                            <Text style={styles.textLabelSupporting}>{governmentAmountLabel}</Text>
                                             <SkeletonTextLine
                                                 lineHeight={lineHeightScale.text}
                                                 barWidth={GOVERNMENT_AMOUNT_SKELETON_WIDTH}

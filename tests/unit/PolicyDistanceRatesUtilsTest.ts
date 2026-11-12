@@ -6,6 +6,7 @@ import {
     getDistanceRateNameError,
     getDistanceRateValueError,
     getDistanceRateValueErrorMessage,
+    getExpectedUnitForCountry,
     getExpectedUnitForCurrency,
     getGovernmentRateCountryForCurrency,
     getGovernmentRateCountryPhraseTranslationKey,
@@ -252,6 +253,25 @@ describe('PolicyDistanceRatesUtils', () => {
             expect(isCurrencySupportedForAutoUpdate('ZAR')).toBe(true);
             expect(isCurrencySupportedForAutoUpdate('NZD')).toBe(false);
             expect(isCurrencySupportedForAutoUpdate(undefined)).toBe(false);
+        });
+    });
+
+    describe('getExpectedUnitForCountry', () => {
+        it('should return the unit a saved government rate switches the workspace to', () => {
+            // Given countries whose governments publish their rates in different units
+            // When the Add rate page shows a government rate for each of them
+            // Then the amount is shown in the unit the save applies, even when the workspace uses the other unit
+            expect(getExpectedUnitForCountry('US')).toBe('mi');
+            expect(getExpectedUnitForCountry('CA')).toBe('km');
+            expect(getExpectedUnitForCountry('DE')).toBe('km');
+        });
+
+        it('should return undefined when there is no government rate country', () => {
+            // Given no country or a country without a government rate
+            // When the unit is looked up
+            // Then there is no unit to switch to, so the page keeps the workspace unit
+            expect(getExpectedUnitForCountry(undefined)).toBeUndefined();
+            expect(getExpectedUnitForCountry('NZ')).toBeUndefined();
         });
     });
 
