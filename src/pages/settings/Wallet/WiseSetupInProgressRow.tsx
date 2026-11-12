@@ -49,7 +49,10 @@ function WiseSetupInProgressRow({bankAccountID, isInReview, isOnboardingSubmitte
     const icons = useMemoizedLazyExpensifyIcons(['Hourglass']);
     const copy = isInReview ? COPY.inReview : COPY.inProgress;
 
-    const linkRoute = isOnboardingSubmitted ? getWiseOnboardingStatusRoute(bankAccountID) : createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(bankAccountID));
+    const openSetup = () =>
+        Navigation.navigate(
+            isOnboardingSubmitted ? getWiseOnboardingStatusRoute(bankAccountID) : createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(bankAccountID)),
+        );
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, style]}>
@@ -67,7 +70,7 @@ function WiseSetupInProgressRow({bankAccountID, isInReview, isOnboardingSubmitte
                 {translate(copy.message)}{' '}
                 <TextLink
                     variant="label"
-                    onPress={() => Navigation.navigate(linkRoute)}
+                    onPress={openSetup}
                 >
                     {translate(copy.link)}
                 </TextLink>
