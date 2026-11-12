@@ -407,3 +407,11 @@
 - E/App issue: https://github.com/Expensify/App/issues/100303
 - PR introducing patch: this PR.
 - 0.86.0 migration note: **drop this patch on the RN 0.88 upgrade** — the unconditional `_firstVisibleView.tag` and `superview` guards are present in `0.88-stable` and absent from `v0.87.1`, which still has only the `enableViewCulling()`-gated check.
+
+### [react-native+0.86.0+050+fix-mvcp-one-frame-jump-android.patch](react-native+0.86.0+050+fix-mvcp-one-frame-jump-android.patch)
+
+- Reason: Returning from a thread can briefly move the linked message when rows above it finish measuring. Android moves the rows and corrects the scroll offset in the same mount, but `View.scrollTo` schedules the scroll view redraw for the next frame. This backports the upstream fix by invalidating the scroll view after either horizontal or vertical anchoring, so the current frame uses the corrected offset.
+- Upstream PR/issue: https://github.com/react/react-native/pull/58187, fixes https://github.com/react/react-native/issues/58186.
+- E/App issue: Tracked in https://github.com/Expensify/App/pull/100733.
+- PR introducing patch: https://github.com/Expensify/App/pull/100733.
+- 0.86.0 migration note: Remove once the adopted React Native release includes the upstream fix.
