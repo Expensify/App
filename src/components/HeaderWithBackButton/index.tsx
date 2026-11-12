@@ -14,6 +14,7 @@ import Tooltip from '@components/Tooltip';
 
 import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
+import useHeaderAvatarSize from '@hooks/useHeaderAvatarSize';
 import useInitialFocusRef from '@hooks/useInitialFocusRef';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -104,6 +105,7 @@ function HeaderWithBackButton({
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
     const isInLandscapeMode = useIsInLandscapeMode();
+    const reportAvatarSize = useHeaderAvatarSize();
     const {contentHeaderHeightStyle} = useContentHeaderHeight();
     const setBackButtonRef = useInitialFocusRef({shouldSkip: shouldSkipFocusAfterTransition});
 
@@ -113,6 +115,7 @@ function HeaderWithBackButton({
         middleContent = (
             <AvatarWithDisplayName
                 report={report}
+                size={reportAvatarSize}
                 shouldDisplayStatus={shouldDisplayStatus}
                 shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
                 openParentReportInCurrentTab={openParentReportInCurrentTab}
