@@ -129,8 +129,7 @@ function buildFutureExpensesQueryString(filters: InsightsFilters, asOfDate: stri
     return buildQueryStringFromFilterFormValues({
         ...buildFilterFormValues(filters, false),
         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-        [FILTER_KEYS.DATE_AFTER]: asOfDate,
-        ...(!!end && {[FILTER_KEYS.DATE_BEFORE]: getDayAfter(parseISO(end))}),
+        [FILTER_KEYS.DATE_RANGE]: getRangeQueryValue(getDayAfter(parseISO(asOfDate)), end || undefined),
     });
 }
 

@@ -554,14 +554,13 @@ describe('insightsQueries', () => {
             // Then it lists expenses dated after October 8 up to and including October 31, in the same workspaces
             const queryJSON = buildSearchQueryJSON(query);
             expect(queryJSON?.type).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
-            expect(query).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}>2026-10-08`);
-            expect(query).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}<2026-11-01`);
+            expect(query).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}>=2026-10-09`);
+            expect(query).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}<=2026-10-31`);
             expect(query).toContain('policyA');
             expect(query).toContain('policyB');
 
             // And the page's own date range isn't added on top
             expect(query).not.toContain('2026-10-01');
-            expect(query).not.toContain('2026-10-31');
         });
 
         it('has no upper bound when the date range has no end', () => {
@@ -572,7 +571,7 @@ describe('insightsQueries', () => {
             const query = buildFutureExpensesQueryString(filters, '2026-10-08');
 
             // Then it lists every expense dated after the as-of day
-            expect(query).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}>2026-10-08`);
+            expect(query).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}>=2026-10-09`);
             expect(query).not.toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}<`);
         });
     });
