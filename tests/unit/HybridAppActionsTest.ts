@@ -125,7 +125,27 @@ describe('HybridApp actions', () => {
         expect(closeNativeAppSpy).not.toHaveBeenCalled();
     });
 
-    it('re-blocks shouldSetNVP exits after tryNewDot is cleared until the next app load finishes', async () => {
+    it('allows exits after importing state without an NVP while app loading stays false', async () => {
+        // Given a resolved account before Import Onyx state preserves its session and loading flag
+        await Onyx.multiSet({
+            [ONYXKEYS.IS_LOADING_APP]: false,
+            [ONYXKEYS.SESSION]: {accountID: 1, authToken: 'auth-token'},
+            [ONYXKEYS.NVP_TRY_NEW_DOT]: {classicRedirect: {dismissed: true}},
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When import clears the NVP without another app-loading update
+        await Onyx.clear([ONYXKEYS.IS_LOADING_APP, ONYXKEYS.SESSION]);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the visible Classic row can exit instead of silently returning forever
+        closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false});
+        expect(Navigation.clearPreloadedRoutes).toHaveBeenCalled();
+        expect(closeNativeAppSpy).toHaveBeenCalledWith({shouldSetNVP: true});
+    });
+
+    it('blocks exits during a cache reset until the next app load finishes', async () => {
+        // Given a resolved account before Reset and Refresh starts a new app load
         await Onyx.multiSet({
             [ONYXKEYS.IS_LOADING_APP]: false,
             [ONYXKEYS.NVP_TRY_NEW_DOT]: {
@@ -141,14 +161,16 @@ describe('HybridApp actions', () => {
 
         jest.clearAllMocks();
 
+        // When reset seeds loading before clearing the NVP, as the production reset does
+        await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+        await waitForBatchedUpdatesWithAct();
         await Onyx.clear([ONYXKEYS.IS_LOADING_APP]);
         await waitForBatchedUpdatesWithAct();
 
+        // Then exits stay blocked until OpenApp completes, including when it returns no NVP
         closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false});
         expect(closeNativeAppSpy).not.toHaveBeenCalled();
 
-        await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
-        await waitForBatchedUpdatesWithAct();
         await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
         await waitForBatchedUpdatesWithAct();
 
@@ -157,6 +179,7 @@ describe('HybridApp actions', () => {
     });
 
     it('re-blocks shouldSetNVP exits after a session switch until the new tryNewDot state resolves', async () => {
+        // Given a resolved account that can exit before switching sessions
         await Onyx.multiSet({
             [ONYXKEYS.IS_LOADING_APP]: false,
             [ONYXKEYS.SESSION]: {
@@ -176,6 +199,7 @@ describe('HybridApp actions', () => {
 
         jest.clearAllMocks();
 
+        // When the account changes before its NVP subscription has delivered fresh state
         await Onyx.set(ONYXKEYS.SESSION, {
             accountID: 2,
             authToken: 'new-auth-token',
@@ -185,6 +209,7 @@ describe('HybridApp actions', () => {
         closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false});
         expect(closeNativeAppSpy).not.toHaveBeenCalled();
 
+        // Then exits stay blocked until the replacement account's eligibility arrives
         await Onyx.set(ONYXKEYS.NVP_TRY_NEW_DOT, {
             classicRedirect: {
                 dismissed: false,
@@ -192,6 +217,32 @@ describe('HybridApp actions', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
+        closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false});
+        expect(closeNativeAppSpy).toHaveBeenCalledWith({shouldSetNVP: true});
+    });
+
+    it('allows an account restored after clearing to finish loading without another NVP update', async () => {
+        // Given an initialized account whose session survives the clear during restoration
+        await Onyx.multiSet({
+            [ONYXKEYS.IS_LOADING_APP]: false,
+            [ONYXKEYS.SESSION]: {accountID: 1, authToken: 'old-auth-token'},
+            [ONYXKEYS.NVP_TRY_NEW_DOT]: {isLockedToNewApp: true},
+        });
+        await waitForBatchedUpdatesWithAct();
+        await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+        await waitForBatchedUpdatesWithAct();
+        await Onyx.clear([ONYXKEYS.SESSION, ONYXKEYS.IS_LOADING_APP]);
+        await waitForBatchedUpdatesWithAct();
+
+        // When restoration changes accounts after the cleared NVP callback has already run
+        await Onyx.set(ONYXKEYS.SESSION, {accountID: 2, authToken: 'restored-auth-token'});
+        await waitForBatchedUpdatesWithAct();
+        closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false});
+        expect(closeNativeAppSpy).not.toHaveBeenCalled();
+        await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then a completed OpenApp with no optional NVP resolves eligibility instead of blocking forever
         closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false});
         expect(closeNativeAppSpy).toHaveBeenCalledWith({shouldSetNVP: true});
     });

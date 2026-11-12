@@ -8,7 +8,7 @@ import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
-import {getIsTryNewDotLoading, shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
+import {isTryNewDotLoading, shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 
 import {closeReactNativeApp} from '@userActions/HybridApp';
 import {openOldDotLink} from '@userActions/Link';
@@ -67,7 +67,7 @@ function useMergeResultConfirmationConfig({result, login}: {result: ValueOf<type
     const {environmentURL} = useEnvironment();
     const buildDynamicRoute = useScreenBoundDynamicRoute();
     const lazyIllustrations = useMemoizedLazyIllustrations(['RunningTurtle', 'LockClosedOrange']);
-    const isLoadingTryNewDot = getIsTryNewDotLoading(tryNewDot, isLoadingOnyxValue(tryNewDotMetadata), isLoadingApp);
+    const isLoadingTryNewDot = isTryNewDotLoading(tryNewDot, isLoadingOnyxValue(tryNewDotMetadata), isLoadingApp);
     const isClassicRedirectBlocked = shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP);
 
     const defaultResult = {

@@ -1,4 +1,4 @@
-import {getIsTryNewDotLoading, hasBeenInNewDot30Days, isOldAppRedirectBlocked, shouldBlockOldAppExit, shouldHideOldAppRedirect, shouldUseOldApp} from '@src/libs/TryNewDotUtils';
+import {isTryNewDotLoading, hasBeenInNewDot30Days, isOldAppRedirectBlocked, shouldBlockOldAppExit, shouldHideOldAppRedirect, shouldUseOldApp} from '@src/libs/TryNewDotUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TryNewDot} from '@src/types/onyx';
 
@@ -29,13 +29,13 @@ describe('TryNewDotUtils', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    describe('getIsTryNewDotLoading', () => {
+    describe('isTryNewDotLoading', () => {
         it.each([true, undefined])('waits for OpenApp when storage is loaded but app loading is %s', (isLoadingApp) => {
             // Given a cleared NVP whose storage metadata has already loaded
             const isLoadingFromStorage = false;
 
             // When OpenApp has not explicitly finished loading
-            const isLoading = getIsTryNewDotLoading(undefined, isLoadingFromStorage, isLoadingApp);
+            const isLoading = isTryNewDotLoading(undefined, isLoadingFromStorage, isLoadingApp);
 
             // Then Classic eligibility remains unresolved
             expect(isLoading).toBe(true);
@@ -46,7 +46,7 @@ describe('TryNewDotUtils', () => {
             const isLoadingFromStorage = false;
 
             // When eligibility loading is checked
-            const isLoading = getIsTryNewDotLoading(undefined, isLoadingFromStorage, false);
+            const isLoading = isTryNewDotLoading(undefined, isLoadingFromStorage, false);
 
             // Then the missing optional NVP does not keep Classic hidden forever
             expect(isLoading).toBe(false);
@@ -57,7 +57,7 @@ describe('TryNewDotUtils', () => {
             const isLoadingFromStorage = true;
 
             // When OpenApp is already finished
-            const isLoading = getIsTryNewDotLoading(undefined, isLoadingFromStorage, false);
+            const isLoading = isTryNewDotLoading(undefined, isLoadingFromStorage, false);
 
             // Then eligibility cannot be read until storage is loaded
             expect(isLoading).toBe(true);
@@ -68,7 +68,7 @@ describe('TryNewDotUtils', () => {
             const tryNewDot = createMock<TryNewDot>({isLockedToNewApp: false});
 
             // When eligibility loading is checked
-            const isLoading = getIsTryNewDotLoading(tryNewDot, false, true);
+            const isLoading = isTryNewDotLoading(tryNewDot, false, true);
 
             // Then the available NVP can determine Classic eligibility immediately
             expect(isLoading).toBe(false);

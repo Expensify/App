@@ -32,7 +32,7 @@ import {maskOnyxState, readOnyxState, saveOnyxStateFile} from '@libs/ExportOnyxS
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getIsTryNewDotLoading, shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
+import {isTryNewDotLoading, shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 
 import colors from '@styles/theme/colors';
 
@@ -75,7 +75,7 @@ function TroubleshootPage() {
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const {showConfirmModal} = useConfirmModal();
-    const isLoadingTryNewDot = getIsTryNewDotLoading(tryNewDot, isLoadingOnyxValue(tryNewDotMetadata), isLoadingApp);
+    const isLoadingTryNewDot = isTryNewDotLoading(tryNewDot, isLoadingOnyxValue(tryNewDotMetadata), isLoadingApp);
     const shouldOpenSurveyReasonPage = tryNewDot?.classicRedirect?.dismissed === false;
     const {setShouldResetSearchQuery} = useSearchQueryActions();
     const showResetAndRefreshModal = async () => {

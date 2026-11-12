@@ -8,7 +8,7 @@ import {differenceInDays} from 'date-fns';
 const NEW_DOT_MIN_DAYS_BEFORE_HIDING_CLASSIC_REDIRECT = 30;
 
 /** After a cache reset, loaded storage metadata does not mean OpenApp has resolved Classic eligibility. */
-function getIsTryNewDotLoading(tryNewDot: OnyxEntry<TryNewDot>, isLoadingFromStorage: boolean, isLoadingApp: OnyxEntry<boolean>): boolean {
+function isTryNewDotLoading(tryNewDot: OnyxEntry<TryNewDot>, isLoadingFromStorage: boolean, isLoadingApp: OnyxEntry<boolean>): boolean {
     return isLoadingFromStorage || (tryNewDot === undefined && isLoadingApp !== false);
 }
 
@@ -58,4 +58,4 @@ function shouldUseOldApp(tryNewDot: TryNewDot): boolean | undefined {
     return tryNewDot.classicRedirect.dismissed;
 }
 
-export {getIsTryNewDotLoading, hasBeenInNewDot30Days, isLockedToNewApp, isOldAppRedirectBlocked, shouldBlockOldAppExit, shouldHideOldAppRedirect, shouldUseOldApp};
+export {isTryNewDotLoading, hasBeenInNewDot30Days, isLockedToNewApp, isOldAppRedirectBlocked, shouldBlockOldAppExit, shouldHideOldAppRedirect, shouldUseOldApp};
