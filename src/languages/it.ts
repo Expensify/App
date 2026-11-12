@@ -7938,6 +7938,13 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                 onWaitlist: 'Sei in lista d’attesa',
                 waitlistDescription: 'Concierge ti invierà un messaggio per farti sapere quando questa integrazione sarà pronta e come collegarla.',
             },
+            integrationWaitlist: {
+                comingSoon: 'Presto in arrivo',
+                joinWaitlist: 'Unisciti alla lista d’attesa',
+                onWaitlist: 'Sei in lista d’attesa',
+                onTheList: 'Sei in lista!',
+                waitlistDescription: 'Concierge ti invierà un messaggio per farti sapere quando questa integrazione sarà pronta e come collegarla.',
+            },
             setup: 'Connetti',
             connectToSandbox: 'Connetti alla sandbox',
             lastSync: (relativeDate: string) => `Ultima sincronizzazione ${relativeDate}`,
@@ -10955,7 +10962,9 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             completed: 'Completato',
             amount: {
                 lessThan: (amount?: string) => `Meno di ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Minore o uguale a ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Maggiore di ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Maggiore o uguale a ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `Tra ${greaterThan} e ${lessThan}`;

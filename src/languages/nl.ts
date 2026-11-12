@@ -7920,6 +7920,13 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                 onWaitlist: 'Je staat op de wachtlijst',
                 waitlistDescription: 'Concierge stuurt je een bericht om je te laten weten wanneer deze integratie klaar is en hoe je verbinding kunt maken.',
             },
+            integrationWaitlist: {
+                comingSoon: 'Binnenkort beschikbaar',
+                joinWaitlist: 'Aanmelden voor wachtlijst',
+                onWaitlist: 'Je staat op de wachtlijst',
+                onTheList: 'Je staat op de lijst!',
+                waitlistDescription: 'Concierge stuurt je een bericht om je te laten weten wanneer deze integratie klaar is en hoe je verbinding kunt maken.',
+            },
             setup: 'Verbinden',
             connectToSandbox: 'Verbinden met sandbox',
             lastSync: (relativeDate: string) => `Laatst gesynchroniseerd ${relativeDate}`,
@@ -10925,7 +10932,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             completed: 'Voltooid',
             amount: {
                 lessThan: (amount?: string) => `Minder dan ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Kleiner dan of gelijk aan ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Groter dan ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Groter dan of gelijk aan ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `Tussen ${greaterThan} en ${lessThan}`;

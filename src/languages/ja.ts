@@ -7824,6 +7824,13 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 onWaitlist: '順番待ちリストに登録されています',
                 waitlistDescription: 'この連携の準備が整い、接続方法が決まりましたら、Concierge からメッセージでお知らせします。',
             },
+            integrationWaitlist: {
+                comingSoon: '近日公開予定',
+                joinWaitlist: 'ウェイトリストに参加',
+                onWaitlist: '順番待ちリストに登録されています',
+                onTheList: 'リストに登録されています！',
+                waitlistDescription: 'この連携の準備が整い、接続方法が決まりましたら、Concierge からメッセージでお知らせします。',
+            },
             setup: '接続',
             connectToSandbox: 'Sandbox に接続',
             lastSync: (relativeDate: string) => `最終同期：${relativeDate}`,
@@ -10776,7 +10783,9 @@ ${reportName}`,
             completed: '完了',
             amount: {
                 lessThan: (amount?: string) => `${amount ?? ''} 未満`,
+                lessThanOrEqualTo: (amount?: string) => `${amount ?? ''} 以下`,
                 greaterThan: (amount?: string) => `${amount ?? ''}より大きい`,
+                greaterThanOrEqualTo: (amount?: string) => `${amount ?? ''} 以上`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `${greaterThan} 以上 ${lessThan} 未満`;

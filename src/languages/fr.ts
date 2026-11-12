@@ -8010,6 +8010,13 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 onWaitlist: 'Vous êtes sur la liste d’attente',
                 waitlistDescription: 'Concierge vous enverra un message pour vous informer lorsque cette intégration sera prête et vous expliquer comment la connecter.',
             },
+            integrationWaitlist: {
+                comingSoon: 'Bientôt disponible',
+                joinWaitlist: 'Rejoindre la liste d’attente',
+                onWaitlist: 'Vous êtes sur la liste d’attente',
+                onTheList: 'Vous êtes sur la liste !',
+                waitlistDescription: 'Concierge vous enverra un message pour vous informer lorsque cette intégration sera prête et vous expliquer comment la connecter.',
+            },
             setup: 'Connecter',
             connectToSandbox: 'Se connecter à Sandbox',
             lastSync: (relativeDate: string) => `Dernière synchronisation ${relativeDate}`,
@@ -11039,7 +11046,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             completed: 'Terminé',
             amount: {
                 lessThan: (amount?: string) => `Inférieur à ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Inférieur ou égal à ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Supérieur à ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Supérieur ou égal à ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `Entre ${greaterThan} et ${lessThan}`;

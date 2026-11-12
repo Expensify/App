@@ -8106,6 +8106,13 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 onWaitlist: 'Είστε σε λίστα αναμονής',
                 waitlistDescription: 'Ο Concierge θα σας στείλει ένα μήνυμα για να σας ενημερώσει πότε θα είναι έτοιμη αυτή η ενσωμάτωση και πώς να τη συνδέσετε.',
             },
+            integrationWaitlist: {
+                comingSoon: 'Έρχεται σύντομα',
+                joinWaitlist: 'Εγγραφείτε στη λίστα αναμονής',
+                onWaitlist: 'Είστε σε λίστα αναμονής',
+                onTheList: 'Είστε στη λίστα!',
+                waitlistDescription: 'Ο Concierge θα σας στείλει ένα μήνυμα για να σας ενημερώσει πότε θα είναι έτοιμη αυτή η ενσωμάτωση και πώς να τη συνδέσετε.',
+            },
             setup: 'Σύνδεση',
             connectToSandbox: 'Σύνδεση στο sandbox',
             lastSync: (relativeDate: string) => `Τελευταίος συγχρονισμός ${relativeDate}`,
@@ -11216,7 +11223,9 @@ ${reportName}`,
             completed: 'Ολοκληρώθηκε',
             amount: {
                 lessThan: (amount?: string) => `Λιγότερο από ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Μικρότερο ή ίσο με ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Μεγαλύτερο από ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Μεγαλύτερο ή ίσο με ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `Μεταξύ ${greaterThan} και ${lessThan}`;

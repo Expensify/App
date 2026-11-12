@@ -7855,6 +7855,13 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 onWaitlist: 'Estás en la lista de espera',
                 waitlistDescription: 'Concierge te enviará un mensaje para avisarte cuando esta integración esté lista y cómo conectarla.',
             },
+            integrationWaitlist: {
+                comingSoon: 'Próximamente',
+                joinWaitlist: 'Unirse a la lista de espera',
+                onWaitlist: 'Estás en la lista de espera',
+                onTheList: '¡Estás en la lista!',
+                waitlistDescription: 'Concierge te enviará un mensaje para avisarte cuando esta integración esté lista y cómo conectarla.',
+            },
             setup: 'Configurar',
             connectToSandbox: 'Conectar con Sandbox',
             lastSync: (relativeDate) => `Recién sincronizado ${relativeDate}`,
@@ -10952,7 +10959,9 @@ ${reportName}`,
             workspace: {active: 'Activo', archived: 'Archivado', selectAll: 'Seleccionar todo'},
             amount: {
                 lessThan: (amount) => `Menos de ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Menor o igual que ${amount ?? ''}`,
                 greaterThan: (amount) => `Más que ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Mayor o igual que ${amount ?? ''}`,
                 between: (greaterThan, lessThan) => {
                     if (greaterThan && lessThan) {
                         return `Entre ${greaterThan} y ${lessThan}`;
