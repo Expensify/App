@@ -2,7 +2,7 @@ import {parse} from '@babel/parser';
 import {file} from 'bun';
 
 import type {ASTNode} from '../../utils/BabelASTUtils';
-import type {LintMessage} from '../types';
+import type {LintMessage, ProcessorContext} from '../types';
 
 import BabelASTUtils from '../../utils/BabelASTUtils';
 import Processor from '../Processor';
@@ -111,12 +111,12 @@ function stratifyMessages(messages: LintMessage[], source: string | null): LintM
 class StratifyNoDeprecated extends Processor {
     readonly name = 'stratify-no-deprecated';
 
-    process(messages: LintMessage[]): Promise<LintMessage[]> {
-        return stratifyNoDeprecated(messages);
+    process(messages: LintMessage[], context: ProcessorContext): Promise<LintMessage[]> {
+        return stratifyNoDeprecated(messages, context.sources);
     }
 }
 
-async function stratifyNoDeprecated(messages: LintMessage[]): Promise<LintMessage[]> {
+async function stratifyNoDeprecated(messages: LintMessage[], sources?: ReadonlyMap<string, string>): Promise<LintMessage[]> {
     const filesNeedingSource = new Set<string>();
     for (const message of messages) {
         if (message.ruleID === NO_DEPRECATED_RULE_ID) {
@@ -127,13 +127,13 @@ async function stratifyNoDeprecated(messages: LintMessage[]): Promise<LintMessag
         return messages;
     }
 
-    const sources = new Map<string, string | null>();
+    const fileSources = new Map<string, string | null>();
     await Promise.all(
         [...filesNeedingSource].map(async (filename) => {
             try {
-                sources.set(filename, await file(filename).text());
+                fileSources.set(filename, sources?.get(filename) ?? (await file(filename).text()));
             } catch {
-                sources.set(filename, null);
+                fileSources.set(filename, null);
             }
         }),
     );
@@ -147,7 +147,7 @@ async function stratifyNoDeprecated(messages: LintMessage[]): Promise<LintMessag
 
     const rewritten: LintMessage[] = [];
     for (const [filename, fileMessages] of byFile) {
-        rewritten.push(...stratifyMessages(fileMessages, sources.get(filename) ?? null));
+        rewritten.push(...stratifyMessages(fileMessages, fileSources.get(filename) ?? null));
     }
     return rewritten;
 }

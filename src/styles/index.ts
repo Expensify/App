@@ -7328,6 +7328,17 @@ const dynamicStyles = (theme: ThemeColors) =>
                 right: getSingleRHPWidthStyleValue(singleRHPWidth, RHP_FLOATING_CARD_INSET - CONST.RESIZE_HANDLE.PANE_HIT_WIDTH / 2),
             }) satisfies ViewStyle,
 
+        // Spans the single RHP card and the handle straddling its left edge, and shares their containing block's right, top and bottom edges.
+        rhpResizableDialog: (singleRHPWidth: number) =>
+            ({
+                ...positioning.pAbsolute,
+                ...pointerEventsBoxNone,
+                top: 0,
+                right: 0,
+                bottom: 0,
+                width: getSingleRHPWidthStyleValue(singleRHPWidth, RHP_FLOATING_CARD_INSET + CONST.RESIZE_HANDLE.PANE_HIT_WIDTH / 2),
+            }) satisfies ViewStyle,
+
         // Floats the offline indicator above a footer laid over the bottom of a tab root screen, without shrinking the
         // content that runs under the footer. Touches pass through to that content, so it still scrolls when the
         // indicator covers all of it that is left on a short landscape screen.

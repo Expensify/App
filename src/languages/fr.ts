@@ -59,7 +59,8 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: 'Annuler',
         dismiss: 'Fermer',
         resizeColumn: ({columnName}: {columnName: string}) => `Redimensionner la colonne ${columnName}`,
-        columnWidth: ({width}: {width: number}) => `${width} pixels`,
+        resizePanel: 'Redimensionner le panneau',
+        widthInPixels: ({width}: {width: number}) => `${width} pixels`,
         proceed: 'Continuer',
         unshare: 'Arrêter le partage',
         yes: 'Oui',
@@ -9809,6 +9810,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             },
         },
         digits: {
+            entity: 'Entité',
             updateCurrencyTitle: 'Mettre à jour la devise de l’espace de travail ?',
             updateCurrencyPrompt: 'Digits n’est actuellement disponible que pour les entreprises basées aux États-Unis qui opèrent en USD.',
             importDescription: 'Choisissez quelles configurations Digits importer.',

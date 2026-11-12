@@ -131,7 +131,6 @@ type UnofferedOnboardingAccountingConnection =
     | typeof CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE
     // Covered by the Microsoft Dynamics option, and still behind the BUSINESS_CENTRAL beta.
     | typeof CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL
-    // Still behind the ZOHO_BOOKS beta.
     | typeof CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS
     // Still behind the DIGITS beta.
     | typeof CONST.POLICY.CONNECTIONS.NAME.DIGITS;
@@ -1525,7 +1524,6 @@ const CONST = {
         VENDOR_MATCHING: 'vendorMatching',
         INDIRECT_TAG_UPLOADS: 'indirectTagUploads',
         BUSINESS_CENTRAL: 'businessCentral',
-        ZOHO_BOOKS: 'zohoBooks',
         DIGITS: 'digits',
         EXACT_ONLINE: 'exactOnline2026',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
@@ -1875,7 +1873,7 @@ const CONST = {
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
     QA_NEW_EXPENSIFY_URL: 'https://qa.new.exops.io',
-    PR_TESTING_NEW_EXPENSIFY_URL: `https://${CI.PULL_REQUEST_NUMBER}.pr-testing.expensify.com`,
+    ADHOC_NEW_EXPENSIFY_URL: `https://${CI.PULL_REQUEST_NUMBER}.adhoc.expensify.com`,
     NEWHELP_URL: 'https://help.expensify.com',
     CHASE_ACCOUNT_NUMBER_HELP_URL: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Personal-Bank-Account',
     WHATS_NEW_URL: `${USE_EXPENSIFY_URL}/blog?category=Product%20Updates`,
@@ -10355,6 +10353,9 @@ const CONST = {
         /** Pointer travel, in px, under which pressing a handle counts as a click rather than a drag. */
         DRAG_SLOP: 3,
 
+        /** How far, in px, one arrow key press on a focused handle moves its edge. */
+        KEYBOARD_STEP: 8,
+
         /** Width of the strip straddling a pane's edge that picks up a drag, as wide as the RHP floating card's gutter. */
         PANE_HIT_WIDTH: 12,
 
@@ -10425,9 +10426,6 @@ const CONST = {
         COLUMN_RESIZE: {
             /** Narrowest drag width. Low enough to hide most content, but wide enough to keep the column's edge reachable. */
             MIN_WIDTH: 48,
-
-            /** How far, in px, one arrow key press on a focused column edge moves it. */
-            KEYBOARD_STEP: 8,
 
             /** Share of the heading's height the grip spans, centred vertically. The heading spans the header row, padding included. */
             GRIP_HEIGHT_RATIO: 0.4,
