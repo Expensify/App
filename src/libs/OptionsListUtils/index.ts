@@ -331,7 +331,7 @@ function getAlternateText(
                 convertToDisplayString,
                 convertToDisplayStringWithoutCurrency: convertToDisplayStringWithoutCurrency ?? fallbackConvertToDisplayStringWithoutCurrency,
                 rules,
-                linkedTransaction: splitOrTrackTransactionID ? splitAndTrackTransactions?.find((transaction) => transaction.transactionID === splitOrTrackTransactionID) : undefined,
+                lastActionTransaction: splitOrTrackTransactionID ? splitAndTrackTransactions?.find((transaction) => transaction.transactionID === splitOrTrackTransactionID) : undefined,
             });
         }
         if (option.lastMessageText) {
