@@ -13,6 +13,7 @@ import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,6 +24,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
@@ -30,6 +32,7 @@ import {useEffect} from 'react';
 import {View} from 'react-native';
 
 function AgentsPage() {
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
@@ -44,7 +47,16 @@ function AgentsPage() {
     const shouldShowBulkActionsButton = shouldUseNarrowLayout ? canSelectMultiple : selectedAgentKeys.length > 0;
 
     useDocumentTitle(translate('agentsPage.title'));
-    useEffect(() => openAgentsPage(), []);
+
+    // Delegate.connect seeds IS_LOADING_APP=true via clearOnyxForDelegateTransition and OpenApp's optimisticData,
+    // then flips it back to false in OpenApp's finallyData. By that point NetworkStore.authToken is the delegate.
+    // Waiting on this transition prevents firing OpenAgentsPage with the owner authToken during a copilot switch.
+    useEffect(() => {
+        if (isLoadingApp) {
+            return;
+        }
+        openAgentsPage();
+    }, [isLoadingApp]);
 
     const newAgentButton = hasAgents ? (
         <Button

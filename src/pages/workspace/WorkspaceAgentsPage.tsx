@@ -10,6 +10,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -29,6 +30,7 @@ import {canMemberRead, canMemberWrite, getMemberAccountIDsForWorkspace} from '@l
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -41,6 +43,7 @@ import WorkspacePageWithSections from './WorkspacePageWithSections';
 
 type WorkspaceAgentsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.AGENTS>;
 function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const policy = usePolicy(route.params.policyID);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -76,9 +79,15 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
     };
     const fetchAgentsAndMembersEvent = useEffectEvent(() => fetchAgentsAndMembers());
 
+    // Delegate.connect seeds IS_LOADING_APP=true via clearOnyxForDelegateTransition and OpenApp's optimisticData,
+    // then flips it back to false in OpenApp's finallyData. By that point NetworkStore.authToken is the delegate.
+    // Waiting on this transition prevents firing OpenAgentsPage with the owner authToken during a copilot switch.
     useEffect(() => {
+        if (isLoadingApp) {
+            return;
+        }
         fetchAgentsAndMembersEvent();
-    }, []);
+    }, [isLoadingApp]);
     useNetwork({onReconnect: fetchAgentsAndMembers});
 
     useWorkspaceDocumentTitle(policy?.name, 'agentsPage.title');
