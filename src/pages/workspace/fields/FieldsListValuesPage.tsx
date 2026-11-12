@@ -204,7 +204,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
                     icon: icons.Trashcan,
                     text: translate(selectedKeys.length === 1 ? 'workspace.reportFields.deleteValue' : 'workspace.reportFields.deleteValues'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
-                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.LIST_VALUES_BULK_ACTIONS.DELETE,
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.LIST_VALUES_BULK_ACTIONS_DELETE,
                     shouldSkipFocusRestore: true,
                     onSelected: () => {
                         showConfirmModal({

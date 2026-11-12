@@ -201,7 +201,7 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
                 icon: icons.Trashcan,
                 text: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
-                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAGS.VIEW_TAGS_BULK_ACTIONS.DELETE,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAGS.VIEW_TAGS_BULK_ACTIONS_DELETE,
                 shouldSkipFocusRestore: true,
                 onSelected: async () => {
                     const {action} = await showConfirmModal({

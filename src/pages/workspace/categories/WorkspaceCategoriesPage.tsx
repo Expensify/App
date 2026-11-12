@@ -448,7 +448,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     icon: icons.Trashcan,
                     text: translate(selectedCategoryKeys.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
-                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.BULK_ACTIONS.DELETE,
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.BULK_ACTIONS_DELETE,
                     shouldSkipFocusRestore: true,
                     onSelected: async () => {
                         if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject)) {

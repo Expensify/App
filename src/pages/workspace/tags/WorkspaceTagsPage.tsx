@@ -607,7 +607,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 icon: expensifyIcons.Trashcan,
                 text: translate(selectedTagKeys.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
-                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAGS.BULK_ACTIONS.DELETE,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAGS.BULK_ACTIONS_DELETE,
                 shouldSkipFocusRestore: true,
                 onSelected: async () => {
                     if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), selectedTagsObject)) {

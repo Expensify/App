@@ -1587,10 +1587,10 @@ const SENTRY_LABEL = {
         CATEGORIES: {
             ROW: 'WorkspaceCategories-Row',
             BULK_ACTIONS: {
-                DELETE: 'WorkspaceCategories-BulkActions-Delete',
                 DISABLE: 'WorkspaceCategories-BulkActions-Disable',
                 ENABLE: 'WorkspaceCategories-BulkActions-Enable',
             },
+            BULK_ACTIONS_DELETE: 'WorkspaceCategories-BulkActionsDelete',
             MORE_MENU_AUTO_CATEGORIZE: 'WorkspaceCategories-MoreMenuAutoCategorize',
             MORE_MENU_SHOW_GL_CODES: 'WorkspaceCategories-MoreMenuShowGLCodes',
             MORE_MENU_IMPORT_SPREADSHEET: 'WorkspaceCategories-MoreMenuImportSpreadsheet',
@@ -1625,15 +1625,15 @@ const SENTRY_LABEL = {
         TAGS: {
             ROW: 'WorkspaceTags-Row',
             BULK_ACTIONS: {
-                DELETE: 'WorkspaceTags-BulkActions-Delete',
                 DISABLE: 'WorkspaceTags-BulkActions-Disable',
                 ENABLE: 'WorkspaceTags-BulkActions-Enable',
             },
+            BULK_ACTIONS_DELETE: 'WorkspaceTags-BulkActionsDelete',
             VIEW_TAGS_BULK_ACTIONS: {
-                DELETE: 'WorkspaceTags-ViewTagsBulkActions-Delete',
                 DISABLE: 'WorkspaceTags-ViewTagsBulkActions-Disable',
                 ENABLE: 'WorkspaceTags-ViewTagsBulkActions-Enable',
             },
+            VIEW_TAGS_BULK_ACTIONS_DELETE: 'WorkspaceTags-ViewTagsBulkActionsDelete',
             MORE_MENU_CUSTOM_TAG_NAME: 'WorkspaceTags-MoreMenuCustomTagName',
             MORE_MENU_SHOW_GL_CODES: 'WorkspaceTags-MoreMenuShowGLCodes',
             MORE_MENU_IMPORT_SPREADSHEET: 'WorkspaceTags-MoreMenuImportSpreadsheet',
@@ -1666,10 +1666,10 @@ const SENTRY_LABEL = {
         REPORT_FIELDS: {
             LIST_VALUE_ROW: 'WorkspaceReportFields-ListValueRow',
             LIST_VALUES_BULK_ACTIONS: {
-                DELETE: 'WorkspaceReportFields-ListValuesBulkActions-Delete',
                 DISABLE: 'WorkspaceReportFields-ListValuesBulkActions-Disable',
                 ENABLE: 'WorkspaceReportFields-ListValuesBulkActions-Enable',
             },
+            LIST_VALUES_BULK_ACTIONS_DELETE: 'WorkspaceReportFields-ListValuesBulkActionsDelete',
             ADD_FIELD: 'WorkspaceReportFields-AddField',
             CREATE_INITIAL_VALUE: 'WorkspaceReportFields-CreateInitialValue',
             CREATE_LIST_VALUES: 'WorkspaceReportFields-CreateListValues',
@@ -1689,10 +1689,10 @@ const SENTRY_LABEL = {
         TAXES: {
             ROW: 'WorkspaceTaxes-Row',
             BULK_ACTIONS: {
-                DELETE: 'WorkspaceTaxes-BulkActions-Delete',
                 DISABLE: 'WorkspaceTaxes-BulkActions-Disable',
                 ENABLE: 'WorkspaceTaxes-BulkActions-Enable',
             },
+            BULK_ACTIONS_DELETE: 'WorkspaceTaxes-BulkActionsDelete',
             MORE_MENU_SETTINGS: 'WorkspaceTaxes-MoreMenuSettings',
             CREATE_VALUE: 'WorkspaceTaxes-CreateValue',
             CREATE_VALUE_SAVE: 'WorkspaceTaxes-CreateValueSave',
@@ -1723,10 +1723,10 @@ const SENTRY_LABEL = {
         DISTANCE_RATES: {
             ROW: 'WorkspaceDistanceRates-Row',
             BULK_ACTIONS: {
-                DELETE: 'WorkspaceDistanceRates-BulkActions-Delete',
                 DISABLE: 'WorkspaceDistanceRates-BulkActions-Disable',
                 ENABLE: 'WorkspaceDistanceRates-BulkActions-Enable',
             },
+            BULK_ACTIONS_DELETE: 'WorkspaceDistanceRates-BulkActionsDelete',
             MORE_MENU_SETTINGS: 'WorkspaceDistanceRates-MoreMenuSettings',
             COMMUTER_EXCLUSIONS_SAVE: 'WorkspaceDistanceRates-CommuterExclusionsSave',
             COMMUTER_EXCLUSIONS_WORK_ARRANGEMENT: 'WorkspaceDistanceRates-CommuterExclusionsWorkArrangement',
