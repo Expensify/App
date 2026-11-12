@@ -4804,6 +4804,11 @@ function canEditSearchColumns(type: SearchDataTypes, shouldReturnTripRooms: bool
     return (type !== CONST.SEARCH.DATA_TYPES.TRIP || shouldReturnTripRooms) && getCustomColumns(type).length > 0;
 }
 
+/** Columns users can't remove from a report's expense table. The total has to stay so at least one column flexes. */
+function getRequiredReportDetailsColumns(): Set<SearchCustomColumnIds> {
+    return new Set<SearchCustomColumnIds>([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
+}
+
 /**
  * Columns users can't remove. At least one column has to flex for the table to lay out, and the totals make sense in
  * every expense table, so they always stay. A search filtering by violations also keeps the column showing them.
@@ -8438,6 +8443,7 @@ export {
     getCustomColumnDefault,
     canEditSearchColumns,
     getRequiredSearchColumns,
+    getRequiredReportDetailsColumns,
     getColumnHiding,
     filterValidHasValues,
     navigateToSearchRHP,

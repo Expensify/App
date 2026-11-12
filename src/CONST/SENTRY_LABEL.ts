@@ -814,6 +814,13 @@ const SENTRY_LABEL = {
         MONEY_REPORT_HEADER_SELECTION_DROPDOWN: 'Report-MoneyReportHeaderSelectionDropdown',
         SELECTION_TOOLBAR_DROPDOWN: 'Report-SelectionToolbarDropdown',
         COLUMNS_BUTTON: 'Report-ColumnsButton',
+        COLUMN_MENU: 'Report-ColumnMenu',
+        COLUMN_MENU_ITEM: {
+            SORT_ASCENDING: 'Report-ColumnMenu-SortAscending',
+            SORT_DESCENDING: 'Report-ColumnMenu-SortDescending',
+            HIDE_COLUMN: 'Report-ColumnMenu-HideColumn',
+            EDIT_COLUMNS: 'Report-ColumnMenu-EditColumns',
+        },
         GROUP_BY_BUTTON: 'Report-GroupByButton',
         GROUP_HEADER_CHECKBOX: 'Report-GroupHeaderCheckbox',
         TABLE_HEADER_SELECT_ALL: 'Report-TableHeaderSelectAll',
