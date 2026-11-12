@@ -14,16 +14,16 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getExistingTransactionID, getReusableP2PReportID, resolveOptimisticChatReportID} from '@libs/IOUUtils';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
+import {isMoneyRequestReport as isMoneyRequestReportReportUtils, isScanRequestOnOwnReport, willPolicyPutEachExpenseOnOwnReport} from '@libs/ReportUtils';
 import {
     getIsFromGlobalCreate,
     getRateID,
     getValidWaypoints,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
+    isScanRequest,
 } from '@libs/TransactionUtils';
 
-import shouldDeferAutoSubmitForBatchItem from '@userActions/IOU/shouldDeferAutoSubmitForBatchItem';
 import {requestMoney as requestMoneyIOUActions} from '@userActions/IOU/TrackExpense';
 import type {GPSPoint as GpsPoint} from '@userActions/IOU/types/TrackExpenseTransactionParams';
 
@@ -178,9 +178,14 @@ function useRequestMoneySubmission({
         let existingIOUReport: Report | undefined;
         let allTransactionsCreated = true;
         let lastOptimisticTransactionID: string | undefined;
+        const isTargetMoneyRequestReport = isMoneyRequestReportReportUtils(report);
+        const policyWillSplitReport = !isTargetMoneyRequestReport && willPolicyPutEachExpenseOnOwnReport(policy, transactions);
 
         for (const [index, item] of transactions.entries()) {
             lastOptimisticTransactionID = rand64();
+            const nextItem = transactions.at(index + 1);
+            const shouldDeferAutoSubmit =
+                !!nextItem && !policyWillSplitReport && !isScanRequestOnOwnReport(isScanRequest(nextItem), isASAPSubmitBetaEnabled, action, isTargetMoneyRequestReport);
             const receipt = receiptFiles[item.transactionID];
             logSubmittedReceiptMilestone({
                 item,
@@ -240,16 +245,7 @@ function useRequestMoneySubmission({
                 isVendorMatchingBetaEnabled,
                 getCurrencyDecimals,
                 writeBarrier,
-                shouldDeferAutoSubmit: shouldDeferAutoSubmitForBatchItem({
-                    index,
-                    transactions,
-                    report,
-                    existingIOUReport,
-                    policy,
-                    rules,
-                    isASAPSubmitBetaEnabled,
-                    action,
-                }),
+                shouldDeferAutoSubmit,
                 report,
                 existingIOUReport,
                 optimisticChatReportID,

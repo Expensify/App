@@ -13,7 +13,7 @@ import {getExistingTransactionID} from '@libs/IOUUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
-import {canCreateExpensesOnPolicy, getReimbursementChoice, isInstantSubmitEnabled, isPolicyAccessible, isSubmitAndClose} from '@libs/PolicyUtils';
+import {canCreateExpensesOnPolicy, isPolicyAccessible} from '@libs/PolicyUtils';
 import {getIOUActionForReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticCreatedReportAction,
@@ -26,6 +26,7 @@ import {
     getReimbursableTotal,
     getTransactionDetails,
     isExpenseReport,
+    willPolicyPutEachExpenseOnOwnReport,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {
@@ -1367,12 +1368,7 @@ function bulkDuplicateExpenses({
     // server was told to wait for more expenses that will never arrive.
     // An expense report target isn't split up front: the caller already checked it can
     // take the copies, so they land on it and auto-submit waits for the last one.
-    const allNonReimbursable = transactionsToDuplicate.every((t) => !getReimbursable(t));
-    const policyWillSplitReport =
-        !isTargetExpenseReport &&
-        isInstantSubmitEnabled(targetPolicy) &&
-        isSubmitAndClose(targetPolicy) &&
-        (allNonReimbursable || getReimbursementChoice(targetPolicy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO);
+    const policyWillSplitReport = !isTargetExpenseReport && willPolicyPutEachExpenseOnOwnReport(targetPolicy, transactionsToDuplicate);
 
     // A copy of an unreported expense is tracked, so only an expense that lands on the report can submit it.
     const lastReportBoundIndex = targetPolicy ? transactionsToDuplicate.findLastIndex((t) => !!t.reportID && t.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) : -1;

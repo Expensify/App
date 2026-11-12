@@ -13284,7 +13284,19 @@ function shouldCreateNewMoneyRequestReport(
         isReportPendingDelete(existingIOUReport) ||
         hasIOUWaitingOnCurrentUserBankAccount(chatReport) ||
         !canAddTransaction(existingIOUReport, rules) ||
-        (!isFromExistingReport && action !== CONST.IOU.ACTION.SUBMIT && isScanRequest && isASAPSubmitBetaEnabled)
+        isScanRequestOnOwnReport(isScanRequest, isASAPSubmitBetaEnabled, action, isFromExistingReport)
+    );
+}
+
+function isScanRequestOnOwnReport(isScanRequest: boolean, isASAPSubmitBetaEnabled: boolean, action?: IOUAction, isFromExistingReport?: boolean): boolean {
+    return !isFromExistingReport && action !== CONST.IOU.ACTION.SUBMIT && isScanRequest && isASAPSubmitBetaEnabled;
+}
+
+function willPolicyPutEachExpenseOnOwnReport(policy: OnyxEntry<Policy>, transactions: Transaction[]): boolean {
+    return (
+        isInstantSubmitEnabled(policy) &&
+        isSubmitAndClose(policy) &&
+        (transactions.every((transaction) => !getReimbursable(transaction)) || getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO)
     );
 }
 
@@ -16186,6 +16198,8 @@ export {
     selectFilteredReportActionsForReports,
     shouldAutoFocusOnKeyPress,
     shouldCreateNewMoneyRequestReport,
+    isScanRequestOnOwnReport,
+    willPolicyPutEachExpenseOnOwnReport,
     shouldDisableDetailPage,
     shouldDisableRename,
     shouldDisableThread,
