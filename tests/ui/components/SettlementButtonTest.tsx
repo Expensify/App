@@ -112,6 +112,12 @@ jest.mock('@components/Modal/ReanimatedModal', () => {
     };
 });
 
+const mockShowBankPaySkippedModal = jest.fn();
+jest.mock('@hooks/useBankPaySkippedModal', () => ({
+    __esModule: true,
+    default: () => ({showBankPaySkippedModal: mockShowBankPaySkippedModal}),
+}));
+
 const mockVerifyAccountAndResume = jest.fn();
 
 jest.mock('@hooks/useVerifyAccountAndResume', () => ({
@@ -854,6 +860,69 @@ describe('SettlementButton', () => {
 
             expect(createWorkspace).not.toHaveBeenCalled();
             expect(navigateToBankAccountRoute).toHaveBeenCalledWith({policyID: POLICY_ID});
+        });
+    });
+
+    describe('bank pay on a report with nothing owed', () => {
+        const nonReimbursableReport = createExpenseReport({total: -5000, nonReimbursableTotal: -5000});
+
+        async function openPayMenu(policy: Policy) {
+            await setupOnyxState({report: nonReimbursableReport, chatReport: createChatReport(), policy, bankAccountList: createBankAccountList('5678')});
+            render(
+                <SettlementButtonWrapper>
+                    <SettlementButton
+                        {...defaultProps}
+                        iouReport={nonReimbursableReport}
+                        onlyShowPayElsewhere
+                    />
+                </SettlementButtonWrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByText(translateLocal('iou.settlePayment', '$100.00')));
+            await waitForBatchedUpdatesWithAct();
+        }
+
+        function pressMenuItem(text: string) {
+            const menuItem = screen.getByTestId(`PopoverMenuItem-${text}`);
+
+            // MenuItem only forwards the press when it receives an event, so a GestureResponderEvent-shaped one is required.
+            fireEvent.press(menuItem, {nativeEvent: {}, type: 'press', target: menuItem, currentTarget: menuItem});
+        }
+
+        it('offers the bank account and explains why it cannot pay the report', async () => {
+            // Given a report whose only expense is non-reimbursable, on a workspace that pays through a bank account
+            await openPayMenu(createTestPolicy({reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL}));
+
+            // When the admin picks the bank account from the pay menu
+            pressMenuItem('Test Bank Account');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the modal explains why the bank account can't pay it, and nothing is paid
+            expect(mockShowBankPaySkippedModal).toHaveBeenCalledWith(expect.objectContaining({bankAccountID: BANK_ACCOUNT_ID, isSingleReport: true}));
+            expect(defaultProps.onPress).not.toHaveBeenCalled();
+        });
+
+        it('still marks the report as paid', async () => {
+            // Given the same report with the bank account on offer
+            await openPayMenu(createTestPolicy({reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL}));
+
+            // When the admin marks it as paid instead
+            pressMenuItem(translateLocal('iou.payElsewhere', ''));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it's marked as paid as before, without the modal
+            expect(defaultProps.onPress).toHaveBeenCalledWith({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, payAsBusiness: false});
+            expect(mockShowBankPaySkippedModal).not.toHaveBeenCalled();
+        });
+
+        it('keeps only Mark as paid when the workspace has reimbursements turned off', async () => {
+            // Given the same report on a workspace that never pays through a bank account
+            await openPayMenu(createTestPolicy({reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO}));
+
+            // When the pay menu is open
+            // Then the bank account isn't offered, since it's the workspace and not the spend that rules it out
+            expect(screen.queryByTestId('PopoverMenuItem-Test Bank Account')).toBeNull();
+            expect(screen.getByText(translateLocal('iou.payElsewhere', ''))).toBeTruthy();
         });
     });
 });

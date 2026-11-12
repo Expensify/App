@@ -1622,6 +1622,12 @@ const translations: TranslationDeepObject<typeof en> = {
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `heeft ${amount} betaald met persoonlijke rekening ${last4Digits}` : `Betaald met privérekening`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `heeft ${amount} betaald met zakelijke rekening ${last4Digits}` : `Betaald met zakelijke rekening`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Betaal ${formattedAmount} via ${policyName}` : `Betaal via ${policyName}`),
+        payWithBankAccountTitle: (lastFour?: string) => (lastFour ? `Betalen met x${lastFour}` : 'Betalen met bankrekening'),
+        bankPaySkippedReportsDescription:
+            'Deze rapporten zijn niet via de bankrekening betaald omdat ze niet vergoedbaar zijn of een totaalbedrag van nul of minder hebben. Je kunt ze desgewenst handmatig als betaald markeren.',
+        bankPayAllReportsSkippedDescription:
+            'De geselecteerde rapporten zijn niet vergoedbaar of hebben een totaalbedrag van nul of minder. Je kunt deze rapporten desgewenst handmatig als betaald markeren.',
+        bankPayReportSkippedDescription: 'Dit rapport is niet vergoedbaar of heeft een totaalbedrag van nul of minder. Je kunt het desgewenst handmatig als betaald markeren.',
         businessBankAccount: (amount?: string, last4Digits?: string) => (amount ? `heeft ${amount} betaald met bankrekening ${last4Digits}` : `betaald met bankrekening ${last4Digits}`),
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `betaald ${amount ? `${amount} ` : ''} met bankrekening ${last4Digits} via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">werkruimteregels</a>`,
@@ -12850,6 +12856,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         approvingTitle: 'Rapporten goedkeuren...',
         submittingTitle: 'Rapporten worden ingediend...',
         payingTitle: 'Rapporten markeren als betaald...',
+        payingWithBankTitle: 'Rapporten betalen...',
         holdingTitle: 'Uitgaven vasthouden...',
         unholdingTitle: 'Blokkering van uitgaven opheffen...',
         rejectingTitle: 'Uitgaven afwijzen...',
@@ -12872,6 +12879,10 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         paidTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `${doneCount} van ${count} rapport als betaald gemarkeerd`,
             other: `${doneCount} van ${count} rapporten als betaald gemarkeerd`,
+        }),
+        paidWithBankTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `${doneCount} van ${count} rapport betaald`,
+            other: `${doneCount} van ${count} rapporten betaald`,
         }),
         heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Uitgaven vastgehouden in ${doneCount} van ${count} rapport`,
@@ -12913,6 +12924,10 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         notPaidBody: ({count}: {count: number}) => ({
             one: '1 rapport kon niet worden betaald.',
             other: `${count} rapporten konden niet worden betaald.`,
+        }),
+        skippedBankPayBody: ({count}: {count: number}) => ({
+            one: '1 rapport is niet via de bankrekening betaald omdat het niet vergoedbaar is of een totaalbedrag van nul of minder heeft. Je kunt het desgewenst handmatig als betaald markeren.',
+            other: `${count} rapporten zijn niet via de bankrekening betaald omdat ze niet vergoedbaar zijn of een totaalbedrag van nul of minder hebben. Je kunt ze desgewenst handmatig als betaald markeren.`,
         }),
         notHeldBody: ({count}: {count: number}) => ({
             one: 'Uitgaven in 1 rapport konden niet worden vastgehouden.',

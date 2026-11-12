@@ -12,6 +12,7 @@ import {useSearchQueryContext, useSearchResultsContext} from '@components/Search
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
+import useBankPaySkippedModal from '@hooks/useBankPaySkippedModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -64,6 +65,7 @@ import {
     hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils,
     hasViolations as hasViolationsReportUtils,
     isAllowedToApproveExpenseReport,
+    isBankPayBlockedBySpend,
     isInvoiceReport as isInvoiceReportUtil,
     isIOUReport as isIOUReportUtil,
     navigateToDetailsPage,
@@ -303,6 +305,9 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         !canIOUBePaid &&
         canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', accountID, undefined, true, isChatReportArchived, invoiceReceiverPolicy);
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
+    const {showBankPaySkippedModal} = useBankPaySkippedModal();
+    // Nothing is owed on the report, so the bank account stays on offer and picking it explains why it can't pay instead of hiding it
+    const isBankPayBlocked = onlyShowPayElsewhere && isBankPayBlockedBySpend(moneyRequestReport, policy);
     const hasOnlyPendingTransactions = moneyReportTransactions.length > 0 && moneyReportTransactions.every((t) => isPending(t));
     const shouldShowApproveButton =
         (canApproveIOU(moneyRequestReport, policy, reportMetadata, currentUserPersonalDetails.accountID, moneyReportTransactions) && !hasOnlyPendingTransactions) ||
@@ -321,7 +326,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         shouldHidePaymentOptions: !shouldShowPayButton,
         shouldShowApproveButton,
         shouldDisableApproveButton: isApproveDisabled,
-        onlyShowPayElsewhere,
+        onlyShowPayElsewhere: onlyShowPayElsewhere && !isBankPayBlocked,
     });
 
     const activeAdminPolicies = useActiveAdminPolicies();
@@ -473,6 +478,10 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
 
     const onPaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
+        if (isBankPayBlocked && iouPaymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+            showBankPaySkippedModal({policy, isSingleReport: true});
+            return;
+        }
         const runPaymentSelection = () =>
             selectPaymentType({
                 personalDetailsByLogins: getPersonalDetailsByLogin(),

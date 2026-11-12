@@ -1607,6 +1607,10 @@ const translations: TranslationDeepObject<typeof en> = {
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `個人アカウント（下4桁 ${last4Digits}）で ${amount} を支払いました` : `個人アカウントで支払い済み`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `ビジネス口座（末尾${last4Digits}）で${amount}を支払いました` : `ビジネスアカウントで支払済み`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `${policyName}で${formattedAmount}を支払う` : `${policyName}で支払う`),
+        payWithBankAccountTitle: (lastFour?: string) => (lastFour ? `x${lastFour}で支払う` : '銀行口座で支払う'),
+        bankPaySkippedReportsDescription: 'これらのレポートは、払い戻し対象外であるか、合計金額が0以下のため、銀行口座で支払われませんでした。必要に応じて、手動で支払済みにできます。',
+        bankPayAllReportsSkippedDescription: '選択したレポートは払い戻し対象外であるか、合計金額が0以下です。必要に応じて、これらのレポートを手動で支払済みにできます。',
+        bankPayReportSkippedDescription: 'このレポートは払い戻し対象外であるか、合計金額が0以下です。必要に応じて、手動で支払済みにできます。',
         businessBankAccount: (amount?: string, last4Digits?: string) => (amount ? `銀行口座（末尾${last4Digits}）で${amount}を支払いました` : `銀行口座（下4桁 ${last4Digits}）で支払い済み`),
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a>に従い、銀行口座（下4桁 ${last4Digits}）で${amount ? `${amount} ` : ''}を支払いました`,
@@ -12675,6 +12679,7 @@ ${reportName}`,
         approvingTitle: 'レポートを承認しています…',
         submittingTitle: 'レポートを送信しています…',
         payingTitle: 'レポートを支払済みにしています…',
+        payingWithBankTitle: 'レポートを支払っています…',
         holdingTitle: '経費を保留にしています…',
         unholdingTitle: '経費の保留を解除しています…',
         rejectingTitle: '経費を却下しています…',
@@ -12697,6 +12702,10 @@ ${reportName}`,
         paidTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `${count} 件中 ${doneCount} 件のレポートを支払済みにしました`,
             other: `${count} 件中 ${doneCount} 件のレポートを支払済みにしました`,
+        }),
+        paidWithBankTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `${count} 件中 ${doneCount} 件のレポートを支払いました`,
+            other: `${count} 件中 ${doneCount} 件のレポートを支払いました`,
         }),
         heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `${count} 件中 ${doneCount} 件のレポートの経費を保留にしました`,
@@ -12738,6 +12747,10 @@ ${reportName}`,
         notPaidBody: ({count}: {count: number}) => ({
             one: '1件のレポートを支払済みにできませんでした。',
             other: `${count} 件のレポートを支払済みにできませんでした。`,
+        }),
+        skippedBankPayBody: ({count}: {count: number}) => ({
+            one: '1件のレポートは、払い戻し対象外であるか、合計金額が0以下のため、銀行口座で支払われませんでした。必要に応じて、手動で支払済みにできます。',
+            other: `${count} 件のレポートは、払い戻し対象外であるか、合計金額が0以下のため、銀行口座で支払われませんでした。必要に応じて、手動で支払済みにできます。`,
         }),
         notHeldBody: ({count}: {count: number}) => ({
             one: '1件のレポートの経費を保留にできませんでした。',

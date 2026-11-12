@@ -9,6 +9,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
+import useBankPaySkippedModal from '@hooks/useBankPaySkippedModal';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -35,6 +36,7 @@ import {isPaidGroupPolicy, isPolicyAdmin, sortPoliciesByName} from '@libs/Policy
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
     doesReportBelongToWorkspace,
+    isBankPayBlockedBySpend,
     isBusinessInvoiceRoom,
     isExpenseReport as isExpenseReportUtil,
     isIndividualInvoiceRoom as isIndividualInvoiceRoomUtil,
@@ -176,6 +178,9 @@ function SettlementButton({
     const shouldShowPayWithExpensifyOption = !shouldHidePaymentOptions;
     const shouldShowPayElsewhereOption = !shouldHidePaymentOptions && !isInvoiceReport;
     const isBankAccountLocked = canAccessPolicyBankAccount(policy, bankAccountList) && policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED;
+    const {showBankPaySkippedModal} = useBankPaySkippedModal();
+    // Nothing is owed on the report, so the bank account stays on offer and picking it explains why it can't pay instead of hiding it
+    const isBankPayBlocked = !!onlyShowPayElsewhere && isBankPayBlockedBySpend(iouReport, policy);
 
     function getLatestPersonalBankAccount() {
         return formattedPaymentMethods.filter((ba) => (ba.accountData as AccountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
@@ -253,7 +258,11 @@ function SettlementButton({
         return checkForPostValidationBlockers();
     };
 
-    const runPaymentAction = (paymentMethodType: PaymentMethodType | undefined, action: () => void | Promise<void>) => {
+    const runPaymentAction = (paymentMethodType: PaymentMethodType | undefined, action: () => void | Promise<void>, bankAccountID?: number) => {
+        if (isBankPayBlocked && paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+            showBankPaySkippedModal({bankAccountID, policy, isSingleReport: true});
+            return;
+        }
         if (checkForNecessaryAction(paymentMethodType, action)) {
             return;
         }
@@ -281,7 +290,7 @@ function SettlementButton({
 
     let paymentButtonOptions: Array<DropdownOption<string>>;
 
-    if (onlyShowPayElsewhere) {
+    if (onlyShowPayElsewhere && !isBankPayBlocked) {
         paymentButtonOptions = [shouldUseShortForm ? shortFormPayElsewhereButton : paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]];
     } else {
         const buttonOptions: Array<DropdownOption<string>> = [];
@@ -320,13 +329,16 @@ function SettlementButton({
                         description: account.description,
                         shouldIgnoreCompactStyle: true,
                         onSelected: () =>
-                            runPaymentAction(CONST.IOU.PAYMENT_TYPE.VBBA, () =>
-                                onPress({
-                                    paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
-                                    payAsBusiness: true,
-                                    methodID: account.methodID,
-                                    paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
-                                }),
+                            runPaymentAction(
+                                CONST.IOU.PAYMENT_TYPE.VBBA,
+                                () =>
+                                    onPress({
+                                        paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                                        payAsBusiness: true,
+                                        methodID: account.methodID,
+                                        paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+                                    }),
+                                account.methodID,
                             ),
                     });
                 }

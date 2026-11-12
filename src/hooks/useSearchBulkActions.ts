@@ -73,6 +73,7 @@ import {
     hasOnlyHeldExpenses,
     hasViolations as hasViolationsReportUtils,
     isArchivedReport,
+    isBankPayBlockedBySpend,
     isBusinessInvoiceRoom,
     isCurrentUserSubmitter,
     isDM,
@@ -156,9 +157,11 @@ import {policyExpenseChatSelector} from '@selectors/Report';
 import {useCallback, useEffect, useMemo, useRef} from 'react';
 import Onyx from 'react-native-onyx';
 
+import type {BankPaySkippedReport} from './useBankPaySkippedModal';
 import type {RejectModalAction} from './useHoldRejectEducationalModal';
 
 import useAllTransactions from './useAllTransactions';
+import useBankPaySkippedModal from './useBankPaySkippedModal';
 import useBulkPayOptions from './useBulkPayOptions';
 import useConfirmModal from './useConfirmModal';
 import {useCurrencyListActions} from './useCurrencyList';
@@ -751,6 +754,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const {showConfirmModal} = useConfirmModal();
     const {showWiseQuoteCarouselModal} = useWiseQuoteConfirmModal();
+    const {showBankPaySkippedModal} = useBankPaySkippedModal();
     const {showDecisionModal} = useDecisionModal();
 
     const showOfflineModal = useCallback(() => {
@@ -992,7 +996,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     true,
                     isChatReportArchived,
                     invoiceReceiverPolicy,
-                )
+                ) &&
+                // A bank payment leaves out a report with nothing owed instead of hiding the bank account for the whole selection
+                !isBankPayBlockedBySpend(report, currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? selectedPolicy)
             );
         });
     }, [
@@ -1018,7 +1024,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isCurrencySupportedWallet: isCurrencySupportedBulkWallet,
         currency: selectedBulkCurrency,
         formattedAmount: totalFormattedAmount,
-        onlyShowPayElsewhere: onlyShowPayElsewhere || areAllMatchingItemsSelected,
+        // The backend can pay a "Select all" selection through a bank account only for expense reports
+        onlyShowPayElsewhere: onlyShowPayElsewhere || (areAllMatchingItemsSelected && !isExpenseReportUtil(selectedBulkPayReport)),
     });
 
     const {hash} = queryJSON ?? {};
@@ -1777,9 +1784,46 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     Log.info('[BulkPay] Dropping bulk pay: the unchecked expenses cannot be left out of the matching reports');
                     return;
                 }
-                queueBulkPayReports(serializeQueryJSONForBackend(allMatchingQuery));
+                const serializedQuery = serializeQueryJSONForBackend(allMatchingQuery);
+                if (paymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA) {
+                    queueBulkPayReports(serializedQuery, {paymentType: paymentMethod, bankAccountID: expenseReportBankAccountID});
+                } else {
+                    queueBulkPayReports(serializedQuery);
+                }
                 playSound(SOUNDS.SUCCESS);
                 clearSelectedTransactions();
+                return;
+            }
+
+            // A report with nothing owed can only be marked as paid, so a bank payment leaves it out and lists it for the user once the rest are paid
+            const bankPaySkippedReports: BankPaySkippedReport[] = [];
+            for (const reportID of new Set(selectedOptions.map((item) => item.reportID))) {
+                const report = reportID ? getReportFromSearchSnapshot(reportID, searchResults?.data, allReports) : undefined;
+                if (!reportID || !report) {
+                    continue;
+                }
+                const reportPaymentMethod =
+                    paymentMethod ?? getLastPolicyPaymentMethod(report.policyID, personalPolicyID, lastPaymentMethods, getReportType(report), isIOUReportUtil(reportID));
+                if (!reportPaymentMethod || reportPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+                    continue;
+                }
+                if (isBankPayBlockedBySpend(report, getPolicyFromSearchSnapshot(report.policyID, searchResults?.data, policies))) {
+                    bankPaySkippedReports.push({reportID, reportName: report.reportName ?? reportID});
+                }
+            }
+            const bankPaySkippedReportIDs = new Set(bankPaySkippedReports.map(({reportID}) => reportID));
+            const showBankPaySkippedReports = (skippedReports?: BankPaySkippedReport[]) =>
+                // Bulk pay runs while the pay popover is still dismissing, and iOS can't present a modal until it's gone
+                deferModalPresentationAfterPopoverDismiss(() =>
+                    showBankPaySkippedModal({
+                        bankAccountID: expenseReportBankAccountID,
+                        policy: getPolicyFromSearchSnapshot(payScopedPolicyIDs.at(0), searchResults?.data, policies),
+                        skippedReports,
+                    }),
+                );
+            if (bankPaySkippedReports.length > 0 && selectedOptions.every((item) => !!item.reportID && bankPaySkippedReportIDs.has(item.reportID))) {
+                Log.info('[BulkPay] Dropping bulk pay: every selected report is non-reimbursable or totals $0 or less');
+                showBankPaySkippedReports();
                 return;
             }
 
@@ -1796,6 +1840,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 if (!itemReportID) {
                     Log.info('[BulkPay] Dropping bulk pay: selected item has no reportID');
                     return;
+                }
+                if (bankPaySkippedReportIDs.has(itemReportID)) {
+                    continue;
                 }
                 const itemReport = getReportFromSearchSnapshot(itemReportID, searchData, allReports);
                 const isExpenseReport = isExpenseReportUtil(itemReportID);
@@ -1891,6 +1938,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             for (const item of itemsToPay) {
                 if (!item.reportID) {
                     Log.info('[BulkPay] Skipping report: item has no reportID');
+                    continue;
+                }
+                if (bankPaySkippedReportIDs.has(item.reportID)) {
+                    Log.info('[BulkPay] Skipping report: nothing is owed on it, so it can only be marked as paid', false, {reportID: item.reportID});
                     continue;
                 }
 
@@ -2064,6 +2115,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             if (paidReportCount > 0) {
                 playSound(SOUNDS.SUCCESS);
                 clearSelectedTransactions();
+                // With a Wise quote to confirm, the skipped reports are listed once the expense reports are paid
+                if (!shouldConfirmWiseQuotes && bankPaySkippedReports.length > 0) {
+                    showBankPaySkippedReports(bankPaySkippedReports);
+                }
             }
 
             if (shouldConfirmWiseQuotes) {
@@ -2085,6 +2140,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             }
                             playSound(SOUNDS.SUCCESS);
                             clearSelectedTransactions();
+                            if (bankPaySkippedReports.length > 0) {
+                                showBankPaySkippedReports(bankPaySkippedReports);
+                            }
                         },
                     });
                 });
@@ -2093,6 +2151,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         [
             hash,
             showWiseQuoteCarouselModal,
+            showBankPaySkippedModal,
+            payScopedPolicyIDs,
             showOfflineModal,
             areAllMatchingItemsSelected,
             queryJSON,

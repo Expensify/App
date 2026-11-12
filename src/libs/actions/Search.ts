@@ -2343,10 +2343,11 @@ function queueExportSearchWithTemplate(
 /**
  * Queues a manual bulk payment for every report matching the given search query. The backend pages through all matches itself,
  * so this covers reports beyond the currently loaded page(s) when "Select all" is checked in Search.
+ * With a bank payment it pays through the bank account and skips the reports that are non-reimbursable or total $0 or less, otherwise it marks every report as paid.
  */
-function queueBulkPayReports(jsonQuery: string) {
-    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.PAY);
-    write(WRITE_COMMANDS.QUEUE_BULK_PAY_REPORTS, {jsonQuery, bulkActionID}, onyxData);
+function queueBulkPayReports(jsonQuery: string, bankPayment?: {paymentType: PaymentMethodType; bankAccountID?: number}) {
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.PAY, bankPayment?.paymentType);
+    write(WRITE_COMMANDS.QUEUE_BULK_PAY_REPORTS, {jsonQuery, bulkActionID, ...bankPayment}, onyxData);
 }
 
 /** Moves every report matching the search query that the user can move to the given workspace. */
