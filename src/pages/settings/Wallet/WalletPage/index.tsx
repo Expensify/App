@@ -7,7 +7,6 @@ import type {PaymentMethodType, Source} from '@components/KYCWall/types';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -164,6 +163,7 @@ function WalletPage() {
     useRefreshPendingDigitalWalletApproval();
 
     const hasWallet = !isEmpty(userWallet);
+    const formattedWalletBalance = convertToDisplayString(userWallet?.currentBalance ?? 0, CONST.CURRENCY.USD);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const hasAssignedCard = hasDisplayableAssignedCards(cardList);
     const shouldShowGBDisclaimer = countryByIp === CONST.COUNTRY.GB;
@@ -804,7 +804,14 @@ function WalletPage() {
                                 </MenuItem.Row>
                             </MenuItemSectionRoot>
                             {!hasAssignedCard && (
-                                <MenuItemSectionRoot onPress={openCompanyCardFlow}>
+                                <MenuItemSectionRoot
+                                    onPress={openCompanyCardFlow}
+                                    sentryLabel={
+                                        hasSinglePolicy
+                                            ? CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_COMPANY_CARDS.WORKSPACE
+                                            : CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_COMPANY_CARDS.WORKSPACES_LIST
+                                    }
+                                >
                                     <MenuItem.Row>
                                         <View style={[styles.popoverMenuIcon, StyleUtils.getAvatarWidthStyle(CONST.AVATAR_SIZE.DEFAULT)]}>
                                             <Icon
@@ -848,15 +855,17 @@ function WalletPage() {
                                             errorRowStyles={[styles.ml10, styles.mr2]}
                                             style={[styles.mb2]}
                                         >
-                                            <MenuItemWithTopDescription
-                                                description={translate('walletPage.balance')}
-                                                title={convertToDisplayString(userWallet?.currentBalance ?? 0, CONST.CURRENCY.USD)}
-                                                titleStyle={styles.textHeadlineH2}
-                                                interactive={false}
-                                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                                copyValue={convertToDisplayString(userWallet?.currentBalance ?? 0, CONST.CURRENCY.USD)}
-                                                copyable
-                                            />
+                                            <MenuItemSectionRoot>
+                                                <MenuItem.Row>
+                                                    <MenuItem.Content>
+                                                        <MenuItem.FieldName>{translate('walletPage.balance')}</MenuItem.FieldName>
+                                                        <MenuItem.FieldValue style={styles.textHeadlineH2}>{formattedWalletBalance}</MenuItem.FieldValue>
+                                                    </MenuItem.Content>
+                                                    <MenuItem.Trailing>
+                                                        <MenuItem.Copy value={formattedWalletBalance} />
+                                                    </MenuItem.Trailing>
+                                                </MenuItem.Row>
+                                            </MenuItemSectionRoot>
                                         </OfflineWithFeedback>
                                     )}
 

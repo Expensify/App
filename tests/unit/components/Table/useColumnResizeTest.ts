@@ -667,7 +667,7 @@ describe('useColumnResize', () => {
 
         // Then the column widens by a step per press right away, without the table also scrolling sideways, and nothing
         // is stored yet, since each store's render would pull the edge back to the stored width mid-hold
-        const widenedWidth = 200 + 2 * CONST.TABLES.COLUMN_RESIZE.KEYBOARD_STEP;
+        const widenedWidth = 200 + 2 * CONST.RESIZE_HANDLE.KEYBOARD_STEP;
         expect(readWidth(NAME_COLUMN_KEY)).toBe(`${widenedWidth}px`);
         expect(arrowRight.preventDefault).toHaveBeenCalled();
         expect(setTableColumnWidths).not.toHaveBeenCalled();
@@ -699,7 +699,7 @@ describe('useColumnResize', () => {
         });
 
         // Then the width is stored anyway, rather than left painted until the next render drops it
-        const narrowedWidth = 200 - CONST.TABLES.COLUMN_RESIZE.KEYBOARD_STEP;
+        const narrowedWidth = 200 - CONST.RESIZE_HANDLE.KEYBOARD_STEP;
         expect(setTableColumnWidths).toHaveBeenCalledWith(
             COLUMN_RESIZING_ID,
             getStoredTableColumnWidths({...resolvedColumnWidths, ...getResizedColumnWidths(NAME_COLUMN_KEY, narrowedWidth)}, NAME_COLUMN_KEY, true),
@@ -882,7 +882,7 @@ describe('useColumnResize', () => {
         rerender({...initialProps, resolvedColumnWidths: {name: 210, email: 190, role: 200}});
 
         // Then the edge stays where the key put it, so the next press doesn't step from the resolved width and snap back
-        expect(readWidth(NAME_COLUMN_KEY)).toBe(`${200 + CONST.TABLES.COLUMN_RESIZE.KEYBOARD_STEP}px`);
+        expect(readWidth(NAME_COLUMN_KEY)).toBe(`${200 + CONST.RESIZE_HANDLE.KEYBOARD_STEP}px`);
     });
 
     it('updates the announced width on each arrow press, before the key is released', () => {
@@ -895,8 +895,8 @@ describe('useColumnResize', () => {
         });
 
         // Then the separator's value follows the painted width, since nothing renders until the key is released
-        expect(handleElement.getAttribute('aria-valuenow')).toBe(String(200 + CONST.TABLES.COLUMN_RESIZE.KEYBOARD_STEP));
-        expect(handleElement.getAttribute('aria-valuetext')).toBe(`${200 + CONST.TABLES.COLUMN_RESIZE.KEYBOARD_STEP} pixels`);
+        expect(handleElement.getAttribute('aria-valuenow')).toBe(String(200 + CONST.RESIZE_HANDLE.KEYBOARD_STEP));
+        expect(handleElement.getAttribute('aria-valuetext')).toBe(`${200 + CONST.RESIZE_HANDLE.KEYBOARD_STEP} pixels`);
     });
 
     it('keeps the edge line after dragging an edge that has keyboard focus', () => {
