@@ -191,7 +191,7 @@ async function revokeAllSessions(translate: LocaleContextProps['translate']): Pr
 
         // Wait for session cleanup so the success toast appears on the sign-in screen.
         await redirectToSignIn(CONST.SIGN_OUT_REASON.USER_SIGN_OUT);
-        Growl.success({bodyText: translate('deviceManagementPage.signOutAllDevicesSuccess')});
+        Growl.success({bodyText: translate('deviceManagementPage.signOutAllDevicesSuccess'), position: CONST.GROWL.POSITION.BOTTOM_RIGHT});
         return true;
     } catch (error) {
         Log.hmmm('Unable to sign out on all devices', {error});

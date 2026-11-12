@@ -80,7 +80,7 @@ describe('actions/User', () => {
             expect(Growl.success).not.toHaveBeenCalled();
             redirect.resolve();
             await expect(result).resolves.toBe(true);
-            expect(Growl.success).toHaveBeenCalledWith({bodyText: 'You’ve been signed out on all devices.'});
+            expect(Growl.success).toHaveBeenCalledWith({bodyText: 'You’ve been signed out on all devices.', position: CONST.GROWL.POSITION.BOTTOM_RIGHT});
         });
 
         it.each([undefined, {jsonCode: 500}])('keeps the current session after an unsuccessful response: %p', async (response) => {

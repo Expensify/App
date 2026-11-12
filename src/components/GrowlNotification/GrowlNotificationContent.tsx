@@ -137,7 +137,10 @@ function GrowlNotificationContent({bodyText, type, duration, action, position, n
 
     return (
         <GrowlNotificationPortal>
-            <View style={styles.growlNotificationWrapper}>
+            <View
+                style={[styles.growlNotificationWrapper, useBottomPosition && styles.fullScreen]}
+                pointerEvents={useBottomPosition ? 'box-none' : undefined}
+            >
                 <GrowlNotificationContainer
                     progress={progress}
                     inactiveY={inactiveY}

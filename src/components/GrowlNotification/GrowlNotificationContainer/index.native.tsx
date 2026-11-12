@@ -7,7 +7,7 @@ import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 
 import type GrowlNotificationContainerProps from './types';
 
-function GrowlNotificationContainer({children, progress, inactiveY}: GrowlNotificationContainerProps) {
+function GrowlNotificationContainer({children, progress, inactiveY, useBottomPosition}: GrowlNotificationContainerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const insets = useSafeAreaInsets();
@@ -15,7 +15,16 @@ function GrowlNotificationContainer({children, progress, inactiveY}: GrowlNotifi
     // omitted from the deps array — only the plain JS value `inactiveY` needs to invalidate the style.
     const animatedStyles = useAnimatedStyle(() => ({transform: [{translateY: inactiveY * (1 - progress.get())}]}), [inactiveY]);
 
-    return <Animated.View style={[StyleUtils.getPlatformSafeAreaPadding(insets), styles.growlNotificationContainer, animatedStyles]}>{children}</Animated.View>;
+    const containerStyle = useBottomPosition ? [styles.growlNotificationContainerBottomRight, styles.pAbsolute] : styles.growlNotificationContainer;
+
+    return (
+        <Animated.View
+            pointerEvents={useBottomPosition ? 'box-none' : undefined}
+            style={[StyleUtils.getPlatformSafeAreaPadding(insets), containerStyle, animatedStyles]}
+        >
+            {children}
+        </Animated.View>
+    );
 }
 
 export default GrowlNotificationContainer;

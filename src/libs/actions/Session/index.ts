@@ -1196,7 +1196,7 @@ function clearSignInData() {
 }
 
 /**
- * Reset navigation to a brand new state with Home as the initial screen.
+ * Reset navigation to the shared authenticated and sign-in root.
  */
 function resetNavigationState() {
     Navigation.isNavigationReady().then(() => {
@@ -1205,7 +1205,7 @@ function resetNavigationState() {
             Log.hmmm('[src/libs/actions/Session/index.ts] NavigationRef is not ready. Returning undefined.');
             return undefined;
         }
-        navigationRef.resetRoot({index: 0, routes: [{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}]});
+        navigationRef.resetRoot({index: 0, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]});
     });
 }
 
