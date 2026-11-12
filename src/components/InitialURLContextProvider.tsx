@@ -42,24 +42,21 @@ function InitialURLContextProvider({children}: InitialURLContextProviderProps) {
     const [isAuthenticatedAtStartup, setIsAuthenticatedAtStartup] = useState<boolean>(false);
 
     useEffect(() => {
-        let timeoutId: ReturnType<typeof setTimeout>;
+        // Stop loading after a timeout so isLoadingInitialURL doesn't stay stuck if getInitialURL() never resolves.
+        // A URL that resolves later is still saved, because the deep link handling can still open the route it names.
+        const timeoutId = setTimeout(() => setIsLoadingInitialURL(false), CONST.TIMING.GET_INITIAL_URL_TIMEOUT);
 
-        // Race against a timeout so isLoadingInitialURL doesn't stay stuck if getInitialURL() never resolves
-        Promise.race([
-            Linking.getInitialURL(),
-            new Promise<null>((resolve) => {
-                timeoutId = setTimeout(() => {
-                    resolve(null);
-                }, CONST.TIMING.GET_INITIAL_URL_TIMEOUT);
-            }),
-        ])
+        Linking.getInitialURL()
             .then((initURL) => {
                 if (!initURL) {
                     return;
                 }
                 setInitialURL(initURL as Route);
             })
-            .finally(() => setIsLoadingInitialURL(false));
+            .finally(() => {
+                clearTimeout(timeoutId);
+                setIsLoadingInitialURL(false);
+            });
 
         return () => clearTimeout(timeoutId);
     }, []);
