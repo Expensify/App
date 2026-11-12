@@ -10,7 +10,7 @@ import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import Search from '@components/Search';
-import {useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import SearchPageHeaderNarrow from '@components/Search/SearchPageHeader/SearchPageHeaderNarrow';
 import SearchSelectionFooter from '@components/Search/SearchSelectionFooter';
@@ -38,6 +38,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded, isSearchPending} from '@libs/SearchUIUtils';
+import {shouldHideSpendTabRow} from '@libs/SpendNavigationGroups';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 
 import variables from '@styles/variables';
@@ -119,7 +120,6 @@ function SearchPageNarrow({
     const {isOffline} = useNetwork();
     const shouldScrollMainHeader = useIsMobileWebLandscape();
     const scrollAwayHeaderRef = useRef<ScrollAwayHeaderContainerHandle>(null);
-    const searchListContentContainerStyle = useSearchListContentContainerStyle(hasFilterBars);
 
     const shouldShowLoadingBarForReports = useLoadingBarVisibility();
     // Controls the visibility of the educational tooltip based on user scrolling.
@@ -129,12 +129,17 @@ function SearchPageNarrow({
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const receiptDropTargetRef = useRef<ComponentRef<typeof View>>(null);
 
+    // The header reserves room for the tab row, so the list's offset has to shrink when that row isn't rendered.
+    const {currentSearchKey} = useSearchQueryContext();
+    const isTabRowHidden = shouldHideSpendTabRow(currentSearchKey);
+    const searchListContentContainerStyle = useSearchListContentContainerStyle(hasFilterBars, isTabRowHidden);
+
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderDefaultOffset);
 
     // Distance the header may travel before it is fully off screen. Only used while the header floats above the list;
     // where it scrolls away with the list area there is nothing to animate.
-    const minTopBarOffset = -StyleUtils.getSearchNarrowHeaderHeight(hasFilterBars);
+    const minTopBarOffset = -StyleUtils.getSearchNarrowHeaderHeight(hasFilterBars) + (isTabRowHidden ? variables.searchHiddenTabRowOffset : 0);
 
     const handleBackButtonPress = () => {
         if (!isMobileSelectionModeEnabled) {
@@ -299,7 +304,7 @@ function SearchPageNarrow({
                     queryJSON={queryJSON}
                 />
             </CollapsibleHeaderOnKeyboardGroupMember>
-            <View style={[styles.flex1, styles.flexRow, styles.pt2, pageGutterMargin, styles.mb3, styles.gap3]}>
+            <View style={[styles.flex1, styles.flexRow, isTabRowHidden ? styles.pt1 : styles.pt2, pageGutterMargin, styles.mb3, styles.gap3]}>
                 <SearchPageInputSwitch
                     showStatic={!isHeaderInteractive}
                     queryJSON={queryJSON}

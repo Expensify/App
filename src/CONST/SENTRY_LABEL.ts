@@ -31,6 +31,8 @@ const SENTRY_LABEL = {
         CLEAR_LHN_CACHE: 'TestToolMenu-ClearLHNCache',
         BETA_OVERRIDES: 'TestToolMenu-BetaOverrides',
         SERVER: 'TestToolMenu-Server',
+        SHOW_EXTRA_NAV_ITEMS: 'TestToolMenu-ShowExtraNavItems',
+        ASK_CONCIERGE_NAV_ITEM: 'TestToolMenu-AskConciergeNavItem',
         QA_AUTH: 'TestToolMenu-QAAuth',
         CLEAR_QA_AUTH_SESSION: 'TestToolMenu-ClearQAAuthSession',
         SOFT_KILL_APP: 'TestToolMenu-SoftKillApp',
@@ -145,6 +147,9 @@ const SENTRY_LABEL = {
         WORKSPACES: 'NavigationTabBar-Workspaces',
         ACCOUNT: 'NavigationTabBar-Account',
         HOME: 'NavigationTabBar-Home',
+        EXPENSES: 'NavigationTabBar-Expenses',
+        MORE: 'NavigationTabBar-More',
+        COLLAPSE: 'NavigationTabBar-Collapse',
         FLOATING_ACTION_BUTTON: 'NavigationTabBar-FloatingActionButton',
         FLOATING_RECEIPT_BUTTON: 'NavigationTabBar-FloatingReceiptButton',
         FLOATING_GPS_BUTTON: 'NavigationTabBar-FloatingGpsButton',
@@ -213,7 +218,13 @@ const SENTRY_LABEL = {
         CLOSE_BUTTON: 'Header-CloseButton',
         MORE_BUTTON: 'Header-MoreButton',
     },
+    ASK_CONCIERGE: {
+        ROW: 'AskConcierge-Row',
+        NEW_QUESTION: 'AskConcierge-NewQuestion',
+    },
+
     TOP_BAR: {
+        BACK_BUTTON: 'TopBar-BackButton',
         CANCEL_BUTTON: 'TopBar-CancelButton',
         ACCOUNT_BUTTON: 'TopBar-AccountButton',
     },
@@ -370,6 +381,7 @@ const SENTRY_LABEL = {
         DETAILS_BUTTON: 'HeaderView-DetailsButton',
         JOIN_BUTTON: 'HeaderView-JoinButton',
         NEW_CONCIERGE_CHAT_BUTTON: 'HeaderView-NewConciergeChatButton',
+        CONCIERGE_HISTORY: 'HeaderView-ConciergeHistory',
     },
     BLOCKING_VIEW: {
         RETRY_BUTTON: 'BlockingView-RetryButton',

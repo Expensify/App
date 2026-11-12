@@ -2477,6 +2477,7 @@ const translations: TranslationDeepObject<typeof en> = {
             profileTrace: 'Profil-Trace',
             results: 'Ergebnisse',
             testingPreferences: 'Testeinstellungen',
+            showExtraNavItems: 'Zusätzliche Navigationselemente anzeigen',
             server: 'Server',
             servers: {
                 production: {label: 'Produktion', description: 'Die Live-Umgebung, die echte Nutzer sehen'},
@@ -3726,6 +3727,12 @@ ${amount} für ${merchant} – ${date}`,
         title: 'Willkommen im #Focus-Modus!',
         prompt: (priorityModePageUrl: string) =>
             `Behalten Sie den Überblick, indem Sie nur ungelesene Chats oder Chats sehen, die Ihre Aufmerksamkeit erfordern. Keine Sorge, Sie können dies jederzeit in den <a href="${priorityModePageUrl}">Einstellungen</a> ändern.`,
+    },
+    morePage: {
+        accountingDescription: 'Exporte, Abgrenzungen, Abrechnungen und Abstimmung',
+        savedSearchesDescription: 'Zurück zu einer gespeicherten Suche',
+        insightsDescription: 'Sehen Sie, wohin Ihre Ausgaben fließen',
+        workspacesDescription: 'Verwalten Sie Ihre Arbeitsbereiche und Domains',
     },
     inboxTabs: {
         all: 'Alle',
@@ -11199,7 +11206,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         tabs: {
             expenseReports: 'Spesenabrechnungen',
             reports: 'Berichte',
+            allExpenses: 'Alle Ausgaben',
+            allReports: 'Alle Berichte',
             myReports: 'Meine Berichte',
+            myExpenses: 'Meine Ausgaben',
             expenses: 'Ausgaben',
             submit: 'Entwürfe',
             approve: 'Genehmigung erforderlich',

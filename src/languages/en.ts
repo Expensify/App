@@ -2630,6 +2630,7 @@ const translations = {
             profileTrace: 'Profile trace',
             results: 'Results',
             testingPreferences: 'Testing preferences',
+            showExtraNavItems: 'Show extra nav items',
             server: 'Server',
             servers: {
                 production: {label: 'Production', description: 'The live environment real users see'},
@@ -3892,6 +3893,12 @@ const translations = {
         title: 'Welcome to #focus mode!',
         prompt: (priorityModePageUrl: string) =>
             `Stay on top of things by only seeing unread chats or chats that need your attention. Don’t worry, you can change this at any point in <a href="${priorityModePageUrl}">settings</a>.`,
+    },
+    morePage: {
+        accountingDescription: 'Exports, accruals, statements and reconciliation',
+        savedSearchesDescription: 'Jump back to a search you saved',
+        insightsDescription: 'See where your spend is going',
+        workspacesDescription: 'Manage your workspaces and domains',
     },
     inboxTabs: {
         all: 'All',
@@ -11152,7 +11159,10 @@ const translations = {
         tabs: {
             expenseReports: 'Expense reports',
             reports: 'Reports',
+            allExpenses: 'All expenses',
+            allReports: 'All reports',
             myReports: 'My reports',
+            myExpenses: 'My expenses',
             expenses: 'Expenses',
             submit: 'Drafts',
             approve: 'Needs approval',

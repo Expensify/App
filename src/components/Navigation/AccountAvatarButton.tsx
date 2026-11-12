@@ -31,6 +31,7 @@ import React from 'react';
 function AccountAvatarButton() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
+    // The narrow tab bar has no Account slot at all now, so this is the only way into Account on small screens.
     if (!shouldUseNarrowLayout) {
         return null;
     }

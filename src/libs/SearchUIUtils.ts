@@ -816,6 +816,7 @@ function getSuggestedSearchesVisibility(
     hasReportAwaitingApproval = false,
     isTrackIntentUser = false,
     policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>,
+    hasOthersExpenses = false,
 ): {visibility: Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean>; hasEligibleGroupPolicies: boolean; shouldShowExpensifyCard: boolean} {
     let shouldShowSubmitSuggestion = false;
     let shouldShowPaySuggestion = false;
@@ -909,7 +910,9 @@ function getSuggestedSearchesVisibility(
     return {
         visibility: {
             [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: true,
+            [CONST.SEARCH.SEARCH_KEYS.MY_EXPENSES]: hasOthersExpenses,
             [CONST.SEARCH.SEARCH_KEYS.REPORTS]: true,
+            [CONST.SEARCH.SEARCH_KEYS.MY_REPORTS]: hasOthersExpenses,
             [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: shouldShowSubmitSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.PAY]: shouldShowPaySuggestion,
             [CONST.SEARCH.SEARCH_KEYS.APPROVE]: shouldShowApproveSuggestion,
@@ -5233,6 +5236,7 @@ type TypeMenuSectionsParams = {
     draftTransactionIDs: string[] | undefined;
     isTrackIntentUser: boolean;
     hasReportAwaitingApproval?: boolean;
+    hasOthersExpenses?: boolean;
     policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>;
     session: OnyxEntry<OnyxTypes.Session>;
 };
@@ -5251,6 +5255,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         draftTransactionIDs,
         isTrackIntentUser,
         hasReportAwaitingApproval = false,
+        hasOthersExpenses = false,
         policyCategories,
         session,
     } = params;
@@ -5260,7 +5265,16 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         visibility: suggestedSearchesVisibility,
         hasEligibleGroupPolicies,
         shouldShowExpensifyCard,
-    } = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard, hasReportAwaitingApproval, isTrackIntentUser, policyCategories);
+    } = getSuggestedSearchesVisibility(
+        currentUserEmail,
+        cardFeedsByPolicy,
+        policies,
+        defaultExpensifyCard,
+        hasReportAwaitingApproval,
+        isTrackIntentUser,
+        policyCategories,
+        hasOthersExpenses,
+    );
     const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id, shouldShowExpensifyCard, activeExpensifyCardFeedID);
     const hasAnyPolicyWithWorkflowsEnabled = Object.values(policies ?? {}).some((policy) => policy?.areWorkflowsEnabled);
     const isTrackIntentWithWorkflowsDisabled = isTrackIntentUser && !hasAnyPolicyWithWorkflowsEnabled;
@@ -5275,8 +5289,14 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.EXPENSES]) {
             expenseReportsSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.EXPENSES]);
         }
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.MY_EXPENSES]) {
+            expenseReportsSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.MY_EXPENSES]);
+        }
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.REPORTS]) {
             expenseReportsSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.REPORTS]);
+        }
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.MY_REPORTS]) {
+            expenseReportsSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.MY_REPORTS]);
         }
 
         if (!isTrackIntentWithWorkflowsDisabled) {

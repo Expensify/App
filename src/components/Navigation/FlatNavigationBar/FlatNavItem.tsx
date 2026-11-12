@@ -18,6 +18,8 @@ import type {ColorValue} from 'react-native';
 import React from 'react';
 import {View} from 'react-native';
 
+import FlatNavMarqueeLabel from './FlatNavMarqueeLabel';
+
 type FlatNavItemProps = {
     /** Translated row label */
     label: string;
@@ -50,6 +52,21 @@ type FlatNavItemProps = {
 
     /** Called when the pointer leaves the row */
     onHoverOut?: () => void;
+
+    /** Draws the row as a child of the group above it, indented against the group's shared rule */
+    isSubItem?: boolean;
+
+    /** Trims the rule above the first child so it starts inside the group rather than at the parent row */
+    isFirstSubItem?: boolean;
+
+    /** Trims the rule below the last child so it stops inside the group */
+    isLastSubItem?: boolean;
+
+    /** Scrolls a label too long for its row on hover, and names it in full in a tooltip. For rows the user named. */
+    shouldShowTooltipWhenTruncated?: boolean;
+
+    /** Control revealed at the row's end while it is hovered, such as a saved search's menu */
+    hoverActionComponent?: React.ReactNode;
 };
 
 /** Full-width row of the flat navigation bar: an icon or avatar, then the destination's label. */
@@ -66,6 +83,11 @@ function FlatNavItem({
     onPress,
     onHoverIn,
     onHoverOut,
+    isSubItem = false,
+    isFirstSubItem = false,
+    isLastSubItem = false,
+    shouldShowTooltipWhenTruncated = false,
+    hoverActionComponent,
 }: FlatNavItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -87,12 +109,21 @@ function FlatNavItem({
             sentryLabel={sentryLabel}
             onHoverIn={onHoverIn}
             onHoverOut={onHoverOut}
-            style={({hovered}) => [styles.flatNavigationBarItem, isTall && styles.flatNavigationBarAccountItem, getRowBackgroundStyle(hovered)]}
+            style={({hovered}) => [styles.flatNavigationBarItem, isTall && styles.flatNavigationBarAccountItem, isSubItem && styles.flatNavigationBarSubItem, getRowBackgroundStyle(hovered)]}
         >
             {({hovered}) => {
                 const rowBackgroundColor = getRowBackgroundStyle(hovered)?.backgroundColor;
                 return (
                     <>
+                        {isSubItem && (
+                            <View
+                                style={[
+                                    styles.flatNavigationBarSubItemRule,
+                                    isFirstSubItem && styles.flatNavigationBarSubItemRuleFirst,
+                                    isLastSubItem && styles.flatNavigationBarSubItemRuleLast,
+                                ]}
+                            />
+                        )}
                         {!!icon && (
                             <View>
                                 <Icon
@@ -115,14 +146,23 @@ function FlatNavItem({
                             </View>
                         )}
                         {renderLeftElement?.({backgroundColor: rowBackgroundColor})}
-                        <Text
-                            variant={isSelected ? 'textStrong' : 'text'}
-                            color={isSelected || hovered ? theme.text : theme.textSupporting}
-                            numberOfLines={1}
-                            style={styles.flex1}
-                        >
-                            {label}
-                        </Text>
+                        {shouldShowTooltipWhenTruncated ? (
+                            <FlatNavMarqueeLabel
+                                text={label}
+                                isHovered={hovered}
+                                style={[styles.flex1, !isSelected && styles.flatNavigationBarLabelRegular, {color: isSelected || hovered ? theme.text : theme.textSupporting}]}
+                            />
+                        ) : (
+                            <Text
+                                variant={isSelected ? 'textStrong' : 'text'}
+                                color={isSelected || hovered ? theme.text : theme.textSupporting}
+                                numberOfLines={1}
+                                style={styles.flex1}
+                            >
+                                {label}
+                            </Text>
+                        )}
+                        {!!hoverActionComponent && <View style={hovered ? styles.flatNavigationBarRowAction : styles.flatNavigationBarRowActionHidden}>{hoverActionComponent}</View>}
                         {rightElement}
                     </>
                 );

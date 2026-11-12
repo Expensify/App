@@ -1,4 +1,5 @@
 import useHover from '@hooks/useHover';
+import useIsInAskConcierge, {useAskConciergeActions} from '@hooks/useIsInAskConcierge';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -98,6 +99,8 @@ function ParentNavigationSubtitle({
         hovered,
         bind: {onMouseEnter, onMouseLeave},
     } = useHover();
+    const isInAskConcierge = useIsInAskConcierge();
+    const {openConciergeThread} = useAskConciergeActions();
 
     const {workspaceName, reportName} = parentNavigationSubtitleData;
     const {translate} = useLocalize();
@@ -146,6 +149,12 @@ function ParentNavigationSubtitle({
     }
 
     const onPress = () => {
+        // The Concierge page shows a report beside its own list, so the parent opens there rather than in the Inbox.
+        if (isInAskConcierge && openConciergeThread && parentReportID) {
+            openConciergeThread(parentReportID);
+            return;
+        }
+
         if (!parentReportID) {
             return;
         }

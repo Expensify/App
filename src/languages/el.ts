@@ -2531,6 +2531,7 @@ const translations: TranslationDeepObject<typeof en> = {
             profileTrace: 'Ίχνος προφίλ',
             results: 'Αποτελέσματα',
             testingPreferences: 'Προτιμήσεις δοκιμών',
+            showExtraNavItems: 'Εμφάνιση επιπλέον στοιχείων πλοήγησης',
             server: 'Διακομιστής',
             servers: {
                 production: {label: 'Παραγωγή', description: 'Το ζωντανό περιβάλλον που βλέπουν οι πραγματικοί χρήστες'},
@@ -3779,6 +3780,12 @@ ${amount} για ${merchant} - ${date}`,
         title: 'Καλώς ήρθατε στη λειτουργία #focus!',
         prompt: (priorityModePageUrl: string) =>
             `Μείνετε οργανωμένοι βλέποντας μόνο μη αναγνωσμένες συνομιλίες ή συνομιλίες που χρειάζονται την προσοχή σας. Μη σας ανησυχεί, μπορείτε να το αλλάξετε οποιαδήποτε στιγμή από τις <a href="${priorityModePageUrl}">ρυθμίσεις</a>.`,
+    },
+    morePage: {
+        accountingDescription: 'Εξαγωγές, δεδουλευμένα, καταστάσεις και συμφωνία',
+        savedSearchesDescription: 'Επιστρέψτε σε μια αποθηκευμένη αναζήτηση',
+        insightsDescription: 'Δείτε πού πηγαίνουν οι δαπάνες σας',
+        workspacesDescription: 'Διαχειριστείτε τους χώρους εργασίας και τους τομείς σας',
     },
     inboxTabs: {
         all: 'Όλα',
@@ -11058,7 +11065,10 @@ ${reportName}`,
         tabs: {
             expenseReports: 'Αναφορές εξόδων',
             reports: 'Αναφορές',
+            allExpenses: 'Όλα τα έξοδα',
+            allReports: 'Όλες οι αναφορές',
             myReports: 'Οι αναφορές μου',
+            myExpenses: 'Τα έξοδά μου',
             expenses: 'Έξοδα',
             submit: 'Πρόχειρα',
             approve: 'Χρειάζεται έγκριση',

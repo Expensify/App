@@ -62,6 +62,8 @@ export default function DomainListTableRow({item, rowIndex, shouldUseNarrowTable
         <Icon
             src={icons.DotIndicator}
             fill={item.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.iconSuccessFill}
+            width={variables.iconSizeSmall}
+            height={variables.iconSizeSmall}
         />
     );
 
