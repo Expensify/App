@@ -270,29 +270,27 @@ function AttachmentModalBaseContent({
                     title={headerTitle ?? translate('common.attachment')}
                     subtitleLink={currentAttachmentLink ?? ''}
                 />
-                <Header.Right>
-                    {shouldShowDownloadButton && <Header.DownloadButton onPress={() => onDownloadAttachment?.({file: fileToDisplay, source})} />}
-                    {!!threeDotsMenuItems.length &&
-                        (singleThreeDotsMenuItem ? (
-                            <Header.IconButton
-                                tooltipText={singleThreeDotsMenuItem.text ?? ''}
-                                onPress={singleThreeDotsMenuItem.onSelected}
-                                iconSrc={singleThreeDotsMenuItem.icon}
-                                sentryLabel={singleThreeDotsMenuItem.sentryLabel ?? CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
-                            />
-                        ) : (
-                            <Header.ThreeDotsMenu
-                                items={threeDotsMenuItems}
-                                shouldOverlay
-                                shouldSetModalVisibility={false}
-                                anchorAlignment={{
-                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                                }}
-                            />
-                        ))}
-                    {!shouldUseNarrowLayout && <Header.CloseButton onPress={onClose} />}
-                </Header.Right>
+                {shouldShowDownloadButton && <Header.DownloadButton onPress={() => onDownloadAttachment?.({file: fileToDisplay, source})} />}
+                {!!threeDotsMenuItems.length &&
+                    (singleThreeDotsMenuItem ? (
+                        <Header.IconButton
+                            tooltipText={singleThreeDotsMenuItem.text ?? ''}
+                            onPress={singleThreeDotsMenuItem.onSelected}
+                            iconSrc={singleThreeDotsMenuItem.icon}
+                            sentryLabel={singleThreeDotsMenuItem.sentryLabel ?? CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
+                        />
+                    ) : (
+                        <Header.ThreeDotsMenu
+                            items={threeDotsMenuItems}
+                            shouldOverlay
+                            shouldSetModalVisibility={false}
+                            anchorAlignment={{
+                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                            }}
+                        />
+                    ))}
+                {!shouldUseNarrowLayout && <Header.CloseButton onPress={onClose} />}
             </Header>
             <View style={[styles.imageModalImageCenterContainer, attachmentViewContainerStyles]}>
                 {isLoading && (
