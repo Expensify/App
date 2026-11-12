@@ -4,14 +4,11 @@ import ReportPickerModal from '@components/ReportPicker/ReportPickerModal';
 import useOnyx from '@hooks/useOnyx';
 
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
-import Navigation from '@libs/Navigation/Navigation';
 
 import useReportPickerActions from '@pages/iou/request/step/IOURequestStepReport/hooks/useReportPickerActions';
 
-import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {useRoute} from '@react-navigation/native';
 import React, {useState} from 'react';
 
 import type {ExpenseFieldDropdownRenderProps} from './ExpenseFieldDropdown';
@@ -33,8 +30,6 @@ function ReportFieldDropdownList({transactionID, onClose, onModalHide, ...popove
     // An expense being created, or moved from a tracked expense, lives in its draft until it is saved.
     const transactionCollection = shouldUseTransactionDraft(action) ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION;
     const [transaction] = useOnyx(`${transactionCollection}${transactionID}`);
-    // The list is rendered inside the form's screen, so this is the form's route.
-    const formRoute = useRoute();
 
     const {listProps} = useReportPickerActions({
         transaction,
@@ -46,7 +41,6 @@ function ReportFieldDropdownList({transactionID, onClose, onModalHide, ...popove
         onNavigateAway: onClose,
         // The container has no screen transition to wait for, and the row should show the new report as soon as it closes.
         shouldWriteAfterTransition: false,
-        setFormIOUType: (formIOUType: IOUType) => Navigation.setParams({iouType: formIOUType}, formRoute.key),
     });
 
     return (
