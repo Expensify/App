@@ -3108,7 +3108,7 @@ describe('TransactionUtils', () => {
         });
 
         it('should return false for a stale futureDate violation once the date is within the +14 hour window', () => {
-            // Given a futureDate violation saved earlier on an expense dated today at UTC+14
+            // Given a futureDate violation saved earlier on a date-only expense dated the current UTC+14 date
             jest.useFakeTimers();
             jest.setSystemTime(new Date('2026-10-27T17:18:00Z'));
             const transaction = generateTransaction({created: '2026-10-28'});
