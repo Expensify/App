@@ -2058,7 +2058,6 @@ export {
     getWorkflowMemberEmails,
     hasApprovalWorkflowRules,
     hasApprovalWorkflowWithNonMemberApprover,
-    hasNonMemberApprover,
     hasMultiLevelApprovalWorkflow,
     getFirstApproverLabel,
     hasRuleBasedDefaultWorkflow,
