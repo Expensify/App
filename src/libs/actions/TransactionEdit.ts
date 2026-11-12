@@ -9,8 +9,6 @@ import type {Connection, OnyxEntry} from 'react-native-onyx';
 import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
-import type {initMoneyRequest} from './IOU/MoneyRequest';
-
 import {generateTransactionID} from './Transaction';
 
 let connection: Connection | undefined;
@@ -170,7 +168,7 @@ function removeTransactionReceipt(transactionID: string | undefined) {
 }
 
 type BuildOptimisticTransactionParams = {
-    initialTransaction: Partial<Transaction> | NonNullable<ReturnType<typeof initMoneyRequest>>;
+    initialTransaction: Partial<Transaction>;
     reportID: string;
 };
 

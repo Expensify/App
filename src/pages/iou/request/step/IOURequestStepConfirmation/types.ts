@@ -10,4 +10,5 @@ type IOURequestStepConfirmationProps = WithWritableReportOrNotFoundProps<IOURequ
         shouldHideHeader?: boolean;
     };
 
-export default IOURequestStepConfirmationProps;
+// eslint-disable-next-line import/prefer-default-export
+export type {IOURequestStepConfirmationProps};
