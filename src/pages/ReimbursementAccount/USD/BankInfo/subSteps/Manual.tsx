@@ -84,6 +84,7 @@ function Manual({onNext}: BankInfoSubStepProps) {
                 shouldSaveDraft
                 shouldUseDefaultValue={hasBankAccountData}
                 disabled={hasBankAccountData}
+                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             />
             <InputWrapper
                 InputComponent={TextInput}
@@ -97,6 +98,7 @@ function Manual({onNext}: BankInfoSubStepProps) {
                 shouldSaveDraft
                 shouldUseDefaultValue={hasBankAccountData}
                 disabled={hasBankAccountData}
+                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             />
         </FormProvider>
     );

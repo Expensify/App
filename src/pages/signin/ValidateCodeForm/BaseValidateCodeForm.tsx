@@ -326,6 +326,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                             hasError={hasError}
                             onSubmitEditing={validateAndSubmitForm}
                             autoFocus
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                         />
                     ) : (
                         <ValidateCodeInput

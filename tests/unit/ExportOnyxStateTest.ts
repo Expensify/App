@@ -680,6 +680,33 @@ describe('maskOnyxState', () => {
         }
     });
 
+    it('should mask identity and credential fields saved in form drafts', () => {
+        // Given wallet and bank account drafts that hold SSNs and dates of birth, including a beneficial owner's fields, which are keyed by owner ID
+        const sensitiveValues = ['123456789', '1985-04-12', '6789', '1990-01-31', '4321', 'IntacctPassword', 'NetSuiteTokenSecret'];
+        const {PREFIX, DOB, SSN_LAST_4} = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
+        const ownerID = '6f1c2b3a-1234-4bcd-9e8f-000000000001';
+        const input = {
+            session: mockSession,
+            [ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT]: {ssn: '123456789', dob: '1985-04-12'},
+            [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT]: {
+                ssnLast4: '6789',
+                [`${PREFIX}_${ownerID}_${DOB}`]: '1990-01-31',
+                [`${PREFIX}_${ownerID}_${SSN_LAST_4}`]: '4321',
+                beneficialOwnerKeys: [ownerID],
+            },
+            [ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM_DRAFT]: {password: 'IntacctPassword'},
+            [ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM_DRAFT]: {netSuiteTokenSecret: 'NetSuiteTokenSecret'},
+        };
+
+        // When the state is exported with masking on
+        const serialized = JSON.stringify(maskOnyxState(input, true));
+
+        // Then none of those values appear in the export, so a file shared with support can't leak them
+        for (const sensitiveValue of sensitiveValues) {
+            expect(serialized).not.toContain(sensitiveValue);
+        }
+    });
+
     it.each([
         ['masking enabled', true],
         ['masking disabled', false],
