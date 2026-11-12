@@ -5101,24 +5101,6 @@ const staticStyles = (theme: ThemeColors) =>
             textAlign: 'center',
         },
 
-        linkPreviewWrapper: {
-            marginTop: 16,
-            borderLeftWidth: 4,
-            borderLeftColor: theme.border,
-            paddingLeft: 12,
-        },
-
-        linkPreviewImage: {
-            flex: 1,
-            borderRadius: 8,
-            marginTop: 8,
-        },
-
-        linkPreviewLogoImage: {
-            height: 16,
-            width: 16,
-        },
-
         contextMenuItemPopoverMaxWidth: {
             minWidth: variables.compactPopoverMenuWidth,
             maxWidth: variables.compactPopoverMenuWidth,
