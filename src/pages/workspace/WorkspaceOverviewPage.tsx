@@ -239,6 +239,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const getRulesDocumentMenuItems = (openPicker: (options: {onPicked: (files: FileObject[]) => void}) => void): PopoverMenuItem[] => [
         {
             text: translate('common.replace'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.RULES_DOCUMENT_MENU_REPLACE,
             icon: expensifyIcons.Upload,
             shouldCallAfterModalHide: true,
             onSelected: () => {
@@ -249,6 +250,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         },
         {
             text: translate('common.remove'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.RULES_DOCUMENT_MENU_REMOVE,
             icon: expensifyIcons.Trashcan,
             onSelected: () => {
                 if (!policyID || !rulesDocumentURL) {
@@ -413,6 +415,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (canUnarchive) {
             secondaryActions.push({
                 value: 'unarchive',
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_MENU_UNARCHIVE,
                 text: translate('workspace.common.unarchive'),
                 icon: expensifyIcons.ArrowCircleClockwise,
                 // The confirmation modal is handled by UnarchiveWorkspaceFlow, which mounts when this is set.
@@ -422,6 +425,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (canLeave) {
             secondaryActions.push({
                 value: 'leave',
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_MENU_LEAVE,
                 text: translate('common.leave'),
                 icon: expensifyIcons.Exit,
                 onSelected: () => close(handleLeave),
@@ -433,11 +437,12 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             text: translate('common.share'),
             icon: expensifyIcons.QrCode,
             onSelected: isAccountLocked ? showLockedAccountModal : onPressShare,
-            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.SHARE,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_MENU_SHARE,
         });
         if (isOwner) {
             secondaryActions.push({
                 value: canArchivePolicies ? 'archive' : 'delete',
+                sentryLabel: canArchivePolicies ? CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_MENU_ARCHIVE : CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_MENU_DELETE,
                 text: translate(canArchivePolicies ? 'workspace.common.archive' : 'common.delete'),
                 icon: canArchivePolicies ? expensifyIcons.Box : expensifyIcons.Trashcan,
                 onSelected: () => {
@@ -464,6 +469,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (isCurrentUserAdmin && !isCurrentUserOwner && shouldRenderTransferOwnerButton(fundList)) {
             secondaryActions.push({
                 value: 'transferOwner',
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_MENU_TRANSFER_OWNER,
                 text: translate('workspace.people.transferOwner'),
                 icon: expensifyIcons.Transfer,
                 onSelected: startChangeOwnershipFlow,
@@ -472,6 +478,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (canLeave) {
             secondaryActions.push({
                 value: 'leave',
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_MENU_LEAVE,
                 text: translate('common.leave'),
                 icon: expensifyIcons.Exit,
                 onSelected: () => close(handleLeave),
