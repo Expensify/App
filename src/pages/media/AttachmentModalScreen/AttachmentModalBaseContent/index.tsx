@@ -278,7 +278,7 @@ function AttachmentModalBaseContent({
                                 tooltipText={singleThreeDotsMenuItem.text ?? ''}
                                 onPress={singleThreeDotsMenuItem.onSelected}
                                 iconSrc={singleThreeDotsMenuItem.icon}
-                                sentryLabel={singleThreeDotsMenuItem.sentryLabel}
+                                sentryLabel={singleThreeDotsMenuItem.sentryLabel ?? CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
                             />
                         ) : (
                             <Header.ThreeDotsMenu
