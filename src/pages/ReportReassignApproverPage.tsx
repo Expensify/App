@@ -173,6 +173,10 @@ function ReportReassignApproverPage({report, policy, isLoadingReportData}: Repor
             testID="ReportReassignApproverPage"
             headerTitle={translate('iou.changeApprover.actions.reassignApprover')}
             onBackButtonPress={() => {
+                if (!isPolicyAdmin(policy) && canMemberReassignApprover) {
+                    Navigation.dismissToPreviousRHP();
+                    return;
+                }
                 Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.REPORT_CHANGE_APPROVER.path, ROUTES.REPORT_WITH_ID.getRoute(report.reportID)), {compareParams: false});
             }}
             subtitle={<Text style={[styles.ph5, styles.pb3]}>{translate('iou.changeApprover.actions.reassignApproverPageHeader')}</Text>}

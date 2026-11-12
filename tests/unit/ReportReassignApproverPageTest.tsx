@@ -15,7 +15,7 @@ import {ReportReassignApproverPage} from '@pages/ReportReassignApproverPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 
 import React from 'react';
@@ -48,7 +48,7 @@ jest.mock('@pages/inbox/report/withReportOrNotFound', () => () => (component: Re
 jest.mock('@hooks/useDynamicBackPath', () => () => '');
 jest.mock('@hooks/useEnvironment', () => () => ({environmentURL: ''}));
 jest.mock('@hooks/useStrictPolicyRules', () => jest.fn(() => ({areStrictPolicyRulesEnabled: false})));
-jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn()}));
+jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn(), dismissToPreviousRHP: jest.fn()}));
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({
     accountID: CURRENT_USER_ACCOUNT_ID,
@@ -222,6 +222,23 @@ describe('ReportReassignApproverPage', () => {
             expect(props?.data?.at(0)?.isSelected).toBe(true);
             act(() => props?.confirmButtonOptions?.onConfirm?.());
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_CHANGE_APPROVER_REASSIGN_APPROVER.getRoute(report.reportID));
+        }
+    });
+
+    it.each([CONST.POLICY.ROLE.USER, CONST.POLICY.ROLE.ADMIN])('returns to the appropriate screen for %s', (role) => {
+        // Given a current approver on the reassignment page with strict rules disabled
+        renderPage(buildPolicy(role), {...report, managerID: CURRENT_USER_ACCOUNT_ID});
+
+        // When the user presses Back
+        act(() => mockApproverSelectionList.mock.calls.at(-1)?.[0].onBackButtonPress());
+
+        // Then members return to the report while admins return to their action menu
+        if (role === CONST.POLICY.ROLE.USER) {
+            expect(Navigation.dismissToPreviousRHP).toHaveBeenCalledTimes(1);
+            expect(Navigation.goBack).not.toHaveBeenCalled();
+        } else {
+            expect(Navigation.goBack).toHaveBeenCalledWith(`${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}/${DYNAMIC_ROUTES.REPORT_CHANGE_APPROVER.path}`, {compareParams: false});
+            expect(Navigation.dismissToPreviousRHP).not.toHaveBeenCalled();
         }
     });
 
