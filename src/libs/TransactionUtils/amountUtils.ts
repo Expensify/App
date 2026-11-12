@@ -1,9 +1,9 @@
 import CONST from '@src/CONST';
-import type {Transaction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Transaction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-function hasValidModifiedAmount(transaction: OnyxEntry<Transaction> | null): boolean {
+function hasValidModifiedAmount(transaction: OnyxInputOrEntry<Partial<Pick<Transaction, 'modifiedAmount'>>>): boolean {
     if (!transaction) {
         return false;
     }

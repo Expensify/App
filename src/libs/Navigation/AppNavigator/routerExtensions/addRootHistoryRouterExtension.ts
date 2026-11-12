@@ -10,7 +10,6 @@ import type {PendingReveal, RootHistoryState} from './addRootHistoryRouterExtens
 
 import {
     applyRevealPaddingOffset,
-    asCustomHistory,
     getFrozenHistoryStateForRemoveFullscreenUnderRHP,
     getFrozenHistoryStateForReplaceFullscreenUnderRHP,
     getRevealDismissState,
@@ -39,7 +38,7 @@ function addRootHistoryRouterExtension<RouterOptions extends PlatformStackRouter
             return enhanceStateWithHistory(state);
         };
 
-        const getRehydratedState = (partialState: PartialState<PlatformStackNavigationState<ParamListBase>>, configOptions: RouterConfigOptions) => {
+        const getRehydratedState = (partialState: PartialState<RootHistoryState> | RootHistoryState, configOptions: RouterConfigOptions) => {
             const state = router.getRehydratedState(partialState, configOptions);
             const stateWithInitialHistory = enhanceStateWithHistory(state);
 
@@ -49,15 +48,14 @@ function addRootHistoryRouterExtension<RouterOptions extends PlatformStackRouter
             // getStateForAction is what intentionally drops a modal back-guard entry.
             const trailingSentinels = getTrailingStringSentinels(state.history);
             if (trailingSentinels.length > 0) {
-                stateWithInitialHistory.history = [...(asCustomHistory(stateWithInitialHistory.history) ?? []), ...trailingSentinels];
+                stateWithInitialHistory.history = [...(stateWithInitialHistory.history ?? []), ...trailingSentinels];
             }
 
             return stateWithInitialHistory;
         };
 
-        // Centralizes the `PartialState | FullState` cast to `getRehydratedState`'s input shape.
         function rehydrate(newState: PartialState<RootHistoryState> | RootHistoryState, configOptions: RouterConfigOptions) {
-            return getRehydratedState(newState as PartialState<RootHistoryState>, configOptions);
+            return getRehydratedState(newState, configOptions);
         }
 
         const getStateForAction = (state: RootHistoryState, action: RootStackNavigatorAction, configOptions: RouterConfigOptions) => {
@@ -112,8 +110,8 @@ function addRootHistoryRouterExtension<RouterOptions extends PlatformStackRouter
             // unaffected. Either ordering works: if the Modal's own toggle(false) ran first, the trailing
             // entry is already a route and this is a no-op.
             const isForwardNavigation = action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH || action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE;
-            if (isForwardNavigation && isModalHistorySentinel(asCustomHistory(state.history)?.at(-1))) {
-                const consumedHistory = stripTrailingModalSentinels(asCustomHistory(rehydrated.history) ?? []);
+            if (isForwardNavigation && isModalHistorySentinel(state.history?.at(-1))) {
+                const consumedHistory = stripTrailingModalSentinels(rehydrated.history ?? []);
                 return applyRevealPaddingOffset(state, {...rehydrated, history: consumedHistory});
             }
 
