@@ -417,7 +417,7 @@ function PolicyDistanceRatesPage({
                         onPress={() => {}}
                         shouldUseOptionIcon
                         customText={translate('common.more')}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.MORE_DROPDOWN}
+                        sentryLabel={secondaryActions.length > 1 ? CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.MORE_DROPDOWN : CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.MORE_MENU_SETTINGS}
                         options={secondaryActions}
                         isSplitButton={false}
                         wrapperStyle={styles.flexGrow0}

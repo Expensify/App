@@ -308,7 +308,7 @@ function WorkspaceTaxesPage({
                         onPress={() => {}}
                         shouldUseOptionIcon
                         customText={translate('common.more')}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.MORE_DROPDOWN}
+                        sentryLabel={secondaryActions.length > 1 ? CONST.SENTRY_LABEL.WORKSPACE.TAXES.MORE_DROPDOWN : CONST.SENTRY_LABEL.WORKSPACE.TAXES.MORE_MENU_SETTINGS}
                         options={secondaryActions}
                         isSplitButton={false}
                         wrapperStyle={hasAccountingConnections ? styles.flexGrow1 : styles.flexGrow0}
