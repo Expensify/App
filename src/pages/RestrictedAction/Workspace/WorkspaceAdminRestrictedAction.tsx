@@ -63,6 +63,7 @@ function WorkspaceAdminRestrictedAction({policyID}: WorkspaceAdminRestrictedActi
                     </Text>
                 </View>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.RESTRICTED_ACTION.ADMIN_CHAT_IN_ADMINS}
                     onPress={openAdminsReport}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}

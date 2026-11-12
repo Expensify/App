@@ -34,11 +34,15 @@ jest.mock('@rnmapbox/maps', () => ({
 let mockIsOffline = false;
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: mockIsOffline})));
 
+let mockIsInPreloadedTab = false;
+jest.mock('@hooks/useIsInPreloadedTab', () => jest.fn(() => mockIsInPreloadedTab));
+
 afterEach(() => {
     jest.clearAllMocks();
     mockIsOffline = false;
     mockIsSearchTopmostFullScreenRoute = false;
     mockUseIsFocused.mockReturnValue(true);
+    mockIsInPreloadedTab = false;
 });
 
 describe('useSearchAutoRefetch', () => {
@@ -293,6 +297,29 @@ describe('useSearchAutoRefetch', () => {
         expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
     });
 
+    it.each([
+        ['edited', {amount: 250}],
+        ['removed from its report', {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}],
+    ])('should trigger search on a grouped search when a transaction is %s', (_, transactionChange) => {
+        // Given a search grouped by approver, whose snapshot only holds the groups and not their transactions or reports
+        const transaction = createMock<Transaction>({transactionID: '1', amount: 100, reportID: '10'});
+        const initialProps = createMock<UseSearchAutoRefetch>({
+            ...baseProps,
+            queryJSON: {...baseProps.queryJSON, groupBy: CONST.SEARCH.GROUP_BY.APPROVER},
+            transactions: {transactions_1: transaction},
+            previousTransactions: {transactions_1: transaction},
+        });
+        const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+            initialProps,
+        });
+
+        // When the transaction changes
+        rerender(createMock<UseSearchAutoRefetch>({...initialProps, transactions: {transactions_1: {...transaction, ...transactionChange}}}));
+
+        // Then the search runs again, because the snapshot can't show whether the change touches one of its groups
+        expect(search).toHaveBeenCalledTimes(1);
+    });
+
     it('should not trigger search when the edited transaction is absent from the results', () => {
         const visibleTransaction = createMock<Transaction>({transactionID: '1', amount: 100});
         const filteredOutTransaction = createMock<Transaction>({transactionID: '99', amount: 100});
@@ -410,6 +437,39 @@ describe('useSearchAutoRefetch', () => {
 
         rerender({...settledProps});
         expect(search).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not keep a deferred search from a preloaded tab for when it is opened', () => {
+        // Given a Spend tab preloaded at idle that is not active yet, showing an expense
+        const transaction = createMock<Transaction>({transactionID: '1', amount: 100});
+        const editedTransaction = createMock<Transaction>({transactionID: '1', amount: 250});
+        const initialProps = createMock<UseSearchAutoRefetch>({
+            ...baseProps,
+            searchResults: {
+                ...baseProps.searchResults,
+                data: {
+                    transactions_1: {transactionID: '1'},
+                },
+            },
+            transactions: {transactions_1: transaction},
+            previousTransactions: {transactions_1: transaction},
+        });
+        mockIsInPreloadedTab = true;
+        mockIsOffline = true;
+        const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+            initialProps,
+        });
+
+        // When that expense changes while the tab is hidden, and the user then opens the tab
+        const editedProps = createMock<UseSearchAutoRefetch>({...initialProps, transactions: {transactions_1: editedTransaction}});
+        rerender(editedProps);
+        rerender(createMock<UseSearchAutoRefetch>({...editedProps, previousTransactions: {transactions_1: editedTransaction}}));
+        mockIsInPreloadedTab = false;
+        mockIsOffline = false;
+        rerender(createMock<UseSearchAutoRefetch>({...editedProps, previousTransactions: {transactions_1: editedTransaction}}));
+
+        // Then no refetch goes out, since the page refreshes the whole snapshot on first open and a second request would repeat it
+        expect(search).not.toHaveBeenCalled();
     });
 
     it('should not trigger search when only the snapshot changes and the collections are unchanged', () => {

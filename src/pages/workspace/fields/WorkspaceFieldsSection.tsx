@@ -33,6 +33,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {Policy, PolicyConnectionName} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -75,6 +76,9 @@ type WorkspaceFieldsSectionProps = {
     policyFeature: PolicyFeature;
     syncErrorConnectionNames?: readonly PolicyConnectionName[];
     titleAccessibilityRole?: typeof CONST.ROLE.HEADER;
+    switchSentryLabel: SentryLabel;
+    rowSentryLabel: SentryLabel;
+    addFieldSentryLabel: SentryLabel;
 };
 
 function keyExtractor(item: FieldListItem) {
@@ -103,6 +107,9 @@ function WorkspaceFieldsSection({
     policyFeature,
     syncErrorConnectionNames,
     titleAccessibilityRole,
+    switchSentryLabel,
+    rowSentryLabel,
+    addFieldSentryLabel,
 }: WorkspaceFieldsSectionProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -155,6 +162,7 @@ function WorkspaceFieldsSection({
     const renderItem = ({item}: ListRenderItemInfo<FieldListItem>) => (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
             <MenuItem
+                sentryLabel={rowSentryLabel}
                 style={cardPaddingHorizontal}
                 onPress={() => navigateToFieldSettings(item)}
                 description={item.text}
@@ -210,6 +218,7 @@ function WorkspaceFieldsSection({
                 pendingAction={pendingAction}
                 title={translate(titleKey)}
                 switchAccessibilityLabel={switchAccessibilityLabel}
+                switchSentryLabel={switchSentryLabel}
                 subtitle={headerText}
                 titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
                 titleAccessibilityRole={titleAccessibilityRole}
@@ -257,6 +266,7 @@ function WorkspaceFieldsSection({
                             </View>
                             {canWrite && (
                                 <MenuItemSectionRoot
+                                    sentryLabel={addFieldSentryLabel}
                                     onPress={() => {
                                         setInitialCreateReportFieldsForm();
                                         Navigation.navigate(createRoute);

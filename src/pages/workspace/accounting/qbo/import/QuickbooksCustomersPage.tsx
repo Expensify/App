@@ -65,6 +65,7 @@ function QuickbooksCustomersPage({policy}: WithPolicyProps) {
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}
                 switchAccessibilityLabel={translate('workspace.qbo.customers')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.IMPORT_CUSTOMERS_SWITCH}
                 isActive={isSwitchOn}
                 onToggle={() =>
                     QuickbooksOnline.updateQuickbooksOnlineSyncCustomers(
@@ -84,7 +85,10 @@ function QuickbooksCustomersPage({policy}: WithPolicyProps) {
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS], qboConfig?.pendingFields)}>
                     <View style={styles.mt4}>
-                        <MenuItemSectionRoot onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS_DISPLAYED_AS.getRoute(policyID))}>
+                        <MenuItemSectionRoot
+                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS_DISPLAYED_AS.getRoute(policyID))}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.CUSTOMERS_DISPLAYED_AS}
+                        >
                             <MenuItemField.Row
                                 name={translate('workspace.common.displayedAs')}
                                 value={isReportFieldsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
