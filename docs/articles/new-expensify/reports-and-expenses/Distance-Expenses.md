@@ -148,7 +148,7 @@ When you switch the route on an already-created expense, the distance, amount, a
 
 If you are creating expenses on a Workspace: 
 
-- Workspace Admins set and manage the reimbursement rates for the workspace's distance unit (miles or kilometers).
+- Workspace admins set and manage the reimbursement rates for the workspace's distance unit (miles or kilometers).
 - When creating a Distance expense, the available reimbursement rates will show for selection.
 - When a Workspace has multiple rates with effective dates, Expensify automatically applies the rate whose date range matches the expense date, so you don't need to pick the right one manually.
 
@@ -251,7 +251,7 @@ Yes! You can edit the expense before it is approved. When editing a map-based Di
 
 ## Can I update the Distance expense unit or rate?
 
-The distance unit is set by a Workspace Admin on the Workspace and can’t be changed at the expense level.
+The distance unit is set by a workspace admin on the Workspace and can’t be changed at the expense level.
 
 The rate can be changed on an individual expense. Open the Distance expense, select the **Rate** field, choose another rate from the Workspace, and select **Save**. The distance, amount, and currency are recalculated to match the rate you select.
 
@@ -269,7 +269,7 @@ Selecting a valid rate on the expense clears the violation and updates the expen
 
 ## Why can't I enter distance manually or with my odometer?
 
-When your Workspace Admin has enabled a commute exclusion, only **Map** and **GPS** distance methods are available. Manual and odometer entry are hidden because they don't provide the route detail needed to calculate the excluded commute distance.
+When your workspace admin has enabled a commute exclusion, only **Map** and **GPS** distance methods are available. Manual and odometer entry are hidden because they don't provide the route detail needed to calculate the excluded commute distance.
 
 ## Does the commute exclusion combine my trips for the day?
 
