@@ -307,6 +307,7 @@ function SearchStaticList({
                         isSelected={false}
                         isDisabled
                         shouldShowCheckbox={canSelectMultiple}
+                        checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.STATIC_LIST_ITEM_CHECKBOX}
                         shouldShowErrors
                         violations={item.violations}
                         isDateColumnCreated={isCreatedDateType(type)}
@@ -369,6 +370,7 @@ function SearchStaticList({
                                 importantForAccessibility="no-hide-descendants"
                             >
                                 <Checkbox
+                                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECT_ALL_CHECKBOX}
                                     accessibilityLabel={translate('workspace.people.selectAll')}
                                     isChecked={false}
                                     disabled

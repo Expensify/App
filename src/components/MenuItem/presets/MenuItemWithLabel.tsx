@@ -5,7 +5,7 @@ import MenuItemLabel from '@components/MenuItem/leaves/content/MenuItemLabel';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -32,7 +32,7 @@ function MenuItemWithLabel({label, onPress, isDisabled = false, sentryLabel, tes
                 <MenuItemLabel>{label}</MenuItemLabel>
             </View>
             <MenuItemRoot
-                onPress={onPress ? callFunctionIfActionIsAllowed(onPress, false, session) : undefined}
+                onPress={onPress ? callIfAuthenticated(onPress, session) : undefined}
                 isDisabled={isDisabled}
                 sentryLabel={sentryLabel}
                 testID={testID}

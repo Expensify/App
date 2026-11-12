@@ -41,6 +41,9 @@ type ColumnResizeController = {
 
     /** Position and handlers for a column's handle, or `undefined` when its edge doesn't drag. */
     getHandleProps: (columnKey: string) => ColumnResizeHandleDOMProps | undefined;
+
+    /** Whether the column has a resize handle. */
+    hasHandle: (columnKey: string) => boolean;
 };
 
 export type {ColumnResizeController, ColumnResizeHandleDOMProps, UseColumnResizeParams};

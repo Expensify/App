@@ -14,6 +14,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -45,6 +46,7 @@ type MenuItem = {
     text: string;
     onSelected: () => void;
     shouldCallAfterModalHide?: boolean;
+    sentryLabel: SentryLabel;
 };
 
 type AvatarWithImagePickerProps = Omit<AvatarButtonWithIconProps, 'text' | 'onPress' | 'anchorRef'> & {
@@ -157,6 +159,7 @@ function AvatarWithImagePicker({
             {
                 icon: icons.Upload,
                 text: translate('avatarWithImagePicker.uploadPhoto'),
+                sentryLabel: CONST.SENTRY_LABEL.AVATAR_WITH_IMAGE_PICKER.EDIT_MENU_UPLOAD_PHOTO,
                 onSelected: () => {
                     if (isSafari()) {
                         return;
@@ -174,6 +177,7 @@ function AvatarWithImagePicker({
             menuItems.push({
                 icon: icons.Trashcan,
                 text: translate('avatarWithImagePicker.removePhoto'),
+                sentryLabel: CONST.SENTRY_LABEL.AVATAR_WITH_IMAGE_PICKER.EDIT_MENU_REMOVE_PHOTO,
                 onSelected: () => {
                     setError(null, {});
                     onImageRemoved();
@@ -222,6 +226,7 @@ function AvatarWithImagePicker({
                             menuItems.push({
                                 icon: icons.Eye,
                                 text: translate('avatarWithImagePicker.viewPhoto'),
+                                sentryLabel: CONST.SENTRY_LABEL.AVATAR_WITH_IMAGE_PICKER.EDIT_MENU_VIEW_PHOTO,
                                 onSelected: onViewPhotoPress,
                                 shouldCallAfterModalHide: true,
                             });
