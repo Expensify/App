@@ -109,10 +109,6 @@ function canBuildRetryPayload(context: ReceiptRetryContext): boolean {
         return false;
     }
 
-    // The report refused an expense, so the retry cannot reuse it, and a retry has nowhere else to go. Sending it at a
-    // freshly built report would rewrite the refused one: the builder is handed that report's ID as the optimistic ID,
-    // and a new report is written with SET. Re-targeting a refused expense needs a product decision about where the
-    // expense goes and what happens to the receipt, so this leaves the failure on screen instead of risking the report.
     if (isExpenseReportRejected(iouReport?.reportID)) {
         return false;
     }

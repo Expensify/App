@@ -1236,8 +1236,6 @@ Onyx.connectWithoutView({
     },
 });
 
-// Reports the server refused a new expense on this session. A non-UI read: `canAddTransaction` runs in plain functions
-// too, and the key is written by a response handler, never by a component.
 let rejectedExpenseReports: OnyxCollection<boolean> = {};
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.RAM_ONLY_REJECTED_EXPENSE_REPORT,
@@ -3269,16 +3267,6 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, rules
     return true;
 }
 
-/**
- * Whether the server has already refused a new expense on this report since the app started.
- *
- * The report's own state is what normally decides this, and the server pushes that state when it approves or closes a
- * report. This covers the case where that push never reached us: the refusal itself comes back with no corrective
- * report state, so local `stateNum` and `statusNum` stay open and every status-based guard keeps agreeing with the
- * server right up until the next expense is rejected again. It is a RAM-only note rather than a persisted one because
- * it is a claim about data we have not re-read. The next OpenApp either corrects the status or accepts the expense,
- * and a report the server reopened across a reload should not stay blocked for a refusal it has since withdrawn.
- */
 function isExpenseReportRejected(reportID: string | undefined): boolean {
     return !!reportID && !!rejectedExpenseReports[`${ONYXKEYS.COLLECTION.RAM_ONLY_REJECTED_EXPENSE_REPORT}${reportID}`];
 }

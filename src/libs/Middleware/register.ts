@@ -83,7 +83,6 @@ function registerMiddlewares() {
     // with the report it created for them. Must run before SaveResponseInOnyx so its updates are applied with the response.
     addMiddleware(HandleMovedScanFailedExpenses);
 
-    // Note the reports that refused a new expense, so the money request flow stops aiming expenses at them. Must run before SaveResponseInOnyx, which applies the updates this adds.
     addMiddleware(HandleRejectedExpenseReport);
 
     // Reconcile bulk-edit actions before successData can reinsert an action Auth skipped.

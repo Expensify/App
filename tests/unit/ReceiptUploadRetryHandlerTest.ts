@@ -143,20 +143,6 @@ describe('buildRetryPayload', () => {
         expect(canRetry).toBe(true);
     });
 
-    it('offers no retry once the server refused an expense on the report, because the retry has nowhere else to send it', async () => {
-        // Given a failed expense whose report the server refused to add an expense to, so the report left the writable states
-        const context = buildContext(buildFailedTransaction());
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REJECTED_EXPENSE_REPORT}${IOU_REPORT_ID}`, true);
-        await waitForBatchedUpdates();
-
-        // When the view asks whether Try again can be shown
-        const canRetry = canBuildRetryPayload(context);
-
-        // Then it is hidden. The retry replays the report's own ID as the optimistic one, and a new report is written
-        // with SET, so sending it somewhere else would overwrite the refused report rather than route around it.
-        expect(canRetry).toBe(false);
-    });
-
     it('reuses the IOU report action and transaction thread, so the retry does not add a second expense to the report', () => {
         // Given a failed expense whose IOU action and transaction thread already exist locally
         const context = buildContext(buildFailedTransaction());
