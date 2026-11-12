@@ -212,6 +212,50 @@ describe('MoneyRequestReportActionsList system-message presentation', () => {
         });
     });
 
+    it.each([false, true])('shows separate creation and submission rows when the invoice has a linked bill is %s', async (hasLinkedBill) => {
+        // Given an invoice whose history uses the vendor's account for every event and comment.
+        const createdAction = makeAction('created', CONST.REPORT.ACTIONS.TYPE.CREATED, '2026-08-02 00:00:00.000');
+        const submittedAction = makeAction('submitted', CONST.REPORT.ACTIONS.TYPE.SUBMITTED, '2026-08-02 00:00:01.000');
+        const actions = [
+            makeAction('second-comment', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2026-08-02 00:00:03.000'),
+            makeAction('first-comment', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2026-08-02 00:00:02.000'),
+            submittedAction,
+            createdAction,
+        ];
+        mockUsePaginatedReportActions.mockReturnValue({
+            reportActions: actions,
+            linkedAction: undefined,
+            oldestUnreadReportAction: undefined,
+            sortedAllReportActions: undefined,
+            hasNewerActions: false,
+            hasOlderActions: false,
+            report: undefined,
+        });
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {type: CONST.REPORT.TYPE.INVOICE});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID}`, hasLinkedBill ? {billID: 100002} : {});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, Object.fromEntries(actions.map((action) => [action.reportActionID, action])));
+        });
+
+        // When the table view builds the invoice history.
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Bill Pay keeps both event headers and the following comment's author, without changing ordinary invoice grouping.
+        expect(getRenderedActionIDs()).toEqual([
+            ...(hasLinkedBill ? ['report-action-created'] : []),
+            'report-action-submitted',
+            'report-action-first-comment',
+            'report-action-second-comment',
+        ]);
+        expect(screen.getByTestId('report-action-submitted').props.accessibilityLabel).toBe('single');
+        expect(screen.getByTestId('report-action-first-comment').props.accessibilityLabel).toBe(hasLinkedBill ? 'single' : 'grouped');
+        expect(screen.getByTestId('report-action-second-comment').props.accessibilityLabel).toBe('grouped');
+        if (hasLinkedBill) {
+            expect(screen.getByTestId('report-action-created').props.accessibilityLabel).toBe('single');
+        }
+    });
+
     it.each([false, true])('counts and expands only visible payment updates when waiting for a bank account is %s', async (isWaitingOnBankAccount) => {
         // Given an expense payment between the two oldest system updates
         const payment: ReportAction = {

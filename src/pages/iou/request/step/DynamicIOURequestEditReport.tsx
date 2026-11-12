@@ -121,6 +121,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
                 isASAPSubmitBetaEnabled,
                 accountID: currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 email: currentUserPersonalDetails.email ?? '',
+                currentUserPersonalDetails,
                 newReport,
                 policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
@@ -155,6 +156,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             isASAPSubmitBetaEnabled,
             accountID: currentUserPersonalDetails.accountID,
             email: currentUserPersonalDetails.email ?? '',
+            currentUserPersonalDetails,
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
             policyTagList,
             transactions,
@@ -247,6 +249,9 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             isPerDiemRequest={hasPerDiemTransactions}
             isUnreportedManagedCardTransaction={hasUnreportedManagedCardTransactions}
             transactionPolicyID={targetExpensePolicyID}
+            createReportSentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.EDIT_REPORT_CREATE_REPORT}
+            autoReportSentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.EDIT_REPORT_AUTO_REPORT}
+            removeFromReportSentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.EDIT_REPORT_REMOVE_FROM_REPORT}
         />
     );
 }

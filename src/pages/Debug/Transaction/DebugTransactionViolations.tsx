@@ -27,6 +27,7 @@ function DebugTransactionViolations({transactionID}: DebugTransactionViolationsP
 
     const renderItem = (item: TransactionViolation, index: number) => (
         <PressableWithFeedback
+            sentryLabel={CONST.SENTRY_LABEL.DEBUG.TRANSACTION_VIOLATION_ROW}
             accessibilityLabel={translate('common.details')}
             onPress={() => Navigation.navigate(ROUTES.DEBUG_TRANSACTION_VIOLATION.getRoute(transactionID, String(index)))}
             style={({pressed}) => [styles.flexRow, styles.justifyContentBetween, pressed && styles.hoveredComponentBG, styles.p4]}
@@ -41,6 +42,7 @@ function DebugTransactionViolations({transactionID}: DebugTransactionViolationsP
     return (
         <ScrollView style={styles.mv5}>
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.DEBUG.TRANSACTION_VIOLATIONS_CREATE}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.LARGE}
                 onPress={() => Navigation.navigate(ROUTES.DEBUG_TRANSACTION_VIOLATION_CREATE.getRoute(transactionID))}

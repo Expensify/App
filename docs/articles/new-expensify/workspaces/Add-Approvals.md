@@ -24,7 +24,7 @@ To enable approvals on a workspace you manage:
 
 Enabling **Approvals** will reveal an option to set a default approval workflow for the workspace.
 
-**Note:** If your workspace is connected to an HR integration such as Gusto or TriNet, approval workflows managed through that integration appear on the **Workflows** tab with the integration's indicator. To manage these approval settings, go to the **HR** tab in your workspace settings. [Learn about connecting Gusto to Expensify](/articles/new-expensify/connections/Connect-Gusto-to-Expensify) or [learn about connecting TriNet to Expensify](/articles/new-expensify/connections/TriNet).
+**Note:** If your workspace is connected to an HR integration such as Gusto or TriNet, approval workflows managed through that integration appear on the **Workflows** tab with the integration's indicator. To manage these approval settings, select **Workspaces > [workspace name] > Connections**, then select **Configure** next to the integration. [Learn about connecting Gusto to Expensify](/articles/new-expensify/connections/Connect-Gusto-to-Expensify) or [learn about connecting TriNet to Expensify](/articles/new-expensify/connections/TriNet).
 
 ---
 
@@ -164,7 +164,7 @@ Even with auto-approvals enabled, you can route a percentage of compliant report
 2. Enter your desired percentage amount.
 3. Click **Save**.
 
-**Note:** Custom auto-approval settings are only available on the Control plan. Collect plans will have a $100 auto-approval threshold and 0% random audit percentage. 
+**Note:** Custom auto-approval settings are only available on the Control plan. 
 
 ---
 

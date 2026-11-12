@@ -109,6 +109,7 @@ function WorkspaceMemberOfficeLocationPage({policy, personalDetails, route}: Wor
                 </View>
                 <FixedFooter addBottomSafeAreaPadding>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_OFFICE_LOCATION_CONFIRM}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         onPress={changeOfficeLocation}

@@ -66,8 +66,8 @@ function useCollapsibleHeader(onNaturalHeightChange?: (height: number) => void):
         // Submit shows beside More after Retract). Avoids stale clipped height from the collapse animation.
         if (!isInLandscapeMode) {
             naturalHeightRef.current = height;
-            naturalHeight.set(height);
             animatedHeight.set(height);
+            naturalHeight.set(height);
             onNaturalHeightChange?.(height);
             return;
         }
@@ -76,8 +76,8 @@ function useCollapsibleHeader(onNaturalHeightChange?: (height: number) => void):
         // (to skip onLayout calls triggered by our own height animation collapsing the view to 0)
         if (naturalHeightRef.current === -1 || (animatedHeight.get() >= naturalHeightRef.current && height !== naturalHeightRef.current)) {
             naturalHeightRef.current = height;
-            naturalHeight.set(height);
             animatedHeight.set(height);
+            naturalHeight.set(height);
             onNaturalHeightChange?.(height);
         }
     };
@@ -107,9 +107,9 @@ function useCollapsibleHeader(onNaturalHeightChange?: (height: number) => void):
 
     // Outer wrapper controls layout space (height collapses to 0, clips overflowing content).
     const outerStyle = useAnimatedStyle<ViewStyle>(() => {
-        // When fully open, leave height undefined so the view sizes itself naturally.
+        // When fully open or before initial measurement, leave height undefined so the view sizes itself naturally.
         // This avoids fighting the layout engine during orientation changes.
-        if (animatedHeight.get() >= naturalHeight.get()) {
+        if (naturalHeight.get() === -1 || animatedHeight.get() >= naturalHeight.get()) {
             return {overflow: 'hidden', height: 'auto'};
         }
         return {height: animatedHeight.get(), overflow: 'hidden'};
