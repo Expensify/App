@@ -50,7 +50,12 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     }, [isAppLoading, shouldShowPage, isFocused]);
 
     if (!shouldShowPage && isAppLoading) {
-        return <FullScreenLoadingIndicator />;
+        return (
+            <FullScreenLoadingIndicator
+                shouldUseGoBackButton={shouldUseNarrowLayout}
+                onGoBack={() => Navigation.goBack(backTo)}
+            />
+        );
     }
 
     if (!shouldShowPage) {

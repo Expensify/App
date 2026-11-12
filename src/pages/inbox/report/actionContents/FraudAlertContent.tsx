@@ -34,6 +34,9 @@ function FraudAlertContent({action, reportID}: FraudAlertContentProps) {
     const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(String(cardID))});
     const possibleFraud = card?.nameValuePairs?.possibleFraud ?? null;
 
+    // CARD_LIST only holds the current user's cards, so a match means the current user is the cardholder and the fraud is still live.
+    const canResolve = !originalMessage?.resolution && !!reportID && String(possibleFraud?.fraudAlertReportID) === reportID;
+
     const message = getActionableCardFraudAlertMessage(translate, dateFnsLocale, action, getLocalDateFromDatetime, convertToDisplayString);
 
     return (
@@ -43,9 +46,10 @@ function FraudAlertContent({action, reportID}: FraudAlertContentProps) {
             accessibilityLabel={translate('reportFraudConfirmationPage.title')}
         >
             <ReportActionItemBasicMessage message={message} />
-            {!originalMessage?.resolution && (
+            {canResolve && (
                 <ActionableItemButtons layout="horizontal">
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT.FRAUD_ALERT_CONFIRM_BUTTON}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={() => {
                             resolveFraudAlert(cardID, false, reportID, reportActionID, possibleFraud);
@@ -54,6 +58,7 @@ function FraudAlertContent({action, reportID}: FraudAlertContentProps) {
                         <Button.Text>{translate('cardPage.cardFraudAlert.confirmButtonText')}</Button.Text>
                     </Button>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT.FRAUD_ALERT_REPORT_FRAUD_BUTTON}
                         onPress={() => {
                             resolveFraudAlert(cardID, true, reportID, reportActionID, possibleFraud);
                         }}

@@ -26,12 +26,13 @@ function GustoApprovalModePage({
 
     const config: HRApprovalModeProviderConfig<ValueOf<typeof CONST.GUSTO.APPROVAL_MODE>> = {
         testID: 'GustoApprovalModePage',
+        saveSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.HR.APPROVAL_MODE_SAVE.GUSTO,
         isConnected: isGustoConnected,
         approvalModes: CONST.GUSTO.APPROVAL_MODE,
         getCurrentApprovalMode: (policy) => policy?.connections?.gusto?.config?.approvalMode ?? undefined,
         getProviderName: () => translate('workspace.hr.gusto.title'),
         getHeaderTitle: () => translate('workspace.merge.approvalMode'),
-        handleSave: ({draftApprovalMode, currentApprovalMode}) => updateGustoApprovalMode(policyID, draftApprovalMode, currentApprovalMode),
+        handleSave: ({draftApprovalMode, currentApprovalMode, rules}) => updateGustoApprovalMode(policyID, draftApprovalMode, currentApprovalMode, rules),
     };
 
     return (

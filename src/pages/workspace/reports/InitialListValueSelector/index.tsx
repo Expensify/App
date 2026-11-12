@@ -57,6 +57,7 @@ function InitialListValueSelector({value = '', label = '', rightLabel, errorText
     return (
         <View>
             <MenuItemWithTopDescription
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.CREATE_INITIAL_VALUE}
                 ref={ref}
                 shouldShowRightIcon
                 title={value}

@@ -78,14 +78,18 @@ jest.mock('@libs/SessionUtils', () => ({
 jest.mock('@libs/ActiveClientManager', () => ({
     isClientTheLeader: jest.fn(() => true),
     init: jest.fn(),
+    getLogTab: jest.fn(),
     isReady: jest.fn(() => Promise.resolve()),
 }));
 
 jest.mock('@userActions/App', () => ({
     openApp: jest.fn(),
     reconnectApp: jest.fn(),
-    setUpPoliciesAndNavigate: jest.fn(),
     setLocale: jest.fn(),
+}));
+
+jest.mock('@userActions/Policy/CreateWorkspaceFlow', () => ({
+    setUpPoliciesAndNavigate: jest.fn(),
 }));
 
 jest.mock('@userActions/Download', () => ({

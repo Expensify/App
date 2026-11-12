@@ -3,18 +3,20 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import CONST from '@src/CONST';
 
 type CarouselActionsProps = {
-    onCycleThroughAttachments: (deltaSlide: number) => void;
+    /** Moves the carousel by the given number of attachments, returning whether it moved */
+    onCycleThroughAttachments: (deltaSlide: number) => boolean;
 };
 
 function CarouselActions({onCycleThroughAttachments}: CarouselActionsProps) {
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT,
         (event) => {
-            if (event?.target instanceof HTMLElement) {
-                // prevents focus from highlighting around the modal
-                event.target.blur();
+            // Blur only when the carousel moves, so a focused PDF on the first attachment keeps scrolling with the keyboard
+            if (!onCycleThroughAttachments(-1) || !(event?.target instanceof HTMLElement)) {
+                return;
             }
-            onCycleThroughAttachments(-1);
+            // prevents focus from highlighting around the modal
+            event.target.blur();
         },
         {captureOnInputs: false},
     );
@@ -22,11 +24,12 @@ function CarouselActions({onCycleThroughAttachments}: CarouselActionsProps) {
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT,
         (event) => {
-            if (event?.target instanceof HTMLElement) {
-                // prevents focus from highlighting around the modal
-                event.target.blur();
+            // Blur only when the carousel moves, so a focused PDF on the last attachment keeps scrolling with the keyboard
+            if (!onCycleThroughAttachments(1) || !(event?.target instanceof HTMLElement)) {
+                return;
             }
-            onCycleThroughAttachments(1);
+            // prevents focus from highlighting around the modal
+            event.target.blur();
         },
         {captureOnInputs: false},
     );

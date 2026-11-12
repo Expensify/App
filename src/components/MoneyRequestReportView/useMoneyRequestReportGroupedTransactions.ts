@@ -37,6 +37,9 @@ type UseMoneyRequestReportGroupedTransactionsResult = {
     /** Flat list of section headers + transactions in render order */
     listItems: TransactionListItemData[];
 
+    /** Every transaction in the order the user sees it, rows on their way out included, which is what a shift+click range spans */
+    visualOrderTransactions: OnyxTypes.Transaction[];
+
     /** Transaction IDs in the exact order the user sees them, used to seed the transaction-thread carousel */
     visualOrderTransactionIDs: string[];
 
@@ -73,8 +76,8 @@ function useMoneyRequestReportGroupedTransactions({
             ? sortedTransactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID)
             : groupedTransactions.flatMap((group) => group.transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID));
 
-    const allTransactions = shouldGroupTransactions ? groupedTransactions.flatMap((group) => group.transactions) : resolvedTransactions;
-    const visibleTransactions = allTransactions.filter((t) => isOffline || !isTransactionPendingDelete(t));
+    const visualOrderTransactions = shouldGroupTransactions ? groupedTransactions.flatMap((group) => group.transactions) : resolvedTransactions;
+    const visibleTransactions = visualOrderTransactions.filter((t) => isOffline || !isTransactionPendingDelete(t));
     const lastTransactionID = visibleTransactions.at(-1)?.transactionID;
 
     const listItems: TransactionListItemData[] = [];
@@ -94,6 +97,7 @@ function useMoneyRequestReportGroupedTransactions({
     return {
         groupedTransactions,
         listItems,
+        visualOrderTransactions,
         visualOrderTransactionIDs,
         lastTransactionID,
     };

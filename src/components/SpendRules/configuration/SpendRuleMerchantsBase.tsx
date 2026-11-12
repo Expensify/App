@@ -1,7 +1,7 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -82,12 +82,10 @@ function SpendRuleMerchantsBase({policyID, action, merchants, getEditMerchantRou
                     onBackButtonPress={goBack}
                 />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                    <MenuItem
+                    <MenuItemAction
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ADD_MERCHANT}
                         title={translate('workspace.rules.spendRules.addMerchant')}
                         icon={expensifyIcons.Plus}
-                        iconHeight={20}
-                        iconWidth={20}
-                        titleStyle={styles.textStrong}
                         onPress={addMerchant}
                     />
                     {merchants.length > 0 ? (
@@ -127,7 +125,7 @@ function SpendRuleMerchantsBase({policyID, action, merchants, getEditMerchantRou
                     isAlertVisible={false}
                     onSubmit={saveAndGoBack}
                     enabledWhenOffline
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SAVE}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_MERCHANTS_SAVE}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

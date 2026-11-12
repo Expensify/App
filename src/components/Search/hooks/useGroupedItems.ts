@@ -14,6 +14,10 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+// getSections turns an expense-report query into a list of reports and ignores its group-by,
+// so charts, which always plot groups, build their rows as if the query were for expenses
+const CHART_ROW_TYPE = CONST.SEARCH.DATA_TYPES.EXPENSE;
+
 /** Returns the accounts named in the snapshot's groups, so the hook can subscribe to just their personal details. */
 function getGroupedAccountIDs(data: SearchResults['data'] = {}): number[] {
     return Object.keys(data).flatMap((key) => (isGroupEntry(key) && 'accountID' in data[key] && data[key].accountID ? [data[key].accountID] : []));
@@ -31,15 +35,16 @@ function useGroupedItems(searchResults: OnyxEntry<SearchResults>, queryJSON: Rea
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const groupBy = queryJSON?.groupBy;
-    const [onyxPersonalDetailsList] = usePersonalDetailsByIDs(groupBy === CONST.SEARCH.GROUP_BY.FROM ? getGroupedAccountIDs(searchResults?.data) : undefined);
+    const shouldLoadGroupPersonalDetails = groupBy === CONST.SEARCH.GROUP_BY.FROM || groupBy === CONST.SEARCH.GROUP_BY.APPROVER || groupBy === CONST.SEARCH.GROUP_BY.PAID_BY;
+    const [onyxPersonalDetailsList] = usePersonalDetailsByIDs(shouldLoadGroupPersonalDetails ? getGroupedAccountIDs(searchResults?.data) : undefined);
 
     const sortedSections =
         searchResults?.data && queryJSON && groupBy && login
             ? getSortedSections(
-                  queryJSON.type,
+                  CHART_ROW_TYPE,
                   getSections({
                       dateFnsLocale,
-                      type: queryJSON.type,
+                      type: CHART_ROW_TYPE,
                       data: searchResults.data,
                       groupBy,
                       queryJSON,

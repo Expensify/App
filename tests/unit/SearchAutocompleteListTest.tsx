@@ -39,6 +39,7 @@ import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import {createRandomReport} from '../utils/collections/reports';
 import * as TestHelper from '../utils/TestHelper';
+import {formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
@@ -115,7 +116,6 @@ jest.mock('@hooks/useExportedToFilterOptions', () => ({
     __esModule: true,
     default: () => ({
         exportedToFilterOptions: [],
-        combinedUniqueExportTemplates: [],
         connectedIntegrationNames: new Set<string>(),
     }),
 }));
@@ -192,6 +192,7 @@ const mockedOptions = createFilteredOptionList(
         convertToDisplayString: TestHelper.convertToDisplayString,
         conciergeReportID: undefined,
         isSearching: true,
+        formatPhoneNumber,
     },
     undefined,
 );
@@ -255,6 +256,7 @@ describe('SearchAutocompleteList', () => {
     });
 
     beforeEach(() => {
+        jest.useFakeTimers();
         global.fetch = TestHelper.getGlobalFetchMock();
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         mockUseFilteredOptions.mockReturnValue({
@@ -273,6 +275,7 @@ describe('SearchAutocompleteList', () => {
             await Onyx.clear();
         });
         jest.clearAllMocks();
+        jest.useRealTimers();
         mockUseNavigationSuggestions.mockReturnValue([]);
         mockRootNavigationState.mockReturnValue({contextualReportID: undefined, isSearchRouterScreen: false});
     });
@@ -486,6 +489,7 @@ describe('SearchAutocompleteList', () => {
                     convertToDisplayString: TestHelper.convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             ),
@@ -581,6 +585,7 @@ describe('SearchAutocompleteList', () => {
                     convertToDisplayString: TestHelper.convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             ),
@@ -666,6 +671,31 @@ describe('SearchAutocompleteList', () => {
                 expect(screen.getByText('Recent chats')).toBeTruthy();
             });
             expect(screen.queryByText('Search results')).toBeNull();
+        });
+
+        it('should not rebuild the search options when only the recent searches change', async () => {
+            // Given the search router is open with its chats loaded
+            await waitForBatchedUpdates();
+            await Onyx.multiSet({
+                ...mockedReports,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                [ONYXKEYS.BETAS]: mockedBetas,
+            });
+            render(<SearchRouterWrapper />);
+            await flushAllUpdates();
+            const callCountBeforeUpdate = getSearchOptionsSpy.mock.calls.length;
+
+            // When a recent search is saved, which re-renders the list but changes none of the search inputs
+            const recentSearches: Record<string, {query: string; timestamp: string}> = {};
+            recentSearches['2024-01-01T00:00:00'] = {query: 'type:expense', timestamp: '2024-01-01T00:00:00'};
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.RECENT_SEARCHES, recentSearches);
+            });
+            await flushAllUpdates();
+
+            // Then the list reuses the search options it already built, because searching every chat again is the slowest part of typing
+            expect(screen.getByText('Recent searches')).toBeTruthy();
+            expect(getSearchOptionsSpy).toHaveBeenCalledTimes(callCountBeforeUpdate);
         });
 
         it('should cap Recent chats after a completed search is cleared', async () => {

@@ -9,6 +9,8 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import DateUtils from '@libs/DateUtils';
+import {isSettled} from '@libs/ReportUtils';
+import {isFailedScanAmountPlaceholder} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 
@@ -38,15 +40,13 @@ type RecentlyAddedRowProps = {
 function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowReceiptPreview, rowStyle}: RecentlyAddedRowProps) {
     const styles = useThemeStyles();
     const {convertToDisplayString} = useCurrencyListActions();
-    const {dateFnsLocale} = useLocalize();
+    const {dateFnsLocale, translate} = useLocalize();
 
-    const formattedDate = DateUtils.formatWithUTCTimeZone(
-        expense.created,
-        DateUtils.doesDateBelongToAPastYear(expense.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
-        dateFnsLocale,
-    );
+    const formattedDate = DateUtils.formatToMonthDayWithOptionalYearInUTC(expense.created, dateFnsLocale);
 
-    const formattedAmount = convertToDisplayString(expense.amount, expense.currency);
+    const hasFailedScanAmountPlaceholder = isFailedScanAmountPlaceholder(expense.transaction, isSettled(expense.report));
+    const shouldShowScanFailureMessage = hasFailedScanAmountPlaceholder && expense.transaction.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED;
+    const formattedAmount = hasFailedScanAmountPlaceholder ? '' : convertToDisplayString(expense.amount, expense.currency);
 
     // The row always uses the stacked ("mobile") layout because it lives in the narrow right column on web/desktop
     // too: a thumbnail, then the merchant + amount on the first line and the date + type underneath. This mirrors the
@@ -72,9 +72,15 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowRece
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
                     <Text
                         numberOfLines={1}
-                        style={styles.mutedNormalTextLabel}
+                        style={[styles.mutedNormalTextLabel, styles.flexShrink1]}
                     >
                         {formattedDate}
+                        {shouldShowScanFailureMessage && (
+                            <>
+                                {` ${CONST.DOT_SEPARATOR} `}
+                                <Text style={styles.textLabelError}>{translate('violations.shortName.smartscanFailed')}</Text>
+                            </>
+                        )}
                     </Text>
                     <TypeCell
                         transactionItem={expense.transaction}
@@ -95,7 +101,7 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowRece
             <PressableWithFeedback
                 testID={`recentlyAddedRow-${expense.transactionID}`}
                 accessibilityLabel={expense.merchant}
-                sentryLabel="RecentlyAddedRow"
+                sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.RECENTLY_ADDED_ROW}
                 onPress={isPendingDelete ? () => {} : onPress}
                 wrapperStyle={styles.w100}
                 hoverStyle={styles.hoveredComponentBG}

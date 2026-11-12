@@ -13,6 +13,7 @@ import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@compo
 import Text from '@components/Text';
 import UserPill from '@components/UserPill';
 
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -33,7 +34,7 @@ import {getDisplayNameForParticipant, isCompletedTaskReport, isOpenTaskReport} f
 import StringUtils from '@libs/StringUtils';
 import {isActiveTaskEditRoute} from '@libs/TaskUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 import {canActionTask, canModifyTask, completeTask, reopenTask, setTaskReport} from '@userActions/Task';
 import {clearTaskErrors} from '@userActions/TaskDeletion';
 
@@ -45,8 +46,9 @@ import type {Report, ReportAction} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useEffect, useMemo} from 'react';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {authTokenTypeSelector} from '@selectors/Session';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type TaskViewProps = {
@@ -56,6 +58,7 @@ type TaskViewProps = {
 };
 
 function TaskView({report, parentReport, action}: TaskViewProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
@@ -65,7 +68,9 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const personalDetails = usePersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
 
     useEffect(() => {
@@ -73,10 +78,14 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     }, [report]);
 
     const taskTitleWithoutPre = StringUtils.removePreCodeBlock(report?.reportName);
-    const titleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitleWithoutPre), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
+    const accountIDToName = useMentionedAccountIDToNameMap(taskTitleWithoutPre);
+    const titleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitleWithoutPre, {accountIDToName}), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
     const taskTitle = `<task-title>${titleWithoutImage}</task-title>`;
-    const taskTitlePlainText = Parser.htmlToText(taskTitleWithoutPre);
+    const taskTitlePlainText = Parser.htmlToText(taskTitleWithoutPre, {accountIDToName});
     const isCompletedFromOnyx = isCompletedTaskReport(report);
+    const shouldDisableCompletedOnboardingTaskLink =
+        isCompletedFromOnyx && [introSelected?.addWorkEmail, introSelected?.validateEmail, introSelected?.joinWorkspace].includes(report?.reportID);
+
     const {
         isCompleted,
         shouldSplitTaskAccessibilityTargets,
@@ -101,27 +110,21 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const disableState = !isTaskModifiable;
     const isDisableInteractive = disableState || !isOpen;
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    const contextMenuStateValue = useMemo(
-        () => ({
-            anchor: null,
-            report,
-            action,
-            transactionThreadReport: undefined,
-            isDisabled: true,
-            shouldDisplayContextMenu: false,
-        }),
-        [report, action],
-    );
+    const contextMenuStateValue = {
+        anchor: null,
+        report,
+        action,
+        transactionThreadReport: undefined,
+        isDisabled: true,
+        shouldDisplayContextMenu: false,
+    };
 
-    const contextMenuActionsValue = useMemo(
-        () => ({
-            checkIfContextMenuActive: () => {},
-            onShowContextMenu: (callback: () => void) => callback(),
-        }),
-        [],
-    );
+    const contextMenuActionsValue = {
+        checkIfContextMenuActive: () => {},
+        onShowContextMenu: (callback: () => void) => callback(),
+    };
 
-    const attachmentContextValue = useMemo(() => ({type: CONST.ATTACHMENT_TYPE.ONBOARDING, accountID}), [accountID]);
+    const attachmentContextValue = {type: CONST.ATTACHMENT_TYPE.ONBOARDING, accountID};
 
     return (
         <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
@@ -137,6 +140,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                 accountID,
                                 introSelected,
                                 isSelfTourViewed,
+                                hasCompletedGuidedSetupFlow,
                                 report?.ownerAccountID ? (personalDetails?.[report.ownerAccountID] ?? undefined) : undefined,
                                 currentUserPersonalDetails,
                                 (personalDetails ? Object.values(personalDetails).find((detail) => detail?.login === CONST.EMAIL.CONCIERGE) : undefined) ?? undefined,
@@ -148,7 +152,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                             {(hovered) => (
                                 <PressableWithSecondaryInteraction
                                     accessible={shouldSplitTaskAccessibilityTargets ? false : undefined}
-                                    onPress={callFunctionIfActionIsAllowed((e) => {
+                                    onPress={callIfAuthenticated((e) => {
                                         if (isDisableInteractive) {
                                             return;
                                         }
@@ -157,7 +161,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                         }
 
                                         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_TITLE.path));
-                                    })}
+                                    }, session)}
                                     style={({pressed}) => [
                                         styles.ph5,
                                         styles.pv2,
@@ -186,7 +190,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                         <View style={[styles.flexRow, styles.flex1]}>
                                                             <Checkbox
                                                                 shouldSelectOnPressEnter
-                                                                onPress={callFunctionIfActionIsAllowed(() => {
+                                                                onPress={callIfAuthenticated(() => {
                                                                     // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
                                                                     if (isActiveTaskEditRoute(report?.reportID)) {
                                                                         return;
@@ -203,7 +207,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                                             delegateEmail,
                                                                         );
                                                                     }
-                                                                })}
+                                                                }, session)}
                                                                 isChecked={isCompleted}
                                                                 style={styles.taskMenuItemCheckbox}
                                                                 containerSize={24}
@@ -222,7 +226,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                                     accessibilityHint={titlePressableAccessibilityHint}
                                                                     accessibilityState={{disabled: isDisableInteractive}}
                                                                     disabled={isDisableInteractive}
-                                                                    onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_TITLE.path)))}
+                                                                    onPress={callIfAuthenticated(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_TITLE.path)), session)}
                                                                     style={[styles.flexRow, styles.flex1]}
                                                                     sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_TITLE}
                                                                 >
@@ -252,7 +256,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                             <MenuItemWithTopDescription
                                 shouldRenderAsHTML
                                 description={translate('task.description')}
-                                title={report?.description ?? ''}
+                                title={shouldDisableCompletedOnboardingTaskLink ? Parser.htmlToText(report?.description ?? '') : (report?.description ?? '')}
                                 onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DESCRIPTION.path))}
                                 shouldShowRightIcon={!isDisableInteractive}
                                 disabled={disableState}
