@@ -891,6 +891,28 @@ describe('useSearchBulkActions - bank pay with nothing owed', () => {
         expect(mockClearSelectedTransactions).not.toHaveBeenCalled();
     });
 
+    it('flags a selection with nothing owed so a bank payment skips account validation and bank setup', async () => {
+        // Given a selection holding only the non-reimbursable report
+        mockSelectedTransactions = {tx3: makeSelectedTransaction({reportID: NON_REIMBURSABLE_REPORT_ID})};
+        mockSelectedReports = [makeSelectedReport({reportID: NON_REIMBURSABLE_REPORT_ID, chatReportID: '4', total: 50})];
+
+        // When the bulk actions are built
+        const {result} = await renderBulkActions();
+
+        // Then the selection is flagged, so the pay menu explains why instead of sending the user through bank setup
+        await waitFor(() => expect(result.current.isBankPayBlockedForSelection).toBe(true));
+    });
+
+    it('does not flag a selection that holds an owed report', async () => {
+        // Given the mixed selection, where the bank account can still pay the owed report (set up in beforeEach)
+
+        // When the bulk actions are built
+        const {result} = await renderBulkActions();
+
+        // Then the selection isn't flagged, so a bank payment still asks for whatever setup it needs to pay the owed report
+        expect(result.current.isBankPayBlockedForSelection).toBe(false);
+    });
+
     it('marks every report as paid when the user picks Mark as paid', async () => {
         // Given the same mixed selection
         const {result} = await renderBulkActions();

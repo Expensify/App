@@ -742,4 +742,61 @@ describe('handleBulkPayItemSelected', () => {
         // confirmPayment (onBulkPaySelected) is what surfaces the offline modal; the exact paymentType is not important here.
         expect(baseParams.confirmPayment).toHaveBeenCalled();
     });
+
+    describe('when nothing is owed on any selected report', () => {
+        const businessAccountItem = {key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, text: 'Pay with business account', icon: () => null};
+
+        it('explains why instead of opening the bank account setup', async () => {
+            // Given an admin with no business bank account, so the pay menu only offers to set one up
+            const policy: Policy = {...createRandomPolicy(Number(policyID)), id: policyID, ownerAccountID};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+            // When they pick it for a selection where every report is non-reimbursable or totals $0 or less
+            handleBulkPayItemSelected({...baseParams, policy, amountOwed: 0, isBankPayBlockedForSelection: true, item: businessAccountItem});
+
+            // Then the payment goes straight to confirmPayment, which explains why nothing can be paid through the bank account,
+            // since setting up a bank account wouldn't let it pay any of these reports
+            expect(baseParams.triggerKYCFlow).not.toHaveBeenCalled();
+            expect(baseParams.confirmPayment).toHaveBeenCalledWith(CONST.IOU.PAYMENT_TYPE.VBBA, undefined);
+        });
+
+        it('explains why before asking an unvalidated user to validate their account', async () => {
+            // Given an admin who hasn't validated their account yet
+            const policy: Policy = {...createRandomPolicy(Number(policyID)), id: policyID, ownerAccountID};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+            // When they pick a bank payment for a selection with nothing owed
+            handleBulkPayItemSelected({...baseParams, policy, amountOwed: 0, isUserValidated: false, isBankPayBlockedForSelection: true, item: businessAccountItem});
+
+            // Then they see why nothing can be paid right away, without the magic code screen for a payment that wouldn't happen
+            expect(baseParams.verifyAccountAndResume).not.toHaveBeenCalled();
+            expect(baseParams.triggerKYCFlow).not.toHaveBeenCalled();
+            expect(baseParams.confirmPayment).toHaveBeenCalledWith(CONST.IOU.PAYMENT_TYPE.VBBA, undefined);
+        });
+
+        it('still shows the restricted action page when billing is past due', async () => {
+            // Given a workspace whose billing is past due
+            const pastDate = Math.floor(Date.now() / 1000) - 86400 * 30;
+            const policy: Policy = {...createRandomPolicy(Number(policyID)), id: policyID, ownerAccountID, role: CONST.POLICY.ROLE.ADMIN};
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: policy,
+                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: pastDate,
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 100,
+            });
+
+            // When a bank payment is picked for a selection with nothing owed
+            handleBulkPayItemSelected({
+                ...baseParams,
+                policy,
+                amountOwed: 100,
+                ownerBillingGracePeriodEnd: pastDate,
+                isBankPayBlockedForSelection: true,
+                item: businessAccountItem,
+            });
+
+            // Then the billing restriction still comes first, since it blocks every payment on the workspace
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+            expect(baseParams.confirmPayment).not.toHaveBeenCalled();
+        });
+    });
 });

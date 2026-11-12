@@ -1016,6 +1016,22 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const selectedBulkPayReportID = payScopedReportIDs.at(0) ?? selectedTransactionReportIDs.at(0);
     const selectedBulkPayReport = selectedBulkPayReportID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedBulkPayReportID}`] : undefined;
     const selectedBulkPayChatReportID = selectedBulkPayReport?.chatReportID;
+
+    // A bank payment of this selection would pay none of it, so it explains why before asking for account validation or bank setup
+    const isBankPayBlockedForSelection = useMemo(() => {
+        if (areAllMatchingItemsSelected) {
+            return false;
+        }
+        const selectedOptions = selectedReports.length ? payableSelectedReports : Object.values(selectedTransactions);
+        return (
+            selectedOptions.length > 0 &&
+            selectedOptions.every((item) => {
+                const report = getReportFromSearchSnapshot(item.reportID, searchResults?.data, allReports);
+                return !!report && isBankPayBlockedBySpend(report, getPolicyFromSearchSnapshot(report.policyID, searchResults?.data, policies));
+            })
+        );
+    }, [areAllMatchingItemsSelected, selectedReports.length, payableSelectedReports, selectedTransactions, searchResults?.data, allReports, policies]);
+
     const {bulkPayButtonOptions, businessBankAccountOptions} = useBulkPayOptions({
         selectedPolicyID: payScopedPolicyIDs.at(0),
         selectedReportID: selectedBulkPayReportID,
@@ -3805,6 +3821,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         selectedTransactionReportIDs,
         selectedReportIDs,
         businessBankAccountOptions,
+        isBankPayBlockedForSelection,
         confirmPayment: stableOnBulkPaySelected,
         isDuplicateOptionVisible,
         setDuplicateHandler,

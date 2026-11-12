@@ -74,6 +74,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         selectedTransactionReportIDs,
         selectedReportIDs,
         businessBankAccountOptions,
+        isBankPayBlockedForSelection,
         confirmPayment,
         isDuplicateOptionVisible,
         setDuplicateHandler,
@@ -151,6 +152,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
             currentUserAccountID: currentUserPersonalDetails.accountID,
             isOffline,
             verifyAccountAndResume,
+            isBankPayBlockedForSelection,
         });
 
     const allMatchingItemsCount = currentSearchResults?.search?.count;
