@@ -271,6 +271,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
         const businessCentralCompanyList = policy?.connections?.businessCentral?.data?.companies;
         const zohoBooksOrganizationList = policy?.connections?.zohoBooks?.data?.organizations;
         const currentZohoBooksOrganization = zohoBooksOrganizationList?.find((organization) => organization.id === policy?.connections?.zohoBooks?.config?.subsidiaryID);
+        const digitsCompanyName = policy?.connections?.digits?.data?.company?.name;
         const certiniaConfig = policy?.connections?.financialforce?.config;
         const certiniaCompanies = policy?.connections?.financialforce?.data?.companies ?? [];
         const certiniaCompanyID = getCertiniaSelectedCompanyID(certiniaConfig);
@@ -459,6 +460,17 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
                               policyID && canWriteAccounting && zohoBooksOrganizationList.length > 1
                                   ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_ORGANIZATION_SELECTOR.getRoute(policyID))
                                   : undefined,
+                      };
+            case CONST.POLICY.CONNECTIONS.NAME.DIGITS:
+                // A Digits sign-in covers exactly one company, so there is nothing to pick here. Another company needs a new sign-in.
+                return !digitsCompanyName
+                    ? {}
+                    : {
+                          description: translate('workspace.digits.entity'),
+                          title: digitsCompanyName,
+                          titleStyle: styles.fontWeightNormal,
+                          shouldShowDescriptionOnTop: true,
+                          interactive: false,
                       };
 
             default:

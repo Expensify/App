@@ -9701,6 +9701,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             },
         },
         digits: {
+            entity: 'Entiteit',
             updateCurrencyTitle: 'Werkruimtevaluta bijwerken?',
             updateCurrencyPrompt: 'Digits is momenteel alleen beschikbaar voor in de VS gevestigde bedrijven die in USD werken.',
             importDescription: 'Kies welke Digits-configuraties je wilt importeren.',
