@@ -294,23 +294,28 @@ function getCategoryTaxDetails(
 ) {
     const unresolvedTaxDetails = {categoryTaxCode: undefined, categoryTaxAmount: undefined, categoryTaxValue: undefined};
 
+    // Both branches fall back to the workspace default, which keeps a category with no rule from carrying the rate
+    // its predecessor set, the way the confirmation page does for every other expense. A policy with no tax rule at
+    // all is left alone, so an expense whose tax was never rule driven keeps whatever it holds.
+    //
     // Distance tax is charged on the taxable portion of the mileage rate rather than the full amount, so reuse the
     // rate-aware calculation instead of taxing the expense amount.
     if (isDistanceRequest(transaction)) {
         const {
             categoryTaxCode: distanceCategoryTaxCode,
+            taxCode,
             taxAmount,
             taxValue,
         } = getDistanceRateTaxUpdates(policy, transaction, getRateID(transaction), rules, getCurrencyDecimals, undefined, category);
-        if (!distanceCategoryTaxCode) {
+        // `taxCode` is the rate's own default, which is the fallback the manual branch below applies, and the
+        // amount has already been charged at it.
+        const resolvedTaxCode = distanceCategoryTaxCode ?? (hasCategoryExpenseDefaultTaxRule(rules, policy?.id) ? taxCode : undefined);
+        if (!resolvedTaxCode) {
             return unresolvedTaxDetails;
         }
-        return {categoryTaxCode: distanceCategoryTaxCode, categoryTaxAmount: taxAmount, categoryTaxValue: taxValue};
+        return {categoryTaxCode: resolvedTaxCode, categoryTaxAmount: taxAmount, categoryTaxValue: taxValue};
     }
 
-    // Falling back to the workspace default keeps a category with no rule from carrying the rate its predecessor
-    // set, which is what the confirmation page does for every other expense. A policy with no tax rule at all is
-    // left alone, so an expense whose tax was never rule driven keeps whatever it holds.
     const categoryTaxCode =
         getCategoryTaxCode(category, transaction, policy, rules, currency) ??
         (hasCategoryExpenseDefaultTaxRule(rules, policy?.id) ? getDefaultTaxCode(policy, transaction, currency ?? getCurrency(transaction)) : undefined);

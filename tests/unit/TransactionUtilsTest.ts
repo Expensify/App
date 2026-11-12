@@ -623,6 +623,57 @@ describe('TransactionUtils', () => {
             // Then the disabled tax code is not used
             expect(taxCode).toBe('id_TAX_EXEMPT');
         });
+
+        describe('getCategoryTaxDetails for a distance split', () => {
+            // A rate carrying its own tax rate outranks a category rule, so the rate is left without one.
+            const buildRuledPolicy = () => buildDistancePolicy({rateTaxCode: ''});
+
+            it("applies the category rule's rate", () => {
+                // Given a workspace whose Car category carries a tax rule
+                const policy = buildRuledPolicy();
+
+                // When the tax for a distance split on that category is resolved
+                const {categoryTaxCode} = TransactionUtils.getCategoryTaxDetails(
+                    'Car',
+                    distanceTransaction,
+                    policy,
+                    createCategoryTaxRulesCollection(policy.id, 'Car', 'id_TAX_RATE_1'),
+                    getCurrencyDecimalsLocal,
+                );
+
+                // Then the rule's rate is used
+                expect(categoryTaxCode).toBe('id_TAX_RATE_1');
+            });
+
+            it('falls back to the workspace default for a category with no rule', () => {
+                // Given the same workspace, and a category it has no rule for
+                const policy = buildRuledPolicy();
+
+                // When the tax for a distance split on that category is resolved
+                const {categoryTaxCode} = TransactionUtils.getCategoryTaxDetails(
+                    'Equipment',
+                    distanceTransaction,
+                    policy,
+                    createCategoryTaxRulesCollection(policy.id, 'Car', 'id_TAX_RATE_1'),
+                    getCurrencyDecimalsLocal,
+                );
+
+                // Then the workspace default is written rather than nothing, so switching away from a category with
+                // a rule does not leave that category's rate on the split
+                expect(categoryTaxCode).toBe('id_TAX_EXEMPT');
+            });
+
+            it('leaves a split alone on a workspace with no category tax rule at all', () => {
+                // Given a workspace with no category tax rule, so the split's tax was never rule driven
+                const policy = buildRuledPolicy();
+
+                // When the tax for a distance split is resolved
+                const {categoryTaxCode} = TransactionUtils.getCategoryTaxDetails('Equipment', distanceTransaction, policy, {}, getCurrencyDecimalsLocal);
+
+                // Then nothing is written, so whatever tax the split holds stands
+                expect(categoryTaxCode).toBeUndefined();
+            });
+        });
     });
 
     describe('getUpdatedTransaction', () => {
