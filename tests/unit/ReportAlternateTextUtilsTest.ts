@@ -457,15 +457,23 @@ describe('ReportAlternateTextUtils', () => {
             shouldShow: true,
         });
         const parentComment = makeCommentAction('9100', '2024-01-01 10:00:00.000');
-        const iouAction = {
+        const iouAction: ReportAction = {
             reportActionID: '9101',
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             actorAccountID: 1,
             childReportID: transactionThreadReportID,
             created: '2024-01-01 09:00:00.000',
             message: [{type: 'COMMENT', html: '$1.00', text: '$1.00'}],
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- the fixture must carry an IOU originalMessage so the module cache maps the report to its transaction thread
+            originalMessage: {
+                IOUTransactionID: 'txn9101',
+                IOUReportID: parentReportID,
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            },
             shouldShow: true,
-        } as ReportAction;
+        };
         const threadComment = makeCommentAction('9200', '2024-01-02 10:00:00.000');
         const expenseReport: Report = {
             ...createRandomReport(Number(parentReportID), undefined),
