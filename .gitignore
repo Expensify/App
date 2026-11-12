@@ -59,8 +59,8 @@ yarn-error.log
 # Bundled code
 dist/
 
-# Generated eslint-report HTML (npm run eslint-report; written under .eslint-reports/)
-/.eslint-reports/
+# Generated lint-report HTML (npm run lint-report; written under .lint-reports/)
+/.lint-reports/
 
 # BUCK
 buck-out/

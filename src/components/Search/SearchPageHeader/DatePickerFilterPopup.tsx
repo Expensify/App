@@ -1,9 +1,9 @@
 import DateSelectPopup from '@components/Search/FilterDropdowns/DateSelectPopup';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
-import type {SearchDateFilterKeys} from '@components/Search/types';
+import type {ReportFieldTextKey, SearchDateFilterKeys} from '@components/Search/types';
 
 import type {SearchDateValues} from '@libs/SearchQueryUtils';
-import {getDatePresets} from '@libs/SearchUIUtils';
+import {FILTER_VIEW_MAP, getDatePresets} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
@@ -11,7 +11,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import React from 'react';
 
 type DatePickerFilterPopupProps = Pick<PopoverComponentProps, 'closeOverlay' | 'setPopoverWidth'> & {
-    baseFilterKey: SearchDateFilterKeys;
+    baseFilterKey: Exclude<SearchDateFilterKeys, ReportFieldTextKey>;
     value: SearchDateValues;
     label: string;
     hasFeed: boolean;
@@ -35,6 +35,7 @@ function DatePickerFilterPopup({closeOverlay, setPopoverWidth, baseFilterKey, va
             closeOverlay={closeOverlay}
             setPopoverWidth={setPopoverWidth}
             presets={getDatePresets(baseFilterKey, hasFeed)}
+            applySentryLabel={FILTER_VIEW_MAP[baseFilterKey].applySentryLabel}
         />
     );
 }

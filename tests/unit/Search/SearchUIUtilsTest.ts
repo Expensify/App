@@ -21,6 +21,8 @@ import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
 import type {ASTNode, SearchColumnType, SearchDatePreset, SearchFilterKey, SearchQueryJSON, SelectedReports, SelectedTransactionInfo, SortOrder} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 
+import type interceptAnonymousUser from '@libs/interceptAnonymousUser';
+
 import Navigation from '@navigation/Navigation';
 
 import type * as ReportUserActions from '@userActions/Report';
@@ -34,7 +36,8 @@ import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
 import {getCardDescriptionForSearchTable} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
 import getTransactionFromTransactionListItem, {SEARCH_TRANSACTION_ROW_ONLY_FIELD_NAMES} from '@src/libs/getTransactionFromTransactionListItem';
-import {savedSearchIDToSearchKey} from '@src/libs/SearchKeyUtils';
+import {findSelfDMReportID} from '@src/libs/ReportUtils';
+import {savedSearchIDToSearchKey, TODO_SEARCH_KEYS} from '@src/libs/SearchKeyUtils';
 import {buildSearchQueryJSON, getDateRangeForPreset, getQueryHashes, getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
 import * as SearchQueryUtils from '@src/libs/SearchQueryUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
@@ -916,7 +919,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         cardID: undefined,
         cardName: undefined,
         category: '',
-        comment: {comment: ''},
+        comment: {comment: '', attendees: []},
         created: '2024-12-21',
         submitted: '',
         approved: '',
@@ -983,7 +986,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         cardID: undefined,
         cardName: undefined,
         category: '',
-        comment: {comment: ''},
+        comment: {comment: '', attendees: []},
         created: '2024-12-21',
         submitted: '2024-12-21 13:05:20',
         approved: '',
@@ -1060,7 +1063,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         cardID: undefined,
         cardName: undefined,
         category: '',
-        comment: {comment: ''},
+        comment: {comment: '', attendees: []},
         created: '2025-03-05',
         submitted: '2025-03-05',
         approved: '',
@@ -1132,7 +1135,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         cardID: undefined,
         cardName: undefined,
         category: '',
-        comment: {comment: ''},
+        comment: {comment: '', attendees: []},
         created: '2025-03-05',
         submitted: '2025-03-05',
         approved: '',
@@ -3059,6 +3062,72 @@ describe('SearchUIUtils', () => {
             ).toEqual(transactionsListItems);
         });
 
+        describe('bill actions in a chat search', () => {
+            const billComment = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: 'billCommentActionID',
+                reportID: reportID3,
+                created: '2025-01-01 00:00:00',
+                actorAccountID: adminAccountID,
+                message: [{type: 'COMMENT', html: 'Bill comment', text: 'Bill comment'}],
+                originalMessage: {html: 'Bill comment'},
+            } as OnyxTypes.ReportAction;
+            const billPreview = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                reportActionID: 'billPreviewActionID',
+                reportID: reportID2,
+                created: '2025-01-01 00:00:01',
+                actorAccountID: adminAccountID,
+                message: [{type: 'COMMENT', html: 'Bill preview', text: 'Bill preview'}],
+                originalMessage: {linkedReportID: reportID3},
+                childReportID: reportID3,
+            } as OnyxTypes.ReportAction;
+
+            const getChatSections = (reportType: string) =>
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.CHAT,
+                    data: {
+                        ...searchResults.data,
+                        [`${ONYXKEYS.COLLECTION.REPORT}${reportID3}`]: {...searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${reportID3}`], type: reportType},
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID3}`]: {[billComment.reportActionID]: billComment},
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID2}`]: {[billPreview.reportActionID]: billPreview},
+                    },
+                    currentAccountID: adminAccountID,
+                    currentUserEmail: adminEmail,
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                });
+
+            it('should leave out comments on a bill and previews that link to a bill', () => {
+                // Given a chat search whose snapshot holds a comment on a bill and a preview of the bill in another chat
+                // When the chat sections are built
+                const [sections] = getChatSections(CONST.REPORT.UNSUPPORTED_TYPE.BILL);
+
+                // Then neither action is listed, because bills stay out of Search until Search supports paying bills
+                const reportActionIDs = sections.filter(SearchUIUtils.isReportActionListItemType).map((item) => item.reportActionID);
+                expect(reportActionIDs).not.toContain(billComment.reportActionID);
+                expect(reportActionIDs).not.toContain(billPreview.reportActionID);
+                expect(reportActionIDs.length).toBeGreaterThan(0);
+            });
+
+            it('should still count the bill actions for paging', () => {
+                // Given the same actions on an expense report, which Search lists
+                const [, expenseReportCount] = getChatSections(CONST.REPORT.TYPE.EXPENSE);
+
+                // When the report is a bill instead
+                const [, billCount] = getChatSections(CONST.REPORT.UNSUPPORTED_TYPE.BILL);
+
+                // Then the count stays the same, because paging compares it with the server offset, which counts every action
+                expect(billCount).toBe(expenseReportCount);
+            });
+        });
+
         it('should include iouRequestType property for distance transactions', () => {
             const distanceTransactionID = 'distance_transaction_123';
             const testSearchResults = {
@@ -4447,7 +4516,7 @@ describe('SearchUIUtils', () => {
                 currency: 'USD',
                 total: 250,
                 groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
-                formattedWeek: 'Jan 25 - Jan 31, 2026',
+                formattedWeek: 'Jan 25\u2009–\u200931, 2026',
                 shortFormattedWeek: 'Jan 25 - 31, ’26',
                 lineChartFormattedWeek: DateUtils.getShortFormattedDayForSearch('2026-01-25', undefined, new Date().getFullYear() !== 2026),
                 transactions: [],
@@ -4824,6 +4893,7 @@ describe('SearchUIUtils', () => {
                     [CONST.SEARCH.DATE_PRESETS.THIS_QUARTER, {start: '2026-01-01', end: '2026-03-31'}],
                     [CONST.SEARCH.DATE_PRESETS.LAST_QUARTER, {start: '2025-10-01', end: '2025-12-31'}],
                     [CONST.SEARCH.DATE_PRESETS.THIS_YEAR, {start: '2026-01-01', end: '2026-12-31'}],
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE, {start: '2026-01-01', end: '2026-12-31'}],
                     [CONST.SEARCH.DATE_PRESETS.LAST_YEAR, {start: '2025-01-01', end: '2025-12-31'}],
                     [CONST.SEARCH.DATE_PRESETS.LAST_30_DAYS, {start: '2026-01-17', end: '2026-02-15'}],
                     [CONST.SEARCH.DATE_PRESETS.LAST_90_DAYS, {start: '2025-11-18', end: '2026-02-15'}],
@@ -4834,7 +4904,8 @@ describe('SearchUIUtils', () => {
                     // When each preset is resolved
                     const range = getDateRangeForPreset(preset);
 
-                    // Then current periods run to the end of the period, previous periods cover the whole period, and rolling day ranges end today
+                    // Then current periods run to the end of the period, previous periods cover the whole period, rolling day ranges end today,
+                    // and the deprecated year to date matches this year
                     expect(range).toEqual(expectedRange);
                 }
             });
@@ -4949,7 +5020,7 @@ describe('SearchUIUtils', () => {
                     currency: 'USD',
                     total: 250,
                     groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
-                    formattedQuarter: 'Q1 2026 (Jan 1 - Mar 31)',
+                    formattedQuarter: 'Q1 2026 (Jan 1\u2009–\u2009Mar 31)',
                     shortFormattedQuarter: 'Q1 ’26',
                     sortKey: 20261,
                     transactions: [],
@@ -4963,7 +5034,7 @@ describe('SearchUIUtils', () => {
                     currency: 'USD',
                     total: 75,
                     groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
-                    formattedQuarter: 'Q4 2025 (Oct 1 - Dec 31)',
+                    formattedQuarter: 'Q4 2025 (Oct 1\u2009–\u2009Dec 31)',
                     shortFormattedQuarter: 'Q4 ’25',
                     sortKey: 20254,
                     transactions: [],
@@ -5030,8 +5101,8 @@ describe('SearchUIUtils', () => {
             );
 
             expect(result).toHaveLength(2);
-            expect(result.some((item) => item.formattedQuarter === 'Q1 2026 (Jan 1 - Mar 31)')).toBe(true);
-            expect(result.some((item) => item.formattedQuarter === 'Q3 2026 (Jul 1 - Sep 30)')).toBe(true);
+            expect(result.some((item) => item.formattedQuarter === 'Q1 2026 (Jan 1\u2009–\u2009Mar 31)')).toBe(true);
+            expect(result.some((item) => item.formattedQuarter === 'Q3 2026 (Jul 1\u2009–\u2009Sep 30)')).toBe(true);
         });
 
         it('should calculate sortKey correctly for quarter groups', () => {
@@ -5067,7 +5138,7 @@ describe('SearchUIUtils', () => {
                 currency: 'USD',
                 total: 250,
                 groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
-                formattedQuarter: 'Q1 2026 (Jan 1 - Mar 31)',
+                formattedQuarter: 'Q1 2026 (Jan 1\u2009–\u2009Mar 31)',
                 shortFormattedQuarter: 'Q1 ’26',
                 sortKey: 20261,
                 transactions: [],
@@ -5085,7 +5156,7 @@ describe('SearchUIUtils', () => {
                     currency: 'USD',
                     total: 250,
                     groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
-                    formattedWeek: 'Jan 25 - Jan 31, 2026',
+                    formattedWeek: 'Jan 25\u2009–\u200931, 2026',
                     shortFormattedWeek: 'Jan 25 - 31, ’26',
                     lineChartFormattedWeek: DateUtils.getShortFormattedDayForSearch('2026-01-25', undefined, new Date().getFullYear() !== 2026),
                     transactions: [],
@@ -5098,7 +5169,7 @@ describe('SearchUIUtils', () => {
                     currency: 'USD',
                     total: 75,
                     groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
-                    formattedWeek: 'Dec 21 - Dec 27, 2025',
+                    formattedWeek: 'Dec 21\u2009–\u200927, 2025',
                     shortFormattedWeek: 'Dec 21 - 27, ’25',
                     lineChartFormattedWeek: DateUtils.getShortFormattedDayForSearch('2025-12-21', undefined, new Date().getFullYear() !== 2025),
                     transactions: [],
@@ -8969,8 +9040,8 @@ describe('SearchUIUtils', () => {
             // Then each entry filters on merchant with the group's own value, and the empty merchant maps to `none`,
             // so the export can match each group exactly. The hook test checks that the backend gets `eq`.
             expect(selectedGroupEntries).toEqual([
-                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: 'Amazon'},
-                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: CONST.SEARCH.MERCHANT_EMPTY_VALUE},
+                {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: 'Amazon'},
+                {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: CONST.SEARCH.MERCHANT_EMPTY_VALUE},
             ]);
         });
     });
@@ -10030,6 +10101,23 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    describe('isTodoSearchKey', () => {
+        it('should accept only the searches that have a to-do count', () => {
+            // Given the to-do searches and searches that have no to-do count
+            const todoSearchKeys = [CONST.SEARCH.SEARCH_KEYS.SUBMIT, CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.PAY, CONST.SEARCH.SEARCH_KEYS.EXPORT];
+            const otherSearchKeys = [CONST.SEARCH.SEARCH_KEYS.EXPENSES, CONST.SEARCH.SEARCH_KEYS.REPORTS, CONST.SEARCH.SEARCH_KEYS.STATEMENTS];
+
+            // When we check each of them
+            // Then only the to-do searches are accepted, since only they can index the live to-do counts
+            for (const searchKey of todoSearchKeys) {
+                expect(SearchUIUtils.isTodoSearchKey(searchKey)).toBe(true);
+            }
+            for (const searchKey of otherSearchKeys) {
+                expect(SearchUIUtils.isTodoSearchKey(searchKey)).toBe(false);
+            }
+        });
+    });
+
     describe('Test createTypeMenuItems', () => {
         it('should return the default menu items', () => {
             const menuItems = SearchUIUtils.createTypeMenuSections({
@@ -10043,6 +10131,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             })
                 .map((section) => section.menuItems)
                 .flat();
@@ -10133,9 +10222,10 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
-            const todoSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.TODO_SEARCH_KEYS.has(item.key)));
+            const todoSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => TODO_SEARCH_KEYS.has(item.key)));
             expect(todoSectionMenuItems.length).toBeGreaterThan(0);
 
             const menuItemKeys = todoSectionMenuItems.map((item) => item.key);
@@ -10166,12 +10256,50 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const submitItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT);
 
             expect(submitItem).toBeDefined();
             expect(submitItem?.emptyState?.buttons).toEqual([]);
+        });
+
+        it('passes the session to interceptAnonymousUser from the Submit empty state create expense button', () => {
+            // Given a CTA-eligible group workspace and an anonymous session, which decides whether the button sends the user to sign in
+            const interceptAnonymousUserSpy = jest.spyOn(require<{default: typeof interceptAnonymousUser}>('@libs/interceptAnonymousUser'), 'default').mockImplementation(() => {});
+            const session = {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS};
+            const sections = SearchUIUtils.createTypeMenuSections({
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: {
+                    policy1: createMock<OnyxTypes.Policy>({
+                        id: 'policy1',
+                        name: 'Test Policy',
+                        owner: adminEmail,
+                        outputCurrency: 'USD',
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        type: CONST.POLICY.TYPE.TEAM,
+                    }),
+                },
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                draftTransactionIDs: [],
+                isTrackIntentUser: false,
+                session,
+            });
+            const submitItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT);
+
+            // When the create expense button in the Submit empty state is pressed
+            submitItem?.emptyState?.buttons?.at(0)?.buttonAction();
+
+            // Then the passed session is forwarded to interceptAnonymousUser
+            expect(interceptAnonymousUserSpy).toHaveBeenCalledWith(expect.any(Function), session);
+
+            interceptAnonymousUserSpy.mockRestore();
         });
 
         it('should hide submit, approve, pay, export, and top spenders for track intent users without workflows enabled', () => {
@@ -10242,6 +10370,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: true,
+                session: undefined,
             });
 
             const allMenuItemKeys = sections.flatMap((section) => section.menuItems.map((item) => item.key));
@@ -10320,6 +10449,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: true,
+                session: undefined,
             });
 
             const allMenuItemKeys = sections.flatMap((section) => section.menuItems.map((item) => item.key));
@@ -10376,6 +10506,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const monthlyAccrualSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.MONTHLY_ACCRUAL_SEARCH_KEYS.has(item.key)));
@@ -10420,6 +10551,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -10440,6 +10572,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -10467,6 +10600,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -10494,6 +10628,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -10524,9 +10659,10 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
-            const todoSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.TODO_SEARCH_KEYS.has(item.key)));
+            const todoSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => TODO_SEARCH_KEYS.has(item.key)));
             expect(todoSectionMenuItems.length).toBe(0);
         });
 
@@ -10568,6 +10704,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const allMenuItemKeys = sections.flatMap((section) => section.menuItems.map((item) => item.key));
@@ -10623,6 +10760,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const menuKeysBeforeInsightsPage = sections.flatMap((section) => section.menuItems.map((item) => item.key));
@@ -10672,6 +10810,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const allMenuItemKeys = sections.flatMap((section) => section.menuItems.map((item) => item.key));
@@ -10705,6 +10844,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const monthlyAccrualSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.MONTHLY_ACCRUAL_SEARCH_KEYS.has(item.key)));
@@ -10747,6 +10887,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const reconciliationSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.RECONCILIATION_SEARCH_KEYS.has(item.key)));
@@ -10782,6 +10923,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
             const reconciliationSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.RECONCILIATION_SEARCH_KEYS.has(item.key)));
             expect(reconciliationSectionMenuItems.length).toBeGreaterThan(0);
@@ -10837,6 +10979,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const reconciliationItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
@@ -10879,6 +11022,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const reconciliationItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
@@ -10936,6 +11080,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
             const reconciliationItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
 
@@ -10969,6 +11114,169 @@ describe('SearchUIUtils', () => {
             // Then Cash accruals still shows, but Bank reconciliation needs a bank account to reconcile against
             expect(visibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]).toBe(true);
             expect(visibility[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]).toBe(false);
+        });
+
+        it('should show Card accruals, Card statements, and Expensify Card reconciliation, but no Cash accruals, to a Card Admin', () => {
+            // Given a Card Admin on a workspace with approvals, ACH reimbursement, Expensify Cards, and a card feed
+            const cardAdminEmail = 'cardadmin@policy.com';
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'Card Admin Policy',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    role: CONST.POLICY.ROLE.CARD_ADMIN,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    areExpensifyCardsEnabled: true,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    achAccount: {
+                        bankAccountID: 1234,
+                        reimburser: adminEmail,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        accountNumber: '1234567890',
+                        routingNumber: '1234567890',
+                        addressName: 'Test Address',
+                        bankName: 'Test Bank',
+                    },
+                },
+            };
+            const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {
+                policy1: [
+                    {
+                        id: 'card1',
+                        feed: 'Expensify Card' as const,
+                        fundID: 'fund1',
+                        name: 'Test Card Feed',
+                    },
+                ],
+            };
+
+            // When the suggested searches are computed for that Card Admin
+            const {visibility, shouldShowExpensifyCard} = SearchUIUtils.getSuggestedSearchesVisibility(cardAdminEmail, mockCardFeedsByPolicy, mockPolicies, undefined);
+            const sections = SearchUIUtils.createTypeMenuSections({
+                currentUserEmail: cardAdminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: mockCardFeedsByPolicy,
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                draftTransactionIDs: [],
+                isTrackIntentUser: false,
+                session: undefined,
+            });
+            const reconciliationItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+
+            // Then the role gets the card searches it manages, with reconciliation opening on the Expensify Card, while
+            // Cash accruals stays limited to roles that see reimbursements
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.STATEMENTS]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]).toBe(false);
+            expect(shouldShowExpensifyCard).toBe(true);
+            expect(reconciliationItem?.searchQuery).toContain('withdrawalType:expensify-card');
+        });
+
+        it('should hide Bank reconciliation from a Card Admin when the workspace only has company cards', () => {
+            // Given a Card Admin on a workspace with approvals and a company card feed, but no Expensify Cards
+            const cardAdminEmail = 'cardadmin@policy.com';
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'Card Admin Policy',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    role: CONST.POLICY.ROLE.CARD_ADMIN,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    areCompanyCardsEnabled: true,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    achAccount: {
+                        bankAccountID: 1234,
+                        reimburser: adminEmail,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        accountNumber: '1234567890',
+                        routingNumber: '1234567890',
+                        addressName: 'Test Address',
+                        bankName: 'Test Bank',
+                    },
+                },
+            };
+            const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {
+                policy1: [
+                    {
+                        id: 'companyCard1',
+                        feed: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                        fundID: 'fund1',
+                        name: 'Company Card Feed',
+                    },
+                ],
+            };
+
+            // When the suggested searches are computed for that Card Admin
+            const {visibility} = SearchUIUtils.getSuggestedSearchesVisibility(cardAdminEmail, mockCardFeedsByPolicy, mockPolicies, undefined);
+
+            // Then the card searches still show, but Bank reconciliation has no Expensify Card withdrawals to show the role
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.STATEMENTS]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]).toBe(false);
+        });
+
+        it('should keep every accounting search for a user who is an Admin on one workspace and a Card Admin on another', () => {
+            // Given an Admin of a workspace with ACH reimbursement who is also a Card Admin on a workspace with Expensify Cards
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'Admin Policy',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    achAccount: {
+                        bankAccountID: 1234,
+                        reimburser: adminEmail,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        accountNumber: '1234567890',
+                        routingNumber: '1234567890',
+                        addressName: 'Test Address',
+                        bankName: 'Test Bank',
+                    },
+                },
+                policy2: {
+                    id: 'policy2',
+                    name: 'Card Admin Policy',
+                    owner: 'owner@policy.com',
+                    outputCurrency: 'USD',
+                    role: CONST.POLICY.ROLE.CARD_ADMIN,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    areExpensifyCardsEnabled: true,
+                },
+            };
+            const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {
+                policy2: [
+                    {
+                        id: 'card1',
+                        feed: 'Expensify Card' as const,
+                        fundID: 'fund1',
+                        name: 'Test Card Feed',
+                    },
+                ],
+            };
+
+            // When the suggested searches are computed for that user
+            const {visibility, shouldShowExpensifyCard} = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, mockCardFeedsByPolicy, mockPolicies, undefined);
+
+            // Then the Card Admin role adds the card searches without hiding the Admin's reimbursement searches
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.STATEMENTS]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]).toBe(true);
+            expect(shouldShowExpensifyCard).toBe(true);
         });
 
         it('should place todo items (submit, approve, pay) inside the Expense reports section', () => {
@@ -11038,6 +11346,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const expenseReportsSection = sections.find((section) => section.translationPath === 'search.tabs.expenseReports');
@@ -11117,6 +11426,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const accountingSection = sections.find((section) => section.translationPath === 'search.tabs.accounting');
@@ -11199,6 +11509,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const allMenuItems = sections.flatMap((section) => section.menuItems);
@@ -11222,6 +11533,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             })
                 .map((section) => section.menuItems)
                 .flat();
@@ -11301,8 +11613,9 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
-            const todoSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.TODO_SEARCH_KEYS.has(item.key)));
+            const todoSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => TODO_SEARCH_KEYS.has(item.key)));
 
             const submitItem = todoSectionMenuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT);
             const approveItem = todoSectionMenuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.APPROVE);
@@ -11334,6 +11647,7 @@ describe('SearchUIUtils', () => {
                     defaultExpensifyCard: undefined,
                     draftTransactionIDs: [],
                     isTrackIntentUser: false,
+                    session: undefined,
                 });
 
             it('should show the Travel section with Trips when a workspace is set up for Expensify Travel', () => {
@@ -14440,12 +14754,12 @@ describe('SearchUIUtils', () => {
         });
 
         test("Should not create a transaction thread in the current user's self DM for another user's unreported expense", () => {
-            // Given an unreported expense owned by another user
+            // Given an unreported expense owned by another user whose self DM is unknown
             const unreportedTransaction = {
                 ...transactionListItem,
                 reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                 report: undefined,
-                reportAction: {...reportAction1, actorAccountID: currentUserAccountID + 1},
+                reportAction: {...reportAction1, actorAccountID: currentUserAccountID + 1, reportID: undefined},
             };
 
             // When the current user opens the expense from Search
@@ -14458,20 +14772,46 @@ describe('SearchUIUtils', () => {
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
-        test("Should create a transaction thread in the current user's self DM for their own unreported expense", () => {
-            // Given an unreported expense owned by the current user
+        test("Should create a transaction thread in the owner's self DM for another user's unreported expense", () => {
+            // Given an unreported expense whose IOU action Search returns from another user's self DM
             jest.mocked(createTransactionThreadReport).mockReturnValue(threadReport);
+            const ownerSelfDMReportID = 'owner-self-dm';
             const unreportedTransaction = {
                 ...transactionListItem,
                 reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                 report: undefined,
-                reportAction: {...reportAction1, actorAccountID: currentUserAccountID},
+                reportAction: {...reportAction1, actorAccountID: currentUserAccountID + 1, reportID: ownerSelfDMReportID},
             };
 
             // When the current user opens the expense from Search
             const targetReportID = SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item: unreportedTransaction, shouldNavigate: false});
 
-            // Then the transaction thread is created using the unreported transaction data
+            // Then the transaction thread is created under the owner's self DM instead of the current user's
+            expect(targetReportID).toBe(threadReportID);
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    iouReportAction: unreportedTransaction.reportAction,
+                    selfDMReportID: ownerSelfDMReportID,
+                }),
+            );
+        });
+
+        test("Should create a transaction thread in the current user's self DM from Search when it is not loaded locally", () => {
+            // Given the current user's self DM is not in Onyx, and Search returns their own unreported expense's IOU action from that self DM
+            expect(findSelfDMReportID()).toBeUndefined();
+            jest.mocked(createTransactionThreadReport).mockReturnValue(threadReport);
+            const currentUserSelfDMReportID = 'current-user-self-dm';
+            const unreportedTransaction = {
+                ...transactionListItem,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                report: undefined,
+                reportAction: {...reportAction1, actorAccountID: currentUserAccountID, reportID: currentUserSelfDMReportID},
+            };
+
+            // When the current user opens the expense from Search
+            const targetReportID = SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item: unreportedTransaction, shouldNavigate: false});
+
+            // Then the transaction thread is still created in their self DM using the unreported transaction data, instead of the click doing nothing
             expect(targetReportID).toBe(threadReportID);
             expect(setOptimisticDataForTransactionThreadPreview).toHaveBeenCalled();
             expect(createTransactionThreadReport).toHaveBeenCalledWith(
@@ -14480,8 +14820,102 @@ describe('SearchUIUtils', () => {
                     iouReport: undefined,
                     iouReportAction: unreportedTransaction.reportAction,
                     transaction: expect.objectContaining({reportID: CONST.REPORT.UNREPORTED_REPORT_ID}),
+                    selfDMReportID: currentUserSelfDMReportID,
                 }),
             );
+        });
+
+        test("Should fall back to the current user's self DM when Search returns the IOU action without its report", async () => {
+            // Given the current user's self DM in Onyx and their own unreported expense whose IOU action has no reportID
+            jest.mocked(createTransactionThreadReport).mockReturnValue(threadReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}fallback-self-dm`, {reportID: 'fallback-self-dm', type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM});
+            await waitForBatchedUpdates();
+            const unreportedTransaction = {
+                ...transactionListItem,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                report: undefined,
+                reportAction: {...reportAction1, actorAccountID: currentUserAccountID, reportID: undefined},
+            };
+
+            // When the current user opens the expense from Search
+            SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item: unreportedTransaction, shouldNavigate: false});
+
+            // Then the thread falls back to their own self DM
+            const expectedSelfDMReportID = findSelfDMReportID();
+            expect(expectedSelfDMReportID).toBeDefined();
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(expect.objectContaining({selfDMReportID: expectedSelfDMReportID}));
+        });
+
+        test("Should not treat the unreported report ID on the IOU action as the owner's self DM", async () => {
+            // Given the current user's self DM in Onyx and their own unreported expense whose IOU action carries the unreported placeholder as its reportID
+            jest.mocked(createTransactionThreadReport).mockReturnValue(threadReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}fallback-self-dm`, {reportID: 'fallback-self-dm', type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM});
+            await waitForBatchedUpdates();
+            const unreportedTransaction = {
+                ...transactionListItem,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                report: undefined,
+                reportAction: {...reportAction1, actorAccountID: currentUserAccountID, reportID: CONST.REPORT.UNREPORTED_REPORT_ID},
+            };
+
+            // When the current user opens the expense from Search
+            SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item: unreportedTransaction, shouldNavigate: false});
+
+            // Then the thread goes to their real self DM, because report 0 is not a chat and parenting a thread there would leave a bogus report in Onyx
+            const expectedSelfDMReportID = findSelfDMReportID();
+            expect(expectedSelfDMReportID).toBeDefined();
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(expect.objectContaining({selfDMReportID: expectedSelfDMReportID}));
+        });
+
+        test("Should create a transaction thread in the current user's self DM when the Search row has no IOU action", async () => {
+            // Given the current user's own unreported expense whose IOU action is only in their local self DM, not on the Search row
+            jest.mocked(createTransactionThreadReport).mockReturnValue(threadReport);
+            const selfDMReportID = 'own-self-dm-no-row-action';
+            const ownAction = {...reportAction1, actorAccountID: currentUserAccountID, reportID: selfDMReportID};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {reportID: selfDMReportID, type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM});
+            await Onyx.set(ONYXKEYS.SELF_DM_REPORT_ID, selfDMReportID);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`, {[ownAction.reportActionID]: ownAction});
+            await waitForBatchedUpdates();
+            const unreportedTransaction = {
+                ...transactionListItem,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                report: undefined,
+                reportAction: undefined,
+            };
+
+            // When the current user opens the expense from Search
+            SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item: unreportedTransaction, shouldNavigate: false});
+
+            // Then ownership is read from their self DM action, so the thread is created there instead of the click doing nothing
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(expect.objectContaining({selfDMReportID}));
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`, null);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, null);
+            await Onyx.set(ONYXKEYS.SELF_DM_REPORT_ID, null);
+            await waitForBatchedUpdates();
+        });
+
+        test("Should reuse the thread already created under another user's self DM instead of creating a new one", async () => {
+            // Given another user's unreported expense whose IOU action in their self DM already points at a thread
+            jest.mocked(createTransactionThreadReport).mockReset();
+            const ownerSelfDMReportID = 'owner-self-dm-reopen';
+            const childReportID = 'owner-thread-789';
+            const ownerAction = {...reportAction1, actorAccountID: currentUserAccountID + 1, reportID: ownerSelfDMReportID};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ownerSelfDMReportID}`, {[ownerAction.reportActionID]: {...ownerAction, childReportID}});
+            await waitForBatchedUpdates();
+            const unreportedTransaction = {
+                ...transactionListItem,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                report: undefined,
+                reportAction: ownerAction,
+            };
+
+            // When it is opened again from Search, whose snapshot row has no thread yet
+            SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item: unreportedTransaction, IOUTransactionID: undefined, shouldNavigate: true});
+
+            // Then the existing thread is opened, so a second click doesn't send another OpenReport
+            expect(createTransactionThreadReport).not.toHaveBeenCalled();
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo}));
         });
 
         test('Should not navigate if shouldNavigate = false', () => {
@@ -14698,6 +15132,47 @@ describe('SearchUIUtils', () => {
 
             const result = SearchUIUtils.getSearchBulkEditPolicyID(['t1', 't2'], 'policy-3', transactions, reports);
             expect(result).toBe('policy-3');
+        });
+    });
+
+    describe('isEverySearchBulkEditExpenseOwnedBy', () => {
+        const ownReport: OnyxTypes.Report = {reportID: 'r1', ownerAccountID: 1};
+        const otherReport: OnyxTypes.Report = {reportID: 'r2', ownerAccountID: 2};
+        const reports: OnyxCollection<OnyxTypes.Report> = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${ownReport.reportID}`]: ownReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}${otherReport.reportID}`]: otherReport,
+        };
+        const transactions: OnyxCollection<OnyxTypes.Transaction> = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}t1`]: createMock<OnyxTypes.Transaction>({transactionID: 't1', reportID: 'r1'}),
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}t2`]: createMock<OnyxTypes.Transaction>({transactionID: 't2', reportID: 'r2'}),
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}t3`]: createMock<OnyxTypes.Transaction>({transactionID: 't3', reportID: CONST.REPORT.UNREPORTED_REPORT_ID}),
+        };
+
+        it("is true when every selected expense is on the member's report or not on a report yet", () => {
+            // Given one expense on the member's own report and one unreported, which only its owner can see
+            // When checking whether bulk editing should limit the categories to theirs
+            const result = SearchUIUtils.isEverySearchBulkEditExpenseOwnedBy(['t1', 't3'], 1, transactions, reports);
+
+            // Then it should, since every expense is theirs
+            expect(result).toBe(true);
+        });
+
+        it("is false when any selected expense is on someone else's report", () => {
+            // Given an admin who selected their own expense and a member's
+            // When checking whether bulk editing should limit the categories to theirs
+            const result = SearchUIUtils.isEverySearchBulkEditExpenseOwnedBy(['t1', 't2'], 1, transactions, reports);
+
+            // Then it shouldn't, so they see every category as when recoding another member's expense
+            expect(result).toBe(false);
+        });
+
+        it('is false when nothing is selected', () => {
+            // Given no selected expenses
+            // When checking ownership
+            const result = SearchUIUtils.isEverySearchBulkEditExpenseOwnedBy([], 1, transactions, reports);
+
+            // Then nothing is filtered, since there's no owner to filter for
+            expect(result).toBe(false);
         });
     });
 
@@ -15783,6 +16258,21 @@ describe('SearchUIUtils', () => {
             );
         });
 
+        test('omits the cash expense notice that only Classic records', () => {
+            // Given a submit snapshot taken by Classic, which records the cash expense notice next to another violation
+            const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
+                transactions: {
+                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT}, {name: CONST.VIOLATIONS.MISSING_CATEGORY}],
+                },
+            });
+
+            // When the submitted violations column is built for the expense
+            const violations = SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal);
+
+            // Then only the other violation is listed, so the column matches Search, Insights and the CSV export
+            expect(violations).toBe(translateLocal('violations.shortName.missingCategory'));
+        });
+
         test('translates maxAge via violations.shortName', () => {
             const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
                 transactions: {
@@ -16463,6 +16953,23 @@ describe('SearchUIUtils', () => {
     describe('mapFiltersFormToLabelValueList', () => {
         const convertToDisplayStringWithoutCurrency = jest.fn((amount = 0) => `${amount}`);
 
+        it.each([
+            {form: {amountGreaterThan: '6000', amountGreaterThanOrEqualTo: '5000'}, expected: 'Greater than 60.00, Greater than or equal to 50.00'},
+            {form: {amountGreaterThanOrEqualTo: '50.00 AUD', amountLessThanOrEqualTo: '100.00 AUD'}, expected: 'Between 50.00 AUD and 100.00 AUD'},
+            {form: {amountGreaterThanOrEqualTo: '50.00 AUD'}, expected: 'Greater than or equal to 50.00 AUD'},
+            {form: {amountLessThanOrEqualTo: '100.00 AUD'}, expected: 'Less than or equal to 100.00 AUD'},
+        ])('shows inclusive amount bounds in one chip: $expected', ({form, expected}) => {
+            // Given inclusive operands must appear in the filter bar, not only in the search AST.
+            const formatAmount = (amount: number) => (amount / 100).toFixed(2);
+
+            // When the hydrated form is mapped to visible chips.
+            const chips = SearchUIUtils.mapFiltersFormToLabelValueList(form, new Set(), new Set(), translateLocal, undefined, localeCompare, formatAmount);
+
+            // Then bounds share the Amount chip and keep their comparison currency.
+            expect(chips).toHaveLength(1);
+            expect(chips.at(0)).toMatchObject({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, value: expected});
+        });
+
         it('places default filters before non-default filters', () => {
             const form = {
                 [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD]: 'hotel',
@@ -16949,7 +17456,6 @@ describe('getDatePresets', () => {
             CONST.SEARCH.DATE_PRESETS.THIS_MONTH,
             CONST.SEARCH.DATE_PRESETS.THIS_QUARTER,
             CONST.SEARCH.DATE_PRESETS.THIS_YEAR,
-            CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE,
             CONST.SEARCH.DATE_PRESETS.LAST_WEEK,
             CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
             CONST.SEARCH.DATE_PRESETS.LAST_QUARTER,
@@ -17084,6 +17590,62 @@ describe('Trip search', () => {
         expect(options.map((option) => option.text)).not.toContain(translateLocal('iou.endDate'));
     });
 
+    it('maps the current and past statuses to upcoming and done', () => {
+        // Given statuses a saved trip search used before trip rooms, next to one trip rooms use
+        // When they're normalized for trip rooms
+        // Then current and past mean upcoming and done, and duplicates collapse
+        expect(SearchUIUtils.normalizeTripStatuses([CONST.SEARCH.STATUS.TRIP.CURRENT, CONST.SEARCH.STATUS.TRIP.PAST, CONST.SEARCH.TRIP_STATUS.UPCOMING])).toEqual([
+            CONST.SEARCH.TRIP_STATUS.UPCOMING,
+            CONST.SEARCH.TRIP_STATUS.DONE,
+        ]);
+        expect(SearchUIUtils.normalizeTripStatuses([CONST.SEARCH.TRIP_STATUS.CANCELED])).toEqual([CONST.SEARCH.TRIP_STATUS.CANCELED]);
+    });
+
+    it('offers upcoming, done and canceled as trip room statuses', () => {
+        // Given a trip search with and without the TravelApproval beta
+        const getStatusValues = (shouldReturnTripRooms: boolean) =>
+            SearchUIUtils.getMultiSelectFilterOptions(FILTER_KEYS.STATUS, CONST.SEARCH.DATA_TYPES.TRIP, translateLocal, undefined, undefined, shouldReturnTripRooms).map(
+                (option) => option.value,
+            );
+
+        // When the Status filter options are built
+        // Then trip rooms offer their own statuses, and the expense search keeps current and past
+        expect(getStatusValues(true)).toEqual([CONST.SEARCH.TRIP_STATUS.UPCOMING, CONST.SEARCH.TRIP_STATUS.DONE, CONST.SEARCH.TRIP_STATUS.CANCELED]);
+        expect(getStatusValues(false)).toEqual([CONST.SEARCH.STATUS.TRIP.CURRENT, CONST.SEARCH.STATUS.TRIP.PAST]);
+    });
+
+    it('labels both the trip room and the older trip statuses in filter chips', () => {
+        // Given trip queries with a trip room status and with a status from before trip rooms
+        const getStatusLabel = (status: string) =>
+            SearchUIUtils.mapFiltersFormToLabelValueList(
+                {type: CONST.SEARCH.DATA_TYPES.TRIP, status: [status]},
+                new Set(),
+                undefined,
+                translateLocal,
+                undefined,
+                localeCompare,
+                (amount: number) => `${amount}`,
+            ).find((filter) => filter.key === FILTER_KEYS.STATUS)?.value;
+
+        // When the chips are labelled
+        // Then both show their name, so a saved search with an older status still reads right
+        expect(getStatusLabel(CONST.SEARCH.TRIP_STATUS.UPCOMING)).toBe(translateLocal('search.trip.status.upcoming'));
+        expect(getStatusLabel(CONST.SEARCH.STATUS.TRIP.CURRENT)).toBe(translateLocal('search.filters.current'));
+    });
+
+    it('shows the trip room status in the chip of a saved search with an older status', () => {
+        // Given a trip rooms query saved with current, which trip rooms read as upcoming
+        const form = SearchUIUtils.getFiltersFormWithTripRoomStatuses({type: CONST.SEARCH.DATA_TYPES.TRIP, status: [CONST.SEARCH.STATUS.TRIP.CURRENT, CONST.SEARCH.TRIP_STATUS.UPCOMING]});
+
+        // When the chips are labelled
+        const statusLabel = SearchUIUtils.mapFiltersFormToLabelValueList(form, new Set(), undefined, translateLocal, undefined, localeCompare, (amount: number) => `${amount}`).find(
+            (filter) => filter.key === FILTER_KEYS.STATUS,
+        )?.value;
+
+        // Then the chip reads Upcoming once, matching the Status filter
+        expect(statusLabel).toBe(translateLocal('search.trip.status.upcoming'));
+    });
+
     it('labels the date sort as Start date only for trip rooms', () => {
         // Given the canned trip search's date sort
         // When its label is read with and without the TravelApproval beta
@@ -17197,5 +17759,37 @@ describe('getMatchingFilters', () => {
 
         // Then nothing is left, so the list shows its no results message
         expect(matchingFilters).toEqual([]);
+    });
+});
+
+describe('canEditSearchColumns', () => {
+    it('lets users pick the columns of expense and expense report searches', () => {
+        // Given the search types whose tables have customizable columns
+        // When asked whether users can edit their columns
+        // Then both allow it, regardless of trip rooms
+        expect(SearchUIUtils.canEditSearchColumns(CONST.SEARCH.DATA_TYPES.EXPENSE, false)).toBe(true);
+        expect(SearchUIUtils.canEditSearchColumns(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, false)).toBe(true);
+    });
+
+    it('does not let users pick the columns of a task or invoice search', () => {
+        // Given task and invoice searches, whose tables have no customizable columns
+        // When asked whether users can edit their columns
+        // Then neither allows it, so the headings get no column menus
+        expect(SearchUIUtils.canEditSearchColumns(CONST.SEARCH.DATA_TYPES.TASK, false)).toBe(false);
+        expect(SearchUIUtils.canEditSearchColumns(CONST.SEARCH.DATA_TYPES.INVOICE, false)).toBe(false);
+    });
+
+    it('does not let users pick the columns of a trip search that shows expenses', () => {
+        // Given a trip search that doesn't return trip rooms, so its table is the expense table
+        // When asked whether users can edit its columns
+        // Then it doesn't allow it, since the trip columns only apply to the rooms table
+        expect(SearchUIUtils.canEditSearchColumns(CONST.SEARCH.DATA_TYPES.TRIP, false)).toBe(false);
+    });
+
+    it('lets users pick the columns of a search that returns trip rooms', () => {
+        // Given a trip search that returns trip rooms
+        // When asked whether users can edit its columns
+        // Then it allows it
+        expect(SearchUIUtils.canEditSearchColumns(CONST.SEARCH.DATA_TYPES.TRIP, true)).toBe(true);
     });
 });

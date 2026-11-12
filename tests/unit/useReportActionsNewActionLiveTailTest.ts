@@ -5,9 +5,13 @@ import {FALLBACK_NAVIGATION_CONTEXT_VALUE} from '@components/withNavigationFallb
 import useReportActionsNewActionLiveTail from '@pages/inbox/report/useReportActionsNewActionLiveTail';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 
-import {getFakeReportAction} from '../utils/ReportTestUtils';
+import Onyx from 'react-native-onyx';
+
+import {createMockReport, getFakeReportAction} from '../utils/ReportTestUtils';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const mockNavigationSetParams = jest.fn();
 const mockGlobalSetParams = jest.fn();
@@ -35,6 +39,7 @@ let mockNavigation: Record<string, unknown> = {setParams: mockNavigationSetParam
 let mockIsInSidePanel = false;
 
 jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
     useNavigation: () => mockNavigation,
 }));
 
@@ -91,10 +96,7 @@ const reportScrollManager = {
 function buildParams(overrides: Partial<HookParams> = {}): HookParams {
     return {
         reportID: '1',
-        introSelected: undefined,
-        conciergeChat: undefined,
-        isSelfTourViewed: undefined,
-        hasCompletedGuidedSetupFlow: undefined,
+        policyID: undefined,
         isOffline: false,
         reportScrollManager,
         setIsFloatingMessageCounterVisible: jest.fn(),
@@ -115,8 +117,9 @@ function buildParams(overrides: Partial<HookParams> = {}): HookParams {
 }
 
 describe('useReportActionsNewActionLiveTail', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
         jest.clearAllMocks();
+        await Onyx.clear();
         newActionHandler = undefined;
         mockNavigation = {setParams: mockNavigationSetParams, getState: () => ({key: 'stack-report'})};
         mockIsInSidePanel = false;
@@ -135,35 +138,58 @@ describe('useReportActionsNewActionLiveTail', () => {
         expect(params.setTreatAsNoPaginationAnchor).toHaveBeenLastCalledWith(false);
     });
 
-    it('threads the conciergeChat report through to the catch-up openReport call', () => {
-        const conciergeChat = {reportID: 'concierge-live-tail-1'};
-        renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildParams({conciergeChat})});
+    it('reads the openReport inputs from Onyx for the catch-up openReport call', async () => {
+        // Given the Concierge chat, onboarding, intro, session and full policy snapshot in Onyx. The hook subscribes to none
+        // of them, so it must read them when the jump happens for the guided setup data openReport builds.
+        const conciergeChat = createMockReport({reportID: 'concierge-live-tail-1'});
+        await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeChat.reportID);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${conciergeChat.reportID}`, conciergeChat);
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {selfTourViewed: true, hasCompletedGuidedSetupFlow: false});
+        await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.EMPLOYER});
+        await Onyx.set(ONYXKEYS.SESSION, {accountID: 42});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}policy-1`, {lastModified: 123});
+        renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildParams({policyID: 'policy-1'})});
 
+        // When the current user sends a comment while the newest actions are not loaded
         act(() => {
             newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
         });
+        await waitForBatchedUpdates();
 
-        expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({conciergeChat}));
+        // Then the catch-up openReport receives each value as it was in Onyx, with the selectors applied
+        expect(mockOpenReport).toHaveBeenCalledWith(
+            expect.objectContaining({
+                conciergeChat: expect.objectContaining({reportID: conciergeChat.reportID}),
+                introSelected: expect.objectContaining({choice: CONST.ONBOARDING_CHOICES.EMPLOYER}),
+                isSelfTourViewed: true,
+                hasCompletedGuidedSetupFlow: false,
+                currentUserAccountID: 42,
+                fullPolicySnapshot: {policyID: 'policy-1', lastModified: 123},
+            }),
+        );
     });
 
-    it('threads the onboarding status through to the catch-up openReport call', () => {
-        renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildParams({isSelfTourViewed: true, hasCompletedGuidedSetupFlow: false})});
+    it('returns the openReport helper that the "Latest messages" pill reuses', async () => {
+        // Given the hook for report 1. The pill in useReportActionsScroll calls this helper instead of reading the inputs itself.
+        const {result} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildParams()});
 
-        act(() => {
-            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
+        // When the pill calls the returned helper
+        await act(async () => {
+            await result.current.openReportAtLiveTail();
         });
 
-        // The onboarding flags are threaded straight through so guided-setup optimistic data is derived from real Onyx
-        // data supplied by the caller instead of the deprecated module-level fallback.
-        expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({isSelfTourViewed: true, hasCompletedGuidedSetupFlow: false}));
+        // Then openReport runs once, for this report
+        expect(mockOpenReport).toHaveBeenCalledTimes(1);
+        expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: '1'}));
     });
 
-    it('clears the report screen param after loading the live tail without changing the focused route', () => {
+    it('clears the report screen param after loading the live tail without changing the focused route', async () => {
         const {rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildParams()});
 
         act(() => {
             newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
         });
+        await waitForBatchedUpdates();
 
         expect(mockOpenReport).toHaveBeenCalledTimes(1);
 
@@ -223,7 +249,7 @@ describe('useReportActionsNewActionLiveTail', () => {
         expect(setTreatAsNoPaginationAnchor).toHaveBeenCalledWith(true);
     });
 
-    it('scrolls straight to the bottom when an unread marker is set but the newest actions are already loaded', () => {
+    it('scrolls straight to the bottom when an unread marker is set but the newest actions are already loaded', async () => {
         // Given a report scrolled up with an unread marker from another user's comment, and the newest actions already loaded
         const setIsFloatingMessageCounterVisible = jest.fn();
         const {result} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {
@@ -234,6 +260,7 @@ describe('useReportActionsNewActionLiveTail', () => {
         act(() => {
             newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
         });
+        await waitForBatchedUpdates();
 
         // Then the list scrolls to the bottom directly, without an openReport round trip
         expect(mockOpenReport).not.toHaveBeenCalled();
@@ -242,7 +269,7 @@ describe('useReportActionsNewActionLiveTail', () => {
         expect(result.current.isScrollToBottomEnabled).toBe(true);
     });
 
-    it('still loads the live tail when an unread marker is set and the newest actions are not loaded', () => {
+    it('still loads the live tail when an unread marker is set and the newest actions are not loaded', async () => {
         // Given an unread marker and a report whose newest actions are not loaded yet
         renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {
             initialProps: buildParams({unreadMarkerReportActionID: '2', hasNewerActions: false, hasNewestReportAction: false}),
@@ -252,6 +279,7 @@ describe('useReportActionsNewActionLiveTail', () => {
         act(() => {
             newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
         });
+        await waitForBatchedUpdates();
 
         // Then openReport fetches the newest actions before the list scrolls
         expect(mockOpenReport).toHaveBeenCalledTimes(1);

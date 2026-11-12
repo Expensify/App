@@ -11,6 +11,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useRedirectToWorkspaceMembersWithoutSelection from '@hooks/useRedirectToWorkspaceMembersWithoutSelection';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateEmployeeOfficeLocation} from '@libs/actions/Policy/DistanceRate';
@@ -30,7 +31,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList} from '@src/types/onyx';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -48,14 +48,17 @@ function WorkspaceMembersChangeOfficeLocationPage({policy, personalDetails, rout
     const {translate, localeCompare} = useLocalize();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
-    const [selection, selectionMetadata] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT);
+    const [selection] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT);
     const [chosenOfficeID, setChosenOfficeID] = useState<string>();
 
     // Members picked on another workspace's member list are left out, even when they also belong to this one
     const selectedAccountIDs = selection?.policyID === policyID ? selection.accountIDs : undefined;
 
-    // The selection only lives in memory, so it is gone when the page is opened from a link or after a refresh
-    const hasSelectedMembers = isLoadingOnyxValue(selectionMetadata) || !!selectedAccountIDs?.length;
+    useRedirectToWorkspaceMembersWithoutSelection({
+        policyID,
+        selectedMemberCount: selectedAccountIDs?.length ?? 0,
+    });
+
     const canChangeOfficeLocation =
         isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MEMBERS) && hasOfficeLocations(policy);
     const officeLocations = getAssignableOfficeLocations(policy, translate, localeCompare);
@@ -98,7 +101,7 @@ function WorkspaceMembersChangeOfficeLocationPage({policy, personalDetails, rout
             policyID={policyID}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            shouldBeBlocked={!canChangeOfficeLocation || !hasSelectedMembers}
+            shouldBeBlocked={!canChangeOfficeLocation}
         >
             <ScreenWrapper
                 testID="WorkspaceMembersChangeOfficeLocationPage"
@@ -122,6 +125,7 @@ function WorkspaceMembersChangeOfficeLocationPage({policy, personalDetails, rout
                 </View>
                 <FixedFooter>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.CHANGE_OFFICE_LOCATION_CONFIRM}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         onPress={changeOfficeLocation}

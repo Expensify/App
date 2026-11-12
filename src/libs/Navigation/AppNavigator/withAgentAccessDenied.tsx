@@ -23,6 +23,7 @@ function withAgentAccessDenied(getComponent: () => React.ComponentType): () => R
                 const isFocused = useIsFocused();
                 const [isSwitchingToDelegator] = useOnyx(ONYXKEYS.IS_SWITCHING_TO_DELEGATOR);
                 const isAlreadyOnRedirectTarget = Navigation.isActiveRoute(ROUTES.SETTINGS_PROFILE.route);
+                // While a copilot switch is in progress, the switch resets navigation itself, so redirecting here would race that reset
                 const shouldRedirect = isAgent === true && !isSwitchingToDelegator && !isAlreadyOnRedirectTarget;
                 const shouldShowNotFoundPage = !isSwitchingToDelegator && isAgent === true;
 
