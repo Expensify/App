@@ -30,6 +30,8 @@ type CountryZipRegex = {
     samples?: string;
 };
 
+const countryZipRegexData: Partial<Record<string, CountryZipRegex>> = COMMON_CONST.COUNTRY_ZIP_REGEX_DATA;
+
 type AddressFormID = typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM | typeof ONYXKEYS.FORMS.WORKSPACE_OFFICE_LOCATION_FORM;
 
 type AddressFormProps<TFormID extends AddressFormID> = ForwardedFSClassProps & {
@@ -127,7 +129,7 @@ function AddressFormFields() {
     const {translate} = useLocalize();
     const {city, country, state, street1, street2, zip, onAddressChanged, shouldSaveDraft, shouldHideCountrySelector} = useContext(AddressFieldsContext);
 
-    const zipSampleFormat = (country && (COMMON_CONST.COUNTRY_ZIP_REGEX_DATA[country] as CountryZipRegex)?.samples) ?? '';
+    const zipSampleFormat = (country && countryZipRegexData[country]?.samples) ?? '';
 
     const zipFormat = translate('common.zipCodeExampleFormat', zipSampleFormat);
 
@@ -315,7 +317,7 @@ function AddressForm<TFormID extends AddressFormID>({
         }
 
         // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
-        const countryRegexDetails = (values.country ? COMMON_CONST.COUNTRY_ZIP_REGEX_DATA?.[values.country] : {}) as CountryZipRegex;
+        const countryRegexDetails = values.country ? countryZipRegexData?.[values.country] : {};
 
         // The postal code system might not exist for a country, so no regex either for them.
         const countrySpecificZipRegex = countryRegexDetails?.regex;

@@ -23,6 +23,7 @@ import type {
 import type {Errors, Icon} from '@src/types/onyx/OnyxCommon';
 import type {
     SearchApproverGroup,
+    SearchViolationGroup,
     SearchCardGroup,
     SearchCategoryGroup,
     SearchDataTypes,
@@ -546,6 +547,17 @@ type TransactionApproverGroupListItemType = TransactionGroupListItemType & {grou
         formattedApprover?: string;
     };
 
+type TransactionViolationGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.VIOLATION} & SearchViolationGroup & {
+        /** Violation name translated for display and sorting */
+        formattedViolation: string;
+    };
+
+type TransactionPaidByGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.PAID_BY} & PersonalDetails &
+    SearchMemberGroup & {
+        /** Final and formatted name of the member who paid the reports, used for displaying and sorting */
+        formattedPaidBy?: string;
+    };
+
 type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
     SearchListActionProps & {
         /** Whether the item's action is loading */
@@ -619,6 +631,8 @@ type GroupHeaderItemType =
     | (TransactionYearGroupListItemType & GroupHeaderListItemType)
     | (TransactionQuarterGroupListItemType & GroupHeaderListItemType)
     | (TransactionApproverGroupListItemType & GroupHeaderListItemType)
+    | (TransactionViolationGroupListItemType & GroupHeaderListItemType)
+    | (TransactionPaidByGroupListItemType & GroupHeaderListItemType)
     | (TransactionGroupListItemType & GroupHeaderListItemType);
 
 type GroupChildrenContainerItemType = TransactionGroupListItemType & {
@@ -679,6 +693,8 @@ export type {
     TransactionYearGroupListItemType,
     TransactionQuarterGroupListItemType,
     TransactionApproverGroupListItemType,
+    TransactionViolationGroupListItemType,
+    TransactionPaidByGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionGroupListItemProps,
     TransactionGroupListExpandedProps,

@@ -62,6 +62,7 @@ function DynamicReceiptReviewPage({route}: DynamicReceiptReviewPageProps) {
             targetTransaction,
             sourceTransaction,
             localeCompare,
+            translate,
             getCurrencyDecimals,
             [],
             targetTransactionPolicy,
@@ -105,6 +106,7 @@ function DynamicReceiptReviewPage({route}: DynamicReceiptReviewPageProps) {
                 </ScrollView>
                 <FixedFooter>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.MERGE_EXPENSE.RECEIPT_REVIEW_CONTINUE_BUTTON}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         onPress={handleContinue}

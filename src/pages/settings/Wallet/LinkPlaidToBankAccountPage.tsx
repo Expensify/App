@@ -142,6 +142,7 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
                     </ConfirmationPage.Content>
                     <FixedFooter>
                         <ConfirmationPage.PrimaryButton
+                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.LINK_PLAID_CONFIRM}
                             text={translate('common.buttonConfirm')}
                             onPress={() => Navigation.goBack(backPath)}
                         />
