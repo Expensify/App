@@ -32,8 +32,10 @@ import {useConciergeChatHistoryActions, useConciergeChatHistoryState} from '@pag
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 import CollapsedSystemMessages from '@pages/inbox/report/CollapsedSystemMessages';
 import ReportActionsList from '@pages/inbox/report/ReportActionsList';
+import ReportActionsListContent from '@pages/inbox/report/ReportActionsList/ReportActionsListContent';
 import ReportActionsListFloatingMessageCounter from '@pages/inbox/report/ReportActionsList/ReportActionsListFloatingMessageCounter';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
+import ReportActionsSkeletonGuard from '@pages/inbox/report/ReportActionsSkeletonGuard';
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 import * as ReportActionsNewActionLiveTail from '@pages/inbox/report/useReportActionsNewActionLiveTail';
 import * as ReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
@@ -1236,6 +1238,42 @@ describe('ReportActionsList (body)', () => {
     });
 
     describe('Skeleton Loading States', () => {
+        it('keeps cached offline actions visible while queued app and report loads resume', () => {
+            // Given cached actions are visible before the report has loaded during this app session.
+            let isOffline = true;
+            let isAppLoadPending = true;
+            let hasOnceLoadedReportActions = false;
+            mockUseNetwork.mockImplementation(() => ({isOffline}));
+            mockUseIsReportLoadPending.mockReturnValue(true);
+            mockUseOnyx.mockImplementation((key, options) => {
+                if (key === ONYXKEYS.PERSISTED_REQUESTS || key === ONYXKEYS.PERSISTED_ONGOING_REQUESTS) {
+                    return [isAppLoadPending, {status: 'loaded'}];
+                }
+                if (key.includes('reportLoadingState')) {
+                    return [getMockReportLoadingState(options?.selector, hasOnceLoadedReportActions), {status: 'loaded'}];
+                }
+                return getMockOnyxValue(key, options);
+            });
+            const content = <ReportActionsListContent reportID={mockReport.reportID} />;
+            const view = render(<ReportActionsSkeletonGuard reportID={mockReport.reportID}>{content}</ReportActionsSkeletonGuard>);
+            const visibleActions = getCapturedVisibleActions();
+            expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
+
+            // When reconnecting resumes both queued loads before either response arrives.
+            isOffline = false;
+            view.rerender(<ReportActionsSkeletonGuard reportID={mockReport.reportID}>{content}</ReportActionsSkeletonGuard>);
+
+            // Then the displayed action window survives both the pending loads and their completion.
+            expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
+            expect(getCapturedVisibleActions()).toEqual(visibleActions);
+            isAppLoadPending = false;
+            hasOnceLoadedReportActions = true;
+            mockUseIsReportLoadPending.mockReturnValue(false);
+            view.rerender(<ReportActionsSkeletonGuard reportID={mockReport.reportID}>{content}</ReportActionsSkeletonGuard>);
+            expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
+            expect(getCapturedVisibleActions()).toEqual(visibleActions);
+        });
+
         it('derives a true report pending value for the initial skeleton decision', () => {
             mockUseNetwork.mockReturnValue({isOffline: false});
             mockUsePaginatedReportActions.mockReturnValue(defaultPaginatedReportActionsResult);
