@@ -528,7 +528,9 @@ function WalletPage() {
             ? [
                   {
                       text: translate('common.enableGlobalReimbursements'),
-                      sentryLabel: CONST.SENTRY_LABEL.SETTINGS_WALLET.BANK_ACCOUNT_MENU_ENABLE_GLOBAL_REIMBURSEMENTS,
+                      sentryLabel: isWiseGlobalReimbursementsEnabled
+                          ? CONST.SENTRY_LABEL.SETTINGS_WALLET.BANK_ACCOUNT_MENU_ENABLE_WISE_GLOBAL_REIMBURSEMENTS
+                          : CONST.SENTRY_LABEL.SETTINGS_WALLET.BANK_ACCOUNT_MENU_ENABLE_GLOBAL_REIMBURSEMENTS,
                       icon: icons.Globe,
                       onSelected: () => {
                           if (isAccountLocked) {
