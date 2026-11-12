@@ -9,8 +9,11 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import StateSelector from '@components/StateSelector';
 import TextInput from '@components/TextInput';
 
+import useClearedAddCardDraftCurrency from '@hooks/useClearedAddCardDraftCurrency';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getFieldRequiredErrors, isValidAddress, isValidDebitCard, isValidExpirationDate, isValidNameOnCard, isValidPaymentZipCode, isValidSecurityCode} from '@libs/ValidationUtils';
@@ -24,7 +27,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {ReactNode} from 'react';
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type PaymentCardFormProps = {
@@ -126,6 +129,13 @@ function PaymentCardForm({
 }: PaymentCardFormProps) {
     const styles = useThemeStyles();
     const [data, metadata] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
+    const preferredCurrency = usePreferredCurrency();
+    const {isBetaEnabled} = usePermissions();
+    // EUR is only a selectable billing currency behind CONST.BETAS.EUR_BILLING; without it, default to a currency the
+    // selector actually offers so a EUR-locale user can't silently submit a EUR card and get pushed onto the SCA/3DS path.
+    const defaultCurrency = preferredCurrency === CONST.PAYMENT_CARD_CURRENCY.EUR && !isBetaEnabled(CONST.BETAS.EUR_BILLING) ? CONST.PAYMENT_CARD_CURRENCY.USD : preferredCurrency;
+
+    const hasClearedDraftCurrency = useClearedAddCardDraftCurrency();
 
     const {translate} = useLocalize();
     const label = CARD_LABELS[isDebitCard ? CARD_TYPES.DEBIT_CARD : CARD_TYPES.PAYMENT_CARD];
@@ -137,7 +147,7 @@ function PaymentCardForm({
 
     // Formats user input into a valid expiration date (MM/YY) and automatically adds slash after the month.
     // Ensures the month is always between 01 and 12 by correcting invalid value to match the proper format.
-    const onChangeExpirationDate = useCallback((newValue: string) => {
+    const onChangeExpirationDate = (newValue: string) => {
         if (typeof newValue !== 'string') {
             return;
         }
@@ -172,7 +182,7 @@ function PaymentCardForm({
 
         previousValueRef.current = formattedValue;
         setExpirationDate(formattedValue);
-    }, []);
+    };
 
     const [cardNumber, setCardNumber] = useState('');
 
@@ -218,7 +228,7 @@ function PaymentCardForm({
         return errors;
     };
 
-    const onChangeCardNumber = useCallback((newValue: string) => {
+    const onChangeCardNumber = (newValue: string) => {
         // Replace all characters that are not spaces or digits
         let validCardNumber = newValue.replaceAll(/[^\d ]/g, '');
 
@@ -241,9 +251,9 @@ function PaymentCardForm({
         }
 
         setCardNumber(validCardNumber);
-    }, []);
+    };
 
-    if (!shouldShowPaymentCardForm || isLoadingOnyxValue(metadata)) {
+    if (!shouldShowPaymentCardForm || isLoadingOnyxValue(metadata) || !hasClearedDraftCurrency) {
         return null;
     }
 
@@ -356,7 +366,7 @@ function PaymentCardForm({
                 {!!showCurrencyField && (
                     <View style={[styles.mt4, styles.mhn5]}>
                         <InputWrapper
-                            value={data?.currency ?? CONST.PAYMENT_CARD_CURRENCY.USD}
+                            defaultValue={defaultCurrency}
                             InputComponent={CurrencySelector}
                             inputID={INPUT_IDS.CURRENCY}
                         />

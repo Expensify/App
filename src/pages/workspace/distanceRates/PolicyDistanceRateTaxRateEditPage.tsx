@@ -34,7 +34,7 @@ function PolicyDistanceRateTaxRateEditPage({route, policy}: PolicyDistanceRateTa
     const customUnit = getDistanceRateCustomUnit(policy);
     const rate = customUnit?.rates[rateID];
     const taxRateExternalID = rate?.attributes?.taxRateExternalID;
-    const selectedTaxRate = taxRateExternalID ? getWorkspaceTaxesSettingsName(policy, taxRateExternalID) : undefined;
+    const selectedTaxRate = taxRateExternalID ? getWorkspaceTaxesSettingsName(translate, policy, taxRateExternalID) : undefined;
 
     const onTaxRateChange = (newTaxRate: TaxRatesOption) => {
         if (taxRateExternalID === newTaxRate.code) {

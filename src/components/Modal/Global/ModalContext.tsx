@@ -8,6 +8,7 @@ import React, {useContext, useEffect, useRef, useState} from 'react';
 const ModalActions = {
     CONFIRM: 'CONFIRM',
     CLOSE: 'CLOSE',
+    DISMISS: 'DISMISS',
 } as const;
 
 type ModalAction = (typeof ModalActions)[keyof typeof ModalActions];
@@ -173,5 +174,5 @@ function ModalProvider({children}: {children: React.ReactNode}) {
     );
 }
 
-export type {ModalProps};
+export type {ModalProps, ModalStateChangePayload};
 export {ModalProvider, useModal, ModalActions};

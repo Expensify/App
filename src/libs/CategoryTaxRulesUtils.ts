@@ -9,6 +9,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {MerchantRuleForm} from '@src/types/form';
 import type {Policy, PolicyCategories, TaxRate} from '@src/types/onyx';
+import type {GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ExpenseRule} from '@src/types/onyx/Policy';
 
@@ -43,6 +44,13 @@ function hasUsableTaxRates(policy: Policy | undefined): boolean {
  */
 function isSelectableTaxRate(policy: Policy | undefined, taxID: string, taxRate: TaxRate, isCategoryRule: boolean): boolean {
     return !taxRate.isDisabled && taxRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !(isCategoryRule && taxID === policy?.taxRates?.defaultExternalID);
+}
+
+/** Returns the category tax rule draft for generated values. It keeps the generated tax rate only when a category rule can use it. */
+function getCategoryTaxRuleDraftFromGeneratedValues({tax, ...values}: GeneratedRuleValues, policy: Policy | undefined): Partial<MerchantRuleForm> {
+    const taxRate = tax ? policy?.taxRates?.taxes?.[tax] : undefined;
+    const selectableTax = tax && taxRate && isSelectableTaxRate(policy, tax, taxRate, true) ? tax : undefined;
+    return {...values, tax: selectableTax, ruleType: CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.CATEGORY};
 }
 
 /**
@@ -194,6 +202,7 @@ function getCategoryNameFromTaxRuleKey(key: string): string {
 
 export {
     categoryHasTaxRule,
+    getCategoryTaxRuleDraftFromGeneratedValues,
     getCategoryNameFromTaxRuleKey,
     getCategoryTaxRulesTableData,
     getCategoryTaxRuleTaxID,

@@ -9,7 +9,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getExportLabelsForConnection, getStandardExportTemplateDisplayName, isStandardExportTemplate} from '@libs/AccountingUtils';
+import {getExportLabelsForConnection, getStandardExportTemplateDisplayName, isStandardExportTemplate, shouldShowConnectionInExportedToFilter} from '@libs/AccountingUtils';
 import {getIntegrationIcon} from '@libs/ReportUtils';
 import {getAllPolicyValues, getConnectedIntegrationNamesForPolicies} from '@libs/SearchQueryUtils';
 
@@ -44,6 +44,7 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'ZohoBooksSquare',
         'BusinessCentralSquare',
         'GustoSquare',
         'Table',
@@ -54,7 +55,7 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
     const connectedIntegrationNames = getConnectedIntegrationNamesForPolicies(policies, policyID);
 
     const policiesToLoadTemplatesFrom = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY, policies);
-    const {combinedExportTemplates: deduplicatedExportTemplates} = useCombinedExportTemplates(policiesToLoadTemplatesFrom);
+    const exportTemplates = useCombinedExportTemplates(policiesToLoadTemplatesFrom);
 
     const integrationConnectionNames = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
 
@@ -72,7 +73,7 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
         const integrationConnectionNamesSet = new Set<string>(integrationConnectionNames);
 
         const connectedIntegrationPickerItems = integrationConnectionNames
-            .filter((connectionName) => connectedIntegrationNames.has(connectionName))
+            .filter((connectionName) => shouldShowConnectionInExportedToFilter(connectionName) && connectedIntegrationNames.has(connectionName))
             .flatMap((connectionName) => {
                 const searchValues = getExportLabelsForConnection(connectionName, policiesToLoadTemplatesFrom);
                 return searchValues.map((searchValue) => {
@@ -101,8 +102,8 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
 
         const standardAndIntegrationCustomTemplatePickerItems = [];
 
-        for (const template of deduplicatedExportTemplates) {
-            if (!template.templateName || integrationConnectionNamesSet.has(template.templateName) || template.type === CONST.EXPORT_TEMPLATE_TYPES.IN_APP) {
+        for (const template of exportTemplates) {
+            if (!template.templateName || integrationConnectionNamesSet.has(template.templateName)) {
                 continue;
             }
 

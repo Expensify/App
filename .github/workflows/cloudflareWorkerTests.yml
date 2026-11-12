@@ -1,0 +1,60 @@
+name: Cloudflare Worker tests
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - 'web/cloudflare-worker/**'
+      # The tests check its inline scripts against the CSP hashes.
+      - 'web/index.html'
+      - '.nvmrc'
+      - '.github/workflows/cloudflareWorkerTests.yml'
+      - '.github/workflows/buildWeb.yml'
+      - '.github/workflows/buildAdHoc.yml'
+      - 'scripts/deployAdhocCloudflareWorker.ts'
+      - 'scripts/extractAdhocAssets.ts'
+      - '.bun-version'
+
+concurrency:
+  group: ${{ github.ref }}-cloudflare-worker-tests
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Cloudflare Worker tests
+    if: github.actor != 'OSBotify' && github.actor != 'os-botify[bot]'
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    defaults:
+      run:
+        working-directory: web/cloudflare-worker
+    env:
+      WRANGLER_SEND_METRICS: false
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
+
+      # The Worker is a standalone package, so this skips the root dependencies that setupNode restores.
+      - name: Setup Node
+        # v6.1.0
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+          cache-dependency-path: web/cloudflare-worker/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --workspaces=false
+
+      - name: Setup Bun for preview archive integration tests
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version-file: '.bun-version'
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Run tests
+        run: npm test

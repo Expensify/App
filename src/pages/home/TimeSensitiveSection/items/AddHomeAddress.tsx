@@ -3,10 +3,9 @@ import BaseWidgetItem from '@components/BaseWidgetItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 
-import openPrivatePersonalDetailsPage from '@libs/Navigation/helpers/openPrivatePersonalDetailsPage';
+import openHomeAddressPage from '@libs/Navigation/helpers/openHomeAddressPage';
 
 import CONST from '@src/CONST';
-import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 
 import React from 'react';
 
@@ -16,14 +15,13 @@ function AddHomeAddress() {
 
     return (
         <BaseWidgetItem
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM.ADD_HOME_ADDRESS}
+            buttonSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM_BUTTON.ADD_HOME_ADDRESS}
             icon={icons.Home}
             title={translate('homePage.timeSensitiveSection.addHomeAddress.title')}
             subtitle={translate('homePage.timeSensitiveSection.addHomeAddress.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.addHomeAddress.cta')}
-            // Match the destination used by the "Address" row in the profile so this entry point
-            // lands on the same private-personal-details screen with the address field focused, and use
-            // the profile page as the background instead of whichever report or Home screen launched it.
-            onCtaPress={() => openPrivatePersonalDetailsPage(INPUT_IDS.ADDRESS_LINE_1)}
+            onCtaPress={openHomeAddressPage}
             buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
         />
     );

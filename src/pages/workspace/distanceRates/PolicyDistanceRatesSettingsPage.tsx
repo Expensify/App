@@ -1,7 +1,7 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import CustomUnitDefaultCategorySelector from '@components/CustomUnitDefaultCategorySelector';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -21,9 +21,16 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {getGovernmentRateCountryPhraseTranslationKey, isCommuterExclusionEnabled, isCurrencySupportedForAutoUpdate, isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
+import {
+    getAutoUpdateGovernmentRateCountry,
+    getGovernmentRateCountryPhraseTranslationKey,
+    isCommuterExclusionEnabled,
+    isCurrencySupportedForAutoUpdate,
+    isMapOrGPSRequired,
+    isSharedGovernmentRateCurrency,
+} from '@libs/PolicyDistanceRatesUtils';
 import {getDistanceRateCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
-import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
+import {getUnitTranslationKey} from '@libs/WorkspaceDisplayUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -121,8 +128,11 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
         clearPolicyDistanceRatesErrorFields(policyID, customUnit.customUnitID, {...errorFields, [fieldName]: null});
     };
 
-    const countryPhraseTranslationKey = getGovernmentRateCountryPhraseTranslationKey(policy?.outputCurrency);
-    const isAutoUpdateSupported = isCurrencySupportedForAutoUpdate(policy?.outputCurrency) && !!customUnit && !!countryPhraseTranslationKey;
+    const isSharedCurrency = isSharedGovernmentRateCurrency(policy?.outputCurrency);
+    const autoUpdateCountry = getAutoUpdateGovernmentRateCountry(policy);
+    const countryPhraseTranslationKey = getGovernmentRateCountryPhraseTranslationKey(autoUpdateCountry);
+    const isAutoUpdateSupported = isCurrencySupportedForAutoUpdate(policy?.outputCurrency) && !!customUnit;
+    const shouldShowCountryRow = isAutoUpdateSupported && isSharedCurrency && !!policy?.shouldAutoUpdateGovernmentDistanceRates;
 
     const navigateToUpgrade = () => {
         Navigation.navigate(
@@ -143,7 +153,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     }, []);
 
     const toggleAutoUpdateGovernmentRate = (isOn: boolean) => {
-        if (!customUnit) {
+        if (!policy || !customUnit) {
             return;
         }
 
@@ -153,7 +163,15 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
             return;
         }
 
-        setWorkspaceDistanceAutoUpdate(policyID, customUnit, isOn, governmentMileageRates ?? [], policy?.outputCurrency);
+        // EUR is shared by several supported countries, so the workspace picks its country before anything is written
+        if (isOn && isSharedCurrency && !autoUpdateCountry) {
+            Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_GOVERNMENT_RATE_COUNTRY.getRoute(policyID));
+            return;
+        }
+
+        // The stored country tells the optimistic copy which rates to use, since the mileage rate key is shared by every policy.
+        // The server ignores the country on disable, so it is only sent when turning on.
+        setWorkspaceDistanceAutoUpdate(policy, isOn, governmentMileageRates ?? [], isOn && isSharedCurrency ? autoUpdateCountry : undefined);
     };
 
     // Commuter exclusions are computed from the mapped route, so they enforce the requirement on their own. The
@@ -200,15 +218,14 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                             errorRowStyles={styles.mh5}
                             onClose={() => clearErrorFields('attributes')}
                         >
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon={canWriteDistanceRates}
-                                title={defaultUnit ? Str.recapitalize(translate(getUnitTranslationKey(defaultUnit))) : ''}
-                                description={translate('workspace.distanceRates.unit')}
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_UNIT.getRoute(policyID))}
-                                interactive={canWriteDistanceRates}
-                                wrapperStyle={[styles.ph5, styles.mt3]}
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.UNIT_SELECTOR}
-                            />
+                            <View style={styles.mt3}>
+                                <MenuItemField
+                                    name={translate('workspace.distanceRates.unit')}
+                                    value={defaultUnit ? Str.recapitalize(translate(getUnitTranslationKey(defaultUnit))) : ''}
+                                    onPress={canWriteDistanceRates ? () => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_UNIT.getRoute(policyID)) : undefined}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.UNIT_SELECTOR}
+                                />
+                            </View>
                         </OfflineWithFeedback>
                     )}
                     {!!policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {}) && !!customUnit?.customUnitID && (
@@ -227,17 +244,21 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                             />
                         </OfflineWithFeedback>
                     )}
+                    {isAutoUpdateSupported && <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />}
+                    {isAutoUpdateSupported && (
+                        <Text style={[styles.textLabel, styles.textStrong, styles.mh5, styles.mt3, styles.mb2]}>{translate('workspace.distanceRates.automaticRates')}</Text>
+                    )}
                     {isAutoUpdateSupported && (
                         <OfflineWithFeedback
                             errors={getLatestErrorField(policy ?? {}, 'shouldAutoUpdateGovernmentDistanceRates')}
-                            errorRowStyles={styles.mh5}
+                            errorRowStyles={[styles.mh5, styles.gap3]}
                             pendingAction={policy?.pendingFields?.shouldAutoUpdateGovernmentDistanceRates}
                             onClose={() => clearWorkspaceDistanceAutoUpdateErrors(policyID)}
                         >
-                            <View style={[styles.mt2, styles.mb5, styles.mh5]}>
+                            <View style={[styles.mt2, styles.mh5, shouldShowCountryRow ? styles.mb2 : styles.mb5]}>
                                 <View style={[styles.flexRow, styles.mb2, styles.alignItemsCenter, styles.justifyContentBetween]}>
                                     <Text
-                                        style={[styles.textNormal, styles.colorMuted]}
+                                        style={[styles.textNormal]}
                                         accessible={false}
                                         aria-hidden
                                     >
@@ -246,6 +267,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                     <Switch
                                         isOn={!!policy?.shouldAutoUpdateGovernmentDistanceRates}
                                         accessibilityLabel={translate('workspace.distanceRates.autoUpdateGovernmentRate')}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.AUTO_UPDATE_GOVERNMENT_RATE_SWITCH}
                                         onToggle={toggleAutoUpdateGovernmentRate}
                                         disabled={!canWriteDistanceRates}
                                         disabledAction={withReadOnlyFallback()}
@@ -253,15 +275,34 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                     />
                                 </View>
                                 <Text style={[styles.textLabel, styles.colorMuted]}>
-                                    {translate('workspace.distanceRates.autoUpdateGovernmentRateDescription', translate(countryPhraseTranslationKey))}
+                                    {translate(
+                                        'workspace.distanceRates.autoUpdateGovernmentRateDescription',
+                                        translate(countryPhraseTranslationKey ?? 'workspace.distanceRates.governmentRateCountryGeneric'),
+                                    )}
                                 </Text>
                             </View>
                         </OfflineWithFeedback>
                     )}
+                    {shouldShowCountryRow && (
+                        <OfflineWithFeedback
+                            pendingAction={policy?.pendingFields?.autoUpdateGovernmentRateCountry}
+                            errorRowStyles={[styles.mh5, styles.gap3]}
+                            onClose={() => clearWorkspaceDistanceAutoUpdateErrors(policyID)}
+                        >
+                            <MenuItemField
+                                name={translate('common.country')}
+                                value={autoUpdateCountry ? translate(`allCountries.${autoUpdateCountry}`) : ''}
+                                onPress={canWriteDistanceRates ? () => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_GOVERNMENT_RATE_COUNTRY.getRoute(policyID)) : undefined}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.COUNTRY_SELECTOR}
+                            />
+                        </OfflineWithFeedback>
+                    )}
+                    {isAutoUpdateSupported && <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />}
                     <ToggleSettingOptionRow
                         title={translate('distance.error.mapOrGpsDistanceRequired.title')}
                         subtitle={translate('workspace.distanceRates.requireMapOrGPSDescription')}
                         switchAccessibilityLabel={translate('distance.error.mapOrGpsDistanceRequired.title')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.REQUIRE_MAP_OR_GPS_SWITCH}
                         shouldPlaceSubtitleBelowSwitch
                         shouldUseCompactSubtitleSpacing
                         wrapperStyle={[styles.mt2, styles.mh5]}
@@ -281,13 +322,14 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                             errorRowStyles={styles.mh5}
                             onClose={() => clearPolicyCommuterExclusionsErrors(policyID)}
                         >
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={getCommuterExclusionsSummary(policy?.commuterExclusions, defaultUnit, translate)}
-                                description={translate('workspace.distanceRates.commuterExclusions.title')}
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS.getRoute(policyID))}
-                                wrapperStyle={[styles.ph5, styles.mt3]}
-                            />
+                            <View style={styles.mt3}>
+                                <MenuItemField
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.SETTINGS_COMMUTER_EXCLUSIONS}
+                                    name={translate('workspace.distanceRates.commuterExclusions.title')}
+                                    value={getCommuterExclusionsSummary(policy?.commuterExclusions, defaultUnit, translate)}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS.getRoute(policyID))}
+                                />
+                            </View>
                         </OfflineWithFeedback>
                     )}
                     <OfflineWithFeedback
@@ -307,6 +349,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                 <Switch
                                     isOn={isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled}
                                     accessibilityLabel={translate('workspace.distanceRates.trackTax')}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.TRACK_TAX_SWITCH}
                                     onToggle={onToggleTrackTax}
                                     disabled={!canWriteDistanceRates || !isPolicyTrackTaxEnabled}
                                     disabledAction={withReadOnlyFallback()}

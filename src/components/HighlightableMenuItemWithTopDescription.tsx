@@ -1,15 +1,18 @@
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useTheme from '@hooks/useTheme';
 
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
+
 import React from 'react';
 
 import type {MenuItemProps} from './MenuItem';
 
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
-type HighlightableMenuItemWithTopDescriptionProps = MenuItemProps & {
-    highlighted?: boolean;
-};
+type HighlightableMenuItemWithTopDescriptionProps = MenuItemProps &
+    WithRequiredSentryLabel & {
+        highlighted?: boolean;
+    };
 
 function HighlightableMenuItemWithTopDescription({highlighted, outerWrapperStyle, ref, ...props}: HighlightableMenuItemWithTopDescriptionProps) {
     const theme = useTheme();

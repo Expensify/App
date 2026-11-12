@@ -63,6 +63,9 @@ type UseMoneyRequestReportScrollParams = {
 
     /** Completes a previously skipped mark-as-read (from `useMarkAsRead`) */
     completeSkippedMarkAsRead: () => void;
+
+    /** The report policy's cached full policy snapshot, sent when refetching the report so the server can leave out the collections the client already has */
+    fullPolicySnapshot?: {policyID: string; lastModified: number};
 };
 
 type UseMoneyRequestReportScrollResult = {
@@ -114,6 +117,7 @@ function useMoneyRequestReportScroll({
     onScrolledOverThresholdChange,
     markNewestActionAsRead,
     completeSkippedMarkAsRead,
+    fullPolicySnapshot,
 }: UseMoneyRequestReportScrollParams): UseMoneyRequestReportScrollResult {
     const reportScrollManager = useReportScrollManager();
     const {scrollOffsetRef} = useActionListContext();
@@ -224,11 +228,12 @@ function useMoneyRequestReportScroll({
     const onNewActionEvent = useEffectEvent((isFromCurrentUser: boolean, reportAction?: OnyxTypes.ReportAction) => {
         TransitionTracker.runAfterTransitions({
             callback: () => {
-                setIsFloatingMessageCounterVisible(false);
                 // If a new comment is added from the current user, scroll to the bottom, otherwise leave the user position unchanged
                 if (!isFromCurrentUser || reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) {
                     return;
                 }
+
+                setIsFloatingMessageCounterVisible(false);
 
                 // Delay so the just-sent item has landed in the data before we jump
                 const index = visibleReportActions.findIndex((item) => item.reportActionID === reportAction?.reportActionID);
@@ -302,6 +307,7 @@ function useMoneyRequestReportScroll({
                 currentUserAccountID,
                 isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
                 hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                fullPolicySnapshot,
             });
             scrollToBottom();
             return;

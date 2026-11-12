@@ -12,6 +12,26 @@ jest.mock('@sentry/react', () => ({
 }));
 
 describe('shouldCreateSpanForRequest', () => {
+    it.each(['blob:https://new.expensify.com/receipt-id', 'blob:http://localhost:8080/receipt-id', 'blob:null/receipt-id'])('drops local file request spans for %s', (url) => {
+        // Given a browser-local file URL that does not represent network traffic
+        // When tracing decides whether to instrument the request
+        const shouldCreateSpan = shouldCreateSpanForRequest(url);
+
+        // Then the local read does not contribute an HTTP performance span
+        expect(shouldCreateSpan).toBe(false);
+    });
+
+    it('keeps HTTP request spans when blob: appears outside the URL scheme', () => {
+        // Given a real HTTP request whose query contains the blob scheme text
+        const url = 'https://www.expensify.com/api/OpenReport?description=blob:receipt';
+
+        // When tracing decides whether to instrument the request
+        const shouldCreateSpan = shouldCreateSpanForRequest(url);
+
+        // Then the HTTP request remains visible in performance monitoring
+        expect(shouldCreateSpan).toBe(true);
+    });
+
     it('creates a span for the API commands we debug with', () => {
         expect(shouldCreateSpanForRequest('https://www.expensify.com/api/OpenReport?')).toBe(true);
     });
@@ -31,5 +51,28 @@ describe('shouldCreateSpanForRequest', () => {
         ['ccm/form-data', 'https://www.google.com/ccm/form-data?id=12345'],
     ])('drops the third-party Google Ads/Analytics request to %s', (_endpoint, url) => {
         expect(shouldCreateSpanForRequest(url)).toBe(false);
+    });
+
+    it.each([
+        'https://www.expensify.com/api/fl',
+        'https://www.expensify.com/api/fl?u=123',
+        'https://www.expensify.com/api/fl/id.html',
+        '/api/fl?u=123',
+        '//www.expensify.com/api/fl?u=123',
+        'https://edge.fullstory.com/s/settings/o-1WN56P-na1/v1/web',
+        'https://rs.fullstory.com/rec/page',
+        '//edge.fullstory.com/s/settings/o-1WN56P-na1/v1/web',
+        'https://global.ketchcdn.com/web/v3/config/expensify/website_smart_tag/production/gdpr/en/config.json',
+        'https://global.ketchcdn.com/web/v3/ip',
+        'https://global.ketchcdn.com/web/v3/consent/expensify/get',
+        'https://global.ketchcdn.com/web/v3/consent/expensify/update',
+        'https://global.ketchcdn.com/web/v2/log',
+    ])('drops background SDK request spans for %s', (url) => {
+        // Given a fraud protection, session replay, or consent SDK endpoint
+        // When tracing decides whether to instrument the request
+        const shouldCreateSpan = shouldCreateSpanForRequest(url);
+
+        // Then the request does not contribute a performance span
+        expect(shouldCreateSpan).toBe(false);
     });
 });

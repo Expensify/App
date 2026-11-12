@@ -1,0 +1,26 @@
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts
+index feb6f47..4dc5941 100644
+--- a/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts
++++ b/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts
+@@ -720,7 +720,7 @@ export type NavigationContainerRef<ParamList extends {}> = NavigationHelpers<Par
+     /**
+      * Get the rehydrated navigation state of the navigation tree.
+      */
+-    getRootState(): NavigationState | undefined;
++    getRootState(): NavigationState;
+     /**
+      * Get the currently focused navigation route.
+      */
+diff --git a/node_modules/@react-navigation/core/src/types.tsx b/node_modules/@react-navigation/core/src/types.tsx
+index f3c6ca9..4eb998a 100644
+--- a/node_modules/@react-navigation/core/src/types.tsx
++++ b/node_modules/@react-navigation/core/src/types.tsx
+@@ -1053,7 +1053,7 @@ export type NavigationContainerRef<ParamList extends {}> =
+       /**
+        * Get the rehydrated navigation state of the navigation tree.
+        */
+-      getRootState(): NavigationState | undefined;
++      getRootState(): NavigationState;
+       /**
+        * Get the currently focused navigation route.
+        */

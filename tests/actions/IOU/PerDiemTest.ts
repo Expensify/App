@@ -8,6 +8,7 @@ import {
     hasCompletePerDiemCustomUnit,
     removeSubrate,
     submitPerDiemExpense,
+    submitPerDiemExpenseForSelfDM,
     updateSubrate,
 } from '@libs/actions/IOU/PerDiem';
 import type RequestMoneyParticipantParams from '@libs/actions/IOU/types/RequestMoneyParticipantParams';
@@ -84,7 +85,7 @@ describe('PerDiem', () => {
 
     beforeEach(async () => {
         jest.clearAllTimers();
-        global.fetch = getGlobalFetchMock();
+        globalThis.fetch = getGlobalFetchMock();
         await Onyx.clear();
         await waitForBatchedUpdates();
         allPolicyTags = await getOnyxValue(ONYXKEYS.COLLECTION.POLICY_TAGS);
@@ -135,6 +136,88 @@ describe('PerDiem', () => {
             };
             return transaction;
         }
+
+        test.each([undefined, null])('does not write a draft for an absent transaction %p', async (transaction) => {
+            // Given an absent transaction and an unrelated orphan key that must remain untouched.
+            const key = `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}undefined` as const;
+            await Onyx.set(key, {merchant: 'Stored only'});
+            const set = jest.spyOn(Onyx, 'set');
+            // When each editor receives the missing transaction, including otherwise reachable NaN indices.
+            if (transaction === null) {
+                // @ts-expect-error Null is intentionally malformed at this one runtime transaction argument.
+                removeSubrate(null, '0');
+                // @ts-expect-error Keep the malformed null exception at the transaction argument.
+                updateSubrate(null, 'not-a-number', 1, 'meal', 'Meal', 500);
+                // @ts-expect-error Keep the malformed null exception at the transaction argument.
+                addSubrate(null, '0', 2, 'meal', 'Meal', 500);
+            } else {
+                removeSubrate(transaction, '0');
+                updateSubrate(transaction, 'not-a-number', 1, 'meal', 'Meal', 500);
+                addSubrate(transaction, '0', 2, 'meal', 'Meal', 500);
+            }
+            await waitForBatchedUpdates();
+            // Then no partial draft is written and existing data is preserved.
+            expect(set).not.toHaveBeenCalled();
+            expect(await getOnyxValue(key)).toEqual({merchant: 'Stored only'});
+            set.mockRestore();
+        });
+
+        test.each(['-2', 'not-a-number'])('preserves Number and splice behavior for index %s', async (index) => {
+            // Given two rates and unrelated fields from the existing transaction producer.
+            const rates = [
+                {id: 'first', quantity: 1, name: 'First', rate: 100},
+                {id: 'last', quantity: 2, name: 'Last', rate: 200},
+            ];
+            const transaction = createTransactionWithSubrates(rates);
+            transaction.merchant = 'Retained merchant';
+            const originalComment = transaction.comment;
+            const originalUnit = transaction.comment?.customUnit;
+            const set = jest.spyOn(Onyx, 'set');
+            // When update uses the existing numeric conversion and copies only edited ancestors.
+            updateSubrate(transaction, index, 3, 'replacement', 'Replacement', 300);
+            await waitForBatchedUpdates();
+            const payload = set.mock.calls.at(-1)?.[1];
+            // Then both indices replace the first rate without changing the source object.
+            expect(payload).toBeDefined();
+            expect(payload).not.toBe(transaction);
+            expect(payload).toMatchObject({
+                merchant: 'Retained merchant',
+                comment: {customUnit: {subRates: [{id: 'replacement', quantity: 3, name: 'Replacement', rate: 300}, rates.at(1)], quantity: null}},
+            });
+            expect(transaction.comment).toBe(originalComment);
+            expect(transaction.comment?.customUnit).toBe(originalUnit);
+            expect(transaction.comment?.customUnit?.subRates).toBe(rates);
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
+            expect(draft?.comment).not.toBe(originalComment);
+            expect(draft?.comment?.customUnit).not.toBe(originalUnit);
+            expect(draft?.comment?.customUnit).not.toHaveProperty('quantity');
+            // When removal receives the same index, splice removes the first rate.
+            removeSubrate(transaction, index);
+            await waitForBatchedUpdates();
+            // Then the unedited rate and unrelated fields survive actual Onyx application.
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`)).toMatchObject({
+                merchant: 'Retained merchant',
+                comment: {customUnit: {subRates: [rates.at(1)]}},
+            });
+            set.mockRestore();
+        });
+
+        it('creates missing nested fields without retaining a prior draft comment', async () => {
+            // Given a historical partial transaction with no comment or custom unit.
+            const transaction = createMock<Transaction>({transactionID: TRANSACTION_ID, merchant: 'Input merchant'});
+            const key = `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}` as const;
+            await Onyx.set(key, {comment: {comment: 'Prior draft only'}});
+            // When the action adds the first subrate through partial SET.
+            addSubrate(transaction, '0', 1, 'meal', 'Meal', 500);
+            await waitForBatchedUpdates();
+            // Then absent input fields remain absent and nested rate data is created.
+            expect(await getOnyxValue(key)).toEqual({
+                transactionID: TRANSACTION_ID,
+                merchant: 'Input merchant',
+                comment: {customUnit: {subRates: [{quantity: 1, id: 'meal', name: 'Meal', rate: 500}]}},
+            });
+            expect(transaction).not.toHaveProperty('comment');
+        });
 
         describe('addSubrate', () => {
             it('should add a subrate at the correct index', async () => {
@@ -292,6 +375,56 @@ describe('PerDiem', () => {
     });
 
     describe('getPerDiemExpenseInformation', () => {
+        it.each([
+            {name: 'a trip over two days', start: '2026-01-22T12:00:00Z', end: '2026-01-23T12:00:00Z', expected: 'Berlin, Germany, January 22, 2026 to January 23, 2026'},
+            {name: 'a trip within one day', start: '2026-01-05T00:00:00Z', end: '2026-01-05T12:00:00Z', expected: 'Berlin, Germany, January 05, 2026 to January 05, 2026'},
+        ])('builds the same merchant the server saves for $name', ({start, end, expected}) => {
+            // Given a per-diem expense to a destination whose name has a comma
+            const params = createMock<Parameters<typeof getPerDiemExpenseInformation>[0]>({
+                parentChatReport: {},
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                transactionParams: {
+                    comment: '',
+                    currency: CONST.CURRENCY.USD,
+                    created: '2026-01-22',
+                    customUnit: {
+                        customUnitID: 'per-diem',
+                        customUnitRateID: 'berlin',
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                        attributes: {dates: {start, end}},
+                        subRates: [{id: 'day', name: 'Day', quantity: 1, rate: 1000}],
+                        quantity: 1,
+                    },
+                    attendees: [],
+                    reimbursable: true,
+                },
+                participantParams: {payeeAccountID: RORY_ACCOUNT_ID, payeeEmail: RORY_EMAIL, participant: {accountID: 123, login: 'test@example.com'}},
+                policyParams: {
+                    policy: {
+                        ...createRandomPolicy(1),
+                        customUnits: {perDiem: {name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL, rates: {berlin: {name: 'Berlin, Germany'}}}},
+                    },
+                },
+                recentlyUsedParams: {},
+                policyTags: {},
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                policyRecentlyUsedCurrencies: [],
+                isASAPSubmitBetaEnabled: true,
+                personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                formatPhoneNumber,
+            });
+
+            // When the action builder prepares the optimistic transaction shown until the server responds
+            const result = getPerDiemExpenseInformation(params);
+
+            // Then its merchant matches the one the server builds and saves, in English and with the full month name, for
+            // every user. The request does not send a merchant, so any other form would visibly change once the expense
+            // is saved.
+            expect(result.transaction.merchant).toBe(expected);
+            expect(result.transaction.created).toBe('2026-01-22');
+        });
+
         it('should include policyRecentlyUsedCurrencies when provided', () => {
             const testCurrency = CONST.CURRENCY.GBP;
             const initialCurrencies = [CONST.CURRENCY.USD, CONST.CURRENCY.EUR];
@@ -343,7 +476,6 @@ describe('PerDiem', () => {
 
             const result = getPerDiemExpenseInformation({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
@@ -450,7 +582,6 @@ describe('PerDiem', () => {
 
             const result = getPerDiemExpenseInformation({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
@@ -557,7 +688,6 @@ describe('PerDiem', () => {
 
             const result = getPerDiemExpenseInformation({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 parentChatReport: undefined,
                 transactionParams: mockTransactionParams,
@@ -677,7 +807,6 @@ describe('PerDiem', () => {
 
             const result = getPerDiemExpenseInformation({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
@@ -784,7 +913,6 @@ describe('PerDiem', () => {
 
             const result = getPerDiemExpenseInformation({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
@@ -853,7 +981,6 @@ describe('PerDiem', () => {
 
             function getPerDiemInformation(parentChatReport: Report) {
                 return getPerDiemExpenseInformation({
-                    dateFnsLocale: undefined,
                     parentChatReport,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactionParams: createMock<PerDiemExpenseTransactionParams>({
@@ -1022,7 +1149,6 @@ describe('PerDiem', () => {
 
             submitPerDiemExpense({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
@@ -1064,7 +1190,7 @@ describe('PerDiem', () => {
                     key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`,
                     callback: (recentlyUsedTags) => {
                         resolve(recentlyUsedTags ?? {});
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                     },
                 });
             });
@@ -1112,7 +1238,6 @@ describe('PerDiem', () => {
 
             submitPerDiemExpense({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
@@ -1151,7 +1276,7 @@ describe('PerDiem', () => {
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
                     callback: (val) => {
                         resolve(val ?? {});
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                     },
                 });
             });
@@ -1217,7 +1342,6 @@ describe('PerDiem', () => {
 
             const result = getPerDiemExpenseInformation({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
@@ -1289,7 +1413,6 @@ describe('PerDiem', () => {
 
             submitPerDiemExpense({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
@@ -1329,7 +1452,7 @@ describe('PerDiem', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -1337,6 +1460,56 @@ describe('PerDiem', () => {
 
             const perDiemTransactions = Object.values(transactions ?? {}).filter((tx) => tx?.iouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM);
             expect(perDiemTransactions.length).toBeGreaterThan(0);
+        });
+    });
+
+    describe('submitPerDiemExpenseForSelfDM', () => {
+        const selfDMCustomUnit: TransactionCustomUnit = {
+            customUnitID: 'unit-1',
+            customUnitRateID: 'rate-1',
+            subRates: [{id: 'sub-1', name: 'Meals', quantity: 1, rate: 2500}],
+            attributes: {dates: {start: '2026-04-24', end: '2026-04-24'}},
+        };
+
+        const submitToSelfDM = (isFromGlobalCreate: boolean) =>
+            submitPerDiemExpenseForSelfDM({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                selfDMReport: undefined,
+                policy: {...createRandomPolicy(1)},
+                transactionParams: {
+                    created: DateUtils.getDBTime(),
+                    currency: CONST.CURRENCY.USD,
+                    customUnit: selfDMCustomUnit,
+                    isFromGlobalCreate,
+                },
+                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                quickAction: undefined,
+                optimisticChatReportID: 'self-dm-1',
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+            });
+
+        it('should signal the expense added growl when submitted from global create', async () => {
+            // Given a per diem expense headed for the self-DM, started from the global create flow
+            // When it is submitted
+            submitToSelfDM(true);
+            await waitForBatchedUpdates();
+
+            // Then the new transaction is queued for the "Expense added" growl
+            const signal = await getOnyxValue(ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS);
+            expect(Object.values(signal ?? {})).toEqual([CONST.SEARCH.DATA_TYPES.EXPENSE]);
+        });
+
+        it('should not signal the growl when submitted from within a report', async () => {
+            // Given a per diem expense headed for the self-DM, started from within a report
+            // When it is submitted
+            submitToSelfDM(false);
+            await waitForBatchedUpdates();
+
+            // Then nothing is queued for the growl
+            const signal = await getOnyxValue(ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS);
+            expect(signal).toBeUndefined();
         });
     });
 

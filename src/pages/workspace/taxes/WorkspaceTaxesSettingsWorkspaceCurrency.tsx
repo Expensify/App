@@ -37,7 +37,7 @@ function WorkspaceTaxesSettingsWorkspaceCurrency({
     const styles = useThemeStyles();
 
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
-    const selectedTaxRate = defaultExternalID && getWorkspaceTaxesSettingsName(policy, defaultExternalID);
+    const selectedTaxRate = defaultExternalID && getWorkspaceTaxesSettingsName(translate, policy, defaultExternalID);
 
     const submit = (taxes: TaxRatesOption) => {
         setWorkspaceCurrencyDefault(policyID, taxes.code ?? '', defaultExternalID);

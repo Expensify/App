@@ -15,9 +15,9 @@ import {getPrivatePersonalDetailsFormValues} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsForm} from '@src/types/form';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect, useRef} from 'react';
 
 function PrivatePersonalDetailsConfirmValidateCodePage() {
@@ -63,7 +63,7 @@ function PrivatePersonalDetailsConfirmValidateCodePage() {
     // back, and is idempotent with the success path above (which already clears the draft before navigating away).
     useEffect(() => () => clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM), []);
 
-    const values = normalizeCountryCode(getPrivatePersonalDetailsFormValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm;
+    const values = normalizeCountryCode(getPrivatePersonalDetailsFormValues(privatePersonalDetails, draftValues));
 
     const handleSubmitForm = (validateCode: string) => {
         updatePrivatePersonalDetails(values, validateCode, countryCode);
@@ -73,7 +73,8 @@ function PrivatePersonalDetailsConfirmValidateCodePage() {
         <ValidateCodeActionContent
             title={translate('delegate.makeSureItIsYou')}
             descriptionPrimary={translate('contacts.enterSecurityCode', primaryLogin ?? '')}
-            sendValidateCode={() => requestValidateCodeAction()}
+            sendValidateCode={() => requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.UPDATE_PERSONAL_DETAILS})}
+            validateCodeReasonCode={COMMON_CONST.VALIDATE_CODE_REASONS.UPDATE_PERSONAL_DETAILS}
             validateCodeActionErrorField="personalDetails"
             handleSubmitForm={handleSubmitForm}
             validateError={submitError}
