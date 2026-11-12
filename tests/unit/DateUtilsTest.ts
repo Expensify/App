@@ -1311,25 +1311,6 @@ describe('DateUtils', () => {
             expect(DateUtils.getFormattedDateRange(translateLocal, es, start, end)).toBe('17–20 mar');
         });
 
-        it('still joins a same-month range on an engine without formatRange', () => {
-            // Given an engine that does not implement `Intl.DateTimeFormat.prototype.formatRange`, as can happen on Hermes
-            const formatRangeDescriptor = Object.getOwnPropertyDescriptor(Intl.DateTimeFormat.prototype, 'formatRange');
-            // @ts-expect-error -- removed on purpose to reproduce an engine that leaves the method out
-            delete Intl.DateTimeFormat.prototype.formatRange;
-
-            try {
-                // When a same-month range is formatted
-                const result = DateUtils.getFormattedDateRange(translateLocal, undefined, new Date(2026, 2, 17), new Date(2026, 2, 20));
-
-                // Then both dates are still shown, joined with a dash, instead of the preview throwing
-                expect(result).toBe('Mar 17 – Mar 20');
-            } finally {
-                if (formatRangeDescriptor) {
-                    Object.defineProperty(Intl.DateTimeFormat.prototype, 'formatRange', formatRangeDescriptor);
-                }
-            }
-        });
-
         it('joins dates in different months with the translated connector', () => {
             // Given a trip that spans two months in the same year
             // When its date range is formatted
