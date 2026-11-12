@@ -3,12 +3,12 @@
  */
 import getAvatarLayout from '@components/Avatar/layouts/getAvatarLayout';
 import type {AvatarIcon} from '@components/Avatar/types';
+import useReportActionPersonalDetails from '@components/ReportActionAvatars/useReportActionPersonalDetails';
 import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import {isBillPayHistoryAction} from '@libs/BillPayReportActionUtils';
@@ -47,12 +47,9 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {getStableReportSelector} from '@selectors/Report';
-import {getBillProcessorAccountIDSelector, getReportActionByIDSelector, parentActionAccountIDsSelector} from '@selectors/ReportAction';
+import {getBillProcessorAccountIDSelector, getReportActionByIDSelector} from '@selectors/ReportAction';
 import {pendingDeleteMemberAccountIDsSelector} from '@selectors/ReportMetaData';
 import {isLinkedToBillSelector} from '@selectors/ReportNameValuePairs';
-// getIcons reads parent actions from the live store, not the search snapshot
-// eslint-disable-next-line no-restricted-imports
-import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import useInvoiceReportIcons from './useInvoiceReportIcons';
 import useIOUReportIcons from './useIOUReportIcons';
@@ -182,34 +179,7 @@ function useActionAvatar({action: passedAction, report, shouldUseRealActor}: Use
     const [billProcessorAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(isBillPayHistory ? iouReport?.reportID : undefined)}`, {
         selector: getBillProcessorAccountIDSelector,
     });
-    const [chatReportParentActionAccountIDs] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.parentReportID)}`, {
-        selector: parentActionAccountIDsSelector(chatReport?.parentReportActionID),
-    });
-    const [iouReportParentActionAccountIDs] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReport?.parentReportID)}`, {
-        selector: parentActionAccountIDsSelector(iouReport?.parentReportActionID),
-    });
-
-    // Every account the avatars, names and getIcons below can look up, so the row skips writes to anyone else
-    const [personalDetails] = usePersonalDetailsByIDs([
-        action?.actorAccountID,
-        action?.adminAccountID,
-        action?.childOwnerAccountID,
-        action?.childManagerAccountID,
-        getDelegateAccountIDFromReportAction(action),
-        getHumanAgentAccountIDFromReportAction(action),
-        billProcessorAccountID,
-        reportPreviewSenderID,
-        CONST.ACCOUNT_ID.CONCIERGE,
-        CONST.ACCOUNT_ID.NOTIFICATIONS,
-        ...[chatReport, iouReport, reportChatReport].flatMap((participantsReport) => [
-            participantsReport?.ownerAccountID,
-            participantsReport?.managerID,
-            participantsReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL ? participantsReport.invoiceReceiver.accountID : undefined,
-            ...Object.keys(participantsReport?.participants ?? {}).map(Number),
-        ]),
-        ...(chatReportParentActionAccountIDs ?? []),
-        ...(iouReportParentActionAccountIDs ?? []),
-    ]);
+    const [personalDetails] = useReportActionPersonalDetails({action, chatReport, iouReport, reportChatReport, billProcessorAccountID, reportPreviewSenderID});
     const delegateAccountIDFromAction = getDelegateAccountIDFromReportAction(action);
     const delegatePersonalDetails = delegateAccountIDFromAction ? personalDetails?.[delegateAccountIDFromAction] : undefined;
     const actorAccountID = getReportActionActorAccountID(action, iouReport, chatReport, delegatePersonalDetails, shouldUseRealActor, {
