@@ -15,6 +15,8 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 
+/** Loads expense reports that Focus mode OpenApp leaves out when their transaction thread has an unread comment. */
+
 type MissingParent = {
     parentReportID: string;
     parentReportActionID: string;
@@ -85,7 +87,17 @@ function useFetchMissingMoneyRequestParents() {
                 hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
             });
         }
-    }, [missingParents, priorityMode, isLoadingApp, isOffline, introSelected, conciergeChat, currentUserAccountID, guidedSetupAndTourStatus]);
+    }, [
+        missingParents,
+        priorityMode,
+        isLoadingApp,
+        isOffline,
+        introSelected,
+        conciergeChat,
+        currentUserAccountID,
+        guidedSetupAndTourStatus?.isSelfTourViewed,
+        guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+    ]);
 }
 
 export default useFetchMissingMoneyRequestParents;
