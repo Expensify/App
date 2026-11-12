@@ -48,6 +48,9 @@ type ConnectionListing = {
 
     /** Receives the element that starts the connection, since some accounting setup flows anchor a popover to it */
     registerConnectButton?: (button: ComponentRef<typeof View> | null) => void;
+
+    /** Why the last connect flow failed. The backend clears it once the integration connects. */
+    connectError?: string | null;
 };
 
 export type {ConnectionsTab, ConnectionStatus, ConnectionListing};

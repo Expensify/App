@@ -17,7 +17,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
+import {callIfAuthenticated} from '@libs/actions/Session';
 import {canActionTask, completeTask} from '@libs/actions/Task';
 
 import variables from '@styles/variables';
@@ -121,13 +121,9 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             style={[styles.w100]}
             isDisabled={!isTaskActionable}
-            onPress={callFunctionIfActionIsAllowed(
-                () => {
-                    completeTask(taskItem as Report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail, taskItem.reportID);
-                },
-                false,
-                session,
-            )}
+            onPress={callIfAuthenticated(() => {
+                completeTask(taskItem as Report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail, taskItem.reportID);
+            }, session)}
         >
             <Button.Text>{translate('task.action')}</Button.Text>
         </Button>

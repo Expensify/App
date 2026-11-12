@@ -85,6 +85,7 @@ const bench = new Bench();
 const pipeline = new Pipeline(
     projectRoot,
     new OxlintLinter({projectRoot, fix: cli.flags.fix, shards: cli.namedArgs.shards}),
+    // The editor wrapper in lsp/oxlint.ts runs the same processors in this order, so keep it in sync.
     [new ReactCompilerFilter(), new StratifyNoDeprecated(), new Seatbelt(resolveSeatbeltOptions(projectRoot, process.env))],
     cli.namedArgs.format === 'json' ? new JSONFormatter() : new StylishFormatter(projectRoot, cli.flags['show-warnings']),
     bench,
