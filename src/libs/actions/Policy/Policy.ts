@@ -5628,6 +5628,16 @@ function buildGovernmentRatesOnTaxEnable(policy: OnyxEntry<Policy>, updatedPolic
         return;
     }
 
+    // A prerequisite can fail before this queued tax request succeeds, leaving rates the server never created.
+    if (
+        policy.pendingFields?.shouldAutoUpdateGovernmentDistanceRates ||
+        policy.pendingFields?.outputCurrency ||
+        policy.pendingFields?.tax ||
+        PolicyUtils.getDistanceRateCustomUnit(policy)?.pendingFields?.taxEnabled
+    ) {
+        return;
+    }
+
     // This key is shared by workspaces, so cached rates can belong to a different country or currency.
     const referenceRates = governmentMileageRates?.filter(
         (rate) => rate.currency === CONST.CURRENCY.GBP && rate.sourceRateID.split('_').at(0) === CONST.CUSTOM_UNITS.GOVERNMENT_RATE_FUEL_BAND_COUNTRY,

@@ -11,6 +11,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
+import {setWorkspaceDistanceAutoUpdate} from '@src/libs/actions/Policy/DistanceRate';
 import {askToJoinPolicy, joinAccessiblePolicy} from '@src/libs/actions/Policy/Member';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -6467,7 +6468,6 @@ describe('actions/Policy', () => {
             it('copies missing bands immediately with matching request IDs and clears pending actions on success', async () => {
                 // Given a GBP workspace about to become eligible, using kilometers and holding unrelated auto-update feedback
                 const policy = buildPolicy();
-                policy.pendingFields = {shouldAutoUpdateGovernmentDistanceRates: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
                 policy.errorFields = {shouldAutoUpdateGovernmentDistanceRates: {previous: 'Previous auto-update error'}};
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
                 const apiWriteSpy = jest.spyOn(APIModule, 'write');
@@ -6507,6 +6507,121 @@ describe('actions/Policy', () => {
                 expect(getRates(updatedPolicy)).toHaveLength(3);
                 expect(getRates(updatedPolicy).every((rate) => !rate.pendingAction)).toBe(true);
                 expectSettingsUnchanged(updatedPolicy, policy);
+            });
+
+            it.each(['auto-update', 'currency', 'workspace tax', 'distance tax'])('waits for server rates while %s is pending', async (prerequisite) => {
+                // Given eligibility that depends on an earlier request which can still fail
+                const policy = buildPolicy();
+                const customUnit = policy.customUnits?.[customUnitID];
+                if (prerequisite === 'auto-update') {
+                    policy.pendingFields = {shouldAutoUpdateGovernmentDistanceRates: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
+                } else if (prerequisite === 'currency') {
+                    policy.pendingFields = {outputCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
+                } else if (prerequisite === 'workspace tax') {
+                    policy.pendingFields = {tax: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
+                } else if (customUnit) {
+                    customUnit.pendingFields = {taxEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
+                }
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                const apiWriteSpy = jest.spyOn(APIModule, 'write');
+                mockFetch.pause();
+
+                // When the other tax setting is enabled before the prerequisite completes
+                toggleTax(policy);
+                await waitForBatchedUpdates();
+
+                // Then the tax write proceeds without generating IDs that the server might not persist
+                expect(apiWriteSpy).toHaveBeenCalledTimes(1);
+                expect(requireRecord(requireCallArgument(apiWriteSpy.mock.calls.at(0), 1)).optimisticRateIDs).toBeUndefined();
+                const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+                expect(getRates(updatedPolicy)).toEqual([existingRate]);
+                expect(updatedPolicy?.tax?.trackingEnabled).toBe(true);
+                expect(updatedPolicy?.customUnits?.[customUnitID]?.attributes?.taxEnabled).toBe(true);
+                expectSettingsUnchanged(updatedPolicy, policy);
+            });
+
+            it.each([
+                {prerequisite: 'auto-update', succeeds: false},
+                {prerequisite: 'auto-update', succeeds: true},
+                {prerequisite: 'other tax', succeeds: false},
+                {prerequisite: 'other tax', succeeds: true},
+            ])('handles offline $prerequisite completion (success=$succeeds) before tax success', async ({prerequisite, succeeds}) => {
+                // Given two offline writes whose eligibility depends on the first request succeeding
+                const policy = buildPolicy();
+                const customUnit = policy.customUnits?.[customUnitID];
+                if (prerequisite === 'auto-update') {
+                    policy.shouldAutoUpdateGovernmentDistanceRates = false;
+                } else if (toggle === 'workspace' && customUnit?.attributes) {
+                    customUnit.attributes.taxEnabled = false;
+                } else {
+                    policy.tax = {trackingEnabled: false};
+                }
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                let prerequisiteCommand:
+                    | typeof WRITE_COMMANDS.SET_WORKSPACE_DISTANCE_AUTO_UPDATE
+                    | typeof WRITE_COMMANDS.ENABLE_DISTANCE_REQUEST_TAX
+                    | typeof WRITE_COMMANDS.ENABLE_POLICY_TAXES = WRITE_COMMANDS.SET_WORKSPACE_DISTANCE_AUTO_UPDATE;
+                if (prerequisite !== 'auto-update') {
+                    prerequisiteCommand = toggle === 'workspace' ? WRITE_COMMANDS.ENABLE_DISTANCE_REQUEST_TAX : WRITE_COMMANDS.ENABLE_POLICY_TAXES;
+                }
+                const taxCommand = toggle === 'workspace' ? WRITE_COMMANDS.ENABLE_POLICY_TAXES : WRITE_COMMANDS.ENABLE_DISTANCE_REQUEST_TAX;
+                const serverRate: Rate = {...existingRate, customUnitRateID: 'serverBand', attributes: {governmentRate: petrolRate}};
+                mockFetch.mockAPICommand(prerequisiteCommand, () => ({jsonCode: succeeds ? 200 : 400}));
+                mockFetch.mockAPICommand(taxCommand, () => ({
+                    jsonCode: 200,
+                    onyxData: succeeds
+                        ? [{onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, value: {customUnits: {[customUnitID]: {rates: {serverBand: serverRate}}}}}]
+                        : [],
+                }));
+                const offlineSpy = jest.spyOn(NetworkState, 'getIsOffline').mockReturnValue(true);
+
+                try {
+                    // When the prerequisite and tax change are queued using the latest optimistic policy
+                    if (prerequisite === 'auto-update') {
+                        setWorkspaceDistanceAutoUpdate(policy, true, referenceRates);
+                    } else if (toggle === 'workspace') {
+                        Policy.enableDistanceRequestTax(
+                            policy,
+                            CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                            customUnitID,
+                            {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, taxEnabled: true},
+                            customUnit?.attributes,
+                            referenceRates,
+                        );
+                    } else {
+                        Policy.enablePolicyTaxes(policy.id, true, false, {policy, governmentMileageRates: referenceRates});
+                    }
+                    await waitForBatchedUpdates();
+                    const pendingPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+                    expect(pendingPolicy).toBeDefined();
+                    if (!pendingPolicy) {
+                        throw new Error('Expected the prerequisite optimistic policy');
+                    }
+                    toggleTax(pendingPolicy);
+                    await waitForBatchedUpdates();
+
+                    // Then both writes remain queued, but the later tax write does not create fuel bands
+                    const requests = await getOnyxValue(ONYXKEYS.PERSISTED_REQUESTS);
+                    expect(requests?.map((request) => request.command)).toEqual([prerequisiteCommand, taxCommand]);
+                    expect(requests?.at(-1)?.data?.optimisticRateIDs).toBeUndefined();
+                    expect(getRates(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`)).some((rate) => rate.attributes?.governmentRate?.taxClaimablePercentage)).toBe(false);
+                } finally {
+                    offlineSpy.mockRestore();
+                }
+
+                // When the prerequisite completes and the tax request succeeds on reconnect
+                SequentialQueue.flush();
+                await waitForBatchedUpdates();
+
+                // Then only server-confirmed fuel bands remain, even when the prerequisite rolls back
+                const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+                const fuelBands = getRates(updatedPolicy).filter((rate) => rate.attributes?.governmentRate?.taxClaimablePercentage);
+                expect(fuelBands).toEqual(succeeds ? [serverRate] : []);
+                expect(updatedPolicy?.customUnits?.[customUnitID]?.rates?.existing).toEqual(existingRate);
+                expect(!!updatedPolicy?.shouldAutoUpdateGovernmentDistanceRates).toBe(prerequisite === 'auto-update' ? succeeds : true);
+                expect(updatedPolicy?.tax?.trackingEnabled).toBe(toggle === 'workspace' || prerequisite === 'auto-update' || succeeds);
+                expect(updatedPolicy?.customUnits?.[customUnitID]?.attributes?.taxEnabled).toBe(toggle === 'distance' || prerequisite === 'auto-update' || succeeds);
+                expect(toggle === 'workspace' ? updatedPolicy?.pendingFields?.tax : updatedPolicy?.customUnits?.[customUnitID]?.pendingFields?.taxEnabled).toBeUndefined();
             });
 
             it('deletes new bands on failure without touching auto-update feedback or the distance unit', async () => {
