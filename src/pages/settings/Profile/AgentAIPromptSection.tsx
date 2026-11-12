@@ -44,7 +44,7 @@ function scrollInputIntoView(scrollWithKeyboard: ScrollWithKeyboard) {
         return;
     }
 
-    // Same as scrollToEnd: the scroll view stops at the end of the content
+    // Like scrollToEnd, as the scroll view stops at its end
     scrollWithKeyboard({offset: Number.MAX_SAFE_INTEGER});
 }
 
@@ -61,7 +61,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
     const [showSavedConfirmation, setShowSavedConfirmation] = useState(false);
     const [isUserInitiatedSave, setIsUserInitiatedSave] = useState(false);
     const inputRef = useRef<BaseTextInputRef>(null);
-    const {scrollWithKeyboard, cancelScrollWithKeyboard} = useKeyboardDrivenScroll(parentScrollViewRef);
+    const scrollWithKeyboard = useKeyboardDrivenScroll(parentScrollViewRef);
     const wasSavingRef = useRef(false);
     const savedConfirmationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isSaving = agentPrompt?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
@@ -227,7 +227,6 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
                     containerStyles={[styles.mb3]}
                     testID="ai-prompt-input"
                     onFocus={handleInputFocus}
-                    onBlur={cancelScrollWithKeyboard}
                 />
             </OfflineWithFeedback>
             <Text style={[styles.textMicroSupporting, styles.mt1, styles.mb5]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>

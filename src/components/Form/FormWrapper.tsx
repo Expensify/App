@@ -117,7 +117,8 @@ function FormWrapper({
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const formRef = useRef<ComponentRef<typeof RNScrollView>>(null);
-    const {scrollWithKeyboard, cancelScrollWithKeyboard} = useKeyboardDrivenScroll(formRef);
+    // Without a scroll view, formRef stays empty
+    const scrollWithKeyboard = useKeyboardDrivenScroll(shouldUseScrollView ? formRef : undefined);
     const formContentRef = useRef<ComponentRef<typeof View>>(null);
     const {getErrorAnnouncementKey, getFallbackAnnouncementMessage} = useContext(FormContext);
     const errorAnnouncementKey = getErrorAnnouncementKey();
@@ -200,7 +201,6 @@ function FormWrapper({
     useImperativeHandle(ref, () => ({
         scrollToEnd,
         scrollTo,
-        cancelScrollTo: cancelScrollWithKeyboard,
     }));
 
     const SubmitButton = isSubmitButtonVisible && (

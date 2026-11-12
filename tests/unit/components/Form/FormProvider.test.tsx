@@ -3,7 +3,6 @@ import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-na
 import FormContext from '@components/Form/FormContext';
 import type {FormProviderProps} from '@components/Form/FormProvider';
 import FormProvider from '@components/Form/FormProvider';
-import type {FormWrapperRef} from '@components/Form/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 
@@ -13,8 +12,6 @@ import type * as FormActionsModule from '@libs/actions/FormActions';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
 import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
-
-import type {FocusEvent, Ref} from 'react';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -32,35 +29,22 @@ type MockFormWrapperProps = {
     isAlertVisible?: boolean;
     serverErrorFields?: ErrorFields | null;
     serverErrorMessage?: string;
-    ref?: Ref<FormWrapperRef>;
 };
 
-const mockCancelScrollTo = jest.fn();
-
-function MockFormWrapperContent({children, onSubmit, isLoading, ref}: Pick<MockFormWrapperProps, 'children' | 'onSubmit' | 'isLoading' | 'ref'>) {
-    React.useImperativeHandle(ref, () => ({
-        scrollToEnd: jest.fn(),
-        scrollTo: jest.fn(),
-        cancelScrollTo: mockCancelScrollTo,
-    }));
-
-    return (
-        <View>
-            <Text testID="mock-loading-state">{String(isLoading)}</Text>
-            <PressableWithFeedback
-                testID="mock-submit-button"
-                onPress={onSubmit}
-                accessibilityRole="button"
-                accessibilityLabel="Submit"
-            >
-                <Text>Submit</Text>
-            </PressableWithFeedback>
-            {children}
-        </View>
-    );
-}
-
-const mockFormWrapper = jest.fn((props: MockFormWrapperProps) => MockFormWrapperContent(props));
+const mockFormWrapper = jest.fn(({children, onSubmit, isLoading}: MockFormWrapperProps) => (
+    <View>
+        <Text testID="mock-loading-state">{String(isLoading)}</Text>
+        <PressableWithFeedback
+            testID="mock-submit-button"
+            onPress={onSubmit}
+            accessibilityRole="button"
+            accessibilityLabel="Submit"
+        >
+            <Text>Submit</Text>
+        </PressableWithFeedback>
+        {children}
+    </View>
+));
 
 jest.mock('@components/Form/FormWrapper', () => ({
     __esModule: true,
@@ -107,24 +91,6 @@ function RegisteredInput({inputID = 'name' as keyof Form}: {inputID?: keyof Form
             accessibilityLabel={`Change ${inputID}`}
         >
             <Text>{`Change ${inputID}`}</Text>
-        </PressableWithFeedback>
-    );
-}
-
-function BlurringInput() {
-    const {registerInput} = React.useContext(FormContext);
-    const inputProps = registerInput('name', false, {});
-
-    return (
-        <PressableWithFeedback
-            testID="mock-blur-name"
-            // The registered onBlur only reads the event's nativeEvent
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- see the comment above
-            onPress={() => inputProps.onBlur?.({nativeEvent: {}} as FocusEvent)}
-            accessibilityRole="button"
-            accessibilityLabel="Blur name"
-        >
-            <Text>Blur name</Text>
         </PressableWithFeedback>
     );
 }
@@ -265,26 +231,5 @@ describe('FormProvider', () => {
             expect(lastCallProps?.serverErrorFields).toEqual(serverErrorFields);
             expect(lastCallProps?.serverErrorMessage).toBe('Latest server error');
         });
-    });
-
-    it('cancels the keyboard scroll when an input blurs', async () => {
-        // Given a form whose input may have asked the wrapper to scroll with the keyboard on focus
-        render(
-            <FormProvider
-                formID={FORM_ID as FormProviderProps<typeof FORM_ID>['formID']}
-                submitButtonText="Submit"
-                validate={() => ({})}
-                onSubmit={jest.fn()}
-            >
-                <BlurringInput />
-            </FormProvider>,
-        );
-        await waitForBatchedUpdatesWithAct();
-
-        // When the input blurs, for example because the user moves to another input
-        fireEvent.press(screen.getByTestId('mock-blur-name'));
-
-        // Then the scroll is cancelled, so it can't pull the content back to the input that blurred
-        expect(mockCancelScrollTo).toHaveBeenCalledTimes(1);
     });
 });
