@@ -1,5 +1,4 @@
 import {openReport} from '@libs/actions/Report';
-import {getReportAction} from '@libs/ReportActionsUtils';
 import {isMoneyRequestAction} from '@libs/ReportActionTypeGuards';
 
 import CONST from '@src/CONST';
@@ -45,6 +44,13 @@ function useFetchMissingMoneyRequestParents() {
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [missingParents] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: missingParentsSelector});
+    // Only transaction threads, a regular comment thread's parent isn't dropped this way
+    const [moneyRequestParents] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+        selector: (allReportActions) =>
+            (missingParents ?? []).filter(({parentReportID, parentReportActionID}) =>
+                isMoneyRequestAction(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]?.[parentReportActionID]),
+            ),
+    });
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
@@ -66,9 +72,8 @@ function useFetchMissingMoneyRequestParents() {
             return;
         }
 
-        for (const {parentReportID, parentReportActionID} of missingParents ?? []) {
-            // Only transaction threads, a regular comment thread's parent isn't dropped this way
-            if (requestedParentIDs.current.has(parentReportID) || !isMoneyRequestAction(getReportAction(parentReportID, parentReportActionID))) {
+        for (const {parentReportID} of moneyRequestParents ?? []) {
+            if (requestedParentIDs.current.has(parentReportID)) {
                 continue;
             }
             requestedParentIDs.current.add(parentReportID);
@@ -86,6 +91,7 @@ function useFetchMissingMoneyRequestParents() {
         }
     }, [
         missingParents,
+        moneyRequestParents,
         priorityMode,
         isLoadingApp,
         isOffline,

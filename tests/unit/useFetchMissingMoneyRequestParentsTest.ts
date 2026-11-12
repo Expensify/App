@@ -134,6 +134,27 @@ describe('useFetchMissingMoneyRequestParents', () => {
         expect(openReport).toHaveBeenCalledTimes(2);
     });
 
+    it('loads the parent once its IOU action arrives after the thread', async () => {
+        // Given the unread thread is in Onyx but its parent's IOU action hasn't arrived yet
+        await seedColdStart();
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${EXPENSE_REPORT_ID}`, null);
+            await waitForBatchedUpdates();
+        });
+        await renderFetchMissingParents();
+        expect(openReport).not.toHaveBeenCalled();
+
+        // When the IOU action lands in a later update
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${EXPENSE_REPORT_ID}`, {[IOU_ACTION_ID]: iouAction});
+            await waitForBatchedUpdates();
+        });
+
+        // Then the hook reacts to it and loads the expense report
+        expect(openReport).toHaveBeenCalledTimes(1);
+        expect(openReport).toHaveBeenCalledWith(expect.objectContaining({reportID: EXPENSE_REPORT_ID, shouldMarkAsRead: false}));
+    });
+
     it('does nothing outside Focus mode, since OpenApp returns every report there', async () => {
         // Given the same cold start but in the default priority mode
         await seedColdStart({priorityMode: CONST.PRIORITY_MODE.DEFAULT});
