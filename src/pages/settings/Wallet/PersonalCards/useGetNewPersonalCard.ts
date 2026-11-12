@@ -1,22 +1,23 @@
 import useOnyx from '@hooks/useOnyx';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardList} from '@src/types/onyx';
-import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {Card} from '@src/types/onyx';
 
 import {useEffect, useRef, useState} from 'react';
 
 export default function useGetNewPersonalCard() {
-    const [cardList = getEmptyObject<CardList>()] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [newCard, setNewCard] = useState<Card | null>(null);
     const prevCardListRef = useRef<Record<string, Card>>({});
+    const hasLoadedCardListRef = useRef(false);
 
     useEffect(() => {
-        if (!cardList) {
+        if (cardList === undefined) {
             return;
         }
-        if (isEmptyObject(prevCardListRef.current) && cardList) {
+        if (!hasLoadedCardListRef.current) {
             prevCardListRef.current = cardList;
+            hasLoadedCardListRef.current = true;
             return;
         }
 
