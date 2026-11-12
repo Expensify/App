@@ -24,6 +24,7 @@ function SignInButton() {
         >
             <View style={[styles.signInButtonAvatar, styles.ph2]}>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.SIDEBAR.SIGN_IN_BUTTON}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {
                         signOutAndRedirectToSignIn();

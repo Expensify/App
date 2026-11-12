@@ -77,6 +77,7 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
             targetTransaction,
             sourceTransaction,
             localeCompare,
+            translate,
             getCurrencyDecimals,
             [targetTransactionReport, sourceTransactionReport],
             targetTransactionPolicy,
@@ -106,6 +107,7 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
             field,
             fieldValue,
             getCurrencyDecimals,
+            translate,
             mergeTransaction,
             searchReports: [targetTransactionReport, sourceTransactionReport],
             policy: selectedTransactionPolicy,
@@ -202,6 +204,7 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
                         />
                     )}
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.MERGE_EXPENSE.DETAILS_REVIEW_CONTINUE_BUTTON}
                         size={CONST.BUTTON_SIZE.LARGE}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={validateAndContinue}

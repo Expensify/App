@@ -76,8 +76,8 @@ Advanced settings control sync frequency and automation.
 - **Sync reimbursed reports**—Mark reimbursed reports in Expensify as Paid in Xero. This requires selecting a Xero reimbursement account.
 - **Xero bill payment account** – Required if **Sync reimbursed reports** is enabled.
 - **Xero invoice collections account** – Select the account where paid invoices appear.
-
-**Sync Consolidated Travel Billing settlements** is not on this page. It is on the **Consolidated Travel Billing** page under **Export**. Learn more about [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/).
+- **Sync Consolidated Travel Billing settlements** – If [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/) is enabled, turn on this toggle to continuously reconcile settlements through Xero. When enabled, select a **Reconciliation account** to match your settlement account. Auto-sync must be enabled to use this setting.
+- **Xero currency conversion fee account** – Select the account for currency conversion (FX) fees. This setting appears under **Sync reimbursed reports** only when it is enabled, you reimburse through Expensify, and a business bank account is connected. If **Workspaces > [workspace name] > Workflows > Payments > Currency conversion fees** is set to **Company pays**, each cross-border reimbursement exports a separate spend money transaction for the conversion cost to this account, alongside the bill payment. Select this account to export the spend money transaction.
 
 ---
 
@@ -97,4 +97,3 @@ Expensify warns you if the report has already been exported. If you proceed, it 
 - Reimbursed reports marked as Paid in Xero will also show as Paid in Expensify after sync.
 - If a report was reimbursed via ACH, the Paid status syncs to Xero.
 - Reports not yet exported won’t be affected unless exported manually.
-

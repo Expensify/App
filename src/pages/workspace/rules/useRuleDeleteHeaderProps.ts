@@ -9,8 +9,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Route} from '@src/ROUTES';
-
-import type {ValueOf} from 'type-fest';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 type RuleDeleteHeaderPropsParams = {
     /** Whether there is a rule to delete and the user may delete it. */
@@ -22,7 +21,7 @@ type RuleDeleteHeaderPropsParams = {
      */
     onDelete: () => boolean;
 
-    sentryLabel: ValueOf<typeof CONST.SENTRY_LABEL.WORKSPACE.RULES>;
+    sentryLabel: SentryLabel;
 
     /**
      * Where to land after deleting, for the editors that can be reached from more than one place. Category settings

@@ -669,6 +669,26 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
             expect(Navigation.setParams).not.toHaveBeenCalled();
         });
 
+        // Regression guard for https://github.com/Expensify/App/issues/104307: splitting moves the original expense to the
+        // hidden split report, and its arrow led to a "not here" page.
+        it('drops a sibling that was split', () => {
+            // Given a seeded list whose previous sibling is a split original, moved to the hidden split report
+            mockState.transactionsCollection = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${CURRENT_ID}`]: {transactionID: CURRENT_ID, reportID: 'rCur'},
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${PREV_ID}`]: {transactionID: PREV_ID, reportID: CONST.REPORT.SPLIT_REPORT_ID},
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${NEXT_ID}`]: {transactionID: NEXT_ID, reportID: 'rNext'},
+            };
+
+            // When the navigation renders
+            renderNavigation();
+
+            // Then the split original isn't counted and its arrow can't open it, since there is no page for it
+            expect(screen.getByText(counterFor(1, 2))).toBeTruthy();
+            expectArrowDisabled('prev-button', true);
+            press('prev-button');
+            expect(Navigation.setParams).not.toHaveBeenCalled();
+        });
+
         // The other half of that rule, and the regression guard that matters: a confirmed delete SETs
         // `transactions_<id>` to null, so once the collection has loaded, absence means the expense is gone. Keeping
         // it would re-admit a deleted expense one network round-trip after the optimistic delete dropped it, which is
