@@ -128,9 +128,19 @@ describe('useAccountingConnectionListings', () => {
         expect(findListing(CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE)).toBeDefined();
     });
 
+    it('should offer Zoho Books to a workspace without any beta', () => {
+        // Given a workspace with no accounting connection and no betas
+        mockEnabledBetas = [];
+
+        // When the accounting listings are built
+        const zohoBooks = findListing(CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS);
+
+        // Then Zoho Books is offered, because it no longer needs a beta
+        expect(zohoBooks).toBeDefined();
+    });
+
     it('should pass a failed Zoho Books connect error to the Zoho Books card', () => {
         // Given the Zoho Books OAuth flow failed after leaving the app, so the backend left its error on the policy
-        mockEnabledBetas = [CONST.BETAS.ZOHO_BOOKS];
         const connectError = 'Zoho Books organizations with multiple locations are not supported yet.';
         const policyWithConnectError: Policy = {...policy, connectErrors: {[CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: connectError}};
 
@@ -144,7 +154,6 @@ describe('useAccountingConnectionListings', () => {
 
     it('should hide a failed Zoho Books connect error once another accounting integration is connected', () => {
         // Given Zoho Books failed to connect, and the admin then connected Campfire instead, which leaves the saved Zoho Books error in place
-        mockEnabledBetas = [CONST.BETAS.ZOHO_BOOKS];
         mockConnectedIntegration = CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE;
         const policyWithConnectError: Policy = {
             ...policy,
