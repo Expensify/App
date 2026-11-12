@@ -1,5 +1,4 @@
 import ImageView from '@components/ImageView';
-import type ImageViewProps from '@components/ImageView/types';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 
 import useLocalize from '@hooks/useLocalize';
@@ -12,7 +11,7 @@ import React from 'react';
 import type {AttachmentViewProps} from '..';
 
 type AttachmentViewImageProps = Pick<AttachmentViewProps, 'attachmentID' | 'isAuthTokenRequired' | 'file' | 'onPress'> & {
-    url: ImageViewProps['url'];
+    url: string | number;
 
     loadComplete: boolean;
 

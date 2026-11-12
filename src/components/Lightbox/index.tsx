@@ -5,7 +5,6 @@ import type {Attachment} from '@components/Attachments/types';
 import Image from '@components/Image';
 import type {ImageOnLoadEvent} from '@components/Image/types';
 import ImageLoadTimeoutNotice from '@components/ImageLoadTimeoutNotice';
-import type ImageViewProps from '@components/ImageView/types';
 import MultiGestureCanvas, {DEFAULT_ZOOM_RANGE} from '@components/MultiGestureCanvas';
 import type {OnScaleChangedCallback, ZoomRange} from '@components/MultiGestureCanvas/types';
 import {getCanvasFitScale} from '@components/MultiGestureCanvas/utils';
@@ -33,7 +32,7 @@ const FALLBACK_OFFSET = 2;
 
 const LOADING_CONTEXT = {context: 'Lightbox'};
 
-const cachedImageDimensions = new Map<ImageViewProps['url'], Dimensions | undefined>();
+const cachedImageDimensions = new Map<string | number, Dimensions | undefined>();
 
 function getImagePriority(isActive: boolean, isLightboxVisible: boolean) {
     if (isActive) {
@@ -50,7 +49,7 @@ type LightboxProps = Pick<Attachment, 'attachmentID'> & {
     isAuthTokenRequired?: boolean;
 
     /** URI to full-sized attachment, or a static image asset on native */
-    uri: ImageViewProps['url'];
+    uri: string | number;
 
     /** Triggers whenever the zoom scale changes */
     onScaleChanged?: OnScaleChangedCallback;
