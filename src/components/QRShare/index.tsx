@@ -41,6 +41,8 @@ function QRShare({
 }: QRShareProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    // The box is sized to the RHP's default width, so it has to tell full-screen mobile apart from an RHP, which shouldUseNarrowLayout lumps together
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {windowWidth, windowHeight} = useWindowDimensions();
     const qrCodeContainerWidth = isSmallScreenWidth ? windowWidth : variables.rhpWidth;
@@ -50,8 +52,7 @@ function QRShare({
 
     const {formatPhoneNumber, translate} = useLocalize();
 
-    const defaultQrCodeSize = qrCodeContainerWidth - styles.ph5.paddingHorizontal * 2 - variables.qrShareHorizontalPadding * 2;
-    const [qrCodeSize, setQrCodeSize] = useState<number>(defaultQrCodeSize);
+    const [qrCodeSize, setQrCodeSize] = useState<number>(qrCodeContainerWidth - styles.ph5.paddingHorizontal * 2 - variables.qrShareHorizontalPadding * 2);
     const svgRef = useRef<Svg | undefined>(undefined);
 
     useImperativeHandle(
@@ -64,13 +65,12 @@ function QRShare({
 
     const onLayout = (event: LayoutChangeEvent) => {
         const containerWidth = event.nativeEvent.layout.width - variables.qrShareHorizontalPadding * 2 || 0;
-        // A resizable RHP can be much wider than the default, so cap the code at its default-width size to keep the page from scrolling
-        setQrCodeSize(Math.max(1, isSmallScreenWidth ? containerWidth : Math.min(containerWidth, defaultQrCodeSize)));
+        setQrCodeSize(Math.max(1, containerWidth));
     };
 
     return (
         <View
-            style={[styles.shareCodeContainer, additionalStyles]}
+            style={[styles.shareCodeContainer, !isSmallScreenWidth && styles.shareCodeContainerWideLayout, additionalStyles]}
             onLayout={onLayout}
         >
             {shouldShowExpensifyLogo && (

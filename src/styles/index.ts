@@ -5178,6 +5178,11 @@ const staticStyles = (theme: ThemeColors) =>
             borderWidth: 2,
         },
 
+        shareCodeContainerWideLayout: {
+            maxWidth: variables.rhpWidth - spacing.ph5.paddingHorizontal * 2,
+            alignSelf: 'center',
+        },
+
         shareCodeContainerDownloadPadding: {
             paddingHorizontal: 12,
             paddingVertical: 12,
