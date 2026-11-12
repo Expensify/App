@@ -159,6 +159,37 @@ function getEmployeeNextApproverEmail(employee: PolicyEmployee | undefined, amou
     return isApproverEmail(nextEmail) && !isOverLimitToThemselves ? nextEmail : undefined;
 }
 
+/**
+ * The approvers that reports from members outside `excludedMemberEmails` can reach without approval workflow rules. Members
+ * without an approver of their own submit to the default approver, so everyone the default approver's reports reach counts too.
+ */
+function getApproverEmailsReachedByOtherMembers(employees: PolicyEmployeeList, excludedMemberEmails: Set<string>, defaultApprover: string | undefined): Set<string> {
+    const reachedEmails = new Set<string>();
+    const emailsToVisit = isApproverEmail(defaultApprover) ? [defaultApprover] : [];
+    for (const employee of Object.values(employees)) {
+        if (!employee.email || excludedMemberEmails.has(employee.email) || !isApproverEmail(employee.submitsTo)) {
+            continue;
+        }
+        emailsToVisit.push(employee.submitsTo);
+    }
+
+    for (let email = emailsToVisit.pop(); email !== undefined; email = emailsToVisit.pop()) {
+        if (reachedEmails.has(email)) {
+            continue;
+        }
+        reachedEmails.add(email);
+
+        // A report within the approver's limit and one over it can go to different approvers
+        for (const amount of [0, Number.MAX_SAFE_INTEGER]) {
+            const nextEmail = getEmployeeNextApproverEmail(employees[email], amount);
+            if (nextEmail) {
+                emailsToVisit.push(nextEmail);
+            }
+        }
+    }
+    return reachedEmails;
+}
+
 /** Report totals, in cents. A missing bound means there's no limit on that side. */
 type AmountRange = {
     /** Exclusive */
@@ -693,9 +724,15 @@ function convertApprovalWorkflowToPolicyEmployees({
 
     const isRemoving = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE;
     const nextHopsByApprover = isRemoving ? [] : getApproversNextHops(approvalWorkflow.approvers);
+
+    // An approver's employee settings route the reports of every workflow they're in, so removing this workflow leaves alone
+    // the settings of approvers that other members' reports still reach
+    const approverEmailsReachedByOthers = isRemoving
+        ? getApproverEmailsReachedByOtherMembers(previousEmployeeList, new Set(approvalWorkflow.members.map(({email}) => email)), defaultApprover)
+        : new Set<string>();
     for (const [index, approver] of approvalWorkflow.approvers.entries()) {
         // A non-member approver has no employee entry to update, and sending one would add a fake employee
-        if (approver.isNotWorkspaceMember) {
+        if (approver.isNotWorkspaceMember || approverEmailsReachedByOthers.has(approver.email)) {
             continue;
         }
 

@@ -267,11 +267,10 @@ function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
     }
 
     const previousEmployeeList = Object.fromEntries(Object.entries(policy.employeeList ?? {}).map(([key, value]) => [key, {...value, pendingAction: null}]));
-    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: CONST.APPROVAL_WORKFLOW.TYPE.REMOVE});
+    const defaultApprover = getDefaultApprover(policy);
+    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: CONST.APPROVAL_WORKFLOW.TYPE.REMOVE, defaultApprover});
     // Deep merge at the employee level to preserve fields not included in updatedEmployees (e.g., overLimitForwardsTo)
     const mergedEmployeeList = Object.fromEntries(Object.keys({...previousEmployeeList, ...updatedEmployees}).map((key) => [key, {...previousEmployeeList[key], ...updatedEmployees[key]}]));
-
-    const defaultApprover = getDefaultApprover(policy);
 
     // The removed workflow's members are sent with an empty `submitsTo`, which the backend resolves to the default
     // approver. Storing that empty value optimistically would instead read as "no approver at all" until the response

@@ -1362,6 +1362,57 @@ describe('WorkflowUtils', () => {
             expect(convertedEmployees['1@example.com']?.overLimitForwardsTo).toBe('');
         });
 
+        it('Should keep the settings of approvers other members still reach when removing a workflow', () => {
+            // Given 5@example.com submits to 1@example.com, who sends the reports over 500.00 to 3@example.com and the rest to
+            // 2@example.com, while 6@example.com submits straight to 3@example.com, who forwards to 4@example.com
+            const previousEmployeeList: PolicyEmployeeList = {
+                '1@example.com': {email: '1@example.com', submitsTo: '9@example.com', forwardsTo: '2@example.com', approvalLimit: 50000, overLimitForwardsTo: '3@example.com'},
+                '2@example.com': {email: '2@example.com', submitsTo: '9@example.com'},
+                '3@example.com': {email: '3@example.com', submitsTo: '9@example.com', forwardsTo: '4@example.com'},
+                '4@example.com': {email: '4@example.com', submitsTo: '9@example.com'},
+                '5@example.com': {email: '5@example.com', submitsTo: '1@example.com'},
+                '6@example.com': {email: '6@example.com', submitsTo: '3@example.com'},
+                '9@example.com': {email: '9@example.com', submitsTo: '9@example.com'},
+            };
+            const approvalWorkflow: ApprovalWorkflow = {
+                members: [buildMember(5)],
+                approvers: [buildApprover(1), buildApprover(3, {overLimitAmount: 50000}), buildApprover(4), buildApprover(2)],
+                isDefault: false,
+            };
+
+            // When 5@example.com's workflow is removed
+            const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: 'remove', defaultApprover: '9@example.com'});
+
+            // Then 1@example.com no longer forwards anything, while 3@example.com still forwards 6@example.com's reports to 4@example.com
+            expect(convertedEmployees['1@example.com']).toMatchObject({forwardsTo: '', approvalLimit: null, overLimitForwardsTo: ''});
+            expect(convertedEmployees['3@example.com']).toBeUndefined();
+            expect(convertedEmployees['4@example.com']).toBeUndefined();
+        });
+
+        it("Should keep the settings of approvers the default approver's reports reach when removing a workflow", () => {
+            // Given the default approver 9@example.com forwards to 2@example.com, who also approves 5@example.com's workflow
+            // before forwarding to 3@example.com
+            const previousEmployeeList: PolicyEmployeeList = {
+                '1@example.com': {email: '1@example.com', submitsTo: '9@example.com', forwardsTo: '2@example.com'},
+                '2@example.com': {email: '2@example.com', submitsTo: '9@example.com', forwardsTo: '3@example.com'},
+                '3@example.com': {email: '3@example.com', submitsTo: '9@example.com'},
+                '5@example.com': {email: '5@example.com', submitsTo: '1@example.com'},
+                '9@example.com': {email: '9@example.com', submitsTo: '9@example.com', forwardsTo: '2@example.com'},
+            };
+            const approvalWorkflow: ApprovalWorkflow = {
+                members: [buildMember(5)],
+                approvers: [buildApprover(1), buildApprover(2), buildApprover(3)],
+                isDefault: false,
+            };
+
+            // When 5@example.com's workflow is removed, sending them to the default workflow
+            const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: 'remove', defaultApprover: '9@example.com'});
+
+            // Then only 1@example.com stops forwarding, since the default workflow still goes through 2@example.com
+            expect(convertedEmployees['1@example.com']).toMatchObject({forwardsTo: ''});
+            expect(convertedEmployees['2@example.com']).toBeUndefined();
+        });
+
         it('Should include pendingFields for approvalLimit and overLimitForwardsTo when they change', () => {
             const previousEmployeeList: PolicyEmployeeList = {
                 '1@example.com': {
