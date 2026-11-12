@@ -91,10 +91,12 @@ function buildRow(rate: Rate): DistanceRateTableItemData {
         rateID: rate.customUnitRateID,
         rate,
         formattedRate: '$14.00 / mile',
+        formattedTaxReclaimable: '',
         enabled: true,
         isLocked: false,
         canEditName: true,
         canEditRate: false,
+        canEditTaxReclaimable: false,
         action: jest.fn(),
         dismissError: jest.fn(),
         onToggleEnabled: jest.fn(),
@@ -102,6 +104,7 @@ function buildRow(rate: Rate): DistanceRateTableItemData {
             renameDistanceRateInline(TestHelper.translateLocal, POLICY_ID, CUSTOM_UNIT, rate, newName);
         },
         onChangeRate: jest.fn(),
+        onChangeTaxReclaimable: jest.fn(),
     };
 }
 
@@ -119,6 +122,7 @@ function renderTable() {
                                 selectionEnabled={false}
                                 selectedKeys={[]}
                                 canWriteDistanceRates
+                                isDistanceRateTaxEnabled={false}
                                 onRowSelectionChange={jest.fn()}
                             />
                         </ScreenWrapperStatusContext.Provider>

@@ -239,6 +239,9 @@ type MoneyRequestInformationParams = {
     newReimbursableTotal?: number;
     newNonReimbursableTotal?: number;
     newUnheldReimbursableTotal?: number;
+
+    /** The change in the report total belongs to held expenses, so the unheld totals stay the same. */
+    isReportTotalChangeOnHold?: boolean;
     testDriveCommentReportActionID?: string;
     optimisticChatReportID?: string;
     optimisticCreatedReportActionID?: string;
@@ -1313,6 +1316,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         newReimbursableTotal,
         newNonReimbursableTotal,
         newUnheldReimbursableTotal,
+        isReportTotalChangeOnHold = false,
         testDriveCommentReportActionID,
         optimisticChatReportID,
         optimisticCreatedReportActionID,
@@ -1495,6 +1499,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         // precisely why an expense in another currency otherwise never reaches the total.
         // Compared with `!== undefined` so a legitimate total of 0 is applied instead of being read as "no override".
         const hasReportTotalOverride = newReportTotal !== undefined;
+        // The override is the full report total, which also counts held expenses, so the unheld totals only move by the change in total
+        const reportTotalChange = hasReportTotalOverride ? newReportTotal - (iouReport.total ?? 0) : -reportAmount;
         // Because of the Expense reports are stored as negative values, we subtract the total from the amount
         if (isCurrencyMatching || hasReportTotalOverride) {
             if (!Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
@@ -1513,7 +1519,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                     }
                 } else if (isCurrencyMatching) {
                     // Reimbursable transaction: reflect the change in the freshly tracked reimbursableTotal too.
-                    iouReport.reimbursableTotal = newReportTotal ? newReportTotal - (iouReport.nonReimbursableTotal ?? 0) : previousReimbursableTotal - reportAmount;
+                    iouReport.reimbursableTotal = previousReimbursableTotal + reportTotalChange;
                 }
 
                 // The reimbursable totals are what the report preview and details actually read, so they are
@@ -1526,15 +1532,10 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                 }
                 didUpdateOptimisticTotal = true;
             }
-            if (typeof iouReport.unheldTotal === 'number') {
-                // Use newReportTotal in scenarios where the total is based on more than just the current transaction amount, and we need to override it manually
-                if (hasReportTotalOverride) {
-                    iouReport.unheldTotal = newReportTotal;
-                } else {
-                    iouReport.unheldTotal -= reportAmount;
-                }
+            if (typeof iouReport.unheldTotal === 'number' && !isReportTotalChangeOnHold) {
+                iouReport.unheldTotal += reportTotalChange;
                 if (reimbursable && newUnheldReimbursableTotal === undefined && isCurrencyMatching) {
-                    iouReport.unheldReimbursableTotal = newReportTotal ? newReportTotal - (iouReport.unheldNonReimbursableTotal ?? 0) : previousUnheldReimbursableTotal - reportAmount;
+                    iouReport.unheldReimbursableTotal = previousUnheldReimbursableTotal + reportTotalChange;
                 }
             }
         }

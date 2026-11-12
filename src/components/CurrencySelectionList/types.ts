@@ -21,6 +21,9 @@ type CurrencySelectionListProps = Partial<SelectionListWithSectionsProps<Currenc
     /** List of excluded currency codes */
     excludedCurrencies?: string[];
 
+    /** Whether Any currency is offered at the top of the All section. */
+    shouldAllowEmptySelection?: boolean;
+
     didScreenTransitionEnd?: boolean;
 };
 
