@@ -4,6 +4,7 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
+import type useBankPaySkippedModal from '@hooks/useBankPaySkippedModal';
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 import type {SearchHeaderOptionValue} from '@hooks/useSearchBulkActions';
 
@@ -185,7 +186,8 @@ jest.mock('@hooks/useBulkPayOptions', () => ({
     },
 }));
 
-const mockShowBankPaySkippedModal = jest.fn();
+type ShowBankPaySkippedModal = ReturnType<typeof useBankPaySkippedModal>['showBankPaySkippedModal'];
+const mockShowBankPaySkippedModal = jest.fn<ReturnType<ShowBankPaySkippedModal>, Parameters<ShowBankPaySkippedModal>>();
 jest.mock('@hooks/useBankPaySkippedModal', () => ({
     __esModule: true,
     default: () => ({showBankPaySkippedModal: mockShowBankPaySkippedModal}),
@@ -800,7 +802,11 @@ describe('useSearchBulkActions - bank pay with nothing owed', () => {
         mockAreAllMatchingItemsSelected = false;
         mockExcludedTransactions = {};
         mockCurrentSearchResults = undefined;
-        mockSelectedTransactions = {};
+        // Selecting a report selects its expenses too, and the bulk actions need at least one selected expense
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction({reportID: OWED_REPORT_ID}),
+            tx3: makeSelectedTransaction({reportID: NON_REIMBURSABLE_REPORT_ID}),
+        };
         mockSelectedReports = [makeSelectedReport({reportID: OWED_REPORT_ID, chatReportID: '2'}), makeSelectedReport({reportID: NON_REIMBURSABLE_REPORT_ID, chatReportID: '4', total: 50})];
         jest.mocked(getLastPolicyPaymentMethod).mockReturnValue(CONST.IOU.PAYMENT_TYPE.VBBA);
 
@@ -866,6 +872,7 @@ describe('useSearchBulkActions - bank pay with nothing owed', () => {
 
     it('pays nothing and explains why when every selected report has nothing owed', async () => {
         // Given a selection holding only the non-reimbursable report
+        mockSelectedTransactions = {tx3: makeSelectedTransaction({reportID: NON_REIMBURSABLE_REPORT_ID})};
         mockSelectedReports = [makeSelectedReport({reportID: NON_REIMBURSABLE_REPORT_ID, chatReportID: '4', total: 50})];
         const {result} = await renderBulkActions();
 
@@ -877,7 +884,7 @@ describe('useSearchBulkActions - bank pay with nothing owed', () => {
         // Then the modal explains that none of the reports can be paid through the bank account, without listing them
         await waitFor(() => expect(mockShowBankPaySkippedModal).toHaveBeenCalledTimes(1));
         expect(mockShowBankPaySkippedModal).toHaveBeenCalledWith(expect.objectContaining({bankAccountID: BANK_ACCOUNT_ID}));
-        expect(mockShowBankPaySkippedModal).toHaveBeenCalledWith(expect.not.objectContaining({skippedReports: expect.anything()}));
+        expect(mockShowBankPaySkippedModal.mock.calls.at(0)?.at(0)?.skippedReports).toBeUndefined();
 
         // And nothing is paid while the selection stays, so the user can mark the reports as paid right away
         expect(payMoneyRequest).not.toHaveBeenCalled();

@@ -31764,7 +31764,7 @@ describe('isBankPayBlockedBySpend', () => {
         reimbursableTotal: undefined,
         pendingFields: undefined,
     };
-    const policy: Policy = {
+    const manualReimbursementPolicy: Policy = {
         ...createRandomPolicy(9101, CONST.POLICY.TYPE.TEAM),
         reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
     };
@@ -31775,7 +31775,7 @@ describe('isBankPayBlockedBySpend', () => {
 
         // When checking whether the bank account can't pay it
         // Then it can't, so the bank option explains why instead of being hidden
-        expect(isBankPayBlockedBySpend(report, policy)).toBe(true);
+        expect(isBankPayBlockedBySpend(report, manualReimbursementPolicy)).toBe(true);
     });
 
     it('returns true when the reimbursable total is negative', () => {
@@ -31784,20 +31784,20 @@ describe('isBankPayBlockedBySpend', () => {
 
         // When checking whether the bank account can't pay it
         // Then it can't, since product treats a total of zero or less like a non-reimbursable report
-        expect(isBankPayBlockedBySpend(report, policy)).toBe(true);
+        expect(isBankPayBlockedBySpend(report, manualReimbursementPolicy)).toBe(true);
     });
 
     it('returns false when there is reimbursable spend to pay', () => {
         // Given a report with a $50 reimbursable expense, so money is owed
         // When checking whether the bank account can't pay it
         // Then it can, so it is paid like any other report
-        expect(isBankPayBlockedBySpend(expenseReport, policy)).toBe(false);
+        expect(isBankPayBlockedBySpend(expenseReport, manualReimbursementPolicy)).toBe(false);
     });
 
     it('returns false when the workspace has reimbursements turned off', () => {
         // Given a non-reimbursable report on a workspace that never pays through a bank account
         const report: Report = {...expenseReport, nonReimbursableTotal: -5000};
-        const noReimbursementPolicy: Policy = {...policy, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO};
+        const noReimbursementPolicy: Policy = {...manualReimbursementPolicy, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO};
 
         // When checking whether the bank account can't pay it because of its spend
         // Then it isn't the spend that blocks it, so the bank option stays hidden as before
@@ -31810,7 +31810,7 @@ describe('isBankPayBlockedBySpend', () => {
 
         // When checking whether the bank account can't pay it
         // Then it fails closed, so a report that may be owed is never left out of a bank payment
-        expect(isBankPayBlockedBySpend(report, policy)).toBe(false);
+        expect(isBankPayBlockedBySpend(report, manualReimbursementPolicy)).toBe(false);
     });
 
     it('returns false while the report total is pending', () => {
@@ -31819,7 +31819,7 @@ describe('isBankPayBlockedBySpend', () => {
 
         // When checking whether the bank account can't pay it
         // Then it fails closed until the total settles
-        expect(isBankPayBlockedBySpend(report, policy)).toBe(false);
+        expect(isBankPayBlockedBySpend(report, manualReimbursementPolicy)).toBe(false);
     });
 
     it('returns false for an IOU report', () => {
@@ -31828,7 +31828,7 @@ describe('isBankPayBlockedBySpend', () => {
 
         // When checking whether the bank account can't pay it
         // Then it doesn't apply, since only expense reports are paid through a business bank account
-        expect(isBankPayBlockedBySpend(report, policy)).toBe(false);
+        expect(isBankPayBlockedBySpend(report, manualReimbursementPolicy)).toBe(false);
     });
 });
 

@@ -1814,13 +1814,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const bankPaySkippedReportIDs = new Set(bankPaySkippedReports.map(({reportID}) => reportID));
             const showBankPaySkippedReports = (skippedReports?: BankPaySkippedReport[]) =>
                 // Bulk pay runs while the pay popover is still dismissing, and iOS can't present a modal until it's gone
-                deferModalPresentationAfterPopoverDismiss(() =>
+                deferModalPresentationAfterPopoverDismiss(() => {
                     showBankPaySkippedModal({
                         bankAccountID: expenseReportBankAccountID,
                         policy: getPolicyFromSearchSnapshot(payScopedPolicyIDs.at(0), searchResults?.data, policies),
                         skippedReports,
-                    }),
-                );
+                    });
+                });
             if (bankPaySkippedReports.length > 0 && selectedOptions.every((item) => !!item.reportID && bankPaySkippedReportIDs.has(item.reportID))) {
                 Log.info('[BulkPay] Dropping bulk pay: every selected report is non-reimbursable or totals $0 or less');
                 showBankPaySkippedReports();
