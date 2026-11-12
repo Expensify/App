@@ -33,7 +33,7 @@ import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {startOfDay, subMonths} from 'date-fns';
+import {isValid, startOfDay, subMonths} from 'date-fns';
 
 import type {OptionData} from './ReportUtils';
 
@@ -1125,12 +1125,35 @@ function filterReportsForInboxTab(reportIDs: string[], reportsToDisplay: Reports
 }
 
 /**
+ * Whether an unread LHN report counts toward the "Mark all as read" tooltip. The current user must be a participant who
+ * gets notified about the report, and its newest message must have a valid date older than the stale cutoff.
+ */
+function isStaleUnreadReportForInboxTab(report: ReportsToDisplayInLHN[string], staleUnreadTime: string, currentUserAccountID: number): boolean {
+    const lastVisibleActionCreated = report.lastVisibleActionCreatedForInboxTab ?? report.lastVisibleActionCreated;
+
+    if (!lastVisibleActionCreated || lastVisibleActionCreated >= staleUnreadTime) {
+        return false;
+    }
+
+    // A zero date such as 0000-00-00 sorts before every real timestamp, so it looks older than the cutoff without being a real message time.
+    if (!isValid(new Date(lastVisibleActionCreated))) {
+        return false;
+    }
+
+    // A report the user can open without being a participant (for example from Search) has no lastReadTime for them,
+    // so isUnread treats it as unread. With no participant entry, its notification preference resolves to hidden.
+    return getReportNotificationPreference(report, currentUserAccountID) !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+}
+
+/**
  * Summarizes the ordered reports for the Inbox tab row: how many fall into the To-do and Unread tabs (for the count
- * badge shown on each), and whether any unread report's newest message is older than CONST.INBOX_TAB_STALE_UNREAD_MONTHS.
+ * badge shown on each), and whether any unread report the user participates in has a newest message older than
+ * CONST.INBOX_TAB_STALE_UNREAD_MONTHS.
  */
 function getInboxTabSummary(
     reportIDs: string[],
     reportsToDisplay: ReportsToDisplayInLHN,
+    currentUserAccountID: number,
 ): {counts: Record<typeof CONST.INBOX_TAB.TODO | typeof CONST.INBOX_TAB.UNREAD, number>; hasStaleUnreadReport: boolean} {
     const staleUnreadTime = DateUtils.getDBTime(subMonths(startOfDay(new Date()), CONST.INBOX_TAB_STALE_UNREAD_MONTHS).valueOf());
     let todoCount = 0;
@@ -1147,7 +1170,7 @@ function getInboxTabSummary(
         }
         if (report.isUnreadReport) {
             unreadCount++;
-            hasStaleUnreadReport = hasStaleUnreadReport || (report.lastVisibleActionCreatedForInboxTab ?? report.lastVisibleActionCreated ?? '') < staleUnreadTime;
+            hasStaleUnreadReport = hasStaleUnreadReport || isStaleUnreadReportForInboxTab(report, staleUnreadTime, currentUserAccountID);
         }
     }
 

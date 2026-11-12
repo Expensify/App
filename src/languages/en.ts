@@ -108,8 +108,10 @@ const translations = {
         dismiss: 'Dismiss',
         // @context Accessible name of the draggable edge between two table columns. "columnName" is the heading of the column to the left of the edge.
         resizeColumn: ({columnName}: {columnName: string}) => `Resize ${columnName} column`,
-        // @context Spoken by screen readers for the width of a table column while its edge is resized.
-        columnWidth: ({width}: {width: number}) => `${width} pixels`,
+        // @context Accessible name of the draggable edge of a side panel, such as the right-hand panel.
+        resizePanel: 'Resize panel',
+        // @context Spoken by screen readers for the width of a table column or panel while its edge is resized.
+        widthInPixels: ({width}: {width: number}) => `${width} pixels`,
         // @context Used on a button to continue an action or workflow, not the formal or procedural sense of “to proceed.”
         proceed: 'Proceed',
         unshare: 'Unshare',
@@ -1371,6 +1373,11 @@ const translations = {
         topViolations: 'Top violations',
         violationsBySubmitter: 'Violations by submitter',
         violationsByApprover: 'Violations by approver',
+        efficiency: 'Efficiency',
+        workflowEfficiency: 'Workflow efficiency',
+        longestToSubmit: 'Longest to submit',
+        slowestToApprove: 'Slowest to approve',
+        mostTimeToPay: 'Most time to pay',
         runningTotal: 'Running total',
         compare: {
             label: 'Compare',
@@ -1720,6 +1727,12 @@ const translations = {
             return {
                 one: (count: number) => `${formattedCount ?? count} expense`,
                 other: (count: number) => `${formattedCount ?? count} expenses`,
+            };
+        },
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} report`,
+                other: (count: number) => `${formattedCount ?? count} reports`,
             };
         },
         deleteExpense: () => ({
@@ -7089,6 +7102,7 @@ const translations = {
             },
         },
         digits: {
+            entity: 'Entity',
             updateCurrencyTitle: 'Update workspace currency?',
             updateCurrencyPrompt: 'Digits is currently only available for US-based companies that operate in USD.',
             importDescription: 'Choose which Digits configurations to import.',
@@ -10409,6 +10423,25 @@ const translations = {
             return `changed the "${categoryName}" category Itemized receipts to ${newValue} (previously ${oldValue})`;
         },
         setCategoryName: (oldName: string, newName: string) => `renamed the category "${oldName}" to "${newName}"`,
+        setCategoryVisibility: (members: string, categories: string) => `set ${members} to only see ${categories}`,
+        changedCategoryVisibility: (members: string, categories: string) => `changed ${members} to only see ${categories}`,
+        clearedCategoryVisibility: (members: string) => `changed ${members} to see all categories`,
+        quotedCategoryName: (categoryName: string) => `"${categoryName}"`,
+        oneCategory: (categoryName: string) => `the ${categoryName} category`,
+        someCategories: (categoryList: string) => `the ${categoryList} categories`,
+        everyone: 'everyone',
+        categoryCount: ({count}: {count: number}) => ({
+            one: '1 category',
+            other: `${count} categories`,
+        }),
+        memberCount: ({count}: {count: number}) => ({
+            one: '1 member',
+            other: `${count} members`,
+        }),
+        categoryVisibilityCategoriesList: (categoryList: string) => `Categories: ${categoryList}`,
+        categoryVisibilityMembersList: (memberList: string) => `Members: ${memberList}`,
+        categoryVisibilityReasonDeleted: ', since their only category was deleted. Update their category visibility if needed.',
+        categoryVisibilityReasonDisabled: ', since their only category was disabled. Update their category visibility if needed.',
         updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `removed the description hint "${oldValue}" from the category "${categoryName}"`;
@@ -11368,6 +11401,7 @@ const translations = {
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarter',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approver',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Violation',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Paid by',
             },
             feed: 'Feed',
             transactionStatus: {
@@ -11434,6 +11468,7 @@ const translations = {
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarters',
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approvers',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Violations',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Payers',
         },
         moneyRequestReport: {
             emptyStateTitle: 'No expenses yet',
