@@ -70,7 +70,6 @@ jest.mock('@libs/actions/IOU', () => {
         ...actual,
         requestMoney: jest.fn(() => ({iouReport: undefined})),
         trackExpense: jest.fn(),
-        createDistanceRequest: jest.fn(),
     };
 });
 
