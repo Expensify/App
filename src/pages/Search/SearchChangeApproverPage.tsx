@@ -180,9 +180,14 @@ function SearchChangeApproverPage() {
     };
     const selectedPolicies = getSelectedPolicies();
     const areSelectedPoliciesLoaded = selectedReports.every((selectedReport) => !!allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`]);
+    const hasAdminPermission = selectedReports.every((selectedReport) => {
+        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
+        return !!policy && isPolicyAdmin(policy) && !isPendingDeletePolicy(policy);
+    });
+    const approverType = hasAdminPermission ? selectedApproverType : APPROVER_TYPE.REASSIGN_APPROVER;
 
     const changeApprover = () => {
-        if (selectedApproverType === APPROVER_TYPE.ADD_APPROVER) {
+        if (approverType === APPROVER_TYPE.ADD_APPROVER) {
             const policiesToUpgrade = selectedPolicies.filter((policy) => !isControlPolicy(policy));
             if (policiesToUpgrade.length > 1) {
                 // Bulk upgrade is not supported, so show a general page to guide the user to upgrade manually
@@ -207,7 +212,7 @@ function SearchChangeApproverPage() {
             return;
         }
 
-        if (selectedApproverType === APPROVER_TYPE.REASSIGN_APPROVER) {
+        if (approverType === APPROVER_TYPE.REASSIGN_APPROVER) {
             Navigation.navigate(ROUTES.CHANGE_APPROVER_REASSIGN_APPROVER_SEARCH_RHP);
             return;
         }
@@ -238,19 +243,15 @@ function SearchChangeApproverPage() {
     };
 
     const getApproverTypes = () => {
-        const data: Array<ListItem<ApproverType>> = [
-            {
+        const data: Array<ListItem<ApproverType>> = [];
+        if (hasAdminPermission) {
+            data.push({
                 text: translate('iou.changeApprover.actions.addApprover'),
                 keyForList: APPROVER_TYPE.ADD_APPROVER,
                 alternateText: translate('iou.changeApprover.actions.addApproverSubtitle'),
-                isSelected: selectedApproverType === APPROVER_TYPE.ADD_APPROVER,
-            },
-        ];
-
-        const hasAdminPermission = selectedReports.every((selectedReport) => {
-            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
-            return !!policy && isPolicyAdmin(policy) && !isPendingDeletePolicy(policy);
-        });
+                isSelected: approverType === APPROVER_TYPE.ADD_APPROVER,
+            });
+        }
         const canReassign = canReassignAllReports({selectedReports, onyxReports, allPolicies, currentUserAccountID: currentUserDetails.accountID, areStrictPolicyRulesEnabled});
 
         const isAllowedToBypassApprovers =
@@ -267,7 +268,7 @@ function SearchChangeApproverPage() {
                 text: translate('iou.changeApprover.actions.bypassApprovers'),
                 keyForList: APPROVER_TYPE.BYPASS_APPROVER,
                 alternateText: translate('iou.changeApprover.actions.bypassApproversSubtitle'),
-                isSelected: selectedApproverType === APPROVER_TYPE.BYPASS_APPROVER,
+                isSelected: approverType === APPROVER_TYPE.BYPASS_APPROVER,
             });
         }
 
@@ -276,7 +277,7 @@ function SearchChangeApproverPage() {
                 text: translate('iou.changeApprover.actions.reassignApprover'),
                 keyForList: APPROVER_TYPE.REASSIGN_APPROVER,
                 alternateText: translate('iou.changeApprover.actions.reassignApproverSubtitle'),
-                isSelected: selectedApproverType === APPROVER_TYPE.REASSIGN_APPROVER,
+                isSelected: approverType === APPROVER_TYPE.REASSIGN_APPROVER,
             });
         }
 
@@ -287,7 +288,8 @@ function SearchChangeApproverPage() {
     // useLayoutEffect (not useEffect) so the RHP closes before the browser paints,
     // avoiding a single-frame flash of an empty list after reports are cleared.
     useLayoutEffect(() => {
-        if (selectedReports.length && approverTypes.at(0)) {
+        // An empty menu can mean permissions are still loading, so wait before closing the flow.
+        if (selectedReports.length && (isLoadingBulkChangeApproverPage || !areSelectedPoliciesLoaded || approverTypes.at(0))) {
             return;
         }
 
@@ -300,14 +302,14 @@ function SearchChangeApproverPage() {
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.closeRHPFlow();
         });
-    }, [approverTypes, selectedReports.length]);
+    }, [approverTypes, selectedReports.length, isLoadingBulkChangeApproverPage, areSelectedPoliciesLoaded]);
 
     const shouldAutoApply = shouldAutoApplyApprover({
         isLoadingBulkChangeApproverPage,
         selectedReports,
         onyxReports,
         approverTypes,
-        selectedApproverType,
+        selectedApproverType: approverType,
         areSelectedPoliciesLoaded,
     });
 
@@ -371,7 +373,7 @@ function SearchChangeApproverPage() {
                     confirmButtonOptions={confirmButtonOptions}
                     shouldUpdateFocusedIndex
                     customListHeader={listHeader}
-                    initiallyFocusedItemKey={selectedApproverType}
+                    initiallyFocusedItemKey={approverType}
                 />
             )}
         </ScreenWrapper>
