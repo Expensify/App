@@ -1265,9 +1265,6 @@ const SENTRY_LABEL = {
     REPORT_PICKER_MODAL: {
         BACK_BUTTON: 'ReportPickerModal-BackButton',
     },
-    REPORT_PICKER: {
-        NO_REPORT: 'ReportPicker-SelectNoReport',
-    },
     ATTENDEE_PICKER_MODAL: {
         BACK_BUTTON: 'AttendeePickerModal-BackButton',
     },
@@ -1727,7 +1724,6 @@ const SENTRY_LABEL = {
                 ENABLE: 'WorkspaceDistanceRates-BulkActions-Enable',
             },
             BULK_ACTIONS_DELETE: 'WorkspaceDistanceRates-BulkActionsDelete',
-            MORE_MENU_SETTINGS: 'WorkspaceDistanceRates-MoreMenuSettings',
             COMMUTER_EXCLUSIONS_SAVE: 'WorkspaceDistanceRates-CommuterExclusionsSave',
             COMMUTER_EXCLUSIONS_WORK_ARRANGEMENT: 'WorkspaceDistanceRates-CommuterExclusionsWorkArrangement',
             RATE_DETAILS_DELETE: 'WorkspaceDistanceRates-RateDetailsDelete',
@@ -1795,6 +1791,7 @@ const SENTRY_LABEL = {
         },
         ACCOUNTING: {
             EXACT_ONLINE_WAITLIST_BUTTON: 'WorkspaceAccounting-ExactOnlineWaitlistButton',
+            JOIN_WAITLIST_BUTTON: 'WorkspaceAccounting-JoinWaitlist',
             CARD_RECONCILIATION_ACCOUNT: 'WorkspaceAccounting-CardReconciliationAccount',
             CLAIM_OFFER: 'WorkspaceAccounting-ClaimOffer',
             CLAIM_OFFER_CONNECT: {
