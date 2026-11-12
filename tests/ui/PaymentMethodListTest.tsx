@@ -313,6 +313,23 @@ describe('PaymentMethodList', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(`settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}`);
     });
 
+    it('offers Continue when Wise needs more info', async () => {
+        // Given a business bank account whose submitted Wise onboarding Wise sent back for more info
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[WISE_BANK_ACCOUNT_ID]: createWiseBusinessBankAccount({status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED})});
+        });
+
+        // When the Wallet's bank accounts list renders and the admin presses Continue
+        renderBankAccountsList();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('Continue.'), {preventDefault: jest.fn()});
+
+        // Then the row says the setup is in progress, since the admin still has answers to give, and Continue opens the status page because the onboarding is already with Wise
+        expect(screen.getByText('Global reimbursements setup in progress.', {exact: false})).toBeOnTheScreen();
+        expect(screen.queryByText('Check status.')).not.toBeOnTheScreen();
+        expect(Navigation.navigate).toHaveBeenCalledWith(`settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}/status`);
+    });
+
     it('shows a submitted Wise onboarding as in review, with Check status opening the status page', async () => {
         // Given a business bank account whose Wise onboarding is in review
         await act(async () => {

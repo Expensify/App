@@ -22,7 +22,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import React from 'react';
 import {View} from 'react-native';
 
-/** Before Submit the admin continues the setup, and after it the setup is with Wise, so the admin can only check its status */
+/** While the admin has something to do they continue the setup, and while Wise reviews it the admin can only check its status */
 const COPY = {
     inProgress: {message: 'walletPage.wiseSetupInProgress.message', link: 'walletPage.wiseSetupInProgress.continue'},
     inReview: {message: 'walletPage.wiseSetupInReview.message', link: 'walletPage.wiseSetupInReview.checkStatus'},
@@ -31,7 +31,10 @@ const COPY = {
 type WiseSetupInProgressRowProps = {
     bankAccountID: number;
 
-    /** Whether the onboarding is already with Wise, so the row says it is in review and links to the status page instead of the intro */
+    /** Whether Wise is reviewing the onboarding with nothing for the admin to do, so the row says it is in review instead of offering to continue it */
+    isInReview: boolean;
+
+    /** Whether the onboarding is already with Wise, so the row links to the status page instead of the intro */
     isOnboardingSubmitted: boolean;
 
     /** Spacing for the row, which follows the list it sits in */
@@ -39,12 +42,12 @@ type WiseSetupInProgressRowProps = {
 };
 
 /** Tells the admin under the Wallet bank account row that its global reimbursements setup is not finished */
-function WiseSetupInProgressRow({bankAccountID, isOnboardingSubmitted, style}: WiseSetupInProgressRowProps) {
+function WiseSetupInProgressRow({bankAccountID, isInReview, isOnboardingSubmitted, style}: WiseSetupInProgressRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Hourglass']);
-    const copy = isOnboardingSubmitted ? COPY.inReview : COPY.inProgress;
+    const copy = isInReview ? COPY.inReview : COPY.inProgress;
 
     const linkRoute = isOnboardingSubmitted ? getWiseOnboardingStatusRoute(bankAccountID) : createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(bankAccountID));
 
