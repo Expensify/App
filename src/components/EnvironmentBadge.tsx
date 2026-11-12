@@ -27,17 +27,15 @@ function EnvironmentBadge() {
     const StyleUtils = useStyleUtils();
     const {environment, isProduction} = useEnvironment();
 
+    if (isProduction) {
+        return null;
+    }
+
     const adhoc = environment === CONST.ENVIRONMENT.ADHOC;
     const success = environment === CONST.ENVIRONMENT.STAGING;
     const error = environment !== CONST.ENVIRONMENT.STAGING && environment !== CONST.ENVIRONMENT.ADHOC;
 
     const badgeEnvironmentStyle = StyleUtils.getEnvironmentBadgeStyle(success, error, adhoc);
-
-    // If we are on production, don't show any badge
-    if (isProduction) {
-        return null;
-    }
-
     const text = isInternalTestBuild() ? `v${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}` : ENVIRONMENT_SHORT_FORM[environment];
 
     return (
