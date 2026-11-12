@@ -34,10 +34,10 @@ By default the wrapper only prints blocking errors — seatbelt-grandfathered vi
 
 ### Editor setup
 
-The oxlint language server doesn't apply the `scripts/lint/` processors either, so grandfathered seatbelt rows show as errors. [`scripts/lint/lsp/oxlintSeatbelt.ts`](../scripts/lint/lsp/oxlintSeatbelt.ts) wraps it and applies the same processors, so the editor matches `npm run lint`: grandfathered errors show as warnings with the seatbelt note. In VS Code, install the [oxc extension](https://marketplace.visualstudio.com/items?itemName=oxc.oxc-vscode) and add this to `.vscode/settings.json`:
+The oxlint language server doesn't apply the `scripts/lint/` processors either, so grandfathered seatbelt rows show as errors. [`scripts/lint/lsp/oxlint.ts`](../scripts/lint/lsp/oxlint.ts) wraps it and applies the same processors, so the editor matches `npm run lint`: grandfathered errors show as warnings with the seatbelt note. In VS Code, install the [oxc extension](https://marketplace.visualstudio.com/items?itemName=oxc.oxc-vscode) and add this to `.vscode/settings.json`:
 
 ```json
-"oxc.path.oxlint": "scripts/lint/lsp/oxlintSeatbelt.ts"
+"oxc.path.oxlint": "scripts/lint/lsp/oxlint.ts"
 ```
 
 Other editors that use the oxlint language server can run the same script in place of `oxlint --lsp`. It needs `bun` on the editor's `PATH`.

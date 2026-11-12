@@ -5,7 +5,7 @@
  * seatbelt rows show as errors in the editor while `npm run lint` passes. This passes all language server
  * traffic through and runs the diagnostics through the same processors as `scripts/lint/index.ts`.
  *
- * VS Code: set `"oxc.path.oxlint": "scripts/lint/lsp/oxlintSeatbelt.ts"`. See contributingGuides/LINTING.md.
+ * VS Code: set `"oxc.path.oxlint": "scripts/lint/lsp/oxlint.ts"`. See contributingGuides/LINTING.md.
  */
 import {readFileSync, statSync} from 'node:fs';
 import path from 'node:path';
