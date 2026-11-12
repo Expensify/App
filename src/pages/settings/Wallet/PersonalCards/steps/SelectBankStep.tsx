@@ -50,7 +50,7 @@ function SelectBankStep() {
                 const bankConnectionURL = getPersonalCardBankConnection(bankSelected);
                 if (bankConnectionURL) {
                     // Browsers only reliably allow popups while handling a direct user action.
-                    openBankConnection(bankConnectionURL);
+                    openBankConnection(bankConnectionURL, true);
                 }
             }
             setAddNewPersonalCardStepAndData({

@@ -72,7 +72,7 @@ function FixPersonalCardConnectionPage({route}: FixPersonalCardConnectionPagePro
         if (!url) {
             return;
         }
-        customWindow = openBankConnection(url);
+        customWindow = openBankConnection(url, true);
     };
 
     const handleBackButtonPress = () => {

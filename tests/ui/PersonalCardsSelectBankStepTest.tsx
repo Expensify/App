@@ -42,7 +42,7 @@ describe('SelectBankStep', () => {
         confirm?.();
 
         // Then the popup opens synchronously before navigating to the connection step
-        expect(openBankConnection).toHaveBeenCalledWith(mockBankConnectionURL);
+        expect(openBankConnection).toHaveBeenCalledWith(mockBankConnectionURL, true);
         expect(setAddNewPersonalCardStepAndData).toHaveBeenCalledWith({
             step: CONST.PERSONAL_CARDS.STEP.BANK_CONNECTION,
             data: {

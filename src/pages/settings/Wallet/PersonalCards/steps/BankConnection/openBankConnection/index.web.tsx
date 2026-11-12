@@ -1,10 +1,15 @@
 const WINDOW_WIDTH = 700;
 const WINDOW_HEIGHT = 600;
 let bankConnectionWindow: Window | null = null;
+let bankConnectionURL: string | null = null;
 
-const handleOpenBankConnectionFlow = (url: string) => {
+const handleOpenBankConnectionFlow = (url: string, shouldRestartConnection = false) => {
     // SelectBankStep opens the popup from the user action before BankConnection requests it again, so reuse it to avoid restarting the connection.
     if (bankConnectionWindow && !bankConnectionWindow.closed) {
+        if (shouldRestartConnection || bankConnectionURL !== url) {
+            bankConnectionWindow.location.href = url;
+            bankConnectionURL = url;
+        }
         bankConnectionWindow.focus();
         return bankConnectionWindow;
     }
@@ -16,6 +21,7 @@ const handleOpenBankConnectionFlow = (url: string) => {
     const popupFeatures = `width=${WINDOW_WIDTH},height=${WINDOW_HEIGHT},left=${left},top=${top},scrollbars=yes,resizable=yes`;
 
     bankConnectionWindow = window.open(url, 'popupWindow', popupFeatures);
+    bankConnectionURL = url;
     return bankConnectionWindow;
 };
 
